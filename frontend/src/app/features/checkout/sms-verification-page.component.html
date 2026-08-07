@@ -1,0 +1,47 @@
+<ion-content [fullscreen]="true" class="verification-content">
+  <button type="button" class="circle-btn back-btn" (click)="onBack()" aria-label="Voltar">
+    <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+  </button>
+
+  <section class="verification-card" aria-labelledby="verification-title">
+    <div class="verification-icon" aria-hidden="true">
+      <ion-icon name="phone-portrait-outline"></ion-icon>
+    </div>
+
+    <p class="eyebrow">Código de segurança</p>
+    <h1 id="verification-title">Confirme seu celular</h1>
+    <p class="verification-copy">
+      Enviamos um SMS com 4 dígitos para <strong>{{ maskedPhone() }}</strong>.
+    </p>
+
+    <div class="otp-grid" role="group" aria-label="Código de confirmação" (paste)="onPaste($event)">
+      @for (digit of digits(); track $index) {
+        <input
+          #digitInput
+          class="otp-input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="1"
+          [ngModel]="digit"
+          (ngModelChange)="setDigit($index, $event)"
+          (keydown)="onKeyDown($event, $index)"
+          [disabled]="submitting()"
+          [attr.aria-label]="'Dígito ' + ($index + 1)"
+        />
+      }
+    </div>
+
+    @if (error()) {
+      <p class="verification-error" role="alert">{{ error() }}</p>
+    }
+
+    <p class="timer" aria-live="polite">
+      {{ timerLabel() }}
+    </p>
+
+    <button type="button" class="resend-btn" [disabled]="!canResend()" (click)="resend()">
+      {{ resending() ? 'Enviando...' : 'Enviar novamente' }}
+    </button>
+  </section>
+</ion-content>

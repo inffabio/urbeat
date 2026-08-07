@@ -1,0 +1,190 @@
+<ng-template #sidebarContent let-mobile="mobile">
+  <div class="brand-row">
+    <div
+      class="brand-mark"
+      [class.has-logo]="!!facade.store()?.logoUrl"
+      [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
+      aria-hidden="true"
+    >
+      @if (facade.store()?.logoUrl) {
+        <span></span>
+      } @else {
+        H
+      }
+    </div>
+    <div class="brand-block">
+      <strong>{{ facade.storeName() }}</strong>
+    </div>
+    @if (!mobile) {
+      <button
+        type="button"
+        class="collapse-btn"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed() ? 'Abrir menu lateral' : 'Fechar menu lateral'"
+        [attr.aria-expanded]="!sidebarCollapsed()"
+      >
+        <ion-icon [attr.name]="sidebarCollapsed() ? 'chevron-forward-outline' : 'chevron-back-outline'"></ion-icon>
+      </button>
+    } @else {
+      <button type="button" class="collapse-btn" (click)="closeMobileMenu()" aria-label="Fechar menu">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    }
+  </div>
+
+  @if (!sidebarCollapsed() || mobile) {
+    <div class="sidebar-context">Painel do Restaurante</div>
+  }
+
+  <section
+    class="store-card"
+    [class.open]="facade.store()?.isOpen"
+    role="status"
+    aria-live="polite"
+    [attr.aria-label]="'Status da loja: ' + (facade.store()?.isOpen ? 'aberta' : 'fechada')"
+  >
+    <div class="store-card-main">
+      <span class="status-dot" aria-hidden="true"></span>
+      @if (!sidebarCollapsed() || mobile) {
+        <div>
+          <strong>{{ facade.store()?.isOpen ? 'Loja aberta' : 'Loja fechada' }}</strong>
+          <span>{{ facade.store()?.isOpen ? 'Recebendo pedidos' : 'Operação pausada' }}</span>
+        </div>
+      }
+    </div>
+    @if (!sidebarCollapsed() || mobile) {
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    }
+  </section>
+
+  <div class="sidebar-nav">
+    <div class="menu-label nav-text" [class.collapsed-divider]="sidebarCollapsed() && !mobile">Menu</div>
+    <nav class="nav-section" aria-label="Navegacao do painel">
+      @for (item of menuItems; track item.route) {
+        <a
+          class="nav-link-app"
+          [routerLink]="item.route"
+          [class.active]="isNavItemActive(item)"
+          [attr.aria-label]="sidebarCollapsed() && !mobile ? item.label : null"
+          [title]="sidebarCollapsed() && !mobile ? item.label : ''"
+          (click)="mobile ? closeMobileMenu() : null"
+        >
+          <ion-icon [attr.name]="item.icon" aria-hidden="true"></ion-icon>
+          <span class="nav-text">{{ item.label }}</span>
+          @if (item.badge && facade.unreadCount() > 0) {
+            <strong class="badge">{{ facade.unreadCount() }}</strong>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="menu-label nav-text" [class.collapsed-divider]="sidebarCollapsed() && !mobile">Sistema</div>
+    <nav class="nav-section" aria-label="Navegacao de sistema">
+      @for (item of systemItems; track item.route) {
+        <a
+          class="nav-link-app"
+          [routerLink]="item.route"
+          [class.active]="isNavItemActive(item)"
+          [attr.aria-label]="sidebarCollapsed() && !mobile ? item.label : null"
+          [title]="sidebarCollapsed() && !mobile ? item.label : ''"
+          (click)="mobile ? closeMobileMenu() : null"
+        >
+          <ion-icon [attr.name]="item.icon" aria-hidden="true"></ion-icon>
+          <span class="nav-text">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </div>
+
+  <div class="sidebar-actions">
+    <a
+      class="mini-btn support-card"
+      href="https://wa.me/5522992095497"
+      target="_blank"
+      rel="noopener noreferrer"
+      [attr.aria-label]="sidebarCollapsed() && !mobile ? 'Suporte WhatsApp' : null"
+      [title]="sidebarCollapsed() && !mobile ? 'Suporte WhatsApp' : ''"
+      (click)="mobile ? closeMobileMenu() : null"
+    >
+      <ion-icon name="logo-whatsapp" aria-hidden="true"></ion-icon>
+      <span class="nav-text support-copy">
+        <strong>Precisa de ajuda?</strong>
+        <small>Fale com nosso suporte</small>
+      </span>
+    </a>
+    <button type="button" class="mini-btn sound-btn" (click)="toggleSound()">
+      <ion-icon [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'" aria-hidden="true"></ion-icon>
+      <span class="nav-text">{{ facade.soundEnabled() ? 'Som ligado' : 'Som desligado' }}</span>
+    </button>
+    <button type="button" class="mini-btn logout-btn" (click)="logout()">
+      <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+      <span class="nav-text">Sair</span>
+    </button>
+  </div>
+</ng-template>
+
+<div class="seller-shell app-shell" [class.is-collapsed]="sidebarCollapsed()">
+  <aside class="sidebar desktop-sidebar" aria-label="Menu do lojista">
+    <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: false }"></ng-container>
+  </aside>
+
+  <button
+    type="button"
+    class="mobile-sidebar-backdrop"
+    [class.is-open]="mobileMenuOpen()"
+    (click)="closeMobileMenu()"
+    aria-label="Fechar menu lateral"
+  ></button>
+
+  <aside class="mobile-sidebar" [class.is-open]="mobileMenuOpen()" aria-label="Menu do lojista no celular">
+    <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: true }"></ng-container>
+  </aside>
+
+  <main id="seller-main-content" class="seller-main main">
+    <header class="mobile-topbar">
+      <button type="button" class="mobile-menu-btn" (click)="openMobileMenu()" aria-label="Abrir menu lateral">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+      <div class="mobile-brand">
+        <div
+          class="mobile-brand-mark"
+          [class.has-logo]="!!facade.store()?.logoUrl"
+          [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
+          aria-hidden="true"
+        >
+          @if (!facade.store()?.logoUrl) { H }
+        </div>
+        <span>{{ facade.storeName() }}</span>
+      </div>
+    </header>
+
+    @if (facade.soundNeedsActivation()) {
+      <button type="button" class="activation-banner" (click)="enableSound()">Ativar som de pedidos</button>
+    }
+
+    @if (facade.store()?.isSubscriptionBlocked) {
+      <div class="subscription-banner" role="alert">
+        <div>
+          <strong>Mensalidade bloqueada</strong>
+          <span>Regularize para evitar interrupcoes na operacao da loja.</span>
+        </div>
+        <a routerLink="/app/mensalidade">Regularizar mensalidade</a>
+      </div>
+    }
+
+    @if (!facade.loading() && !facade.realtimeConnected()) {
+      <div class="realtime-fallback" role="status">
+        <strong>Conexao em tempo real instavel</strong>
+        <span>Use Atualizar se um pedido nao aparecer automaticamente.</span>
+      </div>
+    }
+
+    <div class="new-order-live" aria-live="polite">
+      @if (facade.newOrderPulse(); as orderSignal) {
+        Novo pedido recebido: {{ orderSignal.message }}
+      }
+    </div>
+
+    <router-outlet />
+  </main>
+</div>

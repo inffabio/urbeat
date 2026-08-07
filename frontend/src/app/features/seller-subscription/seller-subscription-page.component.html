@@ -1,0 +1,111 @@
+<section class="seller-dashboard-page subscription-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Mensalidades</h1></div><p class="page-subtitle">Acompanhe suas cobranças e pagamentos.</p></div><div class="top-actions"><button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
+
+  @if (loading()) {
+    <div class="seller-state-card is-loading subscription-state-card" role="status" aria-label="Carregando mensalidade">
+      <strong class="seller-state-title">Carregando mensalidade</strong>
+      <p class="seller-state-copy">Estamos reunindo o plano atual e o historico de cobrancas.</p>
+      <div class="subscription-skeleton" aria-hidden="true">
+        <div class="seller-kpi-card"></div>
+        <div class="seller-kpi-card"></div>
+        <div class="seller-kpi-card"></div>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Nao foi possivel carregar a mensalidade</strong>
+      <p class="seller-state-copy">Confira sua conexao e tente novamente.</p>
+      <div class="seller-state-actions">
+        <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else if (subscription(); as current) {
+    <section class="seller-kpi-grid" aria-label="Resumo da assinatura">
+      <div class="seller-kpi-card">
+        <span class="seller-kpi-label">Plano atual</span>
+        <strong class="seller-kpi-value">{{ current.hasSubscription ? current.planName : 'Sem plano' }}</strong>
+        <span class="seller-kpi-meta">{{ current.hasSubscription ? formatCurrency(current.planAmount) + '/mes' : 'Contratacao pendente para ativar cobranca recorrente.' }}</span>
+      </div>
+      <div class="seller-kpi-card">
+        <span class="seller-kpi-label">Proximo vencimento</span>
+        <strong class="seller-kpi-value">{{ formatDate(current.nextDueDateUtc) }}</strong>
+        <span class="seller-kpi-meta">Atualizado conforme a assinatura vinculada a sua loja.</span>
+      </div>
+      <div class="seller-kpi-card">
+        <span class="seller-kpi-label">Situacao da loja</span>
+        <strong class="seller-kpi-value">{{ current.storeBlocked ? 'Bloqueada' : 'Operando' }}</strong>
+        <span class="seller-kpi-meta">{{ current.storeBlocked ? 'Regularize a mensalidade para voltar a receber pedidos.' : 'A loja segue liberada para pedidos e configuracoes.' }}</span>
+      </div>
+    </section>
+
+    @if (current.billingStatus === BillingStatus.Active || current.billingStatus === BillingStatus.DueSoon) {
+      <div class="notice seller-inline-banner is-success">
+        <span>Sua mensalidade está em dia, obrigado! Próximo vencimento {{ formatDate(current.nextDueDateUtc) }}</span>
+      </div>
+    }
+    @if (!current.storeBlocked && current.regularizationMessage) {
+      <div class="warning-card seller-inline-banner is-warning" role="alert">
+        {{ current.regularizationMessage }}
+      </div>
+    }
+    @if (current.storeBlocked) {
+      <div class="blocked-card seller-inline-banner is-danger" role="alert">
+        <strong>Loja bloqueada</strong>
+        <span>{{ current.regularizationMessage || 'Regularize sua mensalidade para desbloquear a loja.' }}</span>
+      </div>
+    }
+
+    <div class="content-card seller-panel">
+      <div class="content-head seller-panel-header">
+        <div>
+          <h2>Mensalidades</h2>
+          <p class="section-copy">Acompanhe período, vencimento, valor e status de cada cobrança da loja.</p>
+        </div>
+        <span class="seller-status-badge" [class.is-success]="!current.storeBlocked && current.billingStatus === BillingStatus.Active" [class.is-warning]="current.billingStatus === BillingStatus.DueSoon" [class.is-neutral]="current.billingStatus === BillingStatus.Cancelled || current.billingStatus == null" [class.is-danger]="current.storeBlocked || current.billingStatus === BillingStatus.Overdue">{{ statusLabel(current.billingStatus) }}</span>
+      </div>
+      <div class="plan-notice">
+          <span>{{ current.hasSubscription ? current.planName + ' &middot; ' + formatCurrency(current.planAmount) + '/mês' : 'Nenhum plano contratado' }}</span>
+      </div>
+      @if (charges().length === 0) {
+        <div class="seller-state-card is-empty">
+          <strong class="seller-state-title">Nenhuma cobranca registrada ainda.</strong>
+          <p class="seller-state-copy">Assim que a assinatura gerar cobrancas, o historico aparece aqui.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Periodo</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th class="text-end">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (charge of charges(); track charge.gatewayChargeId) {
+                <tr>
+                  <td data-label="Periodo">{{ charge.externalReference || charge.gatewayChargeId }}</td>
+                  <td data-label="Vencimento">{{ formatDate(charge.dueDateUtc) }}</td>
+                  <td data-label="Valor">{{ formatCurrency(charge.amount) }}</td>
+                  <td class="text-end" data-label="Status">
+                    @if (charge.paidAtUtc) {
+                      <span class="seller-status-badge is-success">Pago em {{ formatDate(charge.paidAtUtc) }}</span>
+                    } @else if (charge.billingStatus === BillingStatus.Overdue || charge.billingStatus === BillingStatus.DueSoon) {
+                      <button class="btn-pagar" type="button">Pagar</button>
+                    } @else {
+                      <span class="seller-status-badge is-info">{{ statusLabel(charge.billingStatus) }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="seller-table-footer">
+          <span class="seller-table-footer-copy">{{ charges().length }} cobranca(s) listada(s)</span>
+        </div>
+      }
+    </div>
+  }
+</section>

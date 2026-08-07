@@ -1,0 +1,165 @@
+﻿<ion-content [fullscreen]="true">
+  <div class="register-shell">
+    <!-- ══════════════ FORM ══════════════ -->
+    <div class="register-form-side">
+      <div class="form-wrapper">
+        <img src="/images/logo_v2.png" alt="Urbeat" class="register-logo" width="150" />
+
+        <h1 class="register-title">
+          Crie sua conta e comece agora<br /><span class="accent">seu delivery profissional</span>
+        </h1>
+        <p class="register-subtitle">
+          E rapido, facil e voce ainda ganha <strong>7 dias gratis</strong> para testar.
+        </p>
+
+        <div class="divider-row">
+          <div class="divider-line"></div>
+          <span>ou</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <form #f="ngForm" (ngSubmit)="submit()" novalidate>
+          <!-- Nome e Documento -->
+          <div class="field-row">
+            <div class="field">
+              <label for="fullName">Nome completo da loja</label>
+              <div class="input-wrap">
+                <ion-icon name="person-outline" class="input-icon"></ion-icon>
+                <input
+                  id="fullName" type="text" placeholder="Nome"
+                  [ngModel]="fullName()" (ngModelChange)="fullName.set($event); onFieldInput('fullName')"
+                  name="fullName" [class.input-err]="errors()['fullName']"
+                />
+              </div>
+              @if (errors()['fullName']) {
+                <span class="field-error">{{ errors()['fullName'] }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="document">CPF ou CNPJ</label>
+              <div class="input-wrap">
+                <ion-icon name="document-text-outline" class="input-icon"></ion-icon>
+                <input
+                  id="document" type="tel" placeholder="000.000.000-00"
+                  [ngModel]="document()" (ngModelChange)="onDocumentInput($event)"
+                  (blur)="onDocumentBlur()"
+                  name="document" [class.input-err]="errors()['document']"
+                  maxlength="18"
+                />
+              </div>
+              @if (errors()['document']) {
+                <span class="field-error">{{ errors()['document'] }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- WhatsApp + Email -->
+          <div class="field-row">
+            <div class="field">
+              <label for="whatsapp">WhatsApp</label>
+              <div class="input-wrap">
+                <ion-icon name="logo-whatsapp" class="input-icon"></ion-icon>
+                <input
+                  id="whatsapp" type="tel" placeholder="(21) 99999-9999"
+                  [ngModel]="whatsapp()" (ngModelChange)="onWhatsappInput($event)"
+                  name="whatsapp" [class.input-err]="errors()['whatsapp']"
+                />
+              </div>
+              @if (errors()['whatsapp']) {
+                <span class="field-error">{{ errors()['whatsapp'] }}</span>
+              }
+            </div>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <div class="input-wrap">
+                <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+                <input
+                  id="email" type="email" placeholder="seu@email.com"
+                  [ngModel]="email()" (ngModelChange)="email.set($event); onFieldInput('email')"
+                  name="email" [class.input-err]="errors()['email']"
+                />
+              </div>
+              @if (errors()['email']) {
+                <span class="field-error">{{ errors()['email'] }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Senha -->
+          <div class="field">
+            <label for="password">Senha</label>
+            <div class="input-wrap">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <input
+                id="password" [type]="showPassword() ? 'text' : 'password'"
+                placeholder="Crie uma senha"
+                [ngModel]="password()" (ngModelChange)="password.set($event); onFieldInput('password')"
+                name="password" [class.input-err]="errors()['password']"
+              />
+              <button type="button" class="eye-btn" (click)="togglePassword()">
+                <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+            <p class="field-hint">Minimo de 8 caracteres. Deve conter letras maiusculas, minusculas, numeros e simbolos.</p>
+            <div class="strength-bar" style="margin-top:6px">
+              <div class="strength-fill" [style.width]="(strengthScore()/5)*100+'%'" [style.background]="strengthColor()"></div>
+            </div>
+            <div class="strength-criteria">
+              <span [class.met]="passwordStrength().length">● {{ passwordStrength().length ? '✅' : '○' }} 8+ caracteres</span>
+              <span [class.met]="passwordStrength().upper">● {{ passwordStrength().upper ? '✅' : '○' }} 1 maiuscula</span>
+              <span [class.met]="passwordStrength().lower">● {{ passwordStrength().lower ? '✅' : '○' }} 1 minuscula</span>
+              <span [class.met]="passwordStrength().number">● {{ passwordStrength().number ? '✅' : '○' }} 1 numero</span>
+              <span [class.met]="passwordStrength().special">● {{ passwordStrength().special ? '✅' : '○' }} 1 simbolo</span>
+            </div>
+            @if (errors()['password']) {
+              <span class="field-error">{{ errors()['password'] }}</span>
+            }
+          </div>
+
+          <!-- Confirmar Senha -->
+          <div class="field">
+            <label for="confirmPassword">Confirmar senha</label>
+            <div class="input-wrap">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <input
+                id="confirmPassword" [type]="showConfirmPassword() ? 'text' : 'password'"
+                placeholder="Repita a senha"
+                [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event); onFieldInput('confirmPassword')"
+                name="confirmPassword" [class.input-err]="errors()['confirmPassword']"
+              />
+              <button type="button" class="eye-btn" (click)="toggleConfirmPassword()">
+                <ion-icon [name]="showConfirmPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+            @if (errors()['confirmPassword']) {
+              <span class="field-error">{{ errors()['confirmPassword'] }}</span>
+            }
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-submit" [disabled]="loading()">
+            @if (loading()) {
+              <ion-spinner name="crescent" style="width: 18px; height: 18px; margin-right: 8px;"></ion-spinner>
+              Criando conta...
+            } @else {
+              Criar minha conta
+            }
+          </button>
+        </form>
+
+        <!-- Security -->
+        <div class="security-badge">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>Seus dados estao protegidos com seguranca</span>
+        </div>
+
+        <!-- Terms -->
+        <p class="terms">
+          Ao criar sua conta, voce concorda com nossos
+          <a href="#">Termos de uso</a> e <a href="#">Politica de privacidade</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

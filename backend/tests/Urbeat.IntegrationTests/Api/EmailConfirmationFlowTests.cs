@@ -1,0 +1,190 @@
+﻿using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Web;
+using FluentAssertions;
+using Urbeat.Application.DTOs;
+using Urbeat.IntegrationTests.Infrastructure;
+
+namespace Urbeat.IntegrationTests.Api;
+
+/// <summary>
+/// Integration tests for RF77 - Email confirmation flow (traditional registration).
+/// Validates the full pipeline: register -> email sent with link -> confirm endpoint -> login allowed.
+/// </summary>
+public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmationTestWebApplicationFactory>
+{
+    private readonly EmailConfirmationTestWebApplicationFactory _factory;
+
+    public EmailConfirmationFlowTests(EmailConfirmationTestWebApplicationFactory factory)
+    {
+        _factory = factory;
+    }
+
+    [Fact]
+    public async Task RegisterCustomer_ShouldEnqueueConfirmationEmail_AndReturnPendingFlag()
+    {
+        _factory.EmailService.Clear();
+        var email = NewEmail("customer");
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Cliente RF77",
+            Email = email,
+            Password = "SenhaForte123",
+            PhoneNumber = "11999990001"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var payload = await response.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("emailConfirmationPending").GetBoolean().Should().BeTrue();
+        payload.GetProperty("userId").GetGuid().Should().NotBe(Guid.Empty);
+
+        var sent = _factory.EmailService.FindLastByRecipient(email);
+        sent.Should().NotBeNull("a confirmation e-mail must be sent when a new customer registers");
+        sent!.Subject.Should().Contain("Confirme");
+        sent.HtmlBody.Should().Contain("/c/");
+    }
+
+    [Fact]
+    public async Task RegisterSeller_ShouldSendSellerSpecificTemplate()
+    {
+        _factory.EmailService.Clear();
+        var email = NewEmail("seller");
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = "Vendedor RF77",
+            Email = email,
+            Password = "SenhaForte123",
+            PhoneNumber = "11988880002"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var sent = _factory.EmailService.FindLastByRecipient(email);
+        sent.Should().NotBeNull();
+        sent!.Subject.Should().Contain("Loja", "the seller template references the store activation");
+    }
+
+    [Fact]
+    public async Task LoginCustomer_BeforeConfirmation_ShouldReturn403_ForPendingConfirmation()
+    {
+        _factory.EmailService.Clear();
+        var email = NewEmail("pending");
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Pendente RF77",
+            Email = email,
+            Password = password
+        });
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+
+        // RF77: an account with pending e-mail confirmation must NOT be able to authenticate.
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var raw = await loginResponse.Content.ReadAsStringAsync();
+        raw.Should().Contain("E-mail not confirmed",
+            "the response must indicate that the e-mail still requires confirmation, was: " + raw);
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_WithValidToken_ShouldConfirm_AndAllowLogin()
+    {
+        _factory.EmailService.Clear();
+        var email = NewEmail("happy");
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Happy Path RF77",
+            Email = email,
+            Password = password
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var sentEmail = _factory.EmailService.FindLastByRecipient(email);
+        sentEmail.Should().NotBeNull();
+        var code = ExtractConfirmLink(sentEmail!.HtmlBody);
+
+        var confirmResponse = await client.PostAsync($"/api/auth/email/confirm/{code}", null);
+
+        confirmResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var confirmBody = await confirmResponse.Content.ReadFromJsonAsync<JsonElement>();
+        confirmBody.GetProperty("succeeded").GetBoolean().Should().BeTrue();
+        confirmBody.GetProperty("alreadyConfirmed").GetBoolean().Should().BeFalse();
+
+        var loginAfterConfirm = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginAfterConfirm.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tokenPayload = await loginAfterConfirm.Content.ReadFromJsonAsync<AuthTokenResponseDto>();
+        tokenPayload.Should().NotBeNull();
+        tokenPayload!.AccessToken.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_WhenCalledTwice_ShouldReportAlreadyConfirmedOnSecondCall()
+    {
+        _factory.EmailService.Clear();
+        var email = NewEmail("double");
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Double Confirm RF77",
+            Email = email,
+            Password = password
+        });
+
+        var code = ExtractConfirmLink(_factory.EmailService.FindLastByRecipient(email)!.HtmlBody);
+
+        var first = await client.PostAsync($"/api/auth/email/confirm/{code}", null);
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var second = await client.PostAsync($"/api/auth/email/confirm/{code}", null);
+        second.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await second.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("alreadyConfirmed").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_WithUnknownCode_ShouldReturnBadRequest()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var response = await client.PostAsync("/api/auth/email/confirm/UNKNOWN123", null);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ConfirmEmail_WithEmptyCode_ShouldReturnBadRequest()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var response = await client.PostAsync("/api/auth/email/confirm/ ", null);
+        response.StatusCode.Should().BeOneOf(System.Net.HttpStatusCode.MethodNotAllowed, System.Net.HttpStatusCode.UnsupportedMediaType, System.Net.HttpStatusCode.BadRequest);
+    }
+
+    private static string NewEmail(string prefix) => $"{prefix}.{Guid.NewGuid():N}@urbeat.test";
+
+    private static string ExtractConfirmLink(string html)
+    {
+        var match = Regex.Match(html, "/c/(?<code>[a-zA-Z0-9_-]{6,})");
+        match.Success.Should().BeTrue("the confirmation email must contain the shortCode");
+        return match.Groups["code"].Value;
+    }
+}

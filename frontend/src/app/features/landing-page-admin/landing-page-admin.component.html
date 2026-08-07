@@ -1,0 +1,116 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Gerenciar Landing Page</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openModal()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Novo Item
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (loading()) {
+    <div class="ion-text-center ion-padding-top">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  } @else {
+    @for (group of getGroupedItems() | keyvalue; track group.key) {
+      <ion-list class="ion-margin-bottom">
+        <ion-item-divider color="light">
+          <ion-label class="section-title">{{ group.key }}</ion-label>
+        </ion-item-divider>
+
+        @for (item of group.value; track item.id) {
+          <ion-item>
+            <ion-label>
+              <h2>
+                {{ item.key }}
+                @if (!item.isActive) {
+                  <ion-badge color="medium" class="ion-margin-start">Inativo</ion-badge>
+                }
+              </h2>
+              <p class="value-preview">{{ item.value }}</p>
+              @if (item.description) {
+                <p class="description">{{ item.description }}</p>
+              }
+            </ion-label>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" color="primary" (click)="openModal(item)">
+                <ion-icon slot="icon-only" name="create"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" (click)="confirmDelete(item)">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        }
+      </ion-list>
+    } @empty {
+      <div class="ion-text-center ion-padding">
+        <p>Nenhum conteúdo encontrado.</p>
+        <ion-button (click)="openModal()">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Adicionar primeiro item
+        </ion-button>
+      </div>
+    }
+  }
+
+  <!-- Modal de Edição/Criação -->
+  <ion-modal [isOpen]="isModalOpen()" (ionModalDidDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ formId() ? 'Editar Item' : 'Novo Item' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-list>
+          <ion-item>
+            <ion-input label="Seção (ex: Hero, Stats)" labelPlacement="stacked" [(ngModel)]="formSection" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Chave (ex: Title, StoreCount)" labelPlacement="stacked" [(ngModel)]="formKey" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-textarea label="Valor (Conteúdo exibido)" labelPlacement="stacked" [(ngModel)]="formValue" required [autoGrow]="true"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Ordem de Exibição" type="number" min="0" labelPlacement="stacked" [(ngModel)]="formDisplayOrder"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Descrição Interna (opcional)" labelPlacement="stacked" [(ngModel)]="formDescription" placeholder="Ex: Título principal da seção Hero"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label>Ativo</ion-label>
+            <ion-toggle [(ngModel)]="formIsActive" slot="end"></ion-toggle>
+          </ion-item>
+        </ion-list>
+        <div class="ion-padding">
+          <ion-button expand="block" color="primary" (click)="saveItem()">
+            <ion-icon name="save" slot="start"></ion-icon>
+            Salvar
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Alerta de Confirmação de Exclusão -->
+  <ion-alert
+    [isOpen]="!!itemToDelete()"
+    header="Confirmar Exclusão"
+    message="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
+    [buttons]="[
+      { text: 'Cancelar', role: 'cancel', handler: cancelDelete },
+      { text: 'Excluir', role: 'destructive', handler: executeDelete }
+    ]"
+  ></ion-alert>
+</ion-content>

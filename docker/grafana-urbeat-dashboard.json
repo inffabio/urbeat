@@ -1,0 +1,70 @@
+﻿{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Prometheus data source",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "title": "Urbeat - Visão de Negócio",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Pedidos criados (1h)",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        { "expr": "increase(urbeat_orders_created_total[1h])" }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Falhas de pagamento (1h)",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        { "expr": "increase(urbeat_payment_failures_total[1h])" }
+      ],
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Novos usuários (1h)",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        { "expr": "increase(urbeat_new_users_total[1h])" }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Novas lojas (1h)",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        { "expr": "increase(urbeat_new_stores_total[1h])" }
+      ],
+      "gridPos": { "x": 6, "y": 4, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Produtos cadastrados/atualizados (1h)",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        { "expr": "increase(urbeat_products_updated_total[1h])" }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 4 }
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  }
+}

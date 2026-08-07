@@ -1,0 +1,41 @@
+﻿PROJETO URBEAT COM VARIAÇÕES DE TAMANHO/PESO
+
+ARQUIVOS PRINCIPAIS
+
+1. pagina_completa_urbeat.html
+   Página de cadastro atualizada. Inclui:
+   - Produto único
+   - Variações por tamanho
+   - Variações por peso fixo
+   - Configuração por peso variável
+   - Grupos de opções
+   - Salvamento em localStorage
+
+2. cardapio_digital.html
+   Cardápio responsivo com:
+   - “A partir de” para tamanhos/pesos fixos
+   - Preço por kg
+   - Seleção de tamanho
+   - Seleção de peso fixo
+   - Controle de peso variável
+   - Cálculo automático do valor
+   - Grupos de opções e sacola demonstrativa
+
+3. grupos_de_opcoes.html
+   Componente isolado dos grupos de opções.
+
+4. variacoes_tamanho_peso.html
+   Página de acesso rápido aos exemplos integrados.
+
+COMO TESTAR
+
+Você pode abrir os HTMLs diretamente. Para que o produto salvo no cadastro apareça automaticamente no cardápio, execute a pasta em um servidor local:
+
+    python -m http.server 8000
+
+Depois abra:
+
+    http://localhost:8000/pagina_completa_urbeat.html
+    http://localhost:8000/cardapio_digital.html
+
+Cadastre/salve o produto e depois abra o cardápio usando o botão “Visualizar cardápio”.

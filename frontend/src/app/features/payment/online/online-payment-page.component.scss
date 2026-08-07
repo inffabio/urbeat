@@ -1,0 +1,369 @@
+:host { display: block; }
+
+.pay-content {
+  --background: var(--app-bg);
+}
+
+.page-head {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  padding: 14px 22px 22px;
+
+  .ghost-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--app-ink);
+    cursor: pointer;
+    font-size: 24px;
+    transition: opacity .15s;
+
+    ion-icon { font-size: 24px; line-height: 1; }
+
+    &:hover { opacity: .7; }
+  }
+}
+
+.page-title {
+  text-align: center;
+
+  h1 {
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--app-ink);
+    margin: 0;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--app-text-secondary);
+  }
+}
+
+.screen-padding {
+  padding: 0 22px 24px;
+}
+
+.order-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.order-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.round-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--app-brand-soft);
+  display: grid;
+  place-items: center;
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--app-brand);
+    line-height: 1;
+  }
+}
+
+.order-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.order-sub {
+  font-size: 13px;
+  color: var(--app-text-secondary);
+  margin: 1px 0 0;
+}
+
+.order-price {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.section-title {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin: 0 0 16px;
+}
+
+.options-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.option-card {
+  position: relative;
+  min-height: 88px;
+  display: grid;
+  grid-template-columns: 24px 56px 1fr 24px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  font-family: var(--app-font);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  width: 100%;
+
+  &.active {
+    border-color: var(--app-brand);
+    background: var(--app-surface-soft);
+  }
+
+  &:has(.payment-input:focus-visible) {
+    outline: 3px solid var(--app-brand-shadow);
+    outline-offset: 3px;
+  }
+}
+
+.payment-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.opt-radio {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--app-line);
+  border-radius: 50%;
+}
+
+.option-card.active .opt-radio {
+  border-color: var(--app-brand);
+  background: var(--app-brand);
+  box-shadow: inset 0 0 0 5px var(--app-surface);
+}
+
+.opt-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+
+  ion-icon {
+    font-size: 32px;
+    color: var(--app-brand);
+    line-height: 1;
+  }
+}
+
+.option-card:not(.active) .opt-icon ion-icon {
+  color: var(--app-brown);
+}
+
+.opt-info {
+  h3 {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  p {
+    margin: 0;
+    color: var(--app-muted-strong);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}
+
+.opt-chevron {
+  font-size: 21px;
+  color: var(--app-brown);
+  line-height: 1;
+}
+
+.option-card.active .opt-chevron {
+  color: var(--app-brand);
+}
+
+.notice-card {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 18px;
+  color: var(--app-text-secondary);
+  background: var(--app-surface-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--app-line);
+
+  ion-icon {
+    font-size: 21px;
+    color: var(--app-brand);
+    line-height: 1;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}
+
+.notice-card.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+
+  ion-icon { color: #991b1b; }
+}
+
+.pix-card {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+  padding: 22px 18px;
+  margin-bottom: 18px;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  p {
+    margin: 0;
+    color: var(--app-muted-strong);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+}
+
+.pix-mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--app-brand-soft);
+
+  ion-icon {
+    color: var(--app-brand);
+    font-size: 25px;
+  }
+}
+
+.pix-link {
+  width: 100%;
+  margin-top: 6px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.summary-card {
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.sum-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.sum-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.sum-green {
+  color: var(--app-success-green);
+}
+
+.sum-divider {
+  height: 1px;
+  border-top: 1px dashed var(--app-line);
+  margin: 8px 0;
+}
+
+.sum-total {
+  font-size: 15px;
+  font-weight: 800;
+  padding-top: 6px;
+}
+
+.total-value {
+  color: var(--app-brand);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.page-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pay-btn {
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.spinner-small {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, .3);
+  border-top-color: var(--app-surface);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 400px) {
+  .option-card {
+    grid-template-columns: 24px 52px 1fr 24px;
+    gap: 10px;
+
+    .opt-icon {
+      width: 52px;
+      height: 52px;
+
+      ion-icon { font-size: 32px; }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

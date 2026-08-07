@@ -1,0 +1,102 @@
+.marketing-page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0;
+  padding: 20px 24px 32px;
+  display: grid;
+  gap: 14px;
+}
+
+.share-card,
+.marketing-grid div,
+.roadmap-card {
+  border: 1px solid #e7e9f3;
+  border-radius: 18px;
+  background: var(--app-surface, #fff);
+  padding: 15px;
+  box-shadow: 0 14px 34px rgba(40, 44, 80, 0.06);
+}
+
+.share-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.share-card span,
+.marketing-grid span,
+.roadmap-card span {
+  color: var(--app-text-secondary, #6f6f76);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.share-card h2,
+.share-card p,
+.roadmap-card h2,
+.roadmap-card p,
+.marketing-grid p {
+  margin: 0;
+}
+
+.share-card h2,
+.roadmap-card h2 {
+  color: var(--app-ink, #161616);
+  font-size: 18px;
+  letter-spacing: -0.035em;
+}
+
+.share-card p,
+.roadmap-card p,
+.marketing-grid p {
+  color: var(--app-text-secondary, #6f6f76);
+}
+
+.share-card a {
+  min-height: 44px;
+  border-radius: 999px;
+  background: var(--app-brand, #d54a51);
+  color: var(--app-surface, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  padding: 0 18px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.marketing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.marketing-grid div,
+.roadmap-card {
+  display: grid;
+  gap: 8px;
+}
+
+.marketing-grid strong {
+  color: var(--app-ink, #161616);
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
+.roadmap-card {
+  background: var(--app-surface-soft, #fff8f0);
+}
+
+@media (max-width: 620px) {
+  .marketing-page {
+    padding: 16px;
+  }
+
+  .share-card,
+  .marketing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

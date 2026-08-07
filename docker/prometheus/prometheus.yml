@@ -1,0 +1,24 @@
+﻿global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: 'urbeat-webapi'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['webapi:8080']
+        labels:
+          service: 'webapi'
+          environment: 'production'
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['nodeexporter:9100']
+        labels:
+          service: 'node'
+
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+        labels:
+          service: 'postgres'

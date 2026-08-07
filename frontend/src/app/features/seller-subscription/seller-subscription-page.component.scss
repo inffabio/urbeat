@@ -1,0 +1,137 @@
+.subscription-page {
+  max-width: 1120px;
+}
+
+.subscription-skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.subscription-state-card {
+  gap: 14px;
+}
+
+.content-head {
+  margin-bottom: 18px;
+}
+
+.notice,
+.plan-notice {
+  margin-bottom: 0;
+  color: var(--app-success-green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.plan-notice {
+  margin-bottom: 20px;
+  background: var(--app-surface-soft);
+  border: 1px solid rgba(var(--app-brand-rgb), 0.12);
+  color: var(--app-brand);
+}
+
+.warning-card,
+.blocked-card {
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.blocked-card strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table thead th {
+  white-space: nowrap;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.table thead th.text-end {
+  text-align: right;
+}
+
+.table tbody td {
+  padding-left: 14px;
+  padding-right: 14px;
+  vertical-align: middle;
+}
+
+.table tbody td.text-end {
+  text-align: right;
+}
+
+.table tbody td.text-center {
+  text-align: center;
+}
+
+.btn-pagar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-brand);
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 10px 22px var(--app-brand-shadow);
+  transition: transform 0.15s ease;
+}
+
+.btn-pagar:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 767.98px) {
+  .subscription-skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .content-card {
+    padding: 16px;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--app-border-light);
+    padding: 12px 0;
+  }
+
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border: 0;
+    font-size: 12px;
+  }
+
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 800;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+  }
+
+  .table tbody td.text-end {
+    text-align: left;
+  }
+}

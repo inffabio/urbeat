@@ -1,0 +1,334 @@
+@if (!isDashboardView()) {
+  <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
+}
+
+<app-config-subnav />
+
+  <div class="container">
+    <div class="page-title">
+      <div class="title-icon">
+        <ion-icon name="bicycle-outline"></ion-icon>
+      </div>
+      <div class="title-text">
+        @if (isDashboardView()) {
+          <h1>Configuracao de entrega</h1>
+          <p>Defina bairros atendidos, taxas e regras de frete para os pedidos da sua loja.</p>
+        } @else {
+          <h1>Cadastre os bairros e defina as taxas de entrega</h1>
+          <p>Informe as áreas que você atende e quanto cobra pela entrega.</p>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      @if (loading()) {
+        <div class="skeleton-card" aria-label="Carregando áreas de entrega">
+          @for (s of [1,2,3]; track s) {
+            <div class="skeleton-row">
+              <div class="skeleton-block skeleton-num"></div>
+              <div class="skeleton-block skeleton-name"></div>
+              <div class="skeleton-block skeleton-fee"></div>
+              <div class="skeleton-block skeleton-action"></div>
+            </div>
+          }
+        </div>
+      } @else {
+      <h2>Adicione os bairros e defina a taxa de entrega</h2>
+      <p class="desc">A lista de bairros sera exibida no checkout.</p>
+
+
+
+      <div class="btn-bar">
+        <button class="btn-outline" (click)="openNeighborhoodModal(-1)">
+          <ion-icon name="add"></ion-icon> Inserir Bairros
+        </button>
+        <button class="btn-outline" (click)="applyBulkFeeToAll()">
+          <ion-icon name="cash-outline"></ion-icon> Aplicar valor a todos
+        </button>
+        <button class="btn-outline" (click)="openMap()">
+          <ion-icon name="map-outline"></ion-icon> Visualizar mapa
+        </button>
+        <button class="btn-outline btn-clear-all-mobile" (click)="clearAllAreas()" [hidden]="areas.length === 0">
+          <ion-icon name="trash-outline"></ion-icon> Excluir todos
+        </button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar" [hidden]="areas.length === 0 && !areaSearchFilter()">
+        <ion-icon name="search-outline" class="filter-icon"></ion-icon>
+        <input type="text" class="filter-input"
+          placeholder="Filtrar bairros por nome..."
+          [ngModel]="areaSearchFilter()"
+          (ngModelChange)="areaSearchFilter.set($event)" />
+        @if (areaSearchFilter()) {
+          <button class="filter-clear" (click)="areaSearchFilter.set('')" aria-label="Limpar filtro">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        }
+      </div>
+
+      @if (areas.length > 0) {
+        <div class="sort-mode-label">Ordenado A–Z @if (areaSearchFilter()) { (filtrado) }</div>
+      }
+
+      <!-- Inline add -->
+      <div class="delivery-list" [formGroup]="form">
+        <div class="list-header">
+          <div>Ord.</div>
+          <div>Bairro</div>
+          <div class="col-dist">Dist.</div>
+          <div>Taxa</div>
+          <div class="header-actions">
+            <span>Ações</span>
+            <button class="btn-clear-all" (click)="clearAllAreas()" title="Remover todos os bairros" aria-label="Remover todos os bairros" [hidden]="areas.length === 0">
+              <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <div formArrayName="areas">
+            @for (i of filteredAreaIndices(); track i; let idx = $index) {
+              <div class="list-row" [formGroupName]="i" [class.row-error]="invalidRowIndices().has(i)">
+                <div class="row-num-wrap">
+                  <span class="row-num">{{ i + 1 }}</span>
+                </div>
+                <div class="select-wrap-full">
+                  <span class="neighborhood-label">{{ areas.at(i).value.neighborhood }}</span>
+                </div>
+                <div class="col-dist">
+                  <span class="dist-value">{{ getNeighborhoodDistance(areas.at(i).value.neighborhood) }}</span>
+                </div>
+                <div class="input-money">
+                  <span class="prefix">R$</span>
+                  <input type="text" class="input" formControlName="deliveryFee" placeholder="0,00" (blur)="formatMoneyGroup(i); validateRowFee(i)" (input)="maskMoneyInput($event); clearRowError(i)">
+                  @if (invalidRowIndices().has(i)) {
+                    <span class="field-error">Valor inválido</span>
+                  }
+                </div>
+                <div>
+                  <button class="btn-remove" (click)="removeArea(i)" title="Remover bairro" aria-label="Remover bairro"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>
+                </div>
+              </div>
+            }
+          </div>
+
+        <div class="empty-areas" [hidden]="areas.length > 0">
+          <ion-icon name="navigate-outline"></ion-icon>
+          <p>Nenhum bairro cadastrado. Use o modal "Inserir Bairros" para selecionar.</p>
+        </div>
+
+        <div class="empty-areas" [hidden]="areas.length === 0 || filteredAreaIndices().length > 0">
+          <p>Nenhum bairro encontrado.</p>
+          <span>Nenhum bairro corresponde ao filtro "{{ areaSearchFilter() }}".</span>
+        </div>
+
+        <!-- Linha de adição inline -->
+        <p class="inline-add-hint">Ou digite um bairro manualmente:</p>
+        <div class="list-row inline-add-row" [formGroup]="inlineForm">
+          <div>
+            <input type="text" class="input add-input" formControlName="neighborhood" placeholder="Digite o bairro manualmente (ex: Centro)" (keyup.enter)="addInline()" #inlineNeighborhood />
+          </div>
+          <div class="input-money">
+            <span class="prefix">R$</span>
+            <input type="text" class="input add-fee-input" formControlName="deliveryFee" placeholder="0,00" (blur)="formatMoneyInline()" (input)="maskMoneyInput($event)" (keyup.enter)="addInline()" aria-label="Taxa de entrega" aria-describedby="inline-fee-hint">
+          </div>
+          <div>
+            <button class="btn-add-inline" (click)="addInline()" title="Adicionar bairro" aria-label="Adicionar bairro" [disabled]="!inlineForm.value.neighborhood?.trim()">
+              <ion-icon name="add" aria-hidden="true"></ion-icon>
+              <span>Adicionar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-dica">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <div>
+          <h3>Dica</h3>
+          <p>Seus clientes verão a taxa de entrega antes de finalizar o pedido.</p>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="card" [formGroup]="form">
+      <h2>Frete grátis</h2>
+
+      <!-- Frete grátis hoje -->
+      <div class="free-shipping-today-row">
+        <label class="toggle-label">
+          <span class="toggle-text">
+            <strong>Frete grátis hoje</strong>
+            <small>Ative para liberar frete grátis em todos os pedidos de hoje</small>
+          </span>
+          <input type="checkbox" class="toggle-input" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday()" />
+          <span class="toggle-switch"></span>
+        </label>
+        @if (freeShippingToday()) {
+          <div class="free-shipping-active-banner" role="status">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span>Todas as entregas de hoje estão com frete grátis. As taxas definidas acima não serão cobradas.</span>
+          </div>
+        }
+      </div>
+
+      <div class="divider-section"></div>
+
+      <!-- Frete grátis a partir de valor X -->
+      <h3 class="free-shipping-heading">Frete grátis a partir de</h3>
+      <p class="desc" id="free-shipping-desc">Defina o valor mínimo do pedido para o frete ser grátis.</p>
+
+      <div class="free-shipping-field">
+        <div class="input-money">
+          <span class="prefix">R$</span>
+          <input type="text" formControlName="freeShippingThreshold" placeholder="Ex: 50,00" aria-label="Valor mínimo para frete grátis" aria-describedby="free-shipping-desc free-shipping-hint" (blur)="formatMoneyFreeShipping()" (input)="maskMoneyInput($event)">
+        </div>
+        <p class="free-shipping-hint" id="free-shipping-hint">Pedidos iguais ou acima desse valor terão frete grátis.</p>
+      </div>
+    </div>
+
+    @if (isDashboardView()) {
+      <div class="dashboard-save-bar">
+        <span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
+          @if (saveStatus() === 'saving') { Salvando bairros... }
+          @else if (saveStatus() === 'saved') { Configuracao salva. }
+          @else if (saveStatus() === 'error') { Nao foi possivel salvar. }
+          @else { Salve as alteracoes antes de sair. }
+        </span>
+        <button type="button" class="btn-confirm" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">
+          @if (isSaving()) { Salvando... } @else { Salvar }
+        </button>
+      </div>
+    } @else {
+      <app-wizard-footer
+        [backLabel]="'Voltar para Horários'"
+        [nextLabel]="'Avançar para Produtos'"
+        [isSaving]="isSaving()"
+        [hasUnsavedChanges]="formDirty()"
+        [saveStatus]="saveStatus()"
+        (back)="goBack()"
+        (next)="goNext()"
+        (save)="saveDraft()">
+      </app-wizard-footer>
+    }
+  </div>
+
+  <ion-modal [isOpen]="isNeighborhoodModalOpen()" (didDismiss)="closeNeighborhoodModal()" cssClass="neighborhood-modal" alignment="center">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Selecionar Bairros</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeNeighborhoodModal()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <div class="nb-modal-body">
+          <!-- Search -->
+          <ion-searchbar
+            placeholder="Filtrar bairros..."
+            [ngModel]="neighborhoodSearch()"
+            (ngModelChange)="neighborhoodSearch.set($event)"
+            class="nb-searchbar">
+          </ion-searchbar>
+
+          <!-- Select all header -->
+          <div class="nb-select-all">
+            <label class="nb-check-label">
+            <input type="checkbox"
+                    [checked]="allFilteredChecked()"
+                    (change)="toggleAllNeighborhoods()"
+                    aria-label="Selecionar todos os bairros" />
+              <span>Selecionar todos ({{ filteredNeighborhoods().length }})</span>
+            </label>
+            <span class="nb-count-hint">{{ filteredNeighborhoods().length }} bairros</span>
+          </div>
+
+          <!-- List -->
+          <ion-list class="nb-list">
+            @for (nb of filteredNeighborhoods(); track nb.id) {
+              <ion-item lines="none" button (click)="toggleNeighborhood(nb.id)" detail="false"
+                [style.--background]="checkedNeighborhoodIds().has(nb.id) ? 'var(--app-brand-soft)' : ''">
+                <input type="checkbox" slot="start"
+                  [checked]="checkedNeighborhoodIds().has(nb.id)"
+                  (click)="$event.stopPropagation(); toggleNeighborhood(nb.id)"
+                  [attr.aria-label]="'Selecionar ' + nb.neighborhood"
+                  class="nb-checkbox" />
+                <ion-label>
+                  <span class="nb-name">{{ nb.neighborhood }}</span>
+                  <p class="nb-city">{{ nb.city }}</p>
+                </ion-label>
+                @if (storeLat() && storeLon() && nb.latitude && nb.longitude) {
+                  <ion-note slot="end" class="nb-distance">{{ calcDistance(storeLat()!, storeLon()!, nb.latitude, nb.longitude) }} km</ion-note>
+                }
+              </ion-item>
+            } @empty {
+              <div class="nb-empty">
+                <ion-icon name="search-outline"></ion-icon>
+                <p>Nenhum bairro encontrado.</p>
+              </div>
+            }
+          </ion-list>
+
+          <!-- Add new neighborhood -->
+          <div class="nb-add-new">
+            <p class="nb-add-hint">Não encontrou o bairro? Adicione um novo:</p>
+            <div class="nb-add-row">
+              <input type="text" class="input"
+                placeholder="Nome do novo bairro"
+                [ngModel]="newNeighborhoodName()"
+                (ngModelChange)="newNeighborhoodName.set($event)"
+                (keyup.enter)="addNeighborhood()"
+                maxlength="80" />
+              <button class="btn-outline"
+                (click)="addNeighborhood()"
+                [disabled]="!newNeighborhoodName().trim() || isAddingNeighborhood()">
+                <ion-icon name="add-outline"></ion-icon> Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+
+      <!-- Sticky footer -->
+      <div class="nb-footer">
+        <span class="nb-footer-count">{{ checkedCount() }} selecionados</span>
+        <div class="input-money nb-footer-fee">
+          <span class="prefix">R$</span>
+          <input type="text"
+            [ngModel]="bulkFeeValue()"
+            (ngModelChange)="onMoneyInputBulk($event)"
+            placeholder="0,00" />
+        </div>
+        <button class="btn-confirm"
+          (click)="addSelectedNeighborhoods()"
+          [disabled]="checkedCount() === 0">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Adicionar {{ checkedCount() }} {{ checkedCount() === 1 ? 'bairro' : 'bairros' }}
+        </button>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="isMapModalOpen()" (didDismiss)="closeMap()" (didPresent)="initLeafletMap()" cssClass="map-modal" alignment="center">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title class="ion-text-center">Mapa de entregas</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeMap()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <div id="delivery-map-container" style="width: 100%; height: 100%; min-height: 400px;"></div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>

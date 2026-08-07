@@ -1,0 +1,33 @@
+<article
+  class="product-card"
+  [class.unavailable]="!product.isAvailable"
+  (click)="onCardClick()"
+  (keydown)="onCardKeydown($event)"
+  role="button"
+  [tabIndex]="0"
+  [attr.aria-label]="'Abrir ' + product.name">
+
+  <div class="product-info">
+    <h3>{{ product.name }}</h3>
+    @if (product.description) {
+      <p>{{ product.description }}</p>
+    }
+    <span class="price">{{ priceLabel() }}</span>
+    @if (!isSimple) {
+      <small class="config-hint">Escolha as opções</small>
+    }
+  </div>
+
+  <div class="product-media">
+    @if (product.imageUrl) {
+      <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+    } @else {
+      <div class="image-placeholder" aria-hidden="true">
+        <ion-icon name="restaurant-outline"></ion-icon>
+      </div>
+    }
+    <span class="add-btn" aria-hidden="true" (click)="onVisualActionClick($event)">
+      <ion-icon name="add" aria-hidden="true"></ion-icon>
+    </span>
+  </div>
+</article>

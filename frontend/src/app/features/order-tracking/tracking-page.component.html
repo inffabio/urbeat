@@ -1,0 +1,118 @@
+<ion-content [fullscreen]="true">
+  @if (order(); as o) {
+    <header class="success-header safe-top">
+      <div class="success-check" aria-hidden="true">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <h1>Pedido enviado!</h1>
+      <p>Seu pedido foi recebido com sucesso<br />e já está sendo preparado.</p>
+    </header>
+
+    <section class="screen-padding">
+      <div class="card order-summary-card">
+        <div class="order-line">
+          <span class="round-icon" aria-hidden="true">
+            <ion-icon name="bag-outline"></ion-icon>
+          </span>
+          <div class="order-info">
+            <strong>{{ orderCode() }}</strong>
+            <small>{{ itemsCount() }} {{ itemsCount() === 1 ? 'item' : 'itens' }}</small>
+          </div>
+          <strong class="order-total">{{ o.total | brl }}</strong>
+        </div>
+        <div class="divider"></div>
+        <div class="between eta-row">
+          <span class="row eta-label">
+            <ion-icon name="time-outline" class="inline-icon" aria-hidden="true"></ion-icon>
+            Previsão de entrega
+          </span>
+          <strong class="brand">{{ etaText() }}</strong>
+        </div>
+      </div>
+
+      <div class="card tracking-card">
+        <h2>Acompanhe seu pedido</h2>
+        <div class="track-line" role="list" aria-label="Status do pedido">
+          @for (step of steps(); track step.status) {
+            <div
+              class="track-step"
+              role="listitem"
+              [class.active]="step.state === 'current'"
+              [class.done]="step.state === 'past'"
+              [attr.aria-current]="step.state === 'current' ? 'step' : null"
+            >
+              <div class="dot-step"></div>
+              <span class="step-label">{{ step.label }}</span>
+              @if (step.time) {
+                <span class="muted step-time">{{ step.time }}</span>
+              }
+            </div>
+          }
+        </div>
+        <div class="info-box">
+          <span class="notice-icon" aria-hidden="true">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </span>
+          <span>Vamos te avisar por aqui quando seu pedido estiver a caminho.</span>
+        </div>
+      </div>
+
+      <div class="card delivery-details-card">
+        <h2>Detalhes da entrega</h2>
+
+        @if (o.addressStreet) {
+          <div class="detail-row">
+            <span class="round-icon" aria-hidden="true">
+              <ion-icon name="location-outline"></ion-icon>
+            </span>
+            <div>
+              <h3>Endereço de entrega</h3>
+              <p>{{ o.addressStreet }}, {{ o.addressNumber }}<br />{{ o.addressNeighborhood }}, {{ o.addressCity }} - {{ o.addressState }}</p>
+            </div>
+          </div>
+        }
+
+        <div class="detail-row">
+          <span class="round-icon" aria-hidden="true">
+            <ion-icon name="bicycle-outline"></ion-icon>
+          </span>
+          <div>
+            <h3>Tipo de entrega</h3>
+            <p>{{ o.fulfillmentType === FulfillmentType.Delivery ? 'Entrega' : 'Retirada no local' }}</p>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <span class="round-icon" aria-hidden="true">
+            <ion-icon name="wallet-outline"></ion-icon>
+          </span>
+          <div>
+            <h3>Pagamento</h3>
+            <p>{{ paymentLabel() }}</p>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="card help-card" (click)="openHelp()">
+        <div>
+          <h3>Precisa de ajuda?</h3>
+          <p>Fale com a gente pelo WhatsApp.</p>
+        </div>
+        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+      </button>
+
+      <button type="button" class="primary-btn" (click)="refresh()">
+        <ion-icon name="bicycle-outline" aria-hidden="true"></ion-icon>
+        ACOMPANHAR PEDIDO
+      </button>
+
+      <app-back-to-menu-link class="link-orange" (navigateBack)="goToMenu()" />
+    </section>
+  }
+
+  @if (loading() && !order()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+  }
+</ion-content>

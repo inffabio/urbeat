@@ -1,0 +1,29 @@
+{
+  "name": "oci-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server para Oracle Cloud Infrastructure",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "watch": "tsc --watch",
+    "clean": "rmdir /s /q dist",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.4.2",
+    "oci-sdk": "^2.134.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,66 @@
+﻿<ion-content class="ion-padding" fullscreen>
+  <div class="login-container">
+    <ion-card>
+      <ion-card-header class="ion-text-center">
+        <ion-card-title class="brand-title">urbeat</ion-card-title>
+        <ion-text color="medium">
+          <p>Acesso Administrativo</p>
+        </ion-text>
+      </ion-card-header>
+
+      <ion-card-content>
+        <form (ngSubmit)="onSubmit()">
+          @if (error()) {
+            <ion-text color="danger" class="error-message">
+              {{ error() }}
+            </ion-text>
+          }
+
+          <ion-item class="ion-margin-bottom">
+            <ion-input
+              label="E-mail"
+              labelPlacement="stacked"
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              required
+              autocomplete="email"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item class="ion-margin-bottom">
+            <ion-input
+              label="Senha"
+              labelPlacement="stacked"
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              required
+              autocomplete="current-password"
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="loading()"
+            class="ion-margin-top"
+          >
+            @if (loading()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              Entrando...
+            } @else {
+              Entrar no Painel
+            }
+          </ion-button>
+        </form>
+
+        <div class="ion-text-center ion-margin-top">
+          <ion-text color="medium" class="back-link">
+            <a routerLink="/">Voltar para a página inicial</a>
+          </ion-text>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

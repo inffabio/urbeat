@@ -1,0 +1,348 @@
+﻿/* Estilos globais do Urbeat — v2 (identidade NovaVersaoFront) */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: var(--app-font);
+  background: var(--app-bg);
+  color: var(--app-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+ion-content {
+  --background: var(--app-bg);
+}
+
+/* ─── App Shell (mobile-first wrapper) ─── */
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--app-shell-bg);
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 0 transparent;
+}
+
+@media (min-width: 900px) {
+  body {
+    padding: 28px 0;
+  }
+  .app-shell {
+    width: 60vw;
+    max-width: 620px;
+    min-height: calc(100vh - 56px);
+    border-radius: 34px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 1400px) {
+  .app-shell {
+    max-width: 720px;
+  }
+}
+
+/* ─── Tipografia ─── */
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  font-weight: 800;
+  color: var(--app-ink);
+  letter-spacing: -0.04em;
+}
+
+p {
+  margin: 0;
+}
+
+/* ─── Botões globais ─── */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--app-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s, transform 0.05s;
+  letter-spacing: 0.3px;
+  box-shadow: none;
+
+  &:active:not(:disabled) {
+    background: var(--app-brand-dark);
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    background: var(--app-border-medium);
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-3);
+  background: transparent;
+  color: var(--app-brand);
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:active {
+    color: var(--app-brand-dark);
+  }
+}
+
+/* ─── Card base ─── */
+.card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ─── Link laranja (voltar ao cardápio) ─── */
+.link-orange {
+  display: block;
+  text-align: center;
+  width: 100%;
+  margin: 24px 0 26px;
+  color: var(--app-brand);
+  font-size: 20px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.link-orange:hover {
+  text-decoration: underline;
+}
+
+/* ─── Circle button (back / action) ─── */
+.circle-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, .96);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+  color: #141414;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.circle-btn:active {
+  transform: scale(0.95);
+  opacity: 0.85;
+}
+
+/* ─── Ghost button ─── */
+.ghost-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ─── Page head ─── */
+.page-head {
+  display: grid;
+  grid-template-columns: 54px 1fr 54px;
+  align-items: center;
+  padding: 14px 22px 22px;
+}
+
+.page-head.center {
+  grid-template-columns: 54px 1fr 54px;
+}
+
+.page-title {
+  text-align: center;
+}
+
+.page-title h1 {
+  font-size: 29px;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.page-title p {
+  margin: 2px 0 0;
+  font-size: 17px;
+  color: var(--app-text-secondary);
+}
+
+/* ─── Screen padding ─── */
+.screen-padding {
+  padding: 0 22px 24px;
+}
+
+/* ─── Dividers ─── */
+.divider {
+  height: 1px;
+  background: var(--app-line);
+}
+
+.dash {
+  border-top: 1px dashed var(--app-line);
+}
+
+/* ─── Utilitários de layout ─── */
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.row { display: flex; align-items: center; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+
+.text-brand { color: var(--app-brand); }
+.text-primary { color: var(--app-text-primary); }
+.text-secondary { color: var(--app-text-secondary); }
+.text-muted { color: var(--app-text-muted); }
+.text-success { color: var(--app-success-green); }
+.muted { color: var(--app-text-secondary); }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+
+/* ─── Safe area ─── */
+.safe-bottom {
+  padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+}
+
+/* ─── AA-safe placeholder ─── */
+input::placeholder,
+textarea::placeholder {
+  color: var(--app-text-secondary);
+  opacity: 1;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(213, 74, 81, .35);
+  border-radius: 999px;
+}
+
+/* ─── Toast styles (pastel tones) ─── */
+.urbeat-toast {
+  --border-radius: 12px;
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --min-height: 36px;
+  --max-height: 48px;
+  font-weight: 500;
+  font-family: var(--app-font);
+}
+
+.urbeat-toast::part(container) {
+  padding: 6px 12px;
+}
+
+.urbeat-toast::part(message) {
+  padding: 0;
+  font-size: 13px;
+}
+
+.urbeat-toast::part(button) {
+  opacity: 0.7;
+}
+
+.urbeat-toast::part(button):hover {
+  opacity: 1;
+}
+
+.urbeat-toast-error {
+  --background: #fee2e2;
+  --color: #991b1b;
+}
+
+.urbeat-toast-error::part(button) { color: #991b1b; }
+
+.urbeat-toast-success {
+  --background: #dcfce7;
+  --color: #166534;
+}
+
+.urbeat-toast-success::part(button) { color: #166534; }
+
+.urbeat-toast-warning {
+  --background: #fef3c7;
+  --color: #92400e;
+}
+
+.urbeat-toast-warning::part(button) { color: #92400e; }
+
+.urbeat-toast-info {
+  --background: #dbeafe;
+  --color: #1e40af;
+}
+
+.urbeat-toast-info::part(button) { color: #1e40af; }
+
+ion-toast.urbeat-toast {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.urbeat-toast-grouped {
+  --max-height: none;
+  --min-height: 44px;
+  text-align: left;
+}
+
+.urbeat-toast-grouped::part(message) {
+  white-space: pre-line;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.urbeat-toast-grouped::part(container) {
+  align-items: flex-start;
+  padding: 10px 12px;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

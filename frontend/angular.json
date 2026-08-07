@@ -1,0 +1,87 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "frontend": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": { "style": "scss" }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "index": "src/index.html",
+            "polyfills": ["zone.js"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "src/assets", "output": "/assets" },
+              "src/manifest.webmanifest",
+              "src/favicon.ico"
+            ],
+            "styles": [
+              "src/styles.scss",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
+              { "input": "node_modules/@ionic/angular/css/core.css" },
+              { "input": "node_modules/@ionic/angular/css/normalize.css" },
+              { "input": "node_modules/@ionic/angular/css/structure.css" },
+              { "input": "node_modules/@ionic/angular/css/typography.css" },
+              { "input": "node_modules/@ionic/angular/css/display.css" },
+              { "input": "node_modules/@ionic/angular/css/padding.css" },
+              { "input": "node_modules/@ionic/angular/css/float-elements.css" },
+              { "input": "node_modules/@ionic/angular/css/text-alignment.css" },
+              { "input": "node_modules/@ionic/angular/css/text-transformation.css" },
+              { "input": "node_modules/@ionic/angular/css/flex-utils.css" },
+              { "input": "node_modules/leaflet/dist/leaflet.css" },
+              "src/styles/seller-dashboard-bootstrap.scss"
+            ],
+            "scripts": [],
+            "allowedCommonJsDependencies": ["leaflet"],
+            "outputPath": "dist/frontend",
+            "serviceWorker": "ngsw-config.json"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "1.12MB", "maximumError": "2MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "32kB", "maximumError": "64kB" }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
+          "configurations": {
+            "production": { "buildTarget": "frontend:build:production" },
+            "development": { "buildTarget": "frontend:build:development" }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

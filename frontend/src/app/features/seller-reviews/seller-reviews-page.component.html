@@ -1,0 +1,47 @@
+<section class="reviews-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Avaliações</h1></div><p class="page-subtitle">Acompanhe a percepção dos clientes sobre a sua loja.</p></div></header>
+
+  @if (loading()) {
+    <div class="reviews-skeleton" role="status" aria-label="Carregando avaliacoes">
+      <div></div>
+      <div></div>
+    </div>
+  } @else if (error()) {
+    <div class="error-card" role="alert">
+      <strong>Nao foi possivel carregar as avaliacoes</strong>
+      <span>Confira sua conexao e tente novamente.</span>
+      <button type="button" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else {
+    <section class="reviews-summary">
+      <div>
+        <span>Nota media</span>
+        <strong>{{ formatRating(shell.store()?.averageRating) }}</strong>
+      </div>
+      <div>
+        <span>Total</span>
+        <strong>{{ shell.store()?.totalReviews ?? reviews().length }} avaliacoes</strong>
+      </div>
+    </section>
+
+    <div class="reviews-list">
+      @for (review of reviews(); track review.id) {
+        <article class="review-card">
+          <header>
+            <div>
+              <span>{{ formatDate(review.createdAtUtc) }}</span>
+              <h2>{{ review.customerName }}</h2>
+            </div>
+            <strong>{{ review.rating }}/5</strong>
+          </header>
+          <p>{{ review.comment || 'Sem comentario.' }}</p>
+        </article>
+      } @empty {
+        <div class="empty-card">
+          <strong>Nenhuma avaliacao ainda</strong>
+          <span>Depois que clientes avaliarem pedidos entregues, os comentarios aparecem aqui.</span>
+        </div>
+      }
+    </div>
+  }
+</section>

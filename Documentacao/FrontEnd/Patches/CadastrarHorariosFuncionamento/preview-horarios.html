@@ -1,0 +1,1275 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Urbeat - Horários</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #e5e7eb;
+      --radius: 18px;
+      --shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input {
+      font-family: inherit;
+    }
+
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .stepper-card,
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .stepper-card {
+      padding: 20px;
+    }
+
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: #ffffff;
+    }
+
+    .step.done .step-circle {
+      background: #dcfce7;
+      color: var(--success);
+      border-color: #bbf7d0;
+    }
+
+    .step.current {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .step.current .step-circle {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .progress {
+      flex: 1;
+      height: 9px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 40%;
+      background: var(--primary);
+      border-radius: 999px;
+    }
+
+    .intro {
+      margin: 28px 0 22px;
+    }
+
+    .intro h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      letter-spacing: -0.04em;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .card-header {
+      padding: 22px 22px 8px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .card-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card-content {
+      padding: 18px 22px 22px;
+    }
+
+    .shortcuts {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .shortcut {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 15px;
+      padding: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.2s;
+    }
+
+    .shortcut:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .shortcut.active {
+      background: #eff6ff;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .shortcut strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .shortcut small {
+      color: var(--muted);
+    }
+
+    .shortcut.danger strong {
+      color: var(--danger);
+    }
+
+    .aux-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .check-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .check-line input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .outline-btn {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .outline-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .schedule-card {
+      position: relative;
+      overflow: visible;
+    }
+
+    .schedule-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 22px 12px;
+      position: relative;
+    }
+
+    .days-button {
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+      white-space: nowrap;
+    }
+
+    .days-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .dropdown {
+      position: absolute;
+      right: 22px;
+      top: 82px;
+      width: 280px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+      z-index: 10;
+      display: none;
+      overflow: hidden;
+    }
+
+    .dropdown.open {
+      display: block;
+    }
+
+    .dropdown-header {
+      padding: 14px 16px;
+      font-weight: 900;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .day-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+    }
+
+    .day-option:hover {
+      background: #f8fafc;
+    }
+
+    .day-option input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .dropdown-empty {
+      padding: 18px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .dropdown-footer {
+      padding: 14px;
+      background: #f8fafc;
+    }
+
+    .select-btn {
+      width: 100%;
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 13px;
+      padding: 13px 14px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .select-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 0 22px 22px;
+    }
+
+    .schedule-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #ffffff;
+    }
+
+    .row-check {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
+    }
+
+    .row-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .row-title h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .badge.open {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge.closed {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .interval {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .time-input {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .closed-text {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .add-interval {
+      margin-top: 10px;
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 900;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .delete-btn {
+      border: none;
+      background: #fff1f2;
+      color: var(--danger);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .delete-btn:hover {
+      background: #ffe4e6;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px 20px;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      margin: 0 22px 22px;
+      background: #f8fafc;
+    }
+
+    .empty-state strong {
+      color: var(--primary);
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .insight {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .insight strong {
+      color: var(--text);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin: 28px 0 20px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn {
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 13px 18px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .primary-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .security {
+      color: var(--muted);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .shortcuts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .insights-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .schedule-row {
+        grid-template-columns: auto 1fr;
+      }
+
+      .delete-btn {
+        grid-column: 2;
+        justify-self: start;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        padding: 16px;
+      }
+
+      .intro h1 {
+        font-size: 26px;
+      }
+
+      .shortcuts {
+        grid-template-columns: 1fr;
+      }
+
+      .schedule-top {
+        flex-direction: column;
+      }
+
+      .days-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .dropdown {
+        position: static;
+        width: calc(100% - 44px);
+        margin: 0 22px 18px;
+      }
+
+      .aux-actions,
+      .footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .security {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">H</div>
+      <span>Urbeat</span>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <section class="stepper-card">
+      <div class="stepper">
+        <div class="step done">
+          <span class="step-circle">✓</span>
+          <span>Loja</span>
+        </div>
+
+        <div class="step current">
+          <span class="step-circle">2</span>
+          <span>Horários</span>
+        </div>
+
+        <div class="step">
+          <span class="step-circle">3</span>
+          <span>Entrega</span>
+        </div>
+
+        <div class="step">
+          <span class="step-circle">4</span>
+          <span>Produtos</span>
+        </div>
+
+        <div class="step">
+          <span class="step-circle">5</span>
+          <span>Publicar</span>
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <div class="progress">
+          <span></span>
+        </div>
+        <strong>40% concluído</strong>
+      </div>
+    </section>
+
+    <section class="intro">
+      <h1>Defina os horários e área de atendimento</h1>
+      <p>Informe quando sua loja funciona e onde entrega seus pedidos.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">Atalhos rápidos</h2>
+        <p class="card-subtitle">
+          Escolha um horário pré-definido ou personalize abaixo
+        </p>
+      </div>
+
+      <div class="card-content">
+        <div class="shortcuts">
+          <button class="shortcut" onclick="applyPreset('comercial')">
+            <strong>Comercial</strong>
+            <small>9h às 18h</small>
+          </button>
+
+          <button class="shortcut" onclick="applyPreset('almoco')">
+            <strong>Almoço</strong>
+            <small>11h às 16h</small>
+          </button>
+
+          <button class="shortcut" onclick="applyPreset('jantar')">
+            <strong>Jantar</strong>
+            <small>18h às 23h</small>
+          </button>
+
+          <button class="shortcut" onclick="applyPreset('24h')">
+            <strong>24 horas</strong>
+            <small>Todos os dias</small>
+          </button>
+
+          <button class="shortcut danger" onclick="clearSchedules()">
+            <strong>Limpar horários</strong>
+            <small>Remover todos</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-content">
+        <div class="aux-actions">
+          <label class="check-line">
+            <input type="checkbox" id="sameHoursToggle" onchange="toggleSameHours(this.checked)" />
+            <span>Aplicar o mesmo horário para todos os dias</span>
+          </label>
+
+          <button class="outline-btn" onclick="copyFromPrimary()">
+            📋 <span id="copyText">Copiar para outros dias</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card schedule-card">
+
+      <div class="schedule-top">
+        <div>
+          <h2 class="card-title">Dias e horários</h2>
+          <p class="card-subtitle">
+            Configure os intervalos de funcionamento da loja
+          </p>
+        </div>
+
+        <button class="days-button" id="daysButton">
+          + Escolher dias ▼
+        </button>
+      </div>
+
+      <div class="dropdown" id="daysDropdown">
+        <div class="dropdown-header">Selecionar dias</div>
+        <div id="daysOptions"></div>
+
+        <div class="dropdown-footer">
+          <button class="select-btn" id="selectDaysButton" disabled>
+            Selecionar
+          </button>
+        </div>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <h3>Nenhum dia configurado</h3>
+        <p>
+          Clique em <strong>+ Escolher dias</strong> para adicionar dias da semana.
+        </p>
+      </div>
+
+      <div class="schedule-list" id="scheduleList"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">💡 Insights para você</h2>
+      </div>
+
+      <div class="card-content">
+        <div class="insights-grid">
+          <div class="insight">
+            📈 Lojas abertas até 00h recebem em média
+            <strong>27% mais pedidos</strong>
+          </div>
+
+          <div class="insight">
+            ⏰ Sua loja ficará aberta
+            <strong id="weeklyHoursText">0h por semana</strong>
+          </div>
+
+          <div class="insight">
+            📅 <strong id="sundayStatusTitle">Domingo está fechado</strong><br />
+            <span id="sundayStatusText">Considere abrir e vender mais!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <button class="outline-btn">
+        ← Voltar para Loja
+      </button>
+
+      <div class="security">
+        🛡️ Seus dados estão seguros conosco
+      </div>
+
+      <button class="primary-btn" onclick="saveAndGoNext()">
+        Avançar para Entrega →
+      </button>
+    </footer>
+
+  </main>
+
+  <script>
+    const weekDays = [
+      { id: 'segunda', label: 'Segunda', order: 1 },
+      { id: 'terca', label: 'Terça', order: 2 },
+      { id: 'quarta', label: 'Quarta', order: 3 },
+      { id: 'quinta', label: 'Quinta', order: 4 },
+      { id: 'sexta', label: 'Sexta', order: 5 },
+      { id: 'sabado', label: 'Sábado', order: 6 },
+      { id: 'domingo', label: 'Domingo', order: 7 },
+    ];
+
+    let activePreset = null;
+    let applySameHours = false;
+    let selectedDaysToAdd = [];
+
+    let scheduleRows = [
+      {
+        id: 'segunda-quinta',
+        days: ['segunda', 'terca', 'quarta', 'quinta'],
+        label: 'Segunda a Quinta',
+        open: true,
+        intervals: [{ start: '11:00', end: '23:00' }]
+      },
+      {
+        id: 'sexta-sabado',
+        days: ['sexta', 'sabado'],
+        label: 'Sexta e Sábado',
+        open: true,
+        intervals: [{ start: '11:00', end: '00:00' }]
+      },
+      {
+        id: 'domingo',
+        days: ['domingo'],
+        label: 'Domingo',
+        open: false,
+        intervals: []
+      }
+    ];
+
+    const daysButton = document.getElementById('daysButton');
+    const daysDropdown = document.getElementById('daysDropdown');
+    const daysOptions = document.getElementById('daysOptions');
+    const selectDaysButton = document.getElementById('selectDaysButton');
+    const scheduleList = document.getElementById('scheduleList');
+    const emptyState = document.getElementById('emptyState');
+
+    daysButton.addEventListener('click', () => {
+      daysDropdown.classList.toggle('open');
+      selectedDaysToAdd = [];
+      renderAvailableDays();
+    });
+
+    selectDaysButton.addEventListener('click', () => {
+      createRowsFromSelectedDays();
+      selectedDaysToAdd = [];
+      daysDropdown.classList.remove('open');
+      render();
+    });
+
+    document.addEventListener('click', event => {
+      if (!daysDropdown.contains(event.target) && !daysButton.contains(event.target)) {
+        daysDropdown.classList.remove('open');
+      }
+    });
+
+    function getAvailableDays() {
+      const usedDays = new Set(scheduleRows.flatMap(row => row.days));
+      return weekDays.filter(day => !usedDays.has(day.id));
+    }
+
+    function renderAvailableDays() {
+      const availableDays = getAvailableDays();
+      daysOptions.innerHTML = '';
+
+      if (availableDays.length === 0) {
+        daysOptions.innerHTML = `
+          <div class="dropdown-empty">
+            Todos os dias da semana já foram selecionados.
+            <br><br>
+            Exclua uma linha para liberar dias novamente.
+          </div>
+        `;
+        selectDaysButton.disabled = true;
+        return;
+      }
+
+      availableDays.forEach(day => {
+        const label = document.createElement('label');
+        label.className = 'day-option';
+
+        label.innerHTML = `
+          <input type="checkbox" value="${day.id}">
+          <span>${day.label}</span>
+        `;
+
+        const checkbox = label.querySelector('input');
+
+        checkbox.addEventListener('change', event => {
+          if (event.target.checked) {
+            selectedDaysToAdd.push(day.id);
+          } else {
+            selectedDaysToAdd = selectedDaysToAdd.filter(id => id !== day.id);
+          }
+
+          selectDaysButton.disabled = selectedDaysToAdd.length === 0;
+        });
+
+        daysOptions.appendChild(label);
+      });
+
+      selectDaysButton.disabled = true;
+    }
+
+    function createRowsFromSelectedDays() {
+      if (!selectedDaysToAdd.length) return;
+
+      const selected = selectedDaysToAdd
+        .map(id => weekDays.find(day => day.id === id))
+        .sort((a, b) => a.order - b.order);
+
+      const isSequential = selected.every((day, index, array) => {
+        if (index === 0) return true;
+        return day.order === array[index - 1].order + 1;
+      });
+
+      if (isSequential) {
+        addScheduleRow(selected.map(day => day.id));
+      } else {
+        selected.forEach(day => addScheduleRow([day.id]));
+      }
+    }
+
+    function addScheduleRow(days) {
+      scheduleRows.push({
+        id: 'row-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+        days,
+        label: buildDayLabel(days),
+        open: true,
+        intervals: [{ start: '11:00', end: '23:00' }]
+      });
+    }
+
+    function buildDayLabel(days) {
+      const orderedDays = days
+        .map(id => weekDays.find(day => day.id === id))
+        .sort((a, b) => a.order - b.order);
+
+      if (orderedDays.length === 1) {
+        return orderedDays[0].label;
+      }
+
+      if (orderedDays.length === 2) {
+        return `${orderedDays[0].label} e ${orderedDays[1].label}`;
+      }
+
+      return `${orderedDays[0].label} a ${orderedDays[orderedDays.length - 1].label}`;
+    }
+
+    function removeRow(rowId) {
+      scheduleRows = scheduleRows.filter(row => row.id !== rowId);
+      render();
+    }
+
+    function toggleRowOpen(rowId, checked) {
+      scheduleRows = scheduleRows.map(row => {
+        if (row.id !== rowId) return row;
+
+        if (checked) {
+          return {
+            ...row,
+            open: true,
+            intervals: row.intervals.length
+              ? row.intervals
+              : [{ start: '11:00', end: '23:00' }]
+          };
+        }
+
+        return {
+          ...row,
+          open: false,
+          intervals: []
+        };
+      });
+
+      render();
+    }
+
+    function changeInterval(rowId, index, field, value) {
+      scheduleRows = scheduleRows.map(row => {
+        if (row.id !== rowId) return row;
+
+        return {
+          ...row,
+          intervals: row.intervals.map((interval, intervalIndex) => {
+            if (intervalIndex !== index) return interval;
+
+            return {
+              ...interval,
+              [field]: value
+            };
+          })
+        };
+      });
+
+      if (applySameHours && isPrimaryRow(rowId)) {
+        copyFromPrimary(false);
+      }
+
+      render();
+    }
+
+    function addInterval(rowId) {
+      scheduleRows = scheduleRows.map(row => {
+        if (row.id !== rowId) return row;
+
+        return {
+          ...row,
+          open: true,
+          intervals: [
+            ...row.intervals,
+            { start: '11:00', end: '23:00' }
+          ]
+        };
+      });
+
+      render();
+    }
+
+    function applyPreset(presetId) {
+      const presets = {
+        comercial: { start: '09:00', end: '18:00' },
+        almoco: { start: '11:00', end: '16:00' },
+        jantar: { start: '18:00', end: '23:00' },
+        '24h': { start: '00:00', end: '23:59' }
+      };
+
+      activePreset = presetId;
+
+      const preset = presets[presetId];
+
+      const targetIds = presetId === '24h'
+        ? ['segunda-quinta', 'sexta-sabado', 'domingo']
+        : ['segunda-quinta', 'sexta-sabado'];
+
+      scheduleRows = scheduleRows.map(row => {
+        if (!targetIds.includes(row.id)) return row;
+
+        return {
+          ...row,
+          open: true,
+          intervals: [{ start: preset.start, end: preset.end }]
+        };
+      });
+
+      render();
+    }
+
+    function clearSchedules() {
+      activePreset = null;
+
+      scheduleRows = scheduleRows.map(row => ({
+        ...row,
+        open: false,
+        intervals: []
+      }));
+
+      render();
+    }
+
+    function copyFromPrimary(showFeedback = true) {
+      const primary = scheduleRows.find(row => row.days.includes('segunda'));
+
+      if (!primary) return;
+
+      scheduleRows = scheduleRows.map(row => {
+        if (row.id === primary.id) return row;
+
+        if (row.days.includes('sexta') || row.days.includes('sabado')) {
+          return {
+            ...row,
+            open: true,
+            intervals: structuredClone(primary.intervals)
+          };
+        }
+
+        return row;
+      });
+
+      if (showFeedback) {
+        document.getElementById('copyText').textContent = 'Copiado!';
+
+        setTimeout(() => {
+          document.getElementById('copyText').textContent = 'Copiar para outros dias';
+        }, 1500);
+      }
+
+      render();
+    }
+
+    function toggleSameHours(checked) {
+      applySameHours = checked;
+
+      if (checked) {
+        copyFromPrimary(false);
+      }
+
+      render();
+    }
+
+    function isPrimaryRow(rowId) {
+      const row = scheduleRows.find(item => item.id === rowId);
+      return row && row.days.includes('segunda');
+    }
+
+    function durationInHours(start, end) {
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+
+      let startMinutes = sh * 60 + sm;
+      let endMinutes = eh * 60 + em;
+
+      if (endMinutes <= startMinutes) {
+        endMinutes += 24 * 60;
+      }
+
+      return (endMinutes - startMinutes) / 60;
+    }
+
+    function calculateWeeklyHours() {
+      return scheduleRows.reduce((total, row) => {
+        if (!row.open) return total;
+
+        const dayCount = row.days.length;
+
+        const intervalTotal = row.intervals.reduce((sum, interval) => {
+          return sum + durationInHours(interval.start, interval.end);
+        }, 0);
+
+        return total + intervalTotal * dayCount;
+      }, 0);
+    }
+
+    function isSundayClosed() {
+      const sundayRow = scheduleRows.find(row => row.days.includes('domingo'));
+      return !sundayRow || !sundayRow.open;
+    }
+
+    function renderScheduleRows() {
+      scheduleList.innerHTML = '';
+      emptyState.style.display = scheduleRows.length === 0 ? 'block' : 'none';
+
+      scheduleRows.forEach(row => {
+        const item = document.createElement('div');
+        item.className = 'schedule-row';
+
+        const intervalsHtml = row.open
+          ? row.intervals.map((interval, index) => `
+            <div class="interval">
+              <input
+                class="time-input"
+                type="time"
+                value="${interval.start}"
+                onchange="changeInterval('${row.id}', ${index}, 'start', this.value)"
+              >
+
+              <strong>→</strong>
+
+              <input
+                class="time-input"
+                type="time"
+                value="${interval.end}"
+                onchange="changeInterval('${row.id}', ${index}, 'end', this.value)"
+              >
+            </div>
+          `).join('') + `
+            <button class="add-interval" onclick="addInterval('${row.id}')">
+              + Adicionar intervalo
+            </button>
+          `
+          : `<div class="closed-text">Loja fechada</div>`;
+
+        item.innerHTML = `
+          <input
+            class="row-check"
+            type="checkbox"
+            ${row.open ? 'checked' : ''}
+            onchange="toggleRowOpen('${row.id}', this.checked)"
+          >
+
+          <div>
+            <div class="row-title">
+              <h3>${row.label}</h3>
+              <span class="badge ${row.open ? 'open' : 'closed'}">
+                ${row.open ? 'Aberto' : 'Fechado'}
+              </span>
+            </div>
+
+            ${intervalsHtml}
+          </div>
+
+          <button class="delete-btn" onclick="removeRow('${row.id}')">
+            Excluir
+          </button>
+        `;
+
+        scheduleList.appendChild(item);
+      });
+    }
+
+    function renderInsights() {
+      const weeklyHours = calculateWeeklyHours();
+      document.getElementById('weeklyHoursText').textContent =
+        `${Number.isInteger(weeklyHours) ? weeklyHours : weeklyHours.toFixed(1)}h por semana`;
+
+      const sundayClosed = isSundayClosed();
+
+      document.getElementById('sundayStatusTitle').textContent =
+        sundayClosed ? 'Domingo está fechado' : 'Domingo está aberto';
+
+      document.getElementById('sundayStatusText').textContent =
+        sundayClosed
+          ? 'Considere abrir e vender mais!'
+          : 'Ótima oportunidade para vender mais.';
+    }
+
+    function renderButtonState() {
+      const availableDays = getAvailableDays();
+
+      daysButton.innerHTML = availableDays.length === 0
+        ? 'Todos os dias selecionados ▼'
+        : '+ Escolher dias ▼';
+    }
+
+    function renderPresetState() {
+      document.querySelectorAll('.shortcut').forEach(button => {
+        button.classList.remove('active');
+      });
+    }
+
+    function render() {
+      renderButtonState();
+      renderScheduleRows();
+      renderInsights();
+      renderPresetState();
+
+      if (daysDropdown.classList.contains('open')) {
+        renderAvailableDays();
+      }
+    }
+
+    function validateSchedules() {
+      for (const row of scheduleRows) {
+        if (!row.open) continue;
+
+        if (!row.intervals.length) {
+          alert(`Informe pelo menos um intervalo para ${row.label}.`);
+          return false;
+        }
+
+        for (const interval of row.intervals) {
+          if (!interval.start || !interval.end) {
+            alert(`Preencha início e fim em ${row.label}.`);
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
+    function buildPayload() {
+      return {
+        step: 'horarios',
+        schedules: scheduleRows.map(row => ({
+          id: row.id,
+          label: row.label,
+          days: row.days,
+          open: row.open,
+          intervals: row.open ? row.intervals : []
+        }))
+      };
+    }
+
+    function saveAndGoNext() {
+      if (!validateSchedules()) return;
+
+      const payload = buildPayload();
+
+      console.log('Salvar somente agora:', payload);
+
+      alert('Horários salvos. Avançar para Entrega.');
+    }
+
+    render();
+  </script>
+
+</body>
+</html>

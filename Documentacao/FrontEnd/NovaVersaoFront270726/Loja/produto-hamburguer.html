@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Produto • Brasa Burger</title>
+
+  <!-- Fontes e ícones -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body,
+    button,
+    input,
+    textarea {
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .circle-btn i,
+    .product-meta i,
+    .cart-btn i {
+      line-height: 1;
+    }
+
+    .circle-btn i {
+      font-size: 24px;
+    }
+
+    .product-meta .orange-icon {
+      color: var(--orange);
+    }
+
+    .product-meta .meta-icon {
+      font-size: 18px;
+    }
+
+    .product-meta .weight-icon {
+      font-size: 17px;
+    }
+
+    .meat-point-group {
+      margin-top: 12px;
+    }
+
+    .meat-point-title {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+    }
+
+    .meat-point-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .meat-point-option {
+      position: relative;
+      min-height: 62px;
+      padding: 12px 10px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 6px 15px rgba(33, 20, 8, 0.035);
+    }
+
+    .meat-point-option strong {
+      display: block;
+      font-size: 12px;
+      line-height: 1.15;
+      font-weight: 700;
+    }
+
+    .meat-point-option small {
+      display: block;
+      margin-top: 3px;
+      color: #7a7a80;
+      font-size: 10px;
+      line-height: 1.1;
+      font-weight: 500;
+    }
+
+    .meat-point-option.active {
+      border-color: var(--orange);
+      background: #FDECEE;
+      box-shadow: 0 8px 18px rgba(213, 74, 81, 0.08);
+    }
+
+    .meat-point-check {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      border: 2px solid #fff;
+      box-shadow: 0 6px 14px rgba(213, 74, 81, 0.24);
+    }
+
+    .check-row i {
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .notes i {
+      color: #777;
+      font-size: 20px;
+    }
+
+    .store-footer {
+      height: 84px;
+      background: rgba(255, 255, 255, 0.96);
+      border-top: 1px solid rgba(234, 223, 214, 0.9);
+      box-shadow: 0 -14px 30px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      bottom: 0;
+      z-index: 30;
+      border-radius: 26px 26px 0 0;
+      color: #8a8a90;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .cart-btn i {
+      font-size: 34px;
+    }
+
+    @media (max-width: 400px) {
+      .meat-point-grid {
+        gap: 8px;
+      }
+
+      .meat-point-option {
+        min-height: 58px;
+        padding: 11px 7px 9px;
+      }
+
+      .meat-point-option strong {
+        font-size: 11px;
+      }
+
+      .meat-point-option small {
+        font-size: 9px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span class="wifi"></span>
+      <span class="battery"></span>
+    </div>
+  </div>
+
+  <section class="product-hero">
+    <img src="assets/images/burger.png" alt="Cheese Burger">
+
+    <div class="hero-actions">
+      <a class="circle-btn" data-back href="index.html" aria-label="Voltar">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+</div>
+  </section>
+
+  <section class="product-sheet">
+    <div class="title-price">
+      <h1>Cheese Burger</h1>
+      <div class="product-price">R$ 24,90</div>
+    </div>
+
+    <div class="product-meta" aria-label="Informações do produto">
+      <span><i class="fa-solid fa-star orange-icon meta-icon"></i>4,8</span>
+      <span class="dot">•</span>
+      <span><i class="fa-solid fa-fire orange-icon meta-icon"></i>Mais pedido</span>
+      <span class="dot">•</span>
+      <span><i class="bi bi-clock meta-icon"></i>30–45 min</span>
+      <span class="dot">•</span>
+      <span><i class="fa-solid fa-weight-hanging weight-icon"></i>180g</span>
+    </div>
+
+    <p class="product-desc">
+      Pão brioche, 180g de blend artesanal, cheddar, alface, tomate,
+      cebola roxa e molho especial.
+    </p>
+
+    <div class="section-title">
+      <h2>Opcionais</h2>
+      <span>Escolha e monte do seu jeito</span>
+    </div>
+
+    <div class="meat-point-group" aria-label="Ponto da carne">
+      <h3 class="meat-point-title">Ponto da carne</h3>
+
+      <div class="meat-point-grid">
+        <button class="meat-point-option active" type="button" aria-pressed="true">
+          <span class="meat-point-check"><i class="fa-solid fa-check"></i></span>
+          <span>
+            <strong>Ao ponto para mal</strong>
+            <small>Mais suculenta</small>
+          </span>
+        </button>
+
+        <button class="meat-point-option" type="button" aria-pressed="false">
+          <span>
+            <strong>Ao ponto</strong>
+          </span>
+        </button>
+
+        <button class="meat-point-option" type="button" aria-pressed="false">
+          <span>
+            <strong>Bem passada</strong>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="option-label">
+      <h3>Adicionais</h3>
+    </div>
+
+    <div class="check-list" aria-label="Adicionais do produto">
+      <label class="check-row">
+        <span class="check-name"><span class="box checked"><i class="fa-solid fa-check"></i></span>Bacon</span>
+        <span>+R$ 4,50</span>
+      </label>
+
+      <label class="check-row">
+        <span class="check-name"><span class="box checked"><i class="fa-solid fa-check"></i></span>Onion Rings</span>
+        <span>+R$ 6,90</span>
+      </label>
+
+      <label class="check-row">
+        <span class="check-name"><span class="box"></span>Catupiry</span>
+        <span>+R$ 3,50</span>
+      </label>
+
+      <label class="check-row">
+        <span class="check-name"><span class="box"></span>Cheddar Cremoso</span>
+        <span>+R$ 3,90</span>
+      </label>
+
+      <label class="check-row">
+        <span class="check-name"><span class="box"></span>Molho Especial</span>
+        <span>+R$ 2,50</span>
+      </label>
+    </div>
+
+    <div class="option-label">
+      <h3>Observações</h3>
+    </div>
+
+    <label class="notes">
+      <i class="bi bi-pencil"></i>
+      <input aria-label="Observações" placeholder="Ex.: sem cebola, ponto da carne..." style="border:0;outline:0;background:transparent;font-size:16px">
+      <span>0/120</span>
+    </label>
+
+    <div class="product-fixed">
+      <div class="qty">
+        <button aria-label="Diminuir">−</button>
+        <span>1</span>
+        <button aria-label="Aumentar">+</button>
+      </div>
+
+      <a class="cart-btn" href="carrinho.html">
+        <i class="bi bi-bag"></i>
+        <span>Adicionar ao carrinho<br><strong>R$ 24,90</strong></span>
+      </a>
+    </div>
+  </section>
+
+
+  <a class="back-to-menu" href="index.html">Voltar ao cardápio</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+<script src="js/app.js"></script>
+</main>
+</body>
+</html>

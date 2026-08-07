@@ -1,0 +1,140 @@
+.order-card {
+  padding: 12px;
+  border: 1px solid #e7e9f3;
+  border-radius: 16px;
+  background: var(--app-surface, #fff);
+  display: grid;
+  gap: 9px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(40, 44, 80, 0.06);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.order-card:hover {
+  border-color: #d8daf0;
+  box-shadow: 0 16px 28px rgba(40, 44, 80, 0.09);
+  transform: translateY(-1px);
+}
+
+.order-card.is-new {
+  border-color: #ff763f;
+  background: #fff7f1;
+}
+
+.order-card.is-realtime-highlight {
+  box-shadow: 0 0 0 3px var(--app-brand-shadow, rgba(213, 74, 81, 0.18));
+}
+
+.order-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--app-brand-shadow, rgba(213, 74, 81, 0.18));
+}
+
+.order-main,
+.order-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-code {
+  color: #111426;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+strong {
+  color: #ff4b1f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.order-summary-details {
+  display: grid;
+  gap: 5px;
+}
+
+.order-summary-details p {
+  margin: 0;
+  color: #7d8298;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.order-summary-details strong {
+  display: block;
+  color: #111426;
+  font-size: 12px;
+}
+
+.order-summary-details span {
+  color: #7d8298;
+  font-weight: 700;
+}
+
+.order-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.order-tags span {
+  max-width: 100%;
+  border-radius: 999px;
+  background: var(--app-surface, #fff);
+  color: #7d8298;
+  font-size: 11px;
+  font-weight: 800;
+  overflow: hidden;
+  padding: 4px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-meta {
+  color: #7d8298;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+button {
+  flex: 1 1 128px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff763f, #ff4b1f);
+  color: var(--app-surface, #fff);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:active {
+  background: #e24119;
+}
+
+button:disabled {
+  background: var(--app-border-medium, #d6d0cc);
+  cursor: not-allowed;
+}
+
+button.is-secondary {
+  background: #fff;
+  color: #111426;
+  border: 1px solid #e7e9f3;
+}
+
+button.is-danger {
+  background: transparent;
+  color: var(--app-danger, #b42318);
+  border: 1px solid rgba(180, 35, 24, 0.32);
+}

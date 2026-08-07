@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monte sua pizza • Bucks Burgueria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/pizza.css">
+</head>
+<body>
+<main class="app-shell pizza-app">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="status-icons" aria-hidden="true">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span class="wifi"></span>
+      <span class="battery"></span>
+    </div>
+  </div>
+
+  <section class="pizza-hero" aria-label="Pizza ilustrativa">
+    <img id="pizzaHeroImage" src="assets/images/pizza-meio-a-meio.png" alt="Pizza meio a meio">
+    <div class="hero-actions">
+      <a class="circle-btn" data-back href="index.html" aria-label="Voltar ao cardápio">
+        <i class="bi bi-arrow-left icon" aria-hidden="true"></i>
+      </a>
+    </div>
+    <div class="pizza-hero-caption">
+      <span><i class="bi bi-fire" aria-hidden="true"></i> Assada na hora</span>
+      <strong id="heroSummary">Grande · até 3 sabores</strong>
+    </div>
+  </section>
+
+  <section class="pizza-sheet">
+    <header class="pizza-heading">
+      <div>
+        <span class="pizza-kicker">Personalize do seu jeito</span>
+        <h1>Monte sua pizza</h1>
+        <p>O preço dos sabores é calculado pelo sabor mais caro escolhido.</p>
+      </div>
+      <div class="product-price" id="headingPrice">R$ 63,90</div>
+    </header>
+
+    <ol class="pizza-progress" aria-label="Etapas da montagem">
+      <li class="active"><span>1</span>Tamanho</li>
+      <li><span>2</span>Sabores</li>
+      <li><span>3</span>Extras</li>
+    </ol>
+
+    <form id="pizzaForm" novalidate>
+      <section class="pizza-config-card" id="sizeSection" aria-labelledby="pizza-size-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 1</span>
+            <h2 id="pizza-size-title">Escolha o tamanho</h2>
+          </div>
+          <span class="tag-required">Obrigatório</span>
+        </div>
+        <div class="pizza-size-grid" id="sizeOptions" role="radiogroup" aria-label="Tamanhos de pizza"></div>
+      </section>
+
+      <section class="pizza-config-card" id="flavorCountSection" aria-labelledby="pizza-count-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 2</span>
+            <h2 id="pizza-count-title">Quantos sabores?</h2>
+          </div>
+          <span class="tag-required">Obrigatório</span>
+        </div>
+        <p class="config-help" id="flavorCountHelp">O tamanho escolhido aceita até 3 sabores.</p>
+        <div class="flavor-count-grid" id="flavorCountOptions" role="radiogroup" aria-label="Quantidade de sabores"></div>
+      </section>
+
+      <section class="pizza-config-card" id="flavorsSection" aria-labelledby="pizza-flavors-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 3</span>
+            <h2 id="pizza-flavors-title">Escolha os sabores</h2>
+          </div>
+          <span class="tag-required">Obrigatório</span>
+        </div>
+        <p class="config-help">Selecione cada parte da pizza. Você poderá retirar ingredientes separadamente.</p>
+        <div class="flavor-slot-tabs" id="flavorSlotTabs" role="tablist" aria-label="Partes da pizza"></div>
+        <label class="pizza-search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input id="flavorSearch" type="search" placeholder="Buscar sabor ou ingrediente" aria-label="Buscar sabor">
+        </label>
+        <div class="flavor-filter" id="flavorFilter" aria-label="Filtrar sabores">
+          <button class="active" type="button" data-filter="todos">Todos</button>
+          <button type="button" data-filter="tradicional">Tradicionais</button>
+          <button type="button" data-filter="especial">Especiais</button>
+          <button type="button" data-filter="vegetariana">Vegetarianas</button>
+          <button type="button" data-filter="doce">Doces</button>
+        </div>
+        <div class="flavor-list" id="flavorList" role="radiogroup" aria-label="Sabores disponíveis"></div>
+        <div class="flavor-customizations" id="flavorCustomizations" aria-live="polite"></div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="pizza-dough-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 4</span>
+            <h2 id="pizza-dough-title">Escolha a massa</h2>
+          </div>
+          <span class="tag-required">Obrigatório</span>
+        </div>
+        <div class="choice-list" id="doughOptions"></div>
+        <p class="allergen-note"><i class="bi bi-info-circle" aria-hidden="true"></i> A massa sem glúten é preparada no mesmo ambiente das demais massas.</p>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="pizza-crust-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 5</span>
+            <h2 id="pizza-crust-title">Borda recheada</h2>
+          </div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="choice-list" id="crustOptions"></div>
+        <div class="crust-portions" id="crustPortions" hidden>
+          <strong>Onde aplicar a borda?</strong>
+          <p class="config-help">Marque as partes que receberão o recheio. O valor é proporcional.</p>
+          <div id="crustPortionOptions"></div>
+        </div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="pizza-extras-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 6</span>
+            <h2 id="pizza-extras-title">Adicionais</h2>
+          </div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <p class="config-help">Os adicionais são aplicados na pizza inteira.</p>
+        <div class="extras-list" id="extraOptions"></div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="pizza-prep-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 7</span>
+            <h2 id="pizza-prep-title">Preferências de preparo</h2>
+          </div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="prep-grid" id="prepOptions"></div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="pizza-notes-title">
+        <div class="pizza-config-head">
+          <div>
+            <span class="step-label">Etapa 8</span>
+            <h2 id="pizza-notes-title">Observações</h2>
+          </div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <label class="pizza-notes">
+          <textarea id="pizzaNotes" maxlength="160" rows="3" placeholder="Ex.: colocar a cebola apenas na primeira metade." aria-label="Observações do pedido"></textarea>
+          <span id="notesCounter">0/160</span>
+        </label>
+        <p class="config-help">Use as opções acima para alterações de ingredientes. Pedidos estão sujeitos à disponibilidade.</p>
+      </section>
+
+      <section class="pizza-order-summary" aria-labelledby="pizza-summary-title">
+        <div>
+          <span class="step-label">Resumo</span>
+          <h2 id="pizza-summary-title">Sua pizza</h2>
+        </div>
+        <div id="pizzaSummaryLines" class="summary-lines"></div>
+      </section>
+    </form>
+
+    <div class="pizza-fixed">
+      <div class="qty" aria-label="Quantidade">
+        <button id="qtyMinus" type="button" aria-label="Diminuir quantidade">−</button>
+        <span id="pizzaQty">1</span>
+        <button id="qtyPlus" type="button" aria-label="Aumentar quantidade">+</button>
+      </div>
+      <button class="cart-btn" id="addPizzaButton" type="button">
+        <i class="bi bi-bag" aria-hidden="true"></i>
+        <span id="addPizzaLabel">Escolha os sabores<br><strong id="pizzaTotal">R$ 63,90</strong></span>
+      </button>
+    </div>
+  </section>
+
+  <a class="back-to-menu" href="index.html">Voltar ao cardápio</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+  <script src="js/app.js"></script>
+  <script src="js/pizza.js"></script>
+</main>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<ion-content color="light">
+<app-wizard-header [steps]="stepperSteps"></app-wizard-header>
+
+<div class="container">
+  <div class="page-title">
+    <div class="title-icon">
+      <ion-icon name="time-outline"></ion-icon>
+    </div>
+    <div class="title-text">
+      <h1>Horários de atendimento</h1>
+      <p>Defina os dias e cadastre um ou mais turnos para cada dia.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="skeleton-card">
+      @for (s of [1,2,3,4]; track s) {
+        <div class="skeleton-row">
+          <div class="skeleton-block skeleton-toggle"></div>
+          <div class="skeleton-block skeleton-name"></div>
+          <div class="skeleton-block skeleton-time"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Presets -->
+    <div class="card">
+      <h2>Atalhos rápidos</h2>
+      <p class="desc">Aplique um modelo aos dias que já estão abertos.</p>
+      <div class="presets">
+        @for (p of presets; track p.id) {
+          <button class="preset" [class.active]="activePreset() === p.id" (click)="applyPreset(p.id)">
+            <strong>{{ p.name }}</strong>
+            <span>
+              @for (sh of p.shifts; track sh.start; let last = $last) {
+                {{ sh.start }}–{{ sh.end }}@if (!last) {<br>}
+              }
+            </span>
+          </button>
+        }
+        <button class="preset preset-clear" (click)="clearAll()">
+          <strong>Limpar horários</strong>
+          <span>Fechar todos os dias</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sync toggle -->
+    <div class="sync-bar">
+      <label class="toggle-label">
+        <input type="checkbox" [checked]="syncAll()" (change)="toggleSyncAll()" class="toggle-input" />
+        <span class="toggle-switch"></span>
+      </label>
+      <span class="sync-text">Usar os mesmos turnos em todos os dias</span>
+      <div class="weekly-summary">
+        <span>Carga semanal</span>
+        <strong>{{ weeklyHours() }}</strong>
+      </div>
+    </div>
+
+    <!-- Days card -->
+    <div class="card days-card">
+      <h2>Funcionamento semanal</h2>
+      <p class="desc">Cada linha pode ter horários diferentes.</p>
+
+      @for (day of weekDays; track day.id) {
+        <div class="day-row" [class.closed]="!schedule()[day.id]?.isOpen">
+          <div class="day-info">
+            <label class="day-toggle">
+              <input type="checkbox" [checked]="schedule()[day.id]?.isOpen" (change)="toggleDay(day.id)" />
+              <span class="day-checkbox">
+                @if (schedule()[day.id]?.isOpen) {
+                  <ion-icon name="checkmark"></ion-icon>
+                }
+              </span>
+            </label>
+            <div>
+              <p class="day-name">{{ day.label }}</p>
+              <p class="day-meta">{{ getShiftCount(day.id) }}</p>
+            </div>
+          </div>
+
+          <div class="day-content">
+            @if (schedule()[day.id]?.isOpen) {
+              <div class="shifts">
+                @for (shift of schedule()[day.id].shifts; track i; let i = $index) {
+                  <div class="shift-row">
+                    <input type="time" class="time-input"
+                      [ngModel]="shift.startTime"
+                      (ngModelChange)="updateTime(day.id, i, 'startTime', $event)"
+                      [attr.aria-label]="'Início do turno ' + (i + 1) + ' de ' + day.label" />
+                    <span class="shift-arrow">→</span>
+                    <input type="time" class="time-input"
+                      [ngModel]="shift.endTime"
+                      (ngModelChange)="updateTime(day.id, i, 'endTime', $event)"
+                      [attr.aria-label]="'Fim do turno ' + (i + 1) + ' de ' + day.label" />
+                    <button class="btn-ghost btn-remove-shift"
+                      (click)="removeShift(day.id, i)"
+                      [attr.aria-label]="'Remover turno ' + (i + 1)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                    @if (isOvernight(day.id, i)) {
+                      <span class="overnight-badge">Encerra no dia seguinte</span>
+                    }
+                  </div>
+                }
+                <button class="btn-add-shift" (click)="addShift(day.id)">
+                  <ion-icon name="add-outline"></ion-icon> Adicionar turno
+                </button>
+              </div>
+            } @else {
+              <p class="closed-msg">Loja fechada neste dia</p>
+            }
+            @if (validateDay(day.id); as err) {
+              <p class="day-error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="day-actions">
+            <button class="btn-outline btn-copy"
+              (click)="openCopyModal(day.id)"
+              [disabled]="syncAll() || !schedule()[day.id]?.isOpen || schedule()[day.id]?.shifts?.length === 0">
+              <ion-icon name="copy-outline"></ion-icon> Copiar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Overnight hint -->
+    <div class="hint-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>Para um turno que termina depois da meia-noite, informe por exemplo <strong>18:00 → 01:00</strong>. O sistema identificará automaticamente que o encerramento acontece no dia seguinte.</span>
+    </div>
+
+    <app-wizard-footer
+      [backLabel]="'Voltar para Loja'"
+      [nextLabel]="'Avançar para Entrega'"
+      [isSaving]="isSaving()"
+      [hasUnsavedChanges]="hasChanges()"
+      [saveStatus]="saveStatus()"
+      (back)="goBack()"
+      (next)="goNext()"
+      (save)="saveDraft()">
+    </app-wizard-footer>
+  }
+</div>
+
+<!-- Copy Modal -->
+<ion-modal [isOpen]="isCopyModalOpen()" (didDismiss)="closeCopyModal()" cssClass="copy-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Copiar turnos</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeCopyModal()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <div class="copy-modal-body">
+        <p class="copy-modal-desc">
+          @if (copySourceDay(); as src) {
+            Copiar os turnos de <strong>{{ getDayShort(src) }}</strong> para:
+          }
+        </p>
+        <div class="copy-options">
+          @for (day of copyTargetDays(); track day.id) {
+            <label class="copy-option" [class.selected]="copyTargets().has(day.id)">
+              <input type="checkbox" [checked]="copyTargets().has(day.id)" (change)="toggleCopyTarget(day.id)" />
+              <span>{{ day.label }}</span>
+            </label>
+          }
+        </div>
+        <div class="copy-modal-actions">
+          <button class="btn-outline" (click)="closeCopyModal()">Cancelar</button>
+          <button class="btn-primary" (click)="confirmCopy()" [disabled]="copyTargets().size === 0">
+            Copiar horários
+          </button>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+</ion-content>

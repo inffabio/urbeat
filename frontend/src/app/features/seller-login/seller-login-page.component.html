@@ -1,0 +1,66 @@
+﻿<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="login-shell">
+    <div class="login-form-side">
+      <section class="form-wrapper" aria-labelledby="seller-login-title">
+        <img src="/images/logo_v2.png" alt="Urbeat" class="login-logo" width="150" />
+
+        <h1 id="seller-login-title" class="login-title">
+          Acesse sua conta<br /><span class="accent">de vendedor</span>
+        </h1>
+        <p class="login-subtitle">
+          Gerencie seu delivery e acompanhe suas vendas.
+        </p>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <!-- E-mail -->
+          <div class="input-group">
+            <label for="email" class="input-label">E-mail</label>
+            <div class="input-box">
+              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+              <input id="email" type="email" formControlName="email" 
+                     placeholder="seu@email.com" autocomplete="email" />
+            </div>
+          </div>
+
+          <!-- Senha -->
+          <div class="input-group">
+            <label for="password" class="input-label">Senha</label>
+            <div class="input-box">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                     placeholder="Sua senha de acesso" autocomplete="current-password" />
+              <button
+                type="button"
+                class="password-toggle"
+                [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+                (click)="togglePassword()">
+                <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <p class="forgot-password">
+            Esqueceu ou perdeu a senha? <a routerLink="/recuperar-senha">Recuperar senha</a>
+          </p>
+
+          <p class="submit-hint">
+            Caso não tenha confirmado seu e-mail, um novo envio será gerado.
+          </p>
+
+          <button type="submit" class="btn-submit" [disabled]="loginForm.invalid || loading()">
+            @if (loading()) {
+              <ion-spinner name="crescent" class="submit-spinner"></ion-spinner>
+              Acessando...
+            } @else {
+              Entrar
+            }
+          </button>
+        </form>
+
+        <p class="signup-call">
+          Não tem uma loja ainda? <a routerLink="/cadastro">Criar minha conta</a>
+        </p>
+      </section>
+    </div>
+  </div>
+</ion-content>

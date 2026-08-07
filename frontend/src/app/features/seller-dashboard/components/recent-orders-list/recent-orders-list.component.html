@@ -1,0 +1,27 @@
+<section class="recent-orders">
+  <header>
+    <h2>Ultimos pedidos</h2>
+    <a routerLink="/app/pedidos">Ver todos</a>
+  </header>
+
+  <div class="recent-table" role="table" aria-label="Ultimos pedidos da loja">
+    <div class="recent-head" role="row">
+      <span>Pedido</span>
+      <span>Cliente</span>
+      <span>Status</span>
+      <span>Pagamento</span>
+      <span>Valor</span>
+    </div>
+    @for (order of orders(); track order.id) {
+      <article class="recent-order" role="row">
+        <strong data-label="Pedido">#{{ order.code }}</strong>
+        <span data-label="Cliente">{{ order.customerName || 'Cliente' }}</span>
+        <span data-label="Status" class="badge-soft" [class]="'badge-soft ' + statusTone(order.status)">{{ statusLabel(order.status) }}</span>
+        <span data-label="Pagamento" class="badge-soft badge-money">{{ paymentLabel(order.paymentMethod) }}</span>
+        <strong data-label="Valor" class="order-total">{{ formatCurrency(order.total) }}</strong>
+      </article>
+    } @empty {
+      <p class="empty">Nenhum pedido encontrado para esta loja.</p>
+    }
+  </div>
+</section>

@@ -1,0 +1,58 @@
+<section class="dashboard-surface additionals-page">
+  <header class="dashboard-topbar topbar">
+    <div>
+      <div class="page-title-wrap"><h1 class="page-title">Adicionais</h1></div>
+      <p class="page-subtitle">Gerencie complementos e extras dos produtos.</p>
+    </div>
+    <div class="top-actions">
+      <div class="segmented" role="group" aria-label="Período"><button class="active" type="button">Hoje</button><button type="button">Semana</button><button type="button">Mês</button></div>
+      <button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Atualizar</button>
+      <button type="button" class="icon-btn notification-btn" aria-label="Notificações"><i class="bi bi-bell" aria-hidden="true"></i><span class="dot-badge">5</span></button>
+      <div class="date-pill"><i class="bi bi-calendar3" aria-hidden="true"></i><span>{{ headerSummary() }}</span><i class="bi bi-chevron-down" aria-hidden="true"></i></div>
+    </div>
+  </header>
+
+  <app-cardapio-menu-tabs />
+  <div class="notice"><i class="bi bi-check-circle" aria-hidden="true"></i><span>Sua mensalidade está em dia! Próximo vencimento 10/07/26</span></div>
+
+  <section class="row g-3 content-grid">
+    <div class="col-12 col-xl-8">
+      <div class="content-card table-card">
+        <div class="content-head"><h2>Adicionais cadastrados</h2></div>
+        @if (loading()) {
+          <div class="seller-state-card is-loading" role="status"><strong class="seller-state-title">Carregando adicionais</strong><p class="seller-state-copy">Estamos reunindo os adicionais cadastrados na loja.</p></div>
+        } @else if (error()) {
+          <div class="seller-state-card is-error" role="alert"><strong class="seller-state-title">Não foi possível carregar os adicionais.</strong><p class="seller-state-copy">Atualize a lista para tentar novamente.</p><button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button></div>
+        } @else if (additionals().length === 0) {
+          <div class="seller-state-card is-empty"><strong class="seller-state-title">Nenhum adicional cadastrado ainda.</strong><p class="seller-state-copy">Use o formulário ao lado para criar o primeiro adicional.</p></div>
+        } @else {
+          <div class="seller-table-wrap"><table class="seller-table additionals-table"><thead><tr><th>Adicional</th><th>Grupo</th><th class="text-center">Preço</th><th>Status</th><th class="text-end">Ações</th></tr></thead><tbody>
+            @for (additional of additionals(); track additional.id) {
+              <tr>
+                <td data-label="Adicional"><strong>{{ additional.name }}</strong><div class="product-desc">{{ additional.description || 'Complemento da loja' }}</div></td>
+                <td data-label="Grupo">{{ additional.groupName }}</td>
+                <td data-label="Preço" class="text-center">{{ formatCurrency(additional.price) }}</td>
+                <td data-label="Status"><button type="button" class="status-toggle" [class.is-active]="additional.isActive" [attr.aria-pressed]="additional.isActive" [attr.aria-label]="additional.isActive ? 'Desativar adicional' : 'Ativar adicional'" (click)="toggleAdditional(additional)"><span class="status-toggle-track"><span class="status-toggle-thumb"></span></span><span class="badge-soft" [class.badge-green]="additional.isActive" [class.badge-gray]="!additional.isActive">{{ additional.isActive ? 'Ativo' : 'Desativo' }}</span></button></td>
+                <td data-label="Ações" class="text-end"><span class="action-buttons"><button type="button" class="small-icon-btn action-orange" (click)="startEdit(additional)" aria-label="Editar adicional"><i class="bi bi-pencil" aria-hidden="true"></i></button><button type="button" class="small-icon-btn delete-action" (click)="deleteAdditional(additional)" aria-label="Excluir adicional"><i class="bi bi-trash" aria-hidden="true"></i></button></span></td>
+              </tr>
+            }
+          </tbody></table></div>
+        }
+        <div class="seller-table-footer"><span class="seller-table-footer-copy">Mostrando {{ additionals().length }} de {{ additionals().length }} adicionais</span></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <aside class="content-card form-card">
+        <h2>{{ formTitle() }}</h2>
+        <p>{{ editingAdditionalId() ? 'Atualize os dados deste adicional da loja.' : 'Cadastre um complemento para reutilizar nos produtos.' }}</p>
+        <div class="form-field"><label for="additionalName">Nome *</label><input id="additionalName" type="text" [ngModel]="formName()" (ngModelChange)="formName.set($event)" placeholder="Ex.: Bacon extra" /></div>
+        <div class="form-field"><label for="additionalGroup">Grupo *</label><select id="additionalGroup" [ngModel]="formGroupId()" (ngModelChange)="formGroupId.set($event)"><option value="">Selecione um grupo</option>@for (group of groups(); track group.id) { <option [value]="group.id">{{ group.name }}</option> }</select></div>
+        <div class="form-field"><label for="additionalPrice">Preço *</label><div class="price-input"><span>R$</span><input id="additionalPrice" type="number" min="0" step="0.01" inputmode="decimal" [ngModel]="formPrice()" (ngModelChange)="formPrice.set($event === '' ? null : +$event)" /></div><small>Use 0,00 para adicionais gratuitos.</small></div>
+        <div class="form-field"><label class="status-label" for="additionalActive">Status</label><button id="additionalActive" type="button" class="form-status" [class.is-active]="formIsActive()" (click)="formIsActive.set(!formIsActive())"><span>{{ formIsActive() ? 'Ativo' : 'Desativo' }}</span><span class="status-toggle-track"><span class="status-toggle-thumb"></span></span></button></div>
+        <button type="button" class="btn-primary-app btn-orange full-width" (click)="saveAdditional()" [disabled]="saving() || !formName().trim() || !formGroupId() || formPrice() === null || formPrice()! < 0">{{ saving() ? 'Salvando...' : (editingAdditionalId() ? 'Salvar alterações' : 'Salvar adicional') }}</button>
+        @if (editingAdditionalId()) { <button type="button" class="btn-outline-app full-width" (click)="cancelEdit()">Cancelar edição</button> }
+      </aside>
+    </div>
+  </section>
+</section>

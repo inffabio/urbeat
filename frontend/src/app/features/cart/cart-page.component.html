@@ -1,0 +1,253 @@
+<ion-content [fullscreen]="true" class="cart-content">
+  <header class="page-head center">
+    <button class="circle-btn" (click)="onBack()" aria-label="Voltar">
+      <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+    </button>
+
+    <div class="page-title">
+      <h1>Carrinho</h1>
+      @if (cart.storeName()) {
+        <p class="store-context">
+          @if (cart.storeLogoUrl()) {
+            <img [src]="cart.storeLogoUrl()" [alt]="cart.storeName()!" class="store-logo" (error)="onImageError($event)" />
+          }
+          <span>Seu pedido na <strong>{{ cart.storeName() }}</strong></span>
+        </p>
+      } @else {
+        <p>Revise seu pedido</p>
+      }
+    </div>
+
+    <button class="circle-btn" [disabled]="cart.isEmpty()" (click)="promptClear()" aria-label="Limpar carrinho">
+      <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  @if (cart.isEmpty()) {
+    <div class="empty">
+      <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+      <h2>Seu carrinho está vazio</h2>
+      <p>Adicione itens do cardápio para continuar.</p>
+      <app-back-to-menu-link variant="primary" (navigateBack)="goToMenu()" />
+    </div>
+  } @else {
+    <section class="screen-padding">
+      @if (storeLoadError()) {
+        <div class="error-banner" role="alert">
+          <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+          <div>
+            <strong>Não foi possível carregar os dados da loja</strong>
+            <p>Verifique sua conexão e tente novamente.</p>
+          </div>
+          <button class="btn-retry" (click)="retryLoad()">Tentar novamente</button>
+        </div>
+      }
+
+      @if (!storeLoadError() && checkoutPreviewError()) {
+        <div class="error-banner" role="alert">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          <div>
+            <strong>Erro ao calcular o pedido</strong>
+            <p>Não foi possível verificar o valor do frete e o pedido mínimo. Tente novamente.</p>
+          </div>
+          <button class="btn-retry" (click)="retryLoad()">Tentar novamente</button>
+        </div>
+      }
+
+      @if (!storeLoadError()) {
+      <!-- Loading skeleton -->
+      @if (dataLoading()) {
+        <div class="cart-list" aria-busy="true" aria-label="Carregando">
+          @for (i of [1, 2]; track i) {
+            <div class="cart-product-card skeleton">
+              <div class="skeleton-img"></div>
+              <div class="cart-product-info">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line skeleton-desc"></div>
+                <div class="skeleton-line skeleton-price"></div>
+              </div>
+              <div class="skeleton-pill"></div>
+            </div>
+          }
+        </div>
+        <div class="skeleton-summary card">
+          <div class="skeleton-line skeleton-row"></div>
+          <div class="skeleton-line skeleton-row"></div>
+        </div>
+      }
+
+      @if (!dataLoading()) {
+      <!-- Itens -->
+      <div class="cart-list">
+        @for (item of cart.items(); track item.id || item.productId || $index) {
+          <article class="cart-product-card">
+            @if (item.productImage) {
+              <img [src]="item.productImage" [alt]="item.productName" (error)="onImageError($event)" />
+            } @else {
+              <div class="cart-item-placeholder" aria-label="Item sem imagem">
+                <ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>
+              </div>
+            }
+            <div class="cart-product-info">
+              <h3>{{ item.productName }}</h3>
+              <p>
+                {{ item.productDescription }}
+                @if (item.variationName) { &middot; {{ item.variationName }} }
+                @if (item.weightGrams) { &middot; {{ item.weightGrams >= 1000 ? ((item.weightGrams / 1000).toFixed(2).replace('.', ',') + ' kg') : (item.weightGrams + ' g') }} }
+                @if (item.choiceOptionName) { &middot; {{ item.choiceOptionName }} }
+                @if (item.additionalNames?.length) { &middot; {{ item.additionalNames?.join(', ') }} }
+              </p>
+              @if (item.notes) {
+                <small class="item-notes">Obs: {{ item.notes }}</small>
+              }
+              <strong class="cart-product-price">{{ item.unitPrice * item.quantity | brl }}</strong>
+            </div>
+            <button class="cart-remove" aria-label="Remover {{ item.productName }}" (click)="remove(item.id!)">
+              <ion-icon name="close"></ion-icon>
+            </button>
+            <div class="cart-qty-pill" aria-label="Quantidade de {{ item.productName }}">
+              <button class="qty-minus" aria-label="Diminuir quantidade" (click)="dec(item.id!)">
+                <ion-icon name="remove-circle-outline"></ion-icon>
+              </button>
+              <strong>{{ item.quantity }}</strong>
+              <button class="qty-plus" aria-label="Aumentar quantidade" (click)="inc(item.id!)">
+                  <ion-icon name="add-circle-outline"></ion-icon>
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+
+      <!-- Forma de recebimento -->
+      <div class="receive-title">
+        <div>
+          <h2>Como deseja receber?</h2>
+          <p>Escolha a melhor opção para você</p>
+        </div>
+      </div>
+
+      <div class="receive-grid">
+        <label class="receive-card" [class.active]="fulfillment() === FulfillmentType.Delivery" [class.disabled]="!supportsDelivery()">
+          <span class="radio-dot"></span>
+          <span class="illustration" aria-hidden="true">
+            <ion-icon name="bicycle-outline"></ion-icon>
+          </span>
+          <div>
+            <h3>Entrega</h3>
+            <p>Receba em casa<br />com comodidade</p>
+            <div class="time-pill"><ion-icon name="time-outline"></ion-icon>{{ etaDelivery() }}</div>
+          </div>
+          @if (supportsDelivery()) {
+            <input type="radio" name="fulfillment" [checked]="fulfillment() === FulfillmentType.Delivery" (change)="setFulfillment(FulfillmentType.Delivery)" class="hidden-input" />
+          }
+        </label>
+
+        <label class="receive-card" [class.active]="fulfillment() === FulfillmentType.PickUp" [class.disabled]="!supportsPickup()">
+          <span class="radio-dot"></span>
+          <span class="illustration" aria-hidden="true">
+            <ion-icon name="storefront-outline"></ion-icon>
+          </span>
+          <div>
+            <h3>Retirada no local</h3>
+            <p>Retire seu pedido<br />no restaurante.</p>
+            <div class="time-pill muted"><ion-icon name="time-outline"></ion-icon>{{ etaPickup() }}</div>
+          </div>
+          @if (supportsPickup()) {
+            <input type="radio" name="fulfillment" [checked]="fulfillment() === FulfillmentType.PickUp" (change)="setFulfillment(FulfillmentType.PickUp)" class="hidden-input" />
+          }
+        </label>
+      </div>
+
+      <!-- Resumo -->
+      <div class="summary-card card">
+        <div class="sum-row">
+          <span>Subtotal</span>
+          <span>{{ subtotal() | brl }}</span>
+        </div>
+          @if (fulfillment() === FulfillmentType.Delivery) {
+          <div class="sum-row">
+            <span>Taxa de entrega</span>
+            @if (freeShippingApplied()) {
+              <span class="free-shipping">Grátis</span>
+            } @else if (!checkoutPreviewError() && deliveryFee() > 0) {
+              <span>{{ deliveryFee() | brl }}</span>
+            } @else {
+              <span class="fee-pending">Calculado na próxima etapa</span>
+            }
+          </div>
+          @if (!freeShippingApplied() && freeShippingThreshold()) {
+            <div class="sum-row free-ship-hint">
+              <span>
+                <ion-icon name="sparkles-outline" aria-hidden="true" class="free-ship-icon"></ion-icon>
+                Faltam {{ (freeShippingThreshold()! - subtotal()) | brl }} para frete grátis
+              </span>
+            </div>
+          }
+          @if (freeShippingApplied()) {
+            <div class="sum-row free-ship-hint earned">
+              <span>
+                <ion-icon name="checkmark-circle" aria-hidden="true" class="free-ship-icon"></ion-icon>
+                Frete grátis liberado!
+              </span>
+            </div>
+          }
+          }
+        @if (discount() > 0) {
+          <div class="sum-row sum-row-discount">
+            <span>Descontos</span>
+            <span>- {{ discount() | brl }}</span>
+          </div>
+        }
+        <div class="dash"></div>
+        <div class="sum-row total">
+          <span>Total</span>
+          <strong>{{ total() | brl }}</strong>
+        </div>
+      </div>
+
+      <!-- Warnings -->
+      @if (!storeOpen()) {
+        <div class="min-warning">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>{{ store()?.closedMessage || 'Loja fechada no momento. Não é possível finalizar o pedido agora.' }}</span>
+        </div>
+      }
+
+      @if (belowMinimum()) {
+        <div class="min-warning">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>Pedido mínimo para entrega: <strong>{{ minimumOrderValue() | brl }}</strong>. Faltam <strong>{{ (minimumOrderValue() - subtotal()) | brl }}</strong></span>
+        </div>
+      }
+
+      <!-- Continuar -->
+      <button
+        type="button"
+        class="continue-large"
+        [disabled]="cart.isEmpty() || belowMinimum() || !storeOpen()"
+        (click)="continueCheckout()"
+      >
+        <span><ion-icon name="bag-outline" aria-hidden="true"></ion-icon></span>
+        <span>Continuar<small>Escolha endereço e pagamento</small></span>
+        <span><ion-icon name="chevron-forward" aria-hidden="true"></ion-icon></span>
+      </button>
+
+      <app-back-to-menu-link class="link-orange" (navigateBack)="goToMenu()" />
+      }
+      }
+    </section>
+  }
+
+  @if (showClearConfirm()) {
+    <div class="modal-overlay" (click)="cancelClear()">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" (click)="$event.stopPropagation()">
+        <h2 id="confirm-title">Limpar carrinho?</h2>
+        <p>Todos os itens serão removidos.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cancelClear()">Cancelar</button>
+          <button type="button" class="btn-primary modal-confirm" (click)="confirmClear()">Limpar</button>
+        </div>
+      </div>
+    </div>
+  }
+</ion-content>

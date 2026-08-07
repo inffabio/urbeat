@@ -1,0 +1,340 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.checkout-content {
+  --background: var(--app-bg);
+  --offset-top: 0px !important;
+  --offset-bottom: 0px !important;
+  min-height: 100vh;
+}
+
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 22px;
+  z-index: 10;
+}
+
+.checkout-logo {
+  display: grid;
+  place-items: center;
+  padding-top: 68px;
+
+  img {
+    width: 142px;
+    height: 142px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--app-surface);
+    border: 4px solid var(--app-surface);
+    box-shadow: var(--shadow-logo);
+  }
+}
+
+.store-name {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  margin: 12px 0 28px;
+}
+
+.order-summary {
+  margin: 0 22px 22px;
+  overflow: hidden;
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    cursor: pointer;
+    min-height: 44px;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+  }
+
+  .os-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 800;
+
+    ion-icon {
+      font-size: 21px;
+      color: var(--app-brand);
+      line-height: 1;
+    }
+  }
+
+  .os-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .os-total {
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .os-chevron {
+    font-size: 16px;
+    color: var(--app-text-secondary);
+    transition: transform 0.2s ease;
+  }
+
+  &[open] .os-chevron {
+    transform: rotate(180deg);
+  }
+
+  .os-items {
+    list-style: none;
+    margin: 0;
+    padding: 14px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--app-border-light);
+    margin-top: 12px;
+
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .os-qty { color: var(--app-brand); font-weight: 700; }
+    .os-name { flex: 1; color: var(--app-text-secondary); }
+    .os-price { color: var(--app-text-primary); font-weight: 600; }
+  }
+
+  .os-note {
+    margin: 0;
+    padding-top: 10px;
+    font-size: 12px;
+    color: var(--app-text-secondary);
+  }
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 0 22px calc(92px + env(safe-area-inset-bottom, 0px));
+}
+
+.checkout-form--compact {
+  padding-top: 56px;
+}
+
+.form-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 12px 0 0;
+  color: var(--app-ink);
+}
+
+.form-section-title:first-of-type {
+  margin-top: 0;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--app-text-secondary);
+  margin: -4px 0 0;
+}
+
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 62px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-light);
+  border-radius: var(--radius-md);
+  padding: 17px 15px 6px;
+  transition: border-color 0.15s ease;
+  box-shadow: var(--shadow-sm);
+
+  &:focus-within {
+    border-color: var(--app-brand);
+  }
+
+  &--invalid {
+    border-color: var(--app-error);
+    box-shadow: none;
+
+    .field-label,
+    > ion-icon {
+      color: var(--app-error);
+    }
+  }
+
+  input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--app-ink);
+    min-height: 40px;
+
+    &::placeholder {
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+.field-label {
+  position: absolute;
+  top: 9px;
+  left: 16px;
+  color: var(--app-slate-warm);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  line-height: 1;
+}
+
+.field-icon {
+  gap: 12px;
+
+  > ion-icon {
+    font-size: 20px;
+    color: var(--app-brown);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .field-label {
+    left: 50px;
+  }
+}
+
+.field-row {
+  display: flex;
+  gap: 11px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.field-uf {
+  width: 104px;
+  flex-shrink: 0;
+
+  input {
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
+
+.field-number {
+  flex: 0 0 104px;
+}
+
+.field-complement {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+@media (max-width: 360px) {
+  .field-row {
+    gap: 8px;
+  }
+
+  .field-number {
+    flex-basis: 92px;
+  }
+
+  .field-complement {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+.cep-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--app-brand-shadow);
+  border-top-color: var(--app-brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.field-error {
+  color: var(--app-error);
+  font-size: 12px;
+  font-weight: 600;
+  margin: -5px 0 1px 4px;
+}
+
+.submit-btn {
+  width: 100%;
+  min-height: 52px;
+  font-size: 15px;
+  font-weight: 800;
+  margin-top: 16px;
+  margin-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+
+  &:disabled {
+    background: var(--app-border-medium);
+    box-shadow: none;
+    color: var(--app-surface);
+    cursor: not-allowed;
+  }
+}
+
+.delivery-warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--app-brand-soft);
+  border: 1px solid var(--app-brand-shadow);
+  font-size: 12px;
+  color: var(--app-brand-dark);
+
+  ion-icon { color: var(--app-brand); font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  strong { font-weight: 700; }
+  p { margin: 2px 0 0; font-size: 11px; }
+}
+
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: var(--app-overlay-loading);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid var(--app-brand-shadow);
+  border-top-color: var(--app-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .os-chevron { transition: none; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; }
+}
+
+@media (min-width: 900px) {
+  .checkout-logo { padding-top: 76px; }
+}

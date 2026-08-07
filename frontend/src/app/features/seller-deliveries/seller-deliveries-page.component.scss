@@ -1,0 +1,170 @@
+.deliveries-page {
+  max-width: 1180px;
+}
+
+.deliveries-filter-bar {
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 0.8fr) auto;
+}
+
+.latest-pill {
+  justify-self: end;
+}
+
+.deliveries-page .seller-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.delivery-metric-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.delivery-metric-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.delivery-metric-icon.is-brand {
+  background: var(--app-brand-soft);
+  color: var(--app-brand);
+}
+
+.delivery-metric-icon.is-info {
+  background: #edf4ff;
+  color: #2d6bc5;
+}
+
+.delivery-metric-icon.is-success {
+  background: var(--app-success-soft);
+  color: var(--app-success-green);
+}
+
+.delivery-metric-icon.is-neutral {
+  background: var(--app-surface-soft);
+  color: var(--app-text-secondary);
+}
+
+.deliveries-skeleton {
+  .seller-kpi-card {
+    min-height: 148px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(243, 239, 233, 0.92));
+  }
+}
+
+.deliveries-state-card {
+  gap: 14px;
+}
+
+.content-head {
+  margin-bottom: 18px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table thead th {
+  white-space: nowrap;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.table thead th.text-end {
+  text-align: right;
+}
+
+.table tbody td {
+  padding-left: 14px;
+  padding-right: 14px;
+  vertical-align: middle;
+}
+
+.table tbody td.text-end {
+  text-align: right;
+}
+
+.order-id {
+  color: var(--app-brand) !important;
+  font-weight: 800 !important;
+}
+
+.action-buttons {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.action-buttons a {
+  text-decoration: none;
+}
+
+.small-icon-btn:hover {
+  background: #edf4ff;
+  color: #2d6bc5;
+  border-color: #cbdcf9;
+}
+
+.small-icon-btn ion-icon {
+  font-size: 16px;
+}
+
+.footer-meta {
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+  .deliveries-page .seller-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deliveries-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .latest-pill {
+    justify-self: start;
+  }
+
+  .content-card {
+    padding: 16px;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--app-border-light);
+    padding: 10px 0;
+  }
+
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 7px 18px;
+    border: 0;
+  }
+
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 800;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+  }
+
+  .action-buttons {
+    justify-content: flex-start;
+  }
+}

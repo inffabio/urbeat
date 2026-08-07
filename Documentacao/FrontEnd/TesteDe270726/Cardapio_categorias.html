@@ -1,0 +1,1295 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urbeat — Organize seu cardápio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #ef4f5f;
+            --primary-dark: #dc3e4e;
+            --primary-50: #fff1f3;
+            --orange: #ff6b00;
+            --green: #079455;
+            --green-50: #ecfdf3;
+            --blue: #175cd3;
+            --blue-50: #eff8ff;
+            --red: #d92d20;
+            --red-50: #fef3f2;
+            --amber: #b54708;
+            --amber-50: #fffaeb;
+            --gray-25: #fcfcfd;
+            --gray-50: #f9fafb;
+            --gray-100: #f2f4f7;
+            --gray-200: #eaecf0;
+            --gray-300: #d0d5dd;
+            --gray-400: #98a2b3;
+            --gray-500: #667085;
+            --gray-600: #475467;
+            --gray-700: #344054;
+            --gray-900: #101828;
+            --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+            --shadow-md: 0 6px 20px rgba(16, 24, 40, .09);
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f7f8fb;
+            color: var(--gray-900);
+            font-family: "Inter", system-ui, -apple-system, sans-serif;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input, textarea, select { font: inherit; }
+        button { color: inherit; }
+        button, label, select { -webkit-tap-highlight-color: transparent; }
+        button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 3px solid rgba(239, 79, 95, .18);
+            outline-offset: 2px;
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            border-bottom: 1px solid var(--gray-200);
+            background: rgba(255,255,255,.96);
+            backdrop-filter: blur(12px);
+        }
+
+        .header-inner {
+            display: grid;
+            grid-template-columns: 140px minmax(520px, 1fr) 170px;
+            align-items: center;
+            gap: 24px;
+            width: min(1380px, calc(100% - 48px));
+            min-height: 70px;
+            margin: auto;
+        }
+
+        .logo {
+            color: var(--orange);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step { display: flex; align-items: center; gap: 7px; }
+        .step-circle {
+            display: grid;
+            place-items: center;
+            width: 27px;
+            height: 27px;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 50%;
+            background: #fff;
+            color: var(--gray-500);
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .step.done .step-circle { border-color: var(--green); background: var(--green); color: #fff; }
+        .step.active .step-circle { border-color: var(--primary); color: var(--primary); }
+        .step-label { color: var(--gray-500); font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .step.active .step-label { color: var(--gray-900); }
+        .step-line { width: 42px; height: 1px; margin: 0 8px; background: var(--gray-200); }
+        .step-line.done { background: #6ce9a6; }
+
+        .progress-wrap { text-align: right; }
+        .progress-label { color: var(--gray-500); font-size: 10px; font-weight: 600; }
+        .progress-label strong { color: var(--primary); }
+        .progress-track {
+            height: 5px;
+            margin-top: 6px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--gray-100);
+        }
+        .progress-track::after {
+            display: block;
+            width: 80%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            content: "";
+        }
+
+        main {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 30px 0 110px;
+        }
+
+        .page-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .page-heading h1 { font-size: 25px; letter-spacing: -.5px; }
+        .page-heading p { margin-top: 4px; color: var(--gray-500); font-size: 13px; }
+        .autosave {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--green-50);
+            color: var(--green);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 290px;
+            align-items: start;
+            gap: 22px;
+        }
+
+        .main-column { min-width: 0; }
+        .step-section { margin-bottom: 26px; }
+        .section-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 10px;
+        }
+        .section-heading h2 { font-size: 14px; font-weight: 800; }
+        .section-heading p { margin-top: 2px; color: var(--gray-500); font-size: 11px; }
+        .section-number { color: var(--primary); }
+        .text-button {
+            border: 0;
+            background: transparent;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .card {
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .category-card { padding: 18px; }
+        .category-top {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .field input, .field textarea, .field select, .inline-input, .filter-select {
+            width: 100%;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--gray-900);
+            transition: 150ms ease;
+        }
+        .field input, .field select, .inline-input, .filter-select { min-height: 38px; padding: 0 11px; }
+        .field textarea { min-height: 82px; padding: 10px 11px; resize: vertical; }
+        .field input:hover, .field textarea:hover, .field select:hover, .inline-input:hover { border-color: var(--gray-400); }
+        .field label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--gray-700);
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .required { color: var(--primary); }
+        .primary-button, .secondary-button, .danger-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .primary-button { border: 1px solid var(--primary); background: var(--primary); color: #fff; }
+        .primary-button:hover { border-color: var(--primary-dark); background: var(--primary-dark); }
+        .secondary-button { border: 1px solid var(--gray-300); background: #fff; color: var(--gray-700); }
+        .secondary-button:hover { background: var(--gray-50); }
+        .danger-button { border: 1px solid var(--red); background: var(--red); color: #fff; }
+        .primary-button:disabled, .danger-button:disabled { opacity: .45; cursor: not-allowed; }
+
+        .order-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 9px;
+        }
+        .order-title { display: flex; align-items: center; gap: 7px; color: var(--gray-600); font-size: 11px; font-weight: 700; }
+        .order-title svg { width: 14px; height: 14px; color: var(--primary); }
+        .count-pill {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .category-list { display: grid; gap: 8px; }
+        .category-row {
+            display: grid;
+            grid-template-columns: 24px 38px minmax(135px, 1fr) 90px 48px 122px;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 8px 10px;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            background: var(--gray-25);
+            transition: 160ms ease;
+        }
+        .category-row:hover { border-color: var(--gray-300); box-shadow: var(--shadow-sm); }
+        .category-row.dragging { opacity: .38; transform: scale(.99); }
+        .category-row.drag-over { border-color: var(--primary); background: var(--primary-50); }
+        .drag-handle {
+            border: 0;
+            background: transparent;
+            color: var(--gray-400);
+            font-size: 18px;
+            line-height: 1;
+            cursor: grab;
+        }
+        .drag-handle:active { cursor: grabbing; }
+        .order-badge {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #fecdd3;
+            border-radius: 9px;
+            background: var(--primary-50);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .category-name { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .category-sub { margin-top: 2px; color: var(--gray-500); font-size: 9px; }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            width: max-content;
+            padding: 4px 7px;
+            border-radius: 999px;
+            background: var(--green-50);
+            color: var(--green);
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .status-pill::before { width: 5px; height: 5px; border-radius: 50%; background: currentColor; content: ""; }
+        .status-pill.inactive { background: var(--gray-100); color: var(--gray-500); }
+
+        .mini-switch { position: relative; display: inline-flex; width: 34px; height: 20px; }
+        .mini-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .mini-switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--gray-300); cursor: pointer; transition: 150ms; }
+        .mini-switch span::before {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(16,24,40,.22);
+            content: "";
+            transition: 150ms;
+        }
+        .mini-switch input:checked + span { background: var(--green); }
+        .mini-switch input:checked + span::before { transform: translateX(14px); }
+
+        .row-actions { display: flex; justify-content: flex-end; gap: 3px; }
+        .icon-button {
+            display: grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--gray-500);
+            cursor: pointer;
+        }
+        .icon-button:hover { background: var(--gray-100); color: var(--gray-900); }
+        .icon-button.delete:hover { background: var(--red-50); color: var(--red); }
+        .icon-button:disabled { opacity: .28; cursor: not-allowed; }
+        .icon-button svg { width: 14px; height: 14px; }
+
+        .empty-state { padding: 28px; border: 1px dashed var(--gray-300); border-radius: 10px; color: var(--gray-500); text-align: center; font-size: 11px; }
+
+        .product-card { padding: 18px; }
+        .product-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 190px;
+            gap: 15px;
+        }
+        .field.full { grid-column: 1 / -1; }
+        .price-wrap { position: relative; }
+        .price-prefix {
+            position: absolute;
+            top: 1px;
+            bottom: 1px;
+            left: 1px;
+            display: grid;
+            place-items: center;
+            width: 36px;
+            border-right: 1px solid var(--gray-200);
+            border-radius: 8px 0 0 8px;
+            background: var(--gray-50);
+            color: var(--gray-500);
+            font-size: 10px;
+        }
+        .price-wrap input { padding-left: 46px; }
+        .active-control { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 10px; font-weight: 700; }
+        .active-control input { accent-color: var(--primary); }
+
+        .image-field { grid-row: span 2; }
+        .dropzone {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 160px;
+            overflow: hidden;
+            border: 1.5px dashed var(--primary);
+            border-radius: 10px;
+            background: #fffafb;
+            color: var(--primary);
+            text-align: center;
+            cursor: pointer;
+        }
+        .dropzone input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .dropzone svg { width: 24px; height: 24px; margin-bottom: 8px; }
+        .dropzone span { display: block; font-size: 10px; font-weight: 700; }
+        .dropzone small { color: var(--gray-500); font-size: 8px; }
+        .dropzone img { width: 100%; height: 160px; object-fit: cover; }
+
+        .sales-mode { grid-column: 1 / -1; }
+        .sales-mode > label { display: block; margin-bottom: 7px; color: var(--gray-700); font-size: 11px; font-weight: 700; }
+        .radio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 38px;
+            padding: 7px 9px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            color: var(--gray-600);
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .radio-option:has(input:checked) { border-color: #fda4af; background: var(--primary-50); color: var(--primary-dark); }
+        .radio-option input { accent-color: var(--primary); }
+        .product-submit { display: flex; justify-content: center; margin-top: 15px; }
+
+        .option-card { padding: 16px; }
+        .option-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .option-header strong { font-size: 11px; }
+        .option-grid { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 12px; }
+        .option-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .choice { display: flex; align-items: center; gap: 8px; font-size: 10px; }
+        .choice input { accent-color: var(--primary); }
+        .limits { display: flex; align-items: center; gap: 8px; }
+        .limits input { width: 48px; min-height: 34px; padding: 0 7px; border: 1px solid var(--gray-300); border-radius: 7px; }
+        .limits span { color: var(--gray-500); font-size: 9px; }
+        .option-items { display: grid; gap: 7px; margin-top: 14px; }
+        .option-item { display: grid; grid-template-columns: minmax(0, 1fr) 90px 28px; gap: 7px; }
+        .option-item input { min-height: 36px; padding: 0 9px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 10px; }
+        .add-option { width: 100%; min-height: 36px; margin-top: 8px; border: 1px dashed #fda4af; border-radius: 8px; background: #fff; color: var(--primary); font-size: 10px; font-weight: 700; cursor: pointer; }
+
+        .organization-card { display: flex; flex-wrap: wrap; gap: 9px; padding: 16px; }
+        .tag-check {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 10px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            color: var(--gray-600);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tag-check:has(input:checked) { border-color: #fda4af; background: var(--primary-50); color: var(--primary-dark); }
+        .tag-check input { accent-color: var(--primary); }
+
+        .products-panel {
+            position: sticky;
+            top: 92px;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .panel-header { padding: 15px; border-bottom: 1px solid var(--gray-200); }
+        .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .panel-title h2 { font-size: 12px; }
+        .product-count { padding: 4px 7px; border-radius: 999px; background: var(--primary-50); color: var(--primary); font-size: 9px; font-weight: 700; }
+        .panel-tools { display: grid; gap: 7px; margin-top: 11px; }
+        .search-wrap { position: relative; }
+        .search-wrap svg { position: absolute; top: 50%; left: 9px; width: 13px; height: 13px; color: var(--gray-400); transform: translateY(-50%); }
+        .search-wrap input { width: 100%; min-height: 35px; padding: 0 9px 0 30px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 10px; }
+        .filter-select { min-height: 35px; border-color: var(--gray-200); font-size: 10px; }
+        .product-list { display: grid; max-height: 610px; overflow-y: auto; }
+        .product-row {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) 26px;
+            gap: 10px;
+            padding: 11px 13px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .product-thumb {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #fff3e8;
+            font-size: 22px;
+        }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .product-name { overflow: hidden; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .product-category { margin: 2px 0; color: var(--gray-500); font-size: 8px; }
+        .product-price { color: var(--primary); font-size: 9px; font-weight: 800; }
+        .panel-empty { padding: 32px 18px; color: var(--gray-500); text-align: center; font-size: 10px; }
+
+        .footer {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 35;
+            border-top: 1px solid var(--gray-200);
+            background: rgba(255,255,255,.97);
+            backdrop-filter: blur(10px);
+        }
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            width: min(1180px, calc(100% - 40px));
+            min-height: 70px;
+            margin: auto;
+        }
+        .footer-actions { display: flex; align-items: center; gap: 8px; }
+        .save-state { color: var(--green); font-size: 10px; font-weight: 700; opacity: 0; transition: 160ms; }
+        .save-state.visible { opacity: 1; }
+
+        dialog {
+            width: min(430px, calc(100% - 30px));
+            margin: auto;
+            padding: 0;
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(16,24,40,.22);
+        }
+        dialog::backdrop { background: rgba(16,24,40,.48); backdrop-filter: blur(2px); }
+        .modal-header { display: flex; justify-content: space-between; gap: 18px; padding: 18px 19px 13px; border-bottom: 1px solid var(--gray-200); }
+        .modal-header h2 { font-size: 15px; }
+        .modal-header p { margin-top: 3px; color: var(--gray-500); font-size: 10px; }
+        .modal-close { border: 0; background: transparent; color: var(--gray-500); font-size: 21px; cursor: pointer; }
+        .modal-body { display: grid; gap: 13px; padding: 18px 19px; }
+        .modal-warning { padding: 10px; border-radius: 8px; background: var(--amber-50); color: var(--amber); font-size: 10px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 0 19px 18px; }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 88px;
+            z-index: 60;
+            max-width: min(350px, calc(100% - 32px));
+            padding: 11px 13px;
+            border-radius: 9px;
+            background: var(--gray-900);
+            color: #fff;
+            box-shadow: var(--shadow-md);
+            font-size: 10px;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: 180ms;
+        }
+        .toast.visible { opacity: 1; transform: translateY(0); }
+        .toast.error { background: var(--red); }
+
+        @media (max-width: 980px) {
+            .header-inner { grid-template-columns: 110px 1fr 130px; }
+            .step-label { display: none; }
+            .step-line { width: 28px; }
+            .layout { grid-template-columns: minmax(0, 1fr) 250px; }
+            .category-row { grid-template-columns: 22px 36px minmax(120px, 1fr) 46px 114px; }
+            .category-row .status-pill { display: none; }
+        }
+
+        @media (max-width: 760px) {
+            .header-inner, main, .footer-inner { width: calc(100% - 28px); }
+            .header-inner { grid-template-columns: 1fr auto; }
+            .stepper { display: none; }
+            .progress-wrap { min-width: 100px; }
+            .page-heading { align-items: flex-start; flex-direction: column; }
+            .layout { grid-template-columns: 1fr; }
+            .products-panel { position: static; order: 2; }
+            .category-row {
+                grid-template-columns: 20px 36px minmax(0, 1fr) 40px;
+                gap: 8px;
+                padding: 9px;
+            }
+            .category-row .status-pill { display: none; }
+            .row-actions { grid-column: 2 / -1; justify-content: flex-start; padding-top: 2px; border-top: 1px solid var(--gray-200); }
+            .product-grid, .option-grid { grid-template-columns: 1fr; }
+            .image-field { grid-row: auto; }
+            .radio-grid { grid-template-columns: 1fr 1fr; }
+            .footer-inner { min-height: 66px; }
+            .footer-inner > .secondary-button { display: none; }
+            .category-top { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 460px) {
+            main { padding-top: 20px; }
+            .category-card, .product-card { padding: 14px; }
+            .section-heading { align-items: flex-start; flex-direction: column; }
+            .product-grid, .option-settings { grid-template-columns: 1fr; }
+            .radio-grid { grid-template-columns: 1fr; }
+            .footer-actions .secondary-button { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="logo">urbeat</div>
+            <nav class="stepper" aria-label="Etapas do cadastro">
+                <div class="step done"><span class="step-circle">✓</span><span class="step-label">Loja</span></div>
+                <span class="step-line done"></span>
+                <div class="step done"><span class="step-circle">✓</span><span class="step-label">Horários</span></div>
+                <span class="step-line done"></span>
+                <div class="step done"><span class="step-circle">✓</span><span class="step-label">Entrega</span></div>
+                <span class="step-line done"></span>
+                <div class="step active" aria-current="step"><span class="step-circle">4</span><span class="step-label">Cardápio</span></div>
+                <span class="step-line"></span>
+                <div class="step"><span class="step-circle">5</span><span class="step-label">Publicar</span></div>
+            </nav>
+            <div class="progress-wrap">
+                <div class="progress-label">Progresso <strong>80%</strong></div>
+                <div class="progress-track"></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-heading">
+            <div>
+                <h1>Organize seu cardápio</h1>
+                <p>Cadastre as categorias na ordem de exibição e depois adicione seus produtos.</p>
+            </div>
+            <span class="autosave">✓ Salvo automaticamente</span>
+        </div>
+
+        <div class="layout">
+            <div class="main-column">
+                <section class="step-section" aria-labelledby="categoriesTitle">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="categoriesTitle"><span class="section-number">1.</span> Categorias do cardápio</h2>
+                            <p>Arraste para definir a ordem em que elas aparecerão para seus clientes.</p>
+                        </div>
+                    </div>
+                    <div class="card category-card">
+                        <form class="category-top" id="categoryForm">
+                            <input class="inline-input" id="newCategoryName" maxlength="40" placeholder="Ex.: Pizzas, Bebidas ou Sobremesas" aria-label="Nome da nova categoria">
+                            <button class="primary-button" type="submit">＋ Adicionar categoria</button>
+                        </form>
+                        <div class="order-header">
+                            <div class="order-title">
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke-linecap="round"></path></svg>
+                                Ordem de exibição no cardápio
+                            </div>
+                            <span class="count-pill" id="categoryCount">0 categorias</span>
+                        </div>
+                        <div class="category-list" id="categoryList"></div>
+                    </div>
+                </section>
+
+                <section class="step-section" aria-labelledby="productTitle">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="productTitle"><span class="section-number">2.</span> Cadastrar produto</h2>
+                            <p>Adicione as informações que seus clientes verão na loja.</p>
+                        </div>
+                    </div>
+                    <form class="card product-card" id="productForm">
+                        <div class="product-grid">
+                            <div class="field">
+                                <label for="productName">Nome do produto <span class="required">*</span></label>
+                                <input id="productName" maxlength="60" placeholder="Ex.: Burger Bacon" required>
+                            </div>
+                            <div class="field">
+                                <label for="productCategory">Categoria <span class="required">*</span></label>
+                                <select id="productCategory" required></select>
+                            </div>
+                            <div class="field">
+                                <label for="productDescription">Descrição</label>
+                                <textarea id="productDescription" maxlength="160" placeholder="Fale sobre os ingredientes e diferenciais..."></textarea>
+                            </div>
+                            <div class="field image-field">
+                                <label>Foto do produto</label>
+                                <label class="dropzone" id="dropzone">
+                                    <input type="file" id="productImage" accept="image/png,image/jpeg,image/webp">
+                                    <span id="dropzoneContent">
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 16l4.5-4.5 3 3L14 12l6 6M8.5 9A1.5 1.5 0 1 0 8.5 6a1.5 1.5 0 0 0 0 3Z"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+                                        Clique para enviar imagem
+                                        <small>PNG, JPG ou WebP</small>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="field">
+                                <label for="productPrice">Preço <span class="required">*</span></label>
+                                <div class="price-wrap">
+                                    <span class="price-prefix">R$</span>
+                                    <input id="productPrice" type="number" min="0.01" step="0.01" placeholder="0,00" required>
+                                </div>
+                                <label class="active-control"><input type="checkbox" id="productActive" checked> Produto ativo</label>
+                            </div>
+                            <div class="sales-mode">
+                                <label>Forma de venda</label>
+                                <div class="radio-grid">
+                                    <label class="radio-option"><input type="radio" name="saleMode" value="unit" checked> Produto único</label>
+                                    <label class="radio-option"><input type="radio" name="saleMode" value="size"> Por tamanho</label>
+                                    <label class="radio-option"><input type="radio" name="saleMode" value="weight"> Por peso (kg)</label>
+                                    <label class="radio-option"><input type="radio" name="saleMode" value="variable"> Preço variável</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="product-submit">
+                            <button class="primary-button" id="productSubmit" type="submit">Cadastrar produto</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="step-section" aria-labelledby="optionsTitle">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="optionsTitle"><span class="section-number">3.</span> Grupos de opções</h2>
+                            <p>Crie adicionais, tamanhos e escolhas para seus produtos.</p>
+                        </div>
+                        <button class="text-button" type="button" id="addGroup">＋ Adicionar grupo</button>
+                    </div>
+                    <div id="optionGroups">
+                        <div class="card option-card">
+                            <div class="option-header">
+                                <strong>Grupo de opções 1</strong>
+                                <button class="text-button remove-group" type="button">Remover grupo</button>
+                            </div>
+                            <div class="option-grid">
+                                <div class="field">
+                                    <label>Nome do grupo</label>
+                                    <input value="Escolha um extra">
+                                </div>
+                                <div class="field">
+                                    <label>Tipo de seleção</label>
+                                    <select><option>Opção única</option><option>Múltiplas opções</option></select>
+                                </div>
+                            </div>
+                            <div class="option-settings">
+                                <label class="choice"><input type="checkbox" checked> Obrigatório</label>
+                                <div class="limits"><span>Mín.</span><input type="number" value="1" min="0"><span>Máx.</span><input type="number" value="1" min="1"></div>
+                            </div>
+                            <div class="option-items">
+                                <div class="option-item">
+                                    <input value="Bacon extra" aria-label="Nome da opção">
+                                    <input type="number" value="4.00" step=".01" aria-label="Preço da opção">
+                                    <button class="icon-button delete remove-option" type="button" aria-label="Remover opção">×</button>
+                                </div>
+                            </div>
+                            <button class="add-option" type="button">＋ Adicionar item</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="step-section" aria-labelledby="organizationTitle">
+                    <div class="section-heading">
+                        <div>
+                            <h2 id="organizationTitle"><span class="section-number">4.</span> Organização</h2>
+                            <p>Marque como os produtos podem ser destacados.</p>
+                        </div>
+                    </div>
+                    <div class="card organization-card">
+                        <label class="tag-check"><input type="checkbox"> Destaque</label>
+                        <label class="tag-check"><input type="checkbox"> Mais vendidos</label>
+                        <label class="tag-check"><input type="checkbox"> Novidades</label>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="products-panel" aria-labelledby="productsPanelTitle">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2 id="productsPanelTitle">Seus produtos</h2>
+                        <span class="product-count" id="productCount">0 itens</span>
+                    </div>
+                    <div class="panel-tools">
+                        <div class="search-wrap">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+                            <input id="productSearch" type="search" placeholder="Buscar produto..." aria-label="Buscar produto">
+                        </div>
+                        <select class="filter-select" id="categoryFilter" aria-label="Filtrar produtos por categoria"></select>
+                    </div>
+                </div>
+                <div class="product-list" id="productList"></div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <button class="secondary-button" type="button">← Voltar para Entrega</button>
+            <span class="save-state" id="saveState">✓ Alterações salvas</span>
+            <div class="footer-actions">
+                <button class="secondary-button" type="button" id="saveButton">Salvar</button>
+                <button class="primary-button" type="button" id="continueButton">Avançar para Publicar →</button>
+            </div>
+        </div>
+    </footer>
+
+    <dialog id="editDialog" aria-labelledby="editTitle">
+        <div class="modal-header">
+            <div><h2 id="editTitle">Editar categoria</h2><p>Altere o nome sem perder os produtos associados.</p></div>
+            <button class="modal-close" type="button" data-close="editDialog" aria-label="Fechar">×</button>
+        </div>
+        <form id="editCategoryForm">
+            <div class="modal-body">
+                <div class="field">
+                    <label for="editCategoryName">Nome da categoria <span class="required">*</span></label>
+                    <input id="editCategoryName" maxlength="40" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" type="button" data-close="editDialog">Cancelar</button>
+                <button class="primary-button" type="submit">Salvar alteração</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="deleteDialog" aria-labelledby="deleteTitle">
+        <div class="modal-header">
+            <div><h2 id="deleteTitle">Excluir categoria</h2><p id="deleteSubtitle">Confirme a exclusão desta categoria.</p></div>
+            <button class="modal-close" type="button" data-close="deleteDialog" aria-label="Fechar">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-warning" id="deleteWarning"></div>
+            <div class="field" id="reassignField">
+                <label for="reassignCategory">Transferir produtos para</label>
+                <select id="reassignCategory"></select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="secondary-button" type="button" data-close="deleteDialog">Cancelar</button>
+            <button class="danger-button" type="button" id="confirmDelete">Excluir categoria</button>
+        </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const STORAGE_KEY = "urbeat_menu_categories_v1";
+            const icons = {
+                up: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m6 15 6-6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
+                down: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
+                edit: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"></path><path d="m14 7 3 3"></path></svg>',
+                trash: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"></path></svg>'
+            };
+
+            const defaultState = {
+                categories: [
+                    { id: "cat-burgers", name: "Hambúrgueres", order: 1, active: true },
+                    { id: "cat-combos", name: "Combos", order: 2, active: true },
+                    { id: "cat-drinks", name: "Bebidas", order: 3, active: true },
+                    { id: "cat-desserts", name: "Sobremesas", order: 4, active: true }
+                ],
+                products: [
+                    { id: "prod-cola", name: "Coca-Cola", description: "Lata 350 ml", price: 5.90, categoryId: "cat-drinks", active: true, emoji: "🥤", image: "" },
+                    { id: "prod-combo", name: "Combo Especial", description: "Burger, fritas e bebida", price: 43.90, categoryId: "cat-combos", active: true, emoji: "🍔", image: "" },
+                    { id: "prod-burger", name: "Super Burgão", description: "Carne, queijo e bacon", price: 18.00, categoryId: "cat-burgers", active: true, emoji: "🍔", image: "" }
+                ]
+            };
+
+            const categoryList = document.getElementById("categoryList");
+            const categoryCount = document.getElementById("categoryCount");
+            const productCategory = document.getElementById("productCategory");
+            const categoryFilter = document.getElementById("categoryFilter");
+            const productList = document.getElementById("productList");
+            const productCount = document.getElementById("productCount");
+            const productSearch = document.getElementById("productSearch");
+            const editDialog = document.getElementById("editDialog");
+            const deleteDialog = document.getElementById("deleteDialog");
+            const toast = document.getElementById("toast");
+            const saveState = document.getElementById("saveState");
+            let state = loadState();
+            let editingCategoryId = null;
+            let deletingCategoryId = null;
+            let draggedCategoryId = null;
+            let productImageData = "";
+            let toastTimer = null;
+            let saveTimer = null;
+
+            function clone(value) {
+                return JSON.parse(JSON.stringify(value));
+            }
+
+            function loadState() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                    if (saved && Array.isArray(saved.categories) && Array.isArray(saved.products)) return saved;
+                } catch {}
+                return clone(defaultState);
+            }
+
+            function createId(prefix) {
+                return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            }
+
+            function escapeHTML(value) {
+                const div = document.createElement("div");
+                div.textContent = value;
+                return div.innerHTML;
+            }
+
+            function categoryProductCount(categoryId) {
+                return state.products.filter(product => product.categoryId === categoryId).length;
+            }
+
+            function categoryById(categoryId) {
+                return state.categories.find(category => category.id === categoryId);
+            }
+
+            function renderAll() {
+                normalizeOrder();
+                renderCategories();
+                renderCategorySelectors();
+                renderProducts();
+            }
+
+            function normalizeOrder() {
+                state.categories.forEach((category, index) => {
+                    category.order = index + 1;
+                });
+            }
+
+            function renderCategories() {
+                categoryCount.textContent = `${state.categories.length} ${state.categories.length === 1 ? "categoria" : "categorias"}`;
+                if (!state.categories.length) {
+                    categoryList.innerHTML = '<div class="empty-state">Nenhuma categoria cadastrada. Adicione a primeira para começar seu cardápio.</div>';
+                    return;
+                }
+
+                categoryList.innerHTML = state.categories.map((category, index) => {
+                    const products = categoryProductCount(category.id);
+                    const position = String(index + 1).padStart(2, "0");
+                    return `
+                        <article class="category-row" draggable="true" data-category-id="${category.id}">
+                            <button class="drag-handle" type="button" aria-label="Arrastar ${escapeHTML(category.name)}" title="Arraste para reordenar">⋮⋮</button>
+                            <span class="order-badge" aria-label="Posição ${index + 1}">${position}</span>
+                            <div>
+                                <p class="category-name">${escapeHTML(category.name)}</p>
+                                <p class="category-sub">${products} ${products === 1 ? "produto associado" : "produtos associados"}</p>
+                            </div>
+                            <span class="status-pill ${category.active ? "" : "inactive"}">${category.active ? "Ativa" : "Oculta"}</span>
+                            <label class="mini-switch" title="${category.active ? "Ocultar categoria" : "Ativar categoria"}">
+                                <input type="checkbox" data-action="toggle" data-id="${category.id}" ${category.active ? "checked" : ""} aria-label="Categoria ${escapeHTML(category.name)} ativa">
+                                <span></span>
+                            </label>
+                            <div class="row-actions">
+                                <button class="icon-button" type="button" data-action="up" data-id="${category.id}" aria-label="Mover ${escapeHTML(category.name)} para cima" ${index === 0 ? "disabled" : ""}>${icons.up}</button>
+                                <button class="icon-button" type="button" data-action="down" data-id="${category.id}" aria-label="Mover ${escapeHTML(category.name)} para baixo" ${index === state.categories.length - 1 ? "disabled" : ""}>${icons.down}</button>
+                                <button class="icon-button" type="button" data-action="edit" data-id="${category.id}" aria-label="Editar ${escapeHTML(category.name)}">${icons.edit}</button>
+                                <button class="icon-button delete" type="button" data-action="delete" data-id="${category.id}" aria-label="Excluir ${escapeHTML(category.name)}">${icons.trash}</button>
+                            </div>
+                        </article>`;
+                }).join("");
+            }
+
+            function renderCategorySelectors() {
+                const selectedProductCategory = productCategory.value;
+                const selectedFilter = categoryFilter.value;
+                const activeCategories = state.categories.filter(category => category.active);
+                productCategory.innerHTML = '<option value="">Selecione uma categoria</option>' +
+                    activeCategories.map(category => `<option value="${category.id}">${escapeHTML(category.name)}</option>`).join("");
+                categoryFilter.innerHTML = '<option value="">Todas as categorias</option>' +
+                    state.categories.map(category => `<option value="${category.id}">${escapeHTML(category.name)}</option>`).join("");
+
+                if (activeCategories.some(category => category.id === selectedProductCategory)) productCategory.value = selectedProductCategory;
+                if (state.categories.some(category => category.id === selectedFilter)) categoryFilter.value = selectedFilter;
+                document.getElementById("productSubmit").disabled = activeCategories.length === 0;
+            }
+
+            function renderProducts() {
+                const query = productSearch.value.trim().toLocaleLowerCase("pt-BR");
+                const filter = categoryFilter.value;
+                const filtered = state.products.filter(product => {
+                    const matchesSearch = product.name.toLocaleLowerCase("pt-BR").includes(query);
+                    return matchesSearch && (!filter || product.categoryId === filter);
+                });
+                productCount.textContent = `${state.products.length} ${state.products.length === 1 ? "item" : "itens"}`;
+
+                if (!filtered.length) {
+                    productList.innerHTML = '<div class="panel-empty">Nenhum produto encontrado.</div>';
+                    return;
+                }
+
+                productList.innerHTML = filtered.map(product => {
+                    const category = categoryById(product.categoryId);
+                    const image = product.image
+                        ? `<img src="${product.image}" alt="">`
+                        : product.emoji || "🍽️";
+                    return `
+                        <article class="product-row">
+                            <div class="product-thumb">${image}</div>
+                            <div>
+                                <p class="product-name">${escapeHTML(product.name)}</p>
+                                <p class="product-category">${category ? escapeHTML(category.name) : "Sem categoria"} · ${product.active ? "Ativo" : "Inativo"}</p>
+                                <p class="product-price">${formatCurrency(product.price)}</p>
+                            </div>
+                            <button class="icon-button delete" type="button" data-delete-product="${product.id}" aria-label="Excluir ${escapeHTML(product.name)}">${icons.trash}</button>
+                        </article>`;
+                }).join("");
+            }
+
+            function formatCurrency(value) {
+                return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+            }
+
+            function normalizeName(value) {
+                return value.trim().toLocaleLowerCase("pt-BR");
+            }
+
+            function categoryNameExists(name, exceptId = null) {
+                const normalized = normalizeName(name);
+                return state.categories.some(category => category.id !== exceptId && normalizeName(category.name) === normalized);
+            }
+
+            function addCategory(name) {
+                const cleanName = name.trim();
+                if (!cleanName) {
+                    showToast("Informe o nome da categoria.", true);
+                    return false;
+                }
+                if (categoryNameExists(cleanName)) {
+                    showToast("Já existe uma categoria com esse nome.", true);
+                    return false;
+                }
+                state.categories.push({ id: createId("cat"), name: cleanName, order: state.categories.length + 1, active: true });
+                renderAll();
+                changed();
+                showToast(`Categoria “${cleanName}” adicionada na posição ${state.categories.length}.`);
+                return true;
+            }
+
+            function moveCategory(id, direction) {
+                const index = state.categories.findIndex(category => category.id === id);
+                const targetIndex = index + direction;
+                if (index < 0 || targetIndex < 0 || targetIndex >= state.categories.length) return;
+                const [category] = state.categories.splice(index, 1);
+                state.categories.splice(targetIndex, 0, category);
+                renderAll();
+                changed();
+                showToast("Ordem do cardápio atualizada.");
+            }
+
+            function openEditDialog(id) {
+                const category = categoryById(id);
+                if (!category) return;
+                editingCategoryId = id;
+                document.getElementById("editCategoryName").value = category.name;
+                editDialog.showModal();
+                setTimeout(() => document.getElementById("editCategoryName").focus(), 0);
+            }
+
+            function openDeleteDialog(id) {
+                const category = categoryById(id);
+                if (!category) return;
+                deletingCategoryId = id;
+                const linkedProducts = categoryProductCount(id);
+                const alternatives = state.categories.filter(item => item.id !== id);
+                const field = document.getElementById("reassignField");
+                const select = document.getElementById("reassignCategory");
+                const confirm = document.getElementById("confirmDelete");
+
+                document.getElementById("deleteSubtitle").textContent = `Você está prestes a excluir “${category.name}”.`;
+                if (linkedProducts > 0) {
+                    document.getElementById("deleteWarning").textContent =
+                        `${linkedProducts} ${linkedProducts === 1 ? "produto está associado" : "produtos estão associados"} a esta categoria. Escolha para onde transferir antes de excluir.`;
+                    field.hidden = false;
+                    select.innerHTML = alternatives.map(item => `<option value="${item.id}">${escapeHTML(item.name)}</option>`).join("");
+                    confirm.disabled = alternatives.length === 0;
+                } else {
+                    document.getElementById("deleteWarning").textContent = "Esta categoria não possui produtos associados e pode ser excluída com segurança.";
+                    field.hidden = true;
+                    confirm.disabled = false;
+                }
+                deleteDialog.showModal();
+            }
+
+            function confirmDeleteCategory() {
+                const linked = state.products.filter(product => product.categoryId === deletingCategoryId);
+                if (linked.length) {
+                    const replacementId = document.getElementById("reassignCategory").value;
+                    if (!replacementId) {
+                        showToast("Escolha uma categoria para transferir os produtos.", true);
+                        return;
+                    }
+                    linked.forEach(product => { product.categoryId = replacementId; });
+                }
+                const deleted = categoryById(deletingCategoryId);
+                state.categories = state.categories.filter(category => category.id !== deletingCategoryId);
+                deleteDialog.close();
+                renderAll();
+                changed();
+                showToast(`Categoria “${deleted?.name || ""}” excluída.`);
+            }
+
+            function changed() {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveNow, 120);
+            }
+
+            function saveNow() {
+                normalizeOrder();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                saveState.classList.add("visible");
+                setTimeout(() => saveState.classList.remove("visible"), 1600);
+            }
+
+            function showToast(message, error = false) {
+                clearTimeout(toastTimer);
+                toast.textContent = message;
+                toast.classList.toggle("error", error);
+                toast.classList.add("visible");
+                toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
+            }
+
+            document.getElementById("categoryForm").addEventListener("submit", event => {
+                event.preventDefault();
+                const input = document.getElementById("newCategoryName");
+                if (addCategory(input.value)) input.value = "";
+            });
+
+            categoryList.addEventListener("click", event => {
+                const button = event.target.closest("button[data-action]");
+                if (!button) return;
+                const { action, id } = button.dataset;
+                if (action === "up") moveCategory(id, -1);
+                if (action === "down") moveCategory(id, 1);
+                if (action === "edit") openEditDialog(id);
+                if (action === "delete") openDeleteDialog(id);
+            });
+
+            categoryList.addEventListener("change", event => {
+                if (event.target.dataset.action !== "toggle") return;
+                const category = categoryById(event.target.dataset.id);
+                if (!category) return;
+                category.active = event.target.checked;
+                renderAll();
+                changed();
+                showToast(category.active ? "Categoria ativada no cardápio." : "Categoria oculta do cardápio.");
+            });
+
+            categoryList.addEventListener("dragstart", event => {
+                const row = event.target.closest(".category-row");
+                if (!row) return;
+                draggedCategoryId = row.dataset.categoryId;
+                row.classList.add("dragging");
+                event.dataTransfer?.setData("text/plain", draggedCategoryId);
+                if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+            });
+
+            categoryList.addEventListener("dragover", event => {
+                event.preventDefault();
+                const row = event.target.closest(".category-row");
+                if (!row || row.dataset.categoryId === draggedCategoryId) return;
+                categoryList.querySelectorAll(".drag-over").forEach(item => item.classList.remove("drag-over"));
+                row.classList.add("drag-over");
+            });
+
+            categoryList.addEventListener("drop", event => {
+                event.preventDefault();
+                const targetRow = event.target.closest(".category-row");
+                if (!targetRow || !draggedCategoryId || targetRow.dataset.categoryId === draggedCategoryId) return;
+                const fromIndex = state.categories.findIndex(category => category.id === draggedCategoryId);
+                const targetIndex = state.categories.findIndex(category => category.id === targetRow.dataset.categoryId);
+                const rect = targetRow.getBoundingClientRect();
+                const insertAfter = event.clientY > rect.top + rect.height / 2;
+                const [moved] = state.categories.splice(fromIndex, 1);
+                let newIndex = state.categories.findIndex(category => category.id === targetRow.dataset.categoryId);
+                if (insertAfter) newIndex += 1;
+                state.categories.splice(newIndex, 0, moved);
+                renderAll();
+                changed();
+                showToast("Ordem do cardápio atualizada.");
+            });
+
+            categoryList.addEventListener("dragend", () => {
+                draggedCategoryId = null;
+                categoryList.querySelectorAll(".dragging, .drag-over").forEach(item => item.classList.remove("dragging", "drag-over"));
+            });
+
+            document.getElementById("editCategoryForm").addEventListener("submit", event => {
+                event.preventDefault();
+                const input = document.getElementById("editCategoryName");
+                const cleanName = input.value.trim();
+                if (!cleanName) return showToast("Informe o nome da categoria.", true);
+                if (categoryNameExists(cleanName, editingCategoryId)) return showToast("Já existe uma categoria com esse nome.", true);
+                const category = categoryById(editingCategoryId);
+                if (category) category.name = cleanName;
+                editDialog.close();
+                renderAll();
+                changed();
+                showToast("Categoria atualizada.");
+            });
+
+            document.querySelectorAll("[data-close]").forEach(button => {
+                button.addEventListener("click", () => document.getElementById(button.dataset.close).close());
+            });
+            [editDialog, deleteDialog].forEach(dialog => {
+                dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+            });
+            document.getElementById("confirmDelete").addEventListener("click", confirmDeleteCategory);
+
+            document.getElementById("productImage").addEventListener("change", event => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) {
+                    event.target.value = "";
+                    return showToast("Escolha uma imagem de até 2 MB.", true);
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    productImageData = reader.result;
+                    document.getElementById("dropzoneContent").innerHTML = `<img src="${productImageData}" alt="Prévia do produto">`;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById("productForm").addEventListener("submit", event => {
+                event.preventDefault();
+                const name = document.getElementById("productName").value.trim();
+                const categoryId = productCategory.value;
+                const price = Number(document.getElementById("productPrice").value);
+                if (!name || !categoryId || !Number.isFinite(price) || price <= 0) {
+                    showToast("Preencha nome, categoria e um preço válido.", true);
+                    return;
+                }
+                state.products.unshift({
+                    id: createId("prod"),
+                    name,
+                    description: document.getElementById("productDescription").value.trim(),
+                    price,
+                    categoryId,
+                    active: document.getElementById("productActive").checked,
+                    saleMode: document.querySelector('input[name="saleMode"]:checked').value,
+                    emoji: "🍽️",
+                    image: productImageData
+                });
+                event.target.reset();
+                document.getElementById("productActive").checked = true;
+                document.querySelector('input[name="saleMode"][value="unit"]').checked = true;
+                productImageData = "";
+                document.getElementById("dropzoneContent").innerHTML = `
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M4 16l4.5-4.5 3 3L14 12l6 6M8.5 9A1.5 1.5 0 1 0 8.5 6a1.5 1.5 0 0 0 0 3Z"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+                    Clique para enviar imagem<small>PNG, JPG ou WebP</small>`;
+                renderAll();
+                changed();
+                showToast(`Produto “${name}” cadastrado.`);
+            });
+
+            productSearch.addEventListener("input", renderProducts);
+            categoryFilter.addEventListener("change", renderProducts);
+            productList.addEventListener("click", event => {
+                const button = event.target.closest("[data-delete-product]");
+                if (!button) return;
+                const product = state.products.find(item => item.id === button.dataset.deleteProduct);
+                state.products = state.products.filter(item => item.id !== button.dataset.deleteProduct);
+                renderAll();
+                changed();
+                showToast(`Produto “${product?.name || ""}” removido.`);
+            });
+
+            document.getElementById("addGroup").addEventListener("click", () => {
+                const template = document.querySelector(".option-card").cloneNode(true);
+                const count = document.querySelectorAll(".option-card").length + 1;
+                template.querySelector(".option-header strong").textContent = `Grupo de opções ${count}`;
+                template.querySelectorAll("input").forEach(input => {
+                    if (input.type === "checkbox") input.checked = false;
+                    else if (input.type === "number") input.value = input.min || "0";
+                    else input.value = "";
+                });
+                document.getElementById("optionGroups").appendChild(template);
+                showToast("Novo grupo adicionado.");
+            });
+
+            document.getElementById("optionGroups").addEventListener("click", event => {
+                if (event.target.closest(".add-option")) {
+                    const card = event.target.closest(".option-card");
+                    const item = document.createElement("div");
+                    item.className = "option-item";
+                    item.innerHTML = '<input placeholder="Nome da opção" aria-label="Nome da opção"><input type="number" value="0.00" step=".01" aria-label="Preço da opção"><button class="icon-button delete remove-option" type="button" aria-label="Remover opção">×</button>';
+                    card.querySelector(".option-items").appendChild(item);
+                }
+                const removeOption = event.target.closest(".remove-option");
+                if (removeOption) removeOption.closest(".option-item").remove();
+                const removeGroup = event.target.closest(".remove-group");
+                if (removeGroup) {
+                    const groups = document.querySelectorAll(".option-card");
+                    if (groups.length === 1) return showToast("Mantenha pelo menos um grupo de exemplo.", true);
+                    removeGroup.closest(".option-card").remove();
+                }
+            });
+
+            document.getElementById("saveButton").addEventListener("click", () => {
+                saveNow();
+                showToast("Alterações salvas.");
+            });
+
+            document.getElementById("continueButton").addEventListener("click", () => {
+                if (!state.categories.length) return showToast("Cadastre pelo menos uma categoria.", true);
+                if (!state.categories.some(category => category.active)) return showToast("Ative pelo menos uma categoria.", true);
+                saveNow();
+                showToast("Cardápio validado. Você já pode avançar para a publicação.");
+            });
+
+            renderAll();
+        })();
+    </script>
+</body>
+</html>

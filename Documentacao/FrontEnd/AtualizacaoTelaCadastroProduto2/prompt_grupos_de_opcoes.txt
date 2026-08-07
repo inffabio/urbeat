@@ -1,0 +1,152 @@
+PROMPT PARA GERAR O COMPONENTE “2. GRUPOS DE OPÇÕES”
+
+Crie um arquivo HTML completo, autônomo e responsivo, usando apenas HTML, CSS e JavaScript puro, sem bibliotecas externas.
+
+O arquivo deve reproduzir uma seção de cadastro chamada “2. Grupos de opções”, destinada à personalização de produtos de um cardápio digital.
+
+OBJETIVO VISUAL
+
+A página deve ter fundo cinza muito claro (#f7f8fb), fonte Arial ou equivalente e um conteúdo centralizado com largura máxima aproximada de 900 px.
+
+No topo da seção, coloque:
+
+- Título em negrito: “2. Grupos de opções”
+- Texto auxiliar: “Adicione grupos para que o cliente possa personalizar o produto.”
+- À direita, um botão rosa-claro com texto coral: “+ Adicionar grupo”
+
+Use como cor principal um coral próximo de #e24d55.
+
+COMPORTAMENTO DO BOTÃO “+ ADICIONAR GRUPO”
+
+Ao clicar no botão, deve ser criado dinamicamente um cartão branco com bordas arredondadas, borda clara e sombra suave.
+
+Cada cartão deve conter:
+
+1. CABEÇALHO DO GRUPO
+
+- Título automático: “Grupo de opções 1”, “Grupo de opções 2” e assim por diante
+- Botão de texto coral: “Remover grupo”
+
+2. DADOS PRINCIPAIS
+
+Crie uma linha com duas colunas:
+
+- Campo “Nome do grupo *”
+  - Input de texto
+  - Placeholder: “Ex.: Escolha os adicionais”
+
+- Campo “Tipo de seleção”
+  - Select com as opções:
+    - “Escolha única”
+    - “Múltipla escolha”
+
+3. CONDIÇÃO DO GRUPO
+
+Mostre o título “Condição”.
+
+Abaixo, crie um controle segmentado horizontal com duas opções:
+
+- “Obrigatório”
+- “Opcional”
+
+A opção selecionada deve:
+
+- Ter fundo rosa muito claro
+- Usar texto coral
+- Mostrar um círculo com um ponto coral no centro
+
+A opção não selecionada deve ter fundo branco, texto escuro e círculo vazio com borda pontilhada ou tracejada.
+
+Por padrão, “Obrigatório” deve iniciar selecionado.
+
+4. QUANTIDADE DE ESCOLHAS
+
+Ao lado da condição, mostre o título “Escolhas”.
+
+Na mesma linha, apresente:
+
+- Texto “Mín”
+- Input numérico com valor inicial 1
+- Texto “até”
+- Texto “Máx”
+- Input numérico com valor inicial 1
+
+Regras:
+
+- O mínimo nunca pode ser menor que zero.
+- O máximo nunca pode ser menor que um.
+- O mínimo não pode ser maior que o máximo.
+- Ao selecionar “Obrigatório”, o mínimo deve ser pelo menos 1.
+- Ao selecionar “Opcional”, o mínimo pode ser 0.
+
+5. ITENS DO GRUPO
+
+Mostre o título em negrito “Itens do grupo”.
+
+Abaixo, coloque um botão grande ocupando toda a largura, com:
+
+- Borda clara tracejada
+- Fundo branco
+- Texto coral em negrito
+- Texto: “+ Adicionar item”
+
+COMPORTAMENTO DO BOTÃO “+ ADICIONAR ITEM”
+
+Ao clicar, adicione um item dentro do grupo com:
+
+- Campo “Nome do item *”
+  - Input de texto
+  - Placeholder: “Ex.: Bacon extra”
+
+- Campo “Preço adicional”
+  - Input de texto com valor inicial “R$ 0,00”
+  - Formatação automática em real brasileiro enquanto o usuário digita
+
+- Botão de texto coral: “Remover”
+
+Cada item deve poder ser removido separadamente.
+
+ESTADO VAZIO
+
+Quando ainda não houver grupos, mostre uma caixa branca com borda tracejada e a mensagem:
+
+“Nenhum grupo de opções adicionado.”
+
+Quando o primeiro grupo for criado, esconda essa mensagem.
+
+Quando todos os grupos forem removidos, mostre a mensagem novamente.
+
+RESPONSIVIDADE
+
+Em telas grandes:
+
+- Nome do grupo e tipo de seleção ficam lado a lado.
+- Condição e escolhas ficam lado a lado.
+- Nos itens, nome, preço e botão de remoção ficam na mesma linha.
+
+Em telas menores que aproximadamente 720 px:
+
+- Todos esses campos devem ficar em uma única coluna.
+- O botão “+ Adicionar grupo” deve continuar bem visível.
+- O cartão deve manter bom espaçamento interno.
+
+ESTILO DOS CAMPOS
+
+- Bordas claras próximas de #e8dfd8
+- Cantos arredondados de 8 a 10 px
+- Ao receber foco, usar borda coral e uma sombra rosa suave
+- Botões devem ter cursor pointer
+- Transições suaves de aproximadamente 0,2 segundos
+
+REQUISITOS TÉCNICOS
+
+- Entregue tudo em um único arquivo .html.
+- Inclua o CSS dentro de uma tag <style>.
+- Inclua o JavaScript dentro de uma tag <script>.
+- Não use Bootstrap, Tailwind, React, Vue, jQuery ou qualquer biblioteca externa.
+- Use HTML semântico e atributos de acessibilidade quando apropriado.
+- O código deve funcionar ao abrir diretamente no navegador.
+- O JavaScript deve permitir criar vários grupos e vários itens em cada grupo.
+- Cada grupo deve ser independente dos outros.
+- A numeração dos grupos deve avançar automaticamente.
+- Ao criar um grupo, faça uma rolagem suave até ele.

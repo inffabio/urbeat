@@ -1,0 +1,15 @@
+[Unit]
+Description=Urbeat Print Agent
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/urbeat-print-agent
+ExecStart=/opt/urbeat-print-agent/Urbeat.PrintAgent
+Restart=always
+RestartSec=3
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target

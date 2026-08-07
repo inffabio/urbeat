@@ -1,0 +1,247 @@
+:host {
+  --c-primary: var(--app-brand);
+  --c-primary-deep: var(--app-brand-dark);
+  --c-text: var(--app-text-primary);
+  --c-muted: var(--app-text-secondary);
+
+  display: block;
+  background: var(--app-surface);
+  min-height: 100dvh;
+}
+
+.confirm-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 2rem 1rem;
+}
+
+.confirm-card {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.confirm-logo {
+  height: 32px;
+  width: auto;
+  margin-bottom: 2rem;
+}
+
+.confirm-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--app-brand-shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-icon-wrap ion-icon {
+  font-size: 2rem;
+  color: var(--c-primary);
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 1rem;
+}
+
+.confirm-desc {
+  font-size: 0.95rem;
+  color: var(--c-text);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.confirm-hint {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+  margin-bottom: 1.5rem;
+}
+
+.resent-msg {
+  background: var(--app-success-green-soft);
+  color: var(--app-success-green);
+  border: 1px solid rgba(17, 148, 65, 0.2);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.btn-resend {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--c-primary);
+  color: var(--app-surface);
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-resend:hover:not(:disabled) {
+  background: var(--c-primary-deep);
+  transform: translateY(-1px);
+}
+
+.btn-resend:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--app-surface);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.back-link {
+  display: block;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--c-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.timer-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--app-brand-soft);
+  border: 1px solid var(--app-brand-shadow);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: var(--app-brand-dark);
+}
+
+.timer-box ion-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.timer-box strong {
+  color: var(--app-brand);
+}
+
+.change-email-section {
+  background: var(--app-bg-warm);
+  border: 1px solid var(--app-border-light);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.change-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--app-text-primary);
+  margin: 0 0 4px;
+}
+
+.change-hint {
+  font-size: 0.82rem;
+  color: var(--app-text-secondary);
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 12px;
+  font-size: 1.1rem;
+  color: var(--app-text-muted);
+  z-index: 1;
+}
+
+.input-wrap input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  outline: none;
+  background: var(--app-surface);
+}
+
+.input-wrap input:focus {
+  border-color: var(--app-brand);
+  box-shadow: 0 0 0 3px var(--app-brand-shadow);
+}
+
+.btn-change {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--app-brand);
+  color: var(--app-surface);
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-change:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.change-or {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+  margin: 0.75rem 0 0.5rem;
+}
+
+.change-email-section .btn-resend {
+  width: 100%;
+  background: transparent;
+  color: var(--app-brand);
+  border: 1px solid var(--app-line);
+}
+
+.change-email-section .btn-resend:hover:not(:disabled) {
+  background: var(--app-brand-soft);
+}
+
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

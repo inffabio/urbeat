@@ -1,0 +1,23 @@
+<section class="status-group status-{{ status() }}">
+  <header>
+    <div>
+      <h2>{{ title() }}</h2>
+      <small>Alterar pelo botão do pedido</small>
+    </div>
+    <span>{{ orders().length }}</span>
+  </header>
+
+  <div class="orders-stack">
+    @for (order of orders(); track order.id) {
+      <app-seller-order-card
+        [order]="order"
+        [updatingOrderId]="updatingOrderId()"
+        [highlighted]="highlightedOrderId() === order.id"
+        (advance)="advance.emit($event)"
+        (select)="selectOrder.emit($event)"
+      />
+    } @empty {
+      <p>Nenhum pedido nesta etapa.</p>
+    }
+  </div>
+</section>

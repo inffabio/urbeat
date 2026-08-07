@@ -1,0 +1,249 @@
+/* Bootstrap visual contract for every authenticated seller route. */
+body:has(.seller-shell) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  background: #f5f6fb;
+}
+
+.seller-shell {
+  --dash-bg: #f5f6fb;
+  --dash-surface: #fff;
+  --dash-text: #111426;
+  --dash-muted: #7d8298;
+  --dash-line: #e7e9f3;
+  --dash-primary: #6d5df2;
+  --dash-primary-strong: #5b4de2;
+  --dash-primary-soft: #eeeaff;
+  --dash-orange: #ff4b1f;
+  --dash-orange-2: #ff763f;
+  --dash-green: #19b86a;
+  --dash-green-soft: #e8f8ef;
+  font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* The seller workspace is a full-screen desktop app, not a centered mobile shell. */
+.seller-shell.app-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.seller-shell .seller-main { background: var(--dash-bg); }
+
+/* Every routed seller screen shares one fluid workspace gutter. */
+.seller-shell .seller-main > router-outlet + * {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+}
+
+.seller-shell .seller-main > router-outlet + * > :is(
+  .dashboard-surface,
+  .seller-dashboard-page,
+  .seller-page,
+  .hours-page,
+  .store-info-page,
+  .neighborhoods-page,
+  .printing-page,
+  .reviews-page,
+  .install-page,
+  .subscription-page,
+  .marketing-page
+) {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.seller-shell .seller-main > router-outlet + * > :is(.dashboard-surface, .seller-dashboard-page) {
+  padding: 0 0 40px;
+}
+
+.seller-shell .seller-main > router-outlet + * > :is(.seller-page, .hours-page, .store-info-page, .neighborhoods-page) {
+  padding-inline: 0;
+}
+
+.seller-shell .dashboard-surface,
+.seller-shell .seller-dashboard-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px 24px 40px;
+  display: grid;
+  gap: 16px;
+  color: var(--dash-text);
+}
+
+.seller-shell .dashboard-topbar,
+.seller-shell .topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.seller-shell .page-title { color: var(--dash-text); font-size: 24px !important; font-weight: 800 !important; line-height: 1.2 !important; letter-spacing: -.04em !important; text-align: left !important; }
+.seller-shell .content-head h2,
+.seller-shell .content-card h2,
+.seller-shell .form-card h2 { text-align: left !important; }
+.seller-shell .page-subtitle { margin-top: 6px; color: var(--dash-muted); font-size: 12px !important; font-weight: 600 !important; line-height: 1.4 !important; }
+.seller-shell .top-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.seller-shell .segmented { display: inline-flex; min-height: 38px; padding: 3px; border: 1px solid var(--dash-line); border-radius: 8px; background: #fff; }
+.seller-shell .segmented button { min-height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--dash-muted); font: inherit; font-size: 11px; font-weight: 800; }
+.seller-shell .segmented button.active { background: var(--dash-primary) !important; color: #fff !important; }
+.seller-shell .btn-soft,
+.seller-shell .date-pill,
+.seller-shell .icon-btn { min-height: 44px; border: 1px solid var(--dash-line); border-radius: 13px; background: #fff; color: #565b70; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-size: 12px; font-weight: 800; }
+.seller-shell .btn-soft, .seller-shell .date-pill { padding: 0 12px; border-radius: 8px; }
+.seller-shell .top-actions .btn-soft { background: var(--dash-primary) !important; border-color: var(--dash-primary) !important; color: #fff !important; }
+.seller-shell .icon-btn { width: 44px; padding: 0; border-radius: 50%; }
+.seller-shell .notice { display: flex; align-items: center; gap: 9px; margin: 0; padding: 11px 16px; border: 1px solid #b7e4cf; border-radius: 14px; background: var(--dash-green-soft); color: #166534; font-size: 12px; font-weight: 700; }
+.seller-shell .menu-tabs { display: flex; gap: 4px; margin: 0 0 0; padding: 4px; border: 1px solid var(--dash-line); border-radius: 10px; background: #fff; overflow-x: auto; }
+.seller-shell .menu-tabs a { min-height: 38px; padding: 0 14px; border-radius: 7px; color: #565b70; font-size: 12px; font-weight: 700; }
+.seller-shell .segmented,
+.seller-shell .segmented button,
+.seller-shell .menu-tabs,
+.seller-shell .menu-tabs a { border-radius: 8px !important; }
+.seller-shell .menu-tabs a.active, .seller-shell .menu-tabs a.is-active { background: var(--dash-primary); color: #fff; }
+.seller-shell .content-card,
+.seller-shell .seller-panel,
+.seller-shell .form-card,
+.seller-shell .metric-card,
+.seller-shell .metric-card-lite {
+  border: 1px solid var(--dash-line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(40,44,80,.07);
+}
+.seller-shell .content-card { padding: 22px; }
+.seller-shell .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.seller-shell .metric-card { min-height: 132px; padding: 18px; display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 14px; }
+.seller-shell .metric-icon { width: 52px; height: 52px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; background: #edf4ff; color: #3478ff; font-size: 20px; }
+.seller-shell .metric-icon.orange { background: var(--dash-orange-soft, #fff1ea); color: var(--dash-orange); }
+.seller-shell .metric-icon.yellow { background: #fff5df; color: #b45309; }
+.seller-shell .metric-label { color: var(--dash-muted); font-size: 12px; font-weight: 700; }
+.seller-shell .metric-value { margin-top: 6px; color: var(--dash-text); font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.seller-shell .trend { margin-top: 6px; color: var(--dash-green); font-size: 11px; font-weight: 800; }
+.seller-shell .trend span { color: var(--dash-muted); font-weight: 600; }
+.seller-shell .attention { margin-top: 6px; color: #b45309; font-size: 11px; font-weight: 800; }
+.seller-shell .content-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.seller-shell .content-card h2, .seller-shell .content-head h2, .seller-shell .form-card h2 { color: var(--dash-text); font-size: 15px !important; font-weight: 800 !important; line-height: 1.3 !important; letter-spacing: -.03em !important; }
+.seller-shell .content-card p, .seller-shell .content-card .text-secondary, .seller-shell .section-copy, .seller-shell .product-desc, .seller-shell .form-card p { color: var(--dash-muted); }
+.seller-shell .table-responsive { width: 100%; overflow-x: auto; }
+.seller-shell .table, .seller-shell .seller-table { width: 100%; color: var(--dash-text); }
+.seller-shell .table th, .seller-shell .seller-table th { padding: 0 0 10px; border-bottom: 1px solid var(--dash-line); color: var(--dash-muted); font-size: 11px !important; line-height: 1.2 !important; font-weight: 800 !important; text-transform: uppercase; }
+.seller-shell .table td, .seller-shell .seller-table td { padding: 11px 0; border-bottom: 1px solid var(--dash-line); color: var(--dash-text); font-size: 12px !important; line-height: 1.35 !important; vertical-align: middle; }
+.seller-shell .table tbody tr:last-child td, .seller-shell .seller-table tbody tr:last-child td { border-bottom: 0; }
+.seller-shell .badge-soft, .seller-shell .seller-status-badge { min-height: 28px; padding: 0 10px; border-radius: 9px; font-size: 11px !important; line-height: 1.2 !important; font-weight: 800 !important; }
+.seller-shell .badge-green, .seller-shell .seller-status-badge.is-success { background: var(--dash-green-soft); color: #166534; }
+.seller-shell .badge-gray, .seller-shell .seller-status-badge.is-neutral { background: #f3f4f8; color: #64748b; }
+.seller-shell .btn-primary-app, .seller-shell .seller-primary-button { min-height: 40px; border: 0; border-radius: 8px; background: var(--dash-primary) !important; border-color: var(--dash-primary) !important; color: #fff; font-size: 12px !important; line-height: 1.2 !important; font-weight: 800 !important; }
+.seller-shell .btn-outline-app, .seller-shell .btn-outline-danger-app { min-height: 38px; border: 1px solid var(--dash-line); border-radius: 8px; background: #fff; color: var(--dash-text); font-size: 11px !important; line-height: 1.2 !important; font-weight: 800 !important; }
+.seller-shell .btn-outline-danger-app { color: #ef4444; background: #fff5f5; border-color: #ffd2d2; }
+.seller-shell .form-card { padding: 24px; }
+.seller-shell .form-label-app, .seller-shell .prod-label { color: #43475b; font-size: 11px !important; line-height: 1.2 !important; font-weight: 800 !important; }
+.seller-shell .form-control-app, .seller-shell .form-select-app, .seller-shell .prod-input, .seller-shell .prod-select, .seller-shell .prod-textarea { min-height: 40px; border: 1px solid var(--dash-line); border-radius: 8px; background: #fff; color: var(--dash-text); font-size: 12px !important; line-height: 1.35 !important; }
+.seller-shell .form-control-app:focus, .seller-shell .form-select-app:focus, .seller-shell .prod-input:focus, .seller-shell .prod-select:focus, .seller-shell .prod-textarea:focus { border-color: var(--dash-primary); box-shadow: 0 0 0 3px rgba(109,93,242,.15); }
+.seller-shell .metric-card-lite { box-shadow: 0 14px 34px rgba(40,44,80,.07); }
+.seller-shell .seller-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.seller-shell .seller-kpi-card { min-height: 132px; padding: 18px; border: 1px solid var(--dash-line); border-radius: 22px; background: #fff; box-shadow: 0 14px 34px rgba(40,44,80,.07); }
+.seller-shell .seller-kpi-label { display: block; color: var(--dash-muted); font-size: 12px; font-weight: 700; }
+.seller-shell .seller-kpi-value { display: block; margin-top: 6px; color: var(--dash-text); font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.seller-shell .seller-kpi-meta { display: block; margin-top: 6px; color: var(--dash-muted); font-size: 11px; line-height: 1.4; }
+.seller-shell .filter-bar { border-color: var(--dash-line); border-radius: 22px; background: #fff; box-shadow: 0 14px 34px rgba(40,44,80,.07); }
+.seller-shell .search-wrap { border-color: var(--dash-line); border-radius: 11px; background: #fff; }
+.seller-shell .small-icon-btn { width: 38px; min-width: 38px; height: 38px; border: 1px solid var(--dash-line); border-radius: 11px; background: #fff; color: var(--dash-text); }
+
+/* Keep text actions readable and touchable even when feature styles are more specific. */
+.seller-shell .seller-main .btn-primary-app,
+.seller-shell .seller-main .seller-primary-button,
+.seller-shell .seller-main .btn-outline-app,
+.seller-shell .seller-main .btn-outline-danger-app,
+.seller-shell .seller-main .seller-secondary-button,
+.seller-shell .seller-main .seller-dark-button,
+.seller-shell .seller-main .btn-instalar,
+.seller-shell .seller-main .btn-config-print,
+.seller-shell .seller-main .actions button {
+  min-height: 44px !important;
+  padding: 0 16px !important;
+  border-radius: 8px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  white-space: nowrap;
+}
+
+.seller-shell .seller-main .seller-secondary-button,
+.seller-shell .seller-main .seller-dark-button {
+  border: 1px solid var(--dash-line);
+  background: #fff;
+  color: var(--dash-text);
+}
+
+.seller-shell .seller-main .seller-primary-button,
+.seller-shell .seller-main .btn-instalar {
+  border: 0;
+  background: var(--dash-primary) !important;
+  color: #fff;
+}
+
+/* Cardapio actions use the orange sidebar action color; navigation keeps purple. */
+.seller-shell .seller-main .btn-primary-app.btn-orange,
+.seller-shell .seller-main .btn-orange,
+.seller-shell .seller-main .btn-soft {
+  background: var(--dash-orange) !important;
+  border-color: var(--dash-orange) !important;
+  color: #fff !important;
+}
+.seller-shell .seller-main .btn-primary-app.btn-orange:hover,
+.seller-shell .seller-main .btn-orange:hover,
+.seller-shell .seller-main .btn-soft:hover { background: var(--dash-orange-2) !important; border-color: var(--dash-orange-2) !important; }
+.seller-shell .seller-main .btn-outline-app { border-color: var(--dash-orange); color: var(--dash-orange); }
+
+.seller-shell .seller-main .small-icon-btn,
+.seller-shell .seller-main .icon-btn,
+.seller-shell .seller-main .collapse-btn,
+.seller-shell .seller-main .mobile-menu-btn {
+  padding: 0 !important;
+  white-space: normal;
+}
+
+.seller-shell .seller-main .btn-outline-app ion-icon,
+.seller-shell .seller-main .btn-outline-danger-app ion-icon,
+.seller-shell .seller-main .seller-primary-button ion-icon,
+.seller-shell .seller-main .seller-secondary-button ion-icon {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1199.98px) {
+  .seller-shell .seller-main > router-outlet + * { padding: 18px; }
+  .seller-shell .dashboard-topbar, .seller-shell .topbar { flex-direction: column; }
+  .seller-shell .top-actions { width: 100%; justify-content: flex-start; }
+  .seller-shell .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .seller-shell .seller-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767.98px) {
+  .seller-shell .seller-main > router-outlet + * { padding: 14px; }
+  .seller-shell .dashboard-surface, .seller-shell .seller-dashboard-page { padding: 18px 14px 32px; }
+  .seller-shell .seller-main > router-outlet + * > :is(.dashboard-surface, .seller-dashboard-page) { padding: 0 0 32px; }
+  .seller-shell .page-title { font-size: 24px; }
+  .seller-shell .metrics-grid { grid-template-columns: 1fr; }
+  .seller-shell .seller-kpi-grid { grid-template-columns: 1fr; }
+  .seller-shell .top-actions { gap: 8px; }
+  .seller-shell .segmented { width: 100%; }
+  .seller-shell .segmented button { flex: 1; }
+  .seller-shell .table thead, .seller-shell .seller-table thead { display: none; }
+  .seller-shell .table tbody tr, .seller-shell .seller-table tbody tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--dash-line); }
+  .seller-shell .table tbody td, .seller-shell .seller-table tbody td { display: flex; justify-content: space-between; gap: 18px; padding: 7px 0; border: 0; }
+  .seller-shell .table tbody td::before, .seller-shell .seller-table tbody td::before { content: attr(data-label); color: var(--dash-muted); font-size: 11px; font-weight: 800; }
+}

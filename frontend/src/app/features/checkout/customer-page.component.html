@@ -1,0 +1,286 @@
+<ion-content [fullscreen]="true" class="checkout-content">
+  <button type="button" class="circle-btn back-btn" (click)="onBack()" aria-label="Voltar">
+    <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+  </button>
+
+  @if (cart.storeLogoUrl()) {
+    <div class="checkout-logo">
+      <img [src]="cart.storeLogoUrl()" [alt]="cart.storeName() || ''" />
+    </div>
+  }
+
+  <h1 class="store-name">{{ cart.storeName() }}</h1>
+
+  @if (!cart.isEmpty()) {
+    <details class="order-summary card">
+      <summary>
+        <div class="os-left">
+          <ion-icon name="bag-outline" aria-hidden="true"></ion-icon>
+          <span>{{ cart.totalItems() }} {{ cart.totalItems() === 1 ? 'item' : 'itens' }}</span>
+        </div>
+        <div class="os-right">
+      <strong class="os-total">{{ cart.subtotal() | brl }}</strong>
+          <ion-icon class="os-chevron" name="chevron-down" aria-hidden="true"></ion-icon>
+        </div>
+      </summary>
+      <ul class="os-items">
+        @for (item of cart.items(); track item.id || item.productId || $index) {
+          <li>
+            <span class="os-qty">{{ item.quantity }}&times;</span>
+            <span class="os-name">{{ item.productName }}</span>
+            <span class="os-price">{{ item.quantity * item.unitPrice | brl }}</span>
+          </li>
+        }
+      </ul>
+      <p class="os-note">Frete calculado na próxima etapa.</p>
+    </details>
+  }
+
+  <form
+    class="checkout-form"
+    [class.checkout-form--compact]="!cart.storeLogoUrl() && !cart.storeName()"
+    (ngSubmit)="continue()"
+    autocomplete="on"
+  >
+    <h2 class="form-section-title">Seus dados</h2>
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('fullName')">
+      <span class="field-label">Nome completo</span>
+      <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="text"
+        placeholder="Ex.: Maria Oliveira"
+        [ngModel]="fullName()"
+        (ngModelChange)="fullName.set($event)"
+        name="fullName"
+        autocomplete="name"
+        required
+        aria-label="Nome completo"
+        (blur)="markTouched('fullName')"
+        [attr.aria-invalid]="showFieldError('fullName')"
+        [attr.aria-describedby]="showFieldError('fullName') ? 'fullName-error' : null"
+      />
+    </label>
+    @if (showFieldError('fullName')) {
+      <p id="fullName-error" class="field-error">{{ fieldError('fullName') }}</p>
+    }
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('phone')">
+      <span class="field-label">Celular</span>
+      <ion-icon name="call-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="tel"
+        placeholder="(22) 99999-9999"
+        [ngModel]="phone()"
+        (ngModelChange)="onPhoneInput($event)"
+        name="phone"
+        autocomplete="tel"
+        required
+        aria-label="Número de celular"
+        (blur)="markTouched('phone')"
+        [attr.aria-invalid]="showFieldError('phone')"
+        [attr.aria-describedby]="showFieldError('phone') ? 'phone-error' : null"
+      />
+    </label>
+    @if (showFieldError('phone')) {
+      <p id="phone-error" class="field-error">{{ fieldError('phone') }}</p>
+    }
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('email')">
+      <span class="field-label">E-mail</span>
+      <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="email"
+        placeholder="voce@email.com"
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)"
+        name="email"
+        autocomplete="email"
+        required
+        aria-label="Email"
+        (blur)="markTouched('email')"
+        [attr.aria-invalid]="showFieldError('email')"
+        [attr.aria-describedby]="showFieldError('email') ? 'email-error' : null"
+      />
+    </label>
+    @if (showFieldError('email')) {
+      <p id="email-error" class="field-error">{{ fieldError('email') }}</p>
+    }
+
+    <h2 class="form-section-title">Endereço de entrega</h2>
+    <p class="form-hint">Digite o CEP para buscarmos seu endereço automaticamente.</p>
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('cep')">
+      <span class="field-label">CEP</span>
+      <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="text"
+        placeholder="CEP"
+        [ngModel]="cep()"
+        (ngModelChange)="onCepInput($event)"
+        name="cep"
+        inputmode="numeric"
+        autocomplete="postal-code"
+        required
+        aria-label="CEP"
+        (blur)="markTouched('cep')"
+        [attr.aria-invalid]="showFieldError('cep')"
+        [attr.aria-describedby]="showFieldError('cep') ? 'cep-error' : null"
+      />
+      @if (cepLoading()) {
+        <span class="cep-spinner" aria-hidden="true"></span>
+      }
+    </label>
+
+    @if (showFieldError('cep')) {
+      <p id="cep-error" class="field-error">{{ fieldError('cep') }}</p>
+    }
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('city')">
+      <span class="field-label">Cidade</span>
+      <ion-icon name="business-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="text"
+        placeholder="Cidade"
+        [ngModel]="city()"
+        (ngModelChange)="city.set($event)"
+        name="city"
+        autocomplete="address-level2"
+        required
+        aria-label="Cidade"
+        (blur)="markTouched('city')"
+        [attr.aria-invalid]="showFieldError('city')"
+        [attr.aria-describedby]="showFieldError('city') ? 'city-error' : null"
+      />
+    </label>
+    @if (showFieldError('city')) {
+      <p id="city-error" class="field-error">{{ fieldError('city') }}</p>
+    }
+
+    <div class="field-row">
+      <label class="field field-icon field-uf" [class.field--invalid]="showFieldError('state')">
+        <span class="field-label">UF</span>
+        <ion-icon name="flag-outline" aria-hidden="true"></ion-icon>
+        <input
+          type="text"
+          placeholder="UF"
+          [ngModel]="state()"
+          (ngModelChange)="state.set($event.toUpperCase())"
+          name="state"
+          maxlength="2"
+          autocomplete="address-level1"
+          required
+          aria-label="Estado (UF)"
+          (blur)="markTouched('state')"
+          [attr.aria-invalid]="showFieldError('state')"
+          [attr.aria-describedby]="showFieldError('state') ? 'state-error' : null"
+        />
+      </label>
+    </div>
+    @if (showFieldError('state')) {
+      <p id="state-error" class="field-error">{{ fieldError('state') }}</p>
+    }
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('neighborhood')">
+      <span class="field-label">Bairro</span>
+      <ion-icon name="map-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="text"
+        placeholder="Bairro"
+        [ngModel]="neighborhood()"
+        (ngModelChange)="neighborhood.set($event)"
+        name="neighborhood"
+        autocomplete="address-level3"
+        required
+        aria-label="Bairro"
+        (blur)="markTouched('neighborhood')"
+        [attr.aria-invalid]="showFieldError('neighborhood')"
+        [attr.aria-describedby]="showFieldError('neighborhood') ? 'neighborhood-error' : null"
+      />
+    </label>
+    @if (showFieldError('neighborhood')) {
+      <p id="neighborhood-error" class="field-error">{{ fieldError('neighborhood') }}</p>
+    }
+
+    <label class="field field-icon" [class.field--invalid]="showFieldError('street')">
+      <span class="field-label">Rua</span>
+      <ion-icon name="navigate-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="text"
+        placeholder="Rua"
+        [ngModel]="street()"
+        (ngModelChange)="street.set($event)"
+        name="street"
+        autocomplete="address-line1"
+        required
+        aria-label="Rua"
+        (blur)="markTouched('street')"
+        [attr.aria-invalid]="showFieldError('street')"
+        [attr.aria-describedby]="showFieldError('street') ? 'street-error' : null"
+      />
+    </label>
+    @if (showFieldError('street')) {
+      <p id="street-error" class="field-error">{{ fieldError('street') }}</p>
+    }
+
+    <div class="field-row">
+      <label class="field field-number" [class.field--invalid]="showFieldError('number')">
+        <span class="field-label">Número</span>
+        <input
+          type="text"
+          placeholder="Número"
+          [ngModel]="number()"
+          (ngModelChange)="number.set($event)"
+          name="number"
+          inputmode="numeric"
+          required
+          aria-label="Número do endereço"
+          (blur)="markTouched('number')"
+          [attr.aria-invalid]="showFieldError('number')"
+          [attr.aria-describedby]="showFieldError('number') ? 'number-error' : null"
+        />
+      </label>
+
+      <label class="field field-complement">
+        <span class="field-label">Complemento</span>
+        <input
+          type="text"
+          placeholder="Complemento (opcional)"
+          [ngModel]="complement()"
+          (ngModelChange)="complement.set($event)"
+          name="complement"
+          autocomplete="address-line2"
+          aria-label="Complemento"
+        />
+      </label>
+    </div>
+    @if (showFieldError('number')) {
+      <p id="number-error" class="field-error">{{ fieldError('number') }}</p>
+    }
+
+    @if (deliveryNotCovered()) {
+      <div class="delivery-warning">
+        <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+        <div>
+          <strong>Ainda não entregamos neste bairro</strong>
+          <p>O bairro "{{ neighborhood() }}" não está na nossa área de entrega.</p>
+        </div>
+      </div>
+    }
+
+    <button
+      type="submit"
+      class="btn-primary submit-btn"
+      [disabled]="!canContinue()"
+    >
+      Continuar
+    </button>
+
+  </form>
+
+  @if (cepLoading()) {
+    <div class="loading-overlay">
+      <div class="spinner" aria-hidden="true"></div>
+    </div>
+  }
+</ion-content>

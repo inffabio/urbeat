@@ -1,0 +1,265 @@
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="products-shell">
+    <!-- ═══ LEFT: Categories + Product Form ═══ -->
+    <div class="products-left">
+      <!-- 1. Categories -->
+      <section class="card">
+        <div class="card-header">
+          <h2>1. Gerenciar categorias</h2>
+          <button type="button" class="btn btn-primary btn-sm" (click)="openNewCategory()">+ Nova categoria</button>
+        </div>
+        @if (categories().length > 0) {
+          <table class="table">
+            <thead>
+              <tr><th>Categoria</th><th>Status</th><th class="act">Ações</th></tr>
+            </thead>
+            <tbody>
+              @for (cat of categories(); track cat.id) {
+                <tr>
+                  <td class="fw">{{ cat.name }}</td>
+                  <td><span class="badge" [class.badge-on]="cat.isActive" [class.badge-off]="!cat.isActive">{{ cat.isActive ? 'Ativa' : 'Inativa' }}</span></td>
+                  <td class="act">
+                    <button type="button" class="btn-ico" (click)="openEditCategory(cat)" title="Editar">✎</button>
+                    <button type="button" class="btn-ico" (click)="deleteCategory(cat)" title="Excluir"><ion-icon name="trash-outline"></ion-icon></button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty">Nenhuma categoria cadastrada.</p>
+        }
+      </section>
+
+      <!-- Category Modal -->
+      @if (showCategoryModal()) {
+        <div class="modal-overlay" (click)="closeCategoryModal()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>{{ editingCategory() ? 'Editar' : 'Nova' }} categoria</h3>
+            <div class="field">
+              <label>Nome *</label>
+              <input class="input" [(ngModel)]="categoryForm().name" placeholder="Ex: Hamburguers" />
+            </div>
+            <div class="field">
+              <label>Ordem</label>
+              <input class="input" type="number" min="0" [(ngModel)]="categoryForm().displayOrder" />
+            </div>
+            <div class="field">
+              <label class="check-label">
+                <input type="checkbox" [(ngModel)]="categoryForm().isActive" /> Ativa
+              </label>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" (click)="closeCategoryModal()">Cancelar</button>
+              <button type="button" class="btn btn-primary" (click)="saveCategory()">Salvar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- 2. Product Form -->
+      <section class="card">
+        <h2 class="card-title">2. {{ editingProduct() ? 'Editar' : 'Cadastrar' }} produto</h2>
+        <div class="form-grid">
+          <div class="field span-8">
+            <label>Nome do produto *</label>
+            <input class="input" [(ngModel)]="productForm().name" placeholder="Ex: X-Burger Bacon" />
+          </div>
+          <div class="field span-4">
+            <label>Categoria *</label>
+            <select class="input select" [(ngModel)]="productForm().categoryId">
+              <option value="" disabled>Selecione...</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field span-12">
+            <label>Descrição *</label>
+            <textarea class="input textarea" [(ngModel)]="productForm().description" placeholder="Descreva o produto..."></textarea>
+          </div>
+          <div class="field span-3">
+            <label>Preço *</label>
+            <div class="money-wrap">
+              <span class="money-pfx">R$</span>
+              <input class="input money" [ngModel]="formatPrice(productForm().price)" (ngModelChange)="onPriceInput($event, 'price')" placeholder="0,00" />
+            </div>
+          </div>
+          <div class="field span-3">
+            <label>Preço promocional</label>
+            <div class="money-wrap">
+              <span class="money-pfx">R$</span>
+              <input class="input money" [ngModel]="formatPrice(productForm().promotionalPrice)" (ngModelChange)="onPriceInput($event, 'promotionalPrice')" placeholder="0,00" />
+            </div>
+          </div>
+          <div class="field span-6">
+            <label>Foto do produto</label>
+            <div class="upload-row">
+              @if (productForm().imageUrl) {
+                <img [src]="productForm().imageUrl" class="upload-preview" alt="Preview" />
+              }
+              <label class="upload-btn" [class.has-img]="!!productForm().imageUrl">
+                <ion-icon name="cloud-upload-outline"></ion-icon>
+                {{ productForm().imageUrl ? 'Trocar imagem' : 'Upload' }}
+                <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+              </label>
+            </div>
+          </div>
+          <div class="field span-12 row">
+            <div>
+              <label class="check-label"><input type="checkbox" [(ngModel)]="productForm().isAvailable" /> Produto disponível</label>
+              <p class="hint">Ative para mostrar este produto na loja.</p>
+            </div>
+          </div>
+          <div class="field span-6">
+            <label class="check-label"><input type="checkbox" [(ngModel)]="productForm().isFeatured" /> Destaque</label>
+            <p class="hint">Mostrar como produto em destaque.</p>
+          </div>
+          <div class="field span-3">
+            <label>Ordem</label>
+            <input class="input" type="number" min="0" [(ngModel)]="productForm().displayOrder" />
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Personalização -->
+      <section class="card">
+        <h2 class="card-title">3. Personalização</h2>
+        <div class="customization-blocks">
+          <!-- Additionals -->
+          <div class="custom-block">
+            <div class="custom-header">
+              <h3>Adicionais</h3>
+              <button type="button" class="btn btn-sm btn-ghost" (click)="openNewAdditionalModal()">+ Adicionar</button>
+            </div>
+            <div class="custom-list">
+              @for (add of productForm().additionals; track $index) {
+                <div class="custom-item">
+                  <span>{{ add.name }}@if (add.price > 0) { <span class="custom-price">(+ {{ add.price | brl }})</span> }</span>
+                  <button type="button" class="btn-ico" (click)="removeAdditional($index)" title="Remover"><ion-icon name="trash-outline"></ion-icon></button>
+                </div>
+              } @empty {
+                <p class="empty-sm">Nenhum adicional.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Choice Options -->
+          <div class="custom-block">
+            <div class="custom-header">
+              <h3>Opções de Escolha</h3>
+              <button type="button" class="btn btn-sm btn-ghost" (click)="openNewChoiceOptionModal()">+ Adicionar</button>
+            </div>
+            <div class="custom-list">
+              @for (opt of productForm().choiceOptions; track $index) {
+                <div class="custom-item">
+                  <span>{{ opt.name }}@if (opt.price > 0) { <span class="custom-price">(+ {{ opt.price | brl }})</span> }</span>
+                  <button type="button" class="btn-ico" (click)="removeChoiceOption($index)" title="Remover"><ion-icon name="trash-outline"></ion-icon></button>
+                </div>
+              } @empty {
+                <p class="empty-sm">Nenhuma opção de escolha.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" (click)="newProduct()">Limpar</button>
+          <button type="button" class="btn btn-primary" (click)="saveProduct()" [disabled]="saving()">
+            {{ saving() ? 'Salvando...' : (editingProduct() ? 'Atualizar' : 'Cadastrar') }}
+          </button>
+        </div>
+      </section>
+      
+      <!-- Additionals Modal -->
+      @if (showAdditionalModal()) {
+        <div class="modal-overlay" (click)="closeAdditionalModal()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>Novo Adicional</h3>
+            <div class="field">
+              <label>Nome *</label>
+              <input class="input" [(ngModel)]="additionalForm().name" placeholder="Ex: Bacon Extra" />
+            </div>
+            <div class="field">
+              <label>Preço</label>
+              <div class="money-wrap">
+                <span class="money-pfx">R$</span>
+                <input class="input money" [ngModel]="formatPrice(additionalForm().price)" (ngModelChange)="onPriceInputAdditional($event)" placeholder="0,00" />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" (click)="closeAdditionalModal()">Cancelar</button>
+              <button type="button" class="btn btn-primary" (click)="saveAdditional()">Salvar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Choice Options Modal -->
+      @if (showChoiceOptionModal()) {
+        <div class="modal-overlay" (click)="closeChoiceOptionModal()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>Nova Opção de Escolha</h3>
+            <div class="field">
+              <label>Nome *</label>
+              <input class="input" [(ngModel)]="choiceOptionForm().name" placeholder="Ex: Ao Ponto" />
+            </div>
+            <div class="field">
+              <label>Preço</label>
+              <div class="money-wrap">
+                <span class="money-pfx">R$</span>
+                <input class="input money" [ngModel]="formatPrice(choiceOptionForm().price)" (ngModelChange)="onPriceInputChoiceOption($event)" placeholder="0,00" />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" (click)="closeChoiceOptionModal()">Cancelar</button>
+              <button type="button" class="btn btn-primary" (click)="saveChoiceOption()">Salvar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- ═══ RIGHT: Product List ═══ -->
+    <div class="products-right">
+      <div class="card sticky">
+        <div class="card-header">
+          <h3>Seus produtos</h3>
+          <span class="badge-count">{{ products().length }} cadastrados</span>
+        </div>
+        <div class="search-bar">
+          <ion-icon name="search-outline"></ion-icon>
+          <input class="input" placeholder="Buscar produtos..." [(ngModel)]="searchQuery" />
+        </div>
+        <div class="product-list">
+          @for (prod of filteredProducts(); track prod.id) {
+            <div class="prod-item" [class.selected]="selectedProduct()?.id === prod.id" (click)="selectProduct(prod)">
+              @if (prod.imageUrl) {
+                <img [src]="prod.imageUrl" class="prod-img" alt="" />
+              } @else {
+                <div class="prod-img-placeholder"><ion-icon name="restaurant-outline"></ion-icon></div>
+              }
+              <div class="prod-info">
+                <div class="prod-row"><span class="prod-name">{{ prod.name }}</span><span class="prod-price">{{ prod.price | brl }}</span></div>
+                <div class="prod-row"><span class="prod-cat">{{ prod.categoryName }}</span><span class="badge" [class.badge-on]="prod.isAvailable" [class.badge-off]="!prod.isAvailable">{{ prod.isAvailable ? 'Ativo' : 'Inativo' }}</span></div>
+              </div>
+            </div>
+          } @empty {
+            <p class="empty">Nenhum produto encontrado.</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer-bar">
+    <button type="button" class="btn btn-ghost" (click)="onBack()">← Voltar</button>
+    <div class="save-hint">
+      <ion-icon name="lock-closed-outline"></ion-icon>
+      {{ saveStatus() === 'saving' ? 'Salvando...' : saveStatus() === 'error' ? 'Erro ao salvar' : 'Salvo automaticamente' }}
+    </div>
+    <button type="button" class="btn btn-primary" (click)="onBack()">Salvar e continuar →</button>
+  </footer>
+</ion-content>

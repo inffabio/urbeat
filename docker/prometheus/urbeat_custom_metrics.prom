@@ -1,0 +1,15 @@
+﻿# HELP urbeat_orders_created_total Total de pedidos criados
+# TYPE urbeat_orders_created_total counter
+urbeat_orders_created_total 0
+# HELP urbeat_payment_failures_total Total de falhas de pagamento
+# TYPE urbeat_payment_failures_total counter
+urbeat_payment_failures_total 0
+# HELP urbeat_new_users_total Novos usuários cadastrados
+# TYPE urbeat_new_users_total counter
+urbeat_new_users_total 0
+# HELP urbeat_new_stores_total Novas lojas cadastradas
+# TYPE urbeat_new_stores_total counter
+urbeat_new_stores_total 0
+# HELP urbeat_products_updated_total Produtos cadastrados/atualizados
+# TYPE urbeat_products_updated_total counter
+urbeat_products_updated_total 0

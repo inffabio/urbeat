@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Açaí Especial no Copo • Brasa Burger</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.lineicons.com/4.0/lineicons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .acai-hero {
+      height: 360px;
+      background: #f8f1ea;
+    }
+
+    .acai-hero img {
+      object-position: center 42%;
+    }
+
+    .acai-sheet {
+      margin-top: -44px;
+      padding: 26px 22px 18px;
+      border-radius: 32px 32px 0 0;
+    }
+
+    .acai-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .acai-heading h1 {
+      margin: 0;
+      letter-spacing: -0.045em;
+    }
+
+    .acai-heading .product-price {
+      color: var(--brand);
+      white-space: nowrap;
+    }
+
+    .acai-desc {
+      margin: 0 0 18px;
+      color: #5f6067;
+    }
+
+    .acai-config {
+      display: grid;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .acai-config-card {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .acai-config-card:last-child {
+      border-bottom: 0;
+    }
+
+    .acai-config-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .acai-config-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .acai-config-title strong {
+      letter-spacing: -0.02em;
+    }
+
+    .tag-required,
+    .tag-optional {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand);
+      white-space: nowrap;
+    }
+
+    .tag-optional {
+      color: #77777e;
+      background: #f0f0f1;
+    }
+
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .size-option {
+      position: relative;
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 10px 8px;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .size-option:hover,
+    .size-option:focus-within {
+      background: var(--brand-soft);
+      border-color: rgba(213,74,81,.35);
+    }
+
+    .size-option.checked {
+      border-color: var(--brand);
+      background: #fff;
+    }
+
+    .size-option.checked .size-mark {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .size-option input,
+    .acai-chip input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .size-option strong,
+    .size-option span {
+      display: block;
+    }
+
+    .size-option span {
+      color: #55575d;
+    }
+
+    .size-mark {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 25px;
+      height: 25px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transform: scale(.8);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .acai-chip {
+      position: relative;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: #222;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .acai-chip:hover,
+    .acai-chip:focus-within {
+      background: var(--brand-soft);
+      border-color: rgba(213,74,81,.35);
+    }
+
+    .chip-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1.6px solid #cfcfd3;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      flex: 0 0 auto;
+    }
+
+    .acai-chip.checked,
+    .acai-chip:has(input:checked) {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    .acai-chip.checked .chip-box,
+    .acai-chip:has(input:checked) .chip-box {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .acai-notes {
+      height: 70px;
+      border: 1px solid #d6d0cc;
+      border-radius: 14px;
+      display: grid;
+      grid-template-columns: 1fr 46px;
+      align-items: center;
+      padding: 0 12px;
+      color: #a2a2a8;
+      background: #fff;
+    }
+
+    .acai-notes input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #444;
+    }
+
+    .acai-fixed {
+      position: sticky;
+      bottom: 84px;
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 0 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0), #fff 32%);
+      z-index: 26;
+    }
+
+    .acai-fixed .qty,
+    .acai-fixed .cart-btn {
+      height: 58px;
+      box-shadow: none;
+    }
+
+    .acai-fixed .cart-btn {
+      border-radius: 18px;
+    }
+
+    @media (max-width: 420px) {
+      .acai-hero { height: 290px; }
+      .acai-sheet { padding: 22px 18px 16px; }
+      .size-grid { gap: 8px; }
+      .size-option { min-height: 66px; }
+      .acai-fixed { grid-template-columns: 104px 1fr; gap: 8px; }
+      .acai-chip { padding: 8px 9px; }
+    }
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span class="wifi"></span>
+      <span class="battery"></span>
+    </div>
+  </div>
+
+  <section class="product-hero acai-hero">
+    <img src="assets/images/acai-produto.jpg" alt="Açaí Especial no Copo com frutas, granola e caldas">
+    <div class="hero-actions">
+      <a class="circle-btn" data-back href="index.html" aria-label="Voltar">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+    </div>
+  </section>
+
+  <section class="product-sheet acai-sheet">
+    <div class="acai-heading">
+      <h1>Açaí Especial no Copo</h1>
+      <div class="product-price">R$ 24,90</div>
+    </div>
+
+    <p class="acai-desc">Monte seu açaí do seu jeito com frutas, caldas e adicionais. Cremoso, gelado e irresistível.</p>
+
+    <div class="acai-config">
+      <section class="acai-config-card" aria-labelledby="acai-tamanho">
+        <div class="acai-config-head">
+          <div class="acai-config-title">
+            <strong id="acai-tamanho">1. Tamanho</strong>
+          </div>
+          <span class="tag-required">Obrigatório</span>
+        </div>
+        <div class="size-grid" role="radiogroup" aria-label="Escolha o tamanho">
+          <label class="size-option">
+            <input name="tamanho-acai" type="radio">
+            <strong>300ml</strong>
+            <span>R$ 18,90</span>
+          </label>
+          <label class="size-option checked">
+            <input name="tamanho-acai" type="radio" checked>
+            <strong>500ml</strong>
+            <span>R$ 24,90</span>
+            <span class="size-mark"><i class="bi bi-check-lg"></i></span>
+          </label>
+          <label class="size-option">
+            <input name="tamanho-acai" type="radio">
+            <strong>700ml</strong>
+            <span>R$ 32,90</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="acai-config-card" aria-labelledby="acai-frutas">
+        <div class="acai-config-head">
+          <div class="acai-config-title"><strong id="acai-frutas">2. Frutas</strong></div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="chip-grid">
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Banana</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Morango</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Kiwi</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Uva</span></label>
+        </div>
+      </section>
+
+      <section class="acai-config-card" aria-labelledby="acai-caldas">
+        <div class="acai-config-head">
+          <div class="acai-config-title"><strong id="acai-caldas">3. Cremes e caldas</strong></div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="chip-grid">
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Leite condensado</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Nutella</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Calda de chocolate</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Pasta de amendoim</span></label>
+        </div>
+      </section>
+
+      <section class="acai-config-card" aria-labelledby="acai-crocantes">
+        <div class="acai-config-head">
+          <div class="acai-config-title"><strong id="acai-crocantes">4. Crocantes</strong></div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="chip-grid">
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Granola</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Paçoca</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Castanha</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Coco ralado</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Confetes</span></label>
+        </div>
+      </section>
+
+      <section class="acai-config-card" aria-labelledby="acai-extras">
+        <div class="acai-config-head">
+          <div class="acai-config-title"><strong id="acai-extras">5. Extras</strong></div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <div class="chip-grid">
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Leite em pó</span></label>
+          <label class="acai-chip"><input type="checkbox"><span class="chip-box"></span><span>Gotas de chocolate</span></label>
+        </div>
+      </section>
+
+      <section class="acai-config-card" aria-labelledby="acai-observacoes">
+        <div class="acai-config-head">
+          <div class="acai-config-title"><strong id="acai-observacoes">6. Observações</strong></div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <label class="acai-notes no-icon">
+          <input aria-label="Observações" placeholder="Ex.: sem banana, pouco leite condensado...">
+          <span>0/120</span>
+        </label>
+      </section>
+    </div>
+
+    <div class="acai-fixed">
+      <div class="qty">
+        <button type="button" aria-label="Diminuir">−</button>
+        <span>1</span>
+        <button type="button" aria-label="Aumentar">+</button>
+      </div>
+
+      <a class="cart-btn" href="carrinho.html">
+        <i class="bi bi-bag"></i>
+        <span>Adicionar ao carrinho<br><strong>R$ 24,90</strong></span>
+      </a>
+    </div>
+  </section>
+
+  <a class="back-to-menu" href="index.html">Voltar ao cardápio</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+  <script src="js/app.js"></script>
+</main>
+</body>
+</html>

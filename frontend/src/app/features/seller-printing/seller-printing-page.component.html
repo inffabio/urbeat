@@ -1,0 +1,310 @@
+<section class="dashboard-surface printing-page">
+  <header class="dashboard-topbar">
+    <div>
+      <div class="page-title-wrap">
+        <h1 class="page-title">Configurações</h1>
+      </div>
+      <p class="page-subtitle">Gerencie horários, informações da loja, impressão, bio e bairros atendidos.</p>
+    </div>
+    <div class="top-actions">
+      <div class="date-pill">{{ headerStatus() }}</div>
+      <button type="button" class="seller-secondary-button" (click)="testPrint()" [disabled]="testing()">
+        {{ testing() ? 'Testando...' : 'Imprimir teste' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="seller-inline-banner is-warning">
+    <ion-icon name="print-outline"></ion-icon>
+    <div>
+      <strong>Configuracao aplicada a esta loja</strong>
+      <p>As escolhas abaixo definem como os pedidos desta loja tentam imprimir no dispositivo em uso.</p>
+    </div>
+  </div>
+  <app-config-subnav />
+
+  <div class="printing-grid">
+    <div class="settings-card">
+        <div class="seller-inline-banner is-info" role="note">
+          <strong>Fluxo recomendado: POS-58</strong>
+          <p>Esta e a configuracao da impressora da loja atual do dashboard. Comece pela POS-58 com 58mm sem guilhotina e com corte automatico desligado. Ao aceitar um pedido, a impressao automatica usa esta configuracao atual da loja sem perguntar a impressora.</p>
+        </div>
+
+      <div class="card-head">
+        <span>Modelo</span>
+        <h2>Preset da impressora</h2>
+        <p>Selecione primeiro a POS-58 ou outro preset 58mm. Os presets abaixo deixam claro 58mm ou 80mm, tipo de conexao e o que faz mais sentido por plataforma.</p>
+      </div>
+
+      <div class="preset-grid">
+        @for (preset of presets; track preset.id) {
+          <button type="button" class="preset-card" [class.active]="form().presetId === preset.id" (click)="applyPreset(preset)">
+            <div class="preset-badges">
+              @for (badge of presetBadges(preset); track badge) {
+                <small [class.recommended]="badge === 'Recomendado'">{{ badge }}</small>
+              }
+            </div>
+            <strong>{{ preset.name }}</strong>
+            <span>{{ preset.manufacturer }} · {{ preset.commandSet }}</span>
+            <small>{{ preset.description }}</small>
+          </button>
+        }
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Nome/modelo</span>
+          <input type="text" [ngModel]="form().printerName" (ngModelChange)="updatePrinterName($event)" />
+        </label>
+
+        <label>
+          <span>Conexao</span>
+          <select [ngModel]="form().connectionType" (ngModelChange)="updateConnectionType($event)">
+            @for (option of connectionOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+          <small class="field-hint">{{ selectedConnectionOption.hint }}</small>
+        </label>
+
+        @if (form().connectionType === 'wifi') {
+          <label>
+            <span>Endereco IP da impressora</span>
+            <input type="text" [ngModel]="form().savedMacAddress" (ngModelChange)="updateMacAddress($event)" placeholder="192.168.0.100" />
+            <small class="field-hint">Use o IP da impressora ESC/POS na rede local da loja.</small>
+          </label>
+        }
+
+        <label>
+          <span>Papel</span>
+          <select [ngModel]="form().paperWidth" (ngModelChange)="updatePaperWidth($event)">
+            <option value="58mm">58mm</option>
+            <option value="80mm">80mm</option>
+          </select>
+          <small class="field-hint">58mm e o padrao operacional para POS-58. Use 80mm apenas para termicas maiores com suporte apropriado.</small>
+        </label>
+
+        <label>
+          <span>Vias</span>
+          <select [ngModel]="form().copies" (ngModelChange)="updateCopies(+$event)">
+            @for (n of [1, 2, 3, 4, 5]; track n) {
+              <option [ngValue]="n">{{ n }} via{{ n > 1 ? 's' : '' }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="toggle-grid">
+        <label><input type="checkbox" [ngModel]="form().autoPrint" (ngModelChange)="updateFlag('autoPrint', $event)" /> Imprimir automaticamente ao chegar novo pedido</label>
+         <label class="auto-cut-option"><input type="checkbox" [ngModel]="form().autoCut" (ngModelChange)="updateFlag('autoCut', $event)" [disabled]="isAutoCutLocked()" /> <span class="auto-cut-copy">Corte automático @if (isAutoCutLocked()) { <small class="inline-note">Travado para POS-58 / 58mm</small> }</span></label>
+        <label><input type="checkbox" [ngModel]="form().printKitchenCopy" (ngModelChange)="updateFlag('printKitchenCopy', $event)" /> Via cozinha</label>
+        <label><input type="checkbox" [ngModel]="form().printCounterCopy" (ngModelChange)="updateFlag('printCounterCopy', $event)" /> Via balcao</label>
+        <label><input type="checkbox" [ngModel]="form().printCustomerReceipt" (ngModelChange)="updateFlag('printCustomerReceipt', $event)" /> Via cliente</label>
+        <label><input type="checkbox" [ngModel]="form().printLogo" (ngModelChange)="updateFlag('printLogo', $event)" /> Imprimir logo</label>
+        <label><input type="checkbox" [ngModel]="form().highlightOrderNumber" (ngModelChange)="updateFlag('highlightOrderNumber', $event)" /> Pedido em destaque</label>
+      </div>
+
+      <p class="helper-copy">No aceite do pedido, a impressao automatica usa sempre esta configuracao atual da loja. O modo navegador pode abrir dialogo do sistema se nao estiver em kiosk/silent print.</p>
+
+      <label class="footer-field">
+        <span>Rodape</span>
+        <textarea maxlength="120" [ngModel]="form().footerText" (ngModelChange)="updateFooter($event)"></textarea>
+      </label>
+
+      @if (form().connectionType === 'android-bluetooth' && isCapacitorAndroid) {
+        <div class="device-section">
+          <h3>Dispositivos Bluetooth</h3>
+          <div class="bt-actions">
+            <button type="button" class="secondary" (click)="scanDevices()" [disabled]="btState === 'scanning'">
+              <ion-icon name="search-outline" />
+              {{ btState === 'scanning' ? 'Buscando...' : 'Buscar impressoras' }}
+            </button>
+            <button type="button" class="secondary" (click)="openBluetoothSettings()">
+              <ion-icon name="bluetooth-outline" />
+              Configuracoes Bluetooth
+            </button>
+          </div>
+
+          @if (printing.bluetoothState().connectedDevice; as device) {
+            <div class="device-card connected">
+              <ion-icon name="link-outline" />
+              <span>{{ device.name || device.address }}</span>
+              <button type="button" class="secondary small" (click)="disconnectDevice()">Desconectar</button>
+            </div>
+          }
+
+          @if (btDevices.length > 0) {
+            @for (device of btDevices; track device.address) {
+              <div class="device-card"                 [class.connected]="printing.bluetoothState().connectedDevice?.address === device.address">
+                <ion-icon name="bluetooth-outline" />
+                <div>
+                  <strong>{{ device.name || 'Sem nome' }}</strong>
+                  <small>{{ device.address }} · {{ device.paired ? 'Pareado' : 'Encontrado' }}</small>
+                </div>
+                @if (printing.bluetoothState().connectedDevice?.address !== device.address) {
+                  <button type="button" class="secondary small" (click)="connectDevice(device.address)" [disabled]="btState === 'connecting'">
+                    {{ btState === 'connecting' ? '...' : 'Conectar' }}
+                  </button>
+                }
+              </div>
+            }
+          } @else if (btState === 'disconnected' || btState === 'error') {
+            <p class="muted">Nenhum dispositivo encontrado. Verifique se a impressora esta ligada e pareada.</p>
+          }
+
+          @if (btState === 'error') {
+            <p class="error-msg">{{ printing.bluetoothState().lastError }}</p>
+          }
+        </div>
+      }
+
+      @if (form().connectionType === 'local-agent') {
+        <div class="device-section">
+          <h3>Agente local no desktop</h3>
+          <p class="muted">Selecione uma impressora instalada na maquina da loja. Esse e o modo automatico preferencial para desktop quando o agente estiver disponivel.</p>
+          <div class="bt-actions">
+            <button type="button" class="secondary" (click)="refreshLocalAgent()">
+              <ion-icon name="server-outline" />
+              Atualizar agente local
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="actions"></div>
+
+      <div class="ops-card">
+        <div class="card-head compact">
+          <span>Operacao</span>
+          <h2>Como configurar sem erro</h2>
+          <p>Comece pela POS-58 com 58mm sem guilhotina. Android usa Bluetooth. iOS, Windows, Linux e macOS usam Wi-Fi como preferencial. No desktop, use local-agent quando ele estiver instalado se a loja precisar de automacao real; deixe o navegador apenas como fallback manual.</p>
+        </div>
+
+        <div class="ops-grid">
+          <article class="ops-item highlight">
+            <strong>POS-58 primeiro</strong>
+            <p>Papel padrao 58mm sem guilhotina, com corte automatico travado para evitar configuracao incorreta.</p>
+          </article>
+          <article class="ops-item">
+            <strong>Desktop automatico preferencial: local-agent</strong>
+            <p>Quando o agente local estiver instalado na maquina da loja, ele vira o caminho preferencial para impressao automatica no Windows, Linux e macOS.</p>
+          </article>
+          <article class="ops-item warning">
+            <strong>Browser print nao promete automacao plena</strong>
+            <p>No desktop ele so fica automatico em kiosk ou silent print. Fora disso, trate como fluxo manual/interativo.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="card-head compact">
+          <span>Plataformas</span>
+          <h2>Matriz de conexao recomendada</h2>
+          <p>Escolha o modo pensando no dispositivo que vai aceitar o pedido no dia a dia da loja.</p>
+        </div>
+
+        <div class="platform-grid">
+          @for (item of platformRecommendations; track item.title) {
+            <article class="platform-item" [class.warning]="item.tone === 'warning'">
+              <small>{{ item.title }}</small>
+              <strong>{{ item.recommendation }}</strong>
+              <p>{{ item.detail }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </div>
+
+    <aside class="preview-card">
+      @if (isCapacitorAndroid) {
+        <span class="status-pill active">App nativo Android</span>
+      } @else if (form().connectionType === 'local-agent') {
+        <span class="status-pill active">Local agent</span>
+      } @else if (form().connectionType === 'wifi') {
+        <span class="status-pill active">Wi-Fi</span>
+      } @else if (form().connectionType === 'browser-print') {
+        <span class="status-pill">Impressao pelo navegador</span>
+      } @else {
+        <span class="status-pill">Pre-visualizacao</span>
+      }
+      <h2>Previa do cupom</h2>
+      <div class="receipt" [class.wide]="form().paperWidth === '80mm'">
+        @if (form().highlightOrderNumber) {
+          <strong style="font-size:18px">Pedido de teste</strong>
+        } @else {
+          <strong>Pedido de teste</strong>
+        }
+        <p class="meta">Horario do teste &middot; --:--</p>
+        <p class="total-right">R$ 0,00</p>
+        <div></div>
+        <p>Cliente de teste &middot; contato da loja</p>
+        <table>
+          <tr><td class="name">Item 1</td><td class="qty">1x</td><td class="unit">0,00</td><td class="ltotal">0,00</td></tr>
+          <tr><td class="name">Item 2</td><td class="qty">1x</td><td class="unit">0,00</td><td class="ltotal">0,00</td></tr>
+        </table>
+        <p class="tags">Fluxo de teste | Revisao visual</p>
+        <div></div>
+        <b>Total R$ 0,00</b>
+        <small>{{ form().footerText }}</small>
+      </div>
+
+      <div class="printer-status">
+        <h3>Status da impressora</h3>
+        @if (form().connectionType === 'android-bluetooth') {
+          @if (isCapacitorAndroid) {
+            @if (printing.bluetoothState().connectedDevice; as dev) {
+              <p class="connected-msg">Conectado: {{ dev.name || dev.address }}. Pronto para imprimir.</p>
+            } @else {
+              <p>Busque e conecte primeiro a POS-58 abaixo.</p>
+            }
+          } @else {
+            <p>No computador, Bluetooth nao e o caminho principal desta tela. Prefira Wi-Fi. Se precisar usar o navegador, trate como fluxo manual/interativo fora de kiosk.</p>
+          }
+        } @else if (form().connectionType === 'wifi') {
+          <p>Envia comandos ESC/POS via rede Wi-Fi para o IP configurado. E o caminho preferencial em iOS, Windows, Linux e macOS, e tambem funciona no Android.</p>
+        } @else if (form().connectionType === 'local-agent') {
+          <p>Usa o agente local em `127.0.0.1` para enviar a impressao para uma impressora instalada no desktop. E o modo desktop automatico preferencial quando estiver disponivel.</p>
+        } @else if (form().connectionType === 'browser-print') {
+          <p>Usa a janela de impressao do navegador. Em desktop, so fica realmente automatico em kiosk ou silent print. Fora disso, o modo e manual/interativo e pode abrir o dialogo para confirmar.</p>
+        } @else {
+          <p>Modo simulador para validar layout e fluxo sem hardware.</p>
+        }
+      </div>
+
+      @if (lastResult(); as result) {
+        <div class="last-result" [class.ok]="result.ok">
+          <strong>Ultimo teste</strong>
+          <p>{{ result.message }}</p>
+        </div>
+      }
+
+      <div class="local-agent-card">
+        <div class="card-head compact">
+          <span>Desktop automatico</span>
+          <h2>local-agent como modo desktop automatico preferencial</h2>
+          <p>Use o agente local quando a loja aceita pedidos em Windows, Linux ou macOS. Ele evita depender da janela manual do navegador.</p>
+        </div>
+
+        <div class="local-agent-status" [class.is-online]="agentHealth.available">
+          <div>
+            <strong>{{ agentHealth.available ? 'Agente local detectado' : 'Agente local indisponivel' }}</strong>
+            <p>{{ agentHealth.message }}</p>
+          </div>
+          <button type="button" class="secondary small" (click)="refreshLocalAgent()">Atualizar</button>
+        </div>
+
+        @if (agentHealth.printers.length > 0) {
+          <div class="local-printer-list">
+            @for (printer of agentHealth.printers; track printer) {
+              <button type="button" class="printer-chip" [class.active]="form().printerName === printer" (click)="selectLocalAgentPrinter(printer)">
+                {{ printer }}
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="helper-copy">Se nenhuma impressora aparecer, mantenha o nome manualmente e confirme a instalacao do agente local no desktop da loja.</p>
+        }
+      </div>
+    </aside>
+  </div>
+</section>

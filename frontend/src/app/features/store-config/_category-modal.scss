@@ -1,0 +1,20 @@
+::ng-deep ion-modal.category-modal {
+  --min-height: 400px;
+  --max-height: 85vh;
+  --width: 90%;
+  --max-width: 450px;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+::ng-deep ion-modal.category-modal ion-toolbar {
+  --background: transparent;
+  --border-width: 0 0 1px 0;
+  --border-color: var(--app-border-light);
+}
+
+::ng-deep ion-modal.category-modal ion-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--app-text-primary);
+}

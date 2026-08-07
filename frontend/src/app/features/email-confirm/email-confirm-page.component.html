@@ -1,0 +1,47 @@
+﻿<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="confirm-shell">
+    <div class="confirm-card">
+      <img src="/images/logo_v2.png" alt="Urbeat" class="confirm-logo" width="130" />
+
+      @if (loading()) {
+        <div class="spinner-lg"></div>
+        <p class="confirm-status">Confirmando seu e-mail...</p>
+      } @else if (waitingForEmail()) {
+        <div class="confirm-icon-wrap info-state">
+          <ion-icon name="mail-outline"></ion-icon>
+        </div>
+        <h1>Verifique seu e-mail</h1>
+        <p class="confirm-desc">
+          Enviamos um link de confirmação para o seu endereço de e-mail. 
+          Por favor, verifique sua caixa de entrada (e a pasta de spam) e clique no link para ativar sua conta.
+        </p>
+        <a [routerLink]="['/login-vendedor']" class="btn-go">Ir para o login</a>
+      } @else if (succeeded()) {
+        <div class="confirm-icon-wrap success">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </div>
+        <h1>E-mail confirmado!</h1>
+        <p class="confirm-desc">
+          Sua conta foi ativada com sucesso. Redirecionando para o login...
+        </p>
+        <a [routerLink]="['/login-vendedor']" class="btn-go">Ir para o login</a>
+      } @else if (alreadyConfirmed()) {
+        <div class="confirm-icon-wrap success">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </div>
+        <h1>E-mail já confirmado</h1>
+        <p class="confirm-desc">
+          Sua conta já estava ativada. Redirecionando para o login...
+        </p>
+        <a [routerLink]="['/login-vendedor']" class="btn-go">Ir para o login</a>
+      } @else {
+        <div class="confirm-icon-wrap error-state">
+          <ion-icon name="close-circle"></ion-icon>
+        </div>
+        <h1>Erro na confirmação</h1>
+        <p class="confirm-desc">{{ error() }}</p>
+        <a [routerLink]="['/cadastro']" class="btn-go outline">Voltar ao cadastro</a>
+      }
+    </div>
+  </div>
+</ion-content>

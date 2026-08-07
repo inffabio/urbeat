@@ -1,0 +1,192 @@
+<section class="seller-dashboard-page customers-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Clientes</h1></div><p class="page-subtitle">Gerencie seus clientes e acompanhe seus pedidos.</p></div><div class="top-actions">
+      <span class="results-chip">{{ totalCustomers() }} clientes</span>
+      <button type="button" class="btn-soft" (click)="refresh()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+    </div></header>
+
+    <section class="metrics-grid">
+    <div class="metric-card"><div class="metric-icon orange"><i class="bi bi-people"></i></div><div><div class="metric-label">Total de clientes</div><div class="metric-value">{{ totalCustomers() }}</div><div class="trend"><i class="bi bi-arrow-up"></i> +{{ newCustomersThisMonth() }} <span>novos este mês</span></div></div></div>
+    <div class="metric-card"><div class="metric-icon"><i class="bi bi-bag-check"></i></div><div><div class="metric-label">Clientes ativos</div><div class="metric-value">{{ activeCustomers() }}</div><div class="trend"><span>Fizeram pedidos este mês</span></div></div></div>
+    <div class="metric-card"><div class="metric-icon"><i class="bi bi-star"></i></div><div><div class="metric-label">Clientes recorrentes</div><div class="metric-value">{{ recurringCustomers() }}</div><div class="trend"><span>Mais de 2 pedidos</span></div></div></div>
+    <div class="metric-card"><div class="metric-icon yellow"><i class="bi bi-cash"></i></div><div><div class="metric-label">Ticket médio</div><div class="metric-value">{{ formatCurrency(averageTicket()) }}</div><div class="trend"><span>Por cliente</span></div></div></div>
+  </section>
+
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input class="form-control-app" type="text" placeholder="Buscar por nome, telefone ou e-mail..."
+        [ngModel]="query().search" (ngModelChange)="onSearchChange($event)" />
+    </div>
+    <select class="form-select-app" [ngModel]="query().status" (ngModelChange)="updateStatus($event)">
+      <option value="all">Todos os status</option>
+      <option value="active">Ativo</option>
+      <option value="inactive">Inativo</option>
+    </select>
+      <select class="form-select-app" [ngModel]="query().sort" (ngModelChange)="updateSort($event)">
+       <option value="lastOrderDesc">Último pedido</option>
+      <option value="totalOrdersDesc">Mais pedidos</option>
+      <option value="totalOrdersAsc">Menos pedidos</option>
+      <option value="totalSpentDesc">Maior gasto</option>
+      <option value="totalSpentAsc">Menor gasto</option>
+      <option value="nameAsc">Nome A-Z</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="content-card seller-state-card is-loading state-card" role="status" aria-label="Carregando clientes">
+      <strong class="seller-state-title">Carregando base de clientes</strong>
+      <p class="seller-state-copy">Estamos reunindo os contatos e os indicadores mais recentes.</p>
+      <div class="seller-skeleton-stack" aria-hidden="true">
+        <span class="seller-skeleton-line is-short"></span>
+        <span class="seller-skeleton-line is-long"></span>
+        <span class="seller-skeleton-line is-medium"></span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Erro ao carregar clientes</strong>
+      <p class="seller-state-copy">Atualize a listagem para tentar novamente.</p>
+      <div class="seller-state-actions">
+        <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else if (customers().length === 0) {
+    <div class="content-card seller-state-card is-empty state-card">
+      <strong class="seller-state-title">Nenhum cliente encontrado.</strong>
+      <p class="seller-state-copy">Os clientes passam a aparecer aqui conforme a loja recebe pedidos.</p>
+    </div>
+  } @else {
+    <div class="content-card table-card">
+      <div class="content-head">
+        <div>
+          <h2>Clientes cadastrados</h2>
+          <p>Gerencie seus clientes e acompanhe seus pedidos mais recentes.</p>
+        </div>
+        <span class="seller-status-badge is-info">{{ totalCustomers() }} cadastrados</span>
+      </div>
+      <div class="seller-table-wrap">
+        <table class="seller-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Contato</th>
+              <th class="text-center">Pedidos</th>
+              <th>Total gasto</th>
+              <th>Último pedido</th>
+              <th>Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of customers(); track c.id) {
+              <tr>
+                <td data-label="Cliente">
+                  <div class="customer-cell">
+                    <span class="avatar">{{ getInitials(c.name) }}</span>
+                    <strong>{{ c.name || 'Sem nome' }}</strong>
+                  </div>
+                </td>
+                <td data-label="Contato">
+                   <strong>{{ formatPhone(c.phone) }}</strong>
+                  <div class="text-muted">{{ c.email || '-' }}</div>
+                </td>
+                <td class="text-center" data-label="Pedidos">{{ c.totalOrders }}</td>
+                <td data-label="Total gasto"><strong>{{ formatCurrency(c.totalSpent) }}</strong></td>
+                 <td data-label="Último pedido">{{ c.lastOrderAtUtc ? formatDate(c.lastOrderAtUtc) : '-' }}</td>
+                <td data-label="Status">
+                  <span class="badge-soft" [class.badge-green]="c.isActive" [class.badge-gray]="!c.isActive">
+                    {{ c.isActive ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+                 <td class="text-end" data-label="Ações">
+                  <div class="action-buttons">
+                     <button type="button" class="small-icon-btn"
+                       [attr.aria-label]="c.isActive ? 'Inativar cliente ' + (c.name || 'Sem nome') : 'Ativar cliente ' + (c.name || 'Sem nome')"
+                       [title]="c.isActive ? 'Inativar cliente' : 'Ativar cliente'"
+                       (click)="toggleCustomer(c)">
+                       <ion-icon [name]="c.isActive ? 'eye-outline' : 'eye-off-outline'" aria-hidden="true" />
+                     </button>
+                     <button type="button" class="small-icon-btn"
+                       [attr.aria-label]="'Editar cliente ' + (c.name || 'Sem nome')"
+                       title="Editar cliente"
+                       (click)="editCustomer(c)">
+                       <ion-icon name="create-outline" aria-hidden="true" />
+                     </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="seller-table-footer table-footer">
+        <span class="seller-table-footer-copy text-muted strong">Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ totalCustomers() }} clientes</span>
+        <div class="pagination-btns" *ngIf="totalPages() > 1">
+          <button type="button" class="small-icon-btn" [disabled]="!canGoToPreviousPage()" (click)="goToPage(currentPage() - 1)"
+            aria-label="Pagina anterior">
+            <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+          </button>
+          @for (page of pagination(); track page) {
+            <button type="button" class="small-icon-btn" [class.active-page]="page === currentPage()"
+              [attr.aria-current]="page === currentPage() ? 'page' : null" (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          }
+          <button type="button" class="small-icon-btn" [disabled]="!canGoToNextPage()" (click)="goToPage(currentPage() + 1)"
+            aria-label="Proxima pagina">
+            <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>
+
+<ion-modal [isOpen]="!!editingCustomer()" (didDismiss)="editingCustomer.set(null)">
+  <ng-template>
+    <div class="modal-content customer-edit-modal">
+      <div class="modal-head">
+        <h2>Editar cliente</h2>
+        <button type="button" class="icon-btn" aria-label="Fechar" (click)="editingCustomer.set(null)">
+          <ion-icon name="close-outline" aria-hidden="true" />
+        </button>
+      </div>
+       <div class="customer-edit-fields">
+        <label for="customerEditName">Nome</label>
+        <input id="customerEditName" type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+        <label for="customerEditEmail">E-mail</label>
+        <input id="customerEditEmail" type="email" [ngModel]="editEmail()" (ngModelChange)="editEmail.set($event)" />
+        <label for="customerEditPhone">Telefone</label>
+        <input id="customerEditPhone" type="tel" [ngModel]="editPhone()" (ngModelChange)="editPhone.set($event)" />
+        <label for="customerEditCep">CEP</label>
+        <input id="customerEditCep" type="text" inputmode="numeric" placeholder="00000-000" [ngModel]="editCep()" (ngModelChange)="onEditCepChange($event)" />
+        @if (editCepLoading()) { <small class="customer-address-loading">Consultando endereço pelo CEP...</small> }
+        <div class="customer-address-grid">
+          <div>
+            <label for="customerEditStreet">Rua</label>
+            <input id="customerEditStreet" type="text" [ngModel]="editStreet()" (ngModelChange)="editStreet.set($event)" />
+          </div>
+          <div>
+            <label for="customerEditNumber">Número</label>
+            <input id="customerEditNumber" type="text" [ngModel]="editNumber()" (ngModelChange)="editNumber.set($event)" />
+          </div>
+        </div>
+        <label for="customerEditComplement">Complemento</label>
+        <input id="customerEditComplement" type="text" [ngModel]="editComplement()" (ngModelChange)="editComplement.set($event)" />
+        <label for="customerEditNeighborhood">Bairro</label>
+        <input id="customerEditNeighborhood" type="text" [ngModel]="editNeighborhood()" (ngModelChange)="editNeighborhood.set($event)" />
+        <div class="customer-address-grid">
+          <div>
+            <label for="customerEditCity">Cidade</label>
+            <input id="customerEditCity" type="text" [ngModel]="editCity()" (ngModelChange)="editCity.set($event)" />
+          </div>
+          <div>
+            <label for="customerEditState">UF</label>
+            <input id="customerEditState" type="text" maxlength="2" [ngModel]="editState()" (ngModelChange)="editState.set($event)" />
+          </div>
+        </div>
+      </div>
+       <button type="button" class="customer-save-button full-width" (click)="saveCustomer()" [disabled]="!editName().trim() || !editEmail().trim() || !editPhone().trim() || editCepLoading()">Salvar alterações</button>
+    </div>
+  </ng-template>
+</ion-modal>

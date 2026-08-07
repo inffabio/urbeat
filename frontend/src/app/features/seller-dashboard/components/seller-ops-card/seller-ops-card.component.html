@@ -1,0 +1,6 @@
+<article class="ops-card" [class.has-new]="newOrder()">
+  <span class="ops-kicker">Sala operacional</span>
+  <h2>{{ newOrder() ? 'Novo pedido recebido' : 'Aguardando novos pedidos' }}</h2>
+  <p>{{ newOrder()?.message || 'Deixe esta tela aberta para receber sinal visual e sonoro quando uma venda chegar.' }}</p>
+  <a routerLink="/app/pedidos">Ver pedidos</a>
+</article>

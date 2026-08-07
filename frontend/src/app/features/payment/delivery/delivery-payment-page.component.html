@@ -1,0 +1,140 @@
+<ion-content [fullscreen]="true" class="pay-content">
+  <header class="page-head">
+    <button type="button" class="ghost-btn" (click)="onBack()" aria-label="Voltar">
+      <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+    </button>
+    <div class="page-title">
+      <h1>Pagar na entrega</h1>
+      <p>Escolha como deseja pagar</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <section class="screen-padding">
+    <div class="order-card card">
+      <div class="order-left">
+        <span class="round-icon" aria-hidden="true">
+          <ion-icon name="bag-outline"></ion-icon>
+        </span>
+        <div>
+          <p class="order-title">{{ itemsCount() }} {{ itemsCount() === 1 ? 'item' : 'itens' }}</p>
+          <p class="order-sub">Novo pedido</p>
+        </div>
+      </div>
+      <strong class="order-price">{{ total() | brl }}</strong>
+    </div>
+
+    <h2 class="section-title">Como deseja pagar na entrega?</h2>
+    <p class="section-sub">Escolha a forma de pagamento que será utilizada no momento da entrega.</p>
+
+    <div class="options-list">
+      <label
+        class="option-card"
+        [class.active]="selected() === 'cash'"
+      >
+        <input class="payment-input" type="radio" name="delivery-payment-method" value="cash" [checked]="selected() === 'cash'" (change)="select('cash')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="cash-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Dinheiro</h3>
+          <p>Pague em dinheiro para o entregador.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+
+      <label
+        class="option-card"
+        [class.active]="selected() === 'card'"
+      >
+        <input class="payment-input" type="radio" name="delivery-payment-method" value="card" [checked]="selected() === 'card'" (change)="select('card')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="card-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Cartão</h3>
+          <p>Pague com cartão de crédito ou débito para o entregador.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+    </div>
+
+    @if (selected() === 'cash') {
+      <div class="complement-card">
+        <p class="complement-title">Precisa de troco?</p>
+        <div class="change-options">
+          <label
+            class="change-opt"
+            [class.active]="needsChange() === false"
+          >
+            <input class="payment-input" type="radio" name="needs-change" value="no" [checked]="needsChange() === false" (change)="setNeedsChange(false)" />
+            Não preciso
+          </label>
+          <label
+            class="change-opt"
+            [class.active]="needsChange() === true"
+          >
+            <input class="payment-input" type="radio" name="needs-change" value="yes" [checked]="needsChange() === true" (change)="setNeedsChange(true)" />
+            Sim, preciso
+          </label>
+        </div>
+        @if (needsChange()) {
+          <div class="change-input">
+            <label>Troco para quanto?</label>
+            <div class="change-field">
+              <span class="prefix">R$</span>
+              <input
+                type="text"
+                inputmode="decimal"
+                placeholder="0,00"
+                [ngModel]="changeFor()"
+                (ngModelChange)="onChangeForInput($event)"
+                aria-label="Valor para troco"
+              />
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (selected() === 'card') {
+      <div class="notice-card">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <p>O pagamento será realizado diretamente com o entregador no momento da entrega.</p>
+      </div>
+    }
+
+    <div class="summary-card card">
+      <h3 class="sum-title">Resumo do pagamento</h3>
+      <div class="sum-row"><span>Subtotal</span><span>{{ subtotal() | brl }}</span></div>
+      <div class="sum-row">
+        <span>Taxa de entrega</span>
+        <span>{{ effectiveDeliveryFee() | brl }}</span>
+      </div>
+      <div class="sum-row sum-green"><span>Descontos</span><span>- {{ discount() | brl }}</span></div>
+      <div class="sum-divider"></div>
+      <div class="sum-row sum-total">
+        <span>Total</span>
+        <strong class="total-value">{{ total() | brl }}</strong>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <button
+        type="button"
+        class="btn-primary"
+        [disabled]="!canFinalize() || processing()"
+        (click)="finalize()"
+      >
+        @if (processing()) {
+          Processando...
+        } @else {
+          CONTINUAR
+        }
+      </button>
+      <app-back-to-menu-link [disabled]="processing()" (navigateBack)="goToMenu()" />
+    </footer>
+  </section>
+</ion-content>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Empada de Frango • Brasa Burger</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.lineicons.com/4.0/lineicons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .empada-hero {
+      height: 330px;
+      background: #f5eadc;
+    }
+
+    .empada-hero img {
+      object-position: center 48%;
+    }
+
+    .empada-sheet {
+      margin-top: -44px;
+      padding: 26px 22px 18px;
+      border-radius: 32px 32px 0 0;
+    }
+
+    .empada-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .empada-heading h1 {
+      margin: 0;
+      letter-spacing: -0.045em;
+      line-height: 1.08;
+    }
+
+    .empada-heading .product-price {
+      color: var(--brand, var(--orange));
+      white-space: nowrap;
+      font-weight: 900;
+    }
+
+    .empada-desc {
+      margin: 0 0 22px;
+      color: #5f6067;
+      line-height: 1.45;
+    }
+
+    .empada-config {
+      display: grid;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .empada-config-card {
+      padding: 14px 0 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .empada-config-card:last-child {
+      border-bottom: 0;
+    }
+
+    .empada-config-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .empada-config-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .empada-config-title strong {
+      letter-spacing: -0.02em;
+    }
+
+    .tag-optional {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      padding: 0 12px;
+      border-radius: 999px;
+      color: #77777e;
+      background: #f0f0f1;
+      white-space: nowrap;
+    }
+
+    .empada-notes {
+      height: 74px;
+      border: 1px solid #d6d0cc;
+      border-radius: 14px;
+      display: grid;
+      grid-template-columns: 34px 1fr 46px;
+      align-items: center;
+      padding: 0 12px;
+      color: #a2a2a8;
+      background: #fff;
+    }
+
+    .empada-notes input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #444;
+    }
+
+    .empada-fixed {
+      position: sticky;
+      bottom: 84px;
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 18px 0 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0), #fff 32%);
+      z-index: 26;
+    }
+
+    .empada-fixed .qty,
+    .empada-fixed .cart-btn {
+      height: 58px;
+      box-shadow: none;
+    }
+
+    .empada-fixed .cart-btn {
+      border-radius: 18px;
+    }
+
+    @media (max-width: 420px) {
+      .empada-hero { height: 285px; }
+      .empada-sheet { padding: 22px 18px 16px; }
+      .empada-fixed { grid-template-columns: 104px 1fr; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span class="wifi"></span>
+      <span class="battery"></span>
+    </div>
+  </div>
+
+  <section class="product-hero empada-hero">
+    <img src="assets/images/empada-de-frango.jpg" alt="Empada de frango artesanal">
+    <div class="hero-actions">
+      <a class="circle-btn" data-back href="index.html" aria-label="Voltar">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+    </div>
+  </section>
+
+  <section class="product-sheet empada-sheet">
+    <div class="empada-heading">
+      <h1>Empada de Frango</h1>
+      <div class="product-price">R$ 8,90</div>
+    </div>
+
+    <p class="empada-desc">Massa amanteigada, recheio cremoso de frango e tempero da casa. Empada artesanal assada no ponto, perfeita para acompanhar seu pedido.</p>
+
+    <div class="empada-config">
+      <section class="empada-config-card" aria-labelledby="empada-observacoes">
+        <div class="empada-config-head">
+          <div class="empada-config-title">
+            <strong id="empada-observacoes">Observações</strong>
+          </div>
+          <span class="tag-optional">Opcional</span>
+        </div>
+        <label class="empada-notes">
+          <i class="bi bi-pencil"></i>
+          <input aria-label="Observações" placeholder="Ex.: bem assada, sem catupiry, pouco recheio...">
+          <span>0/120</span>
+        </label>
+      </section>
+    </div>
+
+    <div class="empada-fixed">
+      <div class="qty">
+        <button type="button" aria-label="Diminuir">−</button>
+        <span>1</span>
+        <button type="button" aria-label="Aumentar">+</button>
+      </div>
+
+      <a class="cart-btn" href="carrinho.html">
+        <i class="bi bi-bag"></i>
+        <span>Adicionar ao carrinho<br><strong>R$ 8,90</strong></span>
+      </a>
+    </div>
+  </section>
+
+  <a class="back-to-menu" href="index.html">Voltar ao cardápio</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+  <script src="js/app.js"></script>
+</main>
+</body>
+</html>

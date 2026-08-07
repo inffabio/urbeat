@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grupos de opções</title>
+
+  <style>
+    :root {
+      --coral: #e24d55;
+      --coral-dark: #cf3f47;
+      --coral-soft: #fff0f1;
+      --text: #202124;
+      --muted: #70757a;
+      --border: #ebe4de;
+      --page: #f7f8fb;
+      --white: #ffffff;
+      --shadow: 0 8px 22px rgba(33, 37, 41, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 42px 18px;
+      background: var(--page);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+
+    .section-wrapper {
+      width: min(900px, 100%);
+      margin: 0 auto;
+    }
+
+    .section-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 2px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .section-subtitle {
+      margin: 7px 0 15px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .soft-btn {
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 19px;
+      background: #ffe9eb;
+      color: var(--coral);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .soft-btn:hover {
+      background: #ffdfe2;
+    }
+
+    .groups-container {
+      display: grid;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      padding: 28px;
+      border: 1px dashed #e5d9d3;
+      border-radius: 14px;
+      background: var(--white);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .option-group {
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 22px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .option-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .option-group h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .remove-group,
+    .remove-item {
+      border: 0;
+      background: transparent;
+      color: var(--coral);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .group-name-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label,
+    .setting-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #3a3a3a;
+    }
+
+    input[type="text"],
+    select,
+    .choice-number {
+      width: 100%;
+      border: 1px solid #e8dfd8;
+      border-radius: 8px;
+      background: var(--white);
+      color: #3b3b3b;
+      font: inherit;
+      padding: 11px 13px;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    .choice-number:focus {
+      border-color: #ed8d93;
+      box-shadow: 0 0 0 3px var(--coral-soft);
+    }
+
+    .group-settings {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 42px;
+      align-items: start;
+      margin-bottom: 34px;
+    }
+
+    .setting-title {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #242424;
+    }
+
+    .condition-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 55px;
+      overflow: hidden;
+      border: 1px solid #eee6df;
+      border-radius: 10px;
+    }
+
+    .condition-option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      background: var(--white);
+      color: #151515;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .condition-option + .condition-option {
+      border-left: 1px solid #eee6df;
+    }
+
+    .condition-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .condition-dot {
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px dashed #777;
+      border-radius: 50%;
+    }
+
+    .condition-option.selected {
+      background: var(--coral-soft);
+      color: var(--coral);
+    }
+
+    .condition-option.selected .condition-dot {
+      border-color: var(--coral);
+    }
+
+    .condition-option.selected .condition-dot::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--coral);
+    }
+
+    .choices-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 55px;
+    }
+
+    .choices-line span,
+    .choices-line strong {
+      color: #777;
+      font-size: 14px;
+    }
+
+    .choice-number {
+      width: 70px;
+      height: 47px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 17px;
+      -moz-appearance: textfield;
+    }
+
+    .choice-number::-webkit-inner-spin-button,
+    .choice-number::-webkit-outer-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+
+    .group-items-title {
+      margin: 0 0 17px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .group-items {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .group-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 145px auto;
+      gap: 10px;
+      align-items: end;
+      padding: 13px;
+      border: 1px solid #eee5de;
+      border-radius: 10px;
+      background: #fffafa;
+    }
+
+    .add-item-btn {
+      width: 100%;
+      min-height: 55px;
+      border: 1px dashed #e8dcd5;
+      border-radius: 10px;
+      background: var(--white);
+      color: var(--coral);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .add-item-btn:hover {
+      background: #fff7f7;
+      border-color: #ed9ca1;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 24px 12px;
+      }
+
+      .section-row {
+        align-items: center;
+      }
+
+      .group-name-row,
+      .group-settings,
+      .group-item {
+        grid-template-columns: 1fr;
+      }
+
+      .group-settings {
+        gap: 18px;
+      }
+
+      .remove-item {
+        justify-self: end;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .section-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .soft-btn {
+        width: 100%;
+      }
+
+      .option-group {
+        padding: 17px;
+      }
+
+      .condition-option {
+        padding: 0 12px;
+      }
+
+      .choices-line {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="section-wrapper">
+    <div class="section-row">
+      <div>
+        <h1 class="section-title">2. Grupos de opções</h1>
+        <p class="section-subtitle">
+          Adicione grupos para que o cliente possa personalizar o produto.
+        </p>
+      </div>
+
+      <button id="addGroup" class="soft-btn" type="button">
+        + Adicionar grupo
+      </button>
+    </div>
+
+    <div id="groupsContainer" class="groups-container">
+      <div id="emptyState" class="empty-state">
+        Nenhum grupo de opções adicionado.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const groupsContainer = document.getElementById("groupsContainer");
+    const emptyState = document.getElementById("emptyState");
+    const addGroupButton = document.getElementById("addGroup");
+
+    let groupCount = 0;
+
+    function refreshEmptyState() {
+      const hasGroups = groupsContainer.querySelector(".option-group");
+      emptyState.style.display = hasGroups ? "none" : "block";
+    }
+
+    function formatCurrency(input) {
+      const digits = input.value.replace(/\D/g, "");
+      input.value = (Number(digits || 0) / 100).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function setCondition(group, value) {
+      const options = group.querySelectorAll(".condition-option");
+      const minInput = group.querySelector(".min-choice");
+      const maxInput = group.querySelector(".max-choice");
+
+      options.forEach((option) => {
+        option.classList.toggle("selected", option.dataset.value === value);
+      });
+
+      const radio = group.querySelector(
+        `input[type="radio"][value="${value}"]`
+      );
+
+      if (radio) {
+        radio.checked = true;
+      }
+
+      if (value === "obrigatorio" && Number(minInput.value) < 1) {
+        minInput.value = 1;
+      }
+
+      if (
+        value === "opcional" &&
+        Number(minInput.value) > Number(maxInput.value)
+      ) {
+        minInput.value = 0;
+      }
+    }
+
+    function addItem(group) {
+      const itemsContainer = group.querySelector(".group-items");
+      const itemNumber = itemsContainer.children.length + 1;
+      const item = document.createElement("div");
+
+      item.className = "group-item";
+      item.innerHTML = `
+        <div class="field">
+          <label>Nome do item *</label>
+          <input
+            type="text"
+            placeholder="Ex.: Bacon extra"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label>Preço adicional</label>
+          <input
+            class="item-price"
+            type="text"
+            value="R$ 0,00"
+            inputmode="numeric"
+          >
+        </div>
+
+        <button
+          class="remove-item"
+          type="button"
+          aria-label="Remover item ${itemNumber}"
+        >
+          Remover
+        </button>
+      `;
+
+      const priceInput = item.querySelector(".item-price");
+
+      priceInput.addEventListener("input", () => {
+        formatCurrency(priceInput);
+      });
+
+      item.querySelector(".remove-item").addEventListener("click", () => {
+        item.remove();
+      });
+
+      itemsContainer.appendChild(item);
+      item.querySelector('input[type="text"]').focus();
+    }
+
+    function createGroup() {
+      groupCount += 1;
+
+      const group = document.createElement("section");
+      group.className = "option-group";
+
+      group.innerHTML = `
+        <div class="option-group-head">
+          <h3>Grupo de opções ${groupCount}</h3>
+          <button class="remove-group" type="button">
+            Remover grupo
+          </button>
+        </div>
+
+        <div class="group-name-row">
+          <div class="field">
+            <label>Nome do grupo *</label>
+            <input
+              type="text"
+              placeholder="Ex.: Escolha os adicionais"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label>Tipo de seleção</label>
+            <select>
+              <option>Escolha única</option>
+              <option>Múltipla escolha</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="group-settings">
+          <div>
+            <span class="setting-title">Condição</span>
+
+            <div
+              class="condition-toggle"
+              role="radiogroup"
+              aria-label="Condição do grupo"
+            >
+              <label
+                class="condition-option selected"
+                data-value="obrigatorio"
+              >
+                <input
+                  type="radio"
+                  name="condition-${groupCount}"
+                  value="obrigatorio"
+                  checked
+                >
+                <span class="condition-dot"></span>
+                <span>Obrigatório</span>
+              </label>
+
+              <label
+                class="condition-option"
+                data-value="opcional"
+              >
+                <input
+                  type="radio"
+                  name="condition-${groupCount}"
+                  value="opcional"
+                >
+                <span class="condition-dot"></span>
+                <span>Opcional</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <span class="setting-title">Escolhas</span>
+
+            <div class="choices-line">
+              <strong>Mín</strong>
+
+              <input
+                class="choice-number min-choice"
+                type="number"
+                min="0"
+                value="1"
+                aria-label="Mínimo de escolhas"
+              >
+
+              <span>até</span>
+
+              <strong>Máx</strong>
+
+              <input
+                class="choice-number max-choice"
+                type="number"
+                min="1"
+                value="1"
+                aria-label="Máximo de escolhas"
+              >
+            </div>
+          </div>
+        </div>
+
+        <h4 class="group-items-title">Itens do grupo</h4>
+
+        <div class="group-items"></div>
+
+        <button class="add-item-btn" type="button">
+          + Adicionar item
+        </button>
+      `;
+
+      group.querySelector(".remove-group").addEventListener("click", () => {
+        group.remove();
+        refreshEmptyState();
+      });
+
+      group.querySelectorAll(".condition-option").forEach((option) => {
+        option.addEventListener("click", () => {
+          setCondition(group, option.dataset.value);
+        });
+      });
+
+      const minInput = group.querySelector(".min-choice");
+      const maxInput = group.querySelector(".max-choice");
+
+      minInput.addEventListener("input", () => {
+        const min = Math.max(0, Number(minInput.value || 0));
+        const max = Math.max(1, Number(maxInput.value || 1));
+
+        minInput.value = Math.min(min, max);
+      });
+
+      maxInput.addEventListener("input", () => {
+        const max = Math.max(1, Number(maxInput.value || 1));
+
+        maxInput.value = max;
+
+        if (Number(minInput.value) > max) {
+          minInput.value = max;
+        }
+      });
+
+      group.querySelector(".add-item-btn").addEventListener("click", () => {
+        addItem(group);
+      });
+
+      groupsContainer.appendChild(group);
+      refreshEmptyState();
+
+      group.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+
+    addGroupButton.addEventListener("click", createGroup);
+
+    refreshEmptyState();
+  </script>
+</body>
+</html>

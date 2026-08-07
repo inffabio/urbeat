@@ -1,0 +1,127 @@
+.recent-orders {
+  padding: 16px;
+  border: 1px solid #e7e9f3;
+  border-radius: 22px;
+  background: var(--app-surface, #fff);
+  box-shadow: 0 14px 34px rgba(40, 44, 80, 0.06);
+}
+
+header,
+.recent-order {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h2 {
+  margin: 0;
+  color: #111426;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+a {
+  min-height: 38px;
+  color: #ff4b1f;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.recent-table {
+  margin-top: 12px;
+}
+
+.recent-head,
+.recent-order {
+  display: grid;
+  grid-template-columns: 82px minmax(100px, 1fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr) 96px;
+  align-items: center;
+  gap: 12px;
+}
+
+.recent-head {
+  padding: 0 0 9px;
+  color: #7d8298;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+
+.recent-order {
+  padding: 10px 0;
+  border-top: 1px solid #e7e9f3;
+}
+
+.recent-order strong {
+  color: #111426;
+  font-size: 13px;
+}
+
+.recent-order span {
+  color: #6f7488;
+  font-weight: 750;
+  font-size: 12px;
+}
+
+.recent-order .order-total {
+  color: #ff4b1f;
+  text-align: right;
+}
+
+.badge-soft {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #fff1ea;
+  color: #ff4b1f !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  white-space: nowrap;
+}
+
+.badge-blue { background: #edf4ff; color: #3478ff !important; }
+.badge-yellow { background: #fff5df; color: #b77900 !important; }
+.badge-green { background: #e8f8ef; color: #167a4a !important; }
+.badge-red { background: #feecec; color: #b42318 !important; }
+.badge-money { background: #faf9ff; color: #5b4de2 !important; }
+
+.empty {
+  margin: 14px 0 0;
+  color: #7d8298;
+}
+
+@media (max-width: 760px) {
+  .recent-head {
+    display: none;
+  }
+
+  .recent-order {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 12px 0;
+  }
+
+  .recent-order > * {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .recent-order > *::before {
+    content: attr(data-label);
+    color: #7d8298;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .recent-order .order-total {
+    text-align: left;
+  }
+}

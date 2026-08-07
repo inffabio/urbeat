@@ -1,0 +1,160 @@
+<header class="topbar">
+  <div>
+    <div class="page-title-wrap">
+      <h1 class="page-title">Categorias</h1>
+    </div>
+    <p class="page-subtitle">Organize as categorias do seu cardápio e controle a exibição no app.</p>
+  </div>
+  <div class="top-actions">
+    <div class="segmented" role="group" aria-label="Período">
+      <button class="active" type="button">Hoje</button>
+      <button type="button">Semana</button>
+      <button type="button">Mês</button>
+    </div>
+    <button class="btn-soft" type="button" (click)="load()">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      Atualizar
+    </button>
+    <button aria-label="Notificações" class="icon-btn notification-btn" type="button">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      <span class="dot-badge">5</span>
+    </button>
+    <div class="date-pill">
+      <i class="bi bi-calendar3" aria-hidden="true"></i>
+      <span>{{ headerSummary() }}</span>
+      <i class="bi bi-chevron-down small" aria-hidden="true"></i>
+    </div>
+  </div>
+</header>
+
+<div class="notice" role="status">
+  <i class="bi bi-check-circle" aria-hidden="true"></i>
+  <span>{{ subscriptionMessage() }}</span>
+</div>
+
+<app-cardapio-menu-tabs />
+
+<section class="row g-3 categories-layout">
+  <div class="col-12 col-xl-8">
+    <div class="content-card">
+      <div class="content-head">
+        <h2>Categorias cadastradas</h2>
+        <span class="text-secondary small fw-bold">Arraste para reordenar</span>
+      </div>
+
+      @if (loading()) {
+        <div class="seller-state-card is-loading" role="status" aria-label="Carregando categorias">
+          <strong class="seller-state-title">Carregando categorias</strong>
+          <p class="seller-state-copy">Estamos buscando a estrutura atual do cardápio.</p>
+        </div>
+      } @else if (error()) {
+        <div class="seller-state-card is-error" role="alert">
+          <strong class="seller-state-title">Não foi possível carregar as categorias.</strong>
+          <p class="seller-state-copy">Atualize a listagem para tentar novamente.</p>
+          <button type="button" class="btn-outline-app" (click)="load()">Tentar novamente</button>
+        </div>
+      } @else if (sortedCategories().length === 0) {
+        <div class="seller-state-card is-empty">
+          <strong class="seller-state-title">Nenhuma categoria criada ainda.</strong>
+          <p class="seller-state-copy">Crie a primeira categoria para organizar a navegação do cardápio.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table seller-table categories-table">
+            <thead>
+              <tr>
+                <th>Ordem</th>
+                <th>Categoria</th>
+                <th class="text-center">Itens</th>
+                <th>Status</th>
+                <th>Exibição</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (category of sortedCategories(); track category.id; let index = $index) {
+                <tr draggable="true" (dragstart)="onDragStart(category)" (dragover)="$event.preventDefault()" (drop)="onDrop(category)">
+                  <td data-label="Ordem">
+                    <button type="button" class="small-icon-btn" [attr.aria-label]="'Categoria na posição ' + (index + 1)">{{ index + 1 }}</button>
+                  </td>
+                  <td data-label="Categoria">
+                    <strong>{{ category.name }}</strong>
+                    <div class="product-desc">{{ itemCount(category) }} itens</div>
+                  </td>
+                  <td class="text-center" data-label="Itens">{{ itemCount(category) }}</td>
+                  <td data-label="Status">
+                    <span class="badge-soft" [class.badge-green]="category.isActive" [class.badge-gray]="!category.isActive">
+                      {{ category.isActive ? 'Ativa' : 'Inativa' }}
+                    </span>
+                  </td>
+                  <td data-label="Exibição">{{ category.isActive ? 'Sempre' : 'Oculta' }}</td>
+                  <td class="text-end" data-label="Ações">
+                    <span class="action-buttons">
+                      <button type="button" class="small-icon-btn" (click)="startEdit(category)" aria-label="Editar categoria">
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                      </button>
+                      <button type="button" class="small-icon-btn delete-category-btn" (click)="deleteCategory(category)" aria-label="Excluir categoria">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                      </button>
+                      <button type="button" class="small-icon-btn" (click)="toggleCategory(category)" [attr.aria-label]="category.isActive ? 'Ocultar categoria' : 'Ativar categoria'">
+                        <i class="bi" [class.bi-eye-slash]="category.isActive" [class.bi-eye]="!category.isActive" aria-hidden="true"></i>
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="p-3 text-secondary small fw-bold">Mostrando {{ sortedCategories().length }} de {{ sortedCategories().length }} categorias</div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="form-card content-card p-4">
+      <h2 class="h5 fw-bold mb-2">{{ formTitle() }}</h2>
+      <p class="text-secondary small fw-semibold mb-4">Crie uma nova categoria para o seu cardápio.</p>
+
+      <div class="mb-3">
+        <label class="form-label-app" for="categoryName">Nome da categoria *</label>
+        <input id="categoryName" class="form-control-app" type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="Ex.: Burgers" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label-app" for="categoryDescription">Descrição opcional</label>
+        <textarea id="categoryDescription" class="form-control-app pt-3" [ngModel]="newDescription()" (ngModelChange)="newDescription.set($event)" placeholder="Ex.: Os melhores burgers artesanais da cidade"></textarea>
+      </div>
+      <fieldset class="mb-3 status-fieldset">
+        <legend class="form-label-app">Status *</legend>
+        <div class="row g-2">
+          <div class="col-6">
+            <button type="button" class="radio-card" [class.active]="newIsActive()" (click)="newIsActive.set(true)" data-testid="category-status-active">
+              <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+              <span><strong>Ativa</strong><small>Visível no app</small></span>
+            </button>
+          </div>
+          <div class="col-6">
+            <button type="button" class="radio-card" [class.active]="!newIsActive()" (click)="newIsActive.set(false)" data-testid="category-status-inactive">
+              <i class="bi bi-circle-fill" aria-hidden="true"></i>
+              <span><strong>Inativa</strong><small>Não visível</small></span>
+            </button>
+          </div>
+        </div>
+      </fieldset>
+      <div class="mb-4">
+          <label class="form-label-app" for="categoryOrder">Ordem *</label>
+          <select id="categoryOrder" class="form-select-app" [ngModel]="newDisplayOrder()" (ngModelChange)="newDisplayOrder.set(+$event)">
+            <option [ngValue]="1">Primeira posição</option>
+            <option [ngValue]="sortedCategories().length + (editingCategoryId() ? 0 : 1)">Última posição</option>
+            @for (category of sortedCategories(); track category.id; let index = $index) {
+            @if (editingCategoryId() && index > 0 && index < sortedCategories().length - 1) { <option [ngValue]="index + 1">Posição {{ index + 1 }}</option> }
+            }
+          </select>
+      </div>
+      <button type="button" class="btn-primary-app btn-orange w-100 mb-2" (click)="saveCategory()" [disabled]="saving() || !newName().trim()">
+        {{ saving() ? 'Salvando...' : (editingCategoryId() ? 'Salvar alterações' : 'Salvar categoria') }}
+      </button>
+      <button type="button" class="btn-outline-app w-100" (click)="cancelEdit()">Cancelar</button>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urbeat - Produtos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; background: #f9fafb; }
+</style>
+</head>
+<body class="bg-[#fafafa]">
+<!-- Header -->
+<header class="bg-white border-b border-gray-100">
+  <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="text-[28px] font-semibold tracking-tight" style="color:#FF5A00">happ<span class="relative">e<span class="absolute -top-1.5 -right-1 text-xs">´</span>e</span></span>
+    </div>
+    <div class="flex items-center gap-10">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center">
+          <div class="w-6 h-6 rounded-full bg-[#10B981] flex items-center justify-center text-white text-xs">✓</div>
+          <span class="ml-2 text-sm text-gray-600">Loja</span>
+        </div>
+        <div class="w-12 h-[2px] bg-[#10B981]"></div>
+        <div class="flex items-center">
+          <div class="w-6 h-6 rounded-full bg-[#10B981] flex items-center justify-center text-white text-xs">✓</div>
+          <span class="ml-2 text-sm text-gray-600">Horários</span>
+        </div>
+        <div class="w-12 h-[2px] bg-[#10B981]"></div>
+        <div class="flex items-center">
+          <div class="w-6 h-6 rounded-full bg-[#10B981] flex items-center justify-center text-white text-xs">✓</div>
+          <span class="ml-2 text-sm text-gray-600">Entrega</span>
+        </div>
+        <div class="w-12 h-[2px] bg-[#10B981]"></div>
+        <div class="flex items-center">
+          <div class="w-6 h-6 rounded-full border-2 border-[#FF5A00] flex items-center justify-center">
+            <div class="w-2.5 h-2.5 rounded-full bg-[#FF5A00]"></div>
+          </div>
+          <span class="ml-2 text-sm font-medium text-[#FF5A00]">Produtos</span>
+        </div>
+        <div class="w-12 h-[2px] bg-gray-200"></div>
+        <div class="flex items-center">
+          <div class="w-6 h-6 rounded-full border-2 border-gray-300"></div>
+          <span class="ml-2 text-sm text-gray-400">Publicar</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <div class="text-xs font-medium text-gray-700">75% concluído</div>
+        <div class="w-32 h-1.5 bg-orange-100 rounded-full mt-1">
+          <div class="w-[75%] h-1.5 bg-[#FF5A00] rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1400px] mx-auto px-6 py-6 grid grid-cols-12 gap-6">
+  <!-- Left -->
+  <div class="col-span-8 space-y-6">
+    <!-- 1. Gerenciar categorias -->
+    <section class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-[15px] font-semibold text-gray-900">1. Gerenciar categorias</h2>
+        <button class="bg-[#FF5A00] text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-orange-600">+ Nova categoria</button>
+      </div>
+      <div class="border border-gray-100 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-[11px] text-gray-500 uppercase">
+            <tr>
+              <th class="text-left px-4 py-2.5 font-medium">Categoria</th>
+              <th class="text-left px-4 py-2.5 font-medium">Produtos</th>
+              <th class="text-left px-4 py-2.5 font-medium">Status</th>
+              <th class="text-left px-4 py-2.5 font-medium">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr><td class="px-4 py-3 font-medium text-gray-900">Hambúrgueres</td><td class="px-4 py-3 text-gray-500 text-xs">5 produtos</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-700 text-[11px] px-2 py-0.5 rounded">Ativa</span></td><td class="px-4 py-3 text-gray-400">...</td></tr>
+            <tr><td class="px-4 py-3 font-medium text-gray-900">Batatas</td><td class="px-4 py-3 text-gray-500 text-xs">3 produtos</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-700 text-[11px] px-2 py-0.5 rounded">Ativa</span></td><td class="px-4 py-3 text-gray-400">...</td></tr>
+            <tr><td class="px-4 py-3 font-medium text-gray-900">Bebidas</td><td class="px-4 py-3 text-gray-500 text-xs">6 produtos</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-700 text-[11px] px-2 py-0.5 rounded">Ativa</span></td><td class="px-4 py-3 text-gray-400">...</td></tr>
+            <tr><td class="px-4 py-3 font-medium text-gray-900">Combos</td><td class="px-4 py-3 text-gray-500 text-xs">4 produtos</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-700 text-[11px] px-2 py-0.5 rounded">Ativa</span></td><td class="px-4 py-3 text-gray-400">...</td></tr>
+            <tr><td class="px-4 py-3 font-medium text-gray-900">Sobremesas</td><td class="px-4 py-3 text-gray-500 text-xs">3 produtos</td><td class="px-4 py-3"><span class="bg-emerald-50 text-emerald-700 text-[11px] px-2 py-0.5 rounded">Ativa</span></td><td class="px-4 py-3 text-gray-400">...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. Cadastrar produtos -->
+    <section>
+      <h2 class="text-[15px] font-semibold text-gray-900">2. Cadastrar produtos</h2>
+      <p class="text-xs text-gray-500 mb-3">Adicione os produtos que seus clientes poderão pedir.</p>
+      
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 space-y-6">
+        <!-- Informações -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-900 mb-3">1. Informações do produto</h3>
+          <div class="grid grid-cols-12 gap-4">
+            <div class="col-span-8">
+              <label class="text-[11px] font-medium text-gray-700">Nome do produto *</label>
+              <div class="relative">
+                <input value="X-Burger Bacon" class="w-full mt-1 border border-gray-200 rounded-md px-3 py-2 text-sm"/>
+                <span class="absolute right-2 top-3 text-[10px] text-gray-400">13/100</span>
+              </div>
+            </div>
+            <div class="col-span-4">
+              <label class="text-[11px] font-medium text-gray-700">Categoria *</label>
+              <select class="w-full mt-1 border border-gray-200 rounded-md px-3 py-2 text-sm bg-white">
+                <option>Hambúrgueres</option>
+              </select>
+            </div>
+            <div class="col-span-12">
+              <label class="text-[11px] font-medium text-gray-700">Descrição *</label>
+              <div class="relative">
+                <textarea class="w-full mt-1 border border-gray-200 rounded-md px-3 py-2 text-sm h-16">Pão, burger, queijo, bacon e molho especial.</textarea>
+                <span class="absolute right-2 bottom-2 text-[10px] text-gray-400">51/300</span>
+              </div>
+            </div>
+            <div class="col-span-3">
+              <label class="text-[11px] font-medium text-gray-700">Preço *</label>
+              <div class="flex items-center mt-1 border border-gray-200 rounded-md px-2">
+                <span class="text-xs text-gray-500">R$</span>
+                <input value="29,90" class="w-full px-2 py-2 text-sm outline-none"/>
+              </div>
+            </div>
+            <div class="col-span-3">
+              <label class="text-[11px] font-medium text-gray-500">Preço promocional (opcional)</label>
+              <div class="flex items-center mt-1 border border-gray-200 rounded-md px-2">
+                <span class="text-xs text-gray-500">R$</span>
+                <input value="24,90" class="w-full px-2 py-2 text-sm outline-none"/>
+              </div>
+            </div>
+            <div class="col-span-6">
+              <label class="text-[11px] font-medium text-gray-700">Foto do produto *</label>
+              <div class="mt-1 flex gap-3 items-center">
+                <img src="burguer.png" alt="FOTO DO PRODUTO" width=80>
+                
+                <div class="border border-dashed border-gray-200 rounded-md px-4 py-3 text-center flex-1">
+                  <button class="text-xs text-gray-600 flex items-center justify-center w-full gap-1"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-4m0 0L8 8m4-4v12"/></svg> Trocar imagem</button>
+                  <p class="text-[10px] text-gray-400 mt-1">JPG, PNG ou WEBP. Máx. 2MB</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-12 flex justify-between items-center pt-2">
+              <div>
+                <p class="text-[11px] font-medium">Produto disponível</p>
+                <p class="text-[10px] text-gray-500">Ative para mostrar este produto na sua loja.</p>
+              </div>
+              <div class="w-10 h-5 bg-[#FF5A00] rounded-full relative"><div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personalização -->
+        <div class="border-t pt-4">
+          <h3 class="text-sm font-medium text-gray-900">2. Personalização <span class="text-gray-400 font-normal">(opcional)</span></h3>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <div class="border border-gray-100 rounded-lg p-3">
+              <p class="text-xs font-medium">Adicionais</p>
+              <p class="text-[10px] text-gray-500 mb-2">Permita que o cliente adicione itens extras</p>
+              <div class="space-y-2 text-xs">
+                <label class="flex justify-between"><span class="flex items-center gap-2"><input type="checkbox" checked class="accent-[#FF5A00]"> Bacon</span><span class="text-gray-500">R$ 4,50</span></label>
+                <label class="flex justify-between"><span class="flex items-center gap-2"><input type="checkbox" checked class="accent-[#FF5A00]"> Queijo extra</span><span class="text-gray-500">R$ 3,00</span></label>
+                <label class="flex justify-between"><span class="flex items-center gap-2"><input type="checkbox"> Ovo</span><span class="text-gray-500">R$ 2,50</span></label>
+              </div>
+              <button class="w-full mt-3 text-[11px] border border-gray-200 rounded py-1.5">+ Adicionar adicional</button>
+            </div>
+            <div class="border border-gray-100 rounded-lg p-3">
+              <p class="text-xs font-medium">Opções de escolha</p>
+              <p class="text-[10px] text-gray-500 mb-2">Permita que o cliente escolha uma opção</p>
+              <div class="space-y-2 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="pao" checked class="accent-[#FF5A00]"> Pão brioche</label>
+                <label class="flex items-center gap-2"><input type="radio" name="pao" class="accent-[#FF5A00]"> Pão australiano</label>
+                <label class="flex items-center gap-2"><input type="radio" name="pao" class="accent-[#FF5A00]"> Pão integral</label>
+              </div>
+              <button class="w-full mt-3 text-[11px] border border-gray-200 rounded py-1.5">+ Adicionar opção</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organização -->
+        <div class="border-t pt-4">
+          <h3 class="text-sm font-medium text-gray-900">3. Organização</h3>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-[11px] font-medium">Destaque</p>
+                <p class="text-[10px] text-gray-500">Mostrar como produto em destaque na loja</p>
+              </div>
+              <div class="w-10 h-5 bg-[#FF5A00] rounded-full relative"><div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div></div>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium">Ordem de exibição</p>
+              <p class="text-[10px] text-gray-500">A posição do produto no cardápio</p>
+            </div>
+            <div></div>
+            <div><input value="5" class="border border-gray-200 rounded w-16 text-center py-1 text-sm"/></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <h4 class="text-sm font-medium">4. Sabores e Variações <span class="text-gray-400 font-normal">(opcional)</span></h4>
+          <p class="text-[10px] text-gray-500 mb-3">Ideal para pizza, açaí, caldos e batatas.</p>
+          <div class="border border-gray-100 rounded-lg">
+            <div class="px-3 py-2 text-[10px] text-gray-500 uppercase bg-gray-50">Variações (Tamanhos)</div>
+            <div class="divide-y">
+              <div class="flex justify-between items-center px-3 py-2 text-xs"><span class="flex items-center gap-2">⋮⋮ 300g</span><span>R$ 24,90 <span class="text-gray-400 ml-2">...</span></span></div>
+              <div class="flex justify-between items-center px-3 py-2 text-xs"><span class="flex items-center gap-2">⋮⋮ 500g</span><span>R$ 32,90 <span class="text-gray-400 ml-2">...</span></span></div>
+            </div>
+          </div>
+          <button class="w-full mt-2 text-[11px] border border-gray-200 rounded py-1.5">+ Adicionar variação</button>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div class="flex justify-between items-start">
+            <div>
+              <h4 class="text-sm font-medium">6. Cupons <span class="text-gray-400 font-normal">(opcional)</span></h4>
+              <p class="text-[10px] text-gray-500">Crie cupons de desconto para seus clientes.</p>
+            </div>
+            <button class="bg-[#FF5A00] text-white text-[11px] px-2 py-1 rounded">+ Novo cupom</button>
+          </div>
+          <table class="w-full mt-3 text-[11px]">
+            <thead class="text-gray-400"><tr><th class="text-left font-normal py-1">CÓDIGO</th><th class="text-left font-normal">TIPO</th><th class="text-left font-normal">VALOR</th><th class="text-left font-normal">USO</th><th class="text-left font-normal">VALIDADE</th><th></th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="py-2">PRIMEIRACOMPRA10</td><td><span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px]">Percentual</span></td><td>10%</td><td>100</td><td>30/06/2024</td><td class="text-gray-400">...</td></tr>
+              <tr><td class="py-2">FRETEGRATIS</td><td><span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px]">Fixo</span></td><td>R$ 10,00</td><td>50</td><td>30/06/2024</td><td class="text-gray-400">...</td></tr>
+              <tr><td class="py-2">DESCONTO15</td><td><span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px]">Percentual</span></td><td>15%</td><td>200</td><td>15/07/2024</td><td class="text-gray-400">...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Right -->
+  <div class="col-span-4">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 sticky top-6">
+      <div class="flex items-center gap-2 mb-3">
+        <h3 class="font-semibold text-gray-900">Seus produtos</h3>
+        <span class="bg-orange-50 text-[#FF5A00] text-[11px] px-2 py-0.5 rounded-full">3 cadastrados</span>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <div class="flex-1 relative">
+          <input placeholder="Buscar produtos..." class="w-full border border-gray-200 rounded-md pl-7 pr-2 py-1.5 text-xs"/>
+          <svg class="absolute left-2 top-2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <button class="border border-gray-200 rounded-md px-3 text-xs text-gray-600 flex items-center gap-1"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 4h18M7 8h10M10 12h4"/></svg> Filtrar</button>
+      </div>
+
+      <div class="space-y-2">
+        <!-- item selected -->
+        <div class="border-2 border-[#FF5A00] rounded-lg p-2.5 flex items-center gap-3 bg-orange-50/30">
+          <img src="xbur.png" width=60>
+          
+          <div class="flex-1">
+            <div class="flex justify-between"><p class="text-xs font-medium">X-Burger Bacon</p><p class="text-xs font-semibold">R$ 24,90</p></div>
+            <div class="flex justify-between"><p class="text-[10px] text-gray-500">Hambúrgueres</p><span class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded">Ativo</span></div>
+          </div>
+          <span class="text-gray-400">...</span>
+        </div>
+
+        <div class="border border-gray-100 rounded-lg p-2.5 flex items-center gap-3">
+            <img src="fritas.png" width=60>          
+          <div class="flex-1">
+            <div class="flex justify-between"><p class="text-xs font-medium">Batata Frita</p><p class="text-xs font-semibold">R$ 12,90</p></div>
+            <div class="flex justify-between"><p class="text-[10px] text-gray-500">Batatas</p><span class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded">Ativo</span></div>
+          </div>
+          <span class="text-gray-400">...</span>
+        </div>
+
+        <div class="border border-gray-100 rounded-lg p-2.5 flex items-center gap-3">
+          <img src="coca.png" width=60>           
+          <div class="flex-1">
+            <div class="flex justify-between"><p class="text-xs font-medium">Coca-Cola 350ml</p><p class="text-xs font-semibold">R$ 6,90</p></div>
+            <div class="flex justify-between"><p class="text-[10px] text-gray-500">Bebidas</p><span class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded">Ativo</span></div>
+          </div>
+          <span class="text-gray-400">...</span>
+        </div>
+
+        <div class="border border-gray-100 rounded-lg p-2.5 flex items-center gap-3">
+          <img src="combo.png" width=60>           
+          <div class="flex-1">
+            <div class="flex justify-between"><p class="text-xs font-medium">Combo Clássico</p><p class="text-xs font-semibold">R$ 34,90</p></div>
+            <div class="flex justify-between"><p class="text-[10px] text-gray-500">Combos</p><span class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded">Ativo</span></div>
+          </div>
+          <span class="text-gray-400">...</span>
+        </div>
+
+        <div class="border border-gray-100 rounded-lg p-2.5 flex items-center gap-3">
+          <img src="combo.png" width=60>         
+          <div class="flex-1">
+            <div class="flex justify-between"><p class="text-xs font-medium">Brownie com Sorvete</p><p class="text-xs font-semibold">R$ 16,90</p></div>
+            <div class="flex justify-between"><p class="text-[10px] text-gray-500">Sobremesas</p><span class="bg-emerald-50 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded">Ativo</span></div>
+          </div>
+          <span class="text-gray-400">...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+  <button class="border border-gray-200 bg-white rounded-md px-4 py-2 text-sm text-gray-700 flex items-center gap-1"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 12H5m7-7l-7 7 7 7"/></svg> Voltar</button>
+  <div class="flex items-center gap-1.5 text-xs text-gray-500"><svg width="14" height="14" class="text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Seus dados são salvos automaticamente.</div>
+  <button class="bg-[#FF5A00] text-white rounded-md px-5 py-2.5 text-sm font-medium flex items-center gap-1">Salvar e continuar <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 12h14m-7-7l7 7-7 7"/></svg></button>
+</footer>
+</body>
+</html>

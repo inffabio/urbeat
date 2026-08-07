@@ -1,0 +1,28 @@
+<article class="metric-card" tabindex="0">
+  <div class="metric-icon" [class]="'metric-icon ' + tone()">
+    <ion-icon [attr.name]="icon()" aria-hidden="true"></ion-icon>
+  </div>
+  <div class="metric-copy">
+    <span>{{ label() }}</span>
+    <strong>{{ value() }}</strong>
+    @if (trendValue() || supportingText()) {
+      <div class="metric-footer">
+        @if (trendValue()) {
+          <span class="trend" [class]="'trend trend-' + trendDirection()">
+            <ion-icon [attr.name]="trendDirection() === 'up' ? 'arrow-up' : trendDirection() === 'down' ? 'arrow-down' : 'remove-outline'" aria-hidden="true"></ion-icon>
+            {{ trendValue() }}
+          </span>
+        }
+        @if (trendLabel() && trendValue()) {
+          <span class="trend-label">{{ trendLabel() }}</span>
+        }
+        @if (!trendValue() && supportingText()) {
+          <small>{{ supportingText() }}</small>
+        }
+      </div>
+    }
+    @if (trendEmphasis() && emphasisLabel()) {
+      <span class="emphasis">{{ emphasisLabel() }}</span>
+    }
+  </div>
+</article>

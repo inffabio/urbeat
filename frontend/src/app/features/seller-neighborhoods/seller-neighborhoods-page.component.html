@@ -1,0 +1,97 @@
+<section class="neighborhoods-page">
+  <header class="dashboard-topbar">
+    <div>
+      <div class="page-title-wrap"><h1 class="page-title">Configurações</h1></div>
+      <p class="page-subtitle">Gerencie horários, informações da loja, impressão, bio e bairros atendidos</p>
+    </div>
+    <div class="top-actions"><div class="date-pill">{{ areas.length }} {{ areas.length === 1 ? 'bairro' : 'bairros' }}</div></div>
+  </header>
+
+  <app-config-subnav />
+
+  @if (loading()) {
+    <div class="content-card state-card">Carregando bairros...</div>
+  } @else {
+    <section class="row g-3 align-items-start">
+      <div class="col-12 col-xl-8">
+        <div class="content-card neighborhoods-grid-card">
+          <div class="content-head">
+            <h2>Bairros atendidos</h2>
+            <p>Defina os bairros com taxa, pedido mínimo e regras de atendimento.</p>
+          </div>
+          <div class="filter-bar neighborhood-filter">
+            <div class="search-wrap">
+              <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+              <input class="form-control-app" type="search" placeholder="Buscar bairro..." [ngModel]="areaSearchFilter()" (ngModelChange)="areaSearchFilter.set($event)" />
+            </div>
+            <select class="form-select-app" [ngModel]="areaStatusFilter()" (ngModelChange)="areaStatusFilter.set($event)" aria-label="Filtrar status">
+              <option value="all">Todos os bairros</option>
+              <option value="active">Ativo</option>
+              <option value="paused">Pausado</option>
+            </select>
+            <button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="openNeighborhoodModal(-1)"><ion-icon name="add-outline"></ion-icon>Novo bairro</button>
+          </div>
+
+          <div class="table-responsive neighborhood-table-wrap" [formGroup]="form">
+            <table class="table neighborhood-table">
+              <thead><tr><th>Bairro</th><th>Taxa de entrega</th><th>Pedido mínimo</th><th>Status</th><th class="text-end">Ações</th></tr></thead>
+              <tbody formArrayName="areas">
+                @for (i of pagedAreaIndices(); track i) {
+                  <tr [formGroupName]="i" [class.selected-row]="selectedAreaIndex() === i" (click)="selectArea(i)">
+                    <td data-label="Bairro"><strong>{{ areas.at(i).value.neighborhood }}</strong></td>
+                    <td data-label="Taxa de entrega">{{ areas.at(i).value.deliveryFee ? 'R$ ' + areas.at(i).value.deliveryFee : 'R$ 0,00' }}</td>
+                    <td data-label="Pedido mínimo">{{ areas.at(i).value.minimumOrderValue ? 'R$ ' + areas.at(i).value.minimumOrderValue : 'R$ 0,00' }}</td>
+                    <td data-label="Status"><span class="badge-soft" [class.badge-green]="areas.at(i).value.isActive !== false" [class.badge-orange]="areas.at(i).value.isActive === false">{{ areas.at(i).value.isActive !== false ? 'Ativo' : 'Pausado' }}</span></td>
+                    <td class="text-end" data-label="Ações"><span class="table-actions"><button type="button" class="small-icon-btn" (click)="$event.stopPropagation(); selectArea(i)" aria-label="Editar bairro"><ion-icon name="create-outline"></ion-icon></button><button type="button" class="small-icon-btn" (click)="$event.stopPropagation(); removeArea(i)" [attr.aria-label]="'Excluir bairro ' + areas.at(i).value.neighborhood"><ion-icon name="trash-outline"></ion-icon></button></span></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="table-empty">Nenhum bairro encontrado.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer"><span>Mostrando {{ pagedAreaIndices().length }} de {{ filteredAreaIndices().length }} bairros cadastrados</span><div class="pagination-controls"><button type="button" class="page-button" (click)="setNeighborhoodPage(neighborhoodPage() - 1)" [disabled]="neighborhoodPage() === 1" aria-label="Página anterior">‹</button><span>Página {{ neighborhoodPage() }} de {{ neighborhoodPageCount() }}</span><button type="button" class="page-button" (click)="setNeighborhoodPage(neighborhoodPage() + 1)" [disabled]="neighborhoodPage() === neighborhoodPageCount()" aria-label="Próxima página">›</button></div></div>
+        </div>
+        <section class="content-card free-shipping-card" [formGroup]="form">
+          <h2>Frete grátis</h2>
+          <label class="free-shipping-toggle"><span><strong>Frete grátis hoje</strong><small>Ative para liberar frete grátis em todos os pedidos de hoje</small></span><input type="checkbox" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday()" /><span class="free-switch"></span></label>
+          @if (freeShippingToday()) { <div class="free-active-banner"><ion-icon name="checkmark-circle"></ion-icon><span>Todas as entregas de hoje estão com frete grátis. As taxas definidas acima não serão cobradas.</span></div> }
+          <div class="free-divider"></div><h3>Frete grátis a partir de</h3><p>Defina o valor mínimo do pedido para o frete ser grátis.</p>
+          <div class="free-field"><div class="inline-money"><span>R$</span><input class="form-control-app" formControlName="freeShippingThreshold" placeholder="Ex: 50,00" (blur)="formatMoneyFreeShipping()" (input)="maskMoneyInput($event)" /></div><small>Pedidos iguais ou acima desse valor terão frete grátis.</small></div>
+          <div class="free-save-bar"><span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">@if (saveStatus() === 'saving') { Salvando frete grátis... } @else if (saveStatus() === 'saved') { Frete grátis salvo. } @else if (saveStatus() === 'error') { Não foi possível salvar. } @else { Salve as alterações antes de sair. }</span><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar frete grátis' }}</button></div>
+        </section>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        @if (selectedAreaGroup(); as area) {
+          <div class="content-card area-editor" [formGroup]="area">
+            <h2>Editar bairro</h2>
+            <div class="mb-3"><label class="form-label-app">Nome do bairro</label><input class="form-control-app" formControlName="neighborhood" /></div>
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label-app">Taxa de entrega</label><div class="inline-money"><span>R$</span><input class="form-control-app" formControlName="deliveryFee" (blur)="formatMoneyGroup(currentAreaIndex()); validateRowFee(currentAreaIndex())" (input)="maskMoneyInput($event); clearRowError(currentAreaIndex())" /></div></div>
+              <div class="col-md-6"><label class="form-label-app">Pedido mínimo</label><div class="inline-money"><span>R$</span><input class="form-control-app" formControlName="minimumOrderValue" (blur)="formatMoneyAreaField(currentAreaIndex(), 'minimumOrderValue')" (input)="maskMoneyInput($event)" /></div></div>
+              <div class="col-12"><label class="form-label-app">Frete grátis acima de</label><div class="inline-money"><span>R$</span><input class="form-control-app" formControlName="freeShippingThreshold" (blur)="formatMoneyAreaField(currentAreaIndex(), 'freeShippingThreshold')" (input)="maskMoneyInput($event)" /></div></div>
+            </div>
+            <label class="area-active-row"><span><strong>Atender este bairro</strong><small>O bairro aparece para os clientes no checkout.</small></span><input type="checkbox" formControlName="isActive" /><span class="area-switch"></span></label>
+            <div class="mb-3"><label class="form-label-app">Observações</label><textarea class="form-control-app notes-input" formControlName="notes" maxlength="100"></textarea><div class="text-end small text-secondary fw-bold mt-1">{{ (area.value.notes || '').length }}/100</div></div>
+            <div class="editor-actions"><button type="button" class="btn btn-outline-primary btn-outline-app" (click)="cancelChanges()">Cancelar</button><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar alterações' }}</button></div>
+          </div>
+        }
+
+        <div class="content-card info-card">
+          <h2>Resumo da cobertura</h2>
+          <div class="summary-grid"><div class="summary-item"><span>Bairros ativos</span><strong>{{ activeAreaCount() }}</strong></div><div class="summary-item"><span>Taxa média</span><strong>{{ averageDeliveryFee() }}</strong></div><div class="summary-item"><span>Pedido mínimo médio</span><strong>{{ averageMinimumOrder() }}</strong></div><div class="summary-item"><span>Frete grátis médio</span><strong>{{ averageFreeShipping() }}</strong></div></div>
+        </div>
+        <div class="content-card info-card"><h2>Dicas</h2><p><ion-icon name="checkmark-circle"></ion-icon>Mantenha as taxas de entrega atualizadas conforme a região.</p><p><ion-icon name="checkmark-circle"></ion-icon>Revise os pedidos mínimos para garantir boas conversões.</p><p class="mb-0"><ion-icon name="checkmark-circle"></ion-icon>Pause bairros indisponíveis para evitar pedidos fora da área.</p></div>
+      </div>
+    </section>
+
+  }
+</section>
+
+<ion-modal [isOpen]="isNeighborhoodModalOpen()" (didDismiss)="closeNeighborhoodModal()" cssClass="neighborhood-modal" alignment="center">
+  <ng-template>
+    <ion-header><ion-toolbar><ion-title>Selecionar bairros</ion-title><ion-buttons slot="end"><ion-button (click)="closeNeighborhoodModal()"><ion-icon name="close" slot="icon-only"></ion-icon></ion-button></ion-buttons></ion-toolbar></ion-header>
+    <ion-content><div class="nb-modal-body"><p class="nb-modal-copy">Selecione apenas os bairros que ainda não estão na cobertura da loja.</p><ion-searchbar placeholder="Filtrar bairros..." [ngModel]="neighborhoodSearch()" (ngModelChange)="neighborhoodSearch.set($event)" class="nb-searchbar"></ion-searchbar><div class="nb-select-all"><label class="nb-check-label"><input type="checkbox" [checked]="allFilteredChecked()" (change)="toggleAllNeighborhoods()" />Selecionar todos ({{ filteredNeighborhoods().length }})</label><span>{{ filteredNeighborhoods().length }} bairros</span></div><ion-list class="nb-list">@for (nb of filteredNeighborhoods(); track nb.id) {<ion-item lines="none" button (click)="toggleNeighborhood(nb.id)" detail="false"><input type="checkbox" slot="start" [checked]="checkedNeighborhoodIds().has(nb.id)" (click)="$event.stopPropagation(); toggleNeighborhood(nb.id)" /><ion-label><span class="nb-name">{{ nb.neighborhood }}</span><p class="nb-city">{{ nb.city }}</p></ion-label></ion-item>} @empty {<div class="nb-empty">{{ neighborhoodSearch() ? 'Nenhum bairro encontrado.' : 'Todos os bairros disponíveis já foram escolhidos.' }}</div>}</ion-list><div class="nb-add-new"><p>Não encontrou o bairro? Adicione um novo:</p><div class="nb-add-row"><input class="form-control-app" placeholder="Nome do novo bairro" [ngModel]="newNeighborhoodName()" (ngModelChange)="newNeighborhoodName.set($event)" (keyup.enter)="addNeighborhood()" /><button type="button" class="btn btn-outline-primary btn-outline-app" (click)="addNeighborhood()">Adicionar</button></div></div></div></ion-content><div class="nb-footer"><span>{{ checkedCount() }} selecionados</span><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="addSelectedNeighborhoods()" [disabled]="checkedCount() === 0">Adicionar bairros</button></div>
+  </ng-template>
+</ion-modal>

@@ -1,0 +1,127 @@
+.reviews-page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0;
+  padding: 20px 24px 32px;
+  display: grid;
+  gap: 14px;
+}
+
+.reviews-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.reviews-summary div,
+.review-card,
+.empty-card,
+.error-card,
+.reviews-skeleton div {
+  border: 1px solid #e7e9f3;
+  border-radius: 18px;
+  background: var(--app-surface, #fff);
+  padding: 15px;
+  box-shadow: 0 14px 34px rgba(40, 44, 80, 0.06);
+}
+
+.reviews-skeleton {
+  display: grid;
+  gap: 14px;
+}
+
+.reviews-skeleton div {
+  min-height: 130px;
+  background: var(--app-hairline-warm, #f3efe9);
+}
+
+.reviews-summary span,
+.review-card header span,
+.empty-card span,
+.error-card span {
+  color: var(--app-text-secondary, #6f6f76);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reviews-summary strong {
+  color: var(--app-ink, #161616);
+  display: block;
+  font-size: 22px;
+  letter-spacing: -0.035em;
+  margin-top: 4px;
+}
+
+.reviews-list {
+  display: grid;
+  gap: 14px;
+}
+
+.review-card {
+  display: grid;
+  gap: 10px;
+}
+
+.review-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-card h2,
+.review-card p {
+  margin: 0;
+}
+
+.review-card h2 {
+  color: var(--app-ink, #161616);
+  font-size: 17px;
+  letter-spacing: -0.035em;
+}
+
+.review-card header strong {
+  color: var(--app-brand, #d54a51);
+  font-size: 15px;
+}
+
+.review-card p {
+  color: var(--app-text-secondary, #6f6f76);
+}
+
+.empty-card,
+.error-card {
+  display: grid;
+  gap: 8px;
+}
+
+.error-card {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.error-card strong {
+  color: #991b1b;
+}
+
+.error-card button {
+  width: fit-content;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-surface, #fff);
+  color: var(--app-brand, #d54a51);
+  font: inherit;
+  font-weight: 800;
+  padding: 0 18px;
+}
+
+@media (max-width: 620px) {
+  .reviews-page {
+    padding: 16px;
+  }
+
+  .reviews-summary {
+    grid-template-columns: 1fr;
+  }
+}

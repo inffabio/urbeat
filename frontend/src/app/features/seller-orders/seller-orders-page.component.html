@@ -1,0 +1,125 @@
+<section class="orders-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Pedidos do dia</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><div class="segmented"><button class="active" type="button">Hoje</button><button type="button">Semana</button><button type="button">Mês</button></div><button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
+  <div class="notice"><i class="bi bi-check-circle"></i><span>Pedidos recebidos em tempo real.</span></div>
+
+  @if (loading()) {
+    <p class="muted">Carregando pedidos...</p>
+  } @else if (error()) {
+    <div class="error-banner" role="alert">
+      <strong>Erro ao carregar</strong>
+      <button type="button" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else {
+    <section class="new-orders-panel">
+      <h2 class="panel-title">Novos pedidos</h2>
+      @if (newOrders().length === 0) {
+        <p class="muted">Nenhum pedido novo no momento.</p>
+      } @else {
+          <div class="new-orders-list">
+            @for (order of newOrders(); track order.id) {
+            <article class="order-card" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
+              <div class="card-meta">
+                <div><strong>Pedido número</strong> #{{ order.code }}</div>
+                @if (order.customerName) { <div><strong>Cliente:</strong> {{ order.customerName }}</div> }
+                @if (order.customerPhoneNumber) { <div><strong>Contato:</strong> {{ order.customerPhoneNumber }}</div> }
+                @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }
+                <div><strong>Pagamento:</strong> {{ paymentLabel(order.paymentMethod) }}</div>
+              </div>
+
+              <div class="items-title">Itens do Pedido</div>
+              @for (item of orderItems(order.id); track $index) {
+                <div class="item-row">
+                  <span>{{ item.quantity }}x</span>
+                  <span>{{ item.productName }}</span>
+                  <span>{{ formatCurrency(item.unitPrice) }}</span>
+                </div>
+              }
+              <div class="card-divider"></div>
+              <div class="total-row">
+                <span>Total</span>
+                <span class="total-price">{{ formatCurrency(order.total) }}</span>
+              </div>
+              <button type="button" class="accept-btn" (click)="confirmAdvance(order, OrderStatus.Preparing, 'Aceitar pedido')"
+                [disabled]="updatingOrderId() === order.id">
+                {{ updatingOrderId() === order.id ? 'Aceitando...' : 'Aceitar pedido' }}
+              </button>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="status-flow">
+      <div class="status-grid">
+        <div class="status-col">
+          <h2 class="col-title">Novos Pedidos</h2>
+          <div class="status-stack">
+            @for (order of statusGroups().received; track order.id) {
+              <div class="status-card ref" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">{{ order.code }}</div>
+            }
+          </div>
+        </div>
+        <div class="status-col">
+          <h2 class="col-title">Em preparação</h2>
+          <div class="status-stack">
+            @for (order of statusGroups().preparing; track order.id) {
+              <button type="button" class="status-card action-orange"
+                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
+                (click)="confirmAdvance(order, OrderStatus.Ready, 'Marcar como pronto')"
+                [disabled]="updatingOrderId() === order.id">
+                {{ updatingOrderId() === order.id ? '...' : 'Marcar como pronto' }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="status-col">
+          <h2 class="col-title">Pronto para retirada</h2>
+          <div class="status-stack">
+            @for (order of statusGroups().ready; track order.id) {
+              <button type="button" class="status-card action-blue"
+                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
+                (click)="confirmAdvance(order, OrderStatus.OnDelivery, 'Saiu para entrega')"
+                [disabled]="updatingOrderId() === order.id">
+                {{ updatingOrderId() === order.id ? '...' : 'Saiu para entrega' }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="status-col">
+          <h2 class="col-title">Em entrega</h2>
+          <div class="status-stack">
+            @for (order of statusGroups().onDelivery; track order.id) {
+              <button type="button" class="status-card action-purple"
+                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
+                (click)="confirmAdvance(order, OrderStatus.Delivered, 'Marcar como entregue')"
+                [disabled]="updatingOrderId() === order.id">
+                {{ updatingOrderId() === order.id ? '...' : 'Marcar como entregue' }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="status-col">
+          <h2 class="col-title">Concluido</h2>
+          <div class="status-stack">
+            @for (order of statusGroups().delivered; track order.id) {
+              <div class="status-card action-green" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">#{{ order.code }} concluído</div>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</section>
+
+@if (pendingAction(); as pending) {
+  <div class="confirm-overlay" (click)="dismissConfirm()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <strong>{{ pending.label }}</strong>
+      <p>Confirmar a transição do pedido <strong>#{{ pending.order.code }}</strong>?</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" (click)="dismissConfirm()">Cancelar</button>
+        <button type="button" class="btn-confirm" (click)="executeAdvance()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+}

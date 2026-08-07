@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Brasa Burguer | Configurações
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="assets/styles.css" rel="stylesheet"/>
+ </head>
+ <body class="">
+  <div aria-labelledby="mobileMenuLabel" class="offcanvas offcanvas-start" id="mobileMenu" tabindex="-1">
+   <div class="offcanvas-header border-bottom border-light border-opacity-10">
+    <div class="d-flex align-items-center gap-2">
+     <img alt="Brasa Burguer" src="assets/logo.png" style="width:58px;height:58px;object-fit:contain"/>
+     <div>
+      <h5 class="offcanvas-title fw-bold mb-0" id="mobileMenuLabel">
+       Brasa Burguer
+      </h5>
+      <small class="text-white-50">
+       Painel do Restaurante
+      </small>
+     </div>
+    </div>
+    <button aria-label="Fechar" class="btn-close" data-bs-dismiss="offcanvas" type="button">
+    </button>
+   </div>
+   <div class="offcanvas-body d-flex flex-column">
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app active" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </div>
+  </div>
+  <div class="app-shell">
+   <aside class="sidebar">
+    <div class="brand">
+     <img alt="Logo Brasa Burguer" class="brand-logo" src="assets/logo.png"/>
+     <div>
+      <div class="brand-name">
+       Brasa Burguer
+      </div>
+      <div class="brand-subtitle">
+       Painel do Restaurante
+      </div>
+     </div>
+    </div>
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app active" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </aside>
+   <main class="main">
+    <div class="mobile-top">
+     <button class="btn btn-light border rounded-4" data-bs-target="#mobileMenu" data-bs-toggle="offcanvas" type="button">
+      <i class="bi bi-list fs-4">
+      </i>
+     </button>
+     <div class="mobile-brand">
+      <img alt="Brasa Burguer" src="assets/logo.png"/>
+      Brasa Burguer
+     </div>
+    </div>
+    <div class="topbar">
+     <div>
+      <div class="page-title-wrap">
+       <h1 class="page-title">
+        Configurações
+       </h1>
+      </div>
+      <p class="page-subtitle">
+       Gerencie horários, informações da loja, impressão, bio e bairros atendidos
+      </p>
+     </div>
+     <div class="top-actions">
+      <div class="segmented">
+       <button class="active" type="button">
+        Hoje
+       </button>
+       <button type="button">
+        Semana
+       </button>
+       <button type="button">
+        Mês
+       </button>
+      </div>
+      <button class="btn-soft" type="button">
+       <i class="bi bi-arrow-clockwise">
+       </i>
+       Atualizar
+      </button>
+      <button aria-label="Notificações" class="icon-btn" type="button">
+       <i class="bi bi-bell">
+       </i>
+       <span class="dot-badge">
+        5
+       </span>
+      </button>
+      <div class="date-pill">
+       <i class="bi bi-calendar3">
+       </i>
+       <span>
+        Hoje, 23 de Maio
+       </span>
+       <i class="bi bi-chevron-down small">
+       </i>
+      </div>
+     </div>
+    </div>
+    <div class="notice">
+     <i class="bi bi-check-circle">
+     </i>
+     <span>
+      Sua mensalidade está em dia! Próximo vencimento 10/07/26
+     </span>
+    </div>
+    <div class="tabs-config">
+     <a class="" href="configuracoes-horarios.html">
+      <i class="bi bi-clock">
+      </i>
+      Horários
+     </a>
+     <a class="" href="configuracoes-informacoes.html">
+      <i class="bi bi-shop">
+      </i>
+      Informações
+     </a>
+     <a class="" href="configuracoes-impressao.html">
+      <i class="bi bi-printer">
+      </i>
+      Impressão
+     </a>
+     <a class="" href="configuracoes-bio.html">
+      <i class="bi bi-info-circle">
+      </i>
+      Bio
+     </a>
+     <a class="active" href="configuracoes-bairros.html">
+      <i class="bi bi-geo-alt">
+      </i>
+      Bairros
+     </a>
+    </div>
+    <section class="row g-3">
+     <div class="col-12 col-xl-8">
+      <div class="content-card">
+       <div class="content-head">
+        <div>
+         <h2>
+          Bairros atendidos
+         </h2>
+         <p class="text-secondary small fw-semibold mb-0 mt-2">
+          Defina os bairros com taxa, pedido mínimo e regras de atendimento.
+         </p>
+        </div>
+       </div>
+       <div class="p-3">
+        <div class="filter-bar m-0 shadow-none">
+         <div class="search-wrap">
+          <i class="bi bi-search">
+          </i>
+          <input class="form-control-app" placeholder="Buscar bairro..."/>
+         </div>
+         <select class="form-select-app">
+          <option>
+           Todos os status
+          </option>
+         </select>
+         <span>
+         </span>
+         <button class="btn-primary-app btn-orange">
+          <i class="bi bi-plus-lg">
+          </i>
+          Novo bairro
+         </button>
+        </div>
+       </div>
+       <div class="table-responsive">
+        <table class="table">
+         <thead>
+          <tr>
+           <th>
+            Bairro
+           </th>
+           <th>
+            Taxa de entrega
+           </th>
+           <th>
+            Pedido mínimo
+           </th>
+           <th>
+            Status
+           </th>
+           <th class="text-end">
+            Ações
+           </th>
+          </tr>
+         </thead>
+         <tbody>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Centro
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 6,90
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 20,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Bela Vista
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 7,90
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 25,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Jardim Paulista
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 8,90
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 30,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Vila Mariana
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 9,50
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 30,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Consolação
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 7,50
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 25,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-orange">
+             Pausado
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Bairro">
+            <strong>
+             Liberdade
+            </strong>
+           </td>
+           <td data-label="Taxa de entrega">
+            R$ 6,50
+           </td>
+           <td data-label="Pedido mínimo">
+            R$ 20,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+       </div>
+       <div class="p-3 text-secondary small fw-bold">
+        Mostrando 1 a 6 de 6 bairros
+       </div>
+      </div>
+     </div>
+     <div class="col-12 col-xl-4">
+      <div class="content-card p-4">
+       <h2 class="h5 fw-bold mb-3">
+        Editar bairro
+       </h2>
+       <div class="mb-3">
+        <label class="form-label-app">
+         Nome do bairro
+        </label>
+        <input class="form-control-app" value="Bela Vista"/>
+       </div>
+       <div class="row g-3">
+        <div class="col-md-6">
+         <label class="form-label-app">
+          Taxa de entrega
+         </label>
+         <input class="form-control-app" value="R$ 7,90"/>
+        </div>
+        <div class="col-md-6">
+         <label class="form-label-app">
+          Pedido mínimo
+         </label>
+         <input class="form-control-app" value="R$ 25,00"/>
+        </div>
+        <div class="col-12">
+         <label class="form-label-app">
+          Frete grátis acima de
+         </label>
+         <input class="form-control-app" value="R$ 80,00"/>
+        </div>
+       </div>
+       <div class="info-row">
+        <span>
+         Atender este bairro
+        </span>
+        <span class="switch-app on">
+        </span>
+       </div>
+       <div class="mb-3">
+        <label class="form-label-app">
+         Observações
+        </label>
+        <textarea class="form-control-app pt-3" style="height:86px">Trânsito moderado em horários de pico.</textarea>
+        <div class="text-end small text-secondary fw-bold mt-1">
+         38/200
+        </div>
+       </div>
+       <div class="d-flex gap-2">
+        <button class="btn-outline-app flex-fill">
+         Cancelar
+        </button>
+        <button class="btn-primary-app btn-orange flex-fill">
+         Salvar alterações
+        </button>
+       </div>
+      </div>
+      <div class="content-card info-card mt-3">
+       <h2 class="h5 fw-bold mb-3">
+        Resumo da cobertura
+       </h2>
+       <div class="row g-2">
+        <div class="col-6">
+         <div class="metric-card p-3 min-vh-0" style="min-height:90px">
+          <div class="metric-icon orange" style="width:42px;height:42px;flex-basis:42px;font-size:20px">
+           <i class="bi bi-geo-alt">
+           </i>
+          </div>
+          <div>
+           <div class="metric-label">
+            Bairros ativos
+           </div>
+           <div class="h5 fw-black mb-0">
+            5
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-6">
+         <div class="metric-card p-3" style="min-height:90px">
+          <div class="metric-icon orange" style="width:42px;height:42px;flex-basis:42px;font-size:20px">
+           <i class="bi bi-percent">
+           </i>
+          </div>
+          <div>
+           <div class="metric-label">
+            Taxa média
+           </div>
+           <div class="h5 fw-black mb-0">
+            R$ 7,72
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-6">
+         <div class="metric-card p-3" style="min-height:90px">
+          <div class="metric-icon orange" style="width:42px;height:42px;flex-basis:42px;font-size:20px">
+           <i class="bi bi-bag">
+           </i>
+          </div>
+          <div>
+           <div class="metric-label">
+            Pedido mínimo médio
+           </div>
+           <div class="h5 fw-black mb-0">
+            R$ 25,00
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-6">
+         <div class="metric-card p-3" style="min-height:90px">
+          <div class="metric-icon orange" style="width:42px;height:42px;flex-basis:42px;font-size:20px">
+           <i class="bi bi-truck">
+           </i>
+          </div>
+          <div>
+           <div class="metric-label">
+            Frete grátis médio
+           </div>
+           <div class="h5 fw-black mb-0">
+            R$ 80,00
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="content-card info-card mt-3">
+       <h2 class="h5 fw-bold mb-3">
+        Dicas
+       </h2>
+       <p class="small fw-semibold">
+        <i class="bi bi-check-circle text-success me-2">
+        </i>
+        Mantenha as taxas de entrega atualizadas conforme a região.
+       </p>
+       <p class="small fw-semibold">
+        <i class="bi bi-check-circle text-success me-2">
+        </i>
+        Revise os pedidos mínimos para garantir boas conversões.
+       </p>
+       <p class="small fw-semibold mb-0">
+        <i class="bi bi-check-circle text-success me-2">
+        </i>
+        Pause bairros indisponíveis para evitar pedidos fora da área.
+       </p>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+  </script>
+ </body>
+</html>

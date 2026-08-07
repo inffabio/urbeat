@@ -1,0 +1,1205 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urbeat - Horários</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    :root {
+        --orange: #FF6B00;
+        --orange-light: #FFF4ED;
+        --orange-dark: #FF5A00;
+        --green: #00A868;
+        --green-light: #ECFDF3;
+        --green-text: #027A48;
+        --gray-50: #FAFBFC;
+        --gray-100: #F9FAFB;
+        --gray-200: #E5E7EB;
+        --gray-300: #D0D5DD;
+        --gray-500: #667085;
+        --gray-600: #475467;
+        --gray-700: #344054;
+        --gray-900: #101828;
+        --blue-light: #EFF8FF;
+        --blue-text: #175CD3;
+        --yellow-light: #FFFAEB;
+        --yellow-text: #B54708;
+    }
+    body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--gray-50);
+        color: var(--gray-900);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+    }
+    header {
+        background: white;
+        border-bottom: 1px solid var(--gray-200);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .header-inner {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 32px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+    }
+    .logo {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--orange);
+        letter-spacing: -0.5px;
+        min-width: 110px;
+    }
+    .stepper {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        flex: 1;
+        justify-content: center;
+        max-width: 580px;
+    }
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+    .step-circle {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+        flex-shrink: 0;
+        z-index: 2;
+        background: white;
+        border: 2px solid var(--gray-300);
+        color: var(--gray-500);
+    }
+    .step.active .step-circle {
+        background: var(--orange);
+        border-color: var(--orange);
+        color: white;
+    }
+    .step.completed .step-circle {
+        background: var(--green);
+        border-color: var(--green);
+        color: white;
+    }
+    .step-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-500);
+        white-space: nowrap;
+    }
+    .step.active .step-label {
+        color: var(--orange);
+        font-weight: 600;
+    }
+    .step.completed .step-label {
+        color: var(--gray-700);
+    }
+    .step-connector {
+        width: 48px;
+        height: 2px;
+        background: var(--gray-200);
+        margin: 0 8px;
+    }
+    .step.completed + .step-connector,
+    .step-connector.completed {
+        background: var(--green);
+    }
+    .progress-box {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 10px 14px;
+        min-width: 160px;
+    }
+    .progress-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray-700);
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+    .progress-bar {
+        height: 6px;
+        background: var(--gray-100);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        width: 40%;
+        background: var(--orange);
+        border-radius: 3px;
+    }
+    .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 32px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 32px;
+        align-items: start;
+    }
+    .left {
+        min-width: 0;
+    }
+    .page-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .title-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--orange-light);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .title-icon svg {
+        width: 20px;
+        height: 20px;
+        color: var(--orange);
+    }
+    .title-text h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gray-900);
+        letter-spacing: -0.3px;
+    }
+    .title-text p {
+        font-size: 14px;
+        color: var(--gray-500);
+        margin-top: 2px;
+    }
+    .saved-badge {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 20px 0 28px;
+    }
+    .badge-green {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--green-light);
+        color: var(--green-text);
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .badge-green svg {
+        width: 14px;
+        height: 14px;
+    }
+    .saved-text {
+        font-size: 13px;
+        color: var(--gray-500);
+    }
+    .section {
+        margin-bottom: 28px;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 4px;
+    }
+    .section-subtitle {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-bottom: 16px;
+    }
+    .shortcuts {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+    }
+    .shortcut {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+    }
+    .shortcut:hover {
+        border-color: var(--orange);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .shortcut.active {
+        border-color: var(--orange);
+        background: var(--orange-light);
+    }
+    .shortcut.clear {
+        background: var(--orange-light);
+        border: 1px solid #FFD6B8;
+    }
+    .shortcut-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .shortcut-title svg {
+        width: 14px;
+        height: 14px;
+        color: var(--orange);
+    }
+    .shortcut.clear .shortcut-title {
+        color: var(--orange-dark);
+    }
+    .shortcut-desc {
+        font-size: 12px;
+        color: var(--gray-500);
+    }
+    .hours-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 24px 0 12px;
+    }
+    .toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .switch {
+        position: relative;
+        width: 36px;
+        height: 20px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--gray-300);
+        border-radius: 20px;
+        transition: 0.2s;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    input:checked + .slider {
+        background: var(--orange);
+    }
+    input:checked + .slider:before {
+        transform: translateX(16px);
+    }
+    .toggle-label {
+        font-size: 14px;
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+    .copy-btn {
+        font-size: 13px;
+        color: var(--gray-600);
+        background: white;
+        border: 1px solid var(--gray-200);
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .copy-btn:hover {
+        background: var(--gray-50);
+    }
+    .copy-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    .days-card {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+    }
+    .day-row {
+        display: flex;
+        align-items: center;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--gray-200);
+        gap: 16px;
+    }
+    .day-row:last-child {
+        border-bottom: none;
+    }
+    .day-check {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 1.5px solid var(--gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+    .day-check.checked {
+        background: var(--orange);
+        border-color: var(--orange);
+    }
+    .day-check.checked svg {
+        width: 12px;
+        height: 12px;
+        color: white;
+        stroke-width: 3;
+    }
+    .day-label {
+        width: 140px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-900);
+        flex-shrink: 0;
+    }
+    .day-times {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    .time-box {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-700);
+        min-width: 72px;
+        text-align: center;
+    }
+    .time-arrow {
+        color: var(--gray-300);
+        font-size: 14px;
+    }
+    .day-status {
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    .status-open {
+        background: var(--green-light);
+        color: var(--green-text);
+    }
+    .status-closed {
+        background: #F2F4F7;
+        color: var(--gray-500);
+    }
+    .day-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-left: auto;
+    }
+    .add-interval {
+        font-size: 13px;
+        color: var(--gray-500);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .add-interval:hover {
+        color: var(--orange);
+    }
+    .chevron {
+        width: 20px;
+        height: 20px;
+        color: var(--gray-400);
+        cursor: pointer;
+    }
+    .closed-text {
+        font-size: 14px;
+        color: var(--gray-500);
+        font-style: italic;
+    }
+    .insights {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .insight {
+        display: flex;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border-left: 3px solid;
+    }
+    .insight svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .insight.green {
+        background: #F6FEF9;
+        border-color: var(--green);
+    }
+    .insight.green svg { color: var(--green); }
+    .insight.blue {
+        background: var(--blue-light);
+        border-color: var(--blue-text);
+    }
+    .insight.blue svg { color: var(--blue-text); }
+    .insight.orange {
+        background: var(--yellow-light);
+        border-color: #F79009;
+    }
+    .insight.orange svg { color: #F79009; }
+    .insight-content {
+        flex: 1;
+    }
+    .insight-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 2px;
+    }
+    .insight-text {
+        font-size: 13px;
+        color: var(--gray-600);
+        line-height: 1.4;
+    }
+    .bottom-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--gray-200);
+    }
+    .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+    .back-btn:hover {
+        background: var(--gray-50);
+    }
+    .secure {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--gray-500);
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .secure svg {
+        width: 14px;
+        height: 14px;
+        color: var(--green);
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+    }
+    .banner-text {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        color: white;
+        font-size: 20px;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        line-height: 1.2;
+    }
+    .store-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .store-logo {
+        width: 48px;
+        height: 48px;
+        background: #1a1a1a;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 9px;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.1;
+        flex-shrink: 0;
+        padding: 4px;
+    }
+    .store-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .store-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+    }
+    .store-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-900);
+    }
+    .open-badge {
+        background: var(--green-light);
+        color: var(--green-text);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .store-meta {
+        font-size: 12px;
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .store-meta .dot {
+        width: 3px;
+        height: 3px;
+        background: var(--gray-300);
+        border-radius: 50%;
+    }
+    .store-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        color: var(--gray-700);
+        margin-top: 4px;
+    }
+    .store-rating svg {
+        width: 14px;
+        height: 14px;
+        color: #FDB022;
+        fill: #FDB022;
+    }
+    .store-rating span {
+        color: var(--gray-500);
+        font-size: 12px;
+    }
+    .tab {
+        padding: 10px 0;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gray-500);
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .tab.active {
+        color: var(--orange);
+        border-bottom-color: var(--orange);
+        font-weight: 600;
+    }
+    .section-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .section-row:last-child {
+        margin-bottom: 0;
+    }
+    .section-row svg {
+        width: 16px;
+        height: 16px;
+        color: var(--gray-500);
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .section-label {
+        font-size: 12px;
+        color: var(--gray-500);
+        font-weight: 500;
+        min-width: 0;
+    }
+    .section-value {
+        font-size: 13px;
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+    .delivery-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+    }
+    .pill {
+        background: var(--gray-100);
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 12px;
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+    .products {
+        margin-top: 16px;
+    }
+    .products-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 12px;
+    }
+    .product-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .product {
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        gap: 10px;
+        background: white;
+    }
+    .product-img {
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .product-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .product-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-900);
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }
+    .product-desc {
+        font-size: 11px;
+        color: var(--gray-500);
+        line-height: 1.3;
+        flex: 1;
+    }
+    .product-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+    }
+    .product-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--gray-900);
+    }
+    .add-btn {
+        width: 24px;
+        height: 24px;
+        background: var(--orange);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .add-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    .cart-bar {
+        background: var(--orange);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .cart-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cart-left svg {
+        width: 18px;
+        height: 18px;
+    }
+    .cart-badge {
+        background: rgba(255,255,255,0.3);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .continue-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+    .continue-btn {
+        background: var(--orange);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 1px 2px rgba(255,107,0,0.2);
+        transition: all 0.2s;
+    }
+    .continue-btn:hover {
+        background: #E05F00;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(255,107,0,0.25);
+    }
+    @media (max-width: 1200px) {
+        .container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        .shortcuts {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @media (max-width: 768px) {
+        .header-inner {
+            padding: 0 16px;
+            height: auto;
+            flex-wrap: wrap;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            gap: 12px;
+        }
+        .stepper { order: 3; width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; }
+        .step-label { display: none; }
+        .step-connector { width: 24px; }
+        .container { padding: 20px 16px; }
+        .shortcuts { grid-template-columns: 1fr 1fr; }
+        .day-row { flex-wrap: wrap; gap: 12px; }
+        .day-actions { width: 100%; margin-left: 36px; justify-content: space-between; }
+        .product-grid { grid-template-columns: 1fr; }
+        .bottom-bar { flex-direction: column; gap: 16px; }
+        .secure { position: static; transform: none; }
+    }
+</style>
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="logo">urbeat</div>
+        <div class="stepper">
+            <div class="step completed">
+                <div class="step-circle">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
+                </div>
+                <span class="step-label">Loja</span>
+            </div>
+            <div class="step-connector completed"></div>
+            <div class="step active">
+                <div class="step-circle">2</div>
+                <span class="step-label">Horários</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <span class="step-label">Entrega</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-circle">4</div>
+                <span class="step-label">Produtos</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-circle">5</div>
+                <span class="step-label">Publicar</span>
+            </div>
+        </div>
+        <div class="progress-box">
+            <div class="progress-text">
+                <span>40% concluído</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="left">
+        <div class="page-title">
+            <div class="title-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 7v5l3 3" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="title-text">
+                <h1>Defina os horários e área de atendimento</h1>
+                <p>Informe quando sua loja funciona e onde entrega seus pedidos.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Atalhos rápidos</h2>
+            <p class="section-subtitle">Escolha um horário pré-definido ou personalize abaixo</p>
+            <div class="shortcuts">
+                <button class="shortcut" data-start="09:00" data-end="18:00">
+                    <div class="shortcut-title">Comercial</div>
+                    <div class="shortcut-desc">9h às 18h</div>
+                </button>
+                <button class="shortcut" data-start="11:00" data-end="16:00">
+                    <div class="shortcut-title">Almoço</div>
+                    <div class="shortcut-desc">11h às 16h</div>
+                </button>
+                <button class="shortcut active" data-start="11:00" data-end="23:00">
+                    <div class="shortcut-title">Jantar</div>
+                    <div class="shortcut-desc">18h às 23h</div>
+                </button>
+                <button class="shortcut" data-start="00:00" data-end="23:59">
+                    <div class="shortcut-title">24 horas</div>
+                    <div class="shortcut-desc">Todos os dias</div>
+                </button>
+                <button class="shortcut clear" id="clearHours">
+                    <div class="shortcut-title">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Limpar horários
+                    </div>
+                    <div class="shortcut-desc">Remover todos</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="hours-controls">
+            <div class="toggle-wrap">
+                <label class="switch">
+                    <input type="checkbox" id="sameHours">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">Aplicar o mesmo horário para todos os dias</span>
+            </div>
+            <button class="copy-btn" id="copyBtn">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Copiar para outros dias
+            </button>
+        </div>
+
+        <div class="days-card" id="daysCard">
+            <div class="day-row" data-day="seg-qui">
+                <div class="day-check checked" data-check>
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
+                </div>
+                <div class="day-label">Segunda a Quinta</div>
+                <div class="day-times">
+                    <div class="time-box" data-start>11:00</div>
+                    <span class="time-arrow">→</span>
+                    <div class="time-box" data-end>23:00</div>
+                    <span class="day-status status-open">Aberto</span>
+                </div>
+                <div class="day-actions">
+                    <button class="add-interval">+ Adicionar intervalo</button>
+                    <svg class="chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </div>
+            <div class="day-row" data-day="sex-sab">
+                <div class="day-check checked" data-check>
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
+                </div>
+                <div class="day-label">Sexta e Sábado</div>
+                <div class="day-times">
+                    <div class="time-box" data-start>11:00</div>
+                    <span class="time-arrow">→</span>
+                    <div class="time-box" data-end>00:00</div>
+                    <span class="day-status status-open">Aberto</span>
+                </div>
+                <div class="day-actions">
+                    <button class="add-interval">+ Adicionar intervalo</button>
+                    <svg class="chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </div>
+            <div class="day-row" data-day="domingo">
+                <div class="day-check" data-check></div>
+                <div class="day-label">Domingo</div>
+                <div class="day-times">
+                    <span class="closed-text">Loja fechada</span>
+                    <span class="day-status status-closed" style="margin-left: 12px;">Fechado</span>
+                </div>
+                <div class="day-actions">
+                    <button class="add-interval" style="visibility: hidden;">+ Adicionar intervalo</button>
+                    <svg class="chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="insights">
+            <div class="insight green">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                <div class="insight-content">
+                    <div class="insight-title">Insights para você</div>
+                    <div class="insight-text">Lojas abertas até 00h recebem em média <strong>27% mais pedidos</strong></div>
+                </div>
+            <div class="insight blue">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="insight-content">
+                    <div class="insight-title">Sua loja ficará aberta 72h por semana</div>
+                </div>
+            </div>
+            <div class="insight orange">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div class="insight-content">
+                    <div class="insight-title">Domingo está fechado</div>
+                    <div class="insight-text">Considere abrir e vender mais!</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <button class="back-btn">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Voltar para Loja
+            </button>
+            <div class="secure">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Seus dados estão seguros conosco
+            </div>
+            <button class="continue-btn" id="saveAndContinue">
+                <svg class="spinner" style="display:none; animation: spin 1s linear infinite;" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span class="btn-text">Avançar para Entrega</span>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const shortcuts = document.querySelectorAll('.shortcut:not(.clear)');
+    const clearBtn = document.getElementById('clearHours');
+    const dayChecks = document.querySelectorAll('[data-check]');
+    const sameHoursToggle = document.getElementById('sameHours');
+    const copyBtn = document.getElementById('copyBtn');
+function setTimes(start, end, applyTo = ['seg-qui', 'sex-sab']) {
+        applyTo.forEach(day => {
+            const row = document.querySelector(`[data-day="${day}"]`);
+            const check = row.querySelector('[data-check]');
+            check.classList.add('checked');
+            check.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>';
+            row.querySelector('[data-start]').textContent = start;
+            row.querySelector('[data-end]').textContent = end;
+            row.querySelector('.day-status').textContent = 'Aberto';
+            row.querySelector('.day-status').className = 'day-status status-open';
+            const times = row.querySelector('.day-times');
+            if (!times.querySelector('[data-start]')) {
+                times.innerHTML = `<div class="time-box" data-start>${start}</div><span class="time-arrow">→</span><div class="time-box" data-end>${end}</div><span class="day-status status-open" style="margin-left:8px">Aberto</span>`;
+            }
+        });
+}
+
+    shortcuts.forEach(btn => {
+        btn.addEventListener('click', () => {
+            shortcuts.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const start = btn.dataset.start;
+            const end = btn.dataset.end;
+            setTimes(start, end, ['seg-qui', 'sex-sab']);
+            // Open domingo for 24h
+            if (start === '00:00') {
+                const dom = document.querySelector('[data-day="domingo"]');
+                const check = dom.querySelector('[data-check]');
+                check.classList.add('checked');
+                check.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>';
+                dom.querySelector('.day-times').innerHTML = `<div class="time-box" data-start>00:00</div><span class="time-arrow">→</span><div class="time-box" data-end>23:59</div><span class="day-status status-open" style="margin-left:8px">Aberto</span>`;
+            }
+});
+    });
+
+    clearBtn.addEventListener('click', () => {
+        shortcuts.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.day-row').forEach(row => {
+            const check = row.querySelector('[data-check]');
+            check.classList.remove('checked');
+            check.innerHTML = '';
+            const times = row.querySelector('.day-times');
+            times.innerHTML = '<span class="closed-text">Loja fechada</span><span class="day-status status-closed" style="margin-left: 12px;">Fechado</span>';
+        });
+});
+
+    dayChecks.forEach(check => {
+        check.addEventListener('click', () => {
+            const row = check.closest('.day-row');
+            const isChecked = check.classList.toggle('checked');
+            
+            if (isChecked) {
+                check.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>';
+                const times = row.querySelector('.day-times');
+                if (!times.querySelector('[data-start]')) {
+                    times.innerHTML = `<div class="time-box" data-start>11:00</div><span class="time-arrow">→</span><div class="time-box" data-end>23:00</div><span class="day-status status-open" style="margin-left:8px">Aberto</span>`;
+                } else {
+                    const status = times.querySelector('.day-status');
+                    if (status) {
+                        status.textContent = 'Aberto';
+                        status.className = 'day-status status-open';
+                    }
+                }
+            } else {
+                check.innerHTML = '';
+                const times = row.querySelector('.day-times');
+                times.innerHTML = '<span class="closed-text">Loja fechada</span><span class="day-status status-closed" style="margin-left: 12px;">Fechado</span>';
+            }
+if (sameHoursToggle.checked) {
+                const firstRow = document.querySelector('[data-day="seg-qui"]');
+                const start = firstRow.querySelector('[data-start]')?.textContent || '11:00';
+                const end = firstRow.querySelector('[data-end]')?.textContent || '23:00';
+                document.querySelectorAll('.day-row').forEach(r => {
+                    if (r !== firstRow && r.querySelector('[data-check]').classList.contains('checked')) {
+                        r.querySelector('[data-start]').textContent = start;
+                        r.querySelector('[data-end]').textContent = end;
+                    }
+                });
+            }
+        });
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const first = document.querySelector('[data-day="seg-qui"]');
+        const start = first.querySelector('[data-start]').textContent;
+        const end = first.querySelector('[data-end]').textContent;
+        setTimes(start, end, ['sex-sab']);
+        // Visual feedback
+        copyBtn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Copiado!';
+        setTimeout(() => {
+            copyBtn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Copiar para outros dias';
+        }, 1500);
+    });
+
+    sameHoursToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            copyBtn.click();
+        }
+    });
+
+    // Simulação do salvamento explícito ao avançar
+    const saveAndContinueBtn = document.getElementById('saveAndContinue');
+    if (saveAndContinueBtn) {
+        saveAndContinueBtn.addEventListener('click', () => {
+            const spinner = saveAndContinueBtn.querySelector('.spinner');
+            const btnText = saveAndContinueBtn.querySelector('.btn-text');
+            
+            // Estado de carregamento
+            spinner.style.display = 'block';
+            btnText.textContent = 'Salvando e Avançando...';
+            saveAndContinueBtn.disabled = true;
+            saveAndContinueBtn.style.opacity = '0.8';
+            
+            // Simula chamada de API e redirecionamento
+            setTimeout(() => {
+                alert('Horários salvos com sucesso! Avançando para a próxima etapa...');
+                spinner.style.display = 'none';
+                btnText.textContent = 'Avançar para Entrega';
+                saveAndContinueBtn.disabled = false;
+                saveAndContinueBtn.style.opacity = '1';
+            }, 1500);
+        });
+    }
+
+    // Initial preview
+});
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>

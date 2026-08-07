@@ -1,0 +1,409 @@
+<ion-content color="light">
+<app-wizard-header [steps]="stepperSteps"></app-wizard-header>
+
+<main class="publish-main">
+  <div class="left-col">
+    <div class="page-title">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <h1>Publicar sua loja <span class="emoji">🚀</span></h1>
+      </div>
+      <p>Revise todas as informações antes de publicar sua loja para os clientes.</p>
+    </div>
+
+    @if (loading()) {
+      <div style="display:flex;justify-content:center;padding:60px 0;">
+        <ion-spinner name="crescent" style="width:36px;height:36px;color:var(--ion-color-primary);"></ion-spinner>
+      </div>
+    } @else {
+      <!-- 1. Dados da loja -->
+      <section class="review-card" id="review-store">
+        <div class="card-header">
+          <h2>1. Dados da loja</h2>
+          <button class="btn-edit" (click)="goTo('configurar-loja')">
+            <ion-icon name="pencil-outline"></ion-icon> Editar
+          </button>
+        </div>
+        <div class="card-grid">
+          <div class="col-logo">
+            <p class="field-label">Logo da loja</p>
+            <div class="logo-preview">
+              @if (summary()?.storeDetails?.logoUrl) {
+                <img [src]="summary()!.storeDetails!.logoUrl!" alt="Logo">
+              } @else {
+                <ion-icon name="image-outline"></ion-icon>
+              }
+            </div>
+          </div>
+          <div class="col-info">
+            <div class="info-row">
+              <div class="info-item">
+                <p class="field-label">Nome da loja</p>
+                <p class="field-value">{{ summary()?.storeDetails?.name || '—' }}</p>
+              </div>
+              <div class="info-item">
+                <p class="field-label">Categoria</p>
+                <p class="field-value">{{ summary()?.storeDetails?.cuisineType || '—' }}</p>
+              </div>
+              <div class="info-item">
+                <p class="field-label">WhatsApp</p>
+                <p class="field-value">{{ summary()?.storeDetails?.phoneNumber || '—' }}</p>
+              </div>
+            </div>
+            <div class="info-row full">
+              <div class="info-item">
+                <p class="field-label">Descrição</p>
+                <p class="field-value">{{ summary()?.storeDetails?.description || '—' }}</p>
+              </div>
+            </div>
+            <div class="info-row twin">
+              <div class="info-item">
+                <p class="field-label">Endereço</p>
+                <p class="field-value">{{ summary()?.storeDetails?.address || '—' }}</p>
+              </div>
+              <div class="info-item">
+                <p class="field-label">Cidade</p>
+                <p class="field-value">{{ summary()?.storeDetails?.city || '—' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Horários de atendimento -->
+      <section class="review-card" id="review-hours">
+        <div class="card-header">
+          <h2>2. Horários de atendimento</h2>
+          <button class="btn-edit" (click)="goTo('configurar-loja/horarios')">
+            <ion-icon name="pencil-outline"></ion-icon> Editar
+          </button>
+        </div>
+        <div class="hours-grid-7">
+          @for (day of allDays(); track day.dayOfWeek) {
+            <div class="hour-col">
+              <p class="field-label">{{ day.name }}</p>
+              @if (day.opensAt && day.closesAt) {
+                <p class="field-value">{{ day.opensAt }} - {{ day.closesAt }}</p>
+              } @else {
+                <p class="field-value text-muted">Fechado</p>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- 3. Áreas e taxas de entrega -->
+      <section class="review-card" id="review-delivery">
+        <div class="card-header">
+          <h2>3. Áreas e taxas de entrega</h2>
+          <button class="btn-edit" (click)="goTo('configurar-loja/entrega')">
+            <ion-icon name="pencil-outline"></ion-icon> Editar
+          </button>
+        </div>
+        <div class="delivery-grid">
+          <div class="delivery-info">
+            <div class="info-item border-right">
+              <p class="field-label">Frete grátis a partir de</p>
+              <p class="field-value text-green">{{ formatCurrency(summary()?.deliveryFees?.freeShippingThreshold ?? 0) }}</p>
+            </div>
+            <div class="info-item border-right">
+              <p class="field-label">Pedido mínimo</p>
+              <p class="field-value">{{ formatCurrency(summary()?.deliveryFees?.minimumOrderValue ?? 0) }}</p>
+            </div>
+            <div class="info-item">
+              <p class="field-label">Tempo médio de entrega</p>
+              <p class="field-value">{{ summary()?.deliveryFees?.estimatedTimeMin || '—' }}</p>
+            </div>
+          </div>
+
+          @if (areas().length) {
+            <div class="areas-table-wrap">
+              <table class="areas-table">
+                <thead>
+                  <tr>
+                    <th>Bairro</th>
+                    <th class="col-fee">Taxa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (area of pagedAreas(); track area.name) {
+                    <tr>
+                      <td>{{ area.name }}</td>
+                      <td class="col-fee">{{ formatCurrency(area.deliveryFee) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (showAreaPagination()) {
+                <div class="table-pagination">
+                  <button class="page-btn" [disabled]="areaPage() === 0" (click)="prevAreaPage()">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                  </button>
+                  <span class="page-info">{{ areaPage() + 1 }} / {{ totalAreaPages() }}</span>
+                  <button class="page-btn" [disabled]="areaPage() >= totalAreaPages() - 1" (click)="nextAreaPage()">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-muted" style="text-align:center;padding:12px;">Nenhum bairro cadastrado.</p>
+          }
+        </div>
+        <p class="delivery-note">
+          <ion-icon name="information-circle-outline" style="font-size:13px;color:var(--app-text-muted);"></ion-icon>
+          Os valores podem variar conforme a distância do endereço do cliente.
+        </p>
+      </section>
+
+      <!-- 4. Produtos cadastrados -->
+      <section class="review-card" id="review-products">
+        <div class="card-header">
+          <h2>4. Produtos cadastrados</h2>
+          <button class="btn-edit" (click)="goTo('configurar-loja/produtos')">
+            <ion-icon name="pencil-outline"></ion-icon> Ver todos
+          </button>
+        </div>
+
+        @if (filteredCategories().length > 1) {
+          <div class="category-tabs">
+            @for (cat of filteredCategories(); track cat.name) {
+              <span class="cat-tag">
+                {{ cat.name }} <span class="cat-count">{{ cat.count }}</span>
+              </span>
+            }
+          </div>
+        }
+
+        @if (products().length) {
+          <div class="products-table-wrap">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th class="col-img"></th>
+                  <th>Produto</th>
+                  <th class="col-price">Preço</th>
+                  <th class="col-cat">Categoria</th>
+                  <th class="col-status">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (prod of pagedProducts(); track prod.id) {
+                  <tr [class.inactive]="!prod.isActive">
+                    <td class="col-img">
+                      @if (prod.imageUrl) {
+                        <img [src]="prod.imageUrl" class="prod-thumb" alt="">
+                      } @else {
+                        <div class="prod-thumb-placeholder">
+                          <ion-icon name="image-outline"></ion-icon>
+                        </div>
+                      }
+                    </td>
+                    <td class="col-name">{{ prod.name }}</td>
+                    <td class="col-price">{{ formatCurrency(prod.price) }}</td>
+                    <td class="col-cat">{{ prod.categoryName }}</td>
+                    <td class="col-status">
+                      <span class="status-badge" [class.active]="prod.isActive" [class.inactive]="!prod.isActive">
+                        {{ prod.isActive ? 'Ativo' : 'Inativo' }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (showProductPagination()) {
+              <div class="table-pagination">
+                <button class="page-btn" [disabled]="productPage() === 0" (click)="prevProductPage()">
+                  <ion-icon name="chevron-back-outline"></ion-icon>
+                </button>
+                <span class="page-info">Mostrando {{ productPage() * pageSize + 1 }}-{{ Math.min((productPage() + 1) * pageSize, products().length) }} de {{ products().length }}</span>
+                <button class="page-btn" [disabled]="productPage() >= totalProductPages() - 1" (click)="nextProductPage()">
+                  <ion-icon name="chevron-forward-outline"></ion-icon>
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-muted" style="text-align:center;padding:16px;">Nenhum produto cadastrado.</p>
+        }
+      </section>
+    }
+  </div>
+
+  <!-- Right column -->
+  <div class="right-col">
+    @if (!loading()) {
+      <div class="summary-box">
+        <h2>Confirme as informações</h2>
+
+        <div class="status-alert" [class.success]="backendReady()" [class.warning]="!backendReady()">
+          @if (backendReady()) {
+            <div class="icon-circle text-green"><ion-icon name="checkmark-circle"></ion-icon></div>
+            <div>
+              <p class="status-title text-green">Tudo preenchido</p>
+              <p class="status-desc">Sua loja está pronta para ser publicada.</p>
+            </div>
+          } @else {
+            <div class="icon-circle text-orange"><ion-icon name="warning"></ion-icon></div>
+            <div>
+              <p class="status-title text-orange">Ação necessária</p>
+              <p class="status-desc">Resolva as pendências abaixo:</p>
+            </div>
+          }
+        </div>
+
+        <div class="checklist">
+          <div class="check-item" [class.complete]="summary()?.rules?.detailsOk" (click)="scrollTo('review-store')" role="button" tabindex="0">
+            <ion-icon [name]="summary()?.rules?.detailsOk ? 'checkmark-circle' : 'ellipse-outline'" [class.check-ok]="summary()?.rules?.detailsOk" [class.check-pending]="!summary()?.rules?.detailsOk"></ion-icon>
+            <span>Dados da loja</span>
+          </div>
+          <div class="check-item" [class.complete]="summary()?.rules?.hoursOk" (click)="scrollTo('review-hours')" role="button" tabindex="0">
+            <ion-icon [name]="summary()?.rules?.hoursOk ? 'checkmark-circle' : 'ellipse-outline'" [class.check-ok]="summary()?.rules?.hoursOk" [class.check-pending]="!summary()?.rules?.hoursOk"></ion-icon>
+            <span>Horários de atendimento</span>
+          </div>
+          <div class="check-item" [class.complete]="summary()?.rules?.deliveryOk" (click)="scrollTo('review-delivery')" role="button" tabindex="0">
+            <ion-icon [name]="summary()?.rules?.deliveryOk ? 'checkmark-circle' : 'ellipse-outline'" [class.check-ok]="summary()?.rules?.deliveryOk" [class.check-pending]="!summary()?.rules?.deliveryOk"></ion-icon>
+            <span>Bairros e entrega</span>
+          </div>
+          <div class="check-item" [class.complete]="summary()?.rules?.productsOk" (click)="scrollTo('review-products')" role="button" tabindex="0">
+            <ion-icon [name]="summary()?.rules?.productsOk ? 'checkmark-circle' : 'ellipse-outline'" [class.check-ok]="summary()?.rules?.productsOk" [class.check-pending]="!summary()?.rules?.productsOk"></ion-icon>
+            <span>Produtos cadastrados</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" [disabled]="!allConfirmed() || publishing()" (click)="publishStore()">
+            @if (publishing()) {
+              <ion-spinner name="crescent" style="width:16px;height:16px;margin-right:6px;color:white;"></ion-spinner>
+            }
+            Publicar minha loja
+          </button>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <p class="tip-title"><span class="tip-emoji">💡</span> Dica</p>
+        <p class="tip-text">Após publicar, sua loja ficará visível para os clientes e você começará a receber pedidos.</p>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-head">
+          <h3>Prévia da sua loja</h3>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-status-bar">
+                <span>9:41</span>
+                <div class="status-icons">
+                  <div class="signal"><span></span><span></span><span></span><span></span></div>
+                  <div class="battery"><div class="battery-fill"></div></div>
+                </div>
+              </div>
+
+              <div class="preview-banner">
+                @if (summary()?.storeDetails?.bannerUrl || summary()?.storeDetails?.logoUrl) {
+                  <img [src]="summary()?.storeDetails?.bannerUrl || summary()?.storeDetails?.logoUrl" alt="Banner" />
+                } @else {
+                  <div class="skeleton skeleton-banner"></div>
+    }
+
+    <app-wizard-footer
+      backLabel="Voltar para Produtos"
+      [nextLabel]="publishing() ? 'Publicando...' : 'Publicar minha loja'"
+      [isSaving]="publishing()"
+      [nextDisabled]="!allConfirmed() || publishing()"
+      (back)="goTo('configurar-loja/produtos')"
+      (next)="publishStore()">
+    </app-wizard-footer>
+  </div>
+
+              <div class="preview-store-header">
+                <div class="store-logo-wrap">
+                  @if (summary()?.storeDetails?.logoUrl) {
+                    <img [src]="summary()!.storeDetails!.logoUrl!" class="store-logo-img" alt="Logo" />
+                  } @else {
+                    <div class="store-logo-placeholder-round">
+                      <ion-icon name="storefront-outline"></ion-icon>
+                    </div>
+                  }
+                </div>
+                <div class="store-info">
+                  <div class="badge-open">Aberto Agora</div>
+                  @if (summary()?.deliveryFees?.estimatedTimeMin) {
+                    <div class="info-line">Entrega: {{ summary()?.deliveryFees?.estimatedTimeMin }}</div>
+                  }
+                  @if ((summary()?.deliveryFees?.minimumOrderValue ?? 0) > 0) {
+                    <div class="info-line">Pedido mínimo: {{ formatCurrency(summary()?.deliveryFees?.minimumOrderValue ?? 0) }}</div>
+                  }
+                </div>
+              </div>
+
+              <div class="preview-store-name">{{ summary()?.storeDetails?.name || 'Nome da loja' }}</div>
+              <div class="preview-store-rating">
+                <span class="star">★</span> Novo • {{ summary()?.storeDetails?.cuisineType || 'Categoria' }}
+              </div>
+
+              <div class="preview-tabs">
+                <span class="tab active">Destaques</span>
+                @for (cat of (summary()?.productsStats?.byCategory ?? []).slice(0, 4); track cat.name) {
+                  <span class="tab">{{ cat.name }}</span>
+                }
+              </div>
+
+              <div class="preview-products">
+                @for (prod of (products()).slice(0, 3); track prod.id) {
+                  <div class="product-row">
+                    @if (prod.imageUrl) {
+                      <img [src]="prod.imageUrl" class="prod-img" alt="">
+                    } @else {
+                      <div class="prod-img-placeholder"></div>
+                    }
+                    <div class="prod-info">
+                      <div class="prod-name">{{ prod.name }}</div>
+                      <div class="prod-desc">{{ prod.categoryName }}</div>
+                      <div class="prod-price">{{ formatCurrency(prod.price) }}</div>
+                    </div>
+                    <button class="prod-add-btn">+</button>
+                  </div>
+                }
+              </div>
+
+              <div class="preview-cart-bar">
+                <div class="cart-left">
+                  <ion-icon name="cart-outline"></ion-icon>
+                  <span>Ver carrinho • R$ 0,00</span>
+                </div>
+                <div class="cart-badge">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</main>
+
+@if (showConfetti()) {
+  <div class="publish-success-overlay">
+    <div class="publish-success-card">
+      <div class="publish-success-icon">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <p class="publish-success-title">Sua loja está no ar</p>
+      <p class="publish-success-name">{{ storeNameForConfetti() }}</p>
+      <p class="publish-success-sub">Seu cardápio já está disponível para os clientes.</p>
+      <div class="publish-success-actions">
+        <button class="btn-cardapio" (click)="goToCardapio()">
+          <ion-icon name="storefront-outline"></ion-icon>
+          Ver Cardápio
+        </button>
+        <button class="btn-manage" (click)="goToManage()">
+          <ion-icon name="settings-outline"></ion-icon>
+          Gerenciar loja
+        </button>
+      </div>
+    </div>
+  </div>
+}
+</ion-content>

@@ -1,0 +1,607 @@
+@if (!isDashboardView()) {
+  <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
+}
+
+@if (isDashboardView()) {
+  <app-subscription-banner [status]="subscriptionStatus()" [nextDueDate]="subscriptionDueDate()" />
+  <app-cardapio-menu-tabs />
+  <section class="dashboard-page-head">
+    <h1>Produtos do cardapio</h1>
+    <p>Cadastre, organize e personalize os itens exibidos para seus clientes.</p>
+  </section>
+}
+
+<div class="products-layout">
+  <div class="form-col">
+
+    <!-- 1. Categorias do cardapio -->
+    <section class="block-section">
+      <div class="section-row">
+        <div>
+          <h2 class="block-heading"><span class="section-num">1.</span> Categorias do cardapio</h2>
+          <p class="block-sub">Cadastre e organize as categorias na ordem em que elas aparecerao para seus clientes.</p>
+        </div>
+      </div>
+
+      <div class="prod-card cat-card">
+        <div class="cat-add-row">
+          <input type="text" class="prod-input cat-add-input" [ngModel]="newCategoryName()" (ngModelChange)="newCategoryName.set($event)" maxlength="80" placeholder="Ex.: Pizzas, Bebidas ou Sobremesas" (keyup.enter)="addCategory()" aria-label="Nome da nova categoria" />
+          <button class="save-btn cat-add-btn" (click)="addCategory()" [disabled]="isAddingCategory()">
+            @if (isAddingCategory()) { <ion-spinner name="crescent" style="width:14px;height:14px;margin-right:4px"></ion-spinner> Adicionando... }
+            @else { + Adicionar categoria }
+          </button>
+        </div>
+
+        @if (categories().length) {
+          <div class="cat-order-header">
+            <div class="cat-order-title">
+              <ion-icon name="reorder-two-outline"></ion-icon>
+              Ordem de exibicao no cardapio
+            </div>
+            <span class="cat-count">{{ categories().length }} {{ categories().length === 1 ? 'categoria' : 'categorias' }}</span>
+          </div>
+
+          <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderCategories($any($event))" class="cat-list">
+            @for (cat of sortedCategories(); track cat.id; let idx = $index) {
+              <div class="cat-row-item" [class.inactive]="!cat.isActive">
+                <ion-reorder class="cat-drag"><span class="cat-drag-icon">::</span></ion-reorder>
+                <span class="cat-order-badge">{{ (idx + 1).toString().padStart(2, '0') }}</span>
+                <div class="cat-name-col">
+                  <span class="cat-name">{{ cat.name }}</span>
+                  <span class="cat-sub">{{ categoryProductCounts()[cat.id] || 0 }} {{ (categoryProductCounts()[cat.id] || 0) === 1 ? 'produto' : 'produtos' }}</span>
+                </div>
+                <span class="cat-status-pill" [class.inactive]="!cat.isActive">{{ cat.isActive ? 'Ativa' : 'Oculta' }}</span>
+                <label class="switch" title="{{ cat.isActive ? 'Ocultar categoria' : 'Ativar categoria' }}">
+                  <input type="checkbox" [checked]="cat.isActive" (change)="toggleCategoryActive(cat)" [attr.aria-label]="'Categoria ' + cat.name + (cat.isActive ? ' ativa' : ' oculta')" />
+                  <span class="slider"></span>
+                </label>
+                <div class="cat-actions">
+                  <button class="cat-icon-btn" (click)="moveCategoryUp(cat)" [disabled]="idx === 0" aria-label="Mover para cima" title="Mover para cima">&#9650;</button>
+                  <button class="cat-icon-btn" (click)="moveCategoryDown(cat)" [disabled]="idx === sortedCategories().length - 1" aria-label="Mover para baixo" title="Mover para baixo">&#9660;</button>
+                  <button class="cat-icon-btn" (click)="openEditCategory(cat)" aria-label="Editar {{ cat.name }}" title="Editar">
+                    <ion-icon name="pencil-outline"></ion-icon>
+                  </button>
+                  <button class="cat-icon-btn cat-delete-btn" (click)="openDeleteCategory(cat)" aria-label="Excluir {{ cat.name }}" title="Excluir">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </ion-reorder-group>
+        } @else {
+          <div class="empty-state">Nenhuma categoria cadastrada. Adicione a primeira para comecar seu cardapio.</div>
+        }
+      </div>
+    </section>
+
+    <!-- Edit Category Modal -->
+    @if (showEditCategoryModal()) {
+      <div class="modal-backdrop" (click)="closeEditCategory()">
+        <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="editCatTitle">
+          <div class="modal-header-row">
+            <div>
+              <h2 id="editCatTitle" class="modal-title">Editar categoria</h2>
+              <p class="modal-subtitle">Altere o nome sem perder os produtos associados.</p>
+            </div>
+            <button class="modal-close-btn" (click)="closeEditCategory()" aria-label="Fechar">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="field">
+              <label class="prod-label" for="editCategoryName">Nome da categoria *</label>
+              <input id="editCategoryName" type="text" class="prod-input" [ngModel]="editingCategoryName()" (ngModelChange)="editingCategoryName.set($event)" maxlength="80" (keyup.enter)="saveEditCategory()" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeEditCategory()">Cancelar</button>
+            <button class="btn-brand" (click)="saveEditCategory()" [disabled]="isEditingCategory()">
+              @if (isEditingCategory()) { Salvando... } @else { Salvar }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Delete Category Modal -->
+    @if (showDeleteCategoryModal()) {
+      <div class="modal-backdrop" (click)="closeDeleteCategory()">
+        <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="deleteCatTitle">
+          <div class="modal-header-row">
+            <div>
+              <h2 id="deleteCatTitle" class="modal-title">Excluir categoria</h2>
+              <p class="modal-subtitle">Confirme a exclusao desta categoria.</p>
+            </div>
+            <button class="modal-close-btn" (click)="closeDeleteCategory()" aria-label="Fechar">&times;</button>
+          </div>
+          <div class="modal-body">
+            @if (deletingCategoryProductCount() > 0) {
+              <div class="modal-warning">
+                A categoria "{{ deletingCategoryName() }}" tem {{ deletingCategoryProductCount() }} {{ deletingCategoryProductCount() === 1 ? 'produto associado' : 'produtos associados' }}.
+                Selecione uma categoria para transferir os produtos antes de excluir.
+              </div>
+              <div class="field">
+                <label class="prod-label" for="reassignCategory">Transferir produtos para</label>
+                <select id="reassignCategory" class="prod-select" [ngModel]="reassignCategoryId()" (ngModelChange)="reassignCategoryId.set($event)">
+                  <option value="" disabled>Selecione uma categoria</option>
+                  @for (cat of categoriesForReassign(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+            } @else {
+              <p class="modal-confirm-text">Tem certeza que deseja excluir a categoria "{{ deletingCategoryName() }}"? Esta acao nao pode ser desfeita.</p>
+            }
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeDeleteCategory()">Cancelar</button>
+            <button class="btn-danger" (click)="confirmDeleteCategory()" [disabled]="!canDeleteCategory() || isDeletingCategory()">
+              @if (isDeletingCategory()) { Excluindo... } @else { Excluir }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- 2. Cadastrar produto -->
+    <section class="block-section">
+      <h2 class="block-heading"><span class="section-num">2.</span> Cadastrar produtos</h2>
+      <p class="block-sub">Adicione os produtos que seus clientes poderao pedir.</p>
+
+      <div class="prod-card">
+        <div class="form-grid">
+          <div>
+            <label class="prod-label">Nome do produto *</label>
+            <input type="text" class="prod-input" [ngModel]="productName()" (ngModelChange)="productName.set($event)" (input)="markDirty()" placeholder="X-Burger Bacon" maxlength="120" />
+          </div>
+          <div>
+            <label class="prod-label">Categoria *</label>
+            <select class="prod-select" [ngModel]="productCatId()" (ngModelChange)="productCatId.set($event)">
+              <option value="" disabled>Selecione uma categoria</option>
+              @for (cat of categoryOptionsForProduct(); track cat.id) { <option [value]="cat.id">{{cat.name}}</option> }
+            </select>
+            @if (categoryOptionsForProduct().length === 0) {
+              <span class="cat-hint">Cadastre uma categoria acima antes de adicionar produtos.</span>
+            }
+          </div>
+          <div class="span-full">
+            <label class="prod-label">Descricao *</label>
+            <textarea class="prod-textarea" [ngModel]="productDesc()" (ngModelChange)="productDesc.set($event)" maxlength="300" placeholder="Pao brioche, burger 180g, bacon, queijo cheddar..."></textarea>
+            <span class="desc-counter">{{ (productDesc() || '').length }}/300</span>
+          </div>
+          <div class="span-full">
+            <div class="photo-row">
+              <div class="price-area">
+                <label class="prod-label">Preco *</label>
+                <div class="price-row">
+                  <div class="price-box">
+                    <span class="price-prefix">R$</span>
+                    <input type="text" class="price-input" [ngModel]="productPrice()" (ngModelChange)="onPriceInput($event)" placeholder="0,00" />
+                  </div>
+                </div>
+                <label class="check-label"><input type="checkbox" class="prod-check-lg" [ngModel]="isProductActive()" (ngModelChange)="isProductActive.set($event)" /> Ativo</label>
+              </div>
+              <div>
+                <label class="prod-label">Foto do produto *</label>
+                <div class="image-upload-area">
+                  @if (uploadingImage()) {
+                    <div class="upload-loading"><ion-spinner name="crescent" style="width:20px;height:20px;margin-bottom:4px"></ion-spinner><br/>Enviando...</div>
+                  } @else if (productImagePreview()) {
+                    <div class="upload-preview"><img [src]="productImagePreview()" alt="Preview" /><button type="button" class="upload-replace-btn" (click)="triggerFileInput()">Trocar</button></div>
+                  } @else {
+                    <div class="upload-dashed" (click)="triggerFileInput()"><ion-icon name="cloud-upload-outline"></ion-icon> Clique para enviar imagem</div>
+                  }
+                </div>
+                <input #fileInput type="file" accept="image/png,image/jpeg,image/webp" class="hidden-file-input" (change)="onImageSelected($event)" />
+              </div>
+            </div>
+          </div>
+
+          <div class="span-full">
+            <p class="prod-label">Forma de venda</p>
+            <div class="sale-modes">
+              <label class="sale-mode" [class.selected]="saleMode() === 'single'" (click)="setSaleMode('single')">
+                <input type="radio" name="saleMode" [checked]="saleMode() === 'single'" />
+                <span class="sale-radio"></span><span>Produto unico</span>
+              </label>
+              <label class="sale-mode" [class.selected]="saleMode() === 'size'" (click)="setSaleMode('size')">
+                <input type="radio" name="saleMode" [checked]="saleMode() === 'size'" />
+                <span class="sale-radio"></span><span>Por tamanho</span>
+              </label>
+              <label class="sale-mode" [class.selected]="saleMode() === 'fixed_weight'" (click)="setSaleMode('fixed_weight')">
+                <input type="radio" name="saleMode" [checked]="saleMode() === 'fixed_weight'" />
+                <span class="sale-radio"></span><span>Por peso fixo</span>
+              </label>
+              <label class="sale-mode" [class.selected]="saleMode() === 'variable_weight'" (click)="setSaleMode('variable_weight')">
+                <input type="radio" name="saleMode" [checked]="saleMode() === 'variable_weight'" />
+                <span class="sale-radio"></span><span>Por peso variavel</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Variações -->
+    @if (saleMode() === 'size' || saleMode() === 'fixed_weight') {
+      <section class="block-section">
+        <div class="section-row">
+          <div>
+            <h2 class="block-heading"><span class="section-num">2.</span> Variacoes</h2>
+            <p class="block-sub">{{ saleMode() === 'size' ? 'Defina os tamanhos disponiveis para este produto.' : 'Cadastre embalagens com pesos e precos definidos.' }}</p>
+          </div>
+          <button class="add-row-btn" (click)="saleMode() === 'size' ? addSizeVariation() : addFixedWeightVariation()">
+            + {{ saleMode() === 'size' ? 'Adicionar tamanho' : 'Adicionar peso' }}
+          </button>
+        </div>
+
+        @if (saleMode() === 'size') {
+          <div class="prod-card variation-card">
+            @if (sizeVariations().length) {
+              <div class="variation-header size-header">
+                <span></span><span>Nome</span><span>Descricao</span><span>Preco</span><span>Padrao</span><span>Ativo</span><span></span>
+              </div>
+            }
+            <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderSizeVariations($any($event))">
+              @for (v of sizeVariations(); track v.uid; let idx = $index) {
+                <div class="variation-row size-row">
+                  <ion-reorder class="drag-handle"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Nome</span>
+                    <input type="text" class="var-input" [ngModel]="v.name" (ngModelChange)="v.name = $event; markDirty()" placeholder="Ex.: Media" />
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Descricao</span>
+                    <input type="text" class="var-input" [ngModel]="v.description" (ngModelChange)="v.description = $event; markDirty()" placeholder="Ex.: 30 cm" />
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Preco</span>
+                    <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="v.price" (ngModelChange)="v.price = maskMoney($event); markDirty()" placeholder="0,00" /></div>
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Padrao</span>
+                    <label class="default-radio"><input type="radio" name="sizeDefault" [checked]="v.isDefault" (change)="setSizeDefault(v.uid)" title="Definir como padrao" /></label>
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Ativo</span>
+                    <label class="switch"><input type="checkbox" [ngModel]="v.isActive" (ngModelChange)="v.isActive = $event; markDirty()" /><span class="slider"></span></label>
+                  </div>
+                  <div class="v-cell v-cell-action">
+                    <span class="v-cell-label">Excluir</span>
+                    <button class="icon-btn" (click)="removeSizeVariation(v.uid)" title="Remover">&#128465;</button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-state">Nenhum tamanho cadastrado.</div>
+              }
+            </ion-reorder-group>
+            <button class="add-row-btn block" (click)="addSizeVariation()">+ Adicionar tamanho</button>
+          </div>
+        }
+
+        @if (saleMode() === 'fixed_weight') {
+          <div class="prod-card variation-card">
+            @if (fixedWeightVariations().length) {
+              <div class="variation-header fixed-header">
+                <span></span><span>Peso</span><span>Unid.</span><span>Preco</span><span>R$/kg</span><span>Padrao</span><span>Ativo</span><span></span>
+              </div>
+            }
+            <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderFixedWeightVariations($any($event))">
+              @for (v of fixedWeightVariations(); track v.uid; let idx = $index) {
+                <div class="variation-row fixed-row">
+                  <ion-reorder class="drag-handle"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Peso</span>
+                    <input type="number" class="var-input weight-input" [ngModel]="v.weight" (ngModelChange)="v.weight = $event; markDirty()" min="0.001" step="0.001" placeholder="500" />
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Unidade</span>
+                    <select class="var-input unit-select" [ngModel]="v.unit" (ngModelChange)="v.unit = $event; markDirty()">
+                      <option value="g">g</option><option value="kg">kg</option>
+                    </select>
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Preco</span>
+                    <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="v.price" (ngModelChange)="v.price = maskMoney($event); markDirty()" placeholder="0,00" /></div>
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">R$/kg</span>
+                    <input type="text" class="var-input readonly" readonly [value]="equivalentPricePerKg(v)" />
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Padrao</span>
+                    <label class="default-radio"><input type="radio" name="weightDefault" [checked]="v.isDefault" (change)="setWeightDefault(v.uid)" title="Definir como padrao" /></label>
+                  </div>
+                  <div class="v-cell">
+                    <span class="v-cell-label">Ativo</span>
+                    <label class="switch"><input type="checkbox" [ngModel]="v.isActive" (ngModelChange)="v.isActive = $event; markDirty()" /><span class="slider"></span></label>
+                  </div>
+                  <div class="v-cell v-cell-action">
+                    <span class="v-cell-label">Excluir</span>
+                    <button class="icon-btn" (click)="removeFixedWeightVariation(v.uid)" title="Remover">&#128465;</button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-state">Nenhum peso fixo cadastrado.</div>
+              }
+            </ion-reorder-group>
+            <button class="add-row-btn block" (click)="addFixedWeightVariation()">+ Adicionar peso</button>
+          </div>
+        }
+      </section>
+    }
+
+    @if (saleMode() === 'variable_weight') {
+      <section class="block-section">
+        <div class="section-row">
+          <div>
+            <h2 class="block-heading"><span class="section-num">2.</span> Peso variavel</h2>
+            <p class="block-sub">Defina o preco por quilo e os limites do peso que o cliente podera escolher.</p>
+          </div>
+        </div>
+        <div class="prod-card">
+          <div class="variable-grid">
+            <div class="og-field">
+              <label class="prod-label">Preco por kg *</label>
+              <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="weightConfig().pricePerKg" (ngModelChange)="updateWeightConfigField('pricePerKg', maskMoney($event))" placeholder="0,00" /></div>
+            </div>
+            <div class="og-field">
+              <label class="prod-label">Peso minimo (g) *</label>
+              <input type="number" class="prod-input" [ngModel]="weightConfig().minGrams" (ngModelChange)="updateWeightConfigField('minGrams', $event)" placeholder="200" min="1" />
+            </div>
+            <div class="og-field">
+              <label class="prod-label">Peso maximo (g) *</label>
+              <input type="number" class="prod-input" [ngModel]="weightConfig().maxGrams" (ngModelChange)="updateWeightConfigField('maxGrams', $event)" placeholder="2000" min="1" />
+            </div>
+            <div class="og-field">
+              <label class="prod-label">Incremento (g) *</label>
+              <input type="number" class="prod-input" [ngModel]="weightConfig().incrementGrams" (ngModelChange)="updateWeightConfigField('incrementGrams', $event)" placeholder="100" min="1" />
+            </div>
+            <label class="check-label estimate-toggle">
+              <input type="checkbox" [ngModel]="weightConfig().isEstimated" (ngModelChange)="updateWeightConfigField('isEstimated', $event)" />
+              Informar no cardapio que o preco e estimado
+            </label>
+            <div class="variable-preview">
+              <div>
+                <span class="hint">Exemplo no cardapio para {{ variableWeightSampleGrams() }} g</span>
+                <strong>{{ variableWeightExamplePrice() }}</strong>
+              </div>
+              <span class="hint">Preco final = preco/kg x peso selecionado</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- 3. Grupos de opcoes -->
+    <section class="block-section">
+      <div class="section-row">
+        <div>
+          <h2 class="block-heading"><span class="section-num">{{ saleMode() === 'single' ? '3.' : '3.' }}</span> Grupos de opcoes</h2>
+          <p class="block-sub">Adicione grupos para que o cliente possa personalizar o produto.</p>
+        </div>
+        <button class="add-row-btn" (click)="addOptionGroup()">+ Adicionar grupo</button>
+      </div>
+
+      @if (optionGroups().length) {
+        <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderGroups($any($event))" class="og-list">
+          @for (group of optionGroups(); track group.id; let idx = $index) {
+            <div class="option-group" [class.expanded]="expandedGroupId() === group.id">
+              <div class="og-head">
+                <ion-reorder class="og-drag"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
+                <h3 class="og-heading" (click)="toggleGroupExpanded(group.id!)">Grupo de opcoes {{ idx + 1 }}</h3>
+                <button class="og-remove" (click)="removeOptionGroup(group.id!)">Remover grupo</button>
+              </div>
+
+              @if (expandedGroupId() === group.id) {
+                <div class="og-body">
+                  <div class="og-name-row">
+                    <div class="og-field">
+                      <label class="og-field-label">Nome do grupo *</label>
+                      <input type="text" class="prod-input" [ngModel]="group.name" (ngModelChange)="updateGroupName(group.id!, $event)" placeholder="Ex.: Escolha os adicionais" maxlength="80" />
+                    </div>
+                    <div class="og-field">
+                      <label class="og-field-label">Tipo de selecao</label>
+                      <select class="prod-select" [ngModel]="group.choiceType" (ngModelChange)="updateGroupChoiceType(group.id!, $event)">
+                        <option value="single">Escolha unica</option>
+                        <option value="multiple">Multipla escolha</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="og-settings">
+                    <div>
+                      <span class="og-setting-title">Condicao</span>
+                      <div class="condition-toggle">
+                        <label class="condition-option" [class.selected]="group.minChoices >= 1" (click)="group.minChoices < 1 ? toggleGroupRequired(group.id!) : null">
+                          <span class="condition-dot"></span><span>Obrigatorio</span>
+                        </label>
+                        <label class="condition-option" [class.selected]="group.minChoices < 1" (click)="group.minChoices >= 1 ? toggleGroupRequired(group.id!) : null">
+                          <span class="condition-dot"></span><span>Opcional</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <span class="og-setting-title">Escolhas</span>
+                      <div class="choices-line">
+                        <strong>Min</strong>
+                        <input type="number" class="choice-number" [ngModel]="group.minChoices" (ngModelChange)="updateGroupMin(group.id!, $event)" min="0" />
+                        <span>ate</span>
+                        <strong>Max</strong>
+                        <input type="number" class="choice-number" [ngModel]="group.maxChoices" (ngModelChange)="updateGroupMax(group.id!, $event)" min="1" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <h4 class="og-items-title">Itens do grupo</h4>
+                  <div class="group-items">
+                    @for (item of group.items; track item.id) {
+                      <div class="group-item">
+                        <input type="text" class="var-input" [ngModel]="item.name" (ngModelChange)="updateOptionItemName(group.id!, item.id!, $event)" placeholder="Ex.: Bacon extra" />
+                        <div class="money-wrap small"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="formatOptionItemPrice(group.id!, item.id!)" (ngModelChange)="updateOptionItemPrice(group.id!, item.id!, $event)" placeholder="0,00" /></div>
+                        <button class="og-remove inline" (click)="removeOptionItem(group.id!, item.id!)">Remover</button>
+                      </div>
+                    }
+                  </div>
+                  <button class="add-item-btn" (click)="addOptionItem(group.id!)">+ Adicionar item</button>
+                </div>
+              }
+            </div>
+          }
+        </ion-reorder-group>
+      } @else {
+        <div class="empty-state">Nenhum grupo de opcoes adicionado.</div>
+      }
+    </section>
+
+    <!-- 4. Organizacao -->
+    <section class="block-section">
+      <h2 class="block-heading"><span class="section-num">4.</span> Organizacao</h2>
+      <p class="block-sub">Destaque seu produto nas secoes especiais do cardapio.</p>
+      <div class="prod-card">
+        <div class="tag-toggles">
+          <label class="tag-toggle" [class.active]="tagDestaque()" (click)="toggleTag('destaque')">
+            <input type="checkbox" class="prod-check" [checked]="tagDestaque()" /><span>Destaque</span>
+          </label>
+          <label class="tag-toggle" [class.active]="tagMaisVendido()" (click)="toggleTag('mais_vendido')">
+            <input type="checkbox" class="prod-check" [checked]="tagMaisVendido()" /><span>Mais vendido</span>
+          </label>
+          <label class="tag-toggle" [class.active]="tagNovidade()" (click)="toggleTag('novidade')">
+            <input type="checkbox" class="prod-check" [checked]="tagNovidade()" /><span>Novidade</span>
+          </label>
+        </div>
+        @if (showTagPriority()) {
+          <div class="tag-priority-section">
+            <p class="tag-priority-title">Ordem de exibicao</p>
+            <div class="tag-priority-list">
+              @for (tag of orderedPriority(); track $index; let idx = $index) {
+                <div class="tag-priority-item">
+                  <span class="tag-priority-num">{{ idx + 1 }}o</span>
+                  <span class="tag-priority-name">{{ tagLabels[tag]?.name }}</span>
+                  <div class="tag-priority-arrows">
+                    <button class="tag-arrow" (click)="movePriorityUp(tag)" [disabled]="idx === 0">&#9650;</button>
+                    <button class="tag-arrow" (click)="movePriorityDown(tag)" [disabled]="idx === orderedPriority().length - 1">&#9660;</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="save-row">
+      <button class="save-btn" (click)="saveProduct()" [disabled]="isSaving()">
+        @if (isSaving()) { <ion-spinner name="crescent" style="width:16px;height:16px"></ion-spinner> Salvando... }
+        @else { {{ editingProduct() ? 'Atualizar Produto' : 'Cadastrar Produto' }} }
+      </button>
+    </div>
+
+    @if (isDashboardView()) {
+      <div class="dashboard-save-bar">
+        <span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
+          @if (saveStatus() === 'saving') { Salvando alteracoes... }
+          @else if (saveStatus() === 'saved') { Alteracoes salvas. }
+          @else if (saveStatus() === 'error') { Nao foi possivel salvar. }
+          @else { Salve as alteracoes antes de sair. }
+        </span>
+        <button type="button" class="save-btn" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">
+          @if (isSaving()) { <ion-spinner name="crescent" style="width:16px;height:16px"></ion-spinner> Salvando... }
+          @else { Salvar }
+        </button>
+      </div>
+    } @else {
+      <app-wizard-footer
+        backLabel="Voltar para Entrega"
+        [nextLabel]="'Avancar para Publicar'"
+        [isSaving]="isSaving()"
+        [hasUnsavedChanges]="formDirty()"
+        [saveStatus]="saveStatus()"
+        (back)="goBack()"
+        (next)="goNext()"
+        (save)="saveDraft()">
+      </app-wizard-footer>
+    }
+  </div>
+
+  <!-- Catalogo lateral -->
+  <div class="catalog-col">
+    <div class="catalog-card">
+      <div class="catalog-header">
+        <div><h3>Seus produtos</h3><span class="catalog-count">{{ products().length }} cadastrados</span></div>
+        <button class="add-row-btn small" (click)="newProduct()">+ Novo</button>
+      </div>
+      <div class="catalog-tools">
+        <div class="catalog-search-wrap">
+          <ion-icon name="search-outline" class="catalog-search-icon"></ion-icon>
+          <input type="text" class="catalog-search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(0)" placeholder="Buscar produtos..." />
+        </div>
+        <select class="catalog-filter-select" [ngModel]="categoryFilterId()" (ngModelChange)="categoryFilterId.set($event); currentPage.set(0)" aria-label="Filtrar por categoria">
+          <option value="">Todas as categorias</option>
+          @for (cat of sortedCategories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="catalog-list">
+        @for (product of pagedProducts(); track product.id) {
+          <div class="catalog-product" [class.selected]="product.id === selectedId()">
+            <div class="catalog-product-main" (click)="selectProduct(product)">
+              @if (product.imageUrl) {
+                <img [src]="product.imageUrl" class="catalog-product-img" alt="" loading="lazy" />
+              }
+              <div class="catalog-product-info">
+                <p class="catalog-product-name">{{ product.name }}</p>
+                <p class="catalog-product-category">{{ product.categoryName || 'Sem categoria' }}</p>
+                <p class="catalog-product-price">{{ productStartingPrice(product) }}</p>
+              </div>
+            </div>
+            <div class="catalog-product-actions">
+              <button class="catalog-copy-btn" (click)="$event.stopPropagation(); copyProductOptions(product)" aria-label="Copiar opcoes de {{ product.name }}">
+                Copiar
+              </button>
+              <button class="catalog-toggle-btn" (click)="$event.stopPropagation(); togglePreview(product.id)">
+                <ion-icon [name]="expandedId() === product.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+              </button>
+              <button class="catalog-delete-btn" (click)="$event.stopPropagation(); deleteLocalProduct(product)"><ion-icon name="trash-outline"></ion-icon></button>
+            </div>
+            @if (expandedId() === product.id) {
+              <div class="catalog-preview">
+                <p class="preview-label"><strong>Forma de venda:</strong> {{ product.saleMode === 'size' ? 'Por tamanho' : product.saleMode === 'fixed_weight' ? 'Peso fixo' : product.saleMode === 'variable_weight' ? 'Peso variavel' : 'Produto unico' }}</p>
+                @if (product.variations.length) {
+                  <div class="preview-section">
+                    <p class="preview-section-title">Variacoes</p>
+                    @for (v of product.variations; track v.id) {
+                      <div class="preview-opt-row">
+                        <span>{{ v.name }}@if (v.description) { <span class="preview-opt-desc">({{ v.description }})</span> }</span>
+                        <span class="preview-opt-price">{{ v.price > 0 ? ('R$ ' + v.price.toFixed(2).replace('.', ',')) : 'Gratis' }} @if (v.isDefault) { <span class="preview-badge">Padrao</span> }</span>
+                      </div>
+                    }
+                  </div>
+                }
+                @if (product.optionGroups.length) {
+                  <div class="preview-section">
+                    <p class="preview-section-title">Grupos de opcoes</p>
+                    @for (g of product.optionGroups; track g.id) {
+                      <div class="preview-opt-row">
+                        <span>{{ g.name }} <span class="preview-badge">{{ g.choiceType === 'single' ? 'Unica' : 'Multipla' }} | {{ g.isRequired ? 'Obrigatorio' : 'Opcional' }}, {{ g.minChoices }}-{{ g.maxChoices }}</span></span>
+                        <span class="preview-opt-price">{{ g.items.length }} itens</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="empty-state">Nenhum produto encontrado.</div>
+        }
+      </div>
+      @if (totalPages() > 1) {
+        <div class="catalog-pagination">
+          <button class="catalog-page-btn" (click)="prevPage()" [disabled]="currentPage() === 0">&lt;</button>
+          <span>{{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button class="catalog-page-btn" (click)="nextPage()" [disabled]="currentPage() >= totalPages() - 1">&gt;</button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

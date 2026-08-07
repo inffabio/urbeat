@@ -1,0 +1,141 @@
+<ion-content [fullscreen]="true" class="payment-content">
+  <header class="page-head">
+    <button type="button" class="ghost-btn" (click)="onBack()" aria-label="Voltar">
+      <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+    </button>
+    <div class="page-title">
+      <h1>Pagamento</h1>
+      <p>Pix online ou pagamento ao receber</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <section class="screen-padding">
+    <div class="order-summary card">
+      <div class="between">
+        <h2>Resumo do pedido</h2>
+        <button type="button" class="details-link" (click)="openDetails()">
+          Ver detalhes <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="order-line">
+        <span class="round-icon" aria-hidden="true">
+          <ion-icon name="bag-outline"></ion-icon>
+        </span>
+        <div>
+          <strong>{{ itemsCount }} {{ itemsCount === 1 ? 'item' : 'itens' }}</strong><br />
+          <small>{{ orderRef() }}</small>
+        </div>
+        <strong class="order-price">{{ total() | brl }}</strong>
+      </div>
+    </div>
+
+    <h2 class="section-title">Como deseja pagar?</h2>
+    <p class="section-sub">A loja recebe o pedido assim que o pagamento estiver liberado</p>
+
+    <div class="options-list">
+      <label
+        class="option-card"
+        [class.active]="selected() === 'pix'"
+      >
+        <input class="payment-input" type="radio" name="payment-category" value="pix" [checked]="selected() === 'pix'" (change)="select('pix')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="qr-code-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Pix</h3>
+          <p>Seu pedido fica aguardando pagamento e vai para a loja após confirmação do gateway.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+
+      <label
+        class="option-card"
+        [class.active]="selected() === 'receive'"
+      >
+        <input class="payment-input" type="radio" name="payment-category" value="receive" [checked]="selected() === 'receive'" (change)="select('receive')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="wallet-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Pagar ao receber</h3>
+          <p>O pedido é enviado agora para a loja e você paga quando receber.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="payment-error" role="alert">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (checkout.customerAddress(); as addr) {
+      <div class="address-card card">
+        <span class="round-icon" aria-hidden="true">
+          <ion-icon name="location-outline"></ion-icon>
+        </span>
+        <div>
+          <strong>Endereço de entrega</strong><br />
+          <span class="addr-text">{{ addr.street }}, {{ addr.number }}<br />{{ addr.neighborhood }}, {{ addr.city }} - {{ addr.state }}</span>
+        </div>
+        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+      </div>
+    }
+
+    <div class="summary-card card">
+      <div class="sum-row">
+        <span>Subtotal</span>
+        <span>{{ subtotal() | brl }}</span>
+      </div>
+      <div class="sum-row">
+        <span>Taxa de entrega</span>
+        <span>{{ effectiveDeliveryFee() | brl }}</span>
+      </div>
+      <div class="sum-row sum-green">
+        <span>Descontos</span>
+        <span>- {{ discount() | brl }}</span>
+      </div>
+      <div class="sum-divider"></div>
+      <div class="sum-row sum-total">
+        <span>Total</span>
+        <strong class="total-value">{{ total() | brl }}</strong>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" [disabled]="!selected() || processing()" (click)="continue()">
+      {{ processing() ? 'PROCESSANDO...' : 'CONFIRMAR FORMA DE PAGAMENTO' }}
+    </button>
+
+    <app-back-to-menu-link (navigateBack)="goToMenu()" />
+  </section>
+
+  @if (showDetailsModal()) {
+    <div class="modal-overlay" (click)="closeDetails()">
+      <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="details-title" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fechar">
+          <ion-icon name="close" aria-hidden="true"></ion-icon>
+        </button>
+        <h2 id="details-title">Detalhes do pedido</h2>
+        <ul class="modal-items">
+          @for (item of cart.items(); track item.productId) {
+            <li>
+              <span class="qty">{{ item.quantity }}&times;</span>
+              <span class="name">{{ item.productName }}</span>
+              <span class="price">{{ item.unitPrice * item.quantity | brl }}</span>
+            </li>
+          }
+        </ul>
+        <div class="modal-total">
+          <span>Total</span>
+          <span class="total-value">{{ total() | brl }}</span>
+        </div>
+        <button type="button" class="btn-primary modal-close-btn" (click)="closeDetails()">Fechar</button>
+      </div>
+    </div>
+  }
+</ion-content>

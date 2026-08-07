@@ -1,0 +1,318 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Urbeat • Dashboard do Vendedor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button class="toggle-btn" id="toggleSidebar" aria-label="Abrir ou fechar menu">
+          <img src="assets/icons/menu.svg" alt="Menu">
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <img src="assets/icons/horarios.svg" alt="Horários">
+          <span>Horários</span>
+        </a>
+
+        <a href="#" class="nav-item">
+          <img src="assets/icons/entrega.svg" alt="Entrega">
+          <span>Entrega</span>
+        </a>
+
+        <a href="#" class="nav-item">
+          <img src="assets/icons/produtos.svg" alt="Produtos">
+          <span>Produtos</span>
+        </a>
+
+        <a href="#" class="nav-item">
+          <img src="assets/icons/visualizar.svg" alt="Visualizar publicação">
+          <span>Visualizar publicação</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="main-content">
+      <!-- Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <img src="assets/logo_v2.png" alt="Urbeat" class="urbeat-logo" />
+        </div>
+
+        <div class="topbar-center">
+          <h1>Burger House</h1>
+          <p>Hamburgueria • Painel do vendedor</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="store-badge">
+            <img src="assets/logoloja.png" alt="Logo da loja" class="store-logo-round" />
+          </div>
+
+          <div class="profile-area">
+            <button class="profile-btn" id="profileBtn">
+              <img src="assets/icons/user.svg" alt="Usuário">
+            </button>
+
+            <div class="profile-menu" id="profileMenu">
+              <a href="#">Alterar senha</a>
+              <a href="#">Sair</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <main class="dashboard">
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <span class="badge-online">● Loja aberta agora</span>
+            <h2>Visão geral da operação</h2>
+            <p>
+              Acompanhe faturamento, pedidos, desempenho de entrega e produtos mais vendidos
+              em uma única tela.
+            </p>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-card">
+              <small>Pedidos hoje</small>
+              <strong>52</strong>
+              <span class="trend up">+12% vs ontem</span>
+            </div>
+
+            <div class="stat-card">
+              <small>Tempo médio de entrega</small>
+              <strong>34 min</strong>
+              <span class="trend up">Dentro da meta</span>
+            </div>
+
+            <div class="stat-card">
+              <small>Ticket médio</small>
+              <strong>R$ 31,90</strong>
+              <span class="trend up">+7,4%</span>
+            </div>
+
+            <div class="stat-card">
+              <small>Avaliação</small>
+              <strong>4,8 ★</strong>
+              <span class="trend neutral">128 avaliações</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Gauges -->
+        <section class="gauges-section">
+          <div class="section-title">
+            <h3>Indicadores principais</h3>
+            <p>Faturamento e performance operacional</p>
+          </div>
+
+          <div class="gauges-grid">
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 85; --color: #ff8a00;">
+                <div class="gauge-inner">
+                  <strong>85%</strong>
+                  <span>Diário</span>
+                </div>
+              </div>
+              <h4>Faturamento diário</h4>
+              <p>R$ 1.280 / meta R$ 1.500</p>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 84; --color: #ffb547;">
+                <div class="gauge-inner">
+                  <strong>84%</strong>
+                  <span>Mensal</span>
+                </div>
+              </div>
+              <h4>Faturamento mensal</h4>
+              <p>R$ 38.400 / meta R$ 45.000</p>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 83; --color: #ff6b2c;">
+                <div class="gauge-inner">
+                  <strong>83%</strong>
+                  <span>Anual</span>
+                </div>
+              </div>
+              <h4>Faturamento anual</h4>
+              <p>R$ 461.000 / meta R$ 550.000</p>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 91; --color: #22c55e;">
+                <div class="gauge-inner">
+                  <strong>91%</strong>
+                  <span>Ticket</span>
+                </div>
+              </div>
+              <h4>Ticket médio</h4>
+              <p>R$ 31,90 / meta R$ 35,00</p>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 94; --color: #06b6d4;">
+                <div class="gauge-inner">
+                  <strong>94%</strong>
+                  <span>Entrega</span>
+                </div>
+              </div>
+              <h4>Entregas no prazo</h4>
+              <p>30–40 min dentro da meta</p>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge" style="--value: 96; --color: #8b5cf6;">
+                <div class="gauge-inner">
+                  <strong>4,8</strong>
+                  <span>Nota</span>
+                </div>
+              </div>
+              <h4>Satisfação do cliente</h4>
+              <p>Baseado em 128 avaliações</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts and lists -->
+        <section class="analytics-grid">
+          <div class="panel large">
+            <div class="panel-header">
+              <div>
+                <h3>Pedidos por horário</h3>
+                <p>Pico entre 19h e 22h</p>
+              </div>
+              <button class="ghost-btn">Ver detalhes</button>
+            </div>
+
+            <div class="bars-chart">
+              <div class="bar-col">
+                <div class="bar" style="height: 30%"></div>
+                <span>17h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 45%"></div>
+                <span>18h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 75%"></div>
+                <span>19h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 92%"></div>
+                <span>20h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 100%"></div>
+                <span>21h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 82%"></div>
+                <span>22h</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar" style="height: 48%"></div>
+                <span>23h</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Produtos mais vendidos</h3>
+                <p>Top itens da operação</p>
+              </div>
+            </div>
+
+            <div class="product-ranking">
+              <div class="rank-item">
+                <div class="rank-text">
+                  <strong>X-Burger Bacon</strong>
+                  <span>128 vendas</span>
+                </div>
+                <div class="rank-bar"><i style="width: 92%"></i></div>
+              </div>
+
+              <div class="rank-item">
+                <div class="rank-text">
+                  <strong>Combo Clássico</strong>
+                  <span>101 vendas</span>
+                </div>
+                <div class="rank-bar"><i style="width: 78%"></i></div>
+              </div>
+
+              <div class="rank-item">
+                <div class="rank-text">
+                  <strong>Batata Frita</strong>
+                  <span>87 vendas</span>
+                </div>
+                <div class="rank-bar"><i style="width: 69%"></i></div>
+              </div>
+
+              <div class="rank-item">
+                <div class="rank-text">
+                  <strong>Coca-Cola 350ml</strong>
+                  <span>65 vendas</span>
+                </div>
+                <div class="rank-bar"><i style="width: 54%"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Bairros com mais pedidos</h3>
+                <p>Atendimento atual</p>
+              </div>
+            </div>
+
+            <ul class="list-clean">
+              <li><span>Centro</span> <strong>28%</strong></li>
+              <li><span>Flamengo</span> <strong>19%</strong></li>
+              <li><span>Botafogo</span> <strong>16%</strong></li>
+              <li><span>Copacabana</span> <strong>13%</strong></li>
+              <li><span>Laranjeiras</span> <strong>9%</strong></li>
+              <li><span>Outros</span> <strong>15%</strong></li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Status da loja</h3>
+                <p>Operação e publicação</p>
+              </div>
+            </div>
+
+            <div class="status-stack">
+              <div class="status-pill success">✅ Loja publicada</div>
+              <div class="status-pill success">✅ Horários configurados</div>
+              <div class="status-pill success">✅ Entrega ativa</div>
+              <div class="status-pill warning">⚠ 2 produtos com baixa saída</div>
+              <div class="status-pill info">ℹ Pedido mínimo: R$ 25,00</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

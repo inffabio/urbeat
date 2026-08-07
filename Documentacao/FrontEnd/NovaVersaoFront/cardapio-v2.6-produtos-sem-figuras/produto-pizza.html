@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pizza Especial • Brasa Burger</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body,
+    button,
+    input,
+    textarea {
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .product-hero.pizza-product-hero {
+      height: 300px;
+      background: #120d09;
+    }
+
+    .product-hero.pizza-product-hero img {
+      object-position: center 48%;
+    }
+
+    .pizza-product-sheet {
+      margin-top: -44px;
+      padding: 24px 22px 18px;
+      border-radius: 32px 32px 0 0;
+    }
+
+    .pizza-product-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 6px;
+    }
+
+    .pizza-product-heading h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -0.055em;
+    }
+
+    .pizza-product-heading .product-price {
+      color: var(--orange);
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+      white-space: nowrap;
+      letter-spacing: -0.04em;
+    }
+
+    .pizza-product-desc {
+      margin: 0 0 24px;
+      color: #5f6067;
+      font-size: 16px;
+      line-height: 1.38;
+    }
+
+    .pizza-config {
+      display: grid;
+      gap: 14px;
+      padding-bottom: 6px;
+    }
+
+    .pizza-config-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow-soft);
+      padding: 15px 16px 14px;
+    }
+
+    .pizza-config-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pizza-mini-title {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .pizza-mini-title strong {
+      font-size: 15px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+    }
+
+    .pizza-mini-title small,
+    .optional-label {
+      color: #86868c;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .required-label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #FDECEE;
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .flavor-note {
+      margin: -4px 0 12px;
+      color: #111;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .flavor-note strong {
+      color: #1b1b1f;
+      font-weight: 800;
+    }
+
+    .flavor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .flavor-card {
+      position: relative;
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 14px;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .flavor-card:hover {
+      border-color: var(--orange);
+      background: #FDECEE;
+      transform: translateY(-1px);
+    }
+
+    .flavor-card input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .flavor-card strong {
+      display: block;
+      color: #111;
+      font-size: 13px;
+      line-height: 1.12;
+      font-weight: 850;
+      margin-bottom: 3px;
+    }
+
+    .flavor-info span {
+      display: block;
+      color: #111;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .flavor-check {
+      position: absolute;
+      right: -7px;
+      top: -7px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--orange);
+      color: #fff;
+      display: none;
+      place-items: center;
+      font-size: 13px;
+      border: 3px solid #fff;
+    }
+
+    .flavor-card:has(input:checked) {
+      border-color: var(--orange);
+      background: #FDECEE;
+    }
+
+    .flavor-card:has(input:checked) .flavor-check {
+      display: grid;
+    }
+
+    .compact-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .compact-options.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .compact-option {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      color: #171717;
+      font-size: 11px;
+      line-height: 1.15;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .compact-option:hover {
+      border-color: var(--orange);
+      background: #FDECEE;
+      transform: translateY(-1px);
+    }
+
+    .compact-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid #d2d2d6;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 10px;
+    }
+
+    .compact-option.checked,
+    .compact-option:has(input:checked) {
+      border-color: var(--orange);
+      background: #FDECEE;
+    }
+
+    .compact-option.checked .compact-box,
+    .compact-option:has(input:checked) .compact-box {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+
+    .compact-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .compact-option strong {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 1px;
+    }
+
+    .compact-option small {
+      color: #77777e;
+      font-size: 10px;
+    }
+
+    .pizza-notes {
+      height: 54px;
+      border: 1px solid #d6d0cc;
+      border-radius: 11px;
+      display: grid;
+      grid-template-columns: 1fr 44px;
+      align-items: center;
+      padding: 0 12px;
+      color: #a2a2a8;
+      background: #fff;
+    }
+
+    .pizza-notes input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .pizza-notes span {
+      text-align: right;
+      font-size: 11px;
+    }
+
+    .pizza-product-fixed {
+      position: sticky;
+      bottom: 84px;
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 0 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0), #fff 32%);
+      z-index: 26;
+    }
+
+    .pizza-product-fixed .qty {
+      height: 58px;
+      font-size: 19px;
+      box-shadow: none;
+    }
+
+    .pizza-product-fixed .cart-btn {
+      height: 58px;
+      border-radius: 999px;
+      font-size: 13px;
+      gap: 10px;
+      box-shadow: none;
+    }
+
+    .pizza-product-fixed .cart-btn i {
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    .pizza-product-fixed .cart-btn span {
+      font-size: 13px;
+      line-height: 1.12;
+    }
+
+    .pizza-product-fixed .cart-btn strong {
+      font-size: 15px;
+    }
+
+    @media (max-width: 420px) {
+      .product-hero.pizza-product-hero {
+        height: 240px;
+      }
+
+      .pizza-product-sheet {
+        padding: 22px 18px 16px;
+      }
+
+      .pizza-product-heading h1 {
+        font-size: 23px;
+      }
+
+      .pizza-product-heading .product-price {
+        font-size: 22px;
+      }
+
+      .pizza-product-desc {
+        font-size: 13px;
+        margin-bottom: 22px;
+      }
+
+      .pizza-config-card {
+        padding: 13px 12px;
+      }
+
+      .flavor-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .compact-options.three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .pizza-product-fixed {
+        grid-template-columns: 104px 1fr;
+        gap: 8px;
+      }
+
+      .pizza-product-fixed .qty,
+      .pizza-product-fixed .cart-btn {
+        height: 54px;
+      }
+
+      .pizza-product-fixed .cart-btn span {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <span class="signal"><i></i><i></i><i></i><i></i></span>
+      <span class="wifi"></span>
+      <span class="battery"></span>
+    </div>
+  </div>
+
+  <section class="product-hero pizza-product-hero">
+
+    <div class="hero-actions">
+      <a class="circle-btn" data-back href="pizza-pequena.html" aria-label="Voltar">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+    </div>
+  </section>
+
+  <section class="product-sheet pizza-product-sheet">
+    <div class="pizza-product-heading">
+      <h1>Pizza Especial</h1>
+      <div class="product-price" id="product-price">R$ 78,90</div>
+    </div>
+
+    <p class="pizza-product-desc">Monte sua pizza do seu jeito. Escolha até dois sabores e personalize com borda, adicionais e observações.</p>
+
+    <div class="pizza-config">
+      <section class="pizza-config-card" aria-labelledby="sabores-pizza">
+        <div class="pizza-config-head">
+          <div class="pizza-mini-title">
+            <strong id="sabores-pizza">Escolha os sabores</strong>
+            <span class="required-label">Obrigatório</span>
+          </div>
+          <span class="optional-label">1 a 2 sabores</span>
+        </div>
+
+        <p class="flavor-note"><strong>Selecione de 1 a 2 sabores.</strong> O valor será o sabor mais caro.</p>
+
+        <div class="flavor-grid" id="flavor-grid">
+          <label class="flavor-card">
+            <input type="checkbox" name="sabor" value="Alho" data-price="78.90" checked>
+            <span class="flavor-info"><strong>Alho</strong><span>R$ 78,90</span></span>
+            <span class="flavor-check"><i class="bi bi-check-lg"></i></span>
+          </label>
+
+          <label class="flavor-card">
+            <input type="checkbox" name="sabor" value="Calabresa" data-price="86.90" checked>
+            <span class="flavor-info"><strong>Calabresa</strong><span>R$ 86,90</span></span>
+            <span class="flavor-check"><i class="bi bi-check-lg"></i></span>
+          </label>
+
+          <label class="flavor-card">
+            <input type="checkbox" name="sabor" value="Portuguesa" data-price="96.90">
+            <span class="flavor-info"><strong>Portuguesa</strong><span>R$ 96,90</span></span>
+            <span class="flavor-check"><i class="bi bi-check-lg"></i></span>
+          </label>
+
+          <label class="flavor-card">
+            <input type="checkbox" name="sabor" value="Quatro Queijos" data-price="97.90">
+            <span class="flavor-info"><strong>Quatro Queijos</strong><span>R$ 97,90</span></span>
+            <span class="flavor-check"><i class="bi bi-check-lg"></i></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="borda-recheada">
+        <div class="pizza-config-head">
+          <div class="pizza-mini-title">
+            <strong id="borda-recheada">Borda recheada</strong>
+            <small>(opcional)</small>
+          </div>
+          <span class="optional-label">Opcional</span>
+        </div>
+
+        <div class="compact-options">
+          <label class="compact-option">
+            <input type="checkbox" name="borda" value="Catupiry">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Catupiry</strong><small>+ R$ 8,00</small></span>
+          </label>
+          <label class="compact-option">
+            <input type="checkbox" name="borda" value="Cheddar">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Cheddar</strong><small>+ R$ 8,00</small></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="extras-pizza">
+        <div class="pizza-config-head">
+          <div class="pizza-mini-title">
+            <strong id="extras-pizza">Ingredientes extras</strong>
+            <small>(opcional)</small>
+          </div>
+          <span class="optional-label">Opcional</span>
+        </div>
+
+        <div class="compact-options three">
+          <label class="compact-option">
+            <input type="checkbox" name="extra" value="Pepperoni">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Pepperoni</strong><small>+ R$ 5,00</small></span>
+          </label>
+          <label class="compact-option">
+            <input type="checkbox" name="extra" value="Bacon">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Bacon</strong><small>+ R$ 5,00</small></span>
+          </label>
+          <label class="compact-option">
+            <input type="checkbox" name="extra" value="Cebola Roxa">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Cebola Roxa</strong><small>+ R$ 3,00</small></span>
+          </label>
+          <label class="compact-option">
+            <input type="checkbox" name="extra" value="Azeitona">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Azeitona</strong><small>+ R$ 3,00</small></span>
+          </label>
+          <label class="compact-option">
+            <input type="checkbox" name="extra" value="Tomate Seco">
+            <span class="compact-box"><i class="bi bi-check-lg"></i></span>
+            <span><strong>Tomate Seco</strong><small>+ R$ 4,00</small></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="pizza-config-card" aria-labelledby="observacoes-pizza">
+        <div class="pizza-config-head">
+          <div class="pizza-mini-title">
+            <strong id="observacoes-pizza">Observações</strong>
+            <small>(opcional)</small>
+          </div>
+          <span class="optional-label">Opcional</span>
+        </div>
+
+        <label class="pizza-notes">
+          <input aria-label="Observações" placeholder="Ex.: assar mais, cortar em 8 pedaços...">
+          <span>0/120</span>
+        </label>
+      </section>
+    </div>
+
+    <div class="pizza-product-fixed">
+      <div class="qty">
+        <button type="button" aria-label="Diminuir">−</button>
+        <span>1</span>
+        <button type="button" aria-label="Aumentar">+</button>
+      </div>
+
+      <a class="cart-btn" href="carrinho.html">
+        <i class="bi bi-bag"></i>
+        <span>Adicionar ao carrinho<br><strong id="cart-total">R$ 86,90</strong></span>
+      </a>
+    </div>
+  </section>
+
+  <a class="back-to-menu" href="index.html">Voltar ao cardápio</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+</main>
+
+<script>
+  const flavorInputs = Array.from(document.querySelectorAll('input[name="sabor"]'));
+  const priceLabel = document.getElementById('product-price');
+  const cartTotal = document.getElementById('cart-total');
+
+  function formatBRL(value) {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function updatePizzaPrice() {
+    const selected = flavorInputs.filter(input => input.checked);
+    if (selected.length === 0) {
+      flavorInputs[0].checked = true;
+      return updatePizzaPrice();
+    }
+    const maxPrice = Math.max(...selected.map(input => Number(input.dataset.price)));
+    priceLabel.textContent = formatBRL(maxPrice);
+    cartTotal.textContent = formatBRL(maxPrice);
+  }
+
+  flavorInputs.forEach(input => {
+    input.addEventListener('change', () => {
+      const selected = flavorInputs.filter(item => item.checked);
+      if (selected.length > 2) {
+        input.checked = false;
+      }
+      if (selected.length === 0) {
+        input.checked = true;
+      }
+      updatePizzaPrice();
+    });
+  });
+
+  updatePizzaPrice();
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>

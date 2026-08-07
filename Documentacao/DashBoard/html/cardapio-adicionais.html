@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Brasa Burguer | Adicionais
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="assets/styles.css" rel="stylesheet"/>
+ </head>
+ <body class="">
+  <div aria-labelledby="mobileMenuLabel" class="offcanvas offcanvas-start" id="mobileMenu" tabindex="-1">
+   <div class="offcanvas-header border-bottom border-light border-opacity-10">
+    <div class="d-flex align-items-center gap-2">
+     <img alt="Brasa Burguer" src="assets/logo.png" style="width:58px;height:58px;object-fit:contain"/>
+     <div>
+      <h5 class="offcanvas-title fw-bold mb-0" id="mobileMenuLabel">
+       Brasa Burguer
+      </h5>
+      <small class="text-white-50">
+       Painel do Restaurante
+      </small>
+     </div>
+    </div>
+    <button aria-label="Fechar" class="btn-close" data-bs-dismiss="offcanvas" type="button">
+    </button>
+   </div>
+   <div class="offcanvas-body d-flex flex-column">
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app active" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </div>
+  </div>
+  <div class="app-shell">
+   <aside class="sidebar">
+    <div class="brand">
+     <img alt="Logo Brasa Burguer" class="brand-logo" src="assets/logo.png"/>
+     <div>
+      <div class="brand-name">
+       Brasa Burguer
+      </div>
+      <div class="brand-subtitle">
+       Painel do Restaurante
+      </div>
+     </div>
+    </div>
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app active" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </aside>
+   <main class="main">
+    <div class="mobile-top">
+     <button class="btn btn-light border rounded-4" data-bs-target="#mobileMenu" data-bs-toggle="offcanvas" type="button">
+      <i class="bi bi-list fs-4">
+      </i>
+     </button>
+     <div class="mobile-brand">
+      <img alt="Brasa Burguer" src="assets/logo.png"/>
+      Brasa Burguer
+     </div>
+    </div>
+    <div class="topbar">
+     <div>
+      <div class="page-title-wrap">
+       <h1 class="page-title">
+        Adicionais
+       </h1>
+      </div>
+      <p class="page-subtitle">
+       Gerencie complementos e extras dos produtos.
+      </p>
+     </div>
+     <div class="top-actions">
+      <div class="segmented">
+       <button class="active" type="button">
+        Hoje
+       </button>
+       <button type="button">
+        Semana
+       </button>
+       <button type="button">
+        Mês
+       </button>
+      </div>
+      <button class="btn-soft" type="button">
+       <i class="bi bi-arrow-clockwise">
+       </i>
+       Atualizar
+      </button>
+      <button aria-label="Notificações" class="icon-btn" type="button">
+       <i class="bi bi-bell">
+       </i>
+       <span class="dot-badge">
+        5
+       </span>
+      </button>
+      <div class="date-pill">
+       <i class="bi bi-calendar3">
+       </i>
+       <span>
+        Hoje, 23 de Maio
+       </span>
+       <i class="bi bi-chevron-down small">
+       </i>
+      </div>
+     </div>
+    </div>
+    <div class="notice">
+     <i class="bi bi-check-circle">
+     </i>
+     <span>
+      Sua mensalidade está em dia! Próximo vencimento 10/07/26
+     </span>
+    </div>
+    <div class="menu-tabs">
+     <a class="" href="cardapio-categorias.html">
+      <i class="bi bi-layers">
+      </i>
+      Categorias
+     </a>
+     <a class="" href="cardapio-produtos.html">
+      <i class="bi bi-bag">
+      </i>
+      Produtos
+     </a>
+     <a class="active" href="cardapio-adicionais.html">
+      <i class="bi bi-plus-square">
+      </i>
+      Adicionais
+     </a>
+    </div>
+    <section class="row g-3">
+     <div class="col-12 col-xl-8">
+      <div class="content-card">
+       <div class="content-head">
+        <h2>
+         Adicionais cadastrados
+        </h2>
+        <a class="btn-primary-app btn-orange" href="#">
+         <i class="bi bi-plus">
+         </i>
+         Novo adicional
+        </a>
+       </div>
+       <div class="table-responsive">
+        <table class="table">
+         <thead>
+          <tr>
+           <th>
+            Adicional
+           </th>
+           <th>
+            Grupo
+           </th>
+           <th class="text-center">
+            Preço
+           </th>
+           <th>
+            Status
+           </th>
+           <th class="text-end">
+            Ações
+           </th>
+          </tr>
+         </thead>
+         <tbody>
+          <tr>
+           <td data-label="Adicional">
+            <strong>
+             Bacon extra
+            </strong>
+            <div class="product-desc">
+             Fatias crocantes
+            </div>
+           </td>
+           <td data-label="Grupo">
+            Extras
+           </td>
+           <td class="text-center" data-label="Preço">
+            R$ 5,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Adicional">
+            <strong>
+             Cheddar
+            </strong>
+            <div class="product-desc">
+             Queijo cremoso
+            </div>
+           </td>
+           <td data-label="Grupo">
+            Extras
+           </td>
+           <td class="text-center" data-label="Preço">
+            R$ 4,00
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+          <tr>
+           <td data-label="Adicional">
+            <strong>
+             Molho especial
+            </strong>
+           </td>
+           <td data-label="Grupo">
+            Molhos
+           </td>
+           <td class="text-center" data-label="Preço">
+            R$ 2,50
+           </td>
+           <td data-label="Status">
+            <span class="badge-soft badge-green">
+             Ativo
+            </span>
+           </td>
+           <td class="text-end" data-label="Ações">
+            <span class="action-buttons">
+             <button class="small-icon-btn">
+              <i class="bi bi-pencil">
+              </i>
+             </button>
+             <button class="small-icon-btn">
+              <i class="bi bi-trash">
+              </i>
+             </button>
+            </span>
+           </td>
+          </tr>
+         </tbody>
+        </table>
+       </div>
+      </div>
+     </div>
+     <div class="col-12 col-xl-4">
+      <div class="form-card p-4">
+       <h2 class="h5 fw-bold mb-3">
+        Novo adicional
+       </h2>
+       <div class="mb-3">
+        <label class="form-label-app">
+         Nome
+        </label>
+        <input class="form-control-app" placeholder="Ex.: Bacon extra"/>
+       </div>
+       <div class="mb-3">
+        <label class="form-label-app">
+         Grupo
+        </label>
+        <select class="form-select-app">
+         <option>
+          Extras
+         </option>
+         <option>
+          Molhos
+         </option>
+        </select>
+       </div>
+       <div class="mb-4">
+        <label class="form-label-app">
+         Preço
+        </label>
+        <input class="form-control-app" value="R$ 5,00"/>
+       </div>
+       <button class="btn-primary-app btn-orange w-100">
+        Salvar adicional
+       </button>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+  </script>
+ </body>
+</html>

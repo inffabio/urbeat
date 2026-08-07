@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Brasa Burguer | Clientes
+  </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="assets/styles.css" rel="stylesheet"/>
+ </head>
+ <body class="">
+  <div aria-labelledby="mobileMenuLabel" class="offcanvas offcanvas-start" id="mobileMenu" tabindex="-1">
+   <div class="offcanvas-header border-bottom border-light border-opacity-10">
+    <div class="d-flex align-items-center gap-2">
+     <img alt="Brasa Burguer" src="assets/logo.png" style="width:58px;height:58px;object-fit:contain"/>
+     <div>
+      <h5 class="offcanvas-title fw-bold mb-0" id="mobileMenuLabel">
+       Brasa Burguer
+      </h5>
+      <small class="text-white-50">
+       Painel do Restaurante
+      </small>
+     </div>
+    </div>
+    <button aria-label="Fechar" class="btn-close" data-bs-dismiss="offcanvas" type="button">
+    </button>
+   </div>
+   <div class="offcanvas-body d-flex flex-column">
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app active" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </div>
+  </div>
+  <div class="app-shell">
+   <aside class="sidebar">
+    <div class="brand">
+     <img alt="Logo Brasa Burguer" class="brand-logo" src="assets/logo.png"/>
+     <div>
+      <div class="brand-name">
+       Brasa Burguer
+      </div>
+      <div class="brand-subtitle">
+       Painel do Restaurante
+      </div>
+     </div>
+    </div>
+    <div class="store-card">
+     <div class="d-flex align-items-center gap-2">
+      <span class="status-dot">
+      </span>
+      <div>
+       <strong>
+        Loja aberta
+       </strong>
+       <span>
+        Recebendo pedidos
+       </span>
+      </div>
+     </div>
+     <i class="bi bi-chevron-right">
+     </i>
+    </div>
+    <div class="menu-label">
+     Menu
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="index.html">
+      <i class="bi bi-grid">
+      </i>
+      <span>
+       Dashboard
+      </span>
+     </a>
+     <a class="nav-link-app" href="pedidos.html">
+      <i class="bi bi-clipboard-check">
+      </i>
+      <span>
+       Pedidos
+      </span>
+      <span class="nav-badge">
+       12
+      </span>
+     </a>
+     <a class="nav-link-app" href="cardapio-categorias.html">
+      <i class="bi bi-shop-window">
+      </i>
+      <span>
+       Cardápio
+      </span>
+     </a>
+     <a class="nav-link-app active" href="clientes.html">
+      <i class="bi bi-people">
+      </i>
+      <span>
+       Clientes
+      </span>
+     </a>
+     <a class="nav-link-app" href="entregas.html">
+      <i class="bi bi-truck">
+      </i>
+      <span>
+       Entregas
+      </span>
+     </a>
+    </nav>
+    <div class="menu-label mt-3">
+     Sistema
+    </div>
+    <nav class="nav-section">
+     <a class="nav-link-app" href="mensalidade.html">
+      <i class="bi bi-credit-card">
+      </i>
+      <span>
+       Mensalidade
+      </span>
+     </a>
+     <a class="nav-link-app" href="instalar.html">
+      <i class="bi bi-download">
+      </i>
+      <span>
+       Instalar
+      </span>
+     </a>
+     <a class="nav-link-app" href="configuracoes-horarios.html">
+      <i class="bi bi-gear">
+      </i>
+      <span>
+       Configurações
+      </span>
+     </a>
+    </nav>
+    <div class="sidebar-bottom">
+     <a class="mini-btn support-card" href="https://wa.me/5500000000000" target="_blank">
+      <i class="bi bi-whatsapp">
+      </i>
+      <span>
+       Precisa de ajuda?
+       <small>
+        Fale com nosso suporte
+       </small>
+      </span>
+     </a>
+     <a class="mini-btn" href="login.html">
+      <i class="bi bi-box-arrow-right">
+      </i>
+      <span>
+       Sair
+      </span>
+     </a>
+    </div>
+   </aside>
+   <main class="main">
+    <div class="mobile-top">
+     <button class="btn btn-light border rounded-4" data-bs-target="#mobileMenu" data-bs-toggle="offcanvas" type="button">
+      <i class="bi bi-list fs-4">
+      </i>
+     </button>
+     <div class="mobile-brand">
+      <img alt="Brasa Burguer" src="assets/logo.png"/>
+      Brasa Burguer
+     </div>
+    </div>
+    <div class="topbar">
+     <div>
+      <div class="page-title-wrap">
+       <h1 class="page-title">
+        Clientes
+       </h1>
+      </div>
+      <p class="page-subtitle">
+       Gerencie seus clientes e acompanhe seus pedidos
+      </p>
+     </div>
+     <div class="top-actions">
+      <div class="segmented">
+       <button class="active" type="button">
+        Hoje
+       </button>
+       <button type="button">
+        Semana
+       </button>
+       <button type="button">
+        Mês
+       </button>
+      </div>
+      <button class="btn-soft" type="button">
+       <i class="bi bi-arrow-clockwise">
+       </i>
+       Atualizar
+      </button>
+      <button aria-label="Notificações" class="icon-btn" type="button">
+       <i class="bi bi-bell">
+       </i>
+       <span class="dot-badge">
+        5
+       </span>
+      </button>
+      <div class="date-pill">
+       <i class="bi bi-calendar3">
+       </i>
+       <span>
+        Hoje, 23 de Maio
+       </span>
+       <i class="bi bi-chevron-down small">
+       </i>
+      </div>
+     </div>
+    </div>
+    <div class="notice">
+     <i class="bi bi-check-circle">
+     </i>
+     <span>
+      Sua mensalidade está em dia! Próximo vencimento 10/07/26
+     </span>
+    </div>
+    <section class="metrics-grid four">
+     <div class="metric-card">
+      <div class="metric-icon orange">
+       <i class="bi bi-people">
+       </i>
+      </div>
+      <div>
+       <div class="metric-label">
+        Total de clientes
+       </div>
+       <div class="metric-value">
+        125
+       </div>
+       <div class="trend">
+        +8
+        <span>
+         novos este mês
+        </span>
+       </div>
+      </div>
+     </div>
+     <div class="metric-card">
+      <div class="metric-icon green">
+       <i class="bi bi-bag">
+       </i>
+      </div>
+      <div>
+       <div class="metric-label">
+        Clientes ativos
+       </div>
+       <div class="metric-value">
+        87
+       </div>
+       <div class="attention text-secondary">
+        Fizeram pedidos este mês
+       </div>
+      </div>
+     </div>
+     <div class="metric-card">
+      <div class="metric-icon">
+       <i class="bi bi-star">
+       </i>
+      </div>
+      <div>
+       <div class="metric-label">
+        Clientes recorrentes
+       </div>
+       <div class="metric-value">
+        62
+       </div>
+       <div class="attention text-secondary">
+        Mais de 2 pedidos
+       </div>
+      </div>
+     </div>
+     <div class="metric-card">
+      <div class="metric-icon yellow">
+       <i class="bi bi-currency-dollar">
+       </i>
+      </div>
+      <div>
+       <div class="metric-label">
+        Ticket médio
+       </div>
+       <div class="metric-value">
+        R$ 48,60
+       </div>
+       <div class="attention text-secondary">
+        Por cliente
+       </div>
+      </div>
+     </div>
+    </section>
+    <div class="filter-bar">
+     <div class="search-wrap">
+      <i class="bi bi-search">
+      </i>
+      <input class="form-control-app" placeholder="Buscar por nome, telefone ou e-mail..."/>
+     </div>
+     <select class="form-select-app">
+      <option>
+       Todos os status
+      </option>
+     </select>
+     <select class="form-select-app">
+      <option>
+       Mais pedidos
+      </option>
+     </select>
+     <button class="btn-soft">
+      <i class="bi bi-download">
+      </i>
+      Exportar
+     </button>
+    </div>
+    <div class="content-card">
+     <div class="table-responsive">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>
+          Cliente
+         </th>
+         <th>
+          Contato
+         </th>
+         <th class="text-center">
+          Pedidos
+         </th>
+         <th>
+          Total gasto
+         </th>
+         <th>
+          Último pedido
+         </th>
+         <th>
+          Status
+         </th>
+         <th class="text-end">
+          Ações
+         </th>
+        </tr>
+       </thead>
+       <tbody>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            EL
+           </span>
+           <strong>
+            Elizabeth Souza
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 98765-4321
+          </strong>
+          <div class="text-secondary">
+           elizabeth@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          12
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 586,40
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          23/05/2026 20:26
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-green">
+           Ativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            LR
+           </span>
+           <strong>
+            Larissa Lima
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 97654-3210
+          </strong>
+          <div class="text-secondary">
+           larissa@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          8
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 392,30
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          16/05/2026 18:57
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-green">
+           Ativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            AL
+           </span>
+           <strong>
+            Ana Letícia
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 96543-2187
+          </strong>
+          <div class="text-secondary">
+           ana.leticia@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          5
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 198,70
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          15/05/2026 21:15
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-green">
+           Ativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            JP
+           </span>
+           <strong>
+            João Pedro
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 91234-5678
+          </strong>
+          <div class="text-secondary">
+           joao@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          3
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 122,90
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          12/05/2026 19:32
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-gray">
+           Inativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            MS
+           </span>
+           <strong>
+            Mariana Silva
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 99876-5432
+          </strong>
+          <div class="text-secondary">
+           mariana@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          2
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 89,80
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          08/05/2026 20:10
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-green">
+           Ativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            RC
+           </span>
+           <strong>
+            Rafael Costa
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 94444-1111
+          </strong>
+          <div class="text-secondary">
+           rafael@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          1
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 45,90
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          05/05/2026 13:40
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-gray">
+           Inativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+        <tr>
+         <td data-label="Cliente">
+          <div class="d-flex align-items-center gap-3">
+           <span class="badge-soft badge-purple rounded-circle" style="width:42px;height:42px">
+            TC
+           </span>
+           <strong>
+            Thais Carvalho
+           </strong>
+          </div>
+         </td>
+         <td data-label="Contato">
+          <strong>
+           (11) 93333-2222
+          </strong>
+          <div class="text-secondary">
+           thais@email.com
+          </div>
+         </td>
+         <td class="text-center" data-label="Pedidos">
+          1
+         </td>
+         <td data-label="Total gasto">
+          <strong>
+           R$ 42,50
+          </strong>
+         </td>
+         <td data-label="Último pedido">
+          02/05/2026 18:20
+         </td>
+         <td data-label="Status">
+          <span class="badge-soft badge-green">
+           Ativo
+          </span>
+         </td>
+         <td class="text-end" data-label="Ações">
+          <span class="action-buttons">
+           <button class="small-icon-btn">
+            <i class="bi bi-eye">
+            </i>
+           </button>
+           <button class="small-icon-btn">
+            <i class="bi bi-pencil">
+            </i>
+           </button>
+          </span>
+         </td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+     <div class="p-3 d-flex justify-content-between align-items-center">
+      <span class="text-secondary small fw-bold">
+       Mostrando 1 a 7 de 125 clientes
+      </span>
+      <div class="d-flex gap-2">
+       <button class="small-icon-btn">
+        <i class="bi bi-chevron-left">
+        </i>
+       </button>
+       <button class="small-icon-btn bg-primary text-white">
+        1
+       </button>
+       <button class="small-icon-btn">
+        2
+       </button>
+       <button class="small-icon-btn">
+        3
+       </button>
+       <button class="small-icon-btn">
+        <i class="bi bi-chevron-right">
+        </i>
+       </button>
+      </div>
+     </div>
+    </div>
+   </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+  </script>
+ </body>
+</html>

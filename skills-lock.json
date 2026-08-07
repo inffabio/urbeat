@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "cloudinary-docs": {
+      "source": "cloudinary-devs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloudinary-docs/SKILL.md",
+      "computedHash": "7dc9abb55191801b0699b86620e48d3cc6dd2218c25c9d914fb19e37be3fdec8"
+    },
+    "cloudinary-transformations": {
+      "source": "cloudinary-devs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/cloudinary-transformations/SKILL.md",
+      "computedHash": "2fc5f334481c2e9e11b3d17d9f6534fd103607dd16b77d6b595e4d8b89d23bcf"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "323ab119c7b96c1a82e750eb7742ffeb5cb129f240c223628c0434e15829dc9f"
+    }
+  }
+}

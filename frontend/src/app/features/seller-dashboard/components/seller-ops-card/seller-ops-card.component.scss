@@ -1,0 +1,47 @@
+.ops-card {
+  min-height: 176px;
+  padding: 16px;
+  border: 1px solid #e7e9f3;
+  border-radius: 22px;
+  background: var(--app-surface, #fff);
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  box-shadow: 0 14px 34px rgba(40, 44, 80, 0.06);
+}
+
+.ops-card.has-new {
+  border-color: #ff763f;
+  background: #fff1ea;
+}
+
+.ops-kicker {
+  color: #ff4b1f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+h2 {
+  margin: 0;
+  color: #111426;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+p {
+  margin: 0;
+  color: #7d8298;
+  font-size: 13px;
+}
+
+a {
+  min-height: 38px;
+  margin-top: 6px;
+  color: #ff4b1f;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: none;
+}

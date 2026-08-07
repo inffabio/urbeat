@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Cardápio • Brasa Burger</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<!-- Line Icons -->
+<link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet"/>
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet"/>
+<link href="css/styles.css" rel="stylesheet"/>
+<!-- Ajustes específicos desta versão da página index -->
+<style>
+    .store-metrics {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 8px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 22px;
+    }
+
+    .store-metrics .metric {
+      padding: 0 8px;
+      border-right: 1px solid var(--line);
+      min-width: 0;
+    }
+
+    .store-metrics .metric:last-child {
+      border-right: 0;
+    }
+
+    .store-metrics .metric strong {
+      font-size: 15px;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .store-metrics .metric span {
+      font-size: 11px;
+      line-height: 1.15;
+    }
+
+    .store-metrics .metric.status-open strong {
+      color: #138a36;
+    }
+
+    .tabs {
+      gap: 10px;
+    }
+
+    .tab {
+      font-size: 15px;
+    }
+
+    .category-head {
+      padding: 18px 4px 0;
+      justify-content: flex-start;
+    }
+
+    .category-head h2 {
+      font-size: 20px;
+      font-weight: 850;
+      letter-spacing: -0.035em;
+    }
+
+    .store-footer.store-name-only {
+      gap: 0;
+      color: #8a8a8f;
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .store-footer.store-name-only span {
+      font-weight: 400;
+    }
+
+
+    .pizza-menu-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px;
+      gap: 12px;
+      align-items: stretch;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .pizza-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .pizza-size-option {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 78px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .2s ease, transform .2s ease, background .2s ease;
+    }
+
+    .pizza-size-option.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(213, 74, 81, .08), rgba(255, 255, 255, 1));
+    }
+
+    .pizza-size-option:hover,
+    .pizza-size-option:focus-visible {
+      border-color: var(--primary);
+      background: #FDECEE;
+      box-shadow: 0 10px 24px rgba(213, 74, 81, .12);
+      outline: none;
+    }
+
+
+    .pizza-size-option:active {
+      transform: scale(.98);
+    }
+
+    .pizza-size-option .size-name {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 2px;
+    }
+
+    .pizza-size-option .size-meta,
+    .pizza-size-option .size-label {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+
+    .pizza-size-option .size-price {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      margin-top: 1px;
+    }
+
+    .pizza-size-option .size-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .pizza-photo {
+      display: block;
+      overflow: hidden;
+      border-radius: 14px;
+      min-height: 164px;
+      background: #f4f0ec;
+    }
+
+    .pizza-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+
+
+    .pizza-list-section {
+      gap: 10px;
+    }
+
+    .pizza-product-row {
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+
+    .pizza-product-row:hover,
+    .pizza-product-row:focus-visible {
+      background: #FDECEE;
+      border-color: rgba(213, 74, 81, .35);
+      box-shadow: 0 12px 26px rgba(213, 74, 81, .12);
+      outline: none;
+    }
+
+    .pizza-product-row:active {
+      transform: scale(.985);
+    }
+
+    .pizza-product-row .product-info h3 {
+      font-size: 18px;
+    }
+
+    .pizza-product-row .product-info p {
+      font-size: 13px;
+    }
+
+    .pizza-product-row .price {
+      margin-top: 6px;
+    }
+
+
+
+    /* V2.0 - index sem sombreados em menu e boxes */
+    .tabs.category-pills {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 12px;
+    }
+
+    .tabs.category-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tabs.category-pills .tab,
+    .tabs.category-pills .tab.active {
+      box-shadow: none !important;
+    }
+
+    .store-panel .product-card {
+      box-shadow: none !important;
+    }
+
+    .store-panel .product-card:hover,
+    .store-panel .product-card:focus-visible,
+    .store-panel .product-card.product-link:hover,
+    .store-panel .product-card.product-link:focus-visible,
+    .store-panel .pizza-product-row:hover,
+    .store-panel .pizza-product-row:focus-visible {
+      background: #FDECEE;
+      border-color: rgba(213, 74, 81, .35);
+      box-shadow: none !important;
+      outline: none;
+    }
+
+    .product-art {
+      width: 112px;
+      height: 96px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      overflow: hidden;
+      border: 1px solid rgba(234,223,214,.75);
+    }
+
+    .product-art i {
+      font-size: 44px;
+      color: var(--orange);
+    }
+
+    .product-art.acai-art {
+      background: linear-gradient(135deg, #5d1b71, #a640c8 55%, #f4d6ff);
+    }
+
+    .product-art.acai-art i {
+      color: #fff;
+    }
+
+    .product-art.empada-art {
+      background: linear-gradient(135deg, #FDECEE, #F8D4D7);
+    }
+
+    @media (max-width: 400px) {
+      .store-metrics {
+        padding: 12px 5px;
+      }
+
+      .store-metrics .metric {
+        gap: 5px;
+        padding: 0 5px;
+      }
+
+      .store-metrics .metric strong {
+        font-size: 13px;
+      }
+
+      .store-metrics .metric span {
+        font-size: 10px;
+      }
+
+      .category-head h2 {
+        font-size: 18px;
+      }
+
+      .pizza-menu-card {
+        grid-template-columns: minmax(0, 1fr) 112px;
+        gap: 8px;
+        padding: 9px;
+      }
+
+      .pizza-options-grid {
+        gap: 6px;
+      }
+
+      .pizza-size-option {
+        min-height: 68px;
+        padding: 9px 9px;
+      }
+
+      .pizza-size-option .size-name {
+        font-size: 11px;
+      }
+
+      .pizza-size-option .size-meta,
+      .pizza-size-option .size-label {
+        font-size: 9px;
+      }
+
+      .pizza-size-option .size-price {
+        font-size: 10px;
+      }
+
+      .pizza-photo {
+        min-height: 142px;
+      }
+
+      .product-art {
+        width: 96px;
+        height: 86px;
+      }
+
+      .product-art i {
+        font-size: 36px;
+      }
+    }
+  
+
+    /* V2.1 - correção definitiva da barra de categorias */
+    .store-panel .tabs.category-pills {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      gap: 10px !important;
+      width: calc(100% + 44px) !important;
+      max-width: none !important;
+      margin: 18px -22px 6px !important;
+      padding: 0 22px 12px !important;
+      overflow-x: scroll !important;
+      overflow-y: hidden !important;
+      white-space: nowrap !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+      touch-action: pan-x !important;
+      overscroll-behavior-x: contain !important;
+    }
+
+    .store-panel .tabs.category-pills::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .store-panel .tabs.category-pills .tab {
+      flex: 0 0 auto !important;
+      min-width: max-content !important;
+      height: 46px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 18px !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 999px !important;
+      background: #fff !important;
+      color: #252525 !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      box-shadow: none !important;
+      border-bottom: 1px solid var(--line) !important;
+    }
+
+    .store-panel .tabs.category-pills .tab.active {
+      background: var(--orange) !important;
+      border-color: var(--orange) !important;
+      color: #fff !important;
+      box-shadow: none !important;
+    }
+
+    .store-panel .tabs.category-pills .tab:hover,
+    .store-panel .tabs.category-pills .tab:focus-visible {
+      background: #FDECEE !important;
+      border-color: rgba(213, 74, 81, .42) !important;
+      color: var(--orange) !important;
+      outline: none !important;
+    }
+
+    .store-panel .tabs.category-pills .tab.active:hover,
+    .store-panel .tabs.category-pills .tab.active:focus-visible {
+      background: var(--orange) !important;
+      color: #fff !important;
+    }
+
+    .store-panel .tabs.category-pills::after {
+      content: "";
+      flex: 0 0 22px;
+    }
+
+  </style>
+</head>
+<body>
+<main class="app-shell">
+<div class="statusbar">
+<span>9:41</span>
+<div class="status-icons">
+<span class="signal"><i></i><i></i><i></i><i></i></span>
+<span class="wifi"></span>
+<span class="battery"></span>
+</div>
+</div>
+<section class="hero">
+<img alt="Combo de hambúrguer, batata frita e refrigerante" src="assets/images/hero-combo.png"/>
+<div class="hero-actions">
+<a aria-label="Voltar" class="circle-btn" href="#"><i class="bi bi-arrow-left icon"></i></a>
+</div>
+</section>
+<section class="store-panel">
+<div class="store-logo">
+<img alt="Logo Brasa Burger" src="assets/images/logo.png"/>
+</div>
+<h1 class="store-title">Bucks Burgueria</h1>
+<p class="store-sub">Hambúrgueres e Lanches</p>
+<div aria-label="Informações do restaurante" class="metrics store-metrics">
+<div class="metric status-open">
+<i class="bi bi-check-circle icon-sm"></i>
+<div>
+<strong>Aberta</strong>
+<span>Status da loja</span>
+</div>
+</div>
+<div class="metric">
+<i class="bi bi-clock icon-sm"></i>
+<div>
+<strong>30–45 min</strong>
+<span>Tempo médio</span>
+</div>
+</div>
+<div class="metric">
+<i class="bi bi-credit-card icon-sm"></i>
+<div>
+<strong>R$ 20,00</strong>
+<span>Pedido mínimo</span>
+</div>
+</div>
+</div>
+<div class="search-wrap" id="buscar">
+<label class="search-box">
+<i class="bi bi-search icon"></i>
+<input aria-label="Buscar produtos" placeholder="Buscar produtos..." type="search"/>
+</label>
+<button aria-label="Filtros" class="filter-btn"><i class="bi bi-sliders icon"></i></button>
+</div>
+<div aria-label="Categorias" class="tabs category-pills" role="tablist">
+<a class="tab active" href="#todos">Todos</a>
+<a class="tab" href="#combos">Combos</a>
+<a class="tab" href="#hamburgueres">Hambúrgueres</a>
+<a class="tab" href="#pizzas">Pizzas</a>
+<a class="tab" href="#bebidas">Bebidas</a>
+<a class="tab" href="#acompanhamentos">Acompanhamentos</a>
+<a class="tab" href="#acai">Açaí</a>
+<a class="tab" href="#empadas">Empadas</a>
+</div>
+<div class="product-list" id="todos">
+<section aria-labelledby="titulo-combos" class="category-section" id="combos">
+<div class="category-head">
+<h2 id="titulo-combos">Combos</h2>
+</div>
+<a aria-label="Abrir Combo Hambúrguer + Batata + Coca-Cola" class="product-card featured-combo product-link" href="carrinho.html">
+
+<img alt="Combo Hambúrguer, Batata e Coca-Cola" src="assets/images/combo-burger-fries-coke.png"/>
+
+<div class="product-info">
+<h3>Combo Hambúrguer + Batata + Coca-Cola</h3>
+<p>O combo perfeito para matar a fome! Hambúrguer artesanal, batata frita crocante e uma Coca-Cola bem gelada. Peça agora e aproveite essa combinação irresistível!</p>
+<div class="price">R$ 36,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-hamburgueres" class="category-section" id="hamburgueres">
+<div class="category-head">
+<h2 id="titulo-hamburgueres">Hambúrgueres</h2>
+</div>
+<a aria-label="Abrir Brasa Burger" class="product-card product-link" href="carrinho.html">
+
+<img alt="Brasa Burger" src="assets/images/burger.png"/>
+
+<div class="product-info">
+<h3>Brasa Burger</h3>
+<p>Pão brioche, 180g de blend, cheddar, alface, tomate, cebola roxa e molho especial.</p>
+<div class="price">R$ 26,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-pizzas" class="category-section pizza-list-section" id="pizzas">
+<div class="category-head">
+<h2 id="titulo-pizzas">Pizzas</h2>
+</div>
+<a aria-label="Abrir Pizza Pequena 25 cm" class="product-card pizza-product-row" href="pizza-pequena.html">
+<img alt="Pizza Pequena 25 cm" src="assets/images/pizza-meio-a-meio.png"/>
+<div class="product-info">
+<h3>Pizza Pequena - 25 cm</h3>
+<p>1 sabor • 4 fatias</p>
+<div class="price">R$ 43,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+<a aria-label="Abrir Pizza Média 35 cm" class="product-card pizza-product-row" href="pizza-media.html">
+<img alt="Pizza Média 35 cm" src="assets/images/pizza-meio-a-meio.png"/>
+<div class="product-info">
+<h3>Pizza Média - 35 cm</h3>
+<p>2 sabores • 6 fatias</p>
+<div class="price">R$ 53,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+<a aria-label="Abrir Pizza Grande 40 cm" class="product-card pizza-product-row" href="pizza-grande.html">
+<img alt="Pizza Grande 40 cm" src="assets/images/pizza-meio-a-meio.png"/>
+<div class="product-info">
+<h3>Pizza Grande - 40 cm</h3>
+<p>3 sabores • 10 fatias</p>
+<div class="price">R$ 63,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+<a aria-label="Abrir Pizza Gigante 45 cm" class="product-card pizza-product-row" href="pizza-gigante.html">
+<img alt="Pizza Gigante 45 cm" src="assets/images/pizza-meio-a-meio.png"/>
+<div class="product-info">
+<h3>Pizza Gigante - 45 cm</h3>
+<p>4 sabores • 12 fatias</p>
+<div class="price">R$ 73,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-bebidas" class="category-section" id="bebidas">
+<div class="category-head">
+<h2 id="titulo-bebidas">Bebidas</h2>
+</div>
+<a aria-label="Abrir Coca-Cola Lata 350ml" class="product-card product-link" href="carrinho.html">
+
+<img alt="Coca-Cola lata 350ml" src="assets/images/coke.png"/>
+
+<div class="product-info">
+<h3>Coca-Cola Lata 350ml</h3>
+<p>O sabor de sempre para acompanhar sua refeição.</p>
+<div class="price">R$ 6,50</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-acompanhamentos" class="category-section" id="acompanhamentos">
+<div class="category-head">
+<h2 id="titulo-acompanhamentos">Acompanhamentos</h2>
+</div>
+<a aria-label="Abrir Onion Rings" class="product-card product-link" href="carrinho.html">
+
+<img alt="Onion Rings" src="assets/images/onion.png"/>
+
+<div class="product-info">
+<h3>Onion Rings</h3>
+<p>Anéis de cebola empanados e crocantes. Acompanha molho.</p>
+<div class="price">R$ 14,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-acai" class="category-section" id="acai">
+<div class="category-head">
+<h2 id="titulo-acai">Açaí</h2>
+</div>
+<a aria-label="Abrir Açaí Especial no Copo" class="product-card product-link" href="produto-acai.html">
+<img alt="Açaí Especial no Copo" src="assets/images/acai-no-copo.jpg"/>
+<div class="product-info">
+<h3>Açaí Especial no Copo</h3>
+<p>Açaí cremoso com complementos e coberturas a sua escolha. 300 ml, 500 ml e 700 ml. A partir de</p>
+<div class="price">R$ 18,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+<section aria-labelledby="titulo-empadas" class="category-section" id="empadas">
+<div class="category-head">
+<h2 id="titulo-empadas">Empadas</h2>
+</div>
+<a aria-label="Abrir Empada de Frango" class="product-card product-link" href="produto-empada.html">
+<img alt="Empada de Frango" src="assets/images/empada-de-frango.jpg"/>
+<div class="product-info">
+<h3>Empada de Frango</h3>
+<p>Massa amanteigada, recheio cremoso de frango e tempero da casa.</p>
+<div class="price">R$ 8,90</div>
+</div>
+<span aria-hidden="true" class="add-btn">
+<i class="bi bi-plus-lg icon"></i>
+</span>
+</a>
+</section>
+</div>
+</section>
+<a aria-label="Ver sacola" class="floating-cart" href="carrinho.html">
+<div class="bag-wrap">
+<i class="bi bi-bag icon-lg"></i>
+<span class="cart-count">2</span>
+</div>
+<strong>Ver sacola</strong>
+<span class="vline"></span>
+<span class="cart-price">R$ 63,80 ›</span>
+</a>
+
+  <footer class="footer-nav" aria-label="Navegação principal">
+    <a class="active" href="index.html" aria-current="page">
+      <i class="bi bi-shop-window" aria-hidden="true"></i>
+      <span>Cardápio</span>
+    </a>
+    <a href="confirmado.html">
+      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+      <span>Pedidos</span>
+    </a>
+    <a href="carrinho.html">
+      <i class="bi bi-bag-check" aria-hidden="true"></i>
+      <span>Carrinho</span>
+    </a>
+    <a href="checkout.html">
+      <i class="bi bi-person-circle" aria-hidden="true"></i>
+      <span>Conta</span>
+    </a>
+  </footer>
+<script src="js/app.js"></script>
+</main>
+</body>
+</html>

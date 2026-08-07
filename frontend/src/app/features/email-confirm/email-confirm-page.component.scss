@@ -1,0 +1,124 @@
+:host {
+  --c-primary: var(--app-brand);
+  --c-primary-deep: var(--app-brand-dark);
+  --c-text: var(--app-text-primary);
+  --c-muted: var(--app-text-secondary);
+
+  display: block;
+  background: var(--app-surface);
+  min-height: 100dvh;
+}
+
+.confirm-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 2rem 1rem;
+}
+
+.confirm-card {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.confirm-logo {
+  height: 32px;
+  width: auto;
+  margin-bottom: 2rem;
+}
+
+.spinner-lg {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--app-brand-shadow);
+  border-top-color: var(--c-primary);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.confirm-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-icon-wrap ion-icon {
+  font-size: 2.5rem;
+}
+
+.confirm-icon-wrap.info-state {
+  background: var(--app-brand-shadow);
+  color: var(--c-primary);
+}
+
+.confirm-icon-wrap.success {
+  background: var(--app-success-green-soft);
+  color: var(--app-success-green);
+}
+
+.confirm-icon-wrap.error-state {
+  background: var(--app-error-bg);
+  color: var(--app-brand);
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 1rem;
+}
+
+.confirm-desc {
+  font-size: 0.95rem;
+  color: var(--c-muted);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-status {
+  font-size: 1rem;
+  color: var(--c-muted);
+}
+
+.btn-go {
+  display: inline-block;
+  text-decoration: none;
+  padding: 0.8rem 2rem;
+  background: var(--c-primary);
+  color: var(--app-surface);
+  border: none;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-go:hover {
+  background: var(--c-primary-deep);
+  transform: translateY(-1px);
+}
+
+.btn-go.outline {
+  background: transparent;
+  color: var(--c-primary);
+  border: 1.5px solid var(--c-primary);
+}
+
+.btn-go.outline:hover {
+  background: var(--app-brand-shadow);
+}
+
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

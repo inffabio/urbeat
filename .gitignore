@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+bin/
+obj/
+dist/
+out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Temp
+*.tmp
+*.log
+
+# Test
+TestResults/
+coverage/
+
+# Angular
+.angular/
+*.js.map
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production.local
+docker/.env.production
+scripts/Zohokeys.txt
+*Zoho*.txt
+*zoho*.txt
+*ZOHO*.txt
+
+# Local agent/design artifacts
+.impeccable/critique/
+
+# Certificates
+*.pem
+*.key
+*.crt
+
+# Terraform / IaC
+.terraform/
+*.tfstate
+*.tfstate.backup

@@ -1,0 +1,19 @@
+@use './theme/variables.scss';
+@use './theme/global.scss';
+
+// O vite lida melhor se retirarmos os ionic imports daqui e deixarmos so no angular.json,
+// ou vice versa. Vou tirar daqui ja q estao duplicados
+
+body.landing-page-active ion-app {
+  position: static !important;
+  contain: none !important;
+  display: block;
+}
+
+body.store-page-active ion-app {
+  position: static !important;
+  contain: none !important;
+  overflow: visible !important;
+  display: block !important;
+  min-height: 100vh;
+}

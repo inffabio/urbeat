@@ -1,0 +1,56 @@
+<article
+  class="order-card"
+  [class.is-new]="order().status === OrderStatus.Received"
+  [class.is-realtime-highlight]="highlighted()"
+  tabindex="0"
+  (click)="emitSelect()"
+  (keydown.enter)="emitSelect()"
+>
+  <div class="order-main">
+    <span class="order-code">#{{ order().code }}</span>
+    <strong>{{ formatCurrency(order().total) }}</strong>
+  </div>
+
+  <div class="order-meta">
+    <span>{{ statusLabel(order().status) }}</span>
+    <span>{{ formatTime(order().createdAtUtc) }}</span>
+  </div>
+
+  @if (order().customerName || order().customerPhoneNumber || order().itemsSummary) {
+    <div class="order-summary-details">
+      @if (order().customerName || order().customerPhoneNumber) {
+        <p>
+          @if (order().customerName) { <strong>{{ order().customerName }}</strong> }
+          @if (order().customerPhoneNumber) { <span>{{ order().customerPhoneNumber }}</span> }
+        </p>
+      }
+      @if (order().itemsSummary) {
+        <p>{{ order().itemsSummary }}</p>
+      }
+    </div>
+  }
+
+  @if (fulfillmentLabel(order().fulfillmentType) || paymentLabel(order().paymentMethod) || order().addressSummary) {
+    <div class="order-tags">
+      @if (fulfillmentLabel(order().fulfillmentType)) { <span>{{ fulfillmentLabel(order().fulfillmentType) }}</span> }
+      @if (paymentLabel(order().paymentMethod)) { <span>{{ paymentLabel(order().paymentMethod) }}</span> }
+      @if (order().addressSummary) { <span>{{ order().addressSummary }}</span> }
+    </div>
+  }
+
+  @if (statusActions(order().status).length) {
+    <div class="actions">
+      @for (action of statusActions(order().status); track action.nextStatus) {
+        <button
+          type="button"
+          [class.is-secondary]="action.variant === 'secondary'"
+          [class.is-danger]="action.variant === 'danger'"
+          [disabled]="updatingOrderId() === order().id"
+          (click)="emitAdvance($event, action.nextStatus)"
+        >
+          {{ updatingOrderId() === order().id ? 'Atualizando...' : action.label }}
+        </button>
+      }
+    </div>
+  }
+</article>

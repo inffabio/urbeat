@@ -1,0 +1,189 @@
+<ion-content [fullscreen]="true" class="product-detail-content">
+  @if (product(); as p) {
+    <!-- Hero -->
+    <section class="product-hero">
+      @if (p.imageUrl) {
+        <img [src]="p.imageUrl" [alt]="p.name" />
+      } @else {
+        <div class="hero-placeholder" aria-label="Produto sem imagem">
+          <ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>
+        </div>
+      }
+      <div class="hero-actions">
+        <button class="circle-btn" aria-label="Voltar" (click)="onBack()">
+          <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <!-- Product Sheet -->
+    <section class="product-sheet">
+      <div class="title-price">
+        <h1>{{ p.name }}</h1>
+        <div class="product-price">{{ finalUnitPrice() | brl }}</div>
+      </div>
+
+      <p class="product-desc">{{ p.description }}</p>
+
+      <!-- Variations: Size / Fixed Weight / Legacy -->
+      @if (hasActiveVariations()) {
+        <div class="section-title">
+          <h2>{{ isSizeMode() ? 'Tamanho' : isFixedWeightMode() ? 'Peso' : 'Variações' }}</h2>
+          <span>{{ isLegacyVariationMode() ? 'Escolha 1 opção' : 'Escolha 1 opção' }}</span>
+        </div>
+        <div class="og-buttons">
+          @for (v of (isSizeMode() || isFixedWeightMode() ? activeVariations() : (product()?.variations ?? [])); track v.id) {
+            @if (v.isActive) {
+              <label class="og-btn" [class.active]="selectedVariation()?.id === v.id">
+                <input class="control-input" type="radio" name="variation" [checked]="selectedVariation()?.id === v.id" (change)="selectVariation(v)" />
+                @if (selectedVariation()?.id === v.id) {
+                  <span class="og-btn-check"><ion-icon name="checkmark"></ion-icon></span>
+                }
+                <strong>{{ v.name }}</strong>
+                @if (v.description) { <small>{{ v.description }}</small> }
+                @if (variationPriceLabel(v)) { <small>{{ variationPriceLabel(v) }}</small> }
+              </label>
+            }
+          }
+        </div>
+      }
+
+      <!-- Variable weight stepper -->
+      @if (isVariableWeightMode() && weightConfig(); as cfg) {
+        <div class="section-title">
+          <h2>Peso</h2>
+          <span>{{ cfg.minGrams }}g – {{ cfg.maxGrams >= 1000 ? ((cfg.maxGrams / 1000).toFixed(2).replace('.', ',') + ' kg') : (cfg.maxGrams + ' g') }}</span>
+        </div>
+        <div class="weight-stepper">
+          <button class="weight-btn" [disabled]="selectedWeightGrams() <= cfg.minGrams" (click)="incrementWeight(-1)">−</button>
+          <div class="weight-value">
+            <strong>{{ selectedWeightGrams() >= 1000 ? ((selectedWeightGrams() / 1000).toFixed(2).replace('.', ',') + ' kg') : (selectedWeightGrams() + ' g') }}</strong>
+            <small>{{ 'R$ ' + (cfg.pricePerKg * selectedWeightGrams() / 1000).toFixed(2).replace('.', ',') }}</small>
+          </div>
+          <button class="weight-btn" [disabled]="selectedWeightGrams() >= cfg.maxGrams" (click)="incrementWeight(1)">+</button>
+        </div>
+        @if (cfg.isEstimated) {
+          <p class="estimated-note">* Preço estimado. O valor final pode variar conforme o peso exato.</p>
+        }
+      }
+
+      <!-- Choice Options (legacy) -->
+      @if (hasActiveChoices()) {
+        <div class="section-title">
+          <h2>Escolha</h2>
+          <span>Escolha 1 opção</span>
+        </div>
+        <div class="og-buttons">
+          @for (c of p.choiceOptions; track c.id) {
+            @if (c.isActive) {
+              <label class="og-btn" [class.active]="selectedChoice()?.id === c.id">
+                <input class="control-input" type="radio" name="choice-option" [checked]="selectedChoice()?.id === c.id" (change)="selectChoice(c)" />
+                @if (selectedChoice()?.id === c.id) { <span class="og-btn-check"><ion-icon name="checkmark"></ion-icon></span> }
+                <strong>{{ c.name }}</strong>
+                @if (c.price > 0) { <small>+ {{ c.price | brl }}</small> }
+              </label>
+            }
+          }
+        </div>
+      }
+
+      <!-- Additionals (legacy) -->
+      @if (hasActiveAdditionals()) {
+        <div class="section-title">
+          <h2>Adicionais</h2>
+          <span>Escolha quantos quiser</span>
+        </div>
+        <div class="check-list">
+          @for (a of p.additionals; track a.id) {
+            @if (a.isActive) {
+              <label class="check-row">
+                <input class="control-input" type="checkbox" [attr.name]="'additional-' + a.id" [checked]="selectedAdditionals().includes(a)" (change)="toggleAdditional(a)" />
+                <span class="check-name">
+                  <span class="box" [class.checked]="selectedAdditionals().includes(a)">
+                    @if (selectedAdditionals().includes(a)) { <ion-icon name="checkmark"></ion-icon> }
+                  </span>
+                  {{ a.name }}
+                </span>
+                @if (a.price > 0) { <span class="check-price">+ R$ {{ a.price.toFixed(2).replace('.', ',') }}</span> }
+              </label>
+            }
+          }
+        </div>
+      }
+
+      <!-- Option Groups -->
+      @for (group of optionGroups(); track group.id) {
+        <div class="option-group-section">
+          <div class="section-title">
+            <h2>{{ group.name }}</h2>
+            <span class="required-badge" [class.optional]="group.minChoices < 1">{{ group.minChoices >= 1 ? 'Obrigatório' : 'Opcional' }}</span>
+          </div>
+          <p class="og-subtitle">{{ groupSubtitle(group) }}</p>
+
+          @if (group.choiceType === 'single') {
+            <div class="check-list">
+              @for (item of group.items; track item.id) {
+                <label class="check-row">
+                  <input class="control-input" type="radio" [attr.name]="'option-group-' + group.id" [checked]="isGroupItemSelected(group, item)" (change)="toggleGroupItem(group, item)" />
+                  <span class="check-name">
+                    <span class="box radio" [class.checked]="isGroupItemSelected(group, item)">
+                      @if (isGroupItemSelected(group, item)) { <ion-icon name="checkmark"></ion-icon> }
+                    </span>
+                    {{ item.name }}
+                  </span>
+                  @if (item.price > 0) { <span class="check-price">+ R$ {{ item.price.toFixed(2).replace('.', ',') }}</span> }
+                </label>
+              }
+            </div>
+          } @else {
+            <div class="check-list">
+              @for (item of group.items; track item.id) {
+                <label class="check-row">
+                  <input class="control-input" type="checkbox" [attr.name]="'option-group-' + group.id" [checked]="isGroupItemSelected(group, item)" (change)="toggleGroupItem(group, item)" />
+                  <span class="check-name">
+                    <span class="box" [class.checked]="isGroupItemSelected(group, item)">
+                      @if (isGroupItemSelected(group, item)) { <ion-icon name="checkmark"></ion-icon> }
+                    </span>
+                    {{ item.name }}
+                  </span>
+                  @if (item.price > 0) { <span class="check-price">+ R$ {{ item.price.toFixed(2).replace('.', ',') }}</span> }
+                </label>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Notes -->
+      <div class="section-title">
+        <h2>Observações</h2>
+      </div>
+      <label class="notes">
+        <ion-icon name="pencil-outline"></ion-icon>
+        <input type="text" [ngModel]="notes()" (ngModelChange)="onNotesChange($event)" placeholder="Ex.: sem cebola, molho à parte..." maxlength="250" />
+        <span class="notes-counter">{{ notesLeft() }}</span>
+      </label>
+
+      <!-- Sticky bottom bar -->
+      <div class="product-fixed">
+        <div class="qty">
+          <button (click)="dec()" [disabled]="quantity() <= 1">−</button>
+          <span>{{ quantity() }}</span>
+          <button (click)="inc()">+</button>
+        </div>
+        <button class="cart-btn" [disabled]="!isSelectionValid()" (click)="addToCart()">
+          <ion-icon name="bag-outline"></ion-icon>
+          <span>Adicionar<br><strong>{{ finalUnitPrice() | brl }}</strong></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Back to menu -->
+    <app-back-to-menu-link class="back-to-menu" (navigateBack)="onBack()" />
+
+    <!-- Toast -->
+    @if (toastVisible()) {
+      <div class="add-toast">Adicionado ao carrinho</div>
+    }
+  }
+</ion-content>

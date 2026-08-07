@@ -1,0 +1,100 @@
+<div class="store-content">
+  @if (store(); as s) {
+    <section class="hero">
+      @if (s.bannerUrl) {
+        <img [src]="s.bannerUrl" [alt]="s.name" loading="eager" />
+      }
+    </section>
+
+    <div class="store-panel">
+      <div class="store-logo">
+        @if (s.logoUrl) {
+          <img [src]="s.logoUrl" [alt]="s.name + ' logo'" loading="lazy" />
+        }
+      </div>
+
+      <h1 class="store-title">{{ s.name }}</h1>
+      <p class="store-sub">{{ s.cuisineType || 'Hamburgueres e Lanches' }}</p>
+      @if (customerFirstName()) {
+        <p class="customer-greeting">Ola, {{ customerFirstName() }}</p>
+      }
+
+      <app-store-metrics
+        [isOpen]="!!s.isOpenNow"
+        [statusText]="statusText()"
+        [etaText]="etaText()"
+        [minOrderText]="minOrderText()">
+      </app-store-metrics>
+
+      <app-category-tabs
+        [tabs]="categoryTabs()"
+        [activeId]="activeCategoryId()"
+        (select)="scrollToCategory($event)">
+      </app-category-tabs>
+
+      <div class="product-list">
+        <div id="cat-top" class="scroll-sentinel"></div>
+
+          @for (section of productSections(); track section.id) {
+            <section class="category-section" [id]="'cat-' + section.id">
+              <header class="category-head">
+                <h2>{{ section.name }}</h2>
+              </header>
+              @for (p of section.products; track p.id) {
+                <app-product-card
+                  [product]="p"
+                  (open)="goToProduct(p)">
+                </app-product-card>
+              }
+            </section>
+          } @empty {
+            <app-empty-state
+              title="Nenhum produto disponivel"
+              description="Esta loja ainda nao possui produtos.">
+            </app-empty-state>
+          }
+      </div>
+
+      @if (cart.totalItems() > 0) {
+        <div class="cart-bar-slot">
+          <app-floating-cart
+            [itemCount]="cart.totalItems()"
+            [total]="cart.subtotal()"
+            (open)="openCart()">
+          </app-floating-cart>
+        </div>
+      }
+
+      <app-footer-nav
+        [items]="footerItems()"
+        (select)="onFooterSelect($event)">
+      </app-footer-nav>
+    </div>
+
+  } @else if (loadError()) {
+    <div class="error-banner" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>Nao foi possivel carregar o cardapio</strong>
+        <p>Verifique sua conexao e tente novamente.</p>
+      </div>
+      <button class="btn-retry" (click)="retryLoad()">Tentar novamente</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="skeleton-hero"></div>
+      <div class="skeleton-panel">
+        <div class="skeleton-logo"></div>
+        <div class="skeleton-title"></div>
+        <div class="skeleton-sub"></div>
+        <div class="skeleton-metrics"></div>
+        <div class="skeleton-tabs">
+          <div class="skeleton-tab"></div><div class="skeleton-tab"></div><div class="skeleton-tab"></div>
+        </div>
+        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+      </div>
+    </div>
+  }
+</div>

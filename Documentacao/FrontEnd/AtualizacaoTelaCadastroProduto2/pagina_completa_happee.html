@@ -1,0 +1,342 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urbeat — Cadastro de produtos com variações</title>
+  <style>
+    :root{
+      --coral:#e34e57;
+      --coral-dark:#cb3e47;
+      --coral-soft:#fff0f1;
+      --green:#0e9d4c;
+      --green-soft:#eaf8ef;
+      --text:#202124;
+      --muted:#70757a;
+      --border:#e9e1da;
+      --panel:#fff;
+      --page:#f6f7fa;
+      --shadow:0 10px 28px rgba(36,40,46,.08);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--page);color:var(--text);font-family:Arial,Helvetica,sans-serif;font-size:14px}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+
+    .topbar{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid #ececec}
+    .topbar-inner{width:min(1320px,calc(100% - 34px));min-height:100px;margin:auto;display:flex;align-items:center;gap:28px}
+    .logo{font-size:31px;font-weight:900;letter-spacing:-2px;color:#f07700;flex:0 0 auto}
+    .progress-card{flex:1;display:flex;align-items:center;gap:20px;padding:16px 24px;border:1px solid #eee5de;border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+    .steps{display:flex;align-items:center;flex:1;min-width:0}
+    .step{display:flex;align-items:center;gap:9px;font-weight:700;white-space:nowrap}
+    .step .dot{width:36px;height:36px;border:1px solid #eee6df;border-radius:10px;background:#faf7f4;color:#777;display:grid;place-items:center;font-weight:800}
+    .step.done{color:var(--green)}
+    .step.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+    .step.active .dot{border:2px solid #f19aa0;background:#fff;color:var(--coral);box-shadow:0 0 0 4px var(--coral-soft)}
+    .connector{height:2px;min-width:24px;flex:1;margin:0 13px;background:#e9dfd8}.connector.done{background:var(--green)}
+    .progress-box{width:145px;flex:0 0 auto}.progress-head{display:flex;justify-content:space-between;margin-bottom:8px;font-weight:700}.progress-head strong{color:var(--coral)}
+    .progress-track{height:7px;border-radius:20px;background:#eee8e4;overflow:hidden}.progress-fill{width:60%;height:100%;background:var(--coral);border-radius:20px}
+
+    main{width:min(1120px,calc(100% - 30px));margin:34px auto 28px}
+    .section-title{margin:0;font-size:17px;font-weight:800}.section-subtitle{margin:5px 0 14px;color:var(--muted);font-size:13px}
+    .card{background:var(--panel);border-radius:16px;box-shadow:var(--shadow);padding:24px;margin-bottom:23px}
+    .card h2{margin:0 0 18px;font-size:15px}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.full{grid-column:1/-1}
+    label,.field-label{font-size:12px;font-weight:700;color:#3d3d3d}
+    input[type="text"],input[type="number"],select,textarea{width:100%;min-width:0;border:1px solid #e7ded7;border-radius:8px;background:#fff;color:#333;padding:11px 12px;outline:none;transition:.2s}
+    input:focus,select:focus,textarea:focus{border-color:#ed8d93;box-shadow:0 0 0 3px var(--coral-soft)}
+    input[readonly]{background:#fafafa;color:#666}
+    textarea{min-height:78px;resize:vertical}
+    .form-layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:18px 22px}
+    .fields-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,.8fr);gap:14px 16px;align-content:start}
+    .category-row{display:grid;grid-template-columns:1fr 42px;gap:8px}.more-btn{border:1px solid var(--border);border-radius:8px;background:#f7f3ef;font-size:20px;color:#555}
+    .char-count{font-size:12px;color:#555;text-align:right}
+    .upload-label{height:205px;border:2px dashed var(--coral);border-radius:14px;background:linear-gradient(135deg,#fff8f8,#fff);display:grid;place-items:center;position:relative;overflow:hidden;color:var(--coral);text-align:center}
+    .upload-inner{display:grid;place-items:center;gap:10px;font-weight:700;padding:18px}.upload-icon{font-size:34px;font-weight:400}.upload-help{font-size:11px;color:#888;font-weight:400}
+    .upload-label img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}.upload-label.has-image:after{content:"Alterar imagem";position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.92);border:1px solid #ef9ca1;border-radius:8px;padding:8px 13px;color:var(--coral);font-weight:700;white-space:nowrap}
+
+    .sale-mode-wrap{grid-column:1/-1}.sale-mode-title{display:flex;align-items:center;gap:6px;margin:1px 0 10px;font-size:12px;font-weight:700}
+    .sale-modes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.sale-mode{position:relative;min-height:48px;border:1px solid #e9dfd8;border-radius:9px;background:#fff;display:flex;align-items:center;gap:9px;padding:0 14px;cursor:pointer;transition:.2s}.sale-mode input{position:absolute;opacity:0}.sale-radio{width:15px;height:15px;border:1px solid #999;border-radius:50%;display:grid;place-items:center}.sale-mode.selected{border-color:#f3c4c7;background:var(--coral-soft);color:var(--coral);font-weight:700}.sale-mode.selected .sale-radio{border-color:var(--coral)}.sale-mode.selected .sale-radio:after{content:"";width:8px;height:8px;border-radius:50%;background:var(--coral)}
+    .base-row{display:flex;align-items:flex-end;gap:18px;margin-top:15px}.price-field{width:225px}.active-check{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:700}.active-check input{width:18px;height:18px;accent-color:var(--coral)}
+
+    .section-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:8px}.soft-btn{border:0;border-radius:11px;padding:11px 17px;background:#ffe8ea;color:var(--coral);font-weight:800}.soft-btn:hover{background:#ffdde0}
+    .variation-card{padding:19px 20px}.variation-toolbar{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}.variation-toolbar .field{width:220px}.hint{font-size:12px;color:var(--muted)}
+    .variation-header,.variation-row{display:grid;gap:10px;align-items:center}.variation-header{padding:0 5px 7px;color:#666;font-size:11px;font-weight:800}.variation-row{padding:9px 5px;border-top:1px solid #eee8e3}.variation-row:first-child{border-top:0}
+    .variation-header.size,.variation-row.size{grid-template-columns:22px 1.15fr 1fr 135px 1fr 78px 65px 38px}
+    .variation-header.fixed,.variation-row.fixed{grid-template-columns:22px 100px 85px 145px 145px 78px 65px 38px}
+    .drag{color:#999;text-align:center;font-size:18px;line-height:1}.money-wrap{display:grid;grid-template-columns:35px 1fr}.money-prefix{display:grid;place-items:center;border:1px solid #e7ded7;border-right:0;border-radius:8px 0 0 8px;background:#faf8f6;color:#666;font-size:12px}.money-wrap input{border-radius:0 8px 8px 0}
+    .default-radio{display:flex;justify-content:center}.default-radio input{width:18px;height:18px;accent-color:var(--green)}
+    .switch{position:relative;width:37px;height:21px;display:inline-block}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;border-radius:20px;background:#ccc;transition:.2s}.slider:before{content:"";position:absolute;width:15px;height:15px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}.switch input:checked + .slider{background:var(--coral)}.switch input:checked + .slider:before{transform:translateX(16px)}
+    .icon-btn{width:34px;height:34px;border:1px solid #e7ded7;border-radius:8px;background:#fff;color:#777}.icon-btn:hover{color:var(--coral);border-color:#efafb3}
+    .add-row-btn{margin-top:10px;border:1px solid #ef9da2;border-radius:8px;background:#fff;color:var(--coral);padding:9px 14px;font-weight:800}
+    .empty-variation{border:1px dashed #e4d9d3;border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+
+    .variable-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.variable-grid .field.wide{grid-column:span 2}.variable-preview{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid #f4c7ca;background:#fff6f7;border-radius:12px;padding:16px 18px}.variable-preview strong{color:var(--coral);font-size:18px}.estimate-toggle{display:flex;align-items:center;gap:9px;font-weight:700}.estimate-toggle input{width:18px;height:18px;accent-color:var(--coral)}
+
+    .groups-container{display:grid;gap:18px;margin:2px 0 26px}.option-group{border:1px solid #eee5de;border-radius:15px;padding:22px;background:#fff;box-shadow:var(--shadow)}.option-group-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}.option-group h3{margin:0;font-size:15px}.remove-group,.remove-item{border:0;background:transparent;color:var(--coral);font-weight:700}.group-name-row{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:16px;margin-bottom:22px}.group-settings{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:42px;margin-bottom:30px}.setting-title{display:block;margin-bottom:11px;font-size:13px;font-weight:700}.condition-toggle{display:grid;grid-template-columns:1fr 1fr;border:1px solid #eee6df;border-radius:10px;overflow:hidden;min-height:52px}.condition-option{position:relative;display:flex;align-items:center;gap:11px;padding:0 17px;cursor:pointer}.condition-option+ .condition-option{border-left:1px solid #eee6df}.condition-option input{position:absolute;opacity:0}.condition-dot{width:18px;height:18px;border:1px dashed #777;border-radius:50%;display:grid;place-items:center}.condition-option.selected{background:var(--coral-soft);color:var(--coral)}.condition-option.selected .condition-dot{border-color:var(--coral)}.condition-option.selected .condition-dot:after{content:"";width:10px;height:10px;background:var(--coral);border-radius:50%}.choices-line{display:flex;align-items:center;gap:12px;min-height:52px}.choices-line strong,.choices-line span{color:#777}.choice-number{width:68px!important;text-align:center}.group-items-title{margin:0 0 14px;font-size:15px}.group-items{display:grid;gap:10px;margin-bottom:11px}.group-item{display:grid;grid-template-columns:minmax(0,1fr) 150px auto;gap:10px;align-items:end;padding:13px;border:1px solid #eee5de;border-radius:10px;background:#fffafa}.add-item-btn{width:100%;min-height:52px;border:1px dashed #e6dad4;border-radius:10px;background:#fff;color:var(--coral);font-weight:800}
+
+    .organize-card{padding:22px}.chips{display:flex;gap:14px;flex-wrap:wrap}.chip{display:flex;align-items:center;gap:8px;min-width:116px;height:39px;padding:0 13px;border:1px solid #e9dfd7;border-radius:10px}.chip input{width:17px;height:17px;accent-color:var(--coral)}
+    .center-action{display:flex;justify-content:flex-end;margin:0 0 48px}.primary-btn,.next-btn{border:0;border-radius:11px;background:var(--coral);color:#fff;padding:13px 25px;font-weight:800}.primary-btn:hover,.next-btn:hover{background:var(--coral-dark)}
+    .footer-nav{border-top:1px solid #e7e1dc;padding:22px 0 34px;display:flex;justify-content:space-between;align-items:center;gap:16px}.footer-left,.footer-right{display:flex;align-items:center;gap:13px}.back-btn,.outline-btn,.menu-preview-btn{border:1px solid #e8ded7;background:#fff;border-radius:24px;padding:11px 20px;font-weight:700}.outline-btn,.menu-preview-btn{border-color:#ef9ca1;color:var(--coral)}.status{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#555}.status-dot{width:9px;height:9px;border-radius:50%;background:var(--coral)}
+    .toast{position:fixed;z-index:50;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:12px 18px;background:#222;color:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+    @media(max-width:1050px){.step span{display:none}.progress-box{width:120px}.form-layout{grid-template-columns:1fr}.upload-label{height:180px}.variation-header{display:none}.variation-row.size,.variation-row.fixed{grid-template-columns:22px repeat(2,minmax(0,1fr));padding:16px 5px}.variation-row> *:not(.drag){min-width:0}.variation-row .default-radio,.variation-row .switch,.variation-row .icon-btn{justify-self:start}.variable-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:720px){.topbar-inner{display:block;padding:13px 0}.logo{margin-bottom:10px}.progress-card{display:block}.progress-box{width:100%;margin-top:13px}.sale-modes{grid-template-columns:1fr 1fr}.fields-grid{grid-template-columns:1fr}.section-row,.variation-toolbar{align-items:stretch;flex-direction:column}.variation-toolbar .field{width:100%}.variable-grid{grid-template-columns:1fr}.variable-grid .field.wide{grid-column:auto}.group-name-row,.group-settings,.group-item{grid-template-columns:1fr}.footer-nav{flex-direction:column;align-items:stretch}.footer-left,.footer-right{justify-content:space-between;flex-wrap:wrap}.center-action .primary-btn{width:100%}}
+    @media(max-width:500px){main{width:min(100% - 18px,1120px);margin-top:20px}.card,.option-group{padding:17px}.sale-modes{grid-template-columns:1fr}.variation-row.size,.variation-row.fixed{grid-template-columns:1fr}.drag{display:none}.base-row{align-items:stretch;flex-direction:column}.price-field{width:100%}.footer-right>*{flex:1}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">urbeat</div>
+      <div class="progress-card">
+        <div class="steps" aria-label="Etapas de publicação">
+          <div class="step done"><div class="dot">✓</div><span>Loja</span></div><div class="connector done"></div>
+          <div class="step done"><div class="dot">✓</div><span>Horários</span></div><div class="connector done"></div>
+          <div class="step done"><div class="dot">✓</div><span>Entrega</span></div><div class="connector done"></div>
+          <div class="step active"><div class="dot">•</div><span>Produtos</span></div><div class="connector"></div>
+          <div class="step"><div class="dot">5</div><span>Publicar</span></div>
+        </div>
+        <div class="progress-box"><div class="progress-head"><span>Progresso</span><strong>60%</strong></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="section-title">1. Cadastrar produtos</h1>
+    <p class="section-subtitle">Adicione os produtos que seus clientes poderão pedir.</p>
+
+    <form id="productForm">
+      <section class="card">
+        <h2>Informações do produto</h2>
+        <div class="form-layout">
+          <div class="fields-grid">
+            <div class="field"><label for="name">Nome do produto *</label><input id="name" type="text" value="Pizza Calabresa" required></div>
+            <div class="field"><label for="category">Categoria *</label><div class="category-row"><select id="category" required><option value="">Selecione...</option><option selected>Pizzas</option><option>Hambúrgueres</option><option>Açaí</option><option>Carnes</option><option>Bebidas</option><option>Porções</option><option>Sobremesas</option></select><button class="more-btn" type="button">…</button></div></div>
+            <div class="field full"><label for="description">Descrição *</label><textarea id="description" maxlength="300" required>Molho artesanal, mussarela, calabresa fatiada e cebola.</textarea><div class="char-count"><span id="charCount">0</span>/300</div></div>
+
+            <div class="sale-mode-wrap">
+              <div class="sale-mode-title">Forma de venda <span title="Define como o preço será configurado">ⓘ</span></div>
+              <div class="sale-modes" id="saleModes">
+                <label class="sale-mode" data-mode="SINGLE"><input type="radio" name="saleMode" value="SINGLE"><span class="sale-radio"></span><span>Produto único</span></label>
+                <label class="sale-mode selected" data-mode="SIZE"><input type="radio" name="saleMode" value="SIZE" checked><span class="sale-radio"></span><span>Por tamanho</span></label>
+                <label class="sale-mode" data-mode="FIXED_WEIGHT"><input type="radio" name="saleMode" value="FIXED_WEIGHT"><span class="sale-radio"></span><span>Por peso fixo</span></label>
+                <label class="sale-mode" data-mode="VARIABLE_WEIGHT"><input type="radio" name="saleMode" value="VARIABLE_WEIGHT"><span class="sale-radio"></span><span>Por peso variável</span></label>
+              </div>
+            </div>
+
+            <div class="base-row full">
+              <div class="field price-field" id="basePriceField"><label for="price">Preço *</label><input id="price" class="currency" type="text" value="R$ 29,90" inputmode="numeric"></div>
+              <label class="active-check"><input id="productActive" type="checkbox" checked><span>Produto ativo</span></label>
+            </div>
+          </div>
+
+          <div class="field"><label for="photo">Foto do produto</label><label id="uploadLabel" class="upload-label" for="photo"><div class="upload-inner"><div class="upload-icon">☁</div><span>Clique para enviar imagem</span><span class="upload-help">PNG ou JPG até 5 MB</span></div><img id="preview" alt="Prévia do produto"></label><input id="photo" type="file" accept="image/*" hidden></div>
+        </div>
+      </section>
+
+      <section id="variationSection">
+        <div class="section-row">
+          <div><h2 class="section-title">2. Variações de tamanho/peso</h2><p class="section-subtitle" id="variationSubtitle">Defina os tamanhos disponíveis para este produto.</p></div>
+          <button id="addVariationTop" class="soft-btn" type="button">+ Adicionar tamanho</button>
+        </div>
+        <div class="card variation-card">
+          <div class="variation-toolbar">
+            <div class="field"><label for="variationType">Tipo de variação</label><select id="variationType"><option value="SIZE">Tamanho</option><option value="FIXED_WEIGHT">Peso fixo</option><option value="VARIABLE_WEIGHT">Peso variável</option></select></div>
+            <div class="hint">A variação padrão aparece pré-selecionada no cardápio digital.</div>
+          </div>
+          <div id="variationContent"></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-row"><div><h2 class="section-title">3. Grupos de opções</h2><p class="section-subtitle">Adicione grupos para que o cliente possa personalizar o produto.</p></div><button id="addGroup" class="soft-btn" type="button">+ Adicionar grupo</button></div>
+        <div id="groupsContainer" class="groups-container"></div>
+      </section>
+
+      <section><h2 class="section-title">4. Organização</h2><p class="section-subtitle">Destaque seu produto nas seções especiais do cardápio.</p><div class="card organize-card"><div class="chips"><label class="chip"><input id="featured" type="checkbox"><span>Destaque</span></label><label class="chip"><input id="bestSeller" type="checkbox" checked><span>Mais vendido</span></label><label class="chip"><input id="newProduct" type="checkbox"><span>Novidade</span></label></div></div></section>
+
+      <div class="center-action"><button class="primary-btn" type="submit">Cadastrar Produto</button></div>
+    </form>
+
+    <footer class="footer-nav">
+      <div class="footer-left"><button class="back-btn" type="button">← Voltar para Entrega</button><div class="status"><span class="status-dot"></span><span id="saveStatus">Alterações não salvas</span></div></div>
+      <div class="footer-right"><button id="previewMenu" class="menu-preview-btn" type="button">Visualizar cardápio</button><button id="saveBtn" class="outline-btn" type="button">Salvar</button><button class="next-btn" type="button">Avançar para Publicar →</button></div>
+    </footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const state = {
+    saleMode: 'SIZE',
+    photoData: '',
+    sizeVariations: [
+      {name:'Pequena', description:'25 cm', price:2990, sku:'PIZ-CAL-P', isDefault:false, active:true},
+      {name:'Média', description:'30 cm', price:3990, sku:'PIZ-CAL-M', isDefault:true, active:true},
+      {name:'Grande', description:'35 cm', price:4990, sku:'PIZ-CAL-G', isDefault:false, active:true}
+    ],
+    fixedWeightVariations: [
+      {weight:300, unit:'g', price:1600, isDefault:false, active:true},
+      {weight:500, unit:'g', price:2300, isDefault:true, active:true},
+      {weight:1, unit:'kg', price:4000, isDefault:false, active:true}
+    ],
+    variableWeight: {pricePerKg:5990,minGrams:200,maxGrams:2000,incrementGrams:100,estimated:true}
+  };
+
+  const $ = (selector, root=document) => root.querySelector(selector);
+  const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
+  const form = $('#productForm');
+  const toast = $('#toast');
+  const variationContent = $('#variationContent');
+  const variationSection = $('#variationSection');
+  const variationType = $('#variationType');
+  const addVariationTop = $('#addVariationTop');
+  const basePriceField = $('#basePriceField');
+  const groupsContainer = $('#groupsContainer');
+  let groupCount = 0;
+
+  function centsFromCurrency(value){ return Number(String(value).replace(/\D/g,'')) || 0; }
+  function formatCurrency(cents){ return (Number(cents || 0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+  function formatCurrencyInput(input){ const cents=centsFromCurrency(input.value); input.value=input.closest('.money-wrap')?(cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):formatCurrency(cents); }
+  function showToast(message){ toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2400); }
+  function markUnsaved(){ $('#saveStatus').textContent='Alterações não salvas'; $('.status-dot').style.background='var(--coral)'; }
+
+  function updateCount(){ $('#charCount').textContent=$('#description').value.length; }
+  updateCount();
+  $('#description').addEventListener('input',updateCount);
+
+  document.addEventListener('input', event => {
+    if(event.target.classList.contains('currency')) formatCurrencyInput(event.target);
+    if(form.contains(event.target)) markUnsaved();
+  });
+  document.addEventListener('change', event => { if(form.contains(event.target)) markUnsaved(); });
+
+  $('#photo').addEventListener('change', event => {
+    const file=event.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{state.photoData=reader.result;$('#preview').src=reader.result;$('#preview').style.display='block';$('#uploadLabel').classList.add('has-image');};
+    reader.readAsDataURL(file);
+  });
+
+  function setSaleMode(mode){
+    state.saleMode=mode;
+    $$('.sale-mode').forEach(label=>label.classList.toggle('selected',label.dataset.mode===mode));
+    const radio=$(`input[name="saleMode"][value="${mode}"]`); if(radio)radio.checked=true;
+    basePriceField.style.display=mode==='SINGLE'?'flex':'none';
+    variationSection.style.display=mode==='SINGLE'?'none':'block';
+    if(mode!=='SINGLE'){variationType.value=mode;renderVariations();}
+    markUnsaved();
+  }
+  $$('.sale-mode').forEach(label=>label.addEventListener('click',()=>setSaleMode(label.dataset.mode)));
+  variationType.addEventListener('change',()=>setSaleMode(variationType.value));
+
+  function makeMoneyInput(cents, cls='variation-price'){
+    return `<div class="money-wrap"><span class="money-prefix">R$</span><input class="currency ${cls}" type="text" value="${formatCurrency(cents).replace('R$ ','').replace('R$ ','')}" inputmode="numeric"></div>`;
+  }
+
+  function renderSize(){
+    $('#variationSubtitle').textContent='Defina os tamanhos disponíveis para este produto.';
+    addVariationTop.textContent='+ Adicionar tamanho';
+    const header=`<div class="variation-header size"><span></span><span>Nome da variação</span><span>Descrição</span><span>Preço</span><span>SKU</span><span>Padrão</span><span>Ativo</span><span>Ações</span></div>`;
+    const rows=state.sizeVariations.map((item,index)=>`<div class="variation-row size" data-index="${index}"><span class="drag">⋮⋮</span><input class="v-name" type="text" value="${item.name}" placeholder="Ex.: Média"><input class="v-description" type="text" value="${item.description}" placeholder="Ex.: 30 cm">${makeMoneyInput(item.price)}<input class="v-sku" type="text" value="${item.sku}" placeholder="SKU"><label class="default-radio" title="Definir como padrão"><input class="v-default" name="sizeDefault" type="radio" ${item.isDefault?'checked':''}></label><label class="switch"><input class="v-active" type="checkbox" ${item.active?'checked':''}><span class="slider"></span></label><button class="icon-btn remove-variation" type="button" title="Remover">🗑</button></div>`).join('');
+    variationContent.innerHTML=header+(rows||'<div class="empty-variation">Nenhum tamanho cadastrado.</div>')+'<button class="add-row-btn" type="button" id="addVariationBottom">+ Adicionar tamanho</button>';
+  }
+
+  function gramsFor(item){return item.unit==='kg'?Number(item.weight)*1000:Number(item.weight)}
+  function equivalentText(item){const grams=gramsFor(item);if(!grams)return 'R$ 0,00/kg';return `${formatCurrency(Math.round(item.price*1000/grams))}/kg`;}
+  function renderFixedWeight(){
+    $('#variationSubtitle').textContent='Cadastre embalagens com pesos e preços definidos.';
+    addVariationTop.textContent='+ Adicionar peso';
+    const header=`<div class="variation-header fixed"><span></span><span>Peso</span><span>Unidade</span><span>Preço</span><span>Preço equivalente</span><span>Padrão</span><span>Ativo</span><span>Ações</span></div>`;
+    const rows=state.fixedWeightVariations.map((item,index)=>`<div class="variation-row fixed" data-index="${index}"><span class="drag">⋮⋮</span><input class="v-weight" type="number" min="0.001" step="0.001" value="${item.weight}"><select class="v-unit"><option value="g" ${item.unit==='g'?'selected':''}>g</option><option value="kg" ${item.unit==='kg'?'selected':''}>kg</option></select>${makeMoneyInput(item.price)}<input class="v-equivalent" type="text" readonly value="${equivalentText(item)}"><label class="default-radio"><input class="v-default" name="weightDefault" type="radio" ${item.isDefault?'checked':''}></label><label class="switch"><input class="v-active" type="checkbox" ${item.active?'checked':''}><span class="slider"></span></label><button class="icon-btn remove-variation" type="button">🗑</button></div>`).join('');
+    variationContent.innerHTML=header+(rows||'<div class="empty-variation">Nenhum peso fixo cadastrado.</div>')+'<button class="add-row-btn" type="button" id="addVariationBottom">+ Adicionar peso</button>';
+  }
+
+  function renderVariableWeight(){
+    $('#variationSubtitle').textContent='Defina o preço por quilo e os limites permitidos para o pedido.';
+    addVariationTop.style.display='none';
+    const cfg=state.variableWeight;
+    const sample=Math.min(Math.max(500,cfg.minGrams),cfg.maxGrams);
+    const samplePrice=Math.round(cfg.pricePerKg*sample/1000);
+    variationContent.innerHTML=`<div class="variable-grid"><div class="field"><label>Preço por kg *</label>${makeMoneyInput(cfg.pricePerKg,'price-per-kg')}</div><div class="field"><label>Peso mínimo (g) *</label><input id="minGrams" type="number" min="1" value="${cfg.minGrams}"></div><div class="field"><label>Peso máximo (g) *</label><input id="maxGrams" type="number" min="1" value="${cfg.maxGrams}"></div><div class="field"><label>Incremento (g) *</label><input id="incrementGrams" type="number" min="1" value="${cfg.incrementGrams}"></div><label class="estimate-toggle wide"><input id="estimatedPrice" type="checkbox" ${cfg.estimated?'checked':''}><span>Informar no cardápio que o preço é estimado</span></label><div class="variable-preview"><div><div class="hint">Exemplo no cardápio para ${sample} g</div><strong id="variableExample">${formatCurrency(samplePrice)}</strong></div><div class="hint">Preço final = preço/kg × peso selecionado</div></div></div>`;
+  }
+
+  function renderVariations(){
+    addVariationTop.style.display='inline-block';
+    if(state.saleMode==='SIZE')renderSize();
+    else if(state.saleMode==='FIXED_WEIGHT')renderFixedWeight();
+    else if(state.saleMode==='VARIABLE_WEIGHT')renderVariableWeight();
+    bindVariationEvents();
+  }
+
+  function syncSizeRows(){
+    $$('.variation-row.size',variationContent).forEach((row,index)=>{
+      const item=state.sizeVariations[index]; if(!item)return;
+      item.name=$('.v-name',row).value;item.description=$('.v-description',row).value;item.price=centsFromCurrency($('.variation-price',row).value);item.sku=$('.v-sku',row).value;item.isDefault=$('.v-default',row).checked;item.active=$('.v-active',row).checked;
+    });
+  }
+  function syncFixedRows(){
+    $$('.variation-row.fixed',variationContent).forEach((row,index)=>{
+      const item=state.fixedWeightVariations[index]; if(!item)return;
+      item.weight=Number($('.v-weight',row).value||0);item.unit=$('.v-unit',row).value;item.price=centsFromCurrency($('.variation-price',row).value);item.isDefault=$('.v-default',row).checked;item.active=$('.v-active',row).checked;$('.v-equivalent',row).value=equivalentText(item);
+    });
+  }
+  function syncVariable(){
+    state.variableWeight.pricePerKg=centsFromCurrency($('.price-per-kg',variationContent)?.value||0);state.variableWeight.minGrams=Number($('#minGrams')?.value||0);state.variableWeight.maxGrams=Number($('#maxGrams')?.value||0);state.variableWeight.incrementGrams=Number($('#incrementGrams')?.value||0);state.variableWeight.estimated=$('#estimatedPrice')?.checked??true;
+    const sample=Math.min(Math.max(500,state.variableWeight.minGrams),state.variableWeight.maxGrams);const price=Math.round(state.variableWeight.pricePerKg*sample/1000);if($('#variableExample'))$('#variableExample').textContent=formatCurrency(price);
+  }
+
+  function bindVariationEvents(){
+    $('#addVariationBottom')?.addEventListener('click',addVariation);
+    $$('.remove-variation',variationContent).forEach((button,index)=>button.addEventListener('click',()=>{if(state.saleMode==='SIZE')state.sizeVariations.splice(index,1);else state.fixedWeightVariations.splice(index,1);ensureDefault();renderVariations();markUnsaved();}));
+    variationContent.oninput=()=>{if(state.saleMode==='SIZE')syncSizeRows();else if(state.saleMode==='FIXED_WEIGHT')syncFixedRows();else syncVariable();};
+    variationContent.onchange=()=>{if(state.saleMode==='SIZE')syncSizeRows();else if(state.saleMode==='FIXED_WEIGHT')syncFixedRows();else syncVariable();};
+  }
+  function ensureDefault(){
+    const list=state.saleMode==='SIZE'?state.sizeVariations:state.fixedWeightVariations;if(list.length&&!list.some(v=>v.isDefault))list[0].isDefault=true;
+  }
+  function addVariation(){
+    if(state.saleMode==='SIZE'){syncSizeRows();state.sizeVariations.push({name:'',description:'',price:0,sku:'',isDefault:state.sizeVariations.length===0,active:true});}
+    else if(state.saleMode==='FIXED_WEIGHT'){syncFixedRows();state.fixedWeightVariations.push({weight:500,unit:'g',price:0,isDefault:state.fixedWeightVariations.length===0,active:true});}
+    renderVariations();variationContent.lastElementChild?.scrollIntoView({behavior:'smooth',block:'center'});markUnsaved();
+  }
+  addVariationTop.addEventListener('click',addVariation);
+
+  function setCondition(group,value){
+    $$('.condition-option',group).forEach(option=>option.classList.toggle('selected',option.dataset.value===value));
+    const radio=$(`input[type="radio"][value="${value}"]`,group);if(radio)radio.checked=true;
+    const min=$('.min-choice',group);const max=$('.max-choice',group);if(value==='obrigatorio'&&Number(min.value)<1)min.value=1;if(Number(min.value)>Number(max.value))min.value=value==='opcional'?0:1;
+  }
+  function addItem(group){
+    const items=$('.group-items',group);const item=document.createElement('div');item.className='group-item';item.innerHTML=`<div class="field"><label>Nome do item *</label><input class="item-name" type="text" placeholder="Ex.: Bacon extra" required></div><div class="field"><label>Preço adicional</label><input class="currency item-price" type="text" value="R$ 0,00" inputmode="numeric"></div><button class="remove-item" type="button">Remover</button>`;$('.remove-item',item).addEventListener('click',()=>item.remove());items.appendChild(item);$('.item-name',item).focus();
+  }
+  $('#addGroup').addEventListener('click',()=>{
+    groupCount++;const group=document.createElement('div');group.className='option-group';group.innerHTML=`<div class="option-group-head"><h3>Grupo de opções ${groupCount}</h3><button class="remove-group" type="button">Remover grupo</button></div><div class="group-name-row"><div class="field"><label>Nome do grupo *</label><input class="group-name" type="text" placeholder="Ex.: Escolha os adicionais" required></div><div class="field"><label>Tipo de seleção</label><select class="group-selection"><option>Escolha única</option><option>Múltipla escolha</option></select></div></div><div class="group-settings"><div><span class="setting-title">Condição</span><div class="condition-toggle"><label class="condition-option selected" data-value="obrigatorio"><input type="radio" name="condition-${groupCount}" value="obrigatorio" checked><span class="condition-dot"></span><span>Obrigatório</span></label><label class="condition-option" data-value="opcional"><input type="radio" name="condition-${groupCount}" value="opcional"><span class="condition-dot"></span><span>Opcional</span></label></div></div><div><span class="setting-title">Escolhas</span><div class="choices-line"><strong>Mín</strong><input class="choice-number min-choice" type="number" min="0" value="1"><span>até</span><strong>Máx</strong><input class="choice-number max-choice" type="number" min="1" value="1"></div></div></div><h4 class="group-items-title">Itens do grupo</h4><div class="group-items"></div><button class="add-item-btn" type="button">+ Adicionar item</button>`;
+    $('.remove-group',group).addEventListener('click',()=>group.remove());$$('.condition-option',group).forEach(option=>option.addEventListener('click',()=>setCondition(group,option.dataset.value)));$('.add-item-btn',group).addEventListener('click',()=>addItem(group));groupsContainer.appendChild(group);group.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+
+  function collectGroups(){return $$('.option-group',groupsContainer).map(group=>({name:$('.group-name',group).value,selection:$('.group-selection',group).value,required:$('.condition-option.selected',group)?.dataset.value==='obrigatorio',min:Number($('.min-choice',group).value),max:Number($('.max-choice',group).value),items:$$('.group-item',group).map(item=>({name:$('.item-name',item).value,price:centsFromCurrency($('.item-price',item).value)})).filter(item=>item.name)})).filter(group=>group.name);}
+  function validateProduct(){
+    if(!form.checkValidity()){form.reportValidity();return false;}
+    if(state.saleMode==='SINGLE'&&centsFromCurrency($('#price').value)<=0){showToast('Informe um preço válido para o produto.');return false;}
+    if(state.saleMode==='SIZE'){syncSizeRows();if(!state.sizeVariations.some(v=>v.active&&v.name&&v.price>0)){showToast('Cadastre ao menos um tamanho ativo com preço.');return false;}}
+    if(state.saleMode==='FIXED_WEIGHT'){syncFixedRows();if(!state.fixedWeightVariations.some(v=>v.active&&v.weight>0&&v.price>0)){showToast('Cadastre ao menos um peso ativo com preço.');return false;}}
+    if(state.saleMode==='VARIABLE_WEIGHT'){syncVariable();const c=state.variableWeight;if(c.pricePerKg<=0||c.minGrams<=0||c.maxGrams<c.minGrams||c.incrementGrams<=0){showToast('Revise o preço, mínimo, máximo e incremento do peso.');return false;}}
+    return true;
+  }
+  function buildProduct(){
+    return {id:`product-${Date.now()}`,name:$('#name').value.trim(),category:$('#category').value,description:$('#description').value.trim(),active:$('#productActive').checked,photo:state.photoData,saleMode:state.saleMode,basePrice:centsFromCurrency($('#price').value),variations:state.saleMode==='SIZE'?state.sizeVariations:state.saleMode==='FIXED_WEIGHT'?state.fixedWeightVariations:[],weightConfiguration:state.saleMode==='VARIABLE_WEIGHT'?state.variableWeight:null,optionGroups:collectGroups(),featured:$('#featured').checked,bestSeller:$('#bestSeller').checked,newProduct:$('#newProduct').checked};
+  }
+  function saveProduct(notify=true){
+    if(!validateProduct())return false;const product=buildProduct();let products=[];try{products=JSON.parse(localStorage.getItem('urbeatProducts')||'[]')}catch(e){}products=products.filter(p=>p.name!==product.name);products.push(product);try{localStorage.setItem('urbeatProducts',JSON.stringify(products));}catch(error){showToast('Não foi possível salvar no navegador. Tente uma imagem menor.');return false;}$('#saveStatus').textContent='Alterações salvas';$('.status-dot').style.background='var(--green)';if(notify)showToast('Produto salvo. Abra o cardápio para testar as variações.');return true;
+  }
+  $('#saveBtn').addEventListener('click',()=>saveProduct());
+  form.addEventListener('submit',event=>{event.preventDefault();if(saveProduct(false))showToast('Produto cadastrado com sucesso.');});
+  $('#previewMenu').addEventListener('click',()=>{saveProduct(false);window.open('cardapio_digital.html','_blank');});
+
+  setSaleMode('SIZE');
+</script>
+</body>
+</html>

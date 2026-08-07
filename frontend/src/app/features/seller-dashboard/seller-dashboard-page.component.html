@@ -1,0 +1,236 @@
+<section class="seller-dashboard-page dashboard-page">
+  <header class="topbar">
+    <div>
+      <div class="page-title-wrap"><h1 class="page-title">Dashboard</h1></div>
+      <p class="page-subtitle">Visão geral da loja hoje</p>
+     </div>
+    <div class="top-actions">
+      <nav class="segmented" aria-label="Período das métricas">
+        @for (period of periods; track period.value) {
+          <button
+            type="button"
+            [attr.data-period]="period.value"
+            [class.active]="selectedPeriod() === period.value"
+            (click)="selectPeriod(period.value)"
+          >
+            {{ period.label }}
+          </button>
+        }
+      </nav>
+      <button type="button" class="btn-soft" (click)="load()" [disabled]="loading()">
+        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+        Atualizar
+      </button>
+      <button type="button" class="icon-btn" aria-label="Notificacoes">
+        <i class="bi bi-bell" aria-hidden="true"></i>
+        @if (shell.unreadCount() > 0) { <span class="dot-badge">{{ shell.unreadCount() }}</span> }
+      </button>
+      <div class="date-pill">
+        <i class="bi bi-calendar3" aria-hidden="true"></i>
+        <span>{{ currentDateLabel() }}</span>
+        <i class="bi bi-chevron-down small" aria-hidden="true"></i>
+      </div>
+    </div>
+  </header>
+
+  <div class="notice" role="status">
+    <i class="bi bi-check-circle" aria-hidden="true"></i>
+    <span>Sua mensalidade está em dia!{{ subscriptionDueDate() ? ' Próximo vencimento ' + subscriptionDueDate() : '' }}</span>
+  </div>
+
+  @if (printerWarning(); as warning) {
+    <div class="seller-inline-banner is-danger printer-warning" role="alert">
+      <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>Atencao</strong>
+        <p>{{ warning }}</p>
+      </div>
+      <a routerLink="/app/configuracoes/impressao">Verificar</a>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="seller-state-card is-loading dashboard-state-card" role="status" aria-label="Carregando dashboard">
+      <strong class="seller-state-title">Atualizando panorama da loja</strong>
+      <p class="seller-state-copy">Estamos carregando os indicadores e os pedidos mais recentes.</p>
+      <div class="skeleton-grid" aria-hidden="true">
+        <div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Nao foi possivel carregar o dashboard</strong>
+      <p class="seller-state-copy">Atualize a visao geral para buscar os numeros mais recentes da operacao.</p>
+      <div class="seller-state-actions">
+        <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <section class="metrics-grid">
+      <div class="metric-card"><div class="metric-icon orange"><i class="bi bi-bag-check"></i></div><div><div class="metric-label">Pedidos hoje</div><div class="metric-value">{{ formatNumber(report()?.totalOrders) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 12% <span>vs ontem</span></div></div></div>
+      <div class="metric-card"><div class="metric-icon"><i class="bi bi-wallet2"></i></div><div><div class="metric-label">Faturamento</div><div class="metric-value">{{ formatCurrency(report()?.totalRevenue ?? 0) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 8% <span>vs ontem</span></div></div></div>
+      <div class="metric-card"><div class="metric-icon yellow"><i class="bi bi-ticket-perforated"></i></div><div><div class="metric-label">Ticket médio</div><div class="metric-value">{{ formatCurrency(averageTicket()) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 5% <span>vs ontem</span></div></div></div>
+      <div class="metric-card"><div class="metric-icon"><i class="bi bi-clock"></i></div><div><div class="metric-label">Pedidos em andamento</div><div class="metric-value">{{ formatNumber(report()?.inProgressOrders) }}</div><div class="attention">Exigem atenção</div></div></div>
+    </section>
+
+    <section class="row g-3">
+      <div class="col-12"><div class="content-card content-card-wide">
+        <div class="content-head">
+          <div>
+            <h2>Últimos pedidos</h2>
+            <p>Visão rápida das vendas mais recentes da operação.</p>
+          </div>
+          <a routerLink="/app/pedidos" class="text-link">Ver todos os pedidos</a>
+        </div>
+        <div class="seller-table-wrap">
+          <table class="seller-table dashboard-table">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Status</th>
+                <th>Pagamento</th>
+                <th class="text-end">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of recentOrders(); track order.id) {
+                <tr [routerLink]="['/app/pedidos']" [queryParams]="{ order: order.id }" class="clickable-row">
+                  <td class="order-code" data-label="Pedido">{{ order.code }}</td>
+                  <td data-label="Cliente">{{ order.customerName || 'Cliente' }}</td>
+                  <td data-label="Status">
+                    <span class="badge-soft" [class]="'badge-soft ' + statusBadgeClass(order.status)">
+                      {{ statusLabel(order.status) }}
+                    </span>
+                  </td>
+                  <td data-label="Pagamento">
+                    <span class="badge-soft" [class]="'badge-soft ' + paymentBadgeClass(order.paymentMethod)">
+                      {{ paymentLabel(order.paymentMethod) }}
+                    </span>
+                  </td>
+                  <td class="text-end" data-label="Valor">{{ formatCurrency(order.total) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="table-empty">Nenhum pedido encontrado.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+
+    <div class="col-12 col-xl-6"><div class="content-card orders-mini">
+        <div class="content-head">
+          <div>
+            <h2>Pedidos em andamento</h2>
+            <p>Itens que ainda exigem acompanhamento da loja.</p>
+          </div>
+          <a routerLink="/app/pedidos" class="text-link">Ver todos</a>
+        </div>
+        @for (order of inProgressOrders(); track order.id) {
+          <div class="seller-list-item row-line">
+            <div class="row-line-main">
+              <strong>{{ order.code }}</strong>
+              <span>{{ order.customerName || 'Cliente' }}</span>
+            </div>
+            <span class="badge-soft" [class]="'badge-soft ' + statusBadgeClass(order.status)">{{ statusLabel(order.status) }}</span>
+          </div>
+        } @empty {
+          <div class="seller-empty-state row-line-empty">Nenhum pedido em andamento.</div>
+        }
+      </div></div>
+
+      <div class="col-12 col-xl-6"><div class="content-card">
+        <div class="content-head">
+          <div>
+            <h2>Formas de pagamento</h2>
+            <p>Distribuição do faturamento por método recebido.</p>
+          </div>
+        </div>
+        <div class="seller-table-wrap">
+          <table class="seller-table compact-table">
+            <thead>
+              <tr>
+                <th>Forma</th>
+                <th class="text-center">Qtd</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of paymentMethodBreakdown(); track entry.label) {
+                <tr>
+                  <td data-label="Forma">{{ entry.label }}</td>
+                  <td class="text-center" data-label="Qtd">{{ entry.count }}</td>
+                  <td class="text-end" data-label="Total">{{ formatCurrency(entry.total) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="table-empty">Nenhum pagamento registrado.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    <div class="col-12 col-xl-7"><div class="content-card">
+        <div class="content-head">
+          <div>
+            <h2>Atalhos rápidos</h2>
+            <p>Entradas diretas para as frentes mais usadas no dia.</p>
+          </div>
+        </div>
+        <div class="quick-grid">
+          <a class="quick-card" routerLink="/app/pedidos">
+             <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+            Pedidos
+          </a>
+          <a class="quick-card" routerLink="/app/cardapio/produtos">
+             <i class="bi bi-journal-text" aria-hidden="true"></i>
+            Gerenciar cardápio
+          </a>
+          <a class="quick-card" routerLink="/app/configuracoes/bairros">
+             <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            Gerenciar entregas
+          </a>
+          <a class="quick-card" routerLink="/app/configuracoes/impressao">
+             <i class="bi bi-truck" aria-hidden="true"></i>
+            Configurar impressão
+          </a>
+        </div>
+      </div></div>
+
+      <div class="col-12 col-xl-5"><div class="content-card">
+        <div class="content-head">
+          <div>
+            <h2>Resumo por serviço</h2>
+            <p>Comparativo simples entre delivery e retirada.</p>
+          </div>
+        </div>
+        <div class="seller-table-wrap">
+          <table class="seller-table compact-table">
+            <thead>
+              <tr>
+                <th>Servico</th>
+                <th class="text-center">Pedidos</th>
+                <th class="text-end">Faturamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Servico">Delivery</td>
+                <td class="text-center" data-label="Pedidos">{{ deliverySummary().count }}</td>
+                <td class="text-end" data-label="Faturamento">{{ formatCurrency(deliverySummary().total) }}</td>
+              </tr>
+              <tr>
+                <td data-label="Servico">Retirada</td>
+                <td class="text-center" data-label="Pedidos">{{ pickupSummary().count }}</td>
+                <td class="text-end" data-label="Faturamento">{{ formatCurrency(pickupSummary().total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    </section>
+  }
+</section>

@@ -1,0 +1,56 @@
+﻿PROMPT — VARIAÇÕES DE TAMANHO/PESO PARA O PROJETO URBEAT
+
+Crie um componente responsivo em HTML, CSS e JavaScript puro para cadastro de produtos com quatro formas de venda: Produto único, Por tamanho, Por peso fixo e Por peso variável.
+
+O visual deve usar fundo cinza muito claro, cartões brancos arredondados, sombras suaves e cor principal coral #e34e57.
+
+REQUISITOS DA PÁGINA DE CADASTRO
+
+1. Adicionar um seletor segmentado “Forma de venda” com:
+- Produto único
+- Por tamanho
+- Por peso fixo
+- Por peso variável
+
+2. Produto único:
+- Mostrar somente o campo de preço base.
+
+3. Por tamanho:
+- Mostrar seção “Variações de tamanho/peso”.
+- Permitir várias linhas com Nome da variação, Descrição, Preço, SKU, Padrão, Ativo e Remover.
+- Ter botão “+ Adicionar tamanho”.
+- Apenas uma variação pode ser padrão.
+
+4. Por peso fixo:
+- Permitir várias linhas com Peso, Unidade (g ou kg), Preço, Preço equivalente por kg, Padrão, Ativo e Remover.
+- Calcular automaticamente o preço equivalente por kg.
+- Ter botão “+ Adicionar peso”.
+
+5. Por peso variável:
+- Campos: Preço por kg, Peso mínimo em gramas, Peso máximo em gramas e Incremento em gramas.
+- Checkbox para indicar que o preço exibido no cardápio é estimado.
+- Mostrar um exemplo calculado de preço para 500 g ou para um peso dentro dos limites.
+
+6. Validações:
+- Exigir pelo menos uma variação ativa com preço para tamanho ou peso fixo.
+- Para peso variável, preço/kg, mínimo, máximo e incremento devem ser maiores que zero.
+- O máximo não pode ser menor que o mínimo.
+
+REQUISITOS DO CARDÁPIO DIGITAL
+
+- Produtos por tamanho ou peso fixo devem mostrar “A partir de R$ ...”.
+- Produtos por peso variável devem mostrar “R$ .../kg”.
+- Ao abrir o produto por tamanho, mostrar opções em cartões de rádio e atualizar o preço do botão de compra.
+- Ao abrir o produto por peso fixo, mostrar os pesos em cartões de rádio.
+- Ao abrir o produto por peso variável, mostrar botões de menos e mais, respeitando mínimo, máximo e incremento, e recalcular o preço imediatamente.
+- Grupos de opções devem aparecer depois da escolha de tamanho/peso.
+- O botão final deve mostrar “Adicionar por R$ ...”.
+
+REQUISITOS TÉCNICOS
+
+- Não usar bibliotecas externas.
+- Usar centavos para preços internos.
+- Usar gramas como unidade interna para cálculos de peso.
+- Salvar produtos em localStorage na chave “urbeatProducts”.
+- O cardápio deve ler essa chave quando as páginas forem executadas pelo mesmo servidor/origem.
+- Tudo deve ser responsivo e funcionar em desktop e celular.

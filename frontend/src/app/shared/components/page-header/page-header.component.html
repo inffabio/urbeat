@@ -1,0 +1,17 @@
+<header class="page-header">
+  <div class="page-header-main">
+    <div class="page-header-copy">
+      <h1>{{ title() }}</h1>
+      @if (description()) {
+        <p>{{ description() }}</p>
+      }
+      <div class="page-header-meta">
+        <ng-content select="[pageHeaderMeta]"></ng-content>
+      </div>
+    </div>
+
+    <div class="page-header-actions">
+      <ng-content select="[pageHeaderActions]"></ng-content>
+    </div>
+  </div>
+</header>

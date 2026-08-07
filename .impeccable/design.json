@@ -1,0 +1,468 @@
+﻿{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-11T00:00:00.000Z",
+  "title": "Design System: Urbeat",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Bordeaux Signal",
+        "canonical": "#D54A51",
+        "tonalRamp": [
+          "#1f0d0e",
+          "#3b1719",
+          "#562122",
+          "#722b2b",
+          "#952f35",
+          "#b83a40",
+          "#D54A51",
+          "#e16b70",
+          "#ed8f93",
+          "#f6b6b9",
+          "#fde0e2",
+          "#fef3f4"
+        ]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Bordeaux Deep",
+        "canonical": "#B63A41",
+        "tonalRamp": [
+          "#1a0b0c",
+          "#331618",
+          "#4d2124",
+          "#662c2f",
+          "#80373b",
+          "#9a3e40",
+          "#B63A41",
+          "#c85b60",
+          "#d67e82",
+          "#e4a1a4",
+          "#f2c7c9",
+          "#fae9ea"
+        ]
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Bordeaux Wash",
+        "canonical": "#FDECEE",
+        "tonalRamp": [
+          "#f4b2b8",
+          "#f6bfc3",
+          "#f8cdcf",
+          "#fadadb",
+          "#fbe3e4",
+          "#FDECEE",
+          "#fef2f3",
+          "#fef5f6",
+          "#fff8f8",
+          "#fffafa",
+          "#fffcfc",
+          "#ffffff"
+        ]
+      },
+      "success-green": {
+        "role": "secondary",
+        "displayName": "Success Green",
+        "canonical": "#119441",
+        "tonalRamp": [
+          "#011206",
+          "#03240d",
+          "#043613",
+          "#06481a",
+          "#095c21",
+          "#0c7129",
+          "#119441",
+          "#1aaa4c",
+          "#2cc55f",
+          "#56d47f",
+          "#8ae3a6",
+          "#c0f0d0"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Warm Cream",
+        "canonical": "#ede9e3",
+        "tonalRamp": [
+          "#b3aca0",
+          "#c3bcb1",
+          "#d3cdc3",
+          "#e0dbd2",
+          "#ede9e3",
+          "#f0ece7",
+          "#f3f0ec",
+          "#f5f2ef",
+          "#f7f5f2",
+          "#faf8f6",
+          "#fcfbf9",
+          "#ffffff"
+        ]
+      },
+      "bg-warm": {
+        "role": "neutral",
+        "displayName": "Warm Background",
+        "canonical": "#fbf7f2",
+        "tonalRamp": [
+          "#d4c9ba",
+          "#e1d9ce",
+          "#ede7de",
+          "#f3efe8",
+          "#fbf7f2",
+          "#fcf8f4",
+          "#fdfaf7",
+          "#fdfbf9",
+          "#fefcfb",
+          "#fefdfc",
+          "#fffefd",
+          "#ffffff"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Pure Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#cccccc",
+          "#d9d9d9",
+          "#e6e6e6",
+          "#f0f0f0",
+          "#f7f7f7",
+          "#fafafa",
+          "#fcfcfc",
+          "#fdfdfd",
+          "#fefefe",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "surface-soft": {
+        "role": "neutral",
+        "displayName": "Soft Surface",
+        "canonical": "#fff8f0",
+        "tonalRamp": [
+          "#e6d5c0",
+          "#efe2d2",
+          "#f5ece1",
+          "#faf3ea",
+          "#fff8f0",
+          "#fff9f2",
+          "#fffaf4",
+          "#fffbf6",
+          "#fffcf8",
+          "#fffdfa",
+          "#fffefd",
+          "#ffffff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#161616",
+        "tonalRamp": [
+          "#161616",
+          "#222222",
+          "#303030",
+          "#3e3e3e",
+          "#4d4d4d",
+          "#5c5c5c",
+          "#6c6c6c",
+          "#7d7d7d",
+          "#8e8e8e",
+          "#a0a0a0",
+          "#b3b3b3",
+          "#c7c7c7"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Primary Text",
+        "canonical": "#171717",
+        "tonalRamp": [
+          "#171717",
+          "#232323",
+          "#313131",
+          "#3f3f3f",
+          "#4e4e4e",
+          "#5d5d5d",
+          "#6d6d6d",
+          "#7e7e7e",
+          "#8f8f8f",
+          "#a1a1a1",
+          "#b4b4b4",
+          "#c8c8c8"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Text",
+        "canonical": "#6f6f76",
+        "tonalRamp": [
+          "#2a2a2d",
+          "#3c3c40",
+          "#4e4e53",
+          "#5f5f65",
+          "#6f6f76",
+          "#7d7d83",
+          "#8c8c91",
+          "#9b9ba0",
+          "#ababb0",
+          "#bcbcc0",
+          "#cdcdd0",
+          "#dfdfe1"
+        ]
+      },
+      "border-light": {
+        "role": "neutral",
+        "displayName": "Border Light",
+        "canonical": "#eadfd6",
+        "tonalRamp": [
+          "#b3a396",
+          "#c4b7ad",
+          "#d4cac2",
+          "#dfd4cc",
+          "#eadfd6",
+          "#ede3db",
+          "#f0e7e0",
+          "#f3ebe5",
+          "#f5efea",
+          "#f8f3ef",
+          "#faf7f4",
+          "#fdfbfa"
+        ]
+      },
+      "brown": {
+        "role": "neutral",
+        "displayName": "Brown",
+        "canonical": "#6c4634",
+        "tonalRamp": [
+          "#2a1a13",
+          "#3b251b",
+          "#4c3023",
+          "#5c3b2c",
+          "#6c4634",
+          "#7e5440",
+          "#91644e",
+          "#a4755e",
+          "#b78870",
+          "#c99c84",
+          "#dbb29d",
+          "#ecc9b8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Page titles, section headers, store name. Uses 800 weight at large sizes (29px+ page titles, 34px store titles, 33px product titles)." },
+      "title": { "displayName": "Title", "purpose": "Card titles, product names, list-item headers, payment-option labels." },
+      "body": { "displayName": "Body", "purpose": "Descriptions, running copy. 15px default, 17px on product detail. 65–75ch max for prose." },
+      "label": { "displayName": "Label", "purpose": "Metadata, supporting text, timeline step labels, small captions." }
+    },
+    "shadows": [
+      { "name": "sm", "value": "0 8px 22px rgba(33, 20, 8, 0.07)", "purpose": "Cards, product cards, metric bars, receive/address cards." },
+      { "name": "md", "value": "0 14px 34px rgba(33, 20, 8, 0.09)", "purpose": "Interactive surfaces, store logo, hovered cards." },
+      { "name": "lg", "value": "0 30px 90px rgba(0, 0, 0, 0.18)", "purpose": "Bottom sheets, modals, desktop app-shell, client-side toasts." },
+      { "name": "brand-glow", "value": "0 10px 26px rgba(213, 74, 81, 0.18)", "purpose": "Floating cart bar and active timeline dot rings. Brand identity signal." },
+      { "name": "og-card", "value": "0 6px 15px rgba(33, 20, 8, 0.035)", "purpose": "Variation/choice buttons (og-btn) at rest. Very subtle." },
+      { "name": "og-card-active", "value": "0 8px 18px rgba(213, 74, 81, 0.18)", "purpose": "Active variation/choice buttons. Bordeaux-tinted elevation." },
+      { "name": "none", "value": "0 0 0 transparent", "purpose": "Explicit shadow reset." }
+    ],
+    "motion": [
+      { "name": "ease-press", "value": "opacity 0.15s, transform 0.05s", "purpose": "Button press/tap feedback in product UI." },
+      { "name": "ease-state", "value": "background 0.2s, border-color 0.2s, transform 0.2s", "purpose": "Hover/focus state transitions on cards, chips, option groups." },
+      { "name": "shimmer", "value": "1.5s ease-in-out infinite", "purpose": "Skeleton loader shimmer animation." },
+      { "name": "spin", "value": "0.8s linear infinite", "purpose": "Loading spinner rotation." }
+    ],
+    "breakpoints": [
+      { "name": "mobile-max", "value": "400px" },
+      { "name": "desktop-shell", "value": "900px" },
+      { "name": "desktop-wide", "value": "1400px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Canonical CTA. Full pill, Bordeaux Signal solid fill, white text, full-width on mobile. Presses to Bordeaux Deep.",
+      "html": "<button class=\"ds-btn-primary\">Adicionar</button>",
+      "css": ".ds-btn-primary {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 8px;\n  width: 100%;\n  padding: 16px 20px;\n  background: #D54A51;\n  color: #ffffff;\n  border: none;\n  border-radius: 999px;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 16px;\n  font-weight: 700;\n  cursor: pointer;\n  letter-spacing: 0.3px;\n  transition: opacity 0.15s, transform 0.05s;\n}\n.ds-btn-primary:hover { background: #c84b53; }\n.ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(213, 74, 81, 0.18); }\n.ds-btn-primary:active:not(:disabled) { background: #B63A41; transform: scale(0.98); }\n.ds-btn-primary:disabled { background: #d6d0cc; cursor: not-allowed; }"
+    },
+    {
+      "name": "Circle Button",
+      "kind": "button",
+      "refersTo": "circle-btn",
+      "description": "54px circle for back navigation in hero overlays. Near-white glass bg, soft shadow, scale 0.95 on press.",
+      "html": "<button class=\"ds-circle-btn\" aria-label=\"Voltar\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#141414\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 18l-6-6 6-6\"/></svg></button>",
+      "css": ".ds-circle-btn {\n  width: 54px;\n  height: 54px;\n  border-radius: 50%;\n  border: none;\n  background: rgba(255, 255, 255, 0.96);\n  display: grid;\n  place-items: center;\n  box-shadow: 0 8px 22px rgba(33, 20, 8, 0.07);\n  color: #141414;\n  cursor: pointer;\n  transition: opacity 0.15s, transform 0.1s;\n}\n.ds-circle-btn:active { transform: scale(0.95); opacity: 0.85; }"
+    },
+    {
+      "name": "Cart Button",
+      "kind": "button",
+      "refersTo": "cart-btn",
+      "description": "Product-detail add-to-cart button. Full pill, 58px tall, brand fill, icon + two-line label.",
+      "html": "<button class=\"ds-cart-btn\">🛍<span>Adicionar ao carrinho<br/><strong>R$ 24,90</strong></span></button>",
+      "css": ".ds-cart-btn {\n  height: 58px;\n  border-radius: 999px;\n  border: none;\n  background: #D54A51;\n  color: #ffffff;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 13px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 10px;\n  padding: 0 16px;\n  box-shadow: none;\n  transition: opacity 0.15s;\n}\n.ds-cart-btn strong { font-size: 15px; font-weight: 800; }\n.ds-cart-btn:active:not(:disabled) { transform: scale(0.98); }\n.ds-cart-btn:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Quantity Control",
+      "kind": "custom",
+      "refersTo": "qty-control",
+      "description": "Product-detail quantity stepper. 58px pill with minus/value/plus zones.",
+      "html": "<div class=\"ds-qty\"><button aria-label=\"Diminuir\">−</button><span>1</span><button aria-label=\"Aumentar\">+</button></div>",
+      "css": ".ds-qty {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 0;\n  height: 58px;\n  border: 1.5px solid #eadfd6;\n  border-radius: 18px;\n  background: #ffffff;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 19px;\n}\n.ds-qty button {\n  width: 40px;\n  height: 40px;\n  border: none;\n  background: transparent;\n  color: #D54A51;\n  cursor: pointer;\n  font-size: 22px;\n  font-weight: 600;\n  display: grid;\n  place-items: center;\n  border-radius: 50%;\n}\n.ds-qty button:hover { background: #FDECEE; }\n.ds-qty span {\n  min-width: 30px;\n  text-align: center;\n  font-weight: 800;\n  color: #161616;\n}"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "chip-category",
+      "description": "Horizontal scroll pill filter. White surface, border-light stroke. Fills brand on active.",
+      "html": "<button class=\"ds-chip\">Lanches</button>",
+      "css": ".ds-chip {\n  flex: 0 0 auto;\n  min-width: max-content;\n  height: 46px;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid #eadfd6;\n  border-radius: 999px;\n  background: #ffffff;\n  color: #171717;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 15px;\n  font-weight: 700;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s, border-color 0.2s;\n}\n.ds-chip:hover, .ds-chip:focus-visible { background: #FDECEE; border-color: rgba(213, 74, 81, 0.18); color: #D54A51; outline: none; }"
+    },
+    {
+      "name": "Category Chip (Active)",
+      "kind": "chip",
+      "refersTo": "chip-category-active",
+      "description": "Active pill filter. Bordeaux fill, white text, weight 800.",
+      "html": "<button class=\"ds-chip ds-chip--active\">Lanches</button>",
+      "css": ".ds-chip.ds-chip--active { background: #D54A51; border-color: #D54A51; color: #ffffff; font-weight: 800; }\n.ds-chip.ds-chip--active:hover, .ds-chip.ds-chip--active:focus-visible { background: #D54A51; color: #ffffff; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "product-card",
+      "description": "Store product listing card. 3-column grid: image, info, add button. Hover fills Bordeaux Wash.",
+      "html": "<article class=\"ds-product-card\"><img src=\"https://placehold.co/112x96/FDECEE/D54A51?text=X\" alt=\"\" /><div class=\"ds-product-info\"><h3>X-Burger</h3><p>Pao, carne, queijo, alface e tomate</p><div class=\"ds-product-price\">R$ 24,90</div></div><span class=\"ds-product-add\">›</span></article>",
+      "css": ".ds-product-card {\n  display: grid;\n  grid-template-columns: 112px 1fr 42px;\n  gap: 14px;\n  align-items: center;\n  padding: 12px;\n  background: #ffffff;\n  border: 1px solid #eadfd6;\n  border-radius: 18px;\n  cursor: pointer;\n  transition: background 0.2s, border-color 0.2s, transform 0.2s;\n}\n.ds-product-card img { width: 112px; height: 96px; object-fit: cover; border-radius: 14px; display: block; }\n.ds-product-info { min-width: 0; }\n.ds-product-info h3 { margin: 0 0 4px; font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 800; line-height: 1.12; letter-spacing: -0.035em; color: #171717; }\n.ds-product-info p { margin: 0; font-family: 'Inter', sans-serif; font-size: 14px; color: #6f6f76; line-height: 1.28; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }\n.ds-product-price { margin-top: 6px; color: #D54A51; font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }\n.ds-product-add { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #D54A51; color: #D54A51; display: grid; place-items: center; flex-shrink: 0; justify-self: end; background: #ffffff; font-size: 20px; }\n.ds-product-card:hover, .ds-product-card:focus-visible { background: #FDECEE; border-color: rgba(213, 74, 81, 0.18); outline: none; }\n.ds-product-card:active { transform: scale(0.985); }"
+    },
+    {
+      "name": "Store Metrics Bar",
+      "kind": "custom",
+      "refersTo": "store-metrics",
+      "description": "3-column info bar below the store title. Status, ETA/rating, minimum order. Bordered card.",
+      "html": "<div class=\"ds-metrics\"><div class=\"ds-metric ds-metric--open\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#119441\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong>Aberta</strong><span>Status da loja</span></div></div><div class=\"ds-metric\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#6f6f76\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/></svg><div><strong>30-45 min</strong><span>Tempo medio</span></div></div><div class=\"ds-metric\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#6f6f76\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"4\" width=\"22\" height=\"16\" rx=\"2\" ry=\"2\"/><line x1=\"1\" y1=\"10\" x2=\"23\" y2=\"10\"/></svg><div><strong>R$ 15,00</strong><span>Pedido minimo</span></div></div></div>",
+      "css": ".ds-metrics {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 0;\n  background: #ffffff;\n  border: 1px solid #eadfd6;\n  border-radius: 18px;\n  padding: 14px 8px;\n  box-shadow: 0 8px 22px rgba(33, 20, 8, 0.07);\n}\n.ds-metric {\n  display: flex;\n  gap: 8px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 8px;\n  border-right: 1px solid #eadfd6;\n  min-width: 0;\n}\n.ds-metric:last-child { border-right: 0; }\n.ds-metric strong { font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.15; white-space: nowrap; font-weight: 800; color: #161616; }\n.ds-metric span { display: block; font-family: 'Inter', sans-serif; color: #8c8c91; font-size: 11px; line-height: 1.15; margin-top: 1px; }\n.ds-metric--open strong { color: #119441; }"
+    },
+    {
+      "name": "Variation Button",
+      "kind": "button",
+      "refersTo": "og-btn",
+      "description": "3-column grid of selectable variation/choice buttons. Brand border + wash on active, check badge.",
+      "html": "<div class=\"ds-og-grid\"><button class=\"ds-og-btn ds-og-btn--active\"><span class=\"ds-og-check\">✓</span><strong>Grande</strong><small>+ R$ 5,00</small></button><button class=\"ds-og-btn\"><strong>Medio</strong></button><button class=\"ds-og-btn\"><strong>Pequeno</strong></button></div>",
+      "css": ".ds-og-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }\n.ds-og-btn {\n  position: relative;\n  min-height: 62px;\n  border: 1px solid #eadfd6;\n  border-radius: 10px;\n  background: #ffffff;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 2px;\n  padding: 12px 10px 10px;\n  cursor: pointer;\n  transition: border-color 0.2s, background 0.2s, transform 0.2s;\n  box-shadow: 0 6px 15px rgba(33,20,8,0.035);\n  font-family: 'Inter', sans-serif;\n}\n.ds-og-btn strong { display: block; font-size: 12px; line-height: 1.15; font-weight: 700; color: #161616; }\n.ds-og-btn small { display: block; margin-top: 3px; color: #7a7a80; font-size: 10px; line-height: 1.1; font-weight: 500; }\n.ds-og-btn:hover { border-color: rgba(213, 74, 81, 0.18); background: #FDECEE; }\n.ds-og-btn:active { transform: scale(0.98); }\n.ds-og-btn--active { border-color: #D54A51; background: #FDECEE; box-shadow: 0 8px 18px rgba(213, 74, 81, 0.18); }\n.ds-og-check { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: #D54A51; color: #ffffff; display: grid; place-items: center; font-size: 12px; border: 2px solid #ffffff; box-shadow: 0 6px 14px rgba(213, 74, 81, 0.18); }\n.ds-og-btn:not(.ds-og-btn--active) .ds-og-check { display: none; }"
+    },
+    {
+      "name": "Check List Row",
+      "kind": "custom",
+      "refersTo": "check-row",
+      "description": "Vertical list of selectable rows with checkbox squares. Used for additionals and option group lists.",
+      "html": "<div class=\"ds-check-list\"><label class=\"ds-check-row ds-check-row--active\"><span class=\"ds-check-name\"><span class=\"ds-check-box ds-check-box--checked\">✓</span>Bacon</span><span>+ R$ 3,00</span></label><label class=\"ds-check-row\"><span class=\"ds-check-name\"><span class=\"ds-check-box\"></span>Cheddar</span><span>+ R$ 2,00</span></label></div>",
+      "css": ".ds-check-list { display: grid; }\n.ds-check-row {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 14px 0;\n  border-bottom: 1px solid #eadfd6;\n  font-family: 'Inter', sans-serif;\n  font-size: 18px;\n  cursor: pointer;\n  transition: background 0.15s;\n}\n.ds-check-row:last-child { border-bottom: none; }\n.ds-check-row:hover { background: rgba(253,236,238,0.3); }\n.ds-check-name { display: flex; align-items: center; gap: 14px; color: #161616; }\n.ds-check-box { width: 24px; height: 24px; border-radius: 7px; border: 2px solid #d6d0cc; display: grid; place-items: center; color: #ffffff; flex-shrink: 0; transition: background 0.15s, border-color 0.15s; font-size: 14px; }\n.ds-check-box--checked { background: #D54A51; border-color: #D54A51; }\n.ds-check-row > span:last-child { color: #D54A51; font-weight: 700; font-size: 15px; }"
+    },
+    {
+      "name": "Acaí Chip",
+      "kind": "chip",
+      "refersTo": "acai-chip",
+      "description": "Flex-wrap pill chips with checkbox square. Used for option groups with displayStyle: chips.",
+      "html": "<label class=\"ds-acai-chip ds-acai-chip--checked\"><span class=\"ds-acai-box\">✓</span><span>Morango</span></label>",
+      "css": ".ds-acai-chip {\n  position: relative;\n  min-height: 42px;\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 12px;\n  border: 1px solid #eadfd6;\n  border-radius: 12px;\n  background: #ffffff;\n  color: #222;\n  cursor: pointer;\n  transition: background 0.2s, border-color 0.2s;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;\n  font-size: 14px;\n}\n.ds-acai-chip:hover { background: #FDECEE; border-color: rgba(213, 74, 81, 0.18); }\n.ds-acai-chip--checked { border-color: #D54A51; background: #FDECEE; }\n.ds-acai-box { width: 22px; height: 22px; border-radius: 6px; border: 1.6px solid #cfcfd3; display: grid; place-items: center; color: #ffffff; flex-shrink: 0; font-size: 13px; }\n.ds-acai-chip--checked .ds-acai-box { background: #D54A51; border-color: #D54A51; }"
+    },
+    {
+      "name": "Floating Cart Bar",
+      "kind": "custom",
+      "refersTo": "floating-cart",
+      "description": "Sticky bottom bar on the store page. Bordeaux pill with bag icon, count, divider, and total.",
+      "html": "<button class=\"ds-floating-cart\"><span class=\"ds-floating-cart__bag\">▣<span class=\"ds-floating-cart__count\">3</span></span><strong>Ver sacola</strong><span class=\"ds-floating-cart__rule\"></span><span class=\"ds-floating-cart__price\">R$ 45,00</span></button>",
+      "css": ".ds-floating-cart {\n  position: sticky;\n  bottom: 84px;\n  display: grid;\n  grid-template-columns: 76px 1fr 1px 104px;\n  align-items: center;\n  justify-items: center;\n  height: 62px;\n  padding: 0 12px;\n  background: #D54A51;\n  border: none;\n  border-radius: 999px;\n  color: #ffffff;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 15px;\n  cursor: pointer;\n  z-index: 25;\n  box-shadow: 0 10px 26px rgba(213, 74, 81, 0.18);\n}\n.ds-floating-cart strong { font-size: 14px; font-weight: 800; }\n.ds-floating-cart__bag { position: relative; display: grid; place-items: center; font-size: 30px; }\n.ds-floating-cart__count { position: absolute; top: -5px; right: -8px; min-width: 18px; height: 18px; font-size: 11px; font-weight: 800; background: #ffffff; color: #D54A51; border-radius: 999px; display: grid; place-items: center; padding: 0 4px; }\n.ds-floating-cart__rule { width: 1px; height: 28px; background: rgba(255, 255, 255, 0.35); }\n.ds-floating-cart__price { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }"
+    },
+    {
+      "name": "Selectable Card",
+      "kind": "card",
+      "refersTo": "selectable-card",
+      "description": "Delivery/payment option card with radio indicator. Brand border + surface-soft bg on select.",
+      "html": "<div class=\"ds-selectable-card ds-selectable-card--active\"><span class=\"ds-selectable-card__radio\"></span><div><h3>Retirada</h3><p>Retire no balcao em 30 min</p></div></div>",
+      "css": ".ds-selectable-card {\n  min-height: 180px;\n  border: 1px solid #eadfd6;\n  border-radius: 18px;\n  background: #ffffff;\n  position: relative;\n  padding: 20px 14px;\n  display: grid;\n  place-items: center;\n  box-shadow: 0 8px 22px rgba(33, 20, 8, 0.07);\n  cursor: pointer;\n  transition: border-color 0.15s, background 0.15s;\n  text-align: center;\n}\n.ds-selectable-card:hover { border-color: #d6d0cc; }\n.ds-selectable-card--active { border-color: #D54A51; background: linear-gradient(180deg, #fff8f0, #ffffff); }\n.ds-selectable-card__radio { position: absolute; top: 18px; left: 18px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #eadfd6; }\n.ds-selectable-card--active .ds-selectable-card__radio { border-color: #D54A51; box-shadow: inset 0 0 0 5px #ffffff; background: #D54A51; }\n.ds-selectable-card h3 { margin: 4px 0 6px; font-family: 'Inter', sans-serif; font-size: 21px; font-weight: 800; color: #171717; }\n.ds-selectable-card p { margin: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #6f6f76; }"
+    },
+    {
+      "name": "Error Banner",
+      "kind": "custom",
+      "refersTo": "error-banner",
+      "description": "Inline error with icon, message, and optional retry. Appears in-store, cart, and checkout.",
+      "html": "<div class=\"ds-error-banner\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#D54A51\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" y1=\"8\" x2=\"12\" y2=\"12\"/><line x1=\"12\" y1=\"16\" x2=\"12.01\" y2=\"16\"/></svg><div><strong>Erro ao carregar</strong><p>Verifique sua conexao e tente novamente.</p></div><button class=\"ds-error-banner__retry\">Tentar novamente</button></div>",
+      "css": ".ds-error-banner {\n  display: flex;\n  align-items: flex-start;\n  gap: 12px;\n  padding: 14px 16px;\n  background: #fef2f2;\n  border: 1px solid #fecaca;\n  border-radius: 14px;\n}\n.ds-error-banner svg { flex-shrink: 0; margin-top: 1px; }\n.ds-error-banner strong { display: block; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: #171717; margin-bottom: 2px; }\n.ds-error-banner p { margin: 0; font-family: 'Inter', sans-serif; font-size: 13px; color: #6f6f76; line-height: 1.4; }\n.ds-error-banner__retry {\n  margin-left: auto;\n  align-self: center;\n  flex-shrink: 0;\n  padding: 8px 16px;\n  background: #ffffff;\n  border: 1px solid #eadfd6;\n  border-radius: 999px;\n  color: #D54A51;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 13px;\n  font-weight: 600;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: border-color 0.15s;\n}\n.ds-error-banner__retry:hover { border-color: #D54A51; }"
+    },
+    {
+      "name": "Flavor Card",
+      "kind": "card",
+      "refersTo": "flavor-card",
+      "description": "2-col grid option cards with check badge. Used for option group buttons display style.",
+      "html": "<div class=\"ds-flavor-grid\"><label class=\"ds-flavor-card ds-flavor-card--active\"><span class=\"ds-flavor-info\"><strong>Calabresa</strong><span>R$ 32,00</span></span><span class=\"ds-flavor-check\">✓</span></label><label class=\"ds-flavor-card\"><span class=\"ds-flavor-info\"><strong>Mussarela</strong><span>R$ 28,00</span></span></label></div>",
+      "css": ".ds-flavor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }\n.ds-flavor-card {\n  position: relative;\n  min-height: 58px;\n  border: 1px solid #eadfd6;\n  border-radius: 13px;\n  background: #ffffff;\n  display: grid;\n  grid-template-columns: 1fr;\n  align-items: center;\n  padding: 13px 14px;\n  cursor: pointer;\n  transition: border-color 0.2s, background 0.2s;\n}\n.ds-flavor-card:hover { border-color: #D54A51; background: #FDECEE; }\n.ds-flavor-card--active { border-color: #D54A51; background: #FDECEE; }\n.ds-flavor-info strong { display: block; font-family: 'Inter', sans-serif; color: #161616; font-size: 13px; line-height: 1.12; font-weight: 800; margin-bottom: 3px; }\n.ds-flavor-info span { display: block; font-family: 'Inter', sans-serif; color: #161616; font-size: 12px; font-weight: 800; }\n.ds-flavor-check { position: absolute; right: -7px; top: -7px; width: 24px; height: 24px; border-radius: 999px; background: #D54A51; color: #ffffff; display: grid; place-items: center; font-size: 13px; border: 3px solid #ffffff; }\n.ds-flavor-card:not(.ds-flavor-card--active) .ds-flavor-check { display: none; }"
+    },
+    {
+      "name": "Search Box",
+      "kind": "input",
+      "refersTo": "search-box",
+      "description": "Store search pill. 62px, pill shape, icon + borderless input, subdued shadow.",
+      "html": "<label class=\"ds-search-box\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#8c8c91\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg><input type=\"search\" placeholder=\"Buscar produtos...\" /></label>",
+      "css": ".ds-search-box {\n  height: 62px;\n  border: 1px solid #eadfd6;\n  border-radius: 999px;\n  background: #ffffff;\n  display: flex;\n  align-items: center;\n  padding: 0 18px;\n  gap: 13px;\n  flex: 1;\n  box-shadow: 0 7px 20px rgba(0,0,0,0.03);\n}\n.ds-search-box input {\n  border: none;\n  outline: none;\n  width: 100%;\n  background: transparent;\n  color: #171717;\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;\n  font-size: 16px;\n}\n.ds-search-box input::placeholder { color: #6f6f76; opacity: 1; }"
+    },
+    {
+      "name": "Required Label Badge",
+      "kind": "chip",
+      "refersTo": "required-label",
+      "description": "Small pill badge indicating a mandatory selection. Bordeaux Wash bg, bordeaux text.",
+      "html": "<span class=\"ds-required\">Obrigatorio</span>",
+      "css": ".ds-required {\n  display: inline-flex;\n  align-items: center;\n  min-height: 22px;\n  padding: 4px 9px;\n  border-radius: 999px;\n  background: #FDECEE;\n  color: #D54A51;\n  font-family: 'Inter', sans-serif;\n  font-size: 11px;\n  font-weight: 800;\n  white-space: nowrap;\n}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Well-Kept Storefront",
+    "overview": "Urbeat dresses small local merchants in a storefront they could never afford to build themselves — meticulously maintained, every detail intentional. The system's job is to disappear into the merchant's brand while quietly guaranteeing that every store feels credible, warm, and safe to hand your card to. The mood is a well-lit neighborhood shop at dusk: warm cream walls (#ede9e3), a single confident bordeaux sign (#D54A51), everything in its place.\n\nThis is a mobile-first product first and a marketing surface second. Most surfaces (storefront, cart, checkout, order tracking, seller config) are transactional and must feel fast, obvious, and trustworthy under a thumb.\n\nThe system explicitly rejects three things: the loud, ad-saturated big-delivery-app look, the cheap templated-marketplace feel, and sterile corporate-SaaS blandness.",
+    "keyCharacteristics": [
+      "Warm cream canvas, single bordeaux accent used sparingly (≤10% of any screen).",
+      "Mobile-first: thumb-reachable actions, ≥44px touch targets, pill CTAs, env(safe-area-inset-bottom).",
+      "Rounded geometry: containers capped at 26px; actions and chips go full pill (999px).",
+      "Flat-by-default surfaces; shadows are soft, diffuse, warm-toned, never paired with a hard border.",
+      "Premium through space, hierarchy, and typographic care — not through more color or more decoration.",
+      "Skeleton loaders for content, pastel toasts for feedback, error banners with clear retry affordances."
+    ],
+    "rules": [
+      { "name": "The One Bordeaux Rule", "body": "Bordeaux Signal (#D54A51) appears on ≤10% of any screen — the CTA, the active state, the selected chip, the floating cart. Its scarcity is what makes it read as premium. Two bordeaux things competing for attention on one screen is a bug.", "section": "colors" },
+      { "name": "The Status-Only Rule", "body": "Green is a status language, not a palette color. Green means \"saved/confirmed/free.\" Never use it to decorate or as a secondary accent.", "section": "colors" },
+      { "name": "The Solid-Fill Rule", "body": "Primary buttons use a solid Bordeaux Signal fill. The global .btn-primary class currently ships a linear gradient; treat that as a legacy exception to be phased out in favor of the solid-fill canonical style.", "section": "colors" },
+      { "name": "The Two-Voices Rule", "body": "Poppins is for selling Urbeat to merchants on the landing page; Inter is for everything a customer or merchant actually uses. Never bring Poppins into the product UI or Inter into the landing hero.", "section": "typography" },
+      { "name": "The Placeholder-Is-Not-Body Rule", "body": "input::placeholder uses secondary text (#6f6f76), not muted. Muted (#8c8c91) is reserved for tertiary metadata only.", "section": "typography" },
+      { "name": "The Soft-And-Wide Rule", "body": "Shadow blur is always ≥ the vertical offset and opacity stays ≤0.18. Never pair a 1px border with a drop shadow on the same element.", "section": "elevation" },
+      { "name": "The Tonal-First Rule", "body": "The primary depth mechanism is the cream background under white surfaces. Shadows are secondary. A card without a shadow on the cream canvas still reads as elevated.", "section": "elevation" },
+      { "name": "The Seven-State Rule", "body": "Every interactive component ships all seven states: default, hover, focus-visible, active, disabled, loading (skeleton), and error. No half-shipped components.", "section": "components" }
+    ],
+    "dos": [
+      "Do keep Bordeaux Signal (#D54A51) to ≤10% of any screen — one CTA, one active state, one floating bar.",
+      "Do let the cream canvas (#ede9e3) and white surfaces carry depth; keep shadows soft and wide.",
+      "Do design for the thumb first: full-width pill CTAs, ≥44px touch targets, env(safe-area-inset-bottom).",
+      "Do use Inter exclusively in the product UI; Poppins is for the landing page only.",
+      "Do reserve green strictly for status (savings, confirmation, free-shipping indicators).",
+      "Do cap font-weight at 800; use design tokens (var(--app-*)) for all colors.",
+      "Do use solid Bordeaux Signal fill for canonical primary buttons — the gradient is legacy.",
+      "Do include skeleton loaders for every async content area.",
+      "Do respect prefers-reduced-motion with instant transitions, static skeletons, and no animation.",
+      "Do ship all seven component states: default, hover, focus-visible, active, disabled, loading, error."
+    ],
+    "donts": [
+      "Don't build the loud, ad-saturated big-delivery-app look — no banner stacks, no dense promo grids, no aggressive upsell.",
+      "Don't ship a cheap templated-marketplace feel — every store should read as that merchant's place.",
+      "Don't let seller config screens turn into sterile corporate SaaS — keep the warmth.",
+      "Don't pair a 1px border with a drop shadow on the same element.",
+      "Don't use font-weight 850 or 900 — 800 is the ceiling. Fix the .page-title h1 850-weight bug.",
+      "Don't introduce a second brand accent to compete with bordeaux.",
+      "Don't use gradient fills on buttons — solid color only. Phase out the .btn-primary gradient.",
+      "Don't use green for decoration or as a non-status color.",
+      "Don't use muted text (#8c8c91) for body copy or labels — it fails AA contrast on white.",
+      "Don't use Poppins in any product UI surface — product is Inter-only.",
+      "Don't default to a modal when inline expansion or a bottom sheet would work.",
+      "Don't use box-shadow values greater than 0.18 opacity or blur tighter than the vertical offset."
+    ]
+  }
+}

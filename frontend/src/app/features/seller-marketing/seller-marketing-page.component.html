@@ -1,0 +1,34 @@
+<section class="marketing-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Marketing</h1></div><p class="page-subtitle">Use os ativos atuais da loja enquanto campanhas e cupons dedicados são estruturados.</p></div></header>
+
+  <article class="share-card">
+    <div>
+      <span>Link publico da loja</span>
+      <h2>{{ shell.store()?.name || 'Minha loja' }}</h2>
+      <p>{{ publicPath() }}</p>
+    </div>
+    <a [href]="publicPath()" target="_blank" rel="noopener">Abrir loja</a>
+  </article>
+
+  <section class="marketing-grid">
+    <div>
+      <span>Prova social</span>
+      <strong>{{ formatRating(shell.store()?.averageRating) }}</strong>
+      <p>{{ shell.store()?.totalReviews ?? 0 }} avaliacoes</p>
+    </div>
+    <div>
+      <span>Status da loja</span>
+      <strong>{{ shell.store()?.isOpen ? 'Aberta' : 'Fechada' }}</strong>
+      <p>Use o link publico em redes sociais, bio e WhatsApp.</p>
+    </div>
+  </section>
+
+  <section class="roadmap-card">
+    <span>Proximo contrato backend</span>
+    <h2>Campanhas e cupons ainda precisam de contrato backend dedicado</h2>
+    <p>
+      Esta primeira versao centraliza o link publico e indicadores de confianca. Para campanhas, cupons e disparos,
+      falta criar entidades, regras de elegibilidade e endpoints protegidos para o lojista.
+    </p>
+  </section>
+</section>

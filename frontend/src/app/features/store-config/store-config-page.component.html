@@ -1,0 +1,439 @@
+﻿@if (!isDashboardView()) {
+  <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
+}
+
+<app-config-subnav />
+
+  <div class="config-shell" [class.is-dashboard]="isDashboardView()">
+    <!-- ══════════════ LEFT: FORM ══════════════ -->
+    <div class="config-form-side">
+      <div class="page-head">
+        <div class="page-title">
+          @if (isDashboardView()) {
+            <h1>Informacoes da loja</h1>
+            <p>Atualize os dados publicos, endereco e identidade visual do seu painel.</p>
+          } @else {
+            <h1>Vamos configurar sua loja</h1>
+            <p>Personalize seu delivery e deixe tudo pronto para receber pedidos online.</p>
+          }
+        </div>
+        @if (saveStatus() === 'saving') {
+          <div class="badge badge-saving">Salvando...</div>
+        } @else if (saveStatus() === 'saved') {
+          <div class="badge badge-saved">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            Salvo automaticamente
+          </div>
+        } @else if (saveStatus() === 'error') {
+          <div class="badge badge-error">
+            <ion-icon name="close-circle"></ion-icon>
+            Erro ao salvar
+          </div>
+        }
+      </div>
+
+      <form #f="ngForm" (ngSubmit)="goNext()" novalidate>
+        <!-- ═══ 1. Informações da loja ═══ -->
+        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().info">
+          <button type="button" class="accordion-header" (click)="toggleSection('info')" aria-expanded="true">
+            <h2 class="card-title">1. Informações da loja</h2>
+            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
+          </button>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nome da loja</label>
+              <input class="input" type="text" placeholder="Ex: Burger House"
+                [ngModel]="storeName()" (ngModelChange)="onStoreNameChange($event)" name="storeName" required #storeNameRef="ngModel" />
+              @if (storeNameRef.touched && storeNameRef.invalid) {
+                <span class="field-error">O nome da loja é obrigatório.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label>Categoria da Loja</label>
+              <div class="flex-input-row" style="display: flex; width: 100%;">
+                <div class="select-wrap" style="flex: 1; position: relative;">
+                  <select class="input select" [ngModel]="cuisineType()" (ngModelChange)="cuisineType.set($event)" name="cuisineType" required style="width: 100%;">
+                    <option value="" disabled>Selecione...</option>
+                    @for (ct of sortedCuisineTypes(); track ct.id) {
+                      <option [value]="ct.name">{{ ct.name }}</option>
+                    }
+                  </select>
+                  <ion-icon name="chevron-down-outline" class="select-arrow"></ion-icon>
+                </div>
+                <button type="button" class="btn-dots" (click)="isCatModalOpen.set(true)" aria-label="Gerenciar categorias" title="Gerenciar categorias">...</button>
+              </div>
+            </div>
+            <div class="form-field">
+              <label>WhatsApp de atendimento</label>
+              <div class="whats-wrap">
+                <ion-icon name="logo-whatsapp" class="whats-icon"></ion-icon>
+                <input class="input whats-input" type="tel" placeholder="(21) 99999-9999"
+                  [ngModel]="whatsapp()" (ngModelChange)="onWhatsappInput($event)" name="whatsapp" required #whatsappRef="ngModel" />
+                @if (whatsappRef.touched && whatsappRef.invalid) {
+                  <span class="field-error">O WhatsApp é obrigatório.</span>
+                }
+              </div>
+            </div>
+            <div class="form-subhead span-2">Endereço</div>
+            <div class="form-field">
+              <label>CEP</label>
+              <input class="input" type="text" placeholder="Ex: 20040-010"
+                [ngModel]="cep()" (ngModelChange)="onCepInput($event)" (blur)="onCepBlur()" name="cep" maxlength="9" required #cepRef="ngModel" />
+              @if (cepRef.touched && cepRef.invalid) {
+                <span class="field-error">O CEP é obrigatório.</span>
+              } @else if (cepLoading()) { <span style="font-size:11px;color:#6b6b6b">Buscando CEP...</span> }
+              @if (cepValid() === false) { <span style="font-size:11px;color:#e53935">CEP inexistente.</span> }
+            </div>
+            <div class="form-field span-2">
+              <label>Rua</label>
+              <input class="input" type="text" placeholder="Ex: Rua das Flores"
+                [ngModel]="street()" (ngModelChange)="street.set($event)" name="street" required #streetRef="ngModel" />
+              @if (streetRef.touched && streetRef.invalid) {
+                <span class="field-error">A rua é obrigatória.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label>Número</label>
+              <input class="input" type="text" placeholder="Ex: 123"
+                [ngModel]="number()" (ngModelChange)="number.set($event)" name="number" required #numberRef="ngModel" />
+              @if (numberRef.touched && numberRef.invalid) {
+                <span class="field-error">O número é obrigatório.</span>
+              }
+            </div>
+            <div class="form-field span-2">
+              <label>Complemento</label>
+              <input class="input" type="text" placeholder="Ex: Bloco 2, Apt 301"
+                [ngModel]="complement()" (ngModelChange)="complement.set($event)" name="complement" />
+            </div>
+            <div class="form-field">
+              <label>Bairro</label>
+              <input class="input" type="text" placeholder="Ex: Centro"
+                [ngModel]="neighborhood()" (ngModelChange)="neighborhood.set($event)" name="neighborhood" required #neighborhoodRef="ngModel" />
+              @if (neighborhoodRef.touched && neighborhoodRef.invalid) {
+                <span class="field-error">O bairro é obrigatório.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label>Cidade</label>
+              <div class="select-wrap">
+                <input class="input" type="text" placeholder="Ex: Rio de Janeiro"
+                 [ngModel]="city()" (ngModelChange)="city.set($event)" name="city" required #cityRef="ngModel" />
+                @if (cityRef.touched && cityRef.invalid) {
+                  <span class="field-error">A cidade é obrigatória.</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ 2. Descrição da loja ═══ -->
+        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().desc">
+          <button type="button" class="accordion-header" (click)="toggleSection('desc')" aria-expanded="false">
+            <h2 class="card-title">2. Descrição da loja</h2>
+            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
+          </button>
+          <div class="form-grid">
+            <div class="form-field span-2">
+              <label>Descrição <span style="color: #9a9a9a; font-weight: 400;">({{ description().length }}/500)</span></label>
+              <textarea class="input" rows="4" placeholder="Conte um pouco sobre sua loja, especialidades..."
+                [ngModel]="description()" (ngModelChange)="description.set($event.slice(0, 500))" name="description" maxlength="500" style="resize: vertical; min-height: 100px; font-family: inherit;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ 3. Identidade visual ═══ -->
+        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().visual">
+          <button type="button" class="accordion-header" (click)="toggleSection('visual')" aria-expanded="false">
+            <h2 class="card-title">3. Identidade visual</h2>
+            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
+          </button>
+          <div class="visual-grid">
+            <div>
+              <label>Logo da loja</label>
+              <label class="upload-box" for="logoInput">
+                @if (logoPreview()) {
+                  <img [src]="logoPreview()" class="upload-preview-img" alt="Logo preview" />
+                } @else {
+                  <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+                  <div class="upload-text">Arraste sua logo aqui<br>ou clique para enviar</div>
+                  <div class="upload-sub">PNG ou JPG até 2MB</div>
+                }
+              </label>
+              <input type="file" id="logoInput" accept="image/png,image/jpeg" class="file-input-hidden" (change)="onLogoSelected($event)" />
+            </div>
+            <div>
+              <label>Banner da loja</label>
+              <label class="upload-box upload-box-banner" for="bannerInput">
+                @if (bannerPreview()) {
+                  <img [src]="bannerPreview()" class="upload-preview-img" alt="Banner preview" />
+                } @else {
+                  <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+                  <div class="upload-text">Arraste sua imagem aqui<br>ou clique para enviar</div>
+                  <div class="upload-sub">PNG ou JPG até 2MB • 1200x400px</div>
+                }
+              </label>
+              <input type="file" id="bannerInput" accept="image/png,image/jpeg" class="file-input-hidden" (change)="onBannerSelected($event)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ 4. Configuração rápida ═══ -->
+        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().config">
+          <button type="button" class="accordion-header" (click)="toggleSection('config')" aria-expanded="false">
+            <h2 class="card-title">4. Configuração rápida</h2>
+            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
+          </button>
+          <div class="config-grid">
+            <div>
+              <label class="config-label">Tipo de atendimento</label>
+              <div class="atendimento-boxes">
+                <div class="atendimento-box"
+                  [class.selected]="supportsDelivery()" (click)="toggleDelivery()">
+                    <div class="checkbox-sq" [class.checked]="supportsDelivery()"></div>
+                    <span class="atendimento-text">Delivery</span>
+                  </div>
+                  <div class="atendimento-box"
+                    [class.selected]="supportsPickup()" (click)="togglePickup()">
+                    <div class="checkbox-sq" [class.checked]="supportsPickup()"></div>
+                  <span class="atendimento-text">Retirada</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="config-label">Tempo médio de entrega</label>
+              <div class="time-range-box">
+                <span class="time-range-label">Entre</span>
+                <input type="number" min="0"
+                  [ngModel]="initialMinute()" (ngModelChange)="initialMinute.set($event === '' || $event === null ? null : +$event)"
+                  name="initialMinute" class="time-range-input" />
+                <span class="time-range-label">e</span>
+                <input type="number" min="0"
+                  [ngModel]="finalMinute()" (ngModelChange)="finalMinute.set($event === '' || $event === null ? null : +$event)"
+                  name="finalMinute" class="time-range-input" />
+                <span class="time-range-label">min</span>
+              </div>
+              @if (timeRangeError()) {
+                <span style="font-size:11px;color:#e53935;">{{ timeRangeError() }}</span>
+              }
+            </div>
+            <div>
+              <label class="config-label">Pedido mínimo</label>
+              <div class="money-input" style="max-width: 180px;">
+                <span class="money-prefix">R$</span>
+                <input type="text" placeholder="0,00"
+                  [ngModel]="minimumOrderValue()" (ngModelChange)="onMoneyInput($event)" name="minOrder" />
+              </div>
+            </div>
+            <div>
+              <label class="config-label">Raio máximo (km)</label>
+              <div style="height:44px;border:1px solid var(--c-border);border-radius:8px;background:var(--c-white);display:flex;align-items:center;padding:0 0.85rem;transition:0.15s;max-width:180px;" [style.border-color]="'var(--c-border)'">
+                <input type="number" min="1" step="1" placeholder="10"
+                  [ngModel]="maxDeliveryRadiusKm()" (ngModelChange)="maxDeliveryRadiusKm.set(+$event || 0)"
+                  name="maxDeliveryRadiusKm" style="border:none;outline:none;background:transparent;font-size:0.9rem;font-family:inherit;color:var(--c-text);width:100%;" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ 5. URL da loja ═══ -->
+        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().url">
+          <button type="button" class="accordion-header" (click)="toggleSection('url')" aria-expanded="false">
+            <h2 class="card-title">5. URL da loja</h2>
+            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
+          </button>
+          <div class="url-group">
+            <div class="url-prefix">urbeat.com.br/</div>
+            <input type="text" class="url-input" placeholder="minha-loja"
+              [ngModel]="storeUrl()" (ngModelChange)="storeUrl.set($event)" name="storeUrl" />
+          </div>
+          <div class="url-helper">Escolha o endereço do seu cardápio online</div>
+        </div>
+
+        <!-- ═══ Actions ═══ -->
+        @if (isDashboardView()) {
+          <div class="dashboard-save-bar">
+            <span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
+              @if (saveStatus() === 'saving') { Salvando informacoes... }
+              @else if (saveStatus() === 'saved') { Informacoes salvas. }
+              @else if (saveStatus() === 'error') { Nao foi possivel salvar. }
+              @else { Salve as alteracoes antes de sair. }
+            </span>
+            <button type="button" class="btn btn-primary" (click)="saveDraft()" [disabled]="loading()">
+              @if (loading()) {
+                <ion-spinner name="crescent" style="width: 18px; height: 18px; margin-right: 8px;"></ion-spinner>
+                Salvando...
+              } @else {
+                Salvar
+              }
+            </button>
+          </div>
+        }
+      </form>
+    </div>
+
+    @if (!isDashboardView()) {
+    <!-- ══════════════ RIGHT: PREVIEW ══════════════ -->
+    <div class="config-preview-side">
+      <div class="preview-head">
+        <h3 class="preview-title">Preview da sua loja</h3>
+        <div class="live-badge"><span class="live-dot"></span>Preview instantâneo</div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <!-- Status bar -->
+            <div class="phone-status-bar">
+              <span>9:41</span>
+              <div class="status-icons">
+                <div class="signal"><span></span><span></span></div>
+                <div class="battery"><div class="battery-fill"></div></div>
+              </div>
+            </div>
+
+            <!-- Banner -->
+            <div class="preview-banner">
+              @if (bannerPreview()) {
+                <img [src]="bannerPreview()" alt="Banner" />
+              } @else {
+                <div class="skeleton skeleton-banner"></div>
+              }
+            </div>
+
+            <!-- Store header -->
+            <div class="preview-store-header">
+              <div class="store-logo-wrap">
+                @if (logoPreview()) {
+                  <img [src]="logoPreview()" alt="Logo" class="store-logo-img" />
+                } @else {
+                  <div class="store-logo-placeholder">
+                    <ion-icon name="storefront-outline"></ion-icon>
+                  </div>
+                }
+              </div>
+              <div class="store-info">
+                <div class="badge-open">Aberto Agora</div>
+                @if (previewDeliveryInfo()) {
+                  <div class="info-line">{{ previewDeliveryInfo() }}</div>
+                }
+                @if (previewMinOrder()) {
+                  <div class="info-line">{{ previewMinOrder() }}</div>
+                }
+                @if (previewAddressLine()) {
+                  <div class="info-line address-line">{{ previewAddressLine() }}</div>
+                }
+              </div>
+            </div>
+
+            <div class="preview-store-name">{{ previewStoreName() }}</div>
+            <div class="preview-store-rating">
+              <span class="star">★</span> 4,8 (128) • {{ previewCuisine() }}
+            </div>
+
+            <!-- Tabs -->
+            <div class="preview-tabs">
+              <span class="tab active">Destaques</span>
+              <span class="tab">Combos</span>
+              <span class="tab">Bebidas</span>
+            </div>
+
+            <!-- Products skeleton -->
+            <div class="preview-products">
+              <div class="product-skel">
+                <div class="skel-img"></div>
+                <div class="skel-info">
+                  <div class="skel-line w75"></div>
+                  <div class="skel-line w50"></div>
+                  <div class="skel-line w25 orange"></div>
+                </div>
+                <div class="skel-btn">+</div>
+              </div>
+              <p class="preview-more-hint">Mais itens...</p>
+            </div>
+
+            <!-- Cart bar -->
+            <div class="preview-cart-bar">
+              <div class="cart-left">
+                <ion-icon name="cart-outline"></ion-icon>
+                <span>Ver carrinho • R$ 0,00</span>
+              </div>
+              <div class="cart-badge">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+@if (!isDashboardView()) {
+  <app-wizard-footer
+    [backLabel]="'Voltar'"
+    [nextLabel]="'Avancar para Horarios'"
+    [isSaving]="loading()"
+    [hasUnsavedChanges]="true"
+    [saveStatus]="footerSaveStatus()"
+    (back)="onBack()"
+    (next)="goNext()"
+    (save)="saveDraft()">
+  </app-wizard-footer>
+}
+<!-- Category Modal -->
+<ion-modal [isOpen]="isCatModalOpen()" (didDismiss)="isCatModalOpen.set(false)" cssClass="category-modal" alignment="center">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title class="ion-text-center">Nova Categoria</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="isCatModalOpen.set(false)">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <div class="modal-grid">
+        <div class="input-section">
+          <label>Nome da Categoria <span>*</span></label>
+          <ion-input 
+            fill="outline" 
+            placeholder="Ex: Hamburgueria, Pizzaria" 
+            [ngModel]="newCatName()" 
+            (ngModelChange)="newCatName.set($event)" 
+            (keyup.enter)="addCategory()">
+          </ion-input>
+          <p class="helper-text">Categorias duplicadas não serão permitidas.</p>
+        </div>
+
+        <ion-button expand="block" (click)="addCategory()" [disabled]="!newCatName().trim()" style="--border-radius: 8px;">
+          Incluir Categoria
+        </ion-button>
+
+        <div class="search-section">
+          <ion-searchbar 
+            placeholder="Pesquisar..." 
+            [ngModel]="catSearch()" 
+            (ngModelChange)="catSearch.set($event)" 
+            style="--box-shadow: none; border: 1px solid var(--c-border); border-radius: 8px; --background: var(--c-white);">
+          </ion-searchbar>
+        </div>
+
+        <div class="list-section">
+          <ion-list class="scrollable-list">
+            @for (cat of filteredCategories(); track cat.id) {
+              <ion-item lines="none" button (click)="selectCategory(cat)" detail="false">
+                <ion-label>{{ cat.name }}</ion-label>
+                <ion-button slot="end" fill="clear" color="danger" (click)="$event.stopPropagation(); deleteCategory(cat)">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-item>
+            } @empty {
+              <div class="empty-state">Nenhuma categoria encontrada.</div>
+            }
+          </ion-list>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

@@ -1,0 +1,169 @@
+﻿<section class="seller-dashboard-page install-page">
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Instalar</h1></div><p class="page-subtitle">Instale o painel para acesso rápido.</p></div></header>
+
+  <div class="install-grid">
+    <div class="install-main">
+      <div class="content-card seller-panel install-hero-card">
+        <div class="seller-panel-header">
+          <div>
+            <h2>Instalar aplicativo</h2>
+            <p class="section-copy">Deixe o painel pronto para operação rápida no balcão e prepare a impressão automática no fluxo certo.</p>
+          </div>
+        </div>
+        <div class="hero-kicker">Experiência recomendada para loja</div>
+        @if (installPrompt.isInstalled()) {
+          <div class="seller-state-card is-empty install-state-card">
+            <strong class="seller-state-title">Painel instalado</strong>
+            <p class="seller-state-copy">O Urbeat ja esta rodando em modo aplicativo neste dispositivo.</p>
+          </div>
+        } @else {
+          <p class="card-desc">Adicione o painel à tela inicial do seu dispositivo para abrir o dashboard mais rápido e reduzir atrito durante o atendimento.</p>
+          @if (installPrompt.canInstall()) {
+            <button type="button" class="btn-instalar seller-primary-button" (click)="install()" [disabled]="installing()">
+              {{ installing() ? 'Abrindo instalacao...' : 'Instalar agora' }}
+            </button>
+          } @else {
+            <p class="fallback seller-inline-banner is-warning">{{ installPrompt.fallbackMessage() }}</p>
+          }
+        }
+        <div class="hero-footnote">Depois da instalação, deixe <code>/app/dashboard</code> aberto durante o expediente.</div>
+      </div>
+
+      <div class="content-card seller-panel install-steps-card">
+        <div class="seller-panel-header">
+          <div>
+            <h2>Ordem ideal de instalação</h2>
+            <p class="section-copy">Siga esta sequência para deixar o painel e a impressora prontos sem retrabalho.</p>
+          </div>
+        </div>
+        <div class="install-step-list">
+          @for (step of installSteps; track step.number) {
+            <article class="install-step-item">
+              <div class="install-step-number">{{ step.number }}</div>
+              <div class="install-step-copy">
+                <div class="install-step-head">
+                  <strong>{{ step.title }}</strong>
+                  @if (step.emphasis) {
+                    <span class="install-step-badge">{{ step.emphasis }}</span>
+                  }
+                </div>
+                <p>{{ step.description }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="install-side">
+      <div class="content-card seller-panel info-card">
+        <div class="seller-panel-header">
+          <div>
+            <h2>Plataformas recomendadas</h2>
+            <p class="section-copy">Escolha o caminho certo de acordo com o dispositivo que a loja usa para aceitar pedidos.</p>
+          </div>
+        </div>
+        <div class="platform-guide-list">
+          @for (item of platformGuides; track item.title) {
+            <article class="platform-guide-item" [class.is-recommended]="item.tone === 'recommended'" [class.is-warning]="item.tone === 'warning'">
+              <small>{{ item.title }}</small>
+              <strong>{{ item.recommendation }}</strong>
+              <p>{{ item.detail }}</p>
+            </article>
+          }
+        </div>
+      </div>
+
+      <div class="content-card seller-panel priority-card">
+        <div class="seller-panel-header">
+          <div>
+            <h2>Prioridade operacional</h2>
+            <p class="section-copy">O que entregar primeiro para a loja funcionar de forma estável.</p>
+          </div>
+        </div>
+        <div class="seller-list install-list">
+          <div class="seller-list-item install-check-item"><p><i class="bi bi-check-circle text-green"></i> POS-58 com 58mm e sem guilhotina</p></div>
+          <div class="seller-list-item install-check-item"><p><i class="bi bi-check-circle text-green"></i> Local-agent no desktop da loja</p></div>
+          <div class="seller-list-item install-check-item"><p><i class="bi bi-check-circle text-green"></i> Impressão automática no aceite</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card seller-panel tips-card">
+    <div class="seller-panel-header">
+      <div>
+        <h2>Como usar na loja</h2>
+        <p class="section-copy">Boas praticas para deixar o painel sempre pronto durante o atendimento.</p>
+      </div>
+    </div>
+    <ul class="seller-bullet-list">
+      <li>Deixe <code>/app/dashboard</code> aberto durante o expediente.</li>
+      <li>Ative o som de pedidos no topo do painel.</li>
+      <li>Se o navegador nao oferecer instalacao, use o atalho/favorito do proprio aparelho.</li>
+      <li>No desktop, trate o navegador como apoio e deixe a automação principal com o local-agent.</li>
+    </ul>
+  </div>
+
+  <div class="content-card seller-panel printer-card">
+    <div class="seller-panel-header">
+      <div>
+        <h2>Preparado para impressora Bluetooth</h2>
+        <p class="section-copy">O painel web segue pronto para a jornada nativa quando a loja precisar imprimir pedidos no Android.</p>
+      </div>
+    </div>
+    <p>
+      Impressoras como a Mini Thermal Printer TC-163 usam Bluetooth classico. O navegador/PWA nao acessa esse tipo de conexao de forma confiavel; a impressao direta fica preparada para o app Android/Capacitor.
+    </p>
+    <a class="btn-config-print seller-dark-button" routerLink="/app/configuracoes/impressao">Configurar impressao</a>
+  </div>
+
+  <div class="content-card seller-panel agent-download-card">
+    <div class="seller-panel-header">
+      <div>
+        <h2>Baixar agents locais</h2>
+        <p class="section-copy">No desktop, o local-agent e o caminho preferencial para impressão automática sem popup do navegador.</p>
+      </div>
+    </div>
+
+    <div class="seller-inline-banner is-info">
+      <strong>Mesmo servidor do dashboard</strong>
+      <p>Os instaladores do agent são servidos pelo mesmo domínio do painel em <code>/downloads/urbeat-print-agent/</code>.</p>
+    </div>
+
+    <div class="download-priority-row">
+      <div class="download-priority-copy">
+        <strong>Windows primeiro, Linux no padrão CUPS</strong>
+        <p>No Windows, instale o driver da POS-58 antes do agent. No Linux, siga o fluxo oficial com CUPS + local-agent.</p>
+      </div>
+      <div class="download-priority-actions">
+        <a class="seller-dark-button" [href]="pos58DriverHref" download>Driver Windows da POS-58</a>
+        <a class="seller-dark-button" [href]="linuxCupsGuideHref" target="_blank" rel="noopener noreferrer">Guia Linux com CUPS</a>
+      </div>
+    </div>
+
+    <div class="agent-download-list">
+      @for (item of agentDownloads; track item.href) {
+        <article class="agent-download-item">
+          <div>
+            <div class="agent-download-badges">
+              @for (badge of item.badges; track badge) {
+                <span class="agent-download-badge" [class.is-recommended]="badge === 'Recomendado'">{{ badge }}</span>
+              }
+            </div>
+            <strong>{{ item.platform }}</strong>
+            <span>{{ item.description }}</span>
+            <small>Formato esperado: {{ item.format }}</small>
+          </div>
+          <a class="seller-primary-button" [href]="item.href" download>{{ item.label }}</a>
+        </article>
+      }
+    </div>
+
+    <div class="agent-download-footer">
+      <a class="seller-dark-button" [href]="agentGuideHref" target="_blank" rel="noopener noreferrer">Guia de instalação do agent</a>
+      <a class="seller-secondary-link" routerLink="/app/configuracoes/impressao">Ir para configuração de impressão</a>
+    </div>
+    <p class="agent-download-note">Windows exige o driver da POS-58 antes do agent. Linux segue o padrão oficial com CUPS + local-agent.</p>
+  </div>
+</section>

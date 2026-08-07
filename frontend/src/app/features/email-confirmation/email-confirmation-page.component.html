@@ -1,0 +1,57 @@
+﻿<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="confirm-shell">
+    <div class="confirm-card">
+      <img src="/images/logo_v2.png" alt="Urbeat" class="confirm-logo" width="130" />
+
+      <div class="confirm-icon-wrap">
+        <ion-icon name="mail-outline"></ion-icon>
+      </div>
+
+      <h1>Verifique seu e-mail</h1>
+
+      <p class="confirm-desc">
+        Enviamos um link de confirmação para <strong>{{ email() }}</strong>.
+        Clique no link do e-mail para ativar sua conta.
+      </p>
+
+      <div class="timer-box">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Tempo restante para confirmar: <strong>{{ formatTime() }}</strong></span>
+      </div>
+
+      @if (!showChangeEmail()) {
+        <p class="confirm-hint">
+          Nao recebeu? Verifique o spam ou clique abaixo para reenviar.
+        </p>
+
+        <button type="button" class="btn-resend" (click)="resend()" [disabled]="resending()">
+          @if (resending()) { <span class="spinner"></span> Reenviando... } @else { Reenviar e-mail }
+        </button>
+      }
+
+      @if (showChangeEmail()) {
+        <div class="change-email-section">
+          <p class="change-title">E-mail nao chegou?</p>
+          <p class="change-hint">Voce pode alterar o e-mail cadastrado e receber um novo link de confirmacao.</p>
+
+          <div class="input-wrap">
+            <ion-icon name="mail-outline" class="input-icon-left"></ion-icon>
+            <input type="email" [ngModel]="newEmail()" (ngModelChange)="newEmail.set($event)" placeholder="novo@email.com" (keyup.enter)="changeEmail()" />
+          </div>
+
+          <button type="button" class="btn-change" (click)="changeEmail()" [disabled]="changingEmail() || !newEmail()">
+            @if (changingEmail()) { <span class="spinner"></span> Atualizando... } @else { Atualizar e-mail }
+          </button>
+
+          <p class="change-or">ou</p>
+
+          <button type="button" class="btn-resend" (click)="resend()" [disabled]="resending()">
+            @if (resending()) { <span class="spinner"></span> Reenviando... } @else { Reenviar e-mail }
+          </button>
+        </div>
+      }
+
+      <a [routerLink]="['/cadastro']" class="back-link">Voltar para o cadastro</a>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,273 @@
+﻿name: urbeat
+
+# ─────────────────────────────────────────────────────────────
+# Redes e volumes nomeados
+# ─────────────────────────────────────────────────────────────
+networks:
+  urbeat_net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redis-data:
+  grafana-data:
+  prometheus-data:
+  frontend-assets:
+  letsencrypt:        # /etc/letsencrypt do certbot
+  certbot-webroot:    # /var/www/certbot (ACME http-01 challenge)
+
+# ─────────────────────────────────────────────────────────────
+# Serviços
+# ─────────────────────────────────────────────────────────────
+services:
+
+  # ───────── POSTGRES (UrbeatDb + UrbeatLogs) ─────────
+  db:
+    image: postgres:16-alpine
+    container_name: urbeat_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: UrbeatDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      TZ: America/Sao_Paulo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - urbeat_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d UrbeatDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # ───────── REDIS ─────────
+  redis:
+    image: redis:7-alpine
+    container_name: urbeat_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - urbeat_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # ───────── BACKEND .NET 9 ─────────
+  webapi:
+    build:
+      context: ../backend
+      dockerfile: src/Urbeat.WebApi/Dockerfile
+    image: urbeat/webapi:latest
+    container_name: urbeat_webapi
+    restart: unless-stopped
+    expose:
+      - "8080"
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      TZ: America/Sao_Paulo
+      # Banco principal
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=UrbeatDb;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres};Pooling=true;SSL Mode=Disable;Trust Server Certificate=true"
+      # Banco de logs estruturados (Serilog) — sobrescreve appsettings.UrbeatLogs.json
+      Serilog__WriteTo__1__Args__connectionString: "Host=db;Port=5432;Database=UrbeatLogs;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres};SSL Mode=Disable;Trust Server Certificate=true"
+      # Redis
+      Redis__ConnectionString: "redis:6379"
+      # JWT
+      Jwt__Issuer: "urbeat"
+      Jwt__Audience: "urbeat-api"
+      Jwt__Secret: "${JWT_SECRET:-CHANGE_ME_MINIMUM_32_CHARS_SECRET_PROD_VALUE}"
+      Jwt__ExpirationMinutes: "60"
+      Jwt__RefreshTokenDays: "7"
+      # Admin seed
+      AdminSeed__Email: "${ADMIN_EMAIL:-admin@urbeat.local}"
+      AdminSeed__Password: "${ADMIN_PASSWORD:-Admin12345}"
+      # Hangfire dashboard
+      Hangfire__DashboardUser: "${HANGFIRE_USER:-admin}"
+      Hangfire__DashboardPassword: "${HANGFIRE_PASSWORD:-urbeat-hangfire}"
+      # Encryption
+      Encryption__Key: "${ENCRYPTION_KEY:-CHANGE_ME_MINIMUM_32_CHARS_ENCRYPTION_KEY}"
+      # Email
+      EmailConfirmation__FrontendBaseUrl: "${FRONTEND_BASE_URL:-http://localhost}"
+      # SMTP (Brevo / Amazon SES / qualquer provedor)
+      Email__FromAddress: "${SMTP_FROM:-contato@urbeat.com.br}"
+      Email__FromName: "Urbeat"
+      Email__LogOnly: "false"
+      Email__Smtp__Host: "${SMTP_HOST}"
+      Email__Smtp__Port: "${SMTP_PORT:-587}"
+      Email__Smtp__Username: "${SMTP_USER}"
+      Email__Smtp__Password: "${SMTP_PASSWORD}"
+      Email__Smtp__UseStartTls: "${SMTP_SSL}"
+      CustomerVerification__Channel: "${CUSTOMER_VERIFICATION_CHANNEL:-Sms}"
+      CustomerVerification__SmsProvider: "${CUSTOMER_VERIFICATION_SMS_PROVIDER:-Fake}"
+      CustomerVerification__Infobip__BaseUrl: "${INFOBIP_BASE_URL}"
+      CustomerVerification__Infobip__ApiKey: "${INFOBIP_API_KEY}"
+      CustomerVerification__Infobip__Sender: "${INFOBIP_SENDER:-Urbeat}"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - urbeat_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # ───────── FRONTEND ANGULAR ─────────
+  # Build stage gera os assets do Angular e copia para o volume compartilhado.
+  # O container morre depois (run-once); o nginx público consome o volume.
+  frontend_build:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: urbeat/frontend:latest
+    container_name: urbeat_frontend_build
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        echo "[frontend_build] sincronizando assets..."
+        rm -rf /shared/*
+        cp -r /app/dist/. /shared/
+        echo "[frontend_build] OK ($(ls /shared | wc -l) entradas)"
+    volumes:
+      - frontend-assets:/shared
+    networks:
+      - urbeat_net
+    restart: "no"
+
+  # ───────── NGINX (gateway: SPA + proxy /api + /hubs + SSL + landpage) ─────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: urbeat_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - frontend-assets:/usr/share/nginx/html:ro
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot-webroot:/var/www/certbot:ro
+    depends_on:
+      webapi:
+        condition: service_healthy
+      frontend_build:
+        condition: service_completed_successfully
+    networks:
+      - urbeat_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ───────── CERTBOT (Let's Encrypt) ─────────
+  # Inicialmente faz nada. Use:
+  #   docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
+  #     --email seu@email -d urbeat.com.br -d www.urbeat.com.br -d api.urbeat.com.br \
+  #     --agree-tos --no-eff-email
+  # Depois roda em loop renovando a cada 12h.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: urbeat_certbot
+    restart: unless-stopped
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        trap exit TERM
+        while :; do
+          certbot renew --webroot -w /var/www/certbot --quiet \
+            --deploy-hook 'echo "$$(date) cert renewed, reloading nginx"' \
+          || echo "$$(date) certbot renew exit=$$?"
+          sleep 12h & wait $${!}
+        done
+    networks:
+      - urbeat_net
+
+  # ───────── OBSERVABILIDADE ─────────
+  nodeexporter:
+    image: prom/node-exporter:latest
+    container_name: urbeat_nodeexporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro,rbind
+    ports:
+      - "9100:9100"
+    networks:
+      - urbeat_net
+
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: urbeat_postgres_exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/UrbeatDb?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - urbeat_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: urbeat_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      webapi:
+        condition: service_healthy
+    networks:
+      - urbeat_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: urbeat_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD:-admin}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - urbeat_net

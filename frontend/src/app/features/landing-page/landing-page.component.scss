@@ -1,0 +1,34 @@
+﻿/*
+  Abordagem Angular Pura: O componente é um container de tela cheia com scroll próprio.
+  Isso evita completamente a modificação de <html> ou <body>, garantindo que
+  a navegação para outras telas (Login/Cadastro) funcione perfeitamente sem refresh.
+  Usamos o seletor de tag 'app-landing-page' em vez de ':host' para garantir 
+  compatibilidade com ViewEncapsulation.None.
+*/
+
+app-landing-page {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  z-index: 9999 !important;
+  background: var(--app-bg-warm) !important;
+
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  &::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+/* Garante que o conteúdo interno possa crescer além de 100dvh para ativar o scroll */
+.lp-root {
+  width: 100% !important;
+  min-height: 100dvh !important;
+  height: auto !important; 
+}

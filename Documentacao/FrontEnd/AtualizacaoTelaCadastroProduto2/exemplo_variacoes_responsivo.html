@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo — Variações responsivas (desktop colunas / mobile Título | Campo)</title>
+  <style>
+    :root {
+      --coral: #e34e57;
+      --coral-soft: #fff0f1;
+      --border: #eadfd6;
+      --hairline: #f3efe9;
+      --muted: #70757a;
+      --page: #f6f7fa;
+      --shadow: 0 8px 22px rgba(33, 20, 8, .07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: var(--page);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      color: #202124;
+    }
+
+    .wrapper { max-width: 900px; margin: 0 auto; }
+
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+
+    .hint-badge {
+      display: inline-block;
+      background: var(--coral-soft);
+      color: var(--coral);
+      font-weight: 700;
+      font-size: 12px;
+      border-radius: 8px;
+      padding: 6px 12px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 26px;
+    }
+
+    /* ── DESKTOP: cada campo é uma COLUNA (com cabeçalho) ── */
+
+    .variation-header,
+    .variation-row {
+      display: grid;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .size-cols { grid-template-columns: 28px 1.15fr 1fr 140px 65px 60px 38px; }
+
+    .variation-header {
+      padding: 0 5px 7px;
+      color: #666;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .variation-row {
+      padding: 9px 5px;
+      border-top: 1px solid var(--border);
+    }
+
+    .drag { color: #999; text-align: center; font-size: 17px; cursor: grab; }
+
+    /* Célula: no desktop o rótulo interno fica ESCONDIDO */
+    .v-cell { min-width: 0; }
+    .v-cell-label { display: none; }
+    .v-cell-action { display: grid; place-items: center; }
+
+    .var-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+      outline: none;
+    }
+    .var-input:focus { border-color: #ed8d93; box-shadow: 0 0 0 3px var(--coral-soft); }
+
+    .money-wrap { display: grid; grid-template-columns: 35px 1fr; }
+    .money-prefix {
+      display: grid; place-items: center;
+      border: 1px solid var(--border); border-right: 0;
+      border-radius: 8px 0 0 8px;
+      background: var(--hairline); color: #666; font-size: 12px;
+    }
+    .money-wrap input { border-radius: 0 8px 8px 0; border: 1px solid var(--border); padding: 9px 10px; font: inherit; outline: none; width: 100%; }
+
+    .default-radio { display: flex; justify-content: center; }
+    .default-radio input { width: 18px; height: 18px; accent-color: #119441; }
+
+    .switch { position: relative; width: 37px; height: 21px; display: inline-block; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; border-radius: 20px; background: #ccc; transition: .2s; }
+    .slider::before { content: ""; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .switch input:checked + .slider { background: var(--coral); }
+    .switch input:checked + .slider::before { transform: translateX(16px); }
+
+    .icon-btn {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: #fff; color: #777; cursor: pointer;
+      display: grid; place-items: center;
+    }
+
+    /* ── MOBILE (≤720px): cada linha vira "tabelinha" Título | Campo ── */
+
+    @media (max-width: 720px) {
+      /* some o cabeçalho de colunas */
+      .variation-header { display: none; }
+
+      /* a linha vira: coluna do drag | coluna dos campos empilhados */
+      .variation-row.size-cols {
+        grid-template-columns: 28px minmax(0, 1fr);
+        align-items: start;
+        padding: 14px 5px;
+        row-gap: 8px;
+      }
+
+      .drag { padding-top: 10px; }
+
+      /* cada célula vira uma linha "Título | Campo" */
+      .v-cell {
+        grid-column: 2;
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+      }
+
+      .v-cell-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: #666;
+        text-transform: uppercase;
+      }
+
+      /* controles pequenos alinham à esquerda na coluna do campo */
+      .default-radio { justify-content: flex-start; }
+
+      /* lixeira: rótulo Excluir + botão centralizado */
+      .v-cell-action { place-items: initial; }
+      .v-cell-action .icon-btn { justify-self: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Exemplo — Variações de tamanho/peso</h1>
+    <p class="sub">Redimensione a janela para ver os dois modos.</p>
+    <span class="hint-badge" id="modeBadge">…</span>
+
+    <div class="card">
+      <div class="variation-header size-cols">
+        <span></span><span>Nome</span><span>Descrição</span><span>Preço</span><span>Padrão</span><span>Ativo</span><span></span>
+      </div>
+
+      <!-- Linha 1 -->
+      <div class="variation-row size-cols">
+        <span class="drag">⋮⋮</span>
+        <div class="v-cell">
+          <span class="v-cell-label">Nome</span>
+          <input class="var-input" type="text" value="Pequena">
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Descrição</span>
+          <input class="var-input" type="text" value="25 cm">
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Preço</span>
+          <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" value="29,90"></div>
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Padrão</span>
+          <label class="default-radio"><input type="radio" name="def"></label>
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Ativo</span>
+          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="v-cell v-cell-action"><span class="v-cell-label">Excluir</span><button class="icon-btn" title="Remover">🗑</button></div>
+      </div>
+
+      <!-- Linha 2 -->
+      <div class="variation-row size-cols">
+        <span class="drag">⋮⋮</span>
+        <div class="v-cell">
+          <span class="v-cell-label">Nome</span>
+          <input class="var-input" type="text" value="Média">
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Descrição</span>
+          <input class="var-input" type="text" value="30 cm">
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Preço</span>
+          <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" value="39,90"></div>
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Padrão</span>
+          <label class="default-radio"><input type="radio" name="def" checked></label>
+        </div>
+        <div class="v-cell">
+          <span class="v-cell-label">Ativo</span>
+          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="v-cell v-cell-action"><span class="v-cell-label">Excluir</span><button class="icon-btn" title="Remover">🗑</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const badge = document.getElementById('modeBadge');
+    function updateBadge() {
+      badge.textContent = window.innerWidth <= 720
+        ? 'MODO MOBILE: cada linha vira "Título | Campo" (rótulo à esquerda, campo à direita)'
+        : 'MODO DESKTOP: campos em colunas com cabeçalho (Nome, Descrição, Preço, Padrão, Ativo)';
+    }
+    window.addEventListener('resize', updateBadge);
+    updateBadge();
+  </script>
+</body>
+</html>

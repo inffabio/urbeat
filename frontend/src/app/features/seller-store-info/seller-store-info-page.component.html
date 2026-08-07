@@ -1,0 +1,108 @@
+<section class="store-info-page">
+  <header class="dashboard-topbar">
+    <div>
+      <div class="page-title-wrap">
+        <h1 class="page-title">Configurações</h1>
+      </div>
+      <p class="page-subtitle">Gerencie horários, informações da loja, impressão, bio e bairros atendidos</p>
+    </div>
+    <div class="top-actions">
+      <div class="date-pill">
+        <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+        <span>{{ headerStatus() }}</span>
+      </div>
+    </div>
+  </header>
+
+  <app-config-subnav />
+
+  <section class="row g-3 info-layout">
+    <div class="col-12 col-xl-7">
+      <div class="content-card p-4">
+        <h2 class="h5 fw-bold mb-4">Informações do estabelecimento</h2>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label-app" for="storeName">Nome do estabelecimento</label>
+            <input id="storeName" class="form-control-app" type="text" [ngModel]="storeName()" (ngModelChange)="onStoreNameChange($event)" name="storeName" />
+          </div>
+          <div class="col-12">
+            <label class="form-label-app" for="storeUrl">Link de acesso</label>
+            <input id="storeUrl" class="form-control-app" type="text" [ngModel]="storeUrl()" (ngModelChange)="storeUrl.set($event)" name="storeUrl" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-app" for="whatsapp">WhatsApp</label>
+            <input id="whatsapp" class="form-control-app" type="tel" [ngModel]="whatsapp()" (ngModelChange)="onWhatsappInput($event)" name="whatsapp" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-app" for="document">CNPJ/CPF</label>
+            <input id="document" class="form-control-app" type="text" inputmode="numeric" [class.is-invalid]="documentValid() === false" [ngModel]="storeDocument()" (ngModelChange)="onDocumentInput($event)" (blur)="onDocumentBlur()" name="document" placeholder="000.000.000-00" />
+            @if (documentValid() === false) { <small class="field-error">Informe um CNPJ/CPF válido.</small> }
+          </div>
+          <div class="col-12">
+            <label class="form-label-app" for="pixKey">Chave Pix</label>
+            <input id="pixKey" class="form-control-app" type="text" maxlength="50" [ngModel]="pixKey()" (ngModelChange)="onPixKeyInput($event)" name="pixKey" placeholder="E-mail, telefone, CPF/CNPJ ou chave aleatória" />
+            <small class="field-hint">Opcional. Máximo de 50 caracteres.</small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-app" for="cuisineType">Categoria</label>
+            <select id="cuisineType" class="form-select-app" [ngModel]="cuisineType()" (ngModelChange)="cuisineType.set($event)" name="cuisineType">
+              <option value="" disabled>Selecione...</option>
+              @for (ct of sortedCuisineTypes(); track ct.id) { <option [value]="ct.name">{{ ct.name }}</option> }
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label-app" for="description">Descrição</label>
+            <textarea id="description" class="form-control-app pt-3" [ngModel]="description()" (ngModelChange)="description.set($event.slice(0, 500))" name="description" maxlength="500"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-save-bar establishment-save-bar">
+        <span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
+          @if (saveStatus() === 'saving') { Salvando informações... }
+          @else if (saveStatus() === 'saved') { Informações salvas. }
+          @else if (saveStatus() === 'error') { Não foi possível salvar. }
+          @else { Salve as alterações antes de sair. }
+        </span>
+        <button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="loading()">
+          @if (loading()) { <ion-spinner name="crescent"></ion-spinner> Salvando... }
+          @else { Salvar informações }
+        </button>
+      </div>
+
+      <div class="content-card p-4 mt-3">
+        <h2 class="h5 fw-bold mb-4">Endereço</h2>
+        <div class="row g-3">
+          <div class="col-md-4"><label class="form-label-app" for="cep">CEP</label><input id="cep" class="form-control-app" type="text" [ngModel]="cep()" (ngModelChange)="onCepInput($event)" (blur)="onCepBlur()" name="cep" /></div>
+          <div class="col-md-5"><label class="form-label-app" for="street">Rua</label><input id="street" class="form-control-app" type="text" [ngModel]="street()" (ngModelChange)="street.set($event)" name="street" /></div>
+          <div class="col-md-3"><label class="form-label-app" for="number">Número</label><input id="number" class="form-control-app" type="text" [ngModel]="number()" (ngModelChange)="number.set($event)" name="number" /></div>
+          <div class="col-md-6"><label class="form-label-app" for="complement">Complemento</label><input id="complement" class="form-control-app" type="text" [ngModel]="complement()" (ngModelChange)="complement.set($event)" name="complement" /></div>
+          <div class="col-md-6"><label class="form-label-app" for="neighborhood">Bairro</label><input id="neighborhood" class="form-control-app" type="text" [ngModel]="neighborhood()" (ngModelChange)="neighborhood.set($event)" name="neighborhood" /></div>
+          <div class="col-md-6"><label class="form-label-app" for="city">Cidade</label><input id="city" class="form-control-app" type="text" [ngModel]="city()" (ngModelChange)="city.set($event)" name="city" /></div>
+          <div class="col-md-6"><label class="form-label-app" for="state">Estado</label><select id="state" class="form-select-app" [ngModel]="state()" (ngModelChange)="state.set($event)" name="state">@for (uf of stateOptions; track uf) { <option [value]="uf">{{ uf }}</option> }</select></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+      <div class="content-card info-card social-card">
+        <h2 class="h5 fw-bold mb-3">Redes sociais</h2>
+        <p class="section-copy">Opcional. Adicione os links públicos usados pela loja.</p>
+        <div class="social-form">
+          <label class="form-label-app" for="instagramUrl">Instagram</label><input id="instagramUrl" class="form-control-app" type="url" [ngModel]="instagramUrl()" (ngModelChange)="instagramUrl.set($event)" name="instagramUrl" placeholder="https://instagram.com/sualoja" />
+          <label class="form-label-app" for="facebookUrl">Facebook</label><input id="facebookUrl" class="form-control-app" type="url" [ngModel]="facebookUrl()" (ngModelChange)="facebookUrl.set($event)" name="facebookUrl" placeholder="https://facebook.com/sualoja" />
+          <label class="form-label-app" for="tikTokUrl">TikTok</label><input id="tikTokUrl" class="form-control-app" type="url" [ngModel]="tikTokUrl()" (ngModelChange)="tikTokUrl.set($event)" name="tikTokUrl" placeholder="https://tiktok.com/@sualoja" />
+          <label class="form-label-app" for="websiteUrl">Site</label><input id="websiteUrl" class="form-control-app" type="url" [ngModel]="websiteUrl()" (ngModelChange)="websiteUrl.set($event)" name="websiteUrl" placeholder="https://www.sualoja.com.br" />
+        </div>
+      </div>
+
+      <div class="content-card info-card mt-3">
+        <h2 class="h5 fw-bold mb-3">Informações da loja</h2>
+        <div class="info-row"><span>Status da loja</span><span class="badge-soft" [class.badge-green]="storeIsOpen()" [class.badge-gray]="!storeIsOpen()">{{ storeIsOpen() ? 'Loja aberta' : 'Loja fechada' }}</span></div>
+        <div class="info-row"><span>Categoria</span><strong>{{ cuisineType() || 'Não definida' }}</strong></div>
+        <div class="info-row"><span>Endereço público</span><strong>{{ previewAddressLine() || 'Não informado' }}</strong></div>
+        <div class="info-row"><span>Status do envio</span><strong>{{ saveStatus() === 'saving' ? 'Salvando agora' : saveStatus() === 'saved' ? 'Último envio concluído' : saveStatus() === 'error' ? 'Pendência ao salvar' : 'Sem envio em andamento' }}</strong></div>
+      </div>
+    </div>
+  </section>
+</section>

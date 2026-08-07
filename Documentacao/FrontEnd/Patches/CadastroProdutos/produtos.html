@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Urbeat - Cadastrar produto</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{font-family:Inter,sans-serif;background:#fcfcfd}</style>
+</head>
+<body>
+<header class="bg-white border-b border-gray-100">
+  <div class="max-w-[1360px] mx-auto px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-1">
+      <img src="logo.png" alt="happée" class="h-7 w-auto"/>      
+    </div>
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded-full bg-[#0FA968] flex items-center justify-center text-[9px] text-white">✓</div><span class="text-[11px]">Loja</span></div>
+      <div class="w-10 h-[2px] bg-[#0FA968]"></div>
+      <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded-full bg-[#0FA968] flex items-center justify-center text-[9px] text-white">✓</div><span class="text-[11px]">Horários</span></div>
+      <div class="w-10 h-[2px] bg-[#0FA968]"></div>
+      <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded-full bg-[#0FA968] flex items-center justify-center text-[9px] text-white">✓</div><span class="text-[11px]">Entrega</span></div>
+      <div class="w-10 h-[2px] bg-[#0FA968]"></div>
+      <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded-full border-2 border-[#FF5A00] flex items-center justify-center"><div class="w-1.5 h-1.5 bg-[#FF5A00] rounded-full"></div></div><span class="text-[11px] font-medium" style="color:#FF5A00">Produtos</span></div>
+      <div class="w-10 h-[2px] bg-gray-200"></div>
+      <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded-full border border-gray-300"></div><span class="text-[11px] text-gray-400">Publicar</span></div>
+    </div>
+    <div class="border border-gray-100 rounded-lg px-3 py-1.5 bg-white shadow-sm">
+      <div class="text-[10px] font-semibold text-gray-800">75% concluído</div>
+      <div class="w-28 h-1.5 bg-gray-100 rounded mt-1"><div class="h-1.5 rounded" style="width:75%;background:#FF5A00"></div></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1360px] mx-auto px-6 py-5">
+  <h1 class="text-[20px] font-semibold text-gray-900">Cadastrar produto</h1>
+  <p class="text-[12px] text-gray-500 mb-4">Preencha as informações do seu produto.</p>
+
+  <div class="grid grid-cols-12 gap-6">
+    <div class="col-span-8 space-y-4">
+      <!-- 1 -->
+      <section class="bg-white border border-gray-100 rounded-xl p-5">
+        <h2 class="text-[14px] font-semibold mb-4">1. Informações básicas</h2>
+        <div class="grid grid-cols-12 gap-4">
+          <div class="col-span-7">
+            <label class="text-[11px] font-medium">Nome do produto <span class="text-[#FF5A00]">*</span></label>
+            <input placeholder="Ex.: Cheese Burger" class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] placeholder-gray-400"/>
+          </div>
+          <div class="col-span-5">
+            <label class="text-[11px] font-medium">Categoria <span class="text-[#FF5A00]">*</span></label>
+            <div class="relative mt-1">
+              <select class="w-full border border-gray-200 rounded-md px-3 py-2 text-[13px] text-gray-400 appearance-none bg-white">
+                <option>Selecione uma categoria</option>
+              </select>
+              <svg class="absolute right-2.5 top-3 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+          <div class="col-span-12">
+            <label class="text-[11px] font-medium">Descrição <span class="text-[#FF5A00]">*</span></label>
+            <div class="relative mt-1">
+              <textarea placeholder="Descreva seu produto, ingredientes e diferenciais." class="w-full border border-gray-200 rounded-md px-3 py-2.5 text-[13px] h-[64px] placeholder-gray-400"></textarea>
+              <span class="absolute right-2 bottom-2 text-[10px] text-gray-400">0/300</span>
+            </div>
+          </div>
+          <div class="col-span-5">
+            <label class="text-[11px] font-medium">Preço base <span class="text-[#FF5A00]">*</span></label>
+            <div class="mt-1 flex items-center border border-gray-200 rounded-md">
+              <span class="px-2 text-[12px] text-gray-600">R$</span>
+              <input value="0,00" class="flex-1 py-2 text-[13px] outline-none"/>
+            </div>
+          </div>
+          <div class="col-span-7">
+            <label class="text-[11px] font-medium">Foto do produto <span class="text-[#FF5A00]">*</span></label>
+            <div class="mt-1 border border-dashed border-gray-200 rounded-md h-[78px] flex flex-col items-center justify-center">
+              <svg width="18" height="18" class="text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span class="text-[12px] mt-1">Enviar imagem</span>
+              <span class="text-[10px] text-gray-400 mt-0.5">PNG, JPG ou WEBP. Máx. 2MB</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="bg-white border border-gray-100 rounded-xl p-5">
+        <h2 class="text-[14px] font-semibold">2. Estoque</h2>
+        <label class="flex items-center gap-2 mt-2 text-[12px]"><input type="checkbox" checked class="w-3.5 h-3.5 accent-[#FF5A00] rounded border-gray-300">Controlar estoque deste produto</label>
+        <div class="mt-3">
+          <label class="text-[11px] font-medium">Quantidade disponível <span class="text-[#FF5A00]">*</span></label>
+          <input value="0" class="mt-1 w-32 border border-gray-200 rounded-md px-2.5 py-1.5 text-[13px]"/>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="text-[14px] font-semibold">3. Grupos de opções</h2>
+            <p class="text-[11px] text-gray-500">Adicione grupos para que o cliente possa personalizar o produto (tamanho, adicionais, etc).</p>
+          </div>
+          <button class="flex items-center gap-1.5 border border-[#FF5A00]/30 text-[#FF5A00] bg-orange-50/50 px-3 py-1.5 rounded-md text-[12px] font-medium"><span class="text-[14px] leading-none">+</span>Adicionar grupo</button>
+        </div>
+
+        <!-- Tamanho -->
+        <div class="mt-4 border border-gray-100 rounded-lg p-4">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2"><svg width="16" height="16" class="text-gray-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/><circle cx="11" cy="6" r="1.5"/><circle cx="11" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span class="text-[13px] font-medium">Tamanho</span><span class="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full">Obrigatório</span></div>
+            <div class="flex gap-2"><button class="w-7 h-7 border border-gray-100 rounded flex items-center justify-center text-gray-500"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button><button class="w-7 h-7 border border-gray-100 rounded flex items-center justify-center text-[#FF5A00]"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div>
+          </div>
+          <div class="grid grid-cols-12 gap-4 mt-3">
+            <div class="col-span-5"><p class="text-[11px] text-gray-600 mb-1.5">Tipo de escolha</p><div class="flex gap-5"><label class="flex items-center gap-1.5 text-[12px]"><input type="radio" checked name="t1" class="accent-[#FF5A00]">Escolha única</label><label class="flex items-center gap-1.5 text-[12px] text-gray-500"><input type="radio" name="t1">Escolha múltipla</label></div></div>
+            <div class="col-span-3"><p class="text-[11px] text-gray-600 mb-1.5">Mínimo</p><select class="w-full border border-gray-200 rounded-md px-2 py-1.5 text-[13px]"><option>1</option></select></div>
+            <div class="col-span-4"><p class="text-[11px] text-gray-600 mb-1.5">Máximo</p><select class="w-full border border-gray-200 rounded-md px-2 py-1.5 text-[13px]"><option>1</option></select></div>
+          </div>
+          <div class="mt-3"><p class="text-[11px] text-gray-600 mb-1.5">Opções</p><div class="flex items-center gap-2"><div class="flex items-center gap-2 flex-1 border border-gray-100 rounded-md px-2 py-1.5"><svg width="14" height="14" class="text-gray-300" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/><circle cx="11" cy="6" r="1.5"/><circle cx="11" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><input placeholder="Ex.: Simples" class="flex-1 text-[12px] outline-none placeholder-gray-400"/></div><div class="w-24 border border-gray-100 rounded-md px-2 py-1.5 text-[12px] text-right">R$ 0,00</div><button class="w-8 h-8 border border-gray-100 rounded flex items-center justify-center text-[#FF5A00]"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"/></svg></button></div><button class="w-full text-center text-[12px] text-[#FF5A00] mt-3 font-medium">+ Adicionar opção</button></div>
+        </div>
+
+        <!-- Ponto da carne -->
+        <div class="mt-3 border border-gray-100 rounded-lg p-4">
+          <div class="flex justify-between items-center"><div class="flex items-center gap-2"><svg width="16" height="16" class="text-gray-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="5" cy="18" r="1.5"/><circle cx="11" cy="6" r="1.5"/><circle cx="11" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span class="text-[13px] font-medium">Ponto da carne</span><span class="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full">Obrigatório</span></div><div class="flex gap-2"><button class="w-7 h-7 border rounded flex items-center justify-center">✎</button><button class="w-7 h-7 border rounded flex items-center justify-center text-[#FF5A00]">🗑</button></div></div>
+          <div class="grid grid-cols-12 gap-4 mt-3"><div class="col-span-5"><p class="text-[11px] mb-1.5">Tipo de escolha</p><div class="flex gap-5 text-[12px]"><label class="flex items-center gap-1.5"><input type="radio" checked class="accent-[#FF5A00]">Escolha única</label><label class="flex items-center gap-1.5"><input type="radio">Escolha múltipla</label></div></div><div class="col-span-3"><p class="text-[11px] mb-1.5">Mínimo</p><select class="w-full border rounded px-2 py-1.5 text-[13px]"><option>1</option></select></div><div class="col-span-4"><p class="text-[11px] mb-1.5">Máximo</p><select class="w-full border rounded px-2 py-1.5 text-[13px]"><option>1</option></select></div></div>
+          <div class="mt-3"><p class="text-[11px] mb-1.5">Opções</p><div class="flex gap-2"><div class="flex-1 border rounded px-2 py-1.5 flex items-center gap-2"><svg width="14" height="14" class="text-gray-300" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/></svg><input placeholder="Ex.: Ao ponto" class="flex-1 text-[12px] outline-none"/></div><div class="w-24 border rounded px-2 py-1.5 text-[12px] text-right">R$ 0,00</div><button class="w-8 h-8 border rounded flex items-center justify-center text-[#FF5A00]">🗑</button></div><button class="w-full text-[#FF5A00] text-[12px] mt-3">+ Adicionar opção</button></div>
+        </div>
+
+        <!-- Adicionais -->
+        <div class="mt-3 border border-gray-100 rounded-lg p-4">
+          <div class="flex justify-between items-center"><div class="flex items-center gap-2"><svg width="16" height="16" class="text-gray-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="12" r="1.5"/></svg><span class="text-[13px] font-medium">Adicionais</span><span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full">Opcional</span></div><div class="flex gap-2"><button class="w-7 h-7 border rounded">✎</button><button class="w-7 h-7 border rounded text-[#FF5A00]">🗑</button></div></div>
+          <div class="grid grid-cols-12 gap-4 mt-3"><div class="col-span-5"><p class="text-[11px] mb-1.5">Tipo de escolha</p><div class="flex gap-5 text-[12px]"><label class="flex items-center gap-1.5"><input type="radio" name="a1">Escolha única</label><label class="flex items-center gap-1.5"><input type="radio" checked class="accent-[#FF5A00]">Escolha múltipla</label></div></div><div class="col-span-3"><p class="text-[11px] mb-1.5">Mínimo</p><select class="w-full border rounded px-2 py-1.5"><option>0</option></select></div><div class="col-span-4"><p class="text-[11px] mb-1.5">Máximo</p><select class="w-full border rounded px-2 py-1.5"><option>5</option></select></div></div>
+          <div class="mt-3"><p class="text-[11px] mb-1.5">Opções</p><div class="flex gap-2"><div class="flex-1 border rounded px-2 py-1.5 flex items-center gap-2"><svg width="14" height="14" class="text-gray-300" fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="6" r="1.5"/></svg><input placeholder="Ex.: Bacon" class="flex-1 text-[12px] outline-none"/></div><div class="w-24 border rounded px-2 py-1.5 text-[12px] text-right">R$ 0,00</div><button class="w-8 h-8 border rounded flex items-center justify-center text-[#FF5A00]">🗑</button></div><button class="w-full text-[#FF5A00] text-[12px] mt-3">+ Adicionar opção</button></div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="bg-white border border-gray-100 rounded-xl p-5">
+        <div class="flex justify-between">
+          <div>
+            <h2 class="text-[14px] font-semibold">4. Organização</h2>
+            <div class="flex gap-6 mt-3">
+              <label class="flex items-center gap-1.5 text-[12px]"><input type="checkbox" class="w-3.5 h-3.5">Destaque</label>
+              <label class="flex items-center gap-1.5 text-[12px]"><input type="checkbox" class="w-3.5 h-3.5">Mais vendido</label>
+              <label class="flex items-center gap-1.5 text-[12px]"><input type="checkbox" class="w-3.5 h-3.5">Novidade</label>
+            </div>
+          </div>
+          <div>
+            <p class="text-[11px] text-gray-600">Ordem de exibição</p>
+            <input value="0" class="mt-1 w-28 border border-gray-200 rounded-md px-2 py-1.5 text-[13px]"/>
+            <p class="text-[10px] text-gray-400 mt-1">Menor número aparece primeiro.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right -->
+    <div class="col-span-4">
+      <div class="bg-white border border-gray-100 rounded-xl p-5 sticky top-5">
+        <h3 class="text-[14px] font-semibold mb-3">Prévia do produto</h3>
+        <div class="w-full h-[180px] bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="2.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </div>
+        <h4 class="font-semibold text-[15px]">Nome do produto</h4>
+        <p class="text-[12px] text-gray-400 mt-1">Descrição do produto aparecerá aqui...</p>
+        <p class="text-[13px] font-medium mt-2" style="color:#FF5A00">A partir de R$ 0,00</p>
+        <div class="border-t border-gray-100 mt-4 pt-4">
+          <p class="text-[12px] font-medium mb-2">Opções</p>
+          <div class="space-y-2"><div class="h-2.5 w-32 bg-gray-100 rounded"></div><div class="h-2.5 w-40 bg-gray-100 rounded"></div></div>
+        </div>
+        <div class="mt-5">
+          <p class="text-[12px] font-medium mb-2">Adicionais</p>
+          <div class="space-y-2"><div class="h-2.5 w-28 bg-gray-100 rounded"></div><div class="h-2.5 w-36 bg-gray-100 rounded"></div><div class="h-2.5 w-24 bg-gray-100 rounded"></div></div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 mt-6 flex gap-2">
+          <svg width="16" height="16" class="text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="text-[10px] text-gray-500 leading-snug">Esta é uma prévia de como seu produto será exibido para o cliente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="max-w-[1360px] mx-auto px-6 py-3 flex justify-between items-center">
+  <button class="border border-gray-200 bg-white rounded-md px-4 py-2 text-[13px] flex items-center gap-1.5">← Voltar</button>
+  <div class="flex items-center gap-1.5 text-[11px] text-gray-500"><svg width="14" height="14" class="text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>Seus dados são salvos automaticamente.</div>
+  <button class="bg-[#FF5A00] hover:bg-orange-600 text-white rounded-md px-6 py-2.5 text-[13px] font-medium flex items-center gap-1.5">Salvar e continuar →</button>
+</footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<section class="seller-page">
+  <header class="dashboard-topbar">
+    <div>
+      <div class="page-title-wrap"><h1 class="page-title">Configurações</h1></div>
+      <p class="page-subtitle">Gerencie horários, informações da loja, impressão, bio e bairros atendidos</p>
+    </div>
+    <div class="top-actions"><div class="date-pill">{{ headerStatus() }}</div></div>
+  </header>
+
+  <app-config-subnav />
+
+  @if (loading()) {
+    <div class="content-card state-card"><strong>Carregando bio</strong><span>Estamos buscando descrição, logo e banner atuais da loja.</span></div>
+  } @else if (error()) {
+    <div class="content-card state-card state-error"><strong>Não foi possível carregar a bio.</strong><span>Atualize a tela para tentar novamente.</span><button type="button" class="btn btn-outline-primary btn-outline-app" (click)="load()">Tentar novamente</button></div>
+  } @else {
+    <section class="row g-3 align-items-start bio-layout">
+      <div class="col-12 col-xl-8">
+        <div class="content-card p-4">
+          <h2 class="h5 fw-bold mb-1">Texto da bio</h2>
+          <p class="text-secondary small fw-semibold mb-3">Escreva uma descrição curta para apresentar sua loja aos clientes.</p>
+          <textarea id="storeDescription" class="form-control-app pt-3" rows="5" maxlength="160" [ngModel]="description()" (ngModelChange)="updateDescription($event)" name="description" placeholder="Conte em poucas linhas o que torna sua loja especial."></textarea>
+          <div class="text-end text-secondary small fw-bold mt-2">{{ description().length }}/160</div>
+        </div>
+
+        <div class="content-card p-4 mt-3">
+          <h2 class="h5 fw-bold mb-3">Logo da loja</h2>
+          <div class="image-upload-row align-items-center">
+            <div class="logo-preview-box">
+              @if (logoPreview()) { <img [src]="logoPreview()" alt="Logo" class="logo-preview" (error)="onImageError($event)" /> } @else { <span>Sem logo</span> }
+            </div>
+            <div class="d-grid gap-2">
+              <input type="file" accept="image/png,image/webp" (change)="onLogoFile($event)" hidden #logoInput />
+              <button type="button" class="btn btn-outline-primary btn-outline-app" (click)="logoInput.click()"><ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>{{ logoPreview() ? 'Alterar logo' : 'Enviar logo' }}</button>
+              @if (logoPreview()) { <button type="button" class="btn btn-outline-danger btn-outline-danger-app" (click)="removeLogo()"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>Remover</button> }
+            </div>
+          </div>
+          <p class="text-secondary small fw-semibold mt-3 mb-0">Formato recomendado: PNG com fundo transparente.</p>
+        </div>
+
+        <div class="content-card p-4 mt-3">
+          <h2 class="h5 fw-bold mb-3">Banner da loja</h2>
+          <div class="banner-upload-box">
+            <div class="banner-art"><strong>Hambúrgueres<br />feitos na brasa</strong><span>Sabor que marca</span><i></i></div>
+            @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Banner da loja" (error)="onImageError($event)" /> }
+          </div>
+          <div class="d-flex flex-wrap gap-3 mt-3">
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onBannerFile($event)" hidden #bannerInput />
+            <button type="button" class="btn btn-outline-primary btn-outline-app" (click)="bannerInput.click()"><ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>{{ bannerPreview() ? 'Alterar banner' : 'Enviar banner' }}</button>
+            @if (bannerPreview()) { <button type="button" class="btn btn-outline-danger btn-outline-danger-app" (click)="removeBanner()"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>Remover</button> }
+          </div>
+          <p class="text-secondary small fw-semibold mt-3 mb-0">Tamanho recomendado: 1200 x 400 px.</p>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 mt-3 save-actions">
+          <button type="button" class="btn btn-outline-primary btn-outline-app" (click)="cancel()">Cancelar</button>
+          <button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="save()" [disabled]="saving() || !dirty() || !name().trim()">{{ saving() ? 'Salvando...' : 'Salvar alterações' }}</button>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4 bio-aside">
+        <div class="content-card p-4 preview-card">
+          <h2 class="h5 fw-bold mb-1">Prévia da bio</h2>
+          <p class="text-secondary small fw-semibold mb-3">Assim seus clientes verão</p>
+          <div class="preview-phone">
+            <div class="preview-banner">
+              <div class="preview-art-copy"><strong>Hambúrgueres<br />feitos na brasa</strong><span>Sabor que marca</span><i></i></div>
+              @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Banner" (error)="onImageError($event)" /> }
+            </div>
+            <div class="text-center p-4 pt-0 preview-body">
+              <div class="preview-logo-box">
+                @if (logoPreview()) { <img [src]="logoPreview()" alt="Logo" (error)="onImageError($event)" /> } @else { <span>Sem logo</span> }
+              </div>
+              <h3 class="h5 fw-bold mt-2">{{ name() || 'Nome da loja' }}</h3>
+              <p class="text-secondary small fw-semibold">{{ description() || 'Descrição da loja aparecerá aqui.' }}</p>
+              <div class="d-flex justify-content-center gap-2 mb-3 preview-socials">
+                <button type="button" class="small-icon-btn" aria-label="WhatsApp"><ion-icon name="logo-whatsapp"></ion-icon></button>
+                <button type="button" class="small-icon-btn" aria-label="Instagram"><ion-icon name="logo-instagram"></ion-icon></button>
+                <button type="button" class="small-icon-btn" aria-label="Telefone"><ion-icon name="call-outline"></ion-icon></button>
+                <button type="button" class="small-icon-btn" aria-label="Compartilhar"><ion-icon name="share-social-outline"></ion-icon></button>
+              </div>
+              <button type="button" class="btn btn-primary btn-primary-app btn-orange w-100" (click)="openStorefront()">Ver cardápio</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card p-4 info-card">
+          <h2 class="h5 fw-bold mb-3"><ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>Dicas</h2>
+          <p><ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>Mantenha sua bio curta e objetiva.</p>
+          <p><ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>Use uma logo de qualidade e fácil de reconhecer.</p>
+          <p class="mb-0"><ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>Escolha um banner que represente bem seu estilo.</p>
+        </div>
+
+        <div class="content-card p-4 info-card">
+          <h2 class="h5 fw-bold mb-3"><ion-icon name="image-outline" aria-hidden="true"></ion-icon>Requisitos de imagem</h2>
+          <p><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Logo:</strong> PNG com fundo transparente, máx. 2MB.</span></p>
+          <p class="mb-0"><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Banner:</strong> 1200 x 400 px, JPG ou PNG, máx. 5MB.</span></p>
+        </div>
+      </div>
+    </section>
+  }
+</section>

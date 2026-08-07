@@ -1,0 +1,105 @@
+﻿/* Variáveis do tema Urbeat — identidade visual vinho/bordeaux (v2 - NovaVersaoFront) */
+
+:root {
+  /* === Cores principais (marca) === */
+  --app-brand: #D54A51;
+  --app-brand-rgb: 213, 74, 81;
+  --app-brand-dark: #B63A41;
+  --app-brand-soft: #FDECEE;
+  --app-brand-shadow: rgba(213, 74, 81, .18);
+
+  /* === Aliases de compatibilidade === */
+  --app-primary: var(--app-brand);
+  --app-primary-dark: var(--app-brand-dark);
+  --app-primary-light: var(--app-brand-soft);
+  --app-primary-tint: var(--app-brand-soft);
+
+  /* === Superfícies === */
+  --app-bg: #ede9e3;
+  --app-bg-warm: #fbf7f2;
+  --app-surface: #ffffff;
+  --app-surface-soft: #fff8f0;
+  --app-shell-bg: linear-gradient(180deg, #fffdf9 0%, #fbf6ef 100%);
+
+  /* === Texto === */
+  --app-ink: #161616;
+  --app-text-primary: #171717;
+  --app-text-secondary: #5a5a63;
+  --app-text-muted: #767680;
+  --app-ink-soft: #3a3632;
+  --app-slate-warm: #565049;
+  --app-muted-strong: #6f6f6f;
+  --app-muted-warm: #b5a89e;
+
+  /* === Bordas === */
+  --app-line: #eadfd6;
+  --app-border-light: #eadfd6;
+  --app-border-medium: #d6d0cc;
+  --app-hairline-warm: #f3efe9;
+
+  /* === Cores semânticas === */
+  --app-accent-red: #D54A51;
+  --app-accent-green: #119441;
+  --app-success-green: #119441;
+  --app-success-green-soft: rgba(17, 148, 65, .14);
+  --app-success-soft: #dcfce7;
+  --app-brown: #6c4634;
+
+  /* === Feedback === */
+  --app-error: #D32F2F;
+  --app-error-soft: #fef2f2;
+  --app-error-bg: #fef2f2;
+  --app-error-border: #fecaca;
+
+  /* === Overlays === */
+  --app-overlay: rgba(0, 0, 0, .45);
+  --app-overlay-light: rgba(0, 0, 0, .2);
+  --app-hero-overlay: linear-gradient(180deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .05) 42%, rgba(0, 0, 0, .44));
+  --app-overlay-loading: rgba(255, 255, 255, .85);
+
+  /* === Sombras === */
+  --shadow-sm: 0 8px 22px rgba(33, 20, 8, .07);
+  --shadow-md: 0 14px 34px rgba(33, 20, 8, .09);
+  --shadow-lg: 0 30px 90px rgba(0, 0, 0, .18);
+  --shadow-none: 0 0 0 transparent;
+  --shadow-panel: 0 -10px 26px rgba(0, 0, 0, .04);
+  --shadow-logo: 0 12px 26px rgba(0, 0, 0, .14);
+  --shadow-search: 0 7px 20px rgba(0, 0, 0, .03);
+
+  /* === Radius === */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-2xl: 34px;
+  --radius-full: 999px;
+
+  /* === Espaçamentos === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* === Tipografia === */
+  --app-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  /* === Sobrescreve Ionic === */
+  --ion-color-primary: var(--app-brand);
+  --ion-color-primary-rgb: 213, 74, 81;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #B63A41;
+  --ion-color-primary-tint: var(--app-brand-soft);
+
+  --ion-background-color: var(--app-bg);
+  --ion-background-color-rgb: 237, 233, 227;
+
+  --ion-text-color: var(--app-ink);
+  --ion-text-color-rgb: 22, 22, 22;
+
+  --ion-font-family: var(--app-font);
+}

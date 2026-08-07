@@ -1,0 +1,159 @@
+<section class="dashboard-surface deliveries-page">
+  <header class="topbar">
+    <div>
+      <div class="page-title-wrap">
+        <h1 class="page-title">Entregas</h1>
+      </div>
+      <p class="page-subtitle">Acompanhe as entregas e gerencie os pedidos em rota.</p>
+    </div>
+    <div class="top-actions">
+      <div class="segmented"><button class="active" type="button">Hoje</button><button type="button">Semana</button><button type="button">Mês</button></div>
+      <button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+      <div class="date-pill"><i class="bi bi-calendar3"></i>{{ latestCreatedAtLabel() }}</div>
+    </div>
+  </header>
+
+  <div class="seller-inline-banner is-warning">
+    <div>
+      <strong>Monitoramento de rota</strong>
+      <p>Use os filtros para acompanhar entregas em rota e concluidas sem assumir dados que nao vieram da operacao.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="seller-state-card is-loading deliveries-state-card" role="status" aria-label="Carregando entregas">
+      <strong class="seller-state-title">Carregando entregas</strong>
+      <p class="seller-state-copy">Estamos buscando os pedidos que estao em rota agora.</p>
+      <div class="deliveries-skeleton seller-kpi-grid" aria-hidden="true">
+        <div class="seller-kpi-card"></div>
+        <div class="seller-kpi-card"></div>
+        <div class="seller-kpi-card"></div>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Nao foi possivel carregar as entregas</strong>
+      <p class="seller-state-copy">Confira sua conexao e tente novamente.</p>
+      <div class="seller-state-actions">
+        <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <section class="seller-kpi-grid" aria-label="Resumo de entregas">
+      <div class="seller-kpi-card delivery-metric-card">
+        <div class="delivery-metric-icon is-brand">
+          <ion-icon name="trail-sign-outline"></ion-icon>
+        </div>
+        <div>
+          <span class="seller-kpi-label">Entregas do painel</span>
+          <strong class="seller-kpi-value">{{ deliveries().length }}</strong>
+          <span class="seller-kpi-meta">Total de registros carregados para o painel atual.</span>
+        </div>
+      </div>
+      <div class="seller-kpi-card delivery-metric-card">
+        <div class="delivery-metric-icon is-info">
+          <ion-icon name="navigate-outline"></ion-icon>
+        </div>
+        <div>
+          <span class="seller-kpi-label">Em rota</span>
+          <strong class="seller-kpi-value">{{ onDeliveryCount() }}</strong>
+          <span class="seller-kpi-meta">Pedidos com status de rota neste momento.</span>
+        </div>
+      </div>
+      <div class="seller-kpi-card delivery-metric-card">
+        <div class="delivery-metric-icon is-success">
+          <ion-icon name="checkmark-done-outline"></ion-icon>
+        </div>
+        <div>
+          <span class="seller-kpi-label">Entregues</span>
+          <strong class="seller-kpi-value">{{ deliveredCount() }}</strong>
+          <span class="seller-kpi-meta">Pedidos marcados como entregues na lista carregada.</span>
+        </div>
+      </div>
+      <div class="seller-kpi-card delivery-metric-card">
+        <div class="delivery-metric-icon is-neutral">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <div>
+          <span class="seller-kpi-label">Valor em rota</span>
+          <strong class="seller-kpi-value">{{ formatCurrency(deliveryRevenue()) }}</strong>
+          <span class="seller-kpi-meta">Atualizado com base nos pedidos atualmente em rota.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="filter-bar deliveries-filter-bar">
+      <div class="search-wrap">
+        <ion-icon name="search-outline"></ion-icon>
+        <input class="form-control-app" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar por pedido, cliente ou endereco..." />
+      </div>
+      <select class="form-select-app" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="all">Todos os status</option>
+        <option [value]="OrderStatus.OnDelivery">Em rota</option>
+        <option [value]="OrderStatus.Delivered">Entregue</option>
+      </select>
+      <div class="date-pill latest-pill">{{ latestCreatedAtLabel() }}</div>
+    </div>
+
+    <div class="content-card seller-panel">
+        <div class="content-head seller-panel-header">
+          <div>
+            <h2>Entregas em andamento</h2>
+            <p class="section-copy">Acompanhe cliente, endereco, status, horario e valor dos pedidos retornados.</p>
+          </div>
+          <span class="seller-status-badge is-info">{{ filteredDeliveries().length }} entrega(s)</span>
+        </div>
+      @if (filteredDeliveries().length === 0) {
+        <div class="seller-state-card is-empty">
+          <strong class="seller-state-title">Nenhuma entrega encontrada</strong>
+          <p class="seller-state-copy">Ajuste os filtros ou aguarde novos pedidos aparecerem nesta tela.</p>
+        </div>
+      } @else {
+        <div class="table-responsive" aria-live="polite">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Endereco</th>
+                <th>Status</th>
+                <th>Recebido em</th>
+                <th>Valor</th>
+                <th class="text-end">Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of filteredDeliveries(); track order.id) {
+                <tr>
+                  <td class="order-id" data-label="Pedido">#{{ order.code }}</td>
+                  <td data-label="Cliente">{{ order.customerName || 'Cliente' }}</td>
+                  <td data-label="Endereco">{{ order.addressSummary || 'Nao informado' }}</td>
+                  <td data-label="Status">
+                    <span class="seller-status-badge" [class.is-info]="order.status === OrderStatus.OnDelivery" [class.is-success]="order.status === OrderStatus.Delivered" [class.is-neutral]="order.status !== OrderStatus.OnDelivery && order.status !== OrderStatus.Delivered">{{ statusLabel(order.status) }}</span>
+                  </td>
+                  <td data-label="Recebido em">{{ formatDateTime(order.createdAtUtc) }}</td>
+                  <td data-label="Valor">{{ formatCurrency(order.total) }}</td>
+                  <td class="text-end" data-label="Acoes">
+                    <span class="action-buttons">
+                      @if (order.customerPhoneNumber) {
+                        <a class="small-icon-btn" [href]="'tel:' + order.customerPhoneNumber" aria-label="Ligar para o cliente">
+                          <ion-icon name="call-outline"></ion-icon>
+                        </a>
+                      }
+                      <button class="small-icon-btn" type="button" (click)="openMap(order.addressSummary)" [disabled]="!order.addressSummary" aria-label="Abrir endereco no mapa">
+                        <ion-icon name="location-outline"></ion-icon>
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="seller-table-footer table-footer">
+          <span class="seller-table-footer-copy footer-meta">Mostrando {{ filteredDeliveries().length }} de {{ deliveries().length }} entregas carregadas</span>
+        </div>
+      }
+    </div>
+  }
+</section>

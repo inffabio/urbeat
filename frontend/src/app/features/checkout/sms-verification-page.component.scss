@@ -1,0 +1,140 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.verification-content {
+  --background: var(--app-bg);
+  --offset-top: 0px !important;
+  --offset-bottom: 0px !important;
+  min-height: 100vh;
+}
+
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 22px;
+  z-index: 10;
+}
+
+.verification-card {
+  min-height: 100vh;
+  padding: calc(86px + env(safe-area-inset-top, 0px)) 22px calc(34px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.verification-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--app-surface);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 22px;
+
+  ion-icon {
+    color: var(--app-brand);
+    font-size: 34px;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--app-brand);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 0;
+  color: var(--app-ink);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.verification-copy {
+  max-width: 310px;
+  margin: 14px 0 28px;
+  color: var(--app-text-secondary);
+  font-size: 15px;
+  line-height: 1.45;
+
+  strong {
+    color: var(--app-ink);
+    font-weight: 800;
+  }
+}
+
+.otp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 346px;
+}
+
+.otp-input {
+  width: 100%;
+  min-width: 0;
+  height: 58px;
+  border: 1px solid var(--app-border-light);
+  border-radius: var(--radius-md);
+  background: var(--app-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--app-ink);
+  font: 800 22px/1 var(--app-font);
+  text-align: center;
+  outline: none;
+  transition: border-color .15s ease;
+
+  &:focus {
+    border-color: var(--app-brand);
+  }
+
+  &:disabled {
+    opacity: .65;
+  }
+}
+
+.verification-error {
+  margin: 14px 0 0;
+  color: var(--app-error);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.timer {
+  margin: 24px 0 14px;
+  color: var(--app-ink);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.resend-btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--app-surface);
+  color: var(--app-brand);
+  font: 800 14px/1 var(--app-font);
+  box-shadow: var(--shadow-sm);
+
+  &:disabled {
+    color: var(--app-text-secondary);
+    opacity: .55;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .otp-grid { gap: 6px; }
+  .otp-input { height: 54px; font-size: 20px; }
+}

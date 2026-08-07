@@ -1,0 +1,25 @@
+﻿{
+  "name": "Urbeat - Painel da loja",
+  "short_name": "Urbeat",
+  "description": "Painel do lojista Urbeat para acompanhar pedidos e operar a loja.",
+  "theme_color": "#D54A51",
+  "background_color": "#ede9e3",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/app/dashboard",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "assets/images/logo_v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/logo_v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
