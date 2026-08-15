@@ -48,6 +48,7 @@ const CONFETTI_COLORS = ['#D54A51', '#B63A41', '#FDECEE', '#FBBF24', '#F59E0B', 
   imports: [CommonModule, IonContent, IonIcon, IonSpinner, WizardHeaderComponent, WizardFooterComponent],
   templateUrl: './store-publish-page.component.html',
   styleUrl: './store-publish-page.component.scss',
+  host: { '[class.urbeat-onboarding]': 'true' },
 })
 export class StorePublishPageComponent implements OnInit {
   private readonly storeService = inject(StoreService);

@@ -31,6 +31,17 @@ ion-content {
   box-shadow: 0 0 0 transparent;
 }
 
+/* Long onboarding forms scroll without changing the dashboard shell. */
+.app-shell:has(.urbeat-onboarding) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+ion-app:has(.urbeat-onboarding) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 @media (min-width: 900px) {
   body {
     padding: 28px 0;

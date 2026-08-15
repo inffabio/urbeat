@@ -4,7 +4,7 @@
   display: block;
   background: #f5f6fb;
   min-height: 100%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   --c-green: var(--app-success-green);
   --c-green-bg: var(--app-success-green-soft);
   --c-border: var(--app-line);

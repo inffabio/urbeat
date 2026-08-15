@@ -11,7 +11,7 @@ import { StepperComponent, StepperItem } from '../stepper/stepper.component';
     <header class="wizard-header">
       <div class="wizard-header-inner">
         <div class="wizard-logo">
-          <img src="assets/images/logo_v2.svg" alt="Urbeat" class="wizard-logo-img" />
+          <img src="assets/images/urbeat-logo.jpg" alt="Urbeat" class="wizard-logo-img" />
         </div>
         <app-stepper [steps]="steps" (stepClick)="onStepClick($event)"></app-stepper>
         @if (isPublished) {

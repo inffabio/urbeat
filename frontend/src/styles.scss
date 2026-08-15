@@ -1,5 +1,6 @@
 @use './theme/variables.scss';
 @use './theme/global.scss';
+@use './theme/onboarding-green.scss';
 
 // O vite lida melhor se retirarmos os ionic imports daqui e deixarmos so no angular.json,
 // ou vice versa. Vou tirar daqui ja q estao duplicados

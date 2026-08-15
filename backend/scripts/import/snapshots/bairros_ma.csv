@@ -1,0 +1,772 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+MA,2100105,Afonso Cunha,Centro,centro,-4.1343606,-43.3237817,brasil_aberto,True
+MA,2100204,Alcântara,Centro,centro,-2.4039084,-44.4153732,brasil_aberto,True
+MA,2100204,Alcântara,São João de Cortes,sao joao de cortes,-2.2157446,-44.5550454,brasil_aberto,True
+MA,2100303,Aldeias Altas,Centro,centro,,,brasil_aberto,True
+MA,2100402,Altamira do Maranhão,Centro,centro,-4.1669091,-45.4646051,brasil_aberto,True
+MA,2100436,Alto Alegre do Maranhão,Centro,centro,-4.2145868,-44.4495628,brasil_aberto,True
+MA,2100477,Alto Alegre do Pindaré,Centro,centro,-3.6694263,-45.8491582,brasil_aberto,True
+MA,2100477,Alto Alegre do Pindaré,Terra Indígena Caru,terra indigena caru,-3.665842999999999,-45.8447357,brasil_aberto,True
+MA,2100501,Alto Parnaíba,Centro,centro,-9.1123648,-45.9320229,brasil_aberto,True
+MA,2100501,Alto Parnaíba,Curupa,curupa,-9.8741493,-45.8675128,brasil_aberto,True
+MA,2100550,Amapá do Maranhão,Centro,centro,,,brasil_aberto,True
+MA,2100600,Amarante do Maranhão,Centro,centro,-5.5730201,-46.7511212,brasil_aberto,True
+MA,2100600,Amarante do Maranhão,Terra Indígena Arariboia,terra indigena arariboia,-5.005997499999999,-46.5404416,brasil_aberto,True
+MA,2100709,Anajatuba,Centro,centro,-3.2640702,-44.6179239,brasil_aberto,True
+MA,2100709,Anajatuba,Porto das Gabarras,porto das gabarras,-3.1065856,-44.5637892,brasil_aberto,True
+MA,2100808,Anapurus,Centro,centro,-3.67389441,-43.10768509,brasil_aberto,True
+MA,2100832,Apicum-Açu,Centro,centro,-1.5282615,-45.0786169,brasil_aberto,True
+MA,2100873,Araguanã,Centro,centro,-2.9514528,-45.6651771,brasil_aberto,True
+MA,2100873,Araguanã,Terra Indígena Alto Turiaçu,terra indigena alto turiacu,-2.9511594,-45.6656585,brasil_aberto,True
+MA,2100907,Araioses,Conceição,conceicao,-2.8846533,-41.9051451,brasil_aberto,True
+MA,2100907,Araioses,Frecheiras,frecheiras,-2.8876129,-41.9041637,brasil_aberto,True
+MA,2100956,Arame,Centro,centro,-4.80654669,-45.95999527,brasil_aberto,True
+MA,2101004,Arari,Bonfim do Arari,bonfim do arari,-3.4017512,-44.7997252,brasil_aberto,True
+MA,2101004,Arari,Centro,centro,-3.45294619,-44.78266144,brasil_aberto,True
+MA,2101103,Axixá,Centro,centro,-2.8367245,-44.0531584,brasil_aberto,True
+MA,2100055,Açailândia,Centro,centro,-4.9526791,-47.49909599999999,brasil_aberto,True
+MA,2101202,Bacabal,Centro,centro,-4.228687799999999,-44.7746474,brasil_aberto,True
+MA,2101251,Bacabeira,Centro,centro,-2.9802478,-44.314134,brasil_aberto,True
+MA,2101301,Bacuri,Centro,centro,-1.7263999,-45.1427256,brasil_aberto,True
+MA,2101350,Bacurituba,Centro,centro,-2.7133511,-44.7250378,brasil_aberto,True
+MA,2101400,Balsas,Centro,centro,-7.5312283,-46.0357024,brasil_aberto,True
+MA,2101608,Barra do Corda,Centro,centro,-5.508430199999999,-45.24605409999999,brasil_aberto,True
+MA,2101608,Barra do Corda,Leandro,leandro,-5.5018917,-45.2464996,brasil_aberto,True
+MA,2101608,Barra do Corda,Papagaio,papagaio,-5.5018917,-45.2464996,brasil_aberto,True
+MA,2101608,Barra do Corda,Resplandes,resplandes,-5.49883,-45.2512575,brasil_aberto,True
+MA,2101707,Barreirinhas,Centro,centro,-2.7511555,-42.8277188,brasil_aberto,True
+MA,2101509,Barão de Grajaú,Centro,centro,-6.7589263,-43.022299,brasil_aberto,True
+MA,2101772,Bela Vista do Maranhão,Centro,centro,-3.7402454,-45.2523422,brasil_aberto,True
+MA,2101731,Belágua,Centro,centro,-2.5288941,-44.2999068,brasil_aberto,True
+MA,2101806,Benedito Leite,Centro,centro,-7.22278547,-44.55709457,brasil_aberto,True
+MA,2101905,Bequimão,Centro,centro,-2.5434144,-44.2535221,brasil_aberto,True
+MA,2101939,Bernardo do Mearim,Centro,centro,-4.6270462,-44.76114930000001,brasil_aberto,True
+MA,2101970,Boa Vista do Gurupi,Centro,centro,-1.79774714,-46.31427383,brasil_aberto,True
+MA,2102002,Bom Jardim,Terra Indígena Awa,terra indigena awa,-3.5422606,-45.6091637,brasil_aberto,True
+MA,2102036,Bom Jesus das Selvas,Centro,centro,-4.489315299999999,-46.8571794,brasil_aberto,True
+MA,2102077,Bom Lugar,Centro,centro,-4.3716709,-45.0321342,brasil_aberto,True
+MA,2102101,Brejo,Centro,centro,-5.100247599999999,-42.8260069,brasil_aberto,True
+MA,2102150,Brejo de Areia,Centro,centro,-4.332180500000001,-45.58464379999999,brasil_aberto,True
+MA,2102200,Buriti,Centro,centro,-3.9425363,-42.9270364,brasil_aberto,True
+MA,2102309,Buriti Bravo,Bacatuba,bacatuba,-5.665017199999999,-43.7007157,brasil_aberto,True
+MA,2102309,Buriti Bravo,Centro,centro,-5.83748341,-43.83380127,brasil_aberto,True
+MA,2102325,Buriticupu,Centro,centro,-4.315586,-46.4623867,brasil_aberto,True
+MA,2102358,Buritirana,Centro,centro,-5.589676900000001,-47.0156381,brasil_aberto,True
+MA,2102374,Cachoeira Grande,Centro,centro,-2.9306303,-44.0573096,brasil_aberto,True
+MA,2102408,Cajapió,Centro,centro,-2.8777079,-44.6753463,brasil_aberto,True
+MA,2102507,Cajari,Boa Vista do Pindaré,boa vista do pindare,-3.3920009,-44.98134520000001,brasil_aberto,True
+MA,2102507,Cajari,Centro,centro,-3.3223113,-45.006405,brasil_aberto,True
+MA,2102556,Campestre do Maranhão,Centro,centro,-6.17047977,-47.36694717,brasil_aberto,True
+MA,2102705,Cantanhede,Centro,centro,-3.6406222,-44.3791419,brasil_aberto,True
+MA,2102754,Capinzal do Norte,Centro,centro,-4.7307985,-44.3264376,brasil_aberto,True
+MA,2102804,Carolina,Centro,centro,-7.334598799999999,-47.4735167,brasil_aberto,True
+MA,2102903,Carutapera,Centro,centro,-1.20354438,-46.02006912,brasil_aberto,True
+MA,2102903,Carutapera,Itamataré,itamatare,-2.24159002,-46.4104538,brasil_aberto,True
+MA,2103000,Caxias,Antenor Viana,antenor viana,-4.8422771,-43.3523742,brasil_aberto,True
+MA,2103000,Caxias,Bacuri,bacuri,-4.882742,-43.3473386,brasil_aberto,True
+MA,2103000,Caxias,Baixinha,baixinha,-4.8546435,-43.3430651,brasil_aberto,True
+MA,2103000,Caxias,Bela Vista,bela vista,-4.8721241,-43.3554667,brasil_aberto,True
+MA,2103000,Caxias,Caldeirões,caldeiroes,-4.8651935,-43.3689452,brasil_aberto,True
+MA,2103000,Caxias,Campo de Belém,campo de belem,-4.8767266,-43.3686332,brasil_aberto,True
+MA,2103000,Caxias,Cangalheiro,cangalheiro,-4.8665693,-43.3563818,brasil_aberto,True
+MA,2103000,Caxias,Castelo Branco,castelo branco,-4.8613641,-43.3531525,brasil_aberto,True
+MA,2103000,Caxias,Centro,centro,-4.8639249,-43.3603908,brasil_aberto,True
+MA,2103000,Caxias,Dinir Silva,dinir silva,-4.8711019,-43.3428811,brasil_aberto,True
+MA,2103000,Caxias,Fazendinha,fazendinha,-4.8703388,-43.3777588,brasil_aberto,True
+MA,2103000,Caxias,Fumo Verde,fumo verde,-4.9225143,-43.3502354,brasil_aberto,True
+MA,2103000,Caxias,Itapecuruzinho,itapecuruzinho,-4.8924581,-43.355706,brasil_aberto,True
+MA,2103000,Caxias,José Castro,jose castro,-4.8616643,-43.34199524,brasil_aberto,True
+MA,2103000,Caxias,João Viana,joao viana,-4.8673254,-43.3323334,brasil_aberto,True
+MA,2103000,Caxias,Luiza Queiroz,luiza queiroz,-4.8653843,-43.35870130000001,brasil_aberto,True
+MA,2103000,Caxias,Morro do Alecrim,morro do alecrim,-4.8667807,-43.3563527,brasil_aberto,True
+MA,2103000,Caxias,Mutirão,mutirao,-4.8623636,-43.3437904,brasil_aberto,True
+MA,2103000,Caxias,Nova Caxias,nova caxias,-4.8711541,-43.342907,brasil_aberto,True
+MA,2103000,Caxias,Pai Geraldo,pai geraldo,-4.8576652,-43.3362144,brasil_aberto,True
+MA,2103000,Caxias,Pampulha,pampulha,-4.8900482,-43.3537039,brasil_aberto,True
+MA,2103000,Caxias,Pirajá,piraja,-4.8679043,-43.3931859,brasil_aberto,True
+MA,2103000,Caxias,Ponte,ponte,-4.87263775,-43.36657333,brasil_aberto,True
+MA,2103000,Caxias,Raiz,raiz,-4.8308094,-43.3630096,brasil_aberto,True
+MA,2103000,Caxias,Refinaria,refinaria,-4.85835791,-43.34974289,brasil_aberto,True
+MA,2103000,Caxias,Salobro,salobro,-4.88483477,-43.37165833,brasil_aberto,True
+MA,2103000,Caxias,Seriema,seriema,-4.8389433,-43.3425287,brasil_aberto,True
+MA,2103000,Caxias,São Francisco,sao francisco,-4.8653802,-43.3587107,brasil_aberto,True
+MA,2103000,Caxias,Tamarineiro,tamarineiro,-4.8463912,-43.3525838,brasil_aberto,True
+MA,2103000,Caxias,Teso Duro,teso duro,-4.85469723,-43.35854721,brasil_aberto,True
+MA,2103000,Caxias,Trezidela,trezidela,-4.8608349,-43.3772842,brasil_aberto,True
+MA,2103000,Caxias,Vila Alecrim,vila alecrim,-4.87130308,-43.35069656,brasil_aberto,True
+MA,2103000,Caxias,Vila Lobão,vila lobao,-4.8746415,-43.3458087,brasil_aberto,True
+MA,2103000,Caxias,Vila São José,vila sao jose,-4.8713146,-43.3540544,brasil_aberto,True
+MA,2103000,Caxias,Volta Redonda,volta redonda,-4.87263775,-43.36657333,brasil_aberto,True
+MA,2103000,Caxias,Área Rural de Caxias,area rural de caxias,-4.868522,-43.3442207,brasil_aberto,True
+MA,2103125,Central do Maranhão,Centro,centro,-1.85157084,-44.86629486,brasil_aberto,True
+MA,2103174,Centro Novo do Maranhão,Centro,centro,-2.1418439,-46.1281527,brasil_aberto,True
+MA,2103158,Centro do Guilherme,centro,centro,,,brasil_aberto,True
+MA,2103208,Chapadinha,Centro,centro,-3.7425219,-43.3606459,brasil_aberto,True
+MA,2103257,Cidelândia,Centro,centro,-5.174498499999999,-47.78162589999999,brasil_aberto,True
+MA,2103307,Codó,Centro,centro,-4.4533048,-43.8874132,brasil_aberto,True
+MA,2103307,Codó,Codozinho,codozinho,-4.7092297,-44.17069,brasil_aberto,True
+MA,2103307,Codó,São Raimundo de Codó,sao raimundo de codo,-4.4535444,-43.8877885,brasil_aberto,True
+MA,2103406,Coelho Neto,Centro,centro,-2.52586007,-44.29613495,brasil_aberto,True
+MA,2103505,Colinas,Centro,centro,-6.0259031,-44.2505267,brasil_aberto,True
+MA,2103554,Conceição do Lago-Açu,Centro,centro,-3.8404873,-44.8960454,brasil_aberto,True
+MA,2103604,Coroatá,Centro,centro,-4.1283394,-44.130317,brasil_aberto,True
+MA,2103703,Cururupu,Centro,centro,-1.8259902,-44.873904,brasil_aberto,True
+MA,2102606,Cândido Mendes,Barão de Tromai,barao de tromai,-1.4650625,-45.5599845,brasil_aberto,True
+MA,2102606,Cândido Mendes,Centro,centro,-1.4556261,-45.7284034,brasil_aberto,True
+MA,2102606,Cândido Mendes,Estandarte,estandarte,-1.41815209,-45.52642441,brasil_aberto,True
+MA,2103752,Davinópolis,Centro,centro,-4.31547832,-46.45703125,brasil_aberto,True
+MA,2103802,Dom Pedro,Centro,centro,-5.037836899999999,-44.4371129,brasil_aberto,True
+MA,2103901,Duque Bacelar,Centro,centro,,,brasil_aberto,True
+MA,2104008,Esperantinópolis,Centro,centro,-4.87786436,-44.88247681,brasil_aberto,True
+MA,2104057,Estreito,Centro,centro,-6.56037045,-47.44891357,brasil_aberto,True
+MA,2104073,Feira Nova do Maranhão,Centro,centro,-6.962287799999999,-46.6847076,brasil_aberto,True
+MA,2104081,Fernando Falcão,Centro,centro,,,brasil_aberto,True
+MA,2104099,Formosa da Serra Negra,Centro,centro,,,brasil_aberto,True
+MA,2104107,Fortaleza dos Nogueiras,Centro,centro,-6.9609989,-46.1799289,brasil_aberto,True
+MA,2104206,Fortuna,Centro,centro,-5.7351066,-44.1565403,brasil_aberto,True
+MA,2104305,Godofredo Viana,Aurizona,aurizona,-1.2660379,-45.761165,brasil_aberto,True
+MA,2104305,Godofredo Viana,Centro,centro,-1.4214197,-45.7708533,brasil_aberto,True
+MA,2104404,Gonçalves Dias,Centro,centro,-5.1544306,-44.2993061,brasil_aberto,True
+MA,2104503,Governador Archer,Centro,centro,-5.022508,-44.2698822,brasil_aberto,True
+MA,2104552,Governador Edison Lobão,Centro,centro,-5.7502048,-47.3674939,brasil_aberto,True
+MA,2104602,Governador Eugênio Barros,Centro,centro,-5.32127714,-44.24431992,brasil_aberto,True
+MA,2104628,Governador Luiz Rocha,Centro,centro,-5.472430399999999,-44.0716994,brasil_aberto,True
+MA,2104651,Governador Newton Bello,Centro,centro,-3.4256064,-45.6693021,brasil_aberto,True
+MA,2104677,Governador Nunes Freire,Centro,centro,-2.13054061,-45.88596344,brasil_aberto,True
+MA,2104800,Grajaú,Centro,centro,-5.8174701,-46.1417915,brasil_aberto,True
+MA,2104701,Graça Aranha,Centro,centro,-5.408353099999999,-44.330752,brasil_aberto,True
+MA,2104909,Guimarães,Centro,centro,-2.13200426,-44.60240173,brasil_aberto,True
+MA,2105005,Humberto de Campos,Centro,centro,-2.5971236,-43.4625838,brasil_aberto,True
+MA,2105104,Icatu,Centro,centro,-2.793133,-44.0464777,brasil_aberto,True
+MA,2105104,Icatu,Itapera,itapera,-2.5662713,-43.7733836,brasil_aberto,True
+MA,2105203,Igarapé Grande,Centro,centro,-4.6629395,-44.8590183,brasil_aberto,True
+MA,2105153,Igarapé do Meio,Centro,centro,-2.5280642,-44.2996108,brasil_aberto,True
+MA,2105302,Imperatriz,Aeroporto,aeroporto,-5.53599596,-47.46097946,brasil_aberto,True
+MA,2105302,Imperatriz,Alto Bonito do Triângulo,alto bonito do triangulo,-5.4933314,-47.4609853,brasil_aberto,True
+MA,2105302,Imperatriz,Alto da Boa Vista,alto da boa vista,-5.49891901,-47.47635269,brasil_aberto,True
+MA,2105302,Imperatriz,Asa Norte,asa norte,-5.491261499999999,-47.4843918,brasil_aberto,True
+MA,2105302,Imperatriz,Bacuri,bacuri,-5.5396982,-47.4791747,brasil_aberto,True
+MA,2105302,Imperatriz,Beira Rio,beira rio,-5.5218075,-47.4822761,brasil_aberto,True
+MA,2105302,Imperatriz,Boca da Mata,boca da mata,-5.4973406,-47.4823657,brasil_aberto,True
+MA,2105302,Imperatriz,Bom Jesus,bom jesus,-5.49807072,-47.43376923,brasil_aberto,True
+MA,2105302,Imperatriz,Bom Sucesso,bom sucesso,-5.4972867,-47.4894211,brasil_aberto,True
+MA,2105302,Imperatriz,Brasil Novo,brasil novo,-5.4991526,-47.4590124,brasil_aberto,True
+MA,2105302,Imperatriz,Caema,caema,-5.5391241,-47.4863483,brasil_aberto,True
+MA,2105302,Imperatriz,Camaçari,camacari,-5.495916,-47.447328,brasil_aberto,True
+MA,2105302,Imperatriz,Centro,centro,-5.5235232,-47.4873871,brasil_aberto,True
+MA,2105302,Imperatriz,Centro Novo,centro novo,-5.4260223,-47.4713178,brasil_aberto,True
+MA,2105302,Imperatriz,Cidade Jardim,cidade jardim,-5.5473963,-47.4516715,brasil_aberto,True
+MA,2105302,Imperatriz,Cinco Irmãos,cinco irmaos,-5.4993079,-47.4781705,brasil_aberto,True
+MA,2105302,Imperatriz,Coco Grande,coco grande,-5.48276,-47.4843086,brasil_aberto,True
+MA,2105302,Imperatriz,Conjunto Habitar Brasil,conjunto habitar brasil,-5.4882738,-47.4614503,brasil_aberto,True
+MA,2105302,Imperatriz,Conjunto Nova Vitória,conjunto nova vitoria,-5.564372,-47.4429117,brasil_aberto,True
+MA,2105302,Imperatriz,Distrito Industrial,distrito industrial,-5.4489504,-47.4737887,brasil_aberto,True
+MA,2105302,Imperatriz,Entroncamento,entroncamento,-5.5167207,-47.468863,brasil_aberto,True
+MA,2105302,Imperatriz,Imigrantes,imigrantes,-5.4804046,-47.481356,brasil_aberto,True
+MA,2105302,Imperatriz,Itamar Guará,itamar guara,-5.5799128,-47.4447444,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim América,jardim america,-5.495916,-47.447328,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Andrea,jardim andrea,-5.4971268,-47.4553053,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Camboriú,jardim camboriu,-5.4789191,-47.4354332,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Cinco Estrelas,jardim cinco estrelas,-5.495916,-47.447328,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Democrata,jardim democrata,-5.495916,-47.447328,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Europa,jardim europa,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Lagoa,jardim lagoa,-5.5005765,-47.4422686,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Lopes,jardim lopes,-5.5170734,-47.4625591,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Morada do Sol,jardim morada do sol,-5.5278596,-47.4633235,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Oriental,jardim oriental,-5.5014676,-47.4913055,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Planalto,jardim planalto,-5.5188103,-47.4548887,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Pérola,jardim perola,-5.4813401,-47.4583001,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim São Francisco,jardim sao francisco,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim São Luís,jardim sao luis,-5.5272465,-47.4654753,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim Tropical,jardim tropical,-5.4988871,-47.4718905,brasil_aberto,True
+MA,2105302,Imperatriz,Jardim das Oliveiras,jardim das oliveiras,-5.4881088,-47.4464998,brasil_aberto,True
+MA,2105302,Imperatriz,João Paulo II,joao paulo ii,-5.4854207,-47.4791286,brasil_aberto,True
+MA,2105302,Imperatriz,Juçara,jucara,-5.5202463,-47.4788275,brasil_aberto,True
+MA,2105302,Imperatriz,Lagoa Verde,lagoa verde,-5.5005765,-47.4422686,brasil_aberto,True
+MA,2105302,Imperatriz,Lagoinha,lagoinha,-4.29493761,-45.28757858,brasil_aberto,True
+MA,2105302,Imperatriz,Leandra,leandra,-5.5513874,-47.480757,brasil_aberto,True
+MA,2105302,Imperatriz,Maranhão Novo,maranhao novo,-5.5152486,-47.4735166,brasil_aberto,True
+MA,2105302,Imperatriz,Mata Verde,mata verde,,,brasil_aberto,True
+MA,2105302,Imperatriz,Mercadinho,mercadinho,-5.5280839,-47.4729505,brasil_aberto,True
+MA,2105302,Imperatriz,Morada do Bosque,morada do bosque,-5.5080674,-47.447268,brasil_aberto,True
+MA,2105302,Imperatriz,Mutirão,mutirao,-5.4942037,-47.4542442,brasil_aberto,True
+MA,2105302,Imperatriz,Nova Imperatriz,nova imperatriz,-5.5066841,-47.4890863,brasil_aberto,True
+MA,2105302,Imperatriz,Novo Horizonte,novo horizonte,-5.4982446,-47.4946555,brasil_aberto,True
+MA,2105302,Imperatriz,Ouro Verde,ouro verde,-5.47875071,-47.49371338,brasil_aberto,True
+MA,2105302,Imperatriz,Park Imperial,park imperial,-5.5301324,-47.4473713,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Alvorada,parque alvorada,-5.5323983,-47.4563943,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Alvorada II,parque alvorada ii,-5.5330358,-47.4419069,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Amazonas,parque amazonas,-5.4973785,-47.4548453,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Anhangüera,parque anhanguera,-5.5541962,-47.4704759,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Avenida,parque avenida,-5.4792181,-47.4385878,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Buriti,parque buriti,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Independência,parque independencia,-5.49608994,-47.4974556,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Planalto,parque planalto,-5.4925281,-47.4792731,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Sanharol,parque sanharol,-5.5149193,-47.4513996,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Santa Lúcia,parque santa lucia,-5.52103,-47.4439563,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Sumaré,parque sumare,-5.4811415,-47.5091536,brasil_aberto,True
+MA,2105302,Imperatriz,Parque São José,parque sao jose,-5.4900844,-47.4842305,brasil_aberto,True
+MA,2105302,Imperatriz,Parque Tocantins,parque tocantins,-5.486619,-47.49648285,brasil_aberto,True
+MA,2105302,Imperatriz,Parque da Lagoa,parque da lagoa,-5.50117,-47.4500319,brasil_aberto,True
+MA,2105302,Imperatriz,Parque das Estrelas,parque das estrelas,-5.5050705,-47.4641101,brasil_aberto,True
+MA,2105302,Imperatriz,Parque das Flores,parque das flores,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105302,Imperatriz,Parque das Mangueiras,parque das mangueiras,-5.5167475,-47.4478349,brasil_aberto,True
+MA,2105302,Imperatriz,Parque das Mansões,parque das mansoes,-5.5474225,-47.4514825,brasil_aberto,True
+MA,2105302,Imperatriz,Parque das Palmeiras,parque das palmeiras,-5.5014295,-47.4532387,brasil_aberto,True
+MA,2105302,Imperatriz,Parque do Bosque,parque do bosque,-5.5095906,-47.45144459999999,brasil_aberto,True
+MA,2105302,Imperatriz,Portal da Amazônia,portal da amazonia,-5.5504016,-47.4564117,brasil_aberto,True
+MA,2105302,Imperatriz,Recanto Estrela da Manhã,recanto estrela da manha,-5.4792181,-47.4385878,brasil_aberto,True
+MA,2105302,Imperatriz,Recanto Universitário,recanto universitario,-5.514496299999999,-47.4343551,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Califórnia,residencial california,-5.4789191,-47.4354332,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Colina Park,residencial colina park,-5.5659784,-47.4624524,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Dom Afonso Felippe Gregory,residencial dom afonso felippe gregory,-5.4789191,-47.4354332,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Império Romano,residencial imperio romano,-5.4819025,-47.43428369999999,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Kubitschek,residencial kubitschek,-5.5141808,-47.4491,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Teotônio Vilela,residencial teotonio vilela,-5.5009211,-47.4278928,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Verona,residencial verona,-5.4876255,-47.4335222,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Verona III,residencial verona iii,-5.48460484,-47.43667221,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Verona IV,residencial verona iv,-5.48460484,-47.43667221,brasil_aberto,True
+MA,2105302,Imperatriz,Residencial Verona V,residencial verona v,-5.4830364,-47.4249869,brasil_aberto,True
+MA,2105302,Imperatriz,Santa Inês,santa ines,-5.505069,-47.4959372,brasil_aberto,True
+MA,2105302,Imperatriz,Santa Luzia,santa luzia,-5.5492632,-47.4754508,brasil_aberto,True
+MA,2105302,Imperatriz,Santa Rita,santa rita,-5.4962049,-47.4938502,brasil_aberto,True
+MA,2105302,Imperatriz,Santo Amaro,santo amaro,-5.4882048,-47.4956803,brasil_aberto,True
+MA,2105302,Imperatriz,Sol Nascente,sol nascente,-5.4892902,-47.4915536,brasil_aberto,True
+MA,2105302,Imperatriz,Super Quadra 602,super quadra 602,-5.53016663,-47.46694565,brasil_aberto,True
+MA,2105302,Imperatriz,São José do Egito,sao jose do egito,-5.5304543,-47.4788734,brasil_aberto,True
+MA,2105302,Imperatriz,São Salvador,sao salvador,-5.5441929,-47.4704935,brasil_aberto,True
+MA,2105302,Imperatriz,Sítio Engenho Velho,sitio engenho velho,-5.513122,-47.4589042,brasil_aberto,True
+MA,2105302,Imperatriz,Três Poderes,tres poderes,-5.51730299,-47.47736359,brasil_aberto,True
+MA,2105302,Imperatriz,União,uniao,-5.5369475,-47.4802389,brasil_aberto,True
+MA,2105302,Imperatriz,Vale do Sol,vale do sol,-5.5150193,-47.4710444,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Airton Senna,vila airton senna,-5.5300841,-47.4879434,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Bandeirantes,vila bandeirantes,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Brasil,vila brasil,-5.4996215,-47.4573378,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Cafeteira,vila cafeteira,-5.5313384,-47.4663869,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Carajás,vila carajas,-5.5111902,-47.4855651,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Chico do Rádio,vila chico do radio,-5.4351026,-47.4696255,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Esmeralda,vila esmeralda,-5.5133221,-47.4595442,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Fiquene,vila fiquene,-5.516279,-47.4367084,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Independente,vila independente,-5.5206943,-47.436423,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Ipiranga,vila ipiranga,-8.47681522,-47.78919983,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Jardim,vila jardim,-5.5115424,-47.4902091,brasil_aberto,True
+MA,2105302,Imperatriz,Vila João Castelo,vila joao castelo,-5.5313384,-47.4663869,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Lobão,vila lobao,-5.5001967,-47.4779449,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Macedo,vila macedo,-5.4829904,-47.4822826,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Maderminas,vila maderminas,-5.487519,-47.4767015,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Maria,vila maria,-5.4882048,-47.4956803,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Mariana,vila mariana,-5.4954589,-47.4910742,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Nova,vila nova,-5.5098461,-47.4619262,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Parati,vila parati,-5.51397276,-47.45897675,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Redenção,vila redencao,-5.50496578,-47.45771027,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Santa Luzia,vila santa luzia,-8.47681522,-47.78919983,brasil_aberto,True
+MA,2105302,Imperatriz,Vila São João,vila sao joao,-5.425603799999999,-47.4726869,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Verde,vila verde,-5.5300841,-47.4879434,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Vitória,vila vitoria,-5.5586823,-47.4438573,brasil_aberto,True
+MA,2105302,Imperatriz,Vila Zenira,vila zenira,-5.49993706,-47.46122742,brasil_aberto,True
+MA,2105302,Imperatriz,Vilinha,vilinha,-5.5390541,-47.4598574,brasil_aberto,True
+MA,2105302,Imperatriz,Área Rural de Imperatriz,area rural de imperatriz,-5.5237579,-47.4762224,brasil_aberto,True
+MA,2105351,Itaipava do Grajaú,Centro,centro,-5.145138999999999,-45.792161,brasil_aberto,True
+MA,2105401,Itapecuru Mirim,Centro,centro,-3.3937249,-44.3597809,brasil_aberto,True
+MA,2105427,Itinga do Maranhão,Centro,centro,-4.4513959,-47.5282153,brasil_aberto,True
+MA,2105476,Jenipapo dos Vieiras,Centro,centro,-2.15159869,-46.12221527,brasil_aberto,True
+MA,2105609,Joselândia,Centro,centro,-4.98407888,-44.69853973,brasil_aberto,True
+MA,2105500,João Lisboa,Centro,centro,-5.4483571,-47.401745,brasil_aberto,True
+MA,2105658,Junco do Maranhão,Centro,centro,-3.1298957,-60.0206598,brasil_aberto,True
+MA,2105906,Lago Verde,Centro,centro,-4.0404502,-44.93801759999999,brasil_aberto,True
+MA,2105708,Lago da Pedra,Centro,centro,-4.571132299999999,-45.1321228,brasil_aberto,True
+MA,2105807,Lago do Junco,Centro,centro,-4.6062436,-45.0518618,brasil_aberto,True
+MA,2105948,Lago dos Rodrigues,Centro,centro,-4.61372852,-44.98205566,brasil_aberto,True
+MA,2105963,Lagoa Grande do Maranhão,Centro,centro,-4.9929029,-45.3866723,brasil_aberto,True
+MA,2105922,Lagoa do Mato,Centro,centro,-6.0478985,-43.526832,brasil_aberto,True
+MA,2105989,Lajeado Novo,Centro,centro,-6.190084,-47.0339731,brasil_aberto,True
+MA,2106003,Lima Campos,Centro,centro,-4.5201837,-44.4658789,brasil_aberto,True
+MA,2106102,Loreto,Centro,centro,-7.0825592,-45.1424424,brasil_aberto,True
+MA,2106201,Luís Domingues,São João,sao joao,-1.3267908,-45.8979949,brasil_aberto,True
+MA,2106300,Magalhães de Almeida,Centro,centro,-3.39692426,-42.20515823,brasil_aberto,True
+MA,2106300,Magalhães de Almeida,Custódio Lima,custodio lima,-3.26320148,-42.13116074,brasil_aberto,True
+MA,2106326,Maracaçumé,Centro,centro,-2.04831028,-45.96186066,brasil_aberto,True
+MA,2106359,Marajá do Sena,Centro,centro,,,brasil_aberto,True
+MA,2106375,Maranhãozinho,Centro,centro,-7.531175200000001,-46.0376279,brasil_aberto,True
+MA,2106409,Mata Roma,Centro,centro,-3.62251258,-43.11123276,brasil_aberto,True
+MA,2106508,Matinha,Centro,centro,-3.101597,-45.032092,brasil_aberto,True
+MA,2106607,Matões,Centro,centro,,,brasil_aberto,True
+MA,2106631,Matões do Norte,Centro,centro,-3.6265664,-44.5542591,brasil_aberto,True
+MA,2106672,Milagres do Maranhão,Centro,centro,-3.58135271,-42.60620117,brasil_aberto,True
+MA,2106706,Mirador,Centro,centro,-6.37172794,-44.3612709,brasil_aberto,True
+MA,2106706,Mirador,Ibipira,ibipira,-6.3607382,-44.7756422,brasil_aberto,True
+MA,2106755,Miranda do Norte,Centro,centro,-3.57227921,-44.58089066,brasil_aberto,True
+MA,2106805,Mirinzal,Centro,centro,-1.83845043,-44.86988068,brasil_aberto,True
+MA,2107001,Montes Altos,Centro,centro,-5.8364558,-47.0684548,brasil_aberto,True
+MA,2106904,Monção,Centro,centro,-2.5320663,-44.2999955,brasil_aberto,True
+MA,2107100,Morros,Centro,centro,-2.8658236,-44.0411704,brasil_aberto,True
+MA,2107209,Nina Rodrigues,Centro,centro,-3.4634307,-43.9064153,brasil_aberto,True
+MA,2107258,Nova Colinas,Centro,centro,,,brasil_aberto,True
+MA,2107308,Nova Iorque,Centro,centro,-6.735787299999999,-44.0456732,brasil_aberto,True
+MA,2107357,Nova Olinda do Maranhão,Centro,centro,-2.6303237,-45.7550422,brasil_aberto,True
+MA,2107407,Olho d'Água das Cunhãs,Centro,centro,,,brasil_aberto,True
+MA,2107456,Olinda Nova do Maranhão,Centro,centro,-2.9793327,-44.9934395,brasil_aberto,True
+MA,2107605,Palmeirândia,Centro,centro,-2.6440936,-44.8963269,brasil_aberto,True
+MA,2107704,Paraibano,Centro,centro,-6.4334542,-43.984689,brasil_aberto,True
+MA,2107803,Parnarama,Brejo de São Félix,brejo de sao felix,-5.4936271,-43.4940775,brasil_aberto,True
+MA,2107803,Parnarama,Centro,centro,-5.6816833,-43.0928289,brasil_aberto,True
+MA,2107902,Passagem Franca,Centro,centro,-6.1804321,-43.7801218,brasil_aberto,True
+MA,2108009,Pastos Bons,Rocado,rocado,-6.589142499999999,-44.07235740000001,brasil_aberto,True
+MA,2108009,Pastos Bons,São José,sao jose,-6.5986605,-44.085959,brasil_aberto,True
+MA,2108058,Paulino Neves,Centro,centro,-2.89024806,-41.90328217,brasil_aberto,True
+MA,2108108,Paulo Ramos,Centro,centro,-4.4449877,-45.2396449,brasil_aberto,True
+MA,2107506,Paço do Lumiar,Centro,centro,-2.5311009,-44.1034837,brasil_aberto,True
+MA,2107506,Paço do Lumiar,Conjunto Maiobão,conjunto maiobao,,,brasil_aberto,True
+MA,2107506,Paço do Lumiar,Maioba,maioba,-2.5103265,-44.12929399999999,brasil_aberto,True
+MA,2108207,Pedreiras,Centro,centro,-4.5690914,-44.6020064,brasil_aberto,True
+MA,2108207,Pedreiras,Marianópolis,marianopolis,-4.772308,-44.57124049999999,brasil_aberto,True
+MA,2108256,Pedro do Rosário,Centro,centro,-2.9705075,-45.3472936,brasil_aberto,True
+MA,2108306,Penalva,Centro,centro,-3.2924106,-45.1738838,brasil_aberto,True
+MA,2108405,Peri Mirim,Centro,centro,-2.53017044,-44.29475021,brasil_aberto,True
+MA,2108454,Peritoró,Filipinho,filipinho,-4.3719458,-44.33789460000001,brasil_aberto,True
+MA,2108504,Pindaré-Mirim,Centro,centro,,,brasil_aberto,True
+MA,2108504,Pindaré-Mirim,Pimentel,pimentel,,,brasil_aberto,True
+MA,2108603,Pinheiro,Centro,centro,-2.5186169,-45.0818502,brasil_aberto,True
+MA,2108603,Pinheiro,Povoado Bom Viver,povoado bom viver,,,brasil_aberto,True
+MA,2108603,Pinheiro,Povoado Paraíso,povoado paraiso,,,brasil_aberto,True
+MA,2108603,Pinheiro,Roque,roque,-2.7847175,-45.2398956,brasil_aberto,True
+MA,2108702,Pio XII,Matadouro,matadouro,,,brasil_aberto,True
+MA,2108801,Pirapemas,Centro,centro,-3.7289995,-44.2243126,brasil_aberto,True
+MA,2109007,Porto Franco,Centro,centro,-6.343390599999999,-47.3977036,brasil_aberto,True
+MA,2109056,Porto Rico do Maranhão,Centro,centro,-2.53018618,-44.29663467,brasil_aberto,True
+MA,2108900,Poção de Pedras,Centro,centro,-4.75194502,-44.94110489,brasil_aberto,True
+MA,2109239,Presidente Médici,Centro,centro,-11.1712616,-61.90518359999999,brasil_aberto,True
+MA,2109270,Presidente Sarney,Centro,centro,-2.5932134,-45.3644815,brasil_aberto,True
+MA,2109304,Presidente Vargas,Centro,centro,-3.40807343,-44.02527237,brasil_aberto,True
+MA,2109403,Primeira Cruz,Centro,centro,-2.5102051,-43.4420795,brasil_aberto,True
+MA,2109452,Raposa,Centro,centro,-2.54598308,-44.30937576,brasil_aberto,True
+MA,2109502,Riachão,Centro,centro,-6.54146242,-35.65985107,brasil_aberto,True
+MA,2109551,Ribamar Fiquene,Centro,centro,-5.93614721,-47.38389587,brasil_aberto,True
+MA,2109601,Rosário,Centro,centro,-2.9397059,-44.2454739,brasil_aberto,True
+MA,2109700,Sambaíba,Centro,centro,-7.1411248,-45.3475426,brasil_aberto,True
+MA,2109759,Santa Filomena do Maranhão,Centro,centro,-5.49955702,-44.56062698,brasil_aberto,True
+MA,2109809,Santa Helena,Centro,centro,,,brasil_aberto,True
+MA,2109809,Santa Helena,Curva Grande,curva grande,-2.62189674,-45.46336365,brasil_aberto,True
+MA,2109908,Santa Inês,Adelaide Cabral,adelaide cabral,-3.65688,-45.3905986,brasil_aberto,True
+MA,2109908,Santa Inês,Aeroporto,aeroporto,-3.6532942,-45.3751217,brasil_aberto,True
+MA,2109908,Santa Inês,Angelim,angelim,-3.6546837,-45.3707156,brasil_aberto,True
+MA,2109908,Santa Inês,Barreirinha,barreirinha,-3.651749,-45.3783977,brasil_aberto,True
+MA,2109908,Santa Inês,COHAB,cohab,-3.6717285,-45.3583683,brasil_aberto,True
+MA,2109908,Santa Inês,COHEB,coheb,-3.6645813,-45.3687333,brasil_aberto,True
+MA,2109908,Santa Inês,Canaã,canaa,-3.6599579,-45.3917913,brasil_aberto,True
+MA,2109908,Santa Inês,Canecão,canecao,-3.666516,-45.3857012,brasil_aberto,True
+MA,2109908,Santa Inês,Ceplac,ceplac,-3.6432314,-45.3746364,brasil_aberto,True
+MA,2109908,Santa Inês,Céu,ceu,-3.6639271,-45.3667801,brasil_aberto,True
+MA,2109908,Santa Inês,Jardim Abreu,jardim abreu,-3.6637336,-45.3821634,brasil_aberto,True
+MA,2109908,Santa Inês,Jardim Brasília,jardim brasilia,-3.6553029,-45.3824554,brasil_aberto,True
+MA,2109908,Santa Inês,Jardim Nova Era,jardim nova era,-3.6776941,-45.3862321,brasil_aberto,True
+MA,2109908,Santa Inês,Jardim Tropical,jardim tropical,-3.6571199,-45.3888029,brasil_aberto,True
+MA,2109908,Santa Inês,Mercado Municipal,mercado municipal,-3.6543495,-45.3735675,brasil_aberto,True
+MA,2109908,Santa Inês,Mutirão,mutirao,-3.6695971,-45.3658612,brasil_aberto,True
+MA,2109908,Santa Inês,Nova Santa Inês,nova santa ines,-3.6626376,-45.3832939,brasil_aberto,True
+MA,2109908,Santa Inês,Núcleo CVRD,nucleo cvrd,-3.6458062,-45.3703625,brasil_aberto,True
+MA,2109908,Santa Inês,Palmeira,palmeira,-3.6628787,-45.3728495,brasil_aberto,True
+MA,2109908,Santa Inês,Parque Pramorar,parque pramorar,-3.6645937,-45.38411713,brasil_aberto,True
+MA,2109908,Santa Inês,Parque Santa Cruz,parque santa cruz,-3.6631726,-45.3654711,brasil_aberto,True
+MA,2109908,Santa Inês,Residencial Brasil,residencial brasil,-3.664924,-45.3828264,brasil_aberto,True
+MA,2109908,Santa Inês,Residencial Sol Nascente,residencial sol nascente,-3.6597877,-45.3571714,brasil_aberto,True
+MA,2109908,Santa Inês,Sabbak,sabbak,-3.6672408,-45.3898154,brasil_aberto,True
+MA,2109908,Santa Inês,Santa Filomena,santa filomena,-3.6596228,-45.3603691,brasil_aberto,True
+MA,2109908,Santa Inês,Santo Antônio,santo antonio,-3.6616235,-45.3861578,brasil_aberto,True
+MA,2109908,Santa Inês,São Benedito,sao benedito,-3.6570317,-45.3517044,brasil_aberto,True
+MA,2109908,Santa Inês,São Cristóvão,sao cristovao,-3.6737264,-45.3732404,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Cabral,vila cabral,-3.6417581,-45.3729104,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Conceição,vila conceicao,-3.6458062,-45.3703625,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Davi,vila davi,-3.6685247,-45.3661594,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Edmundo Rios,vila edmundo rios,-3.6518096,-45.3716433,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Marcony,vila marcony,-3.6679342,-45.3561512,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Militar,vila militar,-3.6693381,-45.3791146,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Olímpica,vila olimpica,-3.6673564,-45.3975833,brasil_aberto,True
+MA,2109908,Santa Inês,Vila Parente,vila parente,-3.6408817,-45.3693707,brasil_aberto,True
+MA,2109908,Santa Inês,Área Rural de Santa Inês,area rural de santa ines,-3.6648976,-45.3828356,brasil_aberto,True
+MA,2110039,Santa Luzia do Paruá,Centro,centro,-2.5426228,-45.77568054,brasil_aberto,True
+MA,2110104,Santa Quitéria do Maranhão,Centro,centro,-3.4976787,-42.560975,brasil_aberto,True
+MA,2110203,Santa Rita,Centro,centro,,,brasil_aberto,True
+MA,2110237,Santana do Maranhão,Centro,centro,-3.11893249,-42.40803909,brasil_aberto,True
+MA,2110278,Santo Amaro do Maranhão,Centro,centro,,,brasil_aberto,True
+MA,2110302,Santo Antônio dos Lopes,Centro,centro,-4.8684674,-44.3577982,brasil_aberto,True
+MA,2111722,Satubinha,Centro,centro,-4.04009104,-45.23656845,brasil_aberto,True
+MA,2111748,Senador Alexandre Costa,Centro,centro,-5.258681,-44.0565153,brasil_aberto,True
+MA,2111763,Senador La Rocque,Centro,centro,,,brasil_aberto,True
+MA,2111789,Serrano do Maranhão,Centro,centro,-1.8527655,-45.1174891,brasil_aberto,True
+MA,2111904,Sucupira do Norte,Centro,centro,-6.4795493,-44.1915868,brasil_aberto,True
+MA,2111953,Sucupira do Riachão,Centro,centro,-2.52088881,-44.26839066,brasil_aberto,True
+MA,2110401,São Benedito do Rio Preto,Centro,centro,-3.332655,-43.5273452,brasil_aberto,True
+MA,2110500,São Bento,Centro,centro,-6.4895168,-37.4493125,brasil_aberto,True
+MA,2110609,São Bernardo,Centro,centro,-3.36254597,-42.42528152,brasil_aberto,True
+MA,2110658,São Domingos do Azeitão,Centro,centro,-6.8116721,-44.6447446,brasil_aberto,True
+MA,2110708,São Domingos do Maranhão,Centro,centro,-5.578350899999999,-44.3859718,brasil_aberto,True
+MA,2110856,São Francisco do Brejão,Centro,centro,-5.1246512,-47.3877089,brasil_aberto,True
+MA,2110906,São Francisco do Maranhão,Caraíba do Norte,caraiba do norte,-6.4158455,-42.8784429,brasil_aberto,True
+MA,2110906,São Francisco do Maranhão,Centro,centro,-6.249636,-42.8569875,brasil_aberto,True
+MA,2110906,São Francisco do Maranhão,Ribeirão Azul,ribeirao azul,-5.97887802,-43.21344757,brasil_aberto,True
+MA,2110807,São Félix de Balsas,Centro,centro,-7.0854349,-44.8144199,brasil_aberto,True
+MA,2111201,São José de Ribamar,Mata,mata,,,brasil_aberto,True
+MA,2111201,São José de Ribamar,Moropóia,moropoia,,,brasil_aberto,True
+MA,2111250,São José dos Basílios,Centro,centro,-5.05424309,-44.58651352,brasil_aberto,True
+MA,2111003,São João Batista,Centro,centro,-27.277156,-48.854265,brasil_aberto,True
+MA,2111029,São João do Carú,Centro,centro,-3.5730968,-46.1777361,brasil_aberto,True
+MA,2111078,São João do Soter,Centro,centro,-5.1136739,-43.8114884,brasil_aberto,True
+MA,2111102,São João dos Patos,Centro,centro,-6.4975703,-43.7020533,brasil_aberto,True
+MA,2111300,São Luís,Alameda dos Sonhos,alameda dos sonhos,-2.5627272,-44.2360928,brasil_aberto,True
+MA,2111300,São Luís,Alemanha,alemanha,-2.5386987,-44.2654407,brasil_aberto,True
+MA,2111300,São Luís,Alterosa,alterosa,-21.2561969,-46.1446701,brasil_aberto,True
+MA,2111300,São Luís,Alto Esperança,alto esperanca,,,brasil_aberto,True
+MA,2111300,São Luís,Alto do Calhau,alto do calhau,-2.4983522,-44.2559859,brasil_aberto,True
+MA,2111300,São Luís,Alto do Pinho,alto do pinho,-2.5409724,-44.2444759,brasil_aberto,True
+MA,2111300,São Luís,Ananandiba,ananandiba,-2.6711667,-44.2929682,brasil_aberto,True
+MA,2111300,São Luís,Angelim,angelim,-2.5366513,-44.2318569,brasil_aberto,True
+MA,2111300,São Luís,Anil,anil,-2.5536233,-44.2420046,brasil_aberto,True
+MA,2111300,São Luís,Anjo da Guarda,anjo da guarda,-2.5486902,-44.3356581,brasil_aberto,True
+MA,2111300,São Luís,Apeadouro,apeadouro,-2.6501597,-44.2698866,brasil_aberto,True
+MA,2111300,São Luís,Apicum,apicum,-2.5350026,-44.2950005,brasil_aberto,True
+MA,2111300,São Luís,Araçagi,aracagi,-2.4803672,-44.2130229,brasil_aberto,True
+MA,2111300,São Luís,Areinha,areinha,-2.5452239,-44.2947196,brasil_aberto,True
+MA,2111300,São Luís,Arraial,arraial,-2.7024226,-44.2514683,brasil_aberto,True
+MA,2111300,São Luís,Aurora,aurora,-2.548329,-44.2317168,brasil_aberto,True
+MA,2111300,São Luís,Barreto,barreto,-2.5096298,-44.2532044,brasil_aberto,True
+MA,2111300,São Luís,Barés,bares,-2.5488394,-44.270427,brasil_aberto,True
+MA,2111300,São Luís,Belira,belira,-2.5389285,-44.2937929,brasil_aberto,True
+MA,2111300,São Luís,Bequimão,bequimao,-2.5324722,-44.2450629,brasil_aberto,True
+MA,2111300,São Luís,Boa Morada,boa morada,-2.5245377,-44.2672131,brasil_aberto,True
+MA,2111300,São Luís,Boa Vista,boa vista,-2.5306721,-44.2988947,brasil_aberto,True
+MA,2111300,São Luís,Bom Jesus,bom jesus,-2.5426944,-44.3295426,brasil_aberto,True
+MA,2111300,São Luís,Bom Milagre,bom milagre,-2.5417281,-44.2821969,brasil_aberto,True
+MA,2111300,São Luís,Brisa do Mar,brisa do mar,-2.5645949,-44.2739972,brasil_aberto,True
+MA,2111300,São Luís,COHAB Anil I,cohab anil i,-2.5344717,-44.22301830000001,brasil_aberto,True
+MA,2111300,São Luís,COHAB Anil II,cohab anil ii,-2.538975,-44.2185735,brasil_aberto,True
+MA,2111300,São Luís,COHAB Anil III,cohab anil iii,-2.52767777,-44.16907501,brasil_aberto,True
+MA,2111300,São Luís,COHAB Anil IV,cohab anil iv,-2.5582474,-44.2177882,brasil_aberto,True
+MA,2111300,São Luís,COHAPAM,cohapam,-2.5662238,-44.221568,brasil_aberto,True
+MA,2111300,São Luís,COHEB do Sacavém,coheb do sacavem,-2.5601684,-44.2585617,brasil_aberto,True
+MA,2111300,São Luís,Cabral Miranda,cabral miranda,-2.5374551,-44.2970757,brasil_aberto,True
+MA,2111300,São Luís,Calhau,calhau,-2.4876707,-44.2665579,brasil_aberto,True
+MA,2111300,São Luís,Camboa,camboa,-2.529805000000001,-44.2893445,brasil_aberto,True
+MA,2111300,São Luís,Cantinho do Céu,cantinho do ceu,-2.5196877,-44.2316224,brasil_aberto,True
+MA,2111300,São Luís,Caratatiua,caratatiua,-2.5402506,-44.2713218,brasil_aberto,True
+MA,2111300,São Luís,Centro,centro,-2.5320663,-44.2999955,brasil_aberto,True
+MA,2111300,São Luís,Chácara Brasil,chacara brasil,-2.5050525,-44.2194839,brasil_aberto,True
+MA,2111300,São Luís,Chácara Itapiracó,chacara itapiraco,-2.5283513,-44.2098022,brasil_aberto,True
+MA,2111300,São Luís,Cidade Nova,cidade nova,-2.5372069,-44.2903212,brasil_aberto,True
+MA,2111300,São Luís,Cidade Olímpica,cidade olimpica,-2.5914498,-44.1844264,brasil_aberto,True
+MA,2111300,São Luís,Cidade Operária,cidade operaria,-2.5661897,-44.2031691,brasil_aberto,True
+MA,2111300,São Luís,Cinturão Verde,cinturao verde,-2.5361999,-44.2357304,brasil_aberto,True
+MA,2111300,São Luís,Codozinho,codozinho,-2.539808,-44.294984,brasil_aberto,True
+MA,2111300,São Luís,Cohafuma,cohafuma,-2.5115754,-44.2638156,brasil_aberto,True
+MA,2111300,São Luís,Cohajap,cohajap,-2.5155218,-44.2642693,brasil_aberto,True
+MA,2111300,São Luís,Cohama,cohama,-2.5139593,-44.2440471,brasil_aberto,True
+MA,2111300,São Luís,Cohaserma,cohaserma,-2.5092695,-44.2495155,brasil_aberto,True
+MA,2111300,São Luís,Cohaserma II,cohaserma ii,-2.5079114,-44.2445728,brasil_aberto,True
+MA,2111300,São Luís,Cohatrac I,cohatrac i,-2.54034257,-44.20293045,brasil_aberto,True
+MA,2111300,São Luís,Cohatrac II,cohatrac ii,-2.5382331,-44.2003809,brasil_aberto,True
+MA,2111300,São Luís,Cohatrac III,cohatrac iii,-2.54300594,-44.19858932,brasil_aberto,True
+MA,2111300,São Luís,Cohatrac IV,cohatrac iv,-2.5353404,-44.2010049,brasil_aberto,True
+MA,2111300,São Luís,Conjunto Cial,conjunto cial,-2.5588977,-44.2379141,brasil_aberto,True
+MA,2111300,São Luís,Conjunto Dom Sebastião,conjunto dom sebastiao,-2.557477,-44.2715938,brasil_aberto,True
+MA,2111300,São Luís,Conjunto Habitacional Turu,conjunto habitacional turu,-2.5013756,-44.2239717,brasil_aberto,True
+MA,2111300,São Luís,Conjunto Manoel Beckman,conjunto manoel beckman,-2.521434,-44.2413857,brasil_aberto,True
+MA,2111300,São Luís,Conjunto Residencial Estrela D'Alva (Res Maria Aragão),conjunto residencial estrela d'alva (res maria aragao),-2.6036502,-44.1921989,brasil_aberto,True
+MA,2111300,São Luís,Conjunto dos Ipês,conjunto dos ipes,-2.5488523,-44.2518554,brasil_aberto,True
+MA,2111300,São Luís,Coqueiro,coqueiro,-2.567245,-44.1944646,brasil_aberto,True
+MA,2111300,São Luís,Coroadinho,coroadinho,-2.5604168,-44.2770625,brasil_aberto,True
+MA,2111300,São Luís,Coroado,coroado,-2.5251064,-44.244332,brasil_aberto,True
+MA,2111300,São Luís,Coréia,coreia,-2.537562,-44.2901691,brasil_aberto,True
+MA,2111300,São Luís,Cruzeiro de Santa Bárbara,cruzeiro de santa barbara,-2.5980586,-44.2296993,brasil_aberto,True
+MA,2111300,São Luís,Cruzeiro do Anil,cruzeiro do anil,-2.5408639,-44.2332992,brasil_aberto,True
+MA,2111300,São Luís,Cutim Anil,cutim anil,-2.5524073,-44.2474693,brasil_aberto,True
+MA,2111300,São Luís,Diamante,diamante,-2.5317045,-44.288269,brasil_aberto,True
+MA,2111300,São Luís,Distrito Industrial,distrito industrial,-2.5700739,-44.2247598,brasil_aberto,True
+MA,2111300,São Luís,Divinéia,divineia,-2.4928188,-44.2198496,brasil_aberto,True
+MA,2111300,São Luís,Estiva,estiva,-2.6279956,-44.3153409,brasil_aberto,True
+MA,2111300,São Luís,Fabril,fabril,-2.5312721,-44.2880088,brasil_aberto,True
+MA,2111300,São Luís,Ferventa,ferventa,-2.6058106,-44.2125941,brasil_aberto,True
+MA,2111300,São Luís,Filipinho,filipinho,-2.5278751,-44.2927942,brasil_aberto,True
+MA,2111300,São Luís,Forquilha,forquilha,-2.5591952,-44.2017246,brasil_aberto,True
+MA,2111300,São Luís,Fumacê,fumace,-2.5610522,-44.3354422,brasil_aberto,True
+MA,2111300,São Luís,Fátima,fatima,-2.5448888,-44.2806591,brasil_aberto,True
+MA,2111300,São Luís,Fé em Deus,fe em deus,-2.5283524,-44.2807536,brasil_aberto,True
+MA,2111300,São Luís,Gancharia,gancharia,-2.556032,-44.3197971,brasil_aberto,True
+MA,2111300,São Luís,Gapara,gapara,-2.5918575,-44.3055037,brasil_aberto,True
+MA,2111300,São Luís,Geniparana,geniparana,-2.58311057,-44.18382645,brasil_aberto,True
+MA,2111300,São Luís,Goiabal,goiabal,-2.569329,-44.2267259,brasil_aberto,True
+MA,2111300,São Luís,Habitar Nice Lobão,habitar nice lobao,-2.5875707,-44.2067682,brasil_aberto,True
+MA,2111300,São Luís,IPEM São Cristóvão,ipem sao cristovao,-2.5723301,-44.2184353,brasil_aberto,True
+MA,2111300,São Luís,IPEM Turu,ipem turu,-2.5408649,-44.2438727,brasil_aberto,True
+MA,2111300,São Luís,Igaraú,igarau,-2.6310849,-44.2851301,brasil_aberto,True
+MA,2111300,São Luís,Ilhinha,ilhinha,-2.569329,-44.2267259,brasil_aberto,True
+MA,2111300,São Luís,Inhaúma,inhauma,-2.5495004,-44.32661239999999,brasil_aberto,True
+MA,2111300,São Luís,Ipase,ipase,-2.5397041,-44.2756442,brasil_aberto,True
+MA,2111300,São Luís,Itapera,itapera,-2.6718084,-44.2725588,brasil_aberto,True
+MA,2111300,São Luís,Itaqui,itaqui,-2.5274383,-44.2810988,brasil_aberto,True
+MA,2111300,São Luís,Jaguarema,jaguarema,-2.5567044,-44.2437482,brasil_aberto,True
+MA,2111300,São Luís,Jambeiro,jambeiro,-2.5640993,-44.3059778,brasil_aberto,True
+MA,2111300,São Luís,Jaracaty,jaracaty,-2.5105422,-44.2872444,brasil_aberto,True
+MA,2111300,São Luís,Jardim Alvorada,jardim alvorada,-2.55281568,-44.23701477,brasil_aberto,True
+MA,2111300,São Luís,Jardim América,jardim america,-2.5787206,-44.2030953,brasil_aberto,True
+MA,2111300,São Luís,Jardim Atlântico,jardim atlantico,-2.4876927,-44.2396756,brasil_aberto,True
+MA,2111300,São Luís,Jardim Bela Vista,jardim bela vista,-2.5238578,-44.2483452,brasil_aberto,True
+MA,2111300,São Luís,Jardim Coelho Neto,jardim coelho neto,-2.4986735,-44.2474243,brasil_aberto,True
+MA,2111300,São Luís,Jardim Conceição,jardim conceicao,-2.5408649,-44.2438727,brasil_aberto,True
+MA,2111300,São Luís,Jardim Eldorado,jardim eldorado,-2.51137185,-44.22713852,brasil_aberto,True
+MA,2111300,São Luís,Jardim Libanês,jardim libanes,-2.4942348,-44.2292297,brasil_aberto,True
+MA,2111300,São Luís,Jardim Primavera,jardim primavera,-3.66782522,-45.37654114,brasil_aberto,True
+MA,2111300,São Luís,Jardim Renascença,jardim renascenca,,,brasil_aberto,True
+MA,2111300,São Luís,Jardim SM II,jardim sm ii,-2.5245494,-44.249309,brasil_aberto,True
+MA,2111300,São Luís,Jardim São Cristóvão,jardim sao cristovao,-2.5749285,-44.2315615,brasil_aberto,True
+MA,2111300,São Luís,Jardim São Cristóvão II,jardim sao cristovao ii,-2.578857,-44.2146278,brasil_aberto,True
+MA,2111300,São Luís,Jardim São Francisco,jardim sao francisco,-2.51191616,-44.30127716,brasil_aberto,True
+MA,2111300,São Luís,Jardim São Paulo,jardim sao paulo,-2.577687,-44.2000046,brasil_aberto,True
+MA,2111300,São Luís,Jardim São Raimundo,jardim sao raimundo,-2.6007961,-44.2183907,brasil_aberto,True
+MA,2111300,São Luís,Jardim das Margaridas,jardim das margaridas,-2.538826,-44.2030074,brasil_aberto,True
+MA,2111300,São Luís,Jardim das Palmeiras,jardim das palmeiras,-2.5808324,-44.2023099,brasil_aberto,True
+MA,2111300,São Luís,Jardim de Fátima,jardim de fatima,-2.5541731,-44.3289375,brasil_aberto,True
+MA,2111300,São Luís,Jordoa,jordoa,-2.5471305,-44.2657858,brasil_aberto,True
+MA,2111300,São Luís,João Paulo,joao paulo,-2.5478367,-44.2733093,brasil_aberto,True
+MA,2111300,São Luís,João de Deus,joao de deus,-2.5585919,-44.3043199,brasil_aberto,True
+MA,2111300,São Luís,Juçara,jucara,-20.30965996,-40.35351562,brasil_aberto,True
+MA,2111300,São Luís,Liberdade,liberdade,-2.5267398,-44.2846719,brasil_aberto,True
+MA,2111300,São Luís,Lira,lira,-2.540871,-44.2925488,brasil_aberto,True
+MA,2111300,São Luís,Loteamento do Valean,loteamento do valean,-2.6037278,-44.238229,brasil_aberto,True
+MA,2111300,São Luís,Macaúba,macauba,-2.53811741,-44.29238129,brasil_aberto,True
+MA,2111300,São Luís,Madre Deus,madre deus,-2.5413044,-44.2972243,brasil_aberto,True
+MA,2111300,São Luís,Maiobinha,maiobinha,-2.5592189,-44.2047859,brasil_aberto,True
+MA,2111300,São Luís,Mangue Seco,mangue seco,-2.5238256,-44.2839352,brasil_aberto,True
+MA,2111300,São Luís,Maracanã,maracana,-2.616447,-44.3202203,brasil_aberto,True
+MA,2111300,São Luís,Maracujá,maracuja,-2.6630611,-44.2604763,brasil_aberto,True
+MA,2111300,São Luís,Maranhão Novo,maranhao novo,-2.5266062,-44.2536785,brasil_aberto,True
+MA,2111300,São Luís,Mata de Itapera,mata de itapera,-2.5306369,-44.2988855,brasil_aberto,True
+MA,2111300,São Luís,Matinha,matinha,-3.0993968,-45.0316175,brasil_aberto,True
+MA,2111300,São Luís,Matões,matoes,-2.56520605,-44.27288437,brasil_aberto,True
+MA,2111300,São Luís,Monte Castelo,monte castelo,-2.5322903,-44.2851789,brasil_aberto,True
+MA,2111300,São Luís,Murtura,murtura,-2.5259958,-44.2953509,brasil_aberto,True
+MA,2111300,São Luís,Nova República,nova republica,-2.5985694,-44.1953483,brasil_aberto,True
+MA,2111300,São Luís,Novo Angelim,novo angelim,-2.5357737,-44.2308489,brasil_aberto,True
+MA,2111300,São Luís,Novo Horizonte,novo horizonte,-2.5228851,-44.2422392,brasil_aberto,True
+MA,2111300,São Luís,Olho D'Água,olho d'agua,-2.484535,-44.22420349999999,brasil_aberto,True
+MA,2111300,São Luís,Outeiro da Cruz,outeiro da cruz,-2.5487515,-44.2600644,brasil_aberto,True
+MA,2111300,São Luís,Parque Amazonas,parque amazonas,-2.5501071,-44.2861671,brasil_aberto,True
+MA,2111300,São Luís,Parque Athenas,parque athenas,-2.5023302,-44.2456269,brasil_aberto,True
+MA,2111300,São Luís,Parque Atlântico,parque atlantico,-2.4864673,-44.2404866,brasil_aberto,True
+MA,2111300,São Luís,Parque Aurora,parque aurora,-2.538826,-44.2030074,brasil_aberto,True
+MA,2111300,São Luís,Parque Guanabara,parque guanabara,-2.5382331,-44.2003809,brasil_aberto,True
+MA,2111300,São Luís,Parque Jaguarema,parque jaguarema,-2.5392149,-44.1655005,brasil_aberto,True
+MA,2111300,São Luís,Parque Nice Lobão,parque nice lobao,-2.5568709,-44.2288411,brasil_aberto,True
+MA,2111300,São Luís,Parque Pindorama,parque pindorama,-2.5581702,-44.2810731,brasil_aberto,True
+MA,2111300,São Luís,Parque Sabiá,parque sabia,-2.5593504,-44.2164299,brasil_aberto,True
+MA,2111300,São Luís,Parque Shalon,parque shalon,-2.4950861,-44.2414334,brasil_aberto,True
+MA,2111300,São Luís,Parque Smithland,parque smithland,-2.4872615,-44.2434552,brasil_aberto,True
+MA,2111300,São Luís,Parque Timbiras,parque timbiras,-2.55995,-44.273882,brasil_aberto,True
+MA,2111300,São Luís,Parque Topázio,parque topazio,-2.5541731,-44.3289375,brasil_aberto,True
+MA,2111300,São Luís,Parque Universitário,parque universitario,-2.55921221,-44.22917175,brasil_aberto,True
+MA,2111300,São Luís,Parque Vitória,parque vitoria,,,brasil_aberto,True
+MA,2111300,São Luís,Parque dos Nobres,parque dos nobres,-2.5572664,-44.2767151,brasil_aberto,True
+MA,2111300,São Luís,Pedrinhas,pedrinhas,-2.6833596,-44.295831,brasil_aberto,True
+MA,2111300,São Luís,Pirapora,pirapora,-2.5581765,-44.244679,brasil_aberto,True
+MA,2111300,São Luís,Piçarreira,picarreira,-2.5223673,-44.2714238,brasil_aberto,True
+MA,2111300,São Luís,Planalto Anil,planalto anil,-2.5488523,-44.2518554,brasil_aberto,True
+MA,2111300,São Luís,Planalto Anil I,planalto anil i,-2.5296569,-44.2165893,brasil_aberto,True
+MA,2111300,São Luís,Planalto Anil II,planalto anil ii,-2.5368838,-44.2153982,brasil_aberto,True
+MA,2111300,São Luís,Planalto Anil III,planalto anil iii,-2.54403,-44.2117086,brasil_aberto,True
+MA,2111300,São Luís,Planalto Anil IV,planalto anil iv,-2.5354067,-44.2225634,brasil_aberto,True
+MA,2111300,São Luís,Planalto Aurora,planalto aurora,-2.5569024,-44.2189821,brasil_aberto,True
+MA,2111300,São Luís,Planalto Turu,planalto turu,-2.4995513,-44.2165303,brasil_aberto,True
+MA,2111300,São Luís,Planalto Turu II,planalto turu ii,-2.4998484,-44.2158847,brasil_aberto,True
+MA,2111300,São Luís,Planalto Turu III,planalto turu iii,-2.4977555,-44.215265,brasil_aberto,True
+MA,2111300,São Luís,Planalto Vinhais I,planalto vinhais i,-2.5186649,-44.2384548,brasil_aberto,True
+MA,2111300,São Luís,Planalto Vinhais II,planalto vinhais ii,-2.5057238,-44.259417,brasil_aberto,True
+MA,2111300,São Luís,Ponta D'Areia,ponta d'areia,-2.5048379,-44.3153773,brasil_aberto,True
+MA,2111300,São Luís,Ponta do Farol,ponta do farol,-2.49073911,-44.272892,brasil_aberto,True
+MA,2111300,São Luís,Pontal da Ilha,pontal da ilha,-2.598186,-44.2239775,brasil_aberto,True
+MA,2111300,São Luís,Pão de Açúcar,pao de acucar,-2.5410813,-44.2450763,brasil_aberto,True
+MA,2111300,São Luís,Pólo Agrícola,polo agricola,-2.6029581,-44.2236131,brasil_aberto,True
+MA,2111300,São Luís,Quebra Pote,quebra pote,-2.6918366,-44.2148577,brasil_aberto,True
+MA,2111300,São Luís,Quintas do Calhau,quintas do calhau,-2.4860306,-44.2501109,brasil_aberto,True
+MA,2111300,São Luís,Quitandinha,quitandinha,-2.5062499,-44.2633165,brasil_aberto,True
+MA,2111300,São Luís,Radional,radional,-2.5463482,-44.2499326,brasil_aberto,True
+MA,2111300,São Luís,Recanto Canaã,recanto canaa,-2.5094123,-44.2047297,brasil_aberto,True
+MA,2111300,São Luís,Recanto Fialho,recanto fialho,-2.5085425,-44.2355031,brasil_aberto,True
+MA,2111300,São Luís,Recanto Santos Dumont,recanto santos dumont,-2.5317012,-44.2370755,brasil_aberto,True
+MA,2111300,São Luís,Recanto Verde,recanto verde,-2.5944608,-44.2481582,brasil_aberto,True
+MA,2111300,São Luís,Recanto do Turu,recanto do turu,-2.5139975,-44.2052015,brasil_aberto,True
+MA,2111300,São Luís,Recanto dos Nobres,recanto dos nobres,-2.499567400000001,-44.251594,brasil_aberto,True
+MA,2111300,São Luís,Recanto dos Pássaros,recanto dos passaros,-19.51440048,-40.64498138,brasil_aberto,True
+MA,2111300,São Luís,Recanto dos Signos,recanto dos signos,-2.5694832,-44.1913853,brasil_aberto,True
+MA,2111300,São Luís,Recanto dos Vinhais,recanto dos vinhais,-2.5193395,-44.264779,brasil_aberto,True
+MA,2111300,São Luís,Redenção,redencao,-2.5506631,-44.265266,brasil_aberto,True
+MA,2111300,São Luís,Residencial Canaã,residencial canaa,-2.5600454,-44.2357672,brasil_aberto,True
+MA,2111300,São Luís,Residencial Esperança,residencial esperanca,-2.5192553,-44.2394011,brasil_aberto,True
+MA,2111300,São Luís,Residencial José Reinaldo Tavares,residencial jose reinaldo tavares,-2.5881175,-44.1791211,brasil_aberto,True
+MA,2111300,São Luís,Residencial João Alberto,residencial joao alberto,-2.5602914,-44.2426941,brasil_aberto,True
+MA,2111300,São Luís,Residencial Orquídea,residencial orquidea,-2.5166018,-44.2378789,brasil_aberto,True
+MA,2111300,São Luís,Residencial Parati,residencial parati,-2.5142699,-44.238587,brasil_aberto,True
+MA,2111300,São Luís,Residencial Paraíso,residencial paraiso,-2.564121,-44.1974078,brasil_aberto,True
+MA,2111300,São Luís,Residencial Primavera,residencial primavera,-2.5331592,-44.1968928,brasil_aberto,True
+MA,2111300,São Luís,Residencial Primavera Turu,residencial primavera turu,-2.5194981,-44.2354529,brasil_aberto,True
+MA,2111300,São Luís,Residencial São Domingos,residencial sao domingos,-2.522410100000001,-44.2454343,brasil_aberto,True
+MA,2111300,São Luís,Residencial Vinhais II,residencial vinhais ii,-2.5223654,-44.2555583,brasil_aberto,True
+MA,2111300,São Luís,Retiro Natal,retiro natal,-2.5398097,-44.2847056,brasil_aberto,True
+MA,2111300,São Luís,Ribeira,ribeira,-2.6333311,-44.2834395,brasil_aberto,True
+MA,2111300,São Luís,Rio Anil,rio anil,-2.5362187,-44.2517194,brasil_aberto,True
+MA,2111300,São Luís,Rio Grande,rio grande,-32.03498077,-52.09078979,brasil_aberto,True
+MA,2111300,São Luís,Rio dos Cachorros,rio dos cachorros,-2.6488729,-44.3144907,brasil_aberto,True
+MA,2111300,São Luís,Sacavém,sacavem,-2.5629647,-44.240412,brasil_aberto,True
+MA,2111300,São Luís,Salina do Sacavém,salina do sacavem,-2.560445,-44.2632872,brasil_aberto,True
+MA,2111300,São Luís,Santa Bárbara,santa barbara,-2.5635096,-44.22295159999999,brasil_aberto,True
+MA,2111300,São Luís,Santa Clara,santa clara,-2.5968964,-44.1981648,brasil_aberto,True
+MA,2111300,São Luís,Santa Cruz,santa cruz,-2.5496615,-44.2460673,brasil_aberto,True
+MA,2111300,São Luís,Santa Efigênia,santa efigenia,-2.5415989,-44.2190026,brasil_aberto,True
+MA,2111300,São Luís,Santa Rosa,santa rosa,-2.4889321,-44.2184015,brasil_aberto,True
+MA,2111300,São Luís,Santo Antônio,santo antonio,-2.5575605,-44.2488947,brasil_aberto,True
+MA,2111300,São Luís,Sol e Mar,sol e mar,-2.4947527,-44.2194966,brasil_aberto,True
+MA,2111300,São Luís,Solar dos Lusitanos,solar dos lusitanos,-2.5272877,-44.2226233,brasil_aberto,True
+MA,2111300,São Luís,Sá Viana,sa viana,-2.56048989,-44.30501938,brasil_aberto,True
+MA,2111300,São Luís,São Bernardo,sao bernardo,-2.5641142,-44.2179233,brasil_aberto,True
+MA,2111300,São Luís,São Francisco,sao francisco,-2.50900292,-44.29693985,brasil_aberto,True
+MA,2111300,São Luís,São Marcos,sao marcos,-2.5489019,-44.2497128,brasil_aberto,True
+MA,2111300,São Luís,São Raimundo,sao raimundo,-2.5526258,-44.3294577,brasil_aberto,True
+MA,2111300,São Luís,São Raimundo (Anjo da Guarda),sao raimundo (anjo da guarda),-2.5499439,-44.3283561,brasil_aberto,True
+MA,2111300,São Luís,Sítio Leal,sitio leal,-2.5563314,-44.2632988,brasil_aberto,True
+MA,2111300,São Luís,Terra Livre,terra livre,,,brasil_aberto,True
+MA,2111300,São Luís,Tibiri,tibiri,-2.5526039,-44.3281202,brasil_aberto,True
+MA,2111300,São Luís,Tibirizinho,tibirizinho,-2.610012,-44.2446351,brasil_aberto,True
+MA,2111300,São Luís,Tinair,tinair,-2.5155218,-44.2642693,brasil_aberto,True
+MA,2111300,São Luís,Tirirical,tirirical,-2.5686191,-44.2340218,brasil_aberto,True
+MA,2111300,São Luís,Turu,turu,-2.5068181,-44.2398622,brasil_aberto,True
+MA,2111300,São Luís,Túnel do Sacavém,tunel do sacavem,-2.5491731,-44.2609303,brasil_aberto,True
+MA,2111300,São Luís,Vera Cruz,vera cruz,-2.5457897,-44.2456451,brasil_aberto,True
+MA,2111300,São Luís,Vila 25 de Maio,vila 25 de maio,-2.5249376,-44.2600096,brasil_aberto,True
+MA,2111300,São Luís,Vila Airton Senna,vila airton senna,,,brasil_aberto,True
+MA,2111300,São Luís,Vila Alexandra Tavares,vila alexandra tavares,-2.5889382,-44.186899,brasil_aberto,True
+MA,2111300,São Luís,Vila Alonso Costa,vila alonso costa,,,brasil_aberto,True
+MA,2111300,São Luís,Vila América,vila america,-2.5722669,-44.1996046,brasil_aberto,True
+MA,2111300,São Luís,Vila Apaco,vila apaco,-2.5957552,-44.2064049,brasil_aberto,True
+MA,2111300,São Luís,Vila Ariri,vila ariri,-2.5463012,-44.3274021,brasil_aberto,True
+MA,2111300,São Luís,Vila Bacanga,vila bacanga,-2.5570849,-44.3124974,brasil_aberto,True
+MA,2111300,São Luís,Vila Bessa,vila bessa,-2.5380658,-44.2944257,brasil_aberto,True
+MA,2111300,São Luís,Vila Brasil,vila brasil,-2.561143,-44.2131448,brasil_aberto,True
+MA,2111300,São Luís,Vila Cascavel,vila cascavel,-2.5943465,-44.2178035,brasil_aberto,True
+MA,2111300,São Luís,Vila Collier,vila collier,-2.6821682,-44.3069545,brasil_aberto,True
+MA,2111300,São Luís,Vila Conceição,vila conceicao,-2.4838573,-44.215138,brasil_aberto,True
+MA,2111300,São Luís,Vila Conceição (Calhau),vila conceicao (calhau),-2.5719341,-44.2618571,brasil_aberto,True
+MA,2111300,São Luís,Vila Conceição (Coroadinho),vila conceicao (coroadinho),-2.5689282,-44.2616819,brasil_aberto,True
+MA,2111300,São Luís,Vila Cruzado,vila cruzado,-2.5184611,-44.2356136,brasil_aberto,True
+MA,2111300,São Luís,Vila Desembargador Sarney Costa,vila desembargador sarney costa,-2.5030437,-44.2785438,brasil_aberto,True
+MA,2111300,São Luís,Vila Dom Luís,vila dom luis,-2.501145,-44.2866814,brasil_aberto,True
+MA,2111300,São Luís,Vila Embratel,vila embratel,-2.538674,-44.327735,brasil_aberto,True
+MA,2111300,São Luís,Vila Esperança,vila esperanca,-2.60771513,-44.26568985,brasil_aberto,True
+MA,2111300,São Luís,Vila Isabel (Anjo da Guarda),vila isabel (anjo da guarda),-2.5625784,-44.3199,brasil_aberto,True
+MA,2111300,São Luís,Vila Isabel Cafeteira,vila isabel cafeteira,-2.542599,-44.222363,brasil_aberto,True
+MA,2111300,São Luís,Vila Itamar,vila itamar,-2.5924112,-44.2528538,brasil_aberto,True
+MA,2111300,São Luís,Vila Itamar II,vila itamar ii,-2.5960509,-44.2465428,brasil_aberto,True
+MA,2111300,São Luís,Vila Ivar Saldanha,vila ivar saldanha,-2.54317,-44.2669559,brasil_aberto,True
+MA,2111300,São Luís,Vila Janaína,vila janaina,-2.5969883,-44.1912169,brasil_aberto,True
+MA,2111300,São Luís,Vila Lobão,vila lobao,-2.5632585,-44.2417253,brasil_aberto,True
+MA,2111300,São Luís,Vila Luizão,vila luizao,-2.4895535,-44.2130975,brasil_aberto,True
+MA,2111300,São Luís,Vila Maranhão,vila maranhao,-2.6310598,-44.3205553,brasil_aberto,True
+MA,2111300,São Luís,Vila Mariana,vila mariana,-23.589702,-46.6346381,brasil_aberto,True
+MA,2111300,São Luís,Vila Mauro Fecury I,vila mauro fecury i,-2.5400096,-44.3339808,brasil_aberto,True
+MA,2111300,São Luís,Vila Mauro Fecury II,vila mauro fecury ii,-2.5541731,-44.3289375,brasil_aberto,True
+MA,2111300,São Luís,Vila Menino Jesus de Praga,vila menino jesus de praga,-2.5069525,-44.2518622,brasil_aberto,True
+MA,2111300,São Luís,Vila Natal,vila natal,-2.5625048,-44.2692353,brasil_aberto,True
+MA,2111300,São Luís,Vila Nova,vila nova,-2.5904939,-44.3097236,brasil_aberto,True
+MA,2111300,São Luís,Vila Padre Xavier,vila padre xavier,-2.529994,-44.2426641,brasil_aberto,True
+MA,2111300,São Luís,Vila Palmeira,vila palmeira,-2.541325,-44.2544813,brasil_aberto,True
+MA,2111300,São Luís,Vila Passos,vila passos,-2.5389375,-44.286805,brasil_aberto,True
+MA,2111300,São Luís,Vila Pavão Filho,vila pavao filho,-2.6010734,-44.1993959,brasil_aberto,True
+MA,2111300,São Luís,Vila Primavera,vila primavera,-2.61329508,-44.23047638,brasil_aberto,True
+MA,2111300,São Luís,Vila Primavera (Maracanã),vila primavera (maracana),-2.6258754,-44.2691478,brasil_aberto,True
+MA,2111300,São Luís,Vila Progresso,vila progresso,-2.5184528,-44.2650494,brasil_aberto,True
+MA,2111300,São Luís,Vila Real,vila real,-2.5428685,-44.282359,brasil_aberto,True
+MA,2111300,São Luís,Vila Regina,vila regina,-2.5722366,-44.201403,brasil_aberto,True
+MA,2111300,São Luís,Vila Riod,vila riod,-2.5925708,-44.194508,brasil_aberto,True
+MA,2111300,São Luís,Vila Roseana Sarney,vila roseana sarney,-2.5671419,-44.24323080000001,brasil_aberto,True
+MA,2111300,São Luís,Vila Samara,vila samara,-2.7406925,-44.345841,brasil_aberto,True
+MA,2111300,São Luís,Vila Sarney,vila sarney,-2.5610058,-44.3346342,brasil_aberto,True
+MA,2111300,São Luís,Vila Sete de Setembro,vila sete de setembro,-2.5105599,-44.2373679,brasil_aberto,True
+MA,2111300,São Luís,Vila São João,vila sao joao,-2.5300974,-44.2799738,brasil_aberto,True
+MA,2111300,São Luís,Vila São Luís,vila sao luis,-2.5442448,-44.2335867,brasil_aberto,True
+MA,2111300,São Luís,Vila São Sebastião,vila sao sebastiao,-2.5432589,-44.239553,brasil_aberto,True
+MA,2111300,São Luís,Vila União,vila uniao,-2.5109902,-44.2326294,brasil_aberto,True
+MA,2111300,São Luís,Vila Vale Verde,vila vale verde,-2.5275773,-44.299089,brasil_aberto,True
+MA,2111300,São Luís,Vila Vicente Fialho,vila vicente fialho,-2.5149275,-44.2366243,brasil_aberto,True
+MA,2111300,São Luís,Vila Vitória,vila vitoria,-2.6067548,-44.2091032,brasil_aberto,True
+MA,2111300,São Luís,Vila Zeni,vila zeni,-2.5759657,-44.185854,brasil_aberto,True
+MA,2111300,São Luís,Vila da Paz,vila da paz,-2.5269289,-44.2627177,brasil_aberto,True
+MA,2111300,São Luís,Vila dos Frades,vila dos frades,-2.5743977,-44.2675319,brasil_aberto,True
+MA,2111300,São Luís,Vila dos Nobres,vila dos nobres,-2.55850029,-44.27552414,brasil_aberto,True
+MA,2111300,São Luís,Vinhais,vinhais,-2.5171368,-44.2481266,brasil_aberto,True
+MA,2111300,São Luís,Vivendas do Turu,vivendas do turu,-2.5007927,-44.2183134,brasil_aberto,True
+MA,2111300,São Luís,Área Rural de São Luís,area rural de sao luis,,,brasil_aberto,True
+MA,2111409,São Luís Gonzaga do Maranhão,Centro,centro,-4.3790709,-44.6747773,brasil_aberto,True
+MA,2111508,São Mateus do Maranhão,Centro,centro,-4.03771973,-44.46754837,brasil_aberto,True
+MA,2111532,São Pedro da Água Branca,Centro,centro,-5.084565899999999,-48.4310571,brasil_aberto,True
+MA,2111573,São Pedro dos Crentes,Centro,centro,-6.8241325,-46.5306583,brasil_aberto,True
+MA,2111607,São Raimundo das Mangabeiras,Centro,centro,-7.02715349,-45.481884,brasil_aberto,True
+MA,2111631,São Raimundo do Doca Bezerra,Centro,centro,-5.1042988,-45.0936326,brasil_aberto,True
+MA,2111672,São Roberto,Centro,centro,-5.0209486,-44.991791,brasil_aberto,True
+MA,2111706,São Vicente Ferrer,Centro,centro,-2.893671,-44.8796222,brasil_aberto,True
+MA,2111805,Sítio Novo,Centro,centro,-5.8877812,-35.2541706,brasil_aberto,True
+MA,2112001,Tasso Fragoso,Centro,centro,-8.4701682,-45.7446593,brasil_aberto,True
+MA,2112100,Timbiras,Centro,centro,-4.247264599999999,-43.9376314,brasil_aberto,True
+MA,2112209,Timon,Baixa do Côco,baixa do coco,,,brasil_aberto,True
+MA,2112209,Timon,Bela Vista,bela vista,-5.094955,-42.8784048,brasil_aberto,True
+MA,2112209,Timon,Boa Esperança,boa esperanca,-5.078239600000001,-42.8528218,brasil_aberto,True
+MA,2112209,Timon,Boa Vista,boa vista,-5.080419,-45.6007108,brasil_aberto,True
+MA,2112209,Timon,Buriti Cortado,buriti cortado,-5.2374189,-43.1165621,brasil_aberto,True
+MA,2112209,Timon,Cajueiro,cajueiro,-5.1229075,-42.8202876,brasil_aberto,True
+MA,2112209,Timon,Centro,centro,-5.0998219,-42.8205328,brasil_aberto,True
+MA,2112209,Timon,Cicero Ferraz,cicero ferraz,,,brasil_aberto,True
+MA,2112209,Timon,Cidade Industrial Norte,cidade industrial norte,-5.064866299999999,-42.8646057,brasil_aberto,True
+MA,2112209,Timon,Cidade Nova,cidade nova,-5.1221286,-42.8339629,brasil_aberto,True
+MA,2112209,Timon,Flores,flores,-5.1012937,-42.8523196,brasil_aberto,True
+MA,2112209,Timon,Flores I,flores i,-5.1045734,-42.8289187,brasil_aberto,True
+MA,2112209,Timon,Formosa,formosa,-5.1064994,-42.8290481,brasil_aberto,True
+MA,2112209,Timon,Glória,gloria,,,brasil_aberto,True
+MA,2112209,Timon,Guarita,guarita,-5.086733,-42.8371217,brasil_aberto,True
+MA,2112209,Timon,Jóia,joia,-5.1560173,-42.85545,brasil_aberto,True
+MA,2112209,Timon,Mangal,mangal,-5.0764478,-42.8448559,brasil_aberto,True
+MA,2112209,Timon,Mangueira,mangueira,-5.1368329,-42.8426832,brasil_aberto,True
+MA,2112209,Timon,Marimar,marimar,-5.0807542,-42.8563276,brasil_aberto,True
+MA,2112209,Timon,Mateuzinho,mateuzinho,-5.1103328,-42.8401355,brasil_aberto,True
+MA,2112209,Timon,Mutirão,mutirao,-5.1180246,-42.8427101,brasil_aberto,True
+MA,2112209,Timon,Parque Aliança,parque alianca,-5.085768,-42.8482331,brasil_aberto,True
+MA,2112209,Timon,Parque Alvorada,parque alvorada,-5.1284189,-42.8286701,brasil_aberto,True
+MA,2112209,Timon,Parque Piauí I,parque piaui i,-5.0949609,-42.8403422,brasil_aberto,True
+MA,2112209,Timon,Parque Piauí II,parque piaui ii,-5.1003459,-42.8425225,brasil_aberto,True
+MA,2112209,Timon,Parque União,parque uniao,-5.0856432,-42.8412153,brasil_aberto,True
+MA,2112209,Timon,Pedro Patrício,pedro patricio,-5.1121346,-42.8500397,brasil_aberto,True
+MA,2112209,Timon,Planalto Boa Esperança,planalto boa esperanca,,,brasil_aberto,True
+MA,2112209,Timon,Planalto Formosa,planalto formosa,-5.1114415,-42.8304972,brasil_aberto,True
+MA,2112209,Timon,Santo Antônio,santo antonio,-5.106778,-42.8242028,brasil_aberto,True
+MA,2112209,Timon,Sete Estrelas,sete estrelas,,,brasil_aberto,True
+MA,2112209,Timon,São Benedito,sao benedito,-5.1029308,-42.8330549,brasil_aberto,True
+MA,2112209,Timon,São Francisco I,sao francisco i,-5.1045734,-42.8289187,brasil_aberto,True
+MA,2112209,Timon,São Francisco II,sao francisco ii,-5.0870299,-42.84457,brasil_aberto,True
+MA,2112209,Timon,São Marcos,sao marcos,-5.11008167,-42.83512878,brasil_aberto,True
+MA,2112209,Timon,Vila Angélica,vila angelica,-5.1100911,-42.8449007,brasil_aberto,True
+MA,2112209,Timon,Vila Bandeirante,vila bandeirante,-5.1226322,-42.82496800000001,brasil_aberto,True
+MA,2112209,Timon,Vila Bandeirante II,vila bandeirante ii,-5.1348136,-42.8516033,brasil_aberto,True
+MA,2112209,Timon,Vila Monteiro,vila monteiro,-5.1170426,-42.8484461,brasil_aberto,True
+MA,2112209,Timon,Área Rural de Timon,area rural de timon,-5.1045566,-42.8289097,brasil_aberto,True
+MA,2112233,Trizidela do Vale,Jerusalém,jerusalem,-4.570762999999999,-44.618855,brasil_aberto,True
+MA,2112274,Tufilândia,Centro,centro,-3.67333102,-45.6358757,brasil_aberto,True
+MA,2112308,Tuntum,Centro,centro,-5.2616403,-44.6440629,brasil_aberto,True
+MA,2112308,Tuntum,São Joaquim dos Melos,sao joaquim dos melos,-5.8980842,-44.8155547,brasil_aberto,True
+MA,2112407,Turiaçu,Centro,centro,-2.5299283,-44.3023844,brasil_aberto,True
+MA,2112456,Turilândia,Centro,centro,-2.2223283,-45.3081975,brasil_aberto,True
+MA,2112506,Tutóia,Barro Duro,barro duro,-2.9793837,-42.3544831,brasil_aberto,True
+MA,2112506,Tutóia,Centro,centro,-2.55891943,-44.27053833,brasil_aberto,True
+MA,2112605,Urbano Santos,Centro,centro,-3.2068907,-43.4029066,brasil_aberto,True
+MA,2112704,Vargem Grande,Centro,centro,-3.5422054,-43.9196815,brasil_aberto,True
+MA,2112852,Vila Nova dos Martírios,Centro,centro,-5.1806055,-48.1364939,brasil_aberto,True
+MA,2113009,Vitorino Freire,Centro,centro,-2.5707252,-44.26570511,brasil_aberto,True
+MA,2112902,Vitória do Mearim,Centro,centro,-3.4625303,-44.869731,brasil_aberto,True
+MA,2112902,Vitória do Mearim,Lapela,lapela,-3.4604085,-44.8722032,brasil_aberto,True
+MA,2114007,Zé Doca,Centro,centro,-3.2756145,-45.65672302,brasil_aberto,True
+MA,2100154,Água Doce do Maranhão,Centro,centro,-2.8403887,-42.1170685,brasil_aberto,True
+MA,2100154,Água Doce do Maranhão,Povoado Frexeiras,povoado frexeiras,-2.8379385,-42.1646879,brasil_aberto,True

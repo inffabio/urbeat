@@ -1,0 +1,415 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+TO,1700251,Abreulândia,Setor Central,setor central,-9.621462099999999,-49.1522973,brasil_aberto,True
+TO,1700301,Aguiarnópolis,Setor Central,setor central,-6.5610458,-47.4770243,brasil_aberto,True
+TO,1700350,Aliança do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1700400,Almas,Setor Central,setor central,,,brasil_aberto,True
+TO,1700707,Alvorada,Setor Central,setor central,-7.1898113,-48.2070182,brasil_aberto,True
+TO,1701002,Ananás,Setor Central,setor central,-6.3655908,-48.0735643,brasil_aberto,True
+TO,1701051,Angico,Setor Central,setor central,-7.1898113,-48.2070182,brasil_aberto,True
+TO,1701101,Aparecida do Rio Negro,Setor Central,setor central,-9.9418823,-47.9641448,brasil_aberto,True
+TO,1701309,Aragominas,Setor Central,setor central,-7.166438,-48.5247907,brasil_aberto,True
+TO,1701903,Araguacema,Setor Central,setor central,-7.1898113,-48.2070182,brasil_aberto,True
+TO,1702158,Araguanã,Setor Central,setor central,-7.1898113,-48.2070182,brasil_aberto,True
+TO,1702208,Araguatins,Natal,natal,-5.8521757,-48.19955909999999,brasil_aberto,True
+TO,1702208,Araguatins,Setor Central,setor central,-18.4161639,-49.214477,brasil_aberto,True
+TO,1702000,Araguaçu,Setor Central,setor central,-12.9257288,-49.8300402,brasil_aberto,True
+TO,1702109,Araguaína,Bairro da Cimba,bairro da cimba,-7.1938809,-48.2045414,brasil_aberto,True
+TO,1702109,Araguaína,Barra da Grota,barra da grota,-7.2102197,-48.2977199,brasil_aberto,True
+TO,1702109,Araguaína,Barra do Grota,barra do grota,-7.2098729,-48.2979135,brasil_aberto,True
+TO,1702109,Araguaína,Boa Sorte,boa sorte,-7.1840715,-48.2462382,brasil_aberto,True
+TO,1702109,Araguaína,Brasilândia,brasilandia,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Cocalinho,cocalinho,-7.099639300000001,-48.7602327,brasil_aberto,True
+TO,1702109,Araguaína,Cocalândia,cocalandia,-7.2244058,-48.6221442,brasil_aberto,True
+TO,1702109,Araguaína,Conjunto Residencial Patrocínio,conjunto residencial patrocinio,-7.1754808,-48.1845594,brasil_aberto,True
+TO,1702109,Araguaína,Conjunto Urbanístico,conjunto urbanistico,-7.1856202,-48.2213177,brasil_aberto,True
+TO,1702109,Araguaína,Correinha,correinha,-7.2831629,-49.19729969999999,brasil_aberto,True
+TO,1702109,Araguaína,Daiara,daiara,-7.2743297,-48.2572818,brasil_aberto,True
+TO,1702109,Araguaína,Dom Orione,dom orione,-7.1877358,-48.2189995,brasil_aberto,True
+TO,1702109,Araguaína,Eldorado,eldorado,-7.2100692,-48.1984219,brasil_aberto,True
+TO,1702109,Araguaína,Escondido,escondido,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Ilha Barreira Branca,ilha barreira branca,-6.7333333,-48.7833333,brasil_aberto,True
+TO,1702109,Araguaína,JK,jk,-7.203272599999999,-48.243085,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Beira Lago,jardim beira lago,-7.2072194,-48.2182681,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Bounganville,jardim bounganville,-7.1985017,-48.1697553,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Califórnia,jardim california,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Esplanada,jardim esplanada,-7.2018909,-48.23064549999999,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Filadélfia,jardim filadelfia,-7.2055141,-48.214203,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Flores,jardim flores,-7.2029268,-48.204114,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Garavelo Sul,jardim garavelo sul,-7.2311442,-48.250239,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Goiás,jardim goias,-7.1852284,-48.2089201,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Itália,jardim italia,-7.1919207,-48.2252003,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Mansões Palmeiras,jardim mansoes palmeiras,-7.210591,-48.2075012,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Paulista,jardim paulista,-7.2137528,-48.1985051,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Pedra Alta,jardim pedra alta,-7.18065,-48.1858044,brasil_aberto,True
+TO,1702109,Araguaína,Jardim Santa Helena,jardim santa helena,-7.2055141,-48.214203,brasil_aberto,True
+TO,1702109,Araguaína,Jardim das Palmeiras,jardim das palmeiras,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Jardim dos Ipês I,jardim dos ipes i,-7.175536,-48.235121,brasil_aberto,True
+TO,1702109,Araguaína,Jardim dos Ipês II,jardim dos ipes ii,-7.1695722,-48.2375717,brasil_aberto,True
+TO,1702109,Araguaína,Jardim dos Ipês III,jardim dos ipes iii,-7.1671203,-48.2410146,brasil_aberto,True
+TO,1702109,Araguaína,Jussara,jussara,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Alaska,loteamento alaska,-7.1980726,-48.2125993,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Araguaína Sul,loteamento araguaina sul,-7.1802113,-48.190684,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Barros,loteamento barros,-7.1983617,-48.2037214,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Boa Vista,loteamento boa vista,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Brejão 3ª Etapa,loteamento brejao 3ª etapa,-7.1734127,-48.2064137,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Castelo Branco,loteamento castelo branco,-7.174948799999999,-48.2079507,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Cidade Nova,loteamento cidade nova,-7.1684945,-48.223396,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Costa Esmeralda,loteamento costa esmeralda,-7.2196734,-48.15776229999999,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Couto Magalhães,loteamento couto magalhaes,-7.1765638,-48.2064602,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Cruzeiro,loteamento cruzeiro,-7.2000912,-48.2267524,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Céu Azul,loteamento ceu azul,-7.2205497,-48.1833538,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Dona Nélcia,loteamento dona nelcia,-7.2136996,-48.1985031,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Flamboyant,loteamento flamboyant,-7.1926995,-48.224313,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Jardim América,loteamento jardim america,-7.200658,-48.2165748,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Jardim Boa Sorte,loteamento jardim boa sorte,-7.1916251,-48.2095008,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Jardim do Lago,loteamento jardim do lago,-7.1951662,-48.2068662,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Jardins Mônaco,loteamento jardins monaco,-7.200745599999999,-48.1704795,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Jardins Siena,loteamento jardins siena,-7.2106897,-48.17402329999999,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento José Ferreira,loteamento jose ferreira,-7.2229648,-48.2482648,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Lago Sul,loteamento lago sul,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Liberdade,loteamento liberdade,-7.2175737,-48.2446992,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Manoel Cardoso (Vila Cardoso),loteamento manoel cardoso (vila cardoso),-7.1912869,-48.2250486,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Manoel Gomes da Cunha,loteamento manoel gomes da cunha,-7.1938809,-48.2045414,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Mansões do Lago,loteamento mansoes do lago,-7.2211113,-48.2281393,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Maracanã,loteamento maracana,-7.1566041,-48.1948921,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Martins Jorge,loteamento martins jorge,-7.1946444,-48.2224935,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Monte Sinai,loteamento monte sinai,-7.233091900000001,-48.2508307,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Nova Araguaína,loteamento nova araguaina,-7.2206198,-48.2446399,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Pampulha,loteamento pampulha,-7.1996022,-48.2127025,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Panorama,loteamento panorama,-7.1818593,-48.2071536,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Park Primavera,loteamento park primavera,-7.2077705,-48.1738448,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Parque do Lago,loteamento parque do lago,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Pedro Borges,loteamento pedro borges,-7.182144,-48.2252523,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Planalto,loteamento planalto,-7.1762529,-48.2151683,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Presidente Costa e Silva,loteamento presidente costa e silva,-7.2119952,-48.2077509,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Recanto do Lago,loteamento recanto do lago,-7.2107474,-48.2149483,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Santa Mônica,loteamento santa monica,-7.2004513,-48.222363,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Santos Dumont,loteamento santos dumont,-7.2345503,-48.2368529,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento São Francisco,loteamento sao francisco,-9.6096544,-48.6285175,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento São Luiz,loteamento sao luiz,-7.1770689,-48.2064768,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento São Miguel,loteamento sao miguel,-9.6096544,-48.6285175,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento São Pedro,loteamento sao pedro,-7.200982,-48.1941609,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento Vila Azul,loteamento vila azul,-9.6096544,-48.6285175,brasil_aberto,True
+TO,1702109,Araguaína,Loteamento de Fátima,loteamento de fatima,-7.2362118,-48.2523368,brasil_aberto,True
+TO,1702109,Araguaína,Morada do Sol,morada do sol,-7.1985878,-48.1753586,brasil_aberto,True
+TO,1702109,Araguaína,Morada do Sol 2,morada do sol 2,-7.187824,-48.1723758,brasil_aberto,True
+TO,1702109,Araguaína,Morada do Sol 3,morada do sol 3,-7.2005555,-48.192201,brasil_aberto,True
+TO,1702109,Araguaína,Novo Horizonte,novo horizonte,-7.186245,-48.3410139,brasil_aberto,True
+TO,1702109,Araguaína,Parque Bom Viver,parque bom viver,-7.1634361,-48.2042508,brasil_aberto,True
+TO,1702109,Araguaína,Parque Sonhos Dourados,parque sonhos dourados,-7.177744,-48.2301197,brasil_aberto,True
+TO,1702109,Araguaína,Parque Vale Araguaia,parque vale araguaia,-9.6096544,-48.6285175,brasil_aberto,True
+TO,1702109,Araguaína,Pedro Ludovico,pedro ludovico,-7.2093702,-48.2132231,brasil_aberto,True
+TO,1702109,Araguaína,Peixe,peixe,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Pilões,piloes,-7.061388,-48.22312489999999,brasil_aberto,True
+TO,1702109,Araguaína,Pontes,pontes,-7.2803146,-48.2726447,brasil_aberto,True
+TO,1702109,Araguaína,Porto Lemos,porto lemos,-6.798476,-48.9709928,brasil_aberto,True
+TO,1702109,Araguaína,Porãozinho,poraozinho,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Pé da Serra,pe da serra,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Belchior,residencial belchior,-7.182144,-48.2252523,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Camargo,residencial camargo,-7.2072263,-48.1844033,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Itaipu,residencial itaipu,-7.2084502,-48.1877168,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Jardim Europa,residencial jardim europa,-7.1770546,-48.2255675,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Lago Azul I,residencial lago azul i,-7.1505489,-48.187611,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Lago Azul III,residencial lago azul iii,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Residencial Topázio,residencial topazio,-7.1724653,-48.1888761,brasil_aberto,True
+TO,1702109,Araguaína,Santa Mônica,santa monica,-7.2136996,-48.1985031,brasil_aberto,True
+TO,1702109,Araguaína,Santa Terezinha,santa terezinha,-7.204721,-48.1972068,brasil_aberto,True
+TO,1702109,Araguaína,Senador,senador,-7.199066,-48.2067192,brasil_aberto,True
+TO,1702109,Araguaína,Setor Aeroviário,setor aeroviario,-7.1951263,-48.2313986,brasil_aberto,True
+TO,1702109,Araguaína,Setor Alto Bonito,setor alto bonito,-7.2131411,-48.1892483,brasil_aberto,True
+TO,1702109,Araguaína,Setor Ana Maria,setor ana maria,-7.2028304,-48.1802183,brasil_aberto,True
+TO,1702109,Araguaína,Setor Anhangüera,setor anhanguera,-7.1955567,-48.2173093,brasil_aberto,True
+TO,1702109,Araguaína,Setor Bela Vista,setor bela vista,-7.1611165,-48.1970141,brasil_aberto,True
+TO,1702109,Araguaína,Setor Belo Horizonte,setor belo horizonte,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Setor Brasil,setor brasil,-7.1819356,-48.2031549,brasil_aberto,True
+TO,1702109,Araguaína,Setor Carajá,setor caraja,-7.2074128,-48.2011889,brasil_aberto,True
+TO,1702109,Araguaína,Setor Central,setor central,-7.1914014,-48.2100166,brasil_aberto,True
+TO,1702109,Araguaína,Setor Coimbra,setor coimbra,-7.192354,-48.1901631,brasil_aberto,True
+TO,1702109,Araguaína,Setor George Yunes,setor george yunes,-7.2004513,-48.222363,brasil_aberto,True
+TO,1702109,Araguaína,Setor Itatiaia,setor itatiaia,-7.1919259,-48.22521769999999,brasil_aberto,True
+TO,1702109,Araguaína,Setor Novo Horizonte,setor novo horizonte,-7.1754808,-48.1845594,brasil_aberto,True
+TO,1702109,Araguaína,Setor Oeste,setor oeste,-7.2048336,-48.2340523,brasil_aberto,True
+TO,1702109,Araguaína,Setor Palmas,setor palmas,-7.1981638,-48.2047272,brasil_aberto,True
+TO,1702109,Araguaína,Setor Raizal,setor raizal,-7.1934387,-48.1811349,brasil_aberto,True
+TO,1702109,Araguaína,Setor Rodoviário,setor rodoviario,-7.1925168,-48.2181131,brasil_aberto,True
+TO,1702109,Araguaína,Setor Sul,setor sul,-7.1882171,-48.2171661,brasil_aberto,True
+TO,1702109,Araguaína,Setor Tereza Hilário,setor tereza hilario,-7.1894952,-48.1868867,brasil_aberto,True
+TO,1702109,Araguaína,Setor Tiuba,setor tiuba,-7.2145542,-48.193344,brasil_aberto,True
+TO,1702109,Araguaína,Setor Tocantins,setor tocantins,-7.2069572,-48.1813862,brasil_aberto,True
+TO,1702109,Araguaína,Setor Universitário,setor universitario,-7.1622897,-48.1871247,brasil_aberto,True
+TO,1702109,Araguaína,Setor de Telecomunicações,setor de telecomunicacoes,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,São João,sao joao,-7.1886683,-48.1976785,brasil_aberto,True
+TO,1702109,Araguaína,Vila Aliança,vila alianca,-7.2021979,-48.2043476,brasil_aberto,True
+TO,1702109,Araguaína,Vila Boa,vila boa,-7.1789968,-48.2100418,brasil_aberto,True
+TO,1702109,Araguaína,Vila Cearense,vila cearense,-7.1832108,-48.2262957,brasil_aberto,True
+TO,1702109,Araguaína,Vila Couto Magalhães,vila couto magalhaes,-7.160539999999999,-48.1939655,brasil_aberto,True
+TO,1702109,Araguaína,Vila Ferreira,vila ferreira,,,brasil_aberto,True
+TO,1702109,Araguaína,Vila Goiás,vila goias,-7.1737361,-48.1949578,brasil_aberto,True
+TO,1702109,Araguaína,Vila Norte,vila norte,-7.1603691,-48.1947724,brasil_aberto,True
+TO,1702109,Araguaína,Vila Nova,vila nova,-7.1831547,-48.2229508,brasil_aberto,True
+TO,1702109,Araguaína,Vila Ribeiro,vila ribeiro,-7.2089581,-48.1799502,brasil_aberto,True
+TO,1702109,Araguaína,Vila Rosário,vila rosario,-7.1892896,-48.2143179,brasil_aberto,True
+TO,1702109,Araguaína,Vila Santa Luzia,vila santa luzia,,,brasil_aberto,True
+TO,1702109,Araguaína,Vila Santiago,vila santiago,-7.1729612,-48.19669220000001,brasil_aberto,True
+TO,1702109,Araguaína,Vila União,vila uniao,-7.1791215,-48.2218526,brasil_aberto,True
+TO,1702109,Araguaína,Vênus,venus,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702109,Araguaína,Área Rural de Araguaína,area rural de araguaina,-7.191563299999999,-48.2094801,brasil_aberto,True
+TO,1702307,Arapoema,Setor Central,setor central,-18.4161639,-49.214477,brasil_aberto,True
+TO,1702406,Arraias,Cana Brava,cana brava,-12.7881232,-46.7285093,brasil_aberto,True
+TO,1702406,Arraias,Depasa,depasa,,,brasil_aberto,True
+TO,1702406,Arraias,Setor Central,setor central,-12.9311987,-46.939683,brasil_aberto,True
+TO,1702554,Augustinópolis,Setor Central,setor central,-11.7288556,-49.0723613,brasil_aberto,True
+TO,1702703,Aurora do Tocantins,Setor Central,setor central,-12.7127926,-46.4082275,brasil_aberto,True
+TO,1702901,Axixá do Tocantins,Setor Central,setor central,-5.6141434,-47.7681249,brasil_aberto,True
+TO,1703008,Babaçulândia,Setor Central,setor central,-7.1959578,-48.2046415,brasil_aberto,True
+TO,1703057,Bandeirantes do Tocantins,Setor Central,setor central,-7.759049,-48.5774465,brasil_aberto,True
+TO,1703073,Barra do Ouro,Setor Central,setor central,-7.7135932,-47.6741146,brasil_aberto,True
+TO,1703107,Barrolândia,Setor Central,setor central,-11.7240204,-49.0763423,brasil_aberto,True
+TO,1703206,Bernardo Sayão,Setor Central,setor central,-7.8764662,-48.8913945,brasil_aberto,True
+TO,1703305,Bom Jesus do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1703602,Brasilândia do Tocantins,Setor Central,setor central,-8.3895878,-48.4826413,brasil_aberto,True
+TO,1703701,Brejinho de Nazaré,Setor Central,setor central,-11.7211595,-49.07697770000001,brasil_aberto,True
+TO,1703800,Buriti do Tocantins,Setor Central,setor central,-5.3191757,-48.2261209,brasil_aberto,True
+TO,1703826,Cachoeirinha,Setor Central,setor central,-7.1907661,-48.2114055,brasil_aberto,True
+TO,1703842,Campos Lindos,Setor Central,setor central,-7.1965629,-48.2027249,brasil_aberto,True
+TO,1703867,Cariri do Tocantins,Setor Central,setor central,-11.8914158,-49.1614588,brasil_aberto,True
+TO,1703883,Carmolândia,Setor Central,setor central,-16.6716683,-49.2562665,brasil_aberto,True
+TO,1703891,Carrasco Bonito,Setor Central,setor central,-5.3238766,-48.0361778,brasil_aberto,True
+TO,1703909,Caseara,Aragaçuí,aragacui,-9.2727761,-49.9575998,brasil_aberto,True
+TO,1703909,Caseara,Setor Central,setor central,-9.2725295,-49.9593125,brasil_aberto,True
+TO,1704105,Centenário,Setor Central,setor central,-8.9564751,-47.3319626,brasil_aberto,True
+TO,1705102,Chapada da Natividade,Setor Central,setor central,,,brasil_aberto,True
+TO,1704600,Chapada de Areia,Setor Central,setor central,-10.1418795,-49.1778701,brasil_aberto,True
+TO,1705508,Colinas do Tocantins,Nova Brasilene,nova brasilene,,,brasil_aberto,True
+TO,1705508,Colinas do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1716703,Colméia,Setor Central,setor central,-8.7311585,-48.76008280000001,brasil_aberto,True
+TO,1705557,Combinado,Setor Central,setor central,-12.8177056,-46.5486801,brasil_aberto,True
+TO,1705607,Conceição do Tocantins,Setor Central,setor central,-12.223682,-47.2943894,brasil_aberto,True
+TO,1706001,Couto Magalhães,Setor Central,setor central,,,brasil_aberto,True
+TO,1706100,Cristalândia,Setor Central,setor central,-10.5990807,-49.1927014,brasil_aberto,True
+TO,1706258,Crixás do Tocantins,Setor Central,setor central,-11.103014,-48.9198543,brasil_aberto,True
+TO,1706506,Darcinópolis,Setor Central,setor central,-6.7096695,-47.7543415,brasil_aberto,True
+TO,1707009,Dianópolis,Setor Central,setor central,-11.627343,-46.8190342,brasil_aberto,True
+TO,1707108,Divinópolis do Tocantins,Setor Central,setor central,-9.802227900000002,-49.21449519999999,brasil_aberto,True
+TO,1707207,Dois Irmãos do Tocantins,Setor Central,setor central,-9.257246,-49.0653794,brasil_aberto,True
+TO,1707306,Dueré,Setor Central,setor central,,,brasil_aberto,True
+TO,1707405,Esperantina,Setor Central,setor central,-5.366953,-48.5400115,brasil_aberto,True
+TO,1707652,Figueirópolis,Setor Central,setor central,-16.6716683,-49.2562665,brasil_aberto,True
+TO,1707702,Filadélfia,Setor Central,setor central,-18.4161639,-49.214477,brasil_aberto,True
+TO,1708205,Formoso do Araguaia,Setor Central,setor central,-11.8054249,-49.5308344,brasil_aberto,True
+TO,1707553,Fátima,Setor Central,setor central,-18.4161639,-49.214477,brasil_aberto,True
+TO,1708304,Goianorte,Setor Central,setor central,-16.3289154,-48.9580767,brasil_aberto,True
+TO,1709005,Goiatins,Barra do Ouro,barra do ouro,,,brasil_aberto,True
+TO,1709005,Goiatins,Cartucho,cartucho,-8.1062204,-47.6500561,brasil_aberto,True
+TO,1709005,Goiatins,Craolândia,craolandia,-8.1055352,-47.1892904,brasil_aberto,True
+TO,1709005,Goiatins,Monte Lindo,monte lindo,-7.7118745,-47.3154389,brasil_aberto,True
+TO,1709005,Goiatins,Setor Central,setor central,-7.715012099999999,-47.320809,brasil_aberto,True
+TO,1709302,Guaraí,Mirandópolis,mirandopolis,,,brasil_aberto,True
+TO,1709302,Guaraí,Setor Central,setor central,,,brasil_aberto,True
+TO,1709500,Gurupi,Alto da Boa Vista,alto da boa vista,-11.7350403,-49.0978647,brasil_aberto,True
+TO,1709500,Gurupi,Alto dos Buritis,alto dos buritis,-11.7292773,-49.0497323,brasil_aberto,True
+TO,1709500,Gurupi,Chácara Recreio Vale do Sol,chacara recreio vale do sol,-11.7261085,-49.0637234,brasil_aberto,True
+TO,1709500,Gurupi,Chácara Recreios Irmãos Ferreira,chacara recreios irmaos ferreira,-11.7266926,-49.1017012,brasil_aberto,True
+TO,1709500,Gurupi,Cidade Industrial,cidade industrial,-11.7379594,-49.0631361,brasil_aberto,True
+TO,1709500,Gurupi,Crixás,crixas,-11.7244438,-49.0613827,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Boulivard,jardim boulivard,-11.7095302,-49.0558486,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Eldorado,jardim eldorado,-11.7281067,-49.0802118,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Flamboyant,jardim flamboyant,-11.7391691,-49.0628612,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Guanabara,jardim guanabara,-11.7297282,-49.1228853,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Medeiros,jardim medeiros,-11.731728,-49.0769496,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Paulicéia,jardim pauliceia,-11.7188896,-49.083939,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Sevilha,jardim sevilha,-11.740172,-49.0512145,brasil_aberto,True
+TO,1709500,Gurupi,Jardim São Lucas,jardim sao lucas,-11.7169417,-49.0840474,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Tocantins,jardim tocantins,-11.7209461,-49.0579445,brasil_aberto,True
+TO,1709500,Gurupi,Jardim Tropical,jardim tropical,-11.7169499,-49.0848432,brasil_aberto,True
+TO,1709500,Gurupi,Jardim da Luz,jardim da luz,-11.7244438,-49.0613827,brasil_aberto,True
+TO,1709500,Gurupi,Jardim das Bandeiras,jardim das bandeiras,-11.7546939,-49.0991018,brasil_aberto,True
+TO,1709500,Gurupi,Jardim das Palmeiras,jardim das palmeiras,-11.7379594,-49.0631361,brasil_aberto,True
+TO,1709500,Gurupi,Loteamento Campo Bello,loteamento campo bello,-11.7288503,-49.1297637,brasil_aberto,True
+TO,1709500,Gurupi,Loteamento Parque Residencial Atalaia,loteamento parque residencial atalaia,-11.7321391,-49.0785548,brasil_aberto,True
+TO,1709500,Gurupi,Loteamento Residencial João Lisboa da Cruz,loteamento residencial joao lisboa da cruz,-11.7123786,-49.0928856,brasil_aberto,True
+TO,1709500,Gurupi,Loteamento São Jorge,loteamento sao jorge,-11.7297282,-49.1228853,brasil_aberto,True
+TO,1709500,Gurupi,Loteamento Águas Claras,loteamento aguas claras,-11.7244555,-49.06131269999999,brasil_aberto,True
+TO,1709500,Gurupi,Mansões do Cerrado,mansoes do cerrado,-11.712229,-49.0424738,brasil_aberto,True
+TO,1709500,Gurupi,Muniz Santana,muniz santana,-11.7139842,-49.0731394,brasil_aberto,True
+TO,1709500,Gurupi,Parque Industrial,parque industrial,,,brasil_aberto,True
+TO,1709500,Gurupi,Parque Primavera,parque primavera,-11.7401206,-49.0580965,brasil_aberto,True
+TO,1709500,Gurupi,Parque Residencial Nova Fronteira,parque residencial nova fronteira,-11.7239945,-49.1035949,brasil_aberto,True
+TO,1709500,Gurupi,Parque Residencial São José,parque residencial sao jose,-11.7154354,-49.0474705,brasil_aberto,True
+TO,1709500,Gurupi,Parque Residencial São Paulo,parque residencial sao paulo,-11.7255144,-49.0526965,brasil_aberto,True
+TO,1709500,Gurupi,Parque Residencial dos Cajueiros,parque residencial dos cajueiros,-11.7201732,-49.0652963,brasil_aberto,True
+TO,1709500,Gurupi,Parque Sol Nascente,parque sol nascente,-11.7392533,-49.0709616,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Daniela,residencial daniela,-11.7363429,-49.089676,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Jardim América,residencial jardim america,-11.7216471,-49.1052186,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Jardim dos Buritis,residencial jardim dos buritis,-11.7223614,-49.0933138,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Madrid,residencial madrid,-11.7567058,-49.0852414,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Park dos Buritis,residencial park dos buritis,-11.7286583,-49.1041707,brasil_aberto,True
+TO,1709500,Gurupi,Residencial Parque das Acácias,residencial parque das acacias,-11.7316697,-49.1121151,brasil_aberto,True
+TO,1709500,Gurupi,Santa Rita de Cássia,santa rita de cassia,-11.7146704,-49.0565893,brasil_aberto,True
+TO,1709500,Gurupi,Setor Aeroporto,setor aeroporto,-11.7165592,-49.0564375,brasil_aberto,True
+TO,1709500,Gurupi,Setor Aeroporto II,setor aeroporto ii,-11.7118884,-49.0493361,brasil_aberto,True
+TO,1709500,Gurupi,Setor Bela Vista,setor bela vista,-11.7244438,-49.0613827,brasil_aberto,True
+TO,1709500,Gurupi,Setor Canaã,setor canaa,-11.7145617,-49.0572135,brasil_aberto,True
+TO,1709500,Gurupi,Setor Casego,setor casego,-11.7269622,-49.0514992,brasil_aberto,True
+TO,1709500,Gurupi,Setor Central,setor central,-11.7278291,-49.066483,brasil_aberto,True
+TO,1709500,Gurupi,Setor Cruzeiro,setor cruzeiro,-11.7428922,-49.0669452,brasil_aberto,True
+TO,1709500,Gurupi,Setor Leste,setor leste,-11.7288029,-49.050091,brasil_aberto,True
+TO,1709500,Gurupi,Setor Morada do Sol,setor morada do sol,-11.7244438,-49.0613827,brasil_aberto,True
+TO,1709500,Gurupi,Setor Novo Horizonte,setor novo horizonte,-11.7439872,-49.0653982,brasil_aberto,True
+TO,1709500,Gurupi,Setor Paulo de Tarso,setor paulo de tarso,-11.7297282,-49.1228853,brasil_aberto,True
+TO,1709500,Gurupi,Setor União I,setor uniao i,-11.7261085,-49.0637234,brasil_aberto,True
+TO,1709500,Gurupi,Setor União II,setor uniao ii,-11.7326733,-49.0647417,brasil_aberto,True
+TO,1709500,Gurupi,Setor União III,setor uniao iii,-11.7292773,-49.0497323,brasil_aberto,True
+TO,1709500,Gurupi,Setor União IV,setor uniao iv,-11.7338305,-49.0624905,brasil_aberto,True
+TO,1709500,Gurupi,Setor União V,setor uniao v,-11.7400268,-49.0649997,brasil_aberto,True
+TO,1709500,Gurupi,Setor dos Funcionários,setor dos funcionarios,-11.7307466,-49.108568,brasil_aberto,True
+TO,1709500,Gurupi,Shangri-Lá,shangri-la,-11.7694449,-49.0719101,brasil_aberto,True
+TO,1709500,Gurupi,Trevo Oeste,trevo oeste,-11.7214038,-49.0817901,brasil_aberto,True
+TO,1709500,Gurupi,Vila Alagoana,vila alagoana,-11.722974,-49.0820939,brasil_aberto,True
+TO,1709500,Gurupi,Vila Guaracy,vila guaracy,-11.7415534,-49.0786622,brasil_aberto,True
+TO,1709500,Gurupi,Vila Independência,vila independencia,-11.7155402,-49.0863634,brasil_aberto,True
+TO,1709500,Gurupi,Vila Iris,vila iris,-11.7298962,-49.0789946,brasil_aberto,True
+TO,1709500,Gurupi,Vila Paulista,vila paulista,-11.7182399,-49.0840147,brasil_aberto,True
+TO,1709500,Gurupi,Vila Pedroso,vila pedroso,-11.7169417,-49.0840474,brasil_aberto,True
+TO,1709500,Gurupi,Vila São José,vila sao jose,-11.7140086,-49.0534842,brasil_aberto,True
+TO,1709500,Gurupi,Waldir Lins I,waldir lins i,-11.7362204,-49.0830007,brasil_aberto,True
+TO,1709500,Gurupi,Waldir Lins II,waldir lins ii,-11.7416265,-49.0848539,brasil_aberto,True
+TO,1709500,Gurupi,Área Rural de Gurupi,area rural de gurupi,-11.7244438,-49.0613827,brasil_aberto,True
+TO,1709807,Ipueiras,Setor Central,setor central,-11.2424196,-48.4439499,brasil_aberto,True
+TO,1710508,Itacajá,Setor Central,setor central,-8.3922109,-47.770336,brasil_aberto,True
+TO,1710706,Itaguatins,Setor Central,setor central,,,brasil_aberto,True
+TO,1710904,Itapiratins,Setor Central,setor central,-16.6716683,-49.2562665,brasil_aberto,True
+TO,1711100,Itaporã do Tocantins,Setor Central,setor central,-8.571936899999999,-48.6886404,brasil_aberto,True
+TO,1711506,Jaú do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1711803,Juarina,Setor Central,setor central,-8.1184313,-49.0957808,brasil_aberto,True
+TO,1711902,Lagoa da Confusão,Setor Central,setor central,-10.7867326,-49.6175049,brasil_aberto,True
+TO,1711951,Lagoa do Tocantins,Setor Central,setor central,-10.2970302,-47.5616588,brasil_aberto,True
+TO,1712009,Lajeado,Setor Central,setor central,-9.7545329,-48.3564936,brasil_aberto,True
+TO,1712157,Lavandeira,Setor Central,setor central,-11.7288556,-49.0723613,brasil_aberto,True
+TO,1712405,Lizarda,Alto Bonito,alto bonito,-9.2067216,-47.0511205,brasil_aberto,True
+TO,1712405,Lizarda,Setor Central,setor central,-9.594672,-46.6742293,brasil_aberto,True
+TO,1712454,Luzinópolis,Setor Central,setor central,-6.1898992,-47.8605466,brasil_aberto,True
+TO,1712504,Marianópolis do Tocantins,Setor Central,setor central,-9.7963188,-49.6550305,brasil_aberto,True
+TO,1712702,Mateiros,Setor Central,setor central,-10.5470489,-46.4110012,brasil_aberto,True
+TO,1712801,Maurilândia do Tocantins,Setor Central,setor central,-5.9551271,-47.5116908,brasil_aberto,True
+TO,1713205,Miracema do Tocantins,Setor Central,setor central,-9.5699161,-48.3916405,brasil_aberto,True
+TO,1713304,Miranorte,Setor Central,setor central,-11.73688,-49.0809562,brasil_aberto,True
+TO,1713700,Monte Santo do Tocantins,Setor Central,setor central,-10.0059011,-48.9935053,brasil_aberto,True
+TO,1713601,Monte do Carmo,Setor Central,setor central,-10.7639617,-48.1122816,brasil_aberto,True
+TO,1713957,Muricilândia,Setor Central,setor central,-16.6716683,-49.2562665,brasil_aberto,True
+TO,1714203,Natividade,Príncipe,principe,-11.938312,-47.6148039,brasil_aberto,True
+TO,1714203,Natividade,Setor Central,setor central,-11.7090041,-47.7249472,brasil_aberto,True
+TO,1714302,Nazaré,Setor Central,setor central,-6.373315799999999,-47.6643401,brasil_aberto,True
+TO,1714302,Nazaré,Tamboril,tamboril,-7.345860800000001,-48.3645386,brasil_aberto,True
+TO,1714880,Nova Olinda,Setor Central,setor central,-11.7236225,-49.06081,brasil_aberto,True
+TO,1715002,Nova Rosalândia,Setor Central,setor central,-10.5681117,-48.9117014,brasil_aberto,True
+TO,1715101,Novo Acordo,Setor Central,setor central,-9.9667347,-47.6769863,brasil_aberto,True
+TO,1715150,Novo Alegre,Setor Central,setor central,-12.9136276,-46.5750655,brasil_aberto,True
+TO,1715259,Novo Jardim,Setor Central,setor central,-11.8209296,-46.6260351,brasil_aberto,True
+TO,1715507,Oliveira de Fátima,Setor Central,setor central,-10.7092471,-48.9054342,brasil_aberto,True
+TO,1721000,Palmas,Buritirana,buritirana,-10.2525803,-47.8850829,brasil_aberto,True
+TO,1721000,Palmas,Centro (Taquaralto),centro (taquaralto),-10.3353562,-48.2957322,brasil_aberto,True
+TO,1721000,Palmas,Conjunto Maria Rosa (Taquaralto),conjunto maria rosa (taquaralto),-10.341799,-48.2864755,brasil_aberto,True
+TO,1721000,Palmas,Distrito Industrial de Taquaralto,distrito industrial de taquaralto,-10.3155973,-48.3024541,brasil_aberto,True
+TO,1721000,Palmas,Graciosa - Orla 14,graciosa - orla 14,-10.1956581,-48.3652488,brasil_aberto,True
+TO,1721000,Palmas,Jardim Aeroporto,jardim aeroporto,-10.3364044,-48.3107248,brasil_aberto,True
+TO,1721000,Palmas,Jardim Aureny I,jardim aureny i,-10.3153729,-48.3046845,brasil_aberto,True
+TO,1721000,Palmas,Jardim Aureny II,jardim aureny ii,-10.3360593,-48.3054625,brasil_aberto,True
+TO,1721000,Palmas,Jardim Aureny III,jardim aureny iii,-10.3151088,-48.3135482,brasil_aberto,True
+TO,1721000,Palmas,Jardim Aureny IV,jardim aureny iv,-10.3046607,-48.3015888,brasil_aberto,True
+TO,1721000,Palmas,Jardim Bela Vista,jardim bela vista,-10.3131975,-48.296564,brasil_aberto,True
+TO,1721000,Palmas,Jardim Janaína (Taquaralto),jardim janaina (taquaralto),-10.3316104,-48.3100926,brasil_aberto,True
+TO,1721000,Palmas,Jardim Paulista (Taquaralto),jardim paulista (taquaralto),-10.1658227,-48.8959133,brasil_aberto,True
+TO,1721000,Palmas,Jardim Santa Bárbara,jardim santa barbara,-10.3388238,-48.3030698,brasil_aberto,True
+TO,1721000,Palmas,Jardim Santa Helena,jardim santa helena,-10.3589599,-48.3043667,brasil_aberto,True
+TO,1721000,Palmas,Jardim Taquari (Taquaralto),jardim taquari (taquaralto),-10.3414188,-48.3390588,brasil_aberto,True
+TO,1721000,Palmas,Lago Norte,lago norte,-10.2584118,-48.3176532,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Bertaville,loteamento bertaville,-10.2903295,-48.3181898,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Caribe,loteamento caribe,-10.3429775,-48.30015179999999,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Jardim Laila,loteamento jardim laila,-10.3320734,-48.2715597,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 1,loteamento jardim vitoria 1,-10.3583549,-48.31531560000001,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 2,loteamento jardim vitoria 2,-10.249091,-48.32428580000001,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Lago Sul (Taquaralto),loteamento lago sul (taquaralto),-10.3297809,-48.3155962,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Nova Flamboyant,loteamento nova flamboyant,-10.3363194,-48.3509486,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Palmas Sul,loteamento palmas sul,-10.359543,-48.2835462,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Residencial Polinésia,loteamento residencial polinesia,-10.1400268,-48.35258109999999,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Santa Fé Quarta Etapa,loteamento santa fe quarta etapa,-10.3320047,-48.282533,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Sonho Meu,loteamento sonho meu,-10.1186292,-48.3222069,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Água Fria,loteamento agua fria,-10.21143,-48.36081,brasil_aberto,True
+TO,1721000,Palmas,Loteamento Água Fria 4ª Etapa,loteamento agua fria 4ª etapa,-10.249091,-48.32428580000001,brasil_aberto,True
+TO,1721000,Palmas,Lotemaneto Sucupira,lotemaneto sucupira,-10.3425071,-48.2879577,brasil_aberto,True
+TO,1721000,Palmas,Plano Diretor Expansão Sul,plano diretor expansao sul,-10.2654323,-48.3324219,brasil_aberto,True
+TO,1721000,Palmas,Plano Diretor Norte,plano diretor norte,-10.1805527,-48.31436979999999,brasil_aberto,True
+TO,1721000,Palmas,Plano Diretor Sul,plano diretor sul,-10.2298952,-48.3205388,brasil_aberto,True
+TO,1721000,Palmas,Recanto das Araras I,recanto das araras i,-10.3386431,-48.2639338,brasil_aberto,True
+TO,1721000,Palmas,Residencial Ipê Amarelo,residencial ipe amarelo,-10.3434764,-48.30250299999999,brasil_aberto,True
+TO,1721000,Palmas,Setor Bela Vista (Taquaralto),setor bela vista (taquaralto),-10.353142,-48.2937514,brasil_aberto,True
+TO,1721000,Palmas,Setor Morada do Sol (Taquaralto),setor morada do sol (taquaralto),-10.3406123,-48.2834096,brasil_aberto,True
+TO,1721000,Palmas,Setor Morada do Sol 2 (Taquaralto),setor morada do sol 2 (taquaralto),-10.3371185,-48.2829986,brasil_aberto,True
+TO,1721000,Palmas,Setor Morada do Sol 3 (Taquaralto),setor morada do sol 3 (taquaralto),-10.3344077,-48.2809433,brasil_aberto,True
+TO,1721000,Palmas,Setor Santa Fé (Taquaralto),setor santa fe (taquaralto),-10.3322955,-48.2968157,brasil_aberto,True
+TO,1721000,Palmas,Setor Santa Fé 2 (Taquaralto),setor santa fe 2 (taquaralto),-10.3340325,-48.2879213,brasil_aberto,True
+TO,1721000,Palmas,Setor Santa Fé 3 (Taquaralto),setor santa fe 3 (taquaralto),-10.3339296,-48.2910113,brasil_aberto,True
+TO,1721000,Palmas,Setor Sol Nascente (Taquaralto),setor sol nascente (taquaralto),-10.3505531,-48.299733,brasil_aberto,True
+TO,1721000,Palmas,Setor Sul (Taquaralto),setor sul (taquaralto),-10.3468515,-48.2940128,brasil_aberto,True
+TO,1721000,Palmas,Setor Sônia Regina (Taquaralto),setor sonia regina (taquaralto),-10.3555386,-48.3039222,brasil_aberto,True
+TO,1721000,Palmas,Setor União Sul,setor uniao sul,-10.315537,-48.3239959,brasil_aberto,True
+TO,1721000,Palmas,Setor Vale do Sol (Taquaralto),setor vale do sol (taquaralto),-10.3361435,-48.2906685,brasil_aberto,True
+TO,1721000,Palmas,Taquarussu,taquarussu,-10.3155519,-48.1562633,brasil_aberto,True
+TO,1721000,Palmas,Taquarussu do Tocantins,taquarussu do tocantins,-10.317816,-48.1535855,brasil_aberto,True
+TO,1721000,Palmas,Área Rural de Palmas,area rural de palmas,-10.249091,-48.32428580000001,brasil_aberto,True
+TO,1715705,Palmeirante,Setor Central,setor central,-7.8591715,-47.9272447,brasil_aberto,True
+TO,1713809,Palmeiras do Tocantins,Setor Central,setor central,-6.6051349,-47.5506031,brasil_aberto,True
+TO,1715754,Palmeirópolis,Setor Central,setor central,-13.042426,-48.4073439,brasil_aberto,True
+TO,1716208,Paranã,Setor Central,setor central,-16.6572857,-49.4879218,brasil_aberto,True
+TO,1716109,Paraíso do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1716307,Pau D'Arco,Setor Central,setor central,-7.542353299999999,-49.36929989999999,brasil_aberto,True
+TO,1716505,Pedro Afonso,Anajanópolis,anajanopolis,-8.975519499999999,-48.1736365,brasil_aberto,True
+TO,1716505,Pedro Afonso,Setor Central,setor central,-8.972567699999999,-48.1766744,brasil_aberto,True
+TO,1716604,Peixe,Setor Central,setor central,-11.7288556,-49.0723613,brasil_aberto,True
+TO,1716653,Pequizeiro,Setor Central,setor central,-8.594282399999999,-48.9337758,brasil_aberto,True
+TO,1717008,Pindorama do Tocantins,Setor Central,setor central,-11.1373066,-47.5776161,brasil_aberto,True
+TO,1717206,Piraquê,Setor Central,setor central,-6.7420534,-48.2844036,brasil_aberto,True
+TO,1717503,Pium,Setor Central,setor central,-16.6716683,-49.2562665,brasil_aberto,True
+TO,1717800,Ponte Alta do Bom Jesus,Setor Central,setor central,-12.0910175,-46.4796704,brasil_aberto,True
+TO,1717909,Ponte Alta do Tocantins,Setor Central,setor central,-10.7479414,-47.53913319999999,brasil_aberto,True
+TO,1718006,Porto Alegre do Tocantins,Setor Central,setor central,-11.6039865,-47.0528811,brasil_aberto,True
+TO,1718204,Porto Nacional,Luzimangues,luzimangues,-10.1942314,-48.4673053,brasil_aberto,True
+TO,1718204,Porto Nacional,Setor Central,setor central,,,brasil_aberto,True
+TO,1718303,Praia Norte,Setor Central,setor central,-5.3952007,-47.8124651,brasil_aberto,True
+TO,1718402,Presidente Kennedy,Setor Central,setor central,-8.5315654,-48.5039351,brasil_aberto,True
+TO,1718402,Presidente Kennedy,Tupiratã,tupirata,-8.286442,-48.4715648,brasil_aberto,True
+TO,1718451,Pugmil,Setor Central,setor central,-18.1726296,-47.9502722,brasil_aberto,True
+TO,1718501,Recursolândia,Setor Central,setor central,-8.7308842,-47.2417472,brasil_aberto,True
+TO,1718550,Riachinho,Setor Central,setor central,-6.443206699999999,-48.1388535,brasil_aberto,True
+TO,1718758,Rio Sono,Setor Pioneiro,setor pioneiro,-9.3521968,-47.8977953,brasil_aberto,True
+TO,1718659,Rio da Conceição,Setor Central,setor central,-11.4005853,-46.8855069,brasil_aberto,True
+TO,1718709,Rio dos Bois,Setor Central,setor central,-9.34152,-48.53414129999999,brasil_aberto,True
+TO,1718808,Sampaio,Setor Central,setor central,-5.3548163,-47.8786837,brasil_aberto,True
+TO,1718840,Sandolândia,Setor Central,setor central,-12.5413467,-49.9306045,brasil_aberto,True
+TO,1718865,Santa Fé do Araguaia,Setor Central,setor central,-7.153366800000001,-48.6962076,brasil_aberto,True
+TO,1718881,Santa Maria do Tocantins,Setor Central,setor central,-8.7784266,-47.7538646,brasil_aberto,True
+TO,1718899,Santa Rita do Tocantins,Setor Central,setor central,-10.8645705,-48.9079185,brasil_aberto,True
+TO,1718907,Santa Rosa do Tocantins,Setor Central,setor central,-11.4556675,-48.1163094,brasil_aberto,True
+TO,1719004,Santa Tereza do Tocantins,Setor Central,setor central,-10.2810776,-47.8099037,brasil_aberto,True
+TO,1720002,Santa Terezinha do Tocantins,Setor Central,setor central,-6.4349582,-47.669049,brasil_aberto,True
+TO,1720655,Silvanópolis,Setor Central,setor central,-11.1497982,-48.1719464,brasil_aberto,True
+TO,1720853,Sucupira,Setor Central,setor central,-11.9865463,-48.9088871,brasil_aberto,True
+TO,1720101,São Bento do Tocantins,Setor Central,setor central,-6.0272328,-47.9246632,brasil_aberto,True
+TO,1720150,São Félix do Tocantins,Setor Central,setor central,-10.1590593,-46.6679103,brasil_aberto,True
+TO,1720200,São Miguel do Tocantins,Setor Central,setor central,,,brasil_aberto,True
+TO,1720259,São Salvador do Tocantins,Setor Central,setor central,-12.747711,-48.2387694,brasil_aberto,True
+TO,1720309,São Sebastião do Tocantins,Setor Central,setor central,-5.2595881,-48.202151,brasil_aberto,True
+TO,1720499,São Valério,Apinajé,apinaje,-11.5338052,-48.2950793,brasil_aberto,True
+TO,1720499,São Valério,Setor Central,setor central,-11.973587,-48.2345908,brasil_aberto,True
+TO,1720804,Sítio Novo do Tocantins,Setor Central,setor central,-5.6033624,-47.6398945,brasil_aberto,True
+TO,1708254,Tabocão,Setor Central,setor central,-9.0568578,-48.52112049999999,brasil_aberto,True
+TO,1720903,Taguatinga,Setor Central,setor central,-12.4023576,-46.4386861,brasil_aberto,True
+TO,1720937,Taipas do Tocantins,Setor Central,setor central,-12.193852,-46.9925355,brasil_aberto,True
+TO,1720978,Talismã,Setor Central,setor central,-12.7921012,-49.0922628,brasil_aberto,True
+TO,1721208,Tocantinópolis,Setor Central,setor central,-7.188563999999999,-48.2086027,brasil_aberto,True
+TO,1721109,Tocantínia,Setor Central,setor central,-9.5649074,-48.3776394,brasil_aberto,True
+TO,1721257,Tupirama,Setor Central,setor central,-8.9757008,-48.1908115,brasil_aberto,True
+TO,1721307,Tupiratins,Setor Central,setor central,-8.3997876,-48.1291466,brasil_aberto,True
+TO,1722081,Wanderlândia,Setor Central,setor central,-6.846192,-47.9657249,brasil_aberto,True
+TO,1722107,Xambioá,Setor Central,setor central,-6.4082404,-48.53767939999999,brasil_aberto,True

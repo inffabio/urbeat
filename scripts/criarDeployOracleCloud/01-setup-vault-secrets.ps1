@@ -11,10 +11,13 @@
 
 param(
     [Parameter(Mandatory=$false)]
-    [string]$VaultName = "urbeat-vault",
+    [string]$VaultName = "urbeat",
 
     [Parameter(Mandatory=$false)]
     [string]$Region = "sa-saopaulo-1",
+
+    [Parameter(Mandatory=$false)]
+    [string]$SecretsFile = $env:URBEAT_VAULT_SECRETS_FILE,
 
     # Common parameters passed by deploy-all.ps1 (ignored by this script but required to prevent binding errors)
     [Parameter(Mandatory=$false)]
@@ -24,16 +27,45 @@ param(
     [string]$SSHUser,
 
     [Parameter(Mandatory=$false)]
+    [int]$SSHPort,
+
+    [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath
 )
 
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
 
-# ─────────────────────────────────────────
-# 🔧 CONFIGURATION - DO NOT CHANGE SECRETS HERE
-# All secrets are defined below and will be pushed to Oracle Vault
-# ─────────────────────────────────────────
+# Secret values must come from a local, ignored JSON file. The file path may
+# also be supplied through URBEAT_VAULT_SECRETS_FILE.
+if ([string]::IsNullOrWhiteSpace($SecretsFile)) {
+    Write-Error "SecretsFile is required. Use -SecretsFile with an unversioned local JSON file or set URBEAT_VAULT_SECRETS_FILE."
+    exit 1
+}
+$SecretsFile = [System.IO.Path]::GetFullPath($SecretsFile)
+if (-not (Test-Path -LiteralPath $SecretsFile -PathType Leaf)) {
+    Write-Error "Secrets file not found: $SecretsFile"
+    exit 1
+}
+
+try {
+    $secrets = @{}
+    $localSecrets = Get-Content -LiteralPath $SecretsFile -Raw | ConvertFrom-Json
+    foreach ($property in $localSecrets.PSObject.Properties) {
+        if ([string]::IsNullOrWhiteSpace([string]$property.Value)) {
+            Write-Error "Secret '$($property.Name)' is empty in the local secrets file."
+            exit 1
+        }
+        $secrets[$property.Name] = [string]$property.Value
+    }
+} catch {
+    Write-Error "Could not parse the local secrets file."
+    exit 1
+}
+if ($secrets.Count -eq 0) {
+    Write-Error "The local secrets file does not contain any secrets."
+    exit 1
+}
 
 Write-Host "🔐 Starting Oracle Vault Secrets Setup for Urbeat..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
@@ -45,7 +77,11 @@ Write-Host "━━━━━━━━━━━━━━━━━━━━━━�
 Write-Host "`n📦 Fetching Vault information..." -ForegroundColor Yellow
 
 # Use tenancy OCID as default compartment if vault is in root compartment
-$compartmentId = "ocid1.tenancy.oc1..aaaaaaaah2m3lpf3efb7ulylcs4t3iurlzhjidsgwdp4tjiov2gvxzfdbv2q"
+$compartmentId = $env:OCI_COMPARTMENT_OCID
+if ([string]::IsNullOrWhiteSpace($compartmentId)) {
+    Write-Error "OCI_COMPARTMENT_OCID is required."
+    exit 1
+}
 
 $vaultList = oci kms management vault list --compartment-id $compartmentId --all 2>&1
 if ($LASTEXITCODE -ne 0) {
@@ -63,9 +99,7 @@ $VAULT_OCID = $vaultData[0].id
 $COMPARTMENT_OCID = $vaultData[0]."compartment-id"
 $VAULT_ENDPOINT = $vaultData[0]."management-endpoint"
 
-Write-Host "✅ Vault found: $VAULT_OCID" -ForegroundColor Green
-Write-Host "✅ Compartment: $COMPARTMENT_OCID" -ForegroundColor Green
-Write-Host "✅ Management Endpoint: $VAULT_ENDPOINT" -ForegroundColor Green
+Write-Host "✅ Vault found and management endpoint resolved." -ForegroundColor Green
 
 # ─────────────────────────────────────────
 # Step 2: Get Encryption Key
@@ -88,65 +122,7 @@ if (-not $keyData -or $keyData.Count -eq 0) {
 }
 
 $KEY_OCID = $keyData[0].id
-Write-Host "✅ Encryption Key: $KEY_OCID" -ForegroundColor Green
-
-# ─────────────────────────────────────────
-# Step 3: Define Secrets
-# ─────────────────────────────────────────
-
-$secrets = @{
-    # 🗄️ PostgreSQL Secrets
-    "URBEAT_DB_HOST"         = "postgres"
-    "URBEAT_DB_PORT"         = "5432"
-    "URBEAT_DB_NAME"         = "urbeatdb"
-    "URBEAT_DB_USER"         = "urbeatPostg"
-    "URBEAT_DB_PASSWORD"     = "!fL08414671108"
-    "URBEAT_DB_CONNECTION"   = "Host=postgres;Port=5432;Database=urbeatdb;Username=urbeatPostg;Password=!fL08414671108"
-
-    # 📧 SMTP Email Secrets (OCI Email Delivery)
-    "URBEAT_SMTP_HOST"       = "smtp.email.sa-saopaulo-1.oci.oraclecloud.com"
-    "URBEAT_SMTP_PORT"       = "587"
-    "URBEAT_SMTP_USER"       = "<oci-smtp-username>"
-    "URBEAT_SMTP_PASSWORD"   = "<oci-smtp-password>"
-    "URBEAT_SMTP_SSL"        = "true"
-    "URBEAT_SMTP_FROM"       = "contato@urbeat.com.br"
-
-    # 🌐 Application URLs
-    "URBEAT_FRONTEND_URL"    = "https://www.urbeat.com.br"
-    "URBEAT_API_URL"         = "https://api.urbeat.com.br"
-    "URBEAT_CORS_ORIGINS"    = "https://www.urbeat.com.br,https://api.urbeat.com.br"
-
-    # 📊 Monitoring Secrets
-    "URBEAT_GRAFANA_USER"    = "admin"
-    "URBEAT_GRAFANA_PASSWORD" = "UrbeatGraf@2025!"
-    "URBEAT_PROMETHEUS_URL"  = "http://prometheus:9090"
-
-    # 🔒 Application Security
-    "URBEAT_JWT_SECRET"      = "UrbeatJWT@SecretKey2025!SuperSecure#Oracle"
-    "URBEAT_JWT_ISSUER"      = "https://api.urbeat.com.br"
-    "URBEAT_JWT_AUDIENCE"    = "https://www.urbeat.com.br"
-    "URBEAT_JWT_EXPIRY_HOURS" = "24"
-
-    # 🐘 PostgreSQL Admin (for container init)
-    "POSTGRES_PASSWORD"      = "!fL08414671108"
-    "POSTGRES_USER"          = "urbeatPostg"
-    "POSTGRES_DB"            = "urbeatdb"
-
-    # 🖼️ Cloudinary (Image Uploads)
-    "CLOUDINARY_CLOUD_NAME"  = "dcolnvyhb"
-    "CLOUDINARY_API_KEY"     = "549543485246375"
-    "CLOUDINARY_API_SECRET"  = "55CVhToYzFzzP2vA2Lv4FEv5Qg8"
-}
-
-if (-not [string]::IsNullOrWhiteSpace($env:URBEAT_INFOBIP_API_KEY)) {
-    $secrets["URBEAT_INFOBIP_API_KEY"] = $env:URBEAT_INFOBIP_API_KEY
-}
-if (-not [string]::IsNullOrWhiteSpace($env:URBEAT_INFOBIP_BASE_URL)) {
-    $secrets["URBEAT_INFOBIP_BASE_URL"] = $env:URBEAT_INFOBIP_BASE_URL
-}
-if (-not [string]::IsNullOrWhiteSpace($env:URBEAT_INFOBIP_SENDER)) {
-    $secrets["URBEAT_INFOBIP_SENDER"] = $env:URBEAT_INFOBIP_SENDER
-}
+Write-Host "✅ Encryption key resolved." -ForegroundColor Green
 
 # ─────────────────────────────────────────
 # Step 4: Fetch all existing secrets once (avoids JMESPath escaping issues in PowerShell)
@@ -210,7 +186,7 @@ foreach ($secretName in $secrets.Keys) {
             Write-Host " ✅ Created" -ForegroundColor Green
             $successCount++
         } else {
-            Write-Host " ❌ Failed: $result" -ForegroundColor Red
+            Write-Host " ❌ Failed (OCI command returned an error)" -ForegroundColor Red
             $failCount++
         }
     }
@@ -222,8 +198,8 @@ foreach ($secretName in $secrets.Keys) {
 
 Write-Host "`n📄 Exporting Secret OCIDs to secrets-map.json..." -ForegroundColor Yellow
 
-if (-not (Test-Path ".\configs")) {
-    New-Item -ItemType Directory -Path ".\configs" -Force | Out-Null
+if (-not (Test-Path (Join-Path $PSScriptRoot "configs"))) {
+    New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot "configs") -Force | Out-Null
 }
 
 $secretsMap = @{}
@@ -234,10 +210,20 @@ foreach ($secretName in $secrets.Keys) {
         $secretList = oci vault secret list --compartment-id $COMPARTMENT_OCID --all 2>$null | ConvertFrom-Json
         $secretOcid = @($secretList.data | Where-Object { $_.'secret-name' -eq $secretName } | Select-Object -First 1 -ExpandProperty id)
     }
-    $secretsMap[$secretName] = $(if ($secretOcid) { $secretOcid } else { "UNKNOWN" })
+    if ([string]::IsNullOrWhiteSpace($secretOcid) -or $secretOcid -notmatch '^ocid1\.vaultsecret\.') {
+        Write-Host "  ❌ Could not resolve an OCID for $secretName" -ForegroundColor Red
+        $failCount++
+        continue
+    }
+    $secretsMap[$secretName] = $secretOcid
 }
 
-$secretsMap | ConvertTo-Json | Out-File -FilePath ".\configs\secrets-map.json" -Encoding UTF8
+if ($failCount -gt 0) {
+    Write-Error "Secret processing failed; secrets-map.json was not changed."
+    exit 1
+}
+
+$secretsMap | ConvertTo-Json | Out-File -FilePath (Join-Path $PSScriptRoot "configs\secrets-map.json") -Encoding UTF8
 
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 Write-Host "✅ Secrets created: $successCount" -ForegroundColor Green

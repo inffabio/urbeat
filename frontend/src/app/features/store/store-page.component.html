@@ -10,6 +10,8 @@
       <div class="store-logo">
         @if (s.logoUrl) {
           <img [src]="s.logoUrl" [alt]="s.name + ' logo'" loading="lazy" />
+        } @else {
+          <img src="assets/images/logo_urbeat.png" [alt]="s.name + ' logo'" loading="lazy" />
         }
       </div>
 

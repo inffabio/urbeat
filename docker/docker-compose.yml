@@ -101,7 +101,7 @@ services:
       # Encryption
       Encryption__Key: "${ENCRYPTION_KEY:-CHANGE_ME_MINIMUM_32_CHARS_ENCRYPTION_KEY}"
       # Email
-      EmailConfirmation__FrontendBaseUrl: "${FRONTEND_BASE_URL:-http://localhost}"
+      EmailConfirmation__FrontendBaseUrl: "${FRONTEND_BASE_URL:-https://urbeat.com.br}"
       # SMTP (Brevo / Amazon SES / qualquer provedor)
       Email__FromAddress: "${SMTP_FROM:-contato@urbeat.com.br}"
       Email__FromName: "Urbeat"
@@ -116,6 +116,10 @@ services:
       CustomerVerification__Infobip__BaseUrl: "${INFOBIP_BASE_URL}"
       CustomerVerification__Infobip__ApiKey: "${INFOBIP_API_KEY}"
       CustomerVerification__Infobip__Sender: "${INFOBIP_SENDER:-Urbeat}"
+      # Cloudinary
+      Cloudinary__CloudName: "${CLOUDINARY_CLOUD_NAME}"
+      Cloudinary__ApiKey: "${CLOUDINARY_API_KEY}"
+      Cloudinary__ApiSecret: "${CLOUDINARY_API_SECRET}"
     depends_on:
       db:
         condition: service_healthy

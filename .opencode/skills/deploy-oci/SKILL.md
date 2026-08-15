@@ -1,88 +1,86 @@
-﻿---
+---
 name: deploy-oci
-description: Deploys the Urbeat application to Oracle Cloud Infrastructure using the automated deployment pipeline. Use when the user asks to deploy, publish, or ship to production/OCI/Oracle Cloud.
+description: Deploys Urbeat to OCI through the local PowerShell pipeline. Use for OCI deployment, release, or production shipping requests.
 license: proprietary
 metadata:
   author: urbeat
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
 # OCI Deployment
 
-Automated deployment pipeline for Urbeat to Oracle Cloud Infrastructure (aarch64).
+This skill describes `scripts/criarDeployOracleCloud/`. It does not authorize a remote deployment by itself. Never execute a deployment without an explicit user request.
 
-## Server
+## Connection Defaults
 
-- **IP:** 136.248.115.135
-- **User:** ubuntu
-- **Architecture:** aarch64 (ARM64)
-- **SSH Key:** `~/.ssh/id_rsa` (or configured in `scripts/criarDeployOracleCloud/`)
+- Server: configurable with `-ServerIP`; documented production value is `136.248.115.135`
+- SSH user: `dexter`
+- SSH port: `2208`
+- SSH key: configurable with `-SSHKeyPath` (default `~/.ssh/id_ed25519`, with an `id_rsa` fallback)
+- Every `ssh` call uses `-p $SSHPort`; every `scp` call uses the equivalent `-P $SSHPort` required by OpenSSH.
+- The server may require port knocking before connecting.
 
-## How to Deploy
+## Secrets
 
-Run the master deployment script from its own directory:
+`configs/secrets-map.json` contains OCIDs only. Never add passwords, tokens, API keys, connection strings, or secret values to the repository.
+
+Existing OCI Vault secrets are protected configuration. Do not rotate, delete, replace, or rewrite them unless the user explicitly requests that exact change. The normal deployment path reads existing values through their OCIDs; the local secrets file is only needed when the user explicitly chooses to create a missing Vault entry.
+
+The Vault setup script requires a local ignored JSON file supplied with `-SecretsFile` or `URBEAT_VAULT_SECRETS_FILE`. It also requires `OCI_COMPARTMENT_OCID`. The local file is read but values are never printed. Do not use `01-cleanup-secrets.ps1` during normal deployment because it schedules secrets for deletion.
+
+Example local invocation with a path outside version control:
+
+```powershell
+$env:URBEAT_VAULT_SECRETS_FILE = "C:\secure\urbeat-vault-secrets.local.json"
+$env:OCI_COMPARTMENT_OCID = "<compartment-ocid>"
+$env:OCI_VAULT_MANAGEMENT_ENDPOINT = "<vault-management-endpoint>"
+./deploy-all.ps1 -Step vault -ServerIP "136.248.115.135" -SSHUser dexter -SSHPort 2208 -SSHKeyPath "$env:USERPROFILE\.ssh\id_ed25519"
+```
+
+## Safe Order
+
+Run local preflight first:
 
 ```powershell
 Set-Location -LiteralPath "C:\Projetos\urbeat\scripts\criarDeployOracleCloud"
-./deploy-all.ps1 -Step all -ServerIP "136.248.115.135" -SSHUser "ubuntu"
+./validate-pipeline.ps1
 ```
 
-### Individual steps
+The master pipeline then runs:
 
-Run a single step by name:
+1. `prerequisites`: validates tools, port 80, port 2208, OCI, architecture, Nginx, and sudo.
+2. `vault`: creates missing Vault secrets from the ignored local file and writes only OCIDs to `configs/secrets-map.json`.
+3. `docker`: installs Docker for aarch64 and adds the configured SSH user to the Docker group.
+4. `environment`: retrieves secrets from Vault, creates `/opt/urbeat/downloads/`, and uploads the protected `.env`.
+5. `application`: uploads generated configuration and source from the repository root resolved from `$PSScriptRoot`, then builds and starts Compose.
+6. `nginx`: installs HTTP-only configuration, creates the downloads location, runs `nginx -t`, and reloads only after a successful test.
+7. `ssl`: runs Certbot after HTTP is working, then tests Nginx and reloads it after HTTPS is enabled.
+8. `verify`: performs remote health and service checks.
+
+Run all steps with explicit connection parameters:
 
 ```powershell
-./deploy-all.ps1 -Step <step> -ServerIP "136.248.115.135" -SSHUser "ubuntu"
+./deploy-all.ps1 -Step all -ServerIP "136.248.115.135" -SSHUser dexter -SSHPort 2208 -SSHKeyPath "$env:USERPROFILE\.ssh\id_ed25519"
 ```
 
-Available steps (run in order):
+The master script propagates `SSHUser`, `SSHPort`, and `SSHKeyPath` to every step and resolves child scripts relative to `$PSScriptRoot`, not the current directory.
 
-| Step | Script | Description |
-|------|--------|-------------|
-| `prerequisites` | `00-prerequisites-check.ps1` | Validates OCI CLI, SSH, server reachability, vault config |
-| `vault` | `01-vault-secrets.ps1` | Retrieves secrets from OCI Vault |
-| `docker` | `02-docker-build.ps1` | Builds Docker images locally |
-| `environment` | `03-environment-setup.ps1` | Sets up server directories, env files |
-| `application` | `04-deploy-application.ps1` | Pushes images and starts containers |
-| `nginx` | `05-nginx-config.ps1` | Configures reverse proxy |
-| `ssl` | `06-ssl-certificates.ps1` | Renews/obtains SSL certs |
-| `verify` | `07-verify-deployment.ps1` | Health checks the deployment |
+## Validation And Risks
 
-## Prerequisites Check
+Run `./validate-pipeline.ps1` before deployment. It parses every PowerShell script, checks that the JSON map contains only Vault secret OCIDs, and rejects fixed repository paths or an `ubuntu` SSH default. It is local and non-destructive.
 
-The `prerequisites` step validates:
+The pipeline still performs destructive remote operations when invoked: Docker rebuilds, container replacement, Nginx configuration changes, and Vault secret creation. Certificate issuance depends on DNS and HTTP reachability. Secret rotation is intentionally not automated. Review the local secret file and OCI permissions before any remote step.
 
-- **OCI CLI** installed and configured (`oci --version`)
-- **SSH** client with key pair available
-- **Server reachable** on ports 80 (HTTP) and 22 (SSH)
-- **OCI Vault** `urbeat-vault` exists with AES-256 encryption key
-- **NGINX** installed and running on server
-- **aarch64** architecture confirmed
-- **Sudo** access for ubuntu user
+## Protected Rules For Future Agents
 
-### Common Issues
-
-**OCI Vault check fails:** The `oci` CLI command to list vaults returns empty JSON. This means either:
-1. The vault `urbeat-vault` doesn't exist in the compartment
-2. The OCI config profile doesn't have vault management permissions
-3. The compartment ID in the script is incorrect
-
-Fix: Verify vault exists via OCI Console, or run `oci kms vault list --compartment-id <id>` manually.
+- Do not alter the SSH defaults, deployment order, HTTP-before-SSL sequence, or preflight requirement without explicit user authorization.
+- Do not add secret values to tracked files or print them in command output.
+- Do not rotate or modify existing Vault secrets as part of a normal deployment or maintenance task.
+- Neighborhood CSV snapshots may retain neighborhoods without geolocation with empty Latitude/Longitude fields. Coordinates approximate the first street/CEP found, using e-DNE/CEP first and real sources such as Nominatim only as fallback, never a municipality centroid. Reject partial or invalid pairs; pending neighborhoods are not a fatal publication failure, and CSV restoration preserves empty fields without inventing coordinates.
 
 ## Post-Deployment
 
-After successful deployment:
-
-- Frontend: https://urbeat.com.br
-- Backend API: https://api.urbeat.com.br
-- Health: https://urbeat.com.br/health
-- Swagger: https://api.urbeat.com.br/swagger
-- Hangfire: https://api.urbeat.com.br/hangfire
-
-## Build Before Deploying
-
-Always build the frontend before deploying to ensure the production bundle is current:
-
-```powershell
-npx ng build --configuration production
-```
+- Frontend: `https://www.urbeat.com.br`
+- API: `https://api.urbeat.com.br`
+- Health: `https://www.urbeat.com.br/health`
+- Swagger: `https://api.urbeat.com.br/swagger`

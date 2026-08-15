@@ -12,6 +12,7 @@ import { ToastService } from '../../core/services/toast.service';
   imports: [CommonModule, FormsModule, IonContent, IonIcon, RouterModule],
   templateUrl: './email-confirmation-page.component.html',
   styleUrl: './email-confirmation-page.component.scss',
+  host: { '[class.urbeat-onboarding]': 'true' },
 })
 export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);

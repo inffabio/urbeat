@@ -2,7 +2,7 @@
 import { VaultsClient } from "oci-vault";
 import type { OCIClients } from "../oci-client.js";
 
-const URBEAT_VAULT_ID = "ocid1.vault.oc1.sa-saopaulo-1.ffvctmavaacuu.abtxeljr3tmk6kjoscuokdg55geqsetz3dcfsrxwcggsqek4finxodazyrsa";
+const URBEAT_VAULT_ID = "ocid1.vault.oc1.sa-saopaulo-1.ffvhl5cyaaalc.abtxeljrx7cy5idk3cn2hctzkxvj7omcrj7zolwtw3pahtotr3lmatpifdyq";
 
 export function vaultTools(clients: OCIClients) {
   const { compartmentId, authProvider } = clients;

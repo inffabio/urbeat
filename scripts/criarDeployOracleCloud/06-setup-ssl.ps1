@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Installs and configures SSL certificates via Let's Encrypt (Certbot)
 .DESCRIPTION
@@ -13,7 +13,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519",
@@ -65,7 +68,7 @@ echo "🔄 Testing NGINX configuration..."
 sudo nginx -t
 
 echo "🔄 Reloading NGINX..."
-sudo systemctl reload nginx
+sudo nginx -s reload || sudo systemctl reload nginx
 
 echo "⏰ Setting up auto-renewal..."
 sudo systemctl enable certbot.timer
@@ -89,10 +92,12 @@ $tempSSL = [System.IO.Path]::GetTempFileName() + ".sh"
 $sslScript | Out-File -FilePath $tempSSL -Encoding UTF8 -NoNewline
 
 Write-Host "`n📤 Uploading SSL setup script..." -ForegroundColor Yellow
-scp -i $resolvedKeyPath -o StrictHostKeyChecking=no $tempSSL "${SSHUser}@${ServerIP}:/tmp/setup-ssl.sh"
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempSSL "${SSHUser}@${ServerIP}:/tmp/setup-ssl.sh"
 
 Write-Host "🚀 Executing SSL setup..." -ForegroundColor Yellow
-ssh -i $resolvedKeyPath -o StrictHostKeyChecking=no "${SSHUser}@${ServerIP}" "chmod +x /tmp/setup-ssl.sh && /tmp/setup-ssl.sh && rm /tmp/setup-ssl.sh"
+ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/setup-ssl.sh && /tmp/setup-ssl.sh && rm /tmp/setup-ssl.sh"
 
 Remove-Item $tempSSL -Force
 

@@ -1,0 +1,757 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+PA,1500107,Abaetetuba,Beja,beja,-1.6570989,-48.7682674,brasil_aberto,True
+PA,1500107,Abaetetuba,Centro,centro,-1.722646,-48.8883238,brasil_aberto,True
+PA,1500131,Abel Figueiredo,Centro,centro,-4.9511479,-48.3943683,brasil_aberto,True
+PA,1500206,Acará,Centro,centro,-1.36523724,-48.33889771,brasil_aberto,True
+PA,1500206,Acará,Guajará-Miri,guajara-miri,-1.521866,-48.4053701,brasil_aberto,True
+PA,1500206,Acará,Jaguarari,jaguarari,-1.718809,-48.42110779999999,brasil_aberto,True
+PA,1500305,Afuá,Baturité,baturite,-0.1572135,-50.3913125,brasil_aberto,True
+PA,1500305,Afuá,Centro,centro,-0.1572135,-50.3913125,brasil_aberto,True
+PA,1500404,Alenquer,Camburão,camburao,-1.6648663,-54.6774917,brasil_aberto,True
+PA,1500404,Alenquer,Centro,centro,-1.9496325,-54.7380376,brasil_aberto,True
+PA,1500404,Alenquer,Vila de Mamia,vila de mamia,,,brasil_aberto,True
+PA,1500503,Almeirim,Arumanduba,arumanduba,-1.4519471,-52.4958112,brasil_aberto,True
+PA,1500503,Almeirim,Centro,centro,-1.53075,-52.57796459999999,brasil_aberto,True
+PA,1500503,Almeirim,Monte Dourado,monte dourado,-0.8678172,-52.5349937,brasil_aberto,True
+PA,1500503,Almeirim,Vila de Munguba,vila de munguba,-0.9101501,-52.431392,brasil_aberto,True
+PA,1500602,Altamira,Alberto Soares,alberto soares,-3.1987716,-52.1889881,brasil_aberto,True
+PA,1500602,Altamira,Aparecida,aparecida,-3.204353,-52.2079135,brasil_aberto,True
+PA,1500602,Altamira,Bela Vista,bela vista,-3.2102848,-52.2357792,brasil_aberto,True
+PA,1500602,Altamira,Boa Esperança,boa esperanca,-3.1924515,-52.2084133,brasil_aberto,True
+PA,1500602,Altamira,Brasília,brasilia,-3.1964097,-52.2101853,brasil_aberto,True
+PA,1500602,Altamira,Cachoeira da Serra,cachoeira da serra,-8.6227088,-55.05106019999999,brasil_aberto,True
+PA,1500602,Altamira,Castelo dos Sonhos,castelo dos sonhos,-8.316887699999999,-55.1005023,brasil_aberto,True
+PA,1500602,Altamira,Catedral,catedral,-3.2051842,-52.2070087,brasil_aberto,True
+PA,1500602,Altamira,Centro,centro,-3.2031718,-52.2059147,brasil_aberto,True
+PA,1500602,Altamira,Colinas,colinas,-3.204353,-52.2079135,brasil_aberto,True
+PA,1500602,Altamira,Esplanada do Xingú,esplanada do xingu,-3.2134167,-52.2155882,brasil_aberto,True
+PA,1500602,Altamira,Iataí,iatai,-3.204353,-52.2079135,brasil_aberto,True
+PA,1500602,Altamira,Ibiza,ibiza,-3.225441,-52.230265,brasil_aberto,True
+PA,1500602,Altamira,Jardim Altamira,jardim altamira,-3.1972284,-52.2186471,brasil_aberto,True
+PA,1500602,Altamira,Jardim Independente I,jardim independente i,-3.2150211,-52.2241228,brasil_aberto,True
+PA,1500602,Altamira,Jardim Independente II,jardim independente ii,-3.2217135,-52.2215303,brasil_aberto,True
+PA,1500602,Altamira,Jardim Uirapuru,jardim uirapuru,-3.2119764,-52.2292009,brasil_aberto,True
+PA,1500602,Altamira,Liberdade,liberdade,-3.2070799,-52.2237249,brasil_aberto,True
+PA,1500602,Altamira,Mutirão,mutirao,-3.1891608,-52.2107703,brasil_aberto,True
+PA,1500602,Altamira,Nova Altamira,nova altamira,-3.176543,-52.19114500000001,brasil_aberto,True
+PA,1500602,Altamira,Perpétuo Socorro,perpetuo socorro,-3.2074761,-52.2162933,brasil_aberto,True
+PA,1500602,Altamira,Premem,premem,-3.2113062,-52.2243429,brasil_aberto,True
+PA,1500602,Altamira,Recreio,recreio,-3.2086501,-52.2093162,brasil_aberto,True
+PA,1500602,Altamira,Sudam I,sudam i,-3.2028507,-52.2122106,brasil_aberto,True
+PA,1500602,Altamira,Sudam II,sudam ii,-3.2069172,-52.224254,brasil_aberto,True
+PA,1500602,Altamira,Terra Indígena Araweté Igarapé Ipixuna,terra indigena arawete igarape ipixuna,-4.6104677,-52.5732189,brasil_aberto,True
+PA,1500602,Altamira,Terra Indígena Cachoeira Seca,terra indigena cachoeira seca,-4.2594904,-53.6605809,brasil_aberto,True
+PA,1500602,Altamira,Área Rural de Altamira,area rural de altamira,-3.2044205,-52.2079174,brasil_aberto,True
+PA,1500701,Anajás,Centro,centro,-0.9857624999999999,-49.93497,brasil_aberto,True
+PA,1500800,Ananindeua,Atalaia,atalaia,-1.3920096,-48.4231966,brasil_aberto,True
+PA,1500800,Ananindeua,Aurá,aura,-1.3503045,-48.3376981,brasil_aberto,True
+PA,1500800,Ananindeua,Centro,centro,-1.367063,-48.3769026,brasil_aberto,True
+PA,1500800,Ananindeua,Cidade Nova,cidade nova,-1.3775195,-48.4134082,brasil_aberto,True
+PA,1500800,Ananindeua,Coqueiro,coqueiro,-1.3775195,-48.4134082,brasil_aberto,True
+PA,1500800,Ananindeua,Curuçambá,curucamba,-1.331336,-48.3780491,brasil_aberto,True
+PA,1500800,Ananindeua,Distrito Industrial,distrito industrial,-1.3498336,-48.3676431,brasil_aberto,True
+PA,1500800,Ananindeua,Guanabara,guanabara,-1.4007385,-48.4223032,brasil_aberto,True
+PA,1500800,Ananindeua,Icuí-Guajará,icui-guajara,-1.3265916,-48.4150497,brasil_aberto,True
+PA,1500800,Ananindeua,Icuí-Laranjeira,icui-laranjeira,-1.3245539,-48.4183938,brasil_aberto,True
+PA,1500800,Ananindeua,Ilha João Pilatos,ilha joao pilatos,-1.3649909,-48.3739943,brasil_aberto,True
+PA,1500800,Ananindeua,Jibóia Branca,jiboia branca,-1.3386826,-48.4282675,brasil_aberto,True
+PA,1500800,Ananindeua,Levilândia,levilandia,-1.3800725,-48.4045658,brasil_aberto,True
+PA,1500800,Ananindeua,Maguari,maguari,-1.3481237,-48.3876735,brasil_aberto,True
+PA,1500800,Ananindeua,Marituba,marituba,-1.3364095,-48.3946787,brasil_aberto,True
+PA,1500800,Ananindeua,Pato Macho,pato macho,-1.3693128,-48.3637026,brasil_aberto,True
+PA,1500800,Ananindeua,Quarenta Horas (Coqueiro),quarenta horas (coqueiro),-1.3383557,-48.4114008,brasil_aberto,True
+PA,1500800,Ananindeua,Águas Brancas,aguas brancas,-1.3934255,-48.3729874,brasil_aberto,True
+PA,1500800,Ananindeua,Águas Lindas,aguas lindas,-1.4042412,-48.4067694,brasil_aberto,True
+PA,1500800,Ananindeua,Área Rural de Ananindeua,area rural de ananindeua,-1.3649909,-48.3739943,brasil_aberto,True
+PA,1500859,Anapu,Centro,centro,-3.4609923,-51.2086588,brasil_aberto,True
+PA,1500909,Augusto Corrêa,Aturiaí,aturiai,-1.0648078,-46.5533092,brasil_aberto,True
+PA,1500909,Augusto Corrêa,Emboraí,emborai,-1.1422019,-46.503745,brasil_aberto,True
+PA,1500909,Augusto Corrêa,Itapixuna,itapixuna,-1.1436467,-46.3681588,brasil_aberto,True
+PA,1500909,Augusto Corrêa,Nazaré,nazare,-1.0242767,-46.63593720000001,brasil_aberto,True
+PA,1500909,Augusto Corrêa,Nova Olinda,nova olinda,-1.0987896,-46.4686309,brasil_aberto,True
+PA,1500958,Aurora do Pará,Centro,centro,-2.1367008,-47.5596308,brasil_aberto,True
+PA,1501006,Aveiro,Brasília Legal,brasilia legal,-3.8191477,-55.6032088,brasil_aberto,True
+PA,1501006,Aveiro,Centro,centro,-1.5659558,-48.7675203,brasil_aberto,True
+PA,1501006,Aveiro,Pinhal,pinhal,-6.207102,-52.70279559999999,brasil_aberto,True
+PA,1501105,Bagre,Centro,centro,-1.8986384,-50.2098977,brasil_aberto,True
+PA,1501105,Bagre,Pedreira,pedreira,-3.0245985,-49.9777136,brasil_aberto,True
+PA,1501204,Baião,Centro,centro,-2.7907204,-49.6700627,brasil_aberto,True
+PA,1501204,Baião,Joana Peres,joana peres,-3.0141016,-49.7501586,brasil_aberto,True
+PA,1501253,Bannach,Centro,centro,-7.3524392,-50.40782489999999,brasil_aberto,True
+PA,1501303,Barcarena,Comercial,comercial,-1.5011491,-48.6240344,brasil_aberto,True
+PA,1501303,Barcarena,Murucupi,murucupi,-1.564595,-48.7610463,brasil_aberto,True
+PA,1501303,Barcarena,Vila dos Cabanos,vila dos cabanos,-1.5156836,-48.6929909,brasil_aberto,True
+PA,1501451,Belterra,Centro,centro,-1.2929838,-47.9242939,brasil_aberto,True
+PA,1501402,Belém,Aeroporto (Mosqueiro),aeroporto (mosqueiro),-1.1395922,-48.457267,brasil_aberto,True
+PA,1501402,Belém,Agulha (Icoaraci),agulha (icoaraci),-1.30900931,-48.47549438,brasil_aberto,True
+PA,1501402,Belém,Ariramba (Mosqueiro),ariramba (mosqueiro),-1.1201579,-48.4293266,brasil_aberto,True
+PA,1501402,Belém,Aurá,aura,-1.3818959,-48.3662483,brasil_aberto,True
+PA,1501402,Belém,Barreiro,barreiro,-1.41655636,-48.4835701,brasil_aberto,True
+PA,1501402,Belém,Batista Campos,batista campos,-1.4643232,-48.49562539999999,brasil_aberto,True
+PA,1501402,Belém,Baía do Sol (Mosqueiro),baia do sol (mosqueiro),-1.0655493,-48.3370852,brasil_aberto,True
+PA,1501402,Belém,Bengui,bengui,-1.3765662,-48.4588626,brasil_aberto,True
+PA,1501402,Belém,Bonfim (Mosqueiro),bonfim (mosqueiro),-1.1197949,-48.4155765,brasil_aberto,True
+PA,1501402,Belém,Brasília (Outeiro),brasilia (outeiro),-1.2748308,-48.4758022,brasil_aberto,True
+PA,1501402,Belém,Cabanagem,cabanagem,-1.3713015,-48.4293246,brasil_aberto,True
+PA,1501402,Belém,Campina,campina,-1.4575281,-48.497358,brasil_aberto,True
+PA,1501402,Belém,Campina de Icoaraci (Icoaraci),campina de icoaraci (icoaraci),-1.29657805,-48.47323227,brasil_aberto,True
+PA,1501402,Belém,Canudos,canudos,-1.4505568,-48.4584198,brasil_aberto,True
+PA,1501402,Belém,Carananduba (Mosqueiro),carananduba (mosqueiro),-1.0953274,-48.4008774,brasil_aberto,True
+PA,1501402,Belém,Caruara (Mosqueiro),caruara (mosqueiro),-1.082852,-48.3937129,brasil_aberto,True
+PA,1501402,Belém,Castanheira,castanheira,-1.40847409,-48.43445206,brasil_aberto,True
+PA,1501402,Belém,Chapéu Virado (Mosqueiro),chapeu virado (mosqueiro),-1.1362581,-48.4523544,brasil_aberto,True
+PA,1501402,Belém,Cidade Velha,cidade velha,-1.46375084,-48.49790192,brasil_aberto,True
+PA,1501402,Belém,Condor,condor,-1.4749815,-48.4810314,brasil_aberto,True
+PA,1501402,Belém,Coqueiro,coqueiro,-1.3342233,-48.4497155,brasil_aberto,True
+PA,1501402,Belém,Cremação,cremacao,-1.4665023,-48.4826729,brasil_aberto,True
+PA,1501402,Belém,Cruzeiro (Icoaraci),cruzeiro (icoaraci),-1.3148005,-48.48000717,brasil_aberto,True
+PA,1501402,Belém,Curió-Utinga,curio-utinga,-1.4501625,-48.476469,brasil_aberto,True
+PA,1501402,Belém,Cutijuba,cutijuba,,,brasil_aberto,True
+PA,1501402,Belém,Farol (Mosqueiro),farol (mosqueiro),-1.1371418,-48.4663099,brasil_aberto,True
+PA,1501402,Belém,Fátima,fatima,-1.4403992,-48.4744297,brasil_aberto,True
+PA,1501402,Belém,Guamá,guama,-1.4703536,-48.4548174,brasil_aberto,True
+PA,1501402,Belém,Itaiteua (Outeiro),itaiteua (outeiro),-1.272849,-48.4341434,brasil_aberto,True
+PA,1501402,Belém,Jurunas,jurunas,-1.403098,-48.47848579999999,brasil_aberto,True
+PA,1501402,Belém,Mangueiras (Mosqueiro),mangueiras (mosqueiro),-1.1421454,-48.4611518,brasil_aberto,True
+PA,1501402,Belém,Mangueirão,mangueirao,-1.38020146,-48.45141983,brasil_aberto,True
+PA,1501402,Belém,Maracacuera (Icoaraci),maracacuera (icoaraci),-1.2922061,-48.4597605,brasil_aberto,True
+PA,1501402,Belém,Maracajá (Mosqueiro),maracaja (mosqueiro),-1.1665011,-48.4654633,brasil_aberto,True
+PA,1501402,Belém,Maracangalha,maracangalha,-1.4721471,-48.4737008,brasil_aberto,True
+PA,1501402,Belém,Marahu (Mosqueiro),marahu (mosqueiro),-1.0728239,-48.400807,brasil_aberto,True
+PA,1501402,Belém,Marambaia,marambaia,-1.4007308,-48.4620814,brasil_aberto,True
+PA,1501402,Belém,Marco,marco,-1.4469732,-48.46328354,brasil_aberto,True
+PA,1501402,Belém,Miramar,miramar,-1.4043986,-48.4877746,brasil_aberto,True
+PA,1501402,Belém,Murubira (Mosqueiro),murubira (mosqueiro),-1.1238827,-48.4442201,brasil_aberto,True
+PA,1501402,Belém,Natal do Murubira (Mosqueiro),natal do murubira (mosqueiro),-1.1333199,-48.4467664,brasil_aberto,True
+PA,1501402,Belém,Nazaré,nazare,-1.2990012,-48.4817599,brasil_aberto,True
+PA,1501402,Belém,Paracuri (Icoaraci),paracuri (icoaraci),-1.3172285,-48.4855201,brasil_aberto,True
+PA,1501402,Belém,Paraíso (Mosqueiro),paraiso (mosqueiro),-1.0668708,-48.3816503,brasil_aberto,True
+PA,1501402,Belém,Parque Guajará (Icoaraci),parque guajara (icoaraci),-1.3077292,-48.4640359,brasil_aberto,True
+PA,1501402,Belém,Parque Verde,parque verde,-1.3713028,-48.4378943,brasil_aberto,True
+PA,1501402,Belém,Pedreira,pedreira,-1.4280174,-48.4721023,brasil_aberto,True
+PA,1501402,Belém,Ponta Grossa (Icoaraci),ponta grossa (icoaraci),-1.2648278,-48.4520424,brasil_aberto,True
+PA,1501402,Belém,Porto Arthur (Mosqueiro),porto arthur (mosqueiro),-1.1276724,-48.4484649,brasil_aberto,True
+PA,1501402,Belém,Praia Grande (Mosqueiro),praia grande (mosqueiro),-1.1646558,-48.4711811,brasil_aberto,True
+PA,1501402,Belém,Pratinha (Icoaraci),pratinha (icoaraci),-1.3688685,-48.4697636,brasil_aberto,True
+PA,1501402,Belém,Reduto,reduto,-1.4482361,-48.4916824,brasil_aberto,True
+PA,1501402,Belém,Sacramenta,sacramenta,-1.4178481,-48.4763292,brasil_aberto,True
+PA,1501402,Belém,Souza,souza,-1.4086684,-48.4471392,brasil_aberto,True
+PA,1501402,Belém,Sucurijuquara (Mosqueiro),sucurijuquara (mosqueiro),-1.0966038,-48.3857754,brasil_aberto,True
+PA,1501402,Belém,São Brás,sao bras,-1.4501625,-48.476469,brasil_aberto,True
+PA,1501402,Belém,São Clemente,sao clemente,-1.3674856,-48.4607569,brasil_aberto,True
+PA,1501402,Belém,São Francisco (Mosqueiro),sao francisco (mosqueiro),-1.1087925,-48.4226225,brasil_aberto,True
+PA,1501402,Belém,São João do Outeiro (Outeiro),sao joao do outeiro (outeiro),-1.2658091,-48.4673435,brasil_aberto,True
+PA,1501402,Belém,Tapanã (Icoaraci),tapana (icoaraci),-1.3523192,-48.4630797,brasil_aberto,True
+PA,1501402,Belém,Telégrafo Sem Fio,telegrafo sem fio,,,brasil_aberto,True
+PA,1501402,Belém,Tenoné,tenone,-1.37683666,-48.46686172,brasil_aberto,True
+PA,1501402,Belém,Terra Firme,terra firme,-1.4597832,-48.487927,brasil_aberto,True
+PA,1501402,Belém,Umarizal,umarizal,-1.4456254,-48.4780542,brasil_aberto,True
+PA,1501402,Belém,Una,una,-1.37851059,-48.42747116,brasil_aberto,True
+PA,1501402,Belém,Val-de-Cães,val-de-caes,-1.3946818,-48.4873852,brasil_aberto,True
+PA,1501402,Belém,Vila (Mosqueiro),vila (mosqueiro),-1.1632106,-48.4678781,brasil_aberto,True
+PA,1501402,Belém,Água Boa (Outeiro),agua boa (outeiro),-1.2600936,-48.456645,brasil_aberto,True
+PA,1501402,Belém,Águas Lindas,aguas lindas,-1.39993596,-48.39112091,brasil_aberto,True
+PA,1501402,Belém,Águas Negras (Icoaraci),aguas negras (icoaraci),-1.3048456,-48.4585488,brasil_aberto,True
+PA,1501402,Belém,Área Rural de Belém,area rural de belem,-1.422998,-48.4895544,brasil_aberto,True
+PA,1501501,Benevides,Benfica,benfica,-1.3113273,-48.301458,brasil_aberto,True
+PA,1501501,Benevides,Centro,centro,-1.3703059,-48.3350243,brasil_aberto,True
+PA,1501501,Benevides,Murinim,murinim,-1.2614048,-48.3290539,brasil_aberto,True
+PA,1501576,Bom Jesus do Tocantins,Centro,centro,-5.0460588,-48.6022693,brasil_aberto,True
+PA,1501709,Bragança,Almoço,almoco,-1.2259697,-46.8856998,brasil_aberto,True
+PA,1501709,Bragança,Caratateua,caratateua,-1.016157,-46.7300532,brasil_aberto,True
+PA,1501709,Bragança,Centro,centro,-1.0562775,-46.764585,brasil_aberto,True
+PA,1501709,Bragança,Nova Mocajuba,nova mocajuba,-1.3931341,-46.8553332,brasil_aberto,True
+PA,1501709,Bragança,Piabas,piabas,-1.238489,-46.88807,brasil_aberto,True
+PA,1501709,Bragança,Tijoca,tijoca,-1.3129862,-46.6869407,brasil_aberto,True
+PA,1501725,Brasil Novo,Centro,centro,-3.3050422,-52.5408982,brasil_aberto,True
+PA,1501758,Brejo Grande do Araguaia,Nova Vida,nova vida,-5.6956633,-48.3922876,brasil_aberto,True
+PA,1501758,Brejo Grande do Araguaia,São Raimundo do Araguaia,sao raimundo do araguaia,-5.585100199999999,-48.2009124,brasil_aberto,True
+PA,1501782,Breu Branco,Centro,centro,-3.7763731,-49.5688411,brasil_aberto,True
+PA,1501808,Breves,Antônio Lemos,antonio lemos,-1.3879675,-50.72089889999999,brasil_aberto,True
+PA,1501808,Breves,Centro,centro,-1.1640258,-51.1362716,brasil_aberto,True
+PA,1501808,Breves,Curumu,curumu,-0.8814542,-50.92892459999999,brasil_aberto,True
+PA,1501808,Breves,São Miguel dos Macacos,sao miguel dos macacos,-1.1734679,-50.4830213,brasil_aberto,True
+PA,1501907,Bujaru,Centro,centro,-1.5189481,-48.0469907,brasil_aberto,True
+PA,1501907,Bujaru,Guajará-Açú,guajara-acu,-1.7078383,-48.1344012,brasil_aberto,True
+PA,1502004,Cachoeira do Arari,Caracará do Arari,caracara do arari,-1.189981301885748,-48.81968019357075,brasil_aberto,True
+PA,1502004,Cachoeira do Arari,Centro,centro,-1.0076256,-48.9606572,brasil_aberto,True
+PA,1502004,Cachoeira do Arari,Câmara do Marajó,camara do marajo,-0.8939459999999999,-48.66496189999999,brasil_aberto,True
+PA,1501956,Cachoeira do Piriá,Centro,centro,-1.7596683,-46.5446539,brasil_aberto,True
+PA,1502103,Cametá,Areião,areiao,-2.5205177,-49.4305399,brasil_aberto,True
+PA,1502103,Cametá,Carapajó,carapajo,-2.2746256,-49.346132,brasil_aberto,True
+PA,1502103,Cametá,Centro,centro,-2.2324909,-49.4948531,brasil_aberto,True
+PA,1502103,Cametá,Curuçambaba,curucambaba,-2.1301005,-49.2883106,brasil_aberto,True
+PA,1502103,Cametá,Joana Coeli,joana coeli,,,brasil_aberto,True
+PA,1502103,Cametá,Juabá,juaba,-2.4866981,-49.6552564,brasil_aberto,True
+PA,1502103,Cametá,Moiraba,moiraba,-2.2442314,-49.4987339,brasil_aberto,True
+PA,1502103,Cametá,São Raimundo dos Furtados,sao raimundo dos furtados,,,brasil_aberto,True
+PA,1502103,Cametá,Vila do Carmo do Tocantins,vila do carmo do tocantins,-2.4488838,-49.4404562,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Centro,centro,-6.5322152,-49.8502841,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Jardim Europa I,jardim europa i,,,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Parque dos Ipês,parque dos ipes,-6.5387905,-49.8567023,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Santa Vitória,santa vitoria,,,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Vale Dourado,vale dourado,,,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Vale do Sossego,vale do sossego,-6.5445221,-49.8445878,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Vale dos Sonhos III,vale dos sonhos iii,,,brasil_aberto,True
+PA,1502152,Canaã dos Carajás,Área Rural de Canaã dos Carajás,area rural de canaa dos carajas,,,brasil_aberto,True
+PA,1502202,Capanema,Almir Gabriel,almir gabriel,-1.3661027,-48.3078325,brasil_aberto,True
+PA,1502202,Capanema,Areia Branca,areia branca,-1.1949719,-47.1884497,brasil_aberto,True
+PA,1502202,Capanema,Caixa D'água,caixa d'agua,-1.1832502,-47.1574113,brasil_aberto,True
+PA,1502202,Capanema,Campinho,campinho,-1.1878046,-47.1695597,brasil_aberto,True
+PA,1502202,Capanema,Centro,centro,-1.1857389,-47.1715548,brasil_aberto,True
+PA,1502202,Capanema,Dom João VI,dom joao vi,-1.2049352,-47.1746093,brasil_aberto,True
+PA,1502202,Capanema,Fátima,fatima,-1.1841457,-47.1813086,brasil_aberto,True
+PA,1502202,Capanema,Garrafão,garrafao,-1.2058185,-47.1815133,brasil_aberto,True
+PA,1502202,Capanema,Igrejinha,igrejinha,-1.1945127,-47.18078449999999,brasil_aberto,True
+PA,1502202,Capanema,Inussun,inussun,-1.1960027,-47.18843,brasil_aberto,True
+PA,1502202,Capanema,Mirasselvas,mirasselvas,-1.0846061,-46.97929569999999,brasil_aberto,True
+PA,1502202,Capanema,Motocros,motocros,-1.200359,-47.1709041,brasil_aberto,True
+PA,1502202,Capanema,Nazaré,nazare,-1.1947696,-47.1991123,brasil_aberto,True
+PA,1502202,Capanema,Oliveira Brito,oliveira brito,-1.193246,-47.1712509,brasil_aberto,True
+PA,1502202,Capanema,Pedreira,pedreira,-1.1794043,-47.1833596,brasil_aberto,True
+PA,1502202,Capanema,Primeira,primeira,-1.1860315,-47.1860479,brasil_aberto,True
+PA,1502202,Capanema,Samambaia,samambaia,-1.1799592,-47.1802205,brasil_aberto,True
+PA,1502202,Capanema,Santa Cruz,santa cruz,-1.1834133,-47.1605546,brasil_aberto,True
+PA,1502202,Capanema,Santa Luzia,santa luzia,-1.1999182,-47.1984641,brasil_aberto,True
+PA,1502202,Capanema,São Cristóvão,sao cristovao,-1.2108673,-47.1762688,brasil_aberto,True
+PA,1502202,Capanema,São José,sao jose,-1.203039,-47.1685071,brasil_aberto,True
+PA,1502202,Capanema,São Pedro e São Paulo,sao pedro e sao paulo,-6.207102,-52.70279559999999,brasil_aberto,True
+PA,1502202,Capanema,São Pio X,sao pio x,-1.1986818,-47.1844172,brasil_aberto,True
+PA,1502202,Capanema,São Raimundo,sao raimundo,-1.1858033,-47.1582819,brasil_aberto,True
+PA,1502202,Capanema,Tancredo Neves,tancredo neves,-1.2044577,-47.1876099,brasil_aberto,True
+PA,1502202,Capanema,Tauari,tauari,-1.1280056,-47.0777685,brasil_aberto,True
+PA,1502202,Capanema,Três de Maio,tres de maio,-1.1979443,-47.1739545,brasil_aberto,True
+PA,1502202,Capanema,Área Rural de Capanema,area rural de capanema,-1.1917678,-47.1757965,brasil_aberto,True
+PA,1502301,Capitão Poço,Centro,centro,-1.7439372,-47.0597755,brasil_aberto,True
+PA,1502400,Castanhal,Agrovila Iracema,agrovila iracema,-1.1571135,-48.0028787,brasil_aberto,True
+PA,1502400,Castanhal,Apeú,apeu,-1.2972517,-47.9864216,brasil_aberto,True
+PA,1502400,Castanhal,Betânia,betania,-1.2975783,-47.9808628,brasil_aberto,True
+PA,1502400,Castanhal,Caiçara,caicara,-1.2759749,-47.9221668,brasil_aberto,True
+PA,1502400,Castanhal,Cariri,cariri,-1.2870705,-47.952442,brasil_aberto,True
+PA,1502400,Castanhal,Centro,centro,-1.2929838,-47.9242939,brasil_aberto,True
+PA,1502400,Castanhal,Cristo Redentor,cristo redentor,-1.2941202,-47.9453579,brasil_aberto,True
+PA,1502400,Castanhal,Estrela,estrela,-1.2878896,-47.9424366,brasil_aberto,True
+PA,1502400,Castanhal,Fonte Boa,fonte boa,-1.2821366,-47.9507613,brasil_aberto,True
+PA,1502400,Castanhal,Heliolândia,heliolandia,-1.3006746,-47.8836479,brasil_aberto,True
+PA,1502400,Castanhal,Ianetama,ianetama,-1.2762271,-47.9114997,brasil_aberto,True
+PA,1502400,Castanhal,Imperador,imperador,-1.2739631,-47.9054699,brasil_aberto,True
+PA,1502400,Castanhal,Jaderlândia,jaderlandia,-1.3166145,-47.8948906,brasil_aberto,True
+PA,1502400,Castanhal,Jardim das Acácias,jardim das acacias,-1.275789,-47.897627,brasil_aberto,True
+PA,1502400,Castanhal,Nova Olinda,nova olinda,-1.2921576,-47.9335486,brasil_aberto,True
+PA,1502400,Castanhal,Novo Estrela,novo estrela,-1.2794565,-47.9246993,brasil_aberto,True
+PA,1502400,Castanhal,Pirapora,pirapora,-1.3051569,-47.9186567,brasil_aberto,True
+PA,1502400,Castanhal,Salgadinho,salgadinho,-1.2839669,-47.9090396,brasil_aberto,True
+PA,1502400,Castanhal,Santa Catarina,santa catarina,-1.2935408,-47.9245897,brasil_aberto,True
+PA,1502400,Castanhal,Santa Lídia,santa lidia,-1.2986775,-47.9109193,brasil_aberto,True
+PA,1502400,Castanhal,Santa Terezinha,santa terezinha,-1.3158392,-47.89492,brasil_aberto,True
+PA,1502400,Castanhal,Saudade I,saudade i,-1.3005156,-47.9391371,brasil_aberto,True
+PA,1502400,Castanhal,Saudade II,saudade ii,-1.3052352,-47.9292228,brasil_aberto,True
+PA,1502400,Castanhal,São José,sao jose,-1.2776084,-47.9142336,brasil_aberto,True
+PA,1502400,Castanhal,Titanlândia,titanlandia,-1.2957404,-47.9691713,brasil_aberto,True
+PA,1502400,Castanhal,Área Rural de Castanhal,area rural de castanhal,-1.2935408,-47.9245897,brasil_aberto,True
+PA,1502509,Chaves,Centro,centro,-0.1639816,-49.9833628,brasil_aberto,True
+PA,1502509,Chaves,São Sebastião de Viçosa,sao sebastiao de vicosa,0.5752122,-50.1201961,brasil_aberto,True
+PA,1502608,Colares,Centro,centro,-0.9310419999999998,-48.28624260000001,brasil_aberto,True
+PA,1502707,Conceição do Araguaia,Centro,centro,-8.2633766,-49.2639347,brasil_aberto,True
+PA,1502756,Concórdia do Pará,Centro,centro,-1.9996198,-47.9480546,brasil_aberto,True
+PA,1502764,Cumaru do Norte,Centro,centro,-7.8120197,-50.764917,brasil_aberto,True
+PA,1502772,Curionópolis,Centro,centro,-6.0994913,-49.6055321,brasil_aberto,True
+PA,1502806,Curralinho,Marambaia,marambaia,-1.8119459,-49.7977157,brasil_aberto,True
+PA,1502806,Curralinho,Piriá,piria,-1.5856668,-50.1009527,brasil_aberto,True
+PA,1502806,Curralinho,Vila Piriá,vila piria,-1.679463,-50.039615,brasil_aberto,True
+PA,1502855,Curuá,Centro,centro,-1.8946834,-55.11730300000001,brasil_aberto,True
+PA,1502905,Curuçá,Araquaim,araquaim,-0.7160548,-47.7657079,brasil_aberto,True
+PA,1502905,Curuçá,Boa Vista do Iririteua,boa vista do iririteua,-0.7824715999999999,-47.8348602,brasil_aberto,True
+PA,1502905,Curuçá,Centro,centro,-0.7307876999999999,-47.8495702,brasil_aberto,True
+PA,1502905,Curuçá,Lauro Sodré,lauro sodre,-0.8846451999999999,-47.8624914,brasil_aberto,True
+PA,1502905,Curuçá,Murajá,muraja,-0.7854316,-47.9478055,brasil_aberto,True
+PA,1502905,Curuçá,Mutucal,mutucal,-0.6838766,-47.9384312,brasil_aberto,True
+PA,1502905,Curuçá,Nazaré de Mocajuba,nazare de mocajuba,-0.7333584999999999,-47.8536959,brasil_aberto,True
+PA,1502905,Curuçá,Ponta de Ramos,ponta de ramos,-0.7400369,-47.8158462,brasil_aberto,True
+PA,1502905,Curuçá,Vista Alegre,vista alegre,-0.7333584999999999,-47.8536893,brasil_aberto,True
+PA,1502939,Dom Eliseu,Centro,centro,,,brasil_aberto,True
+PA,1502954,Eldorado do Carajás,Centro,centro,-6.0957158,-49.420877,brasil_aberto,True
+PA,1503002,Faro,Centro,centro,-2.17198372,-56.74604416,brasil_aberto,True
+PA,1503044,Floresta do Araguaia,Bela Vista,bela vista,-7.491238099999999,-49.3851065,brasil_aberto,True
+PA,1503044,Floresta do Araguaia,Centro,centro,-7.5625211,-49.7054194,brasil_aberto,True
+PA,1503077,Garrafão do Norte,Centro,centro,-1.9332981,-47.052806,brasil_aberto,True
+PA,1503093,Goianésia do Pará,Centro,centro,-3.8410294,-49.1009791,brasil_aberto,True
+PA,1503093,Goianésia do Pará,Janari,janari,-4.13551,-49.41737,brasil_aberto,True
+PA,1503093,Goianésia do Pará,Nossa Senhora Aparecida,nossa senhora aparecida,-3.5553971,-49.0254106,brasil_aberto,True
+PA,1503101,Gurupá,Carrazedo,carrazedo,-1.6261875,-51.8676438,brasil_aberto,True
+PA,1503101,Gurupá,Centro,centro,-1.40333223,-51.64332962,brasil_aberto,True
+PA,1503101,Gurupá,Itatupã,itatupa,-0.6691424,-51.5025196,brasil_aberto,True
+PA,1503200,Igarapé-Açu,Caripi,caripi,-1.0926607,-47.4882762,brasil_aberto,True
+PA,1503200,Igarapé-Açu,Centro,centro,-1.1281959,-47.6218201,brasil_aberto,True
+PA,1503309,Igarapé-Miri,Centro,centro,-1.9840635,-48.9612109,brasil_aberto,True
+PA,1503309,Igarapé-Miri,Maiauata,maiauata,-1.8515192,-49.016751,brasil_aberto,True
+PA,1503309,Igarapé-Miri,Menino Deus do Anapu,menino deus do anapu,-1.9292808,-49.1421688,brasil_aberto,True
+PA,1503309,Igarapé-Miri,Meruú,meruu,-2.076058176041834,-49.08194131357372,brasil_aberto,True
+PA,1503408,Inhangapi,Centro,centro,-1.431258,-47.9091154,brasil_aberto,True
+PA,1503408,Inhangapi,Jandiaí,jandiai,-1.431258,-47.9091154,brasil_aberto,True
+PA,1503408,Inhangapi,Zona Rural,zona rural,,,brasil_aberto,True
+PA,1503457,Ipixuna do Pará,Centro,centro,-2.5597689,-47.4983241,brasil_aberto,True
+PA,1503507,Irituia,Centro,centro,-1.7699313,-47.43839269999999,brasil_aberto,True
+PA,1503606,Itaituba,Aeroporto Velho,aeroporto velho,-4.2469519,-56.0080803,brasil_aberto,True
+PA,1503606,Itaituba,Alvorada,alvorada,-4.2629614,-55.9886674,brasil_aberto,True
+PA,1503606,Itaituba,Aruri,aruri,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503606,Itaituba,Barreiras,barreiras,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503606,Itaituba,Bela Vista,bela vista,-4.2611264,-55.9914984,brasil_aberto,True
+PA,1503606,Itaituba,Bela Vista do Caracol,bela vista do caracol,-5.0187,-56.1870432,brasil_aberto,True
+PA,1503606,Itaituba,Boa Esperança,boa esperanca,-4.2764742,-55.9879894,brasil_aberto,True
+PA,1503606,Itaituba,Bom Jardim,bom jardim,-4.2800394,-56.0003863,brasil_aberto,True
+PA,1503606,Itaituba,Comércio,comercio,-4.2714467,-55.9852419,brasil_aberto,True
+PA,1503606,Itaituba,Cripurizinho,cripurizinho,-6.8364708,-56.58341670000001,brasil_aberto,True
+PA,1503606,Itaituba,Cripurizão,cripurizao,-6.819964199999999,-56.8465724,brasil_aberto,True
+PA,1503606,Itaituba,Cuiú-Cuiú,cuiu-cuiu,-5.9955146,-56.5802712,brasil_aberto,True
+PA,1503606,Itaituba,Da Paz,da paz,-4.2554813,-56.009037,brasil_aberto,True
+PA,1503606,Itaituba,Do Bom Remédio,do bom remedio,-4.2530463,-55.9900383,brasil_aberto,True
+PA,1503606,Itaituba,Floresta,floresta,-4.2634015,-56.0002756,brasil_aberto,True
+PA,1503606,Itaituba,Jamanxinzinho,jamanxinzinho,-4.985544453923638,-56.23177661366008,brasil_aberto,True
+PA,1503606,Itaituba,Jardim Aeroporto,jardim aeroporto,-4.2438312,-55.9954294,brasil_aberto,True
+PA,1503606,Itaituba,Jardim América,jardim america,-4.2388466,-56.0157262,brasil_aberto,True
+PA,1503606,Itaituba,Jardim das Araras,jardim das araras,-4.2437739,-55.9812812,brasil_aberto,True
+PA,1503606,Itaituba,Liberdade,liberdade,-4.2637857,-55.9994368,brasil_aberto,True
+PA,1503606,Itaituba,Maria Magdalena,maria magdalena,-4.2259383,-56.0046315,brasil_aberto,True
+PA,1503606,Itaituba,Mesquitas,mesquitas,-4.2437739,-55.9812812,brasil_aberto,True
+PA,1503606,Itaituba,Miritituba,miritituba,-4.2969018,-55.9599543,brasil_aberto,True
+PA,1503606,Itaituba,Moraes Almeida,moraes almeida,-6.2217296,-55.6268606,brasil_aberto,True
+PA,1503606,Itaituba,Nossa Senhora do Perpétuo Socorro,nossa senhora do perpetuo socorro,-4.2718861,-55.9858485,brasil_aberto,True
+PA,1503606,Itaituba,Nova Itaituba,nova itaituba,-4.2550852,-55.9977377,brasil_aberto,True
+PA,1503606,Itaituba,Núcleo Urbano Quilômetro 30,nucleo urbano quilometro 30,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503606,Itaituba,Piracanã,piracana,-4.24547195,-55.99515152,brasil_aberto,True
+PA,1503606,Itaituba,Riozinho,riozinho,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503606,Itaituba,São Francisco,sao francisco,-4.2587,-55.9986682,brasil_aberto,True
+PA,1503606,Itaituba,São Luiz do Tapajós,sao luiz do tapajos,-4.460105599999999,-56.2499662,brasil_aberto,True
+PA,1503606,Itaituba,Vila Isol,vila isol,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503606,Itaituba,Vila Planalto,vila planalto,-5.2003756,-56.0409427,brasil_aberto,True
+PA,1503606,Itaituba,Viva Itaituba,viva itaituba,-4.2535444,-56.0205061,brasil_aberto,True
+PA,1503606,Itaituba,Área Rural de Itaituba,area rural de itaituba,-4.2647341,-55.991954,brasil_aberto,True
+PA,1503705,Itupiranga,Castelo Branco,castelo branco,-5.149171,-49.385815,brasil_aberto,True
+PA,1503705,Itupiranga,Itupiranga,itupiranga,-5.1346698,-49.3262989,brasil_aberto,True
+PA,1503705,Itupiranga,Vila Cajazeiras,vila cajazeiras,-4.9656678,-49.4486925,brasil_aberto,True
+PA,1503705,Itupiranga,Vila São Sebastião,vila sao sebastiao,-5.1106311,-49.9834154,brasil_aberto,True
+PA,1503754,Jacareacanga,Central,central,-6.2215775,-57.75871,brasil_aberto,True
+PA,1503804,Jacundá,Centro,centro,-4.4477137,-49.1163739,brasil_aberto,True
+PA,1503903,Juruti,Castanhal,castanhal,-2.252118,-55.778306,brasil_aberto,True
+PA,1503903,Juruti,Centro,centro,-2.15258026,-56.09425735,brasil_aberto,True
+PA,1503903,Juruti,Muirapinima,muirapinima,-2.1572338,-56.0888358,brasil_aberto,True
+PA,1503903,Juruti,Tabatinga,tabatinga,-2.252118,-55.778306,brasil_aberto,True
+PA,1504000,Limoeiro do Ajuru,Matinha,matinha,-1.89508,-49.3805239,brasil_aberto,True
+PA,1504109,Magalhães Barata,Cafezal,cafezal,-0.7547185,-47.67026140000001,brasil_aberto,True
+PA,1504109,Magalhães Barata,Centro,centro,-0.800215,-47.6008215,brasil_aberto,True
+PA,1504208,Marabá,Amapá,amapa,-5.3621476,-49.1211165,brasil_aberto,True
+PA,1504208,Marabá,Belo Horizonte,belo horizonte,-5.361208299999999,-49.10697709999999,brasil_aberto,True
+PA,1504208,Marabá,Bom Planalto,bom planalto,-5.3798175,-49.1274235,brasil_aberto,True
+PA,1504208,Marabá,Brejo do Meio,brejo do meio,-5.4252571,-49.2711452,brasil_aberto,True
+PA,1504208,Marabá,Cidade Nova,cidade nova,-5.3745131,-49.1241569,brasil_aberto,True
+PA,1504208,Marabá,Independência,independencia,-5.3973434,-49.1356129,brasil_aberto,True
+PA,1504208,Marabá,Jardim União,jardim uniao,-5.3861563,-49.1429008,brasil_aberto,True
+PA,1504208,Marabá,Jardim Vitória,jardim vitoria,-5.3786447,-49.1361557,brasil_aberto,True
+PA,1504208,Marabá,Laranjeira,laranjeira,-5.3860693,-49.1304497,brasil_aberto,True
+PA,1504208,Marabá,Liberdade,liberdade,-5.3872053,-49.1348144,brasil_aberto,True
+PA,1504208,Marabá,Loteamento Novo Progresso,loteamento novo progresso,-5.3671133,-49.1230982,brasil_aberto,True
+PA,1504208,Marabá,Mirante do Vale,mirante do vale,-5.3759385,-49.164039,brasil_aberto,True
+PA,1504208,Marabá,Morada Nova,morada nova,-5.2119132,-49.0448825,brasil_aberto,True
+PA,1504208,Marabá,Murumuru,murumuru,-5.162408699999999,-49.0857181,brasil_aberto,True
+PA,1504208,Marabá,Nova Marabá,nova maraba,-5.3523862,-49.0797091,brasil_aberto,True
+PA,1504208,Marabá,Novo Horizonte,novo horizonte,-5.3653451,-49.118678,brasil_aberto,True
+PA,1504208,Marabá,Paratins,paratins,-5.3671244,-49.1230973,brasil_aberto,True
+PA,1504208,Marabá,Serra Pelada,serra pelada,-5.2077022,-49.0425289,brasil_aberto,True
+PA,1504208,Marabá,São Félix I,sao felix i,-5.2950431,-49.0713814,brasil_aberto,True
+PA,1504208,Marabá,São Félix II,sao felix ii,-5.294790300000001,-49.0690842,brasil_aberto,True
+PA,1504208,Marabá,São Félix III,sao felix iii,-5.2765591,-49.0712543,brasil_aberto,True
+PA,1504208,Marabá,São Félix Pioneiro,sao felix pioneiro,-5.3581896,-49.1294439,brasil_aberto,True
+PA,1504208,Marabá,São João,sao joao,-5.3765385,-49.1146198,brasil_aberto,True
+PA,1504208,Marabá,Vale do Aeroporto,vale do aeroporto,-5.3821351,-49.131621,brasil_aberto,True
+PA,1504208,Marabá,Velha Marabá,velha maraba,-5.3534882,-49.1383456,brasil_aberto,True
+PA,1504208,Marabá,Vila Santa Fé,vila santa fe,-5.4335622,-49.66616440000001,brasil_aberto,True
+PA,1504208,Marabá,Vila São José,vila sao jose,-5.3669087,-49.1848138,brasil_aberto,True
+PA,1504208,Marabá,Área Rural de Marabá,area rural de maraba,-5.3671244,-49.1230973,brasil_aberto,True
+PA,1504307,Maracanã,Algodoal,algodoal,-0.5917846,-47.5865701,brasil_aberto,True
+PA,1504307,Maracanã,Boa Esperança,boa esperanca,-0.7036692999999999,-47.5403344,brasil_aberto,True
+PA,1504307,Maracanã,Bom Jardim,bom jardim,-6.207102,-52.70279559999999,brasil_aberto,True
+PA,1504307,Maracanã,Centro,centro,-0.7659445,-47.456145,brasil_aberto,True
+PA,1504307,Maracanã,Km 19,km 19,-1.5615224,-53.8165985,brasil_aberto,True
+PA,1504307,Maracanã,Km 26,km 26,-0.9215226000000001,-47.4856225,brasil_aberto,True
+PA,1504307,Maracanã,Santa Maria,santa maria,-0.7647665,-47.4529039,brasil_aberto,True
+PA,1504307,Maracanã,São Roberto,sao roberto,-0.8695257,-47.4965597,brasil_aberto,True
+PA,1504307,Maracanã,Tatuteua,tatuteua,-0.708109,-47.4218215,brasil_aberto,True
+PA,1504406,Marapanim,Centro,centro,-0.7168191,-47.6988125,brasil_aberto,True
+PA,1504406,Marapanim,Marudá,maruda,-0.6262915,-47.6363188,brasil_aberto,True
+PA,1504406,Marapanim,Matapiquara,matapiquara,-0.9433604,-47.6458549,brasil_aberto,True
+PA,1504406,Marapanim,Monte Alegre do Mau,monte alegre do mau,-0.8859513,-47.8014495,brasil_aberto,True
+PA,1504406,Marapanim,Vila Mauaense,vila mauaense,,,brasil_aberto,True
+PA,1504406,Marapanim,Vista Alegre do Pará,vista alegre do para,-0.6475867,-47.7129787,brasil_aberto,True
+PA,1504422,Marituba,Almir Grabriel,almir grabriel,,,brasil_aberto,True
+PA,1504422,Marituba,Bela Vista,bela vista,-1.359062,-48.3115531,brasil_aberto,True
+PA,1504422,Marituba,Boa Vista,boa vista,-1.3697419,-48.3427034,brasil_aberto,True
+PA,1504422,Marituba,Canaã,canaa,-1.3523136,-48.3107127,brasil_aberto,True
+PA,1504422,Marituba,Centro,centro,-1.3656112,-48.3437125,brasil_aberto,True
+PA,1504422,Marituba,Decouville,decouville,-1.3682178,-48.3334474,brasil_aberto,True
+PA,1504422,Marituba,Dom Aristides,dom aristides,-1.3573911,-48.3466482,brasil_aberto,True
+PA,1504422,Marituba,Mirizal,mirizal,-1.3716677,-48.3361719,brasil_aberto,True
+PA,1504422,Marituba,Nova Marituba,nova marituba,-1.3695074,-48.322747,brasil_aberto,True
+PA,1504422,Marituba,Novo,novo,-1.3572277,-48.340619,brasil_aberto,True
+PA,1504422,Marituba,Novo Horizonte,novo horizonte,-1.3588333,-48.3291689,brasil_aberto,True
+PA,1504422,Marituba,Pedreirinha,pedreirinha,-1.3808268,-48.3322736,brasil_aberto,True
+PA,1504422,Marituba,Riacho Doce,riacho doce,-1.36205,-48.3405486,brasil_aberto,True
+PA,1504422,Marituba,Santa Clara,santa clara,-1.3914802,-48.3132981,brasil_aberto,True
+PA,1504422,Marituba,Santa Lúcia,santa lucia,-1.36205,-48.3405486,brasil_aberto,True
+PA,1504422,Marituba,São Francisco,sao francisco,-1.3736851,-48.333698,brasil_aberto,True
+PA,1504422,Marituba,São José,sao jose,-1.3621609,-48.3481374,brasil_aberto,True
+PA,1504422,Marituba,São João,sao joao,-1.3898461,-48.359099,brasil_aberto,True
+PA,1504422,Marituba,União,uniao,-1.3578709,-48.336106,brasil_aberto,True
+PA,1504422,Marituba,Uriboca,uriboca,-1.3726021,-48.3560106,brasil_aberto,True
+PA,1504455,Medicilândia,Centro,centro,-3.4459388,-52.8905782,brasil_aberto,True
+PA,1504455,Medicilândia,Medicilândia,medicilandia,-3.1444798,-53.0109905,brasil_aberto,True
+PA,1504455,Medicilândia,União da Floresta,uniao da floresta,-3.4986803,-53.0923962,brasil_aberto,True
+PA,1504455,Medicilândia,Vila de Jarbas Passarinho,vila de jarbas passarinho,,,brasil_aberto,True
+PA,1504505,Melgaço,Areias,areias,-1.2140379,-51.2613435,brasil_aberto,True
+PA,1504505,Melgaço,Centro,centro,-1.8078141,-50.7160047,brasil_aberto,True
+PA,1504604,Mocajuba,Centro,centro,-2.58182,-49.506556,brasil_aberto,True
+PA,1504604,Mocajuba,Manjeiro,manjeiro,-2.5813143,-49.5054691,brasil_aberto,True
+PA,1504604,Mocajuba,São Pedro de Viseu,sao pedro de viseu,-2.5361273,-49.5551366,brasil_aberto,True
+PA,1504703,Moju,Cairari,cairari,-2.5190289,-49.0367391,brasil_aberto,True
+PA,1504703,Moju,Centro,centro,-1.8845907,-48.7658677,brasil_aberto,True
+PA,1504752,Mojuí dos Campos,Centro,centro,-2.68408298,-54.64345169,brasil_aberto,True
+PA,1504802,Monte Alegre,Serra Oriental,serra oriental,-2.00069547,-54.06877518,brasil_aberto,True
+PA,1504901,Muaná,Centro,centro,-1.5349003,-49.228669,brasil_aberto,True
+PA,1504901,Muaná,São Francisco da Jararaca,sao francisco da jararaca,-1.6766543,-49.3752945,brasil_aberto,True
+PA,1504901,Muaná,São Miguel de Pracuuba,sao miguel de pracuuba,,,brasil_aberto,True
+PA,1504059,Mãe do Rio,Centro,centro,,,brasil_aberto,True
+PA,1504950,Nova Esperança do Piriá,Centro,centro,-2.2678256,-46.9671136,brasil_aberto,True
+PA,1504976,Nova Ipixuna,Centro,centro,-4.9166036,-49.0826237,brasil_aberto,True
+PA,1505007,Nova Timboteua,Centro,centro,-1.2051869,-47.3871863,brasil_aberto,True
+PA,1505007,Nova Timboteua,Timboteua,timboteua,-1.0352219,-47.3520097,brasil_aberto,True
+PA,1505031,Novo Progresso,Centro,centro,,,brasil_aberto,True
+PA,1505031,Novo Progresso,Santa Luzia,santa luzia,-7.041112999999999,-55.4130546,brasil_aberto,True
+PA,1505064,Novo Repartimento,Belo Monte,belo monte,-4.2487392,-49.9492702,brasil_aberto,True
+PA,1505064,Novo Repartimento,Espigão,espigao,,,brasil_aberto,True
+PA,1505064,Novo Repartimento,Uirapuru,uirapuru,-4.2466428,-49.9510889,brasil_aberto,True
+PA,1505205,Oeiras do Pará,Centro,centro,-2.00067091,-49.85554886,brasil_aberto,True
+PA,1505304,Oriximiná,Centro,centro,-1.7646835,-55.8690726,brasil_aberto,True
+PA,1505304,Oriximiná,Porto Trombetas,porto trombetas,-1.467135,-56.3773109,brasil_aberto,True
+PA,1505437,Ourilândia do Norte,Gradaus,gradaus,-6.754407,-51.0679508,brasil_aberto,True
+PA,1505437,Ourilândia do Norte,Novo Horizonte,novo horizonte,-6.7550815,-51.070508,brasil_aberto,True
+PA,1505403,Ourém,Centro,centro,-1.5490148,-47.1159666,brasil_aberto,True
+PA,1505403,Ourém,Tentugal,tentugal,-1.5489828,-47.1166486,brasil_aberto,True
+PA,1505486,Pacajá,Centro,centro,-3.83628654,-50.63607025,brasil_aberto,True
+PA,1505486,Pacajá,Nazaré,nazare,-3.5595437,-51.0914985,brasil_aberto,True
+PA,1505486,Pacajá,Vila de Bom Jardim,vila de bom jardim,,,brasil_aberto,True
+PA,1505494,Palestina do Pará,Centro,centro,-5.7475808,-48.3174277,brasil_aberto,True
+PA,1505502,Paragominas,Andradina,andradina,-2.9913123,-47.3538521,brasil_aberto,True
+PA,1505502,Paragominas,Angelim,angelim,-2.9884266,-47.3594766,brasil_aberto,True
+PA,1505502,Paragominas,Aragão,aragao,-2.9913123,-47.3538521,brasil_aberto,True
+PA,1505502,Paragominas,Arco-Íris,arco-iris,-2.9910375,-47.35817,brasil_aberto,True
+PA,1505502,Paragominas,Camboatã,camboata,-3.0002454,-47.35022,brasil_aberto,True
+PA,1505502,Paragominas,Conceição,conceicao,-3.0077757,-47.3694926,brasil_aberto,True
+PA,1505502,Paragominas,Célio Miranda,celio miranda,-3.0036722,-47.3562504,brasil_aberto,True
+PA,1505502,Paragominas,Gurupizinho,gurupizinho,-3.659666369262272,-47.35214597866366,brasil_aberto,True
+PA,1505502,Paragominas,Industrial,industrial,,,brasil_aberto,True
+PA,1505502,Paragominas,Jardim Atlântico,jardim atlantico,-3.0128514,-47.3584185,brasil_aberto,True
+PA,1505502,Paragominas,Jardim Camboatã II,jardim camboata ii,-3.014024,-47.3513851,brasil_aberto,True
+PA,1505502,Paragominas,Juparanã,juparana,-2.8671165,-48.17040679999999,brasil_aberto,True
+PA,1505502,Paragominas,Laércio Cabeline,laercio cabeline,-3.0132339,-47.3565833,brasil_aberto,True
+PA,1505502,Paragominas,Ligação do Pará,ligacao do para,-4.1194095,-47.5477239,brasil_aberto,True
+PA,1505502,Paragominas,Módulo II,modulo ii,-3.0037501,-47.3519427,brasil_aberto,True
+PA,1505502,Paragominas,Nagibão,nagibao,-3.0299804,-47.4606087,brasil_aberto,True
+PA,1505502,Paragominas,Nova Conquista,nova conquista,-3.0025017,-47.35313679999999,brasil_aberto,True
+PA,1505502,Paragominas,Paraíso,paraiso,-3.0088876,-47.3498478,brasil_aberto,True
+PA,1505502,Paragominas,Presidente Juscelino,presidente juscelino,,,brasil_aberto,True
+PA,1505502,Paragominas,Promissão,promissao,-2.9866988,-47.3489362,brasil_aberto,True
+PA,1505502,Paragominas,Promissão III,promissao iii,-2.9850727,-47.3572813,brasil_aberto,True
+PA,1505502,Paragominas,Promissão IV,promissao iv,-2.9881499,-47.3536099,brasil_aberto,True
+PA,1505502,Paragominas,São João do Piriá,sao joao do piria,-3.3647228,-47.2566595,brasil_aberto,True
+PA,1505502,Paragominas,Tião Mineiro,tiao mineiro,-2.9928548,-47.3464124,brasil_aberto,True
+PA,1505502,Paragominas,Trecho Seco,trecho seco,-3.0080805,-47.357195,brasil_aberto,True
+PA,1505502,Paragominas,Tropical,tropical,-2.9809193,-47.3378255,brasil_aberto,True
+PA,1505502,Paragominas,Uraim,uraim,-2.9943423,-47.3604296,brasil_aberto,True
+PA,1505502,Paragominas,Vila Rica,vila rica,-3.0122358,-47.3560567,brasil_aberto,True
+PA,1505502,Paragominas,Área Rural de Paragominas,area rural de paragominas,-2.9913123,-47.3538521,brasil_aberto,True
+PA,1505536,Parauapebas,Beira Rio II,beira rio ii,-6.0760828,-49.8850357,brasil_aberto,True
+PA,1505536,Parauapebas,Carajás,carajas,-6.069709899999999,-50.066841,brasil_aberto,True
+PA,1505536,Parauapebas,Cidade Nova,cidade nova,-6.0657382,-49.906377,brasil_aberto,True
+PA,1505536,Parauapebas,Rio Verde,rio verde,-6.0771782,-49.8943249,brasil_aberto,True
+PA,1505536,Parauapebas,Vila da Paz,vila da paz,,,brasil_aberto,True
+PA,1505551,Pau D'Arco,Centro,centro,-7.8336462,-50.0456632,brasil_aberto,True
+PA,1505601,Peixe-Boi,Centro,centro,-1.19154692,-47.31214142,brasil_aberto,True
+PA,1505601,Peixe-Boi,Tauarizinho,tauarizinho,-1.0713153,-47.2797091,brasil_aberto,True
+PA,1505635,Piçarra,Centro,centro,-6.4494339,-48.86598009999999,brasil_aberto,True
+PA,1505650,Placas,Centro,centro,-3.8699469,-54.2196764,brasil_aberto,True
+PA,1505700,Ponta de Pedras,Centro,centro,-1.3950601,-48.8716363,brasil_aberto,True
+PA,1505700,Ponta de Pedras,Muta,muta,-1.3910321,-48.8706971,brasil_aberto,True
+PA,1505809,Portel,Centro,centro,-1.9412651,-50.8126002,brasil_aberto,True
+PA,1505809,Portel,São João do Acangata,sao joao do acangata,-2.37183084086826,-50.62753230092166,brasil_aberto,True
+PA,1505908,Porto de Moz,Centro,centro,-1.7541125,-52.2384669,brasil_aberto,True
+PA,1505908,Porto de Moz,Veiros,veiros,-2.4355383,-52.1420907,brasil_aberto,True
+PA,1505908,Porto de Moz,Vilarinho do Monte,vilarinho do monte,-1.6065982,-51.9976874,brasil_aberto,True
+PA,1506005,Prainha,Centro,centro,-2.4303926,-54.7129422,brasil_aberto,True
+PA,1506005,Prainha,Pacoval,pacoval,-2.4525742,-54.099078,brasil_aberto,True
+PA,1506104,Primavera,Centro,centro,-0.9479596,-47.12561035,brasil_aberto,True
+PA,1506104,Primavera,Japerica,japerica,-0.8399777,-47.0999722,brasil_aberto,True
+PA,1506112,Quatipuru,Centro,centro,-0.8986590999999999,-47.0052808,brasil_aberto,True
+PA,1506112,Quatipuru,Quatipuru,quatipuru,-0.9333846,-47.0362752,brasil_aberto,True
+PA,1506138,Redenção,Ademar Guimarães,ademar guimaraes,-8.0318277,-50.0460738,brasil_aberto,True
+PA,1506138,Redenção,Alto Paraná,alto parana,-8.0373311,-50.011066,brasil_aberto,True
+PA,1506138,Redenção,Aripuana,aripuana,-8.0508819,-50.043153,brasil_aberto,True
+PA,1506138,Redenção,Bela Vista,bela vista,-8.0159526,-50.0290262,brasil_aberto,True
+PA,1506138,Redenção,Boa Sorte,boa sorte,-8.042764,-50.0253413,brasil_aberto,True
+PA,1506138,Redenção,Campos Altos,campos altos,-19.6968881,-46.1704974,brasil_aberto,True
+PA,1506138,Redenção,Capuava,capuava,-8.0482215,-50.0336307,brasil_aberto,True
+PA,1506138,Redenção,Casas Populares,casas populares,-8.046757,-50.0096751,brasil_aberto,True
+PA,1506138,Redenção,Frigorífico,frigorifico,-8.0621132,-50.0244126,brasil_aberto,True
+PA,1506138,Redenção,Independência,independencia,-8.0314648,-50.0426196,brasil_aberto,True
+PA,1506138,Redenção,Jardim América,jardim america,-8.0510464,-50.0134626,brasil_aberto,True
+PA,1506138,Redenção,Jardim Ariane,jardim ariane,-8.0406484,-50.0016845,brasil_aberto,True
+PA,1506138,Redenção,Jardim Cumaru,jardim cumaru,-8.0422924,-50.0161988,brasil_aberto,True
+PA,1506138,Redenção,Jardim Lucena,jardim lucena,-8.0403343,-50.001509,brasil_aberto,True
+PA,1506138,Redenção,Jardim Umuarama,jardim umuarama,-8.0353467,-50.0310327,brasil_aberto,True
+PA,1506138,Redenção,Loteamento Tropical,loteamento tropical,-8.0433986,-49.9986123,brasil_aberto,True
+PA,1506138,Redenção,Marajoara,marajoara,-8.025725099999999,-50.0321353,brasil_aberto,True
+PA,1506138,Redenção,Marechal Rondon,marechal rondon,-8.0256746,-50.0357678,brasil_aberto,True
+PA,1506138,Redenção,Mata Geral,mata geral,-7.922627399999999,-50.4195589,brasil_aberto,True
+PA,1506138,Redenção,Morada da Paz,morada da paz,-8.0294092,-50.0318524,brasil_aberto,True
+PA,1506138,Redenção,Novo Horizonte,novo horizonte,-8.048495299999999,-50.0226154,brasil_aberto,True
+PA,1506138,Redenção,Novo Planalto,novo planalto,-8.0459182,-50.038018,brasil_aberto,True
+PA,1506138,Redenção,Núcleo Urbano,nucleo urbano,-8.0260233,-50.0264657,brasil_aberto,True
+PA,1506138,Redenção,Osvaldilândia,osvaldilandia,-8.025725099999999,-50.0321353,brasil_aberto,True
+PA,1506138,Redenção,Park dos Buritis,park dos buritis,-3.7887941,-49.6739887,brasil_aberto,True
+PA,1506138,Redenção,Park dos Buritis II,park dos buritis ii,-8.0228404,-50.0447746,brasil_aberto,True
+PA,1506138,Redenção,Park dos Burutis III,park dos burutis iii,-3.7887941,-49.6739887,brasil_aberto,True
+PA,1506138,Redenção,Planalto,planalto,-8.0491787,-50.0424477,brasil_aberto,True
+PA,1506138,Redenção,Residencial Ipê,residencial ipe,-8.0096513,-50.0456459,brasil_aberto,True
+PA,1506138,Redenção,Santo Antônio,santo antonio,-8.0383755,-50.032947,brasil_aberto,True
+PA,1506138,Redenção,Santos Dumont,santos dumont,-8.0498106,-50.0164819,brasil_aberto,True
+PA,1506138,Redenção,Serrinha,serrinha,-8.0268768,-50.0203224,brasil_aberto,True
+PA,1506138,Redenção,Setor Oeste,setor oeste,-8.02962,-50.0334049,brasil_aberto,True
+PA,1506138,Redenção,São José,sao jose,-8.02004,-50.0248365,brasil_aberto,True
+PA,1506138,Redenção,Vale da Serra,vale da serra,-8.0489741,-50.0149687,brasil_aberto,True
+PA,1506138,Redenção,Vila Amorim,vila amorim,-8.0295172,-50.0091714,brasil_aberto,True
+PA,1506138,Redenção,Vila Feliz,vila feliz,-8.0505639,-50.034464,brasil_aberto,True
+PA,1506138,Redenção,Vila Paulista,vila paulista,-8.0362804,-50.0315053,brasil_aberto,True
+PA,1506138,Redenção,Viviane,viviane,-8.025725099999999,-50.0321353,brasil_aberto,True
+PA,1506138,Redenção,Área Rural de Redenção,area rural de redencao,-8.0294092,-50.0318524,brasil_aberto,True
+PA,1506138,Redenção,Átila Douglas,atila douglas,-8.0525928,-50.0334456,brasil_aberto,True
+PA,1506161,Rio Maria,Centro,centro,-7.313597299999999,-50.0460309,brasil_aberto,True
+PA,1506187,Rondon do Pará,Centro,centro,-4.7789765,-48.0671764,brasil_aberto,True
+PA,1506195,Rurópolis,Centro,centro,-4.0962801,-54.906228,brasil_aberto,True
+PA,1506195,Rurópolis,Vila de Divinópolis,vila de divinopolis,,,brasil_aberto,True
+PA,1506203,Salinópolis,Centro,centro,-0.6156370999999999,-47.3590471,brasil_aberto,True
+PA,1506203,Salinópolis,Zona Rural,zona rural,,,brasil_aberto,True
+PA,1506302,Salvaterra,Centro,centro,-0.7560534999999999,-48.5151709,brasil_aberto,True
+PA,1506302,Salvaterra,Condeixa,condeixa,-0.8980355,-48.6006368,brasil_aberto,True
+PA,1506302,Salvaterra,Joanes,joanes,-0.8790091,-48.5096585,brasil_aberto,True
+PA,1506302,Salvaterra,Jubim,jubim,-0.8045834,-48.5398794,brasil_aberto,True
+PA,1506302,Salvaterra,Monsaras,monsaras,-0.9363570000000001,-48.5692155,brasil_aberto,True
+PA,1506351,Santa Bárbara do Pará,Centro,centro,-1.2341376,-48.2864134,brasil_aberto,True
+PA,1506401,Santa Cruz do Arari,Centro,centro,-0.6596765,-49.1725923,brasil_aberto,True
+PA,1506500,Santa Izabel do Pará,Americano,americano,-1.267807,-48.0833186,brasil_aberto,True
+PA,1506500,Santa Izabel do Pará,Caraparu,caraparu,-1.3718743,-48.1536177,brasil_aberto,True
+PA,1506500,Santa Izabel do Pará,Centro,centro,-1.2988907,-48.1624508,brasil_aberto,True
+PA,1506559,Santa Luzia do Pará,Centro,centro,-1.51998854,-46.89837265,brasil_aberto,True
+PA,1506583,Santa Maria das Barreiras,Barreira Branca,barreira branca,-8.728160599999999,-50.0091408,brasil_aberto,True
+PA,1506583,Santa Maria das Barreiras,Casa de Tábua,casa de tabua,-8.7773038,-50.4695464,brasil_aberto,True
+PA,1506583,Santa Maria das Barreiras,Centro,centro,-8.87168407,-49.71222687,brasil_aberto,True
+PA,1506583,Santa Maria das Barreiras,Nova Esperança,nova esperanca,-8.5471342,-50.05705870000001,brasil_aberto,True
+PA,1506583,Santa Maria das Barreiras,São João Batista,sao joao batista,-8.5473026,-50.0581059,brasil_aberto,True
+PA,1506609,Santa Maria do Pará,Centro,centro,-1.3501218,-47.57546199999999,brasil_aberto,True
+PA,1506609,Santa Maria do Pará,Vila de São Paulo,vila de sao paulo,,,brasil_aberto,True
+PA,1506609,Santa Maria do Pará,Vila de Taciteua,vila de taciteua,,,brasil_aberto,True
+PA,1506708,Santana do Araguaia,Barreira dos Campos,barreira dos campos,-9.293605999999999,-50.04630849999999,brasil_aberto,True
+PA,1506708,Santana do Araguaia,Centro,centro,-9.336747599999999,-50.3409661,brasil_aberto,True
+PA,1506708,Santana do Araguaia,Vila Mandi,vila mandi,-9.6021223,-50.8817748,brasil_aberto,True
+PA,1506807,Santarém,Aeroporto Velho,aeroporto velho,-2.4475658,-54.7161362,brasil_aberto,True
+PA,1506807,Santarém,Agrópolis Bela Vista,agropolis bela vista,-2.4675783,-54.71622970000001,brasil_aberto,True
+PA,1506807,Santarém,Aldeia,aldeia,-2.4201324,-54.7191841,brasil_aberto,True
+PA,1506807,Santarém,Alta Pará,alta para,-2.4406918,-54.7136192,brasil_aberto,True
+PA,1506807,Santarém,Alter do Chão,alter do chao,-2.5081934,-54.9499775,brasil_aberto,True
+PA,1506807,Santarém,Alvorada,alvorada,-2.4540066,-54.7563283,brasil_aberto,True
+PA,1506807,Santarém,Amparo,amparo,-2.1349439,-54.7283158,brasil_aberto,True
+PA,1506807,Santarém,Aparecida,aparecida,-2.43488,-54.7249742,brasil_aberto,True
+PA,1506807,Santarém,Arapixuna,arapixuna,-2.2308122,-54.8491866,brasil_aberto,True
+PA,1506807,Santarém,Bela Vista,bela vista,-2.4783832,-54.7154345,brasil_aberto,True
+PA,1506807,Santarém,Boa Esperança,boa esperanca,-2.740018,-54.492587,brasil_aberto,True
+PA,1506807,Santarém,Boa Fé,boa fe,-2.4388528,-54.70007889999999,brasil_aberto,True
+PA,1506807,Santarém,Boim,boim,-2.9586117,-55.6689636,brasil_aberto,True
+PA,1506807,Santarém,Cambuquira,cambuquira,-2.4798959,-54.7343386,brasil_aberto,True
+PA,1506807,Santarém,Caranazal,caranazal,-2.4317348,-54.742766,brasil_aberto,True
+PA,1506807,Santarém,Centro,centro,-2.4171028,-54.7097744,brasil_aberto,True
+PA,1506807,Santarém,Cipoal,cipoal,-2.4804944,-54.7311184,brasil_aberto,True
+PA,1506807,Santarém,Conquista,conquista,-2.4505093,-54.7557594,brasil_aberto,True
+PA,1506807,Santarém,Curuaí,curuai,-2.2759215,-55.4776129,brasil_aberto,True
+PA,1506807,Santarém,Diamantino,diamantino,-2.4548153,-54.7069863,brasil_aberto,True
+PA,1506807,Santarém,Elcione Barbalho,elcione barbalho,-2.4432488,-54.7526588,brasil_aberto,True
+PA,1506807,Santarém,Esperança,esperanca,-2.4404394,-54.7283663,brasil_aberto,True
+PA,1506807,Santarém,Floresta,floresta,-2.4582357,-54.7218988,brasil_aberto,True
+PA,1506807,Santarém,Fátima,fatima,-2.4224567,-54.72729349999999,brasil_aberto,True
+PA,1506807,Santarém,Igarapé da Lama,igarape da lama,-2.4578219,-54.6981748,brasil_aberto,True
+PA,1506807,Santarém,Inanu,inanu,-2.4406918,-54.7136192,brasil_aberto,True
+PA,1506807,Santarém,Interventoria,interventoria,-2.4412234,-54.7060534,brasil_aberto,True
+PA,1506807,Santarém,Ipanema,ipanema,-2.4818068,-54.7236843,brasil_aberto,True
+PA,1506807,Santarém,Jardim Santarém,jardim santarem,-2.433012,-54.714294,brasil_aberto,True
+PA,1506807,Santarém,Jutaí,jutai,-2.4627192,-54.6975492,brasil_aberto,True
+PA,1506807,Santarém,Laguinho,laguinho,-2.4230539,-54.732022,brasil_aberto,True
+PA,1506807,Santarém,Liberdade,liberdade,-2.4276772,-54.7401397,brasil_aberto,True
+PA,1506807,Santarém,Livramento,livramento,-2.4407862,-54.697908,brasil_aberto,True
+PA,1506807,Santarém,Maicá,maica,-2.474719,-54.6798756,brasil_aberto,True
+PA,1506807,Santarém,Mapiri,mapiri,-2.4307443,-54.7440163,brasil_aberto,True
+PA,1506807,Santarém,Maracanã,maracana,-2.4408244,-54.7429719,brasil_aberto,True
+PA,1506807,Santarém,Maracanã I,maracana i,-2.4364843,-54.7542035,brasil_aberto,True
+PA,1506807,Santarém,Mararú,mararu,-2.4853258,-54.6819594,brasil_aberto,True
+PA,1506807,Santarém,Matinha,matinha,-2.457908,-54.7310319,brasil_aberto,True
+PA,1506807,Santarém,Nova República,nova republica,-2.4690287,-54.7139543,brasil_aberto,True
+PA,1506807,Santarém,Nova República II,nova republica ii,-2.4493572,-54.6850923,brasil_aberto,True
+PA,1506807,Santarém,Nova Vitória,nova vitoria,-2.4395707,-54.7502838,brasil_aberto,True
+PA,1506807,Santarém,Piraquara,piraquara,-2.2688308,-55.669629,brasil_aberto,True
+PA,1506807,Santarém,Prainha,prainha,-2.4225672,-54.7028797,brasil_aberto,True
+PA,1506807,Santarém,Pérola do Maicá,perola do maica,-2.4620635,-54.6778224,brasil_aberto,True
+PA,1506807,Santarém,Salvação,salvacao,-2.4593938,-54.759495,brasil_aberto,True
+PA,1506807,Santarém,Salé,sale,-2.4189207,-54.7388621,brasil_aberto,True
+PA,1506807,Santarém,Santa Clara,santa clara,-2.4306639,-54.7121254,brasil_aberto,True
+PA,1506807,Santarém,Santana,santana,-2.4353491,-54.6953053,brasil_aberto,True
+PA,1506807,Santarém,Santarenzinho,santarenzinho,-2.4493572,-54.6850923,brasil_aberto,True
+PA,1506807,Santarém,Santo André,santo andre,-2.4685444,-54.7100297,brasil_aberto,True
+PA,1506807,Santarém,Santíssimo,santissimo,-2.4329517,-54.7099923,brasil_aberto,True
+PA,1506807,Santarém,São Cristóvão,sao cristovao,-2.4550639,-54.7497296,brasil_aberto,True
+PA,1506807,Santarém,São Francisco,sao francisco,-2.46346,-54.7158077,brasil_aberto,True
+PA,1506807,Santarém,São Joaquim do Tapará,sao joaquim do tapara,-2.4377077,-54.7289049,brasil_aberto,True
+PA,1506807,Santarém,São Jorge,sao jorge,-2.4568616,-54.7454164,brasil_aberto,True
+PA,1506807,Santarém,São José Operário,sao jose operario,-2.4485433,-54.7005591,brasil_aberto,True
+PA,1506807,Santarém,Uruará,uruara,-2.4619194,-54.7541497,brasil_aberto,True
+PA,1506807,Santarém,Urumari,urumari,-2.4640875,-54.6974804,brasil_aberto,True
+PA,1506807,Santarém,Vigia,vigia,-2.4402203,-54.7044496,brasil_aberto,True
+PA,1506807,Santarém,Vila França,vila franca,-2.4406918,-54.7136192,brasil_aberto,True
+PA,1506807,Santarém,Vila Goreth,vila goreth,-2.4562588,-55.2444916,brasil_aberto,True
+PA,1506807,Santarém,Vila Planalto,vila planalto,-2.4439949,-54.7567662,brasil_aberto,True
+PA,1506807,Santarém,Vila Socorro,vila socorro,-2.4406918,-54.7136192,brasil_aberto,True
+PA,1506807,Santarém,Vitória Régia,vitoria regia,-2.4748514,-54.7152991,brasil_aberto,True
+PA,1506807,Santarém,Área Rural de Santarém,area rural de santarem,-2.4209428,-54.7133973,brasil_aberto,True
+PA,1506807,Santarém,Área Verde,area verde,-2.4531349,-54.6869507,brasil_aberto,True
+PA,1506906,Santarém Novo,Centro,centro,-0.9310297,-47.3879276,brasil_aberto,True
+PA,1507003,Santo Antônio do Tauá,Centro,centro,-1.1519102,-48.1365392,brasil_aberto,True
+PA,1507003,Santo Antônio do Tauá,Espírito Santo do Tauá,espirito santo do taua,-1.1071917,-48.2253659,brasil_aberto,True
+PA,1507003,Santo Antônio do Tauá,São Raimundo de Borralhos,sao raimundo de borralhos,-1.024624,-48.24205320000001,brasil_aberto,True
+PA,1507805,Senador José Porfírio,Centro,centro,-2.5902652,-51.9529957,brasil_aberto,True
+PA,1507904,Soure,Centro,centro,-0.7301962,-48.5204935,brasil_aberto,True
+PA,1507904,Soure,Pesqueiro,pesqueiro,-0.6577550999999999,-48.4875243,brasil_aberto,True
+PA,1507102,São Caetano de Odivelas,Perseverança,perseveranca,-0.7463744999999999,-48.0222755,brasil_aberto,True
+PA,1507102,São Caetano de Odivelas,São João dos Ramos,sao joao dos ramos,-0.7147446,-47.9856634,brasil_aberto,True
+PA,1507102,São Caetano de Odivelas,Umarizal,umarizal,-0.7464317,-48.0206634,brasil_aberto,True
+PA,1507102,São Caetano de Odivelas,Vila Nova,vila nova,-0.7463744999999999,-48.0222755,brasil_aberto,True
+PA,1507151,São Domingos do Araguaia,Centro,centro,-5.5357609,-48.7327945,brasil_aberto,True
+PA,1507201,São Domingos do Capim,Centro,centro,-1.71282613,-47.73744202,brasil_aberto,True
+PA,1507201,São Domingos do Capim,São Pedro do Capim,sao pedro do capim,-1.6759834,-47.7727955,brasil_aberto,True
+PA,1507409,São Francisco do Pará,Centro,centro,-1.169898,-47.7973805,brasil_aberto,True
+PA,1507409,São Francisco do Pará,Jambuaçu,jambuacu,-1.1213667,-47.7022025,brasil_aberto,True
+PA,1507300,São Félix do Xingu,Centro,centro,-6.6401737,-51.9874058,brasil_aberto,True
+PA,1507300,São Félix do Xingu,Terra Indígena Apyterewa,terra indigena apyterewa,-5.7434943,-51.678093,brasil_aberto,True
+PA,1507300,São Félix do Xingu,Vila de Nereu,vila de nereu,-5.646613,-51.782577,brasil_aberto,True
+PA,1507458,São Geraldo do Araguaia,Centro,centro,-6.3946587,-48.5652746,brasil_aberto,True
+PA,1507458,São Geraldo do Araguaia,Vila Fortaleza,vila fortaleza,-6.007839,-48.8248978,brasil_aberto,True
+PA,1507458,São Geraldo do Araguaia,Vila Paraíso,vila paraiso,-6.2072333,-49.0912952,brasil_aberto,True
+PA,1507466,São João da Ponta,Centro,centro,-0.8512555,-47.92126,brasil_aberto,True
+PA,1507466,São João da Ponta,São João da Ponta,sao joao da ponta,-0.868817,-47.9633327,brasil_aberto,True
+PA,1507474,São João de Pirabas,Bacuri,bacuri,-0.7695141999999999,-47.176871,brasil_aberto,True
+PA,1507508,São João do Araguaia,Apinagés,apinages,-5.392365499999999,-48.75064949999999,brasil_aberto,True
+PA,1507508,São João do Araguaia,Centro,centro,-5.357808599999999,-48.7897875,brasil_aberto,True
+PA,1507607,São Miguel do Guamá,Caju,caju,-1.6255105,-47.8095945,brasil_aberto,True
+PA,1507607,São Miguel do Guamá,Centro,centro,-1.62739682,-47.4849968,brasil_aberto,True
+PA,1507607,São Miguel do Guamá,Urucuri,urucuri,-1.5649563,-47.5821481,brasil_aberto,True
+PA,1507607,São Miguel do Guamá,Urucuriteua,urucuriteua,-1.5895152,-47.3384027,brasil_aberto,True
+PA,1507706,São Sebastião da Boa Vista,Centro,centro,-1.7209154,-49.5301603,brasil_aberto,True
+PA,1507953,Tailândia,Centro,centro,-2.944945,-48.9541647,brasil_aberto,True
+PA,1507953,Tailândia,Palmares,palmares,-2.9381477,-48.951083,brasil_aberto,True
+PA,1507961,Terra Alta,Centro,centro,-1.03889823,-47.90677261,brasil_aberto,True
+PA,1507979,Terra Santa,Centro,centro,-2.1107825,-56.4949313,brasil_aberto,True
+PA,1508001,Tomé-Açu,Centro,centro,-2.4206039,-48.1488278,brasil_aberto,True
+PA,1508001,Tomé-Açu,Quatro Bocas,quatro bocas,-2.4181643,-48.1505857,brasil_aberto,True
+PA,1508001,Tomé-Açu,Zona Rural,zona rural,,,brasil_aberto,True
+PA,1508035,Tracuateua,Centro,centro,-1.0747576,-46.905908,brasil_aberto,True
+PA,1508050,Trairão,Bela Vista,bela vista,-6.0750494,-49.89456558,brasil_aberto,True
+PA,1508050,Trairão,Caracol,caracol,-4.70134,-55.9961614,brasil_aberto,True
+PA,1508084,Tucumã,Centro,centro,-6.747592000000001,-51.1517616,brasil_aberto,True
+PA,1508100,Tucuruí,Beira Rio,beira rio,-6.076369499999999,-49.8848095,brasil_aberto,True
+PA,1508100,Tucuruí,Bela Vista,bela vista,-3.7680239,-49.6743498,brasil_aberto,True
+PA,1508100,Tucuruí,Belém,belem,-3.7614539,-49.6683406,brasil_aberto,True
+PA,1508100,Tucuruí,Bom Jesus,bom jesus,-3.7924574,-49.6843911,brasil_aberto,True
+PA,1508100,Tucuruí,COHAB,cohab,-3.7726012,-49.6718234,brasil_aberto,True
+PA,1508100,Tucuruí,Caripe,caripe,-3.7524798,-49.6800777,brasil_aberto,True
+PA,1508100,Tucuruí,Colinas,colinas,-3.7678442,-49.6673935,brasil_aberto,True
+PA,1508100,Tucuruí,Colorado,colorado,-3.762382799999999,-49.68411829999999,brasil_aberto,True
+PA,1508100,Tucuruí,Esperança,esperanca,-3.7678442,-49.6673935,brasil_aberto,True
+PA,1508100,Tucuruí,Getat,getat,-3.7551399,-49.6752872,brasil_aberto,True
+PA,1508100,Tucuruí,Goes Calmont,goes calmont,-3.7723941,-49.6798731,brasil_aberto,True
+PA,1508100,Tucuruí,Hidrelétrica Tucuruí,hidreletrica tucurui,-3.8317031,-49.6430916,brasil_aberto,True
+PA,1508100,Tucuruí,Jaqueira,jaqueira,-3.7614539,-49.6683406,brasil_aberto,True
+PA,1508100,Tucuruí,Jardim Alvorada,jardim alvorada,-3.7628435,-49.6776973,brasil_aberto,True
+PA,1508100,Tucuruí,Jardim Marilucy,jardim marilucy,-3.7807329,-49.6763478,brasil_aberto,True
+PA,1508100,Tucuruí,Jardim Paraíso,jardim paraiso,-3.7599452,-49.6685103,brasil_aberto,True
+PA,1508100,Tucuruí,Jardim São Francisco das Chagas,jardim sao francisco das chagas,-3.7794225,-49.668246,brasil_aberto,True
+PA,1508100,Tucuruí,Jardim das Flores,jardim das flores,-3.7688128,-49.6699991,brasil_aberto,True
+PA,1508100,Tucuruí,Liberdade,liberdade,-3.7846502,-49.66524709999999,brasil_aberto,True
+PA,1508100,Tucuruí,Mangal,mangal,-3.7568634,-49.6679791,brasil_aberto,True
+PA,1508100,Tucuruí,Matinha,matinha,-3.7696007,-49.6666703,brasil_aberto,True
+PA,1508100,Tucuruí,Nazaré dos Patos,nazare dos patos,-3.4451646,-49.6021259,brasil_aberto,True
+PA,1508100,Tucuruí,Nova Conquista,nova conquista,-3.7435964,-49.6802156,brasil_aberto,True
+PA,1508100,Tucuruí,Nova Matinha,nova matinha,-3.7878903,-49.6663494,brasil_aberto,True
+PA,1508100,Tucuruí,Nova Tucuruí,nova tucurui,-3.7666406,-49.6785062,brasil_aberto,True
+PA,1508100,Tucuruí,Núcleo Básico Leste,nucleo basico leste,-3.7762449,-49.6734275,brasil_aberto,True
+PA,1508100,Tucuruí,Palmares,palmares,-3.7659349,-49.6757299,brasil_aberto,True
+PA,1508100,Tucuruí,Palmares 1,palmares 1,-3.7698274,-49.6832114,brasil_aberto,True
+PA,1508100,Tucuruí,Palmares 2,palmares 2,-3.765968099999999,-49.68470500000001,brasil_aberto,True
+PA,1508100,Tucuruí,Parque Buritis,parque buritis,-3.7484432,-49.6911957,brasil_aberto,True
+PA,1508100,Tucuruí,Remansão,remansao,-4.412484399999999,-49.6613789,brasil_aberto,True
+PA,1508100,Tucuruí,Repartimento,repartimento,-3.7660649,-49.6777473,brasil_aberto,True
+PA,1508100,Tucuruí,Santa Isabel,santa isabel,-3.7637068,-49.6760523,brasil_aberto,True
+PA,1508100,Tucuruí,Santa Mônica,santa monica,-3.7800987,-49.6821309,brasil_aberto,True
+PA,1508100,Tucuruí,Serra Azul,serra azul,-3.766817,-49.6703074,brasil_aberto,True
+PA,1508100,Tucuruí,Setor Novo Oeste,setor novo oeste,-3.7689348,-49.6841892,brasil_aberto,True
+PA,1508100,Tucuruí,Setor Oeste,setor oeste,-3.7689348,-49.6841892,brasil_aberto,True
+PA,1508100,Tucuruí,São Francisco,sao francisco,-3.7773268,-49.6681524,brasil_aberto,True
+PA,1508100,Tucuruí,São José,sao jose,-3.7578507,-49.6830336,brasil_aberto,True
+PA,1508100,Tucuruí,São Sebastião,sao sebastiao,-3.7814284,-49.6628734,brasil_aberto,True
+PA,1508100,Tucuruí,Terra Prometida,terra prometida,-3.7586567,-49.6799447,brasil_aberto,True
+PA,1508100,Tucuruí,Vila Marabá,vila maraba,-3.8461972,-49.68290930000001,brasil_aberto,True
+PA,1508100,Tucuruí,Vila Permanente,vila permanente,-3.8354186,-49.6744454,brasil_aberto,True
+PA,1508100,Tucuruí,Vila Pioneira,vila pioneira,-3.778603,-49.6636265,brasil_aberto,True
+PA,1508100,Tucuruí,Área Rural de Tucuruí,area rural de tucurui,-3.766817,-49.6703074,brasil_aberto,True
+PA,1508126,Ulianópolis,Centro,centro,-2.4197967,-54.7133921,brasil_aberto,True
+PA,1508159,Uruará,Alvorada,alvorada,-3.7382269,-53.3749104,brasil_aberto,True
+PA,1508159,Uruará,Centro,centro,,,brasil_aberto,True
+PA,1508209,Vigia,Centro,centro,-0.8552331999999999,-48.1428781,brasil_aberto,True
+PA,1508209,Vigia,Penhalonga,penhalonga,-0.9948146,-48.1886591,brasil_aberto,True
+PA,1508209,Vigia,Porto Salvo,porto salvo,-0.9739123000000001,-48.1002024,brasil_aberto,True
+PA,1508209,Vigia,Santa Rosa da Vigia,santa rosa da vigia,-0.9613666,-48.0892556,brasil_aberto,True
+PA,1508308,Viseu,Camiranga,camiranga,-1.8023806,-46.2737817,brasil_aberto,True
+PA,1508308,Viseu,Centro,centro,-1.2077291,-46.1378644,brasil_aberto,True
+PA,1508308,Viseu,Fernandes Belo,fernandes belo,-1.1138105,-46.309365,brasil_aberto,True
+PA,1508308,Viseu,São José do Gurupi,sao jose do gurupi,-1.5944804,-46.1575394,brasil_aberto,True
+PA,1508308,Viseu,São José do Piriá,sao jose do piria,-1.3015194,-46.3322109,brasil_aberto,True
+PA,1508357,Vitória do Xingu,Belo Monte,belo monte,-3.1237984,-51.7794392,brasil_aberto,True
+PA,1508357,Vitória do Xingu,Centro,centro,-2.88565135,-52.01272964,brasil_aberto,True
+PA,1508407,Xinguara,Centro,centro,-7.1083076,-49.947741,brasil_aberto,True
+PA,1508407,Xinguara,Condomínio Nova Suíça Residence,condominio nova suica residence,-7.1193897,-49.9409236,brasil_aberto,True
+PA,1508407,Xinguara,Condomínio Residencial Maranata,condominio residencial maranata,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1508407,Xinguara,Itamarati,itamarati,-7.0900516,-49.9401214,brasil_aberto,True
+PA,1508407,Xinguara,Jardim América,jardim america,-7.119141699999999,-49.9490442,brasil_aberto,True
+PA,1508407,Xinguara,Jardim Goiás,jardim goias,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1508407,Xinguara,Marajoara,marajoara,-7.100619,-49.9356104,brasil_aberto,True
+PA,1508407,Xinguara,Nova Xinguara,nova xinguara,-7.0971602,-49.9289441,brasil_aberto,True
+PA,1508407,Xinguara,Park das Nações,park das nacoes,-7.1004864,-49.9568288,brasil_aberto,True
+PA,1508407,Xinguara,Piçarra,picarra,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1508407,Xinguara,Rio Vermelho,rio vermelho,-6.535147,-49.4058987,brasil_aberto,True
+PA,1508407,Xinguara,Selectas,selectas,-7.116532599999999,-49.9552753,brasil_aberto,True
+PA,1508407,Xinguara,Setor Bela Vista,setor bela vista,-16.7145149,-49.260067,brasil_aberto,True
+PA,1508407,Xinguara,Setor Marajoara II,setor marajoara ii,-7.0950476,-49.93925309999999,brasil_aberto,True
+PA,1508407,Xinguara,Setor Novo Horizonte,setor novo horizonte,-7.0900516,-49.9401214,brasil_aberto,True
+PA,1508407,Xinguara,Setor Pagnoceli,setor pagnoceli,-7.1096773,-49.9366156,brasil_aberto,True
+PA,1508407,Xinguara,São Francisco,sao francisco,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1508407,Xinguara,Tanaka,tanaka,-7.0917588,-49.9521583,brasil_aberto,True
+PA,1508407,Xinguara,Xinguarinha,xinguarinha,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1508407,Xinguara,Água Fria,agua fria,-6.992876499999999,-49.7615807,brasil_aberto,True
+PA,1508407,Xinguara,Área Rural de Xinguara,area rural de xinguara,-7.1049985,-49.9459232,brasil_aberto,True
+PA,1500347,Água Azul do Norte,Centro,centro,-6.8034515,-50.4861586,brasil_aberto,True
+PA,1505106,Óbidos,Centro,centro,-1.9151795,-55.51802139999999,brasil_aberto,True
+PA,1505106,Óbidos,Flexal,flexal,-1.933333,-55.283333,brasil_aberto,True
+PA,1505106,Óbidos,Terra Indígena Zoe,terra indigena zoe,-1.8963725,-55.5176169,brasil_aberto,True

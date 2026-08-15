@@ -1,0 +1,509 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+PB,2500205,Aguiar,Centro,centro,-7.0930675,-38.1722916,brasil_aberto,True
+PB,2500304,Alagoa Grande,Centro,centro,-7.038517,-35.63223267,brasil_aberto,True
+PB,2500304,Alagoa Grande,Povoado,povoado,-7.156813199999999,-34.9607032,brasil_aberto,True
+PB,2500403,Alagoa Nova,Centro,centro,-7.0597924,-35.7591137,brasil_aberto,True
+PB,2500502,Alagoinha,Centro,centro,-6.95011997,-35.54595566,brasil_aberto,True
+PB,2500536,Alcantil,Centro,centro,-7.688008,-35.9969297,brasil_aberto,True
+PB,2500536,Alcantil,Povoado,povoado,,,brasil_aberto,True
+PB,2500577,Algodão de Jandaíra,Centro,centro,-6.90427303,-36.01096344,brasil_aberto,True
+PB,2500601,Alhandra,Centro,centro,-7.4313546,-34.9123542,brasil_aberto,True
+PB,2500601,Alhandra,Povoado,povoado,,,brasil_aberto,True
+PB,2500908,Arara,Centro,centro,-6.8307101,-35.7612682,brasil_aberto,True
+PB,2501005,Araruna,Centro,centro,-6.52802849,-35.74185944,brasil_aberto,True
+PB,2500809,Araçagi,Centro,centro,-6.8513462,-35.381492,brasil_aberto,True
+PB,2500809,Araçagi,Povoado,povoado,,,brasil_aberto,True
+PB,2501104,Areia,Centro,centro,-6.96775961,-35.70593643,brasil_aberto,True
+PB,2501104,Areia,Cepilho,cepilho,-6.9892032,-35.7191498,brasil_aberto,True
+PB,2501104,Areia,Mata Limpa,mata limpa,-6.9323865,-35.71144779999999,brasil_aberto,True
+PB,2501104,Areia,Muquém,muquem,-6.9364607,-35.7558182,brasil_aberto,True
+PB,2501104,Areia,Usina Santa Maria,usina santa maria,,,brasil_aberto,True
+PB,2501153,Areia de Baraúnas,Centro,centro,-7.1237168,-36.9488487,brasil_aberto,True
+PB,2501203,Areial,Centro,centro,-7.04933023,-35.92618561,brasil_aberto,True
+PB,2501302,Aroeiras,Centro,centro,-7.54609299,-35.71063232,brasil_aberto,True
+PB,2501351,Assunção,Centro,centro,-7.07420874,-36.7293663,brasil_aberto,True
+PB,2501500,Bananeiras,Centro,centro,-6.7545642,-35.633168,brasil_aberto,True
+PB,2501500,Bananeiras,Distritos,distritos,-6.6956612,-35.6364584,brasil_aberto,True
+PB,2501500,Bananeiras,Maia,maia,-6.7488521,-35.5548422,brasil_aberto,True
+PB,2501500,Bananeiras,Povoado,povoado,,,brasil_aberto,True
+PB,2501534,Baraúna,Centro,centro,-5.0788882,-37.6202483,brasil_aberto,True
+PB,2501609,Barra de Santa Rosa,Centro,centro,-6.7247438,-36.0561695,brasil_aberto,True
+PB,2501575,Barra de Santana,Centro,centro,-7.523144200000001,-35.9987123,brasil_aberto,True
+PB,2501575,Barra de Santana,Povoado,povoado,,,brasil_aberto,True
+PB,2501807,Bayeux,Alto da Boa Vista,alto da boa vista,-7.1315048,-34.9394863,brasil_aberto,True
+PB,2501807,Bayeux,Baralho,baralho,-7.1197801,-34.9005214,brasil_aberto,True
+PB,2501807,Bayeux,Brasília,brasilia,-7.12817764,-34.93454361,brasil_aberto,True
+PB,2501807,Bayeux,Centro,centro,-6.96315002,-35.70926666,brasil_aberto,True
+PB,2501807,Bayeux,Comercial Norte,comercial norte,-7.1529686,-34.9190478,brasil_aberto,True
+PB,2501807,Bayeux,Imaculada,imaculada,-7.13358402,-34.92375565,brasil_aberto,True
+PB,2501807,Bayeux,Jardim Aeroporto,jardim aeroporto,-7.1391696,-34.9371861,brasil_aberto,True
+PB,2501807,Bayeux,Jardim São Severino,jardim sao severino,-7.1244493,-34.9306302,brasil_aberto,True
+PB,2501807,Bayeux,Jardim São Vicente,jardim sao vicente,-7.1302108,-34.9209911,brasil_aberto,True
+PB,2501807,Bayeux,Mário Andreazza,mario andreazza,-7.1477833,-34.9270199,brasil_aberto,True
+PB,2501807,Bayeux,Rio do Meio,rio do meio,-7.13553953,-34.92891693,brasil_aberto,True
+PB,2501807,Bayeux,Sesi,sesi,-7.12608528,-34.91140747,brasil_aberto,True
+PB,2501807,Bayeux,São Bento,sao bento,-7.1241824,-34.9091681,brasil_aberto,True
+PB,2501807,Bayeux,Tambay,tambay,-7.1488523,-34.9230761,brasil_aberto,True
+PB,2501807,Bayeux,Área Rural de Bayuex,area rural de bayuex,-7.134528,-34.9251602,brasil_aberto,True
+PB,2501401,Baía da Traição,Centro,centro,-6.6873951,-34.9383143,brasil_aberto,True
+PB,2501906,Belém,Rua Nova,rua nova,-6.7195096,-35.5390625,brasil_aberto,True
+PB,2502003,Belém do Brejo do Cruz,Centro,centro,-6.189523299999999,-37.5370565,brasil_aberto,True
+PB,2502052,Bernardino Batista,Centro,centro,-6.4519831,-38.5514439,brasil_aberto,True
+PB,2502102,Boa Ventura,Centro,centro,-7.4198563,-38.2174259,brasil_aberto,True
+PB,2502151,Boa Vista,Centro,centro,2.8175322,-60.6764775,brasil_aberto,True
+PB,2502201,Bom Jesus,Centro,centro,-5.9853584,-35.5825526,brasil_aberto,True
+PB,2502300,Bom Sucesso,Distrito Bom Sucesso,distrito bom sucesso,-6.5050846,-38.0064389,brasil_aberto,True
+PB,2502409,Bonito de Santa Fé,Centro,centro,-7.3143781,-38.5156786,brasil_aberto,True
+PB,2502508,Boqueirão,Centro,centro,-6.9794963,-34.8334217,brasil_aberto,True
+PB,2502508,Boqueirão,Povoado,povoado,,,brasil_aberto,True
+PB,2502805,Brejo do Cruz,Centro,centro,-6.3496149,-37.492038,brasil_aberto,True
+PB,2502904,Brejo dos Santos,Centro,centro,-6.3776421,-37.8247519,brasil_aberto,True
+PB,2503001,Caaporã,Centro,centro,-7.51519632,-34.91738892,brasil_aberto,True
+PB,2503001,Caaporã,Cupissura,cupissura,-7.454039700000001,-34.9396367,brasil_aberto,True
+PB,2503100,Cabaceiras,Centro,centro,-7.490431,-36.2878941,brasil_aberto,True
+PB,2503209,Cabedelo,Amazônia Park,amazonia park,-7.0578324,-34.8507355,brasil_aberto,True
+PB,2503209,Cabedelo,Areia Dourada,areia dourada,-6.986342899999999,-34.8275614,brasil_aberto,True
+PB,2503209,Cabedelo,Camalaú,camalau,-6.9796093,-34.8335631,brasil_aberto,True
+PB,2503209,Cabedelo,Camboinha,camboinha,-7.0034428,-34.8286743,brasil_aberto,True
+PB,2503209,Cabedelo,Centro,centro,-6.9739187,-34.837562,brasil_aberto,True
+PB,2503209,Cabedelo,Formosa,formosa,-6.9795934,-34.8293258,brasil_aberto,True
+PB,2503209,Cabedelo,Intermares,intermares,-7.0413948,-34.8453923,brasil_aberto,True
+PB,2503209,Cabedelo,Jacaré,jacare,-7.0258178,-34.847006,brasil_aberto,True
+PB,2503209,Cabedelo,Jardim América,jardim america,-7.0649666,-34.8502339,brasil_aberto,True
+PB,2503209,Cabedelo,Jardim Brasília,jardim brasilia,-6.61960697,-38.0948143,brasil_aberto,True
+PB,2503209,Cabedelo,Jardim Camboinha,jardim camboinha,-5.25853443,-49.32489777,brasil_aberto,True
+PB,2503209,Cabedelo,Jardim Manguinhos,jardim manguinhos,-6.9901486,-34.8326816,brasil_aberto,True
+PB,2503209,Cabedelo,Monte Castelo,monte castelo,-6.97490835,-34.83069229,brasil_aberto,True
+PB,2503209,Cabedelo,Morada Nova,morada nova,-5.25853443,-49.32489777,brasil_aberto,True
+PB,2503209,Cabedelo,Parque Esperança,parque esperanca,-5.25853443,-49.32489777,brasil_aberto,True
+PB,2503209,Cabedelo,Parque Verde,parque verde,-7.0319059,-34.8411061,brasil_aberto,True
+PB,2503209,Cabedelo,Ponta de Campina,ponta de campina,-7.0285074,-34.8395632,brasil_aberto,True
+PB,2503209,Cabedelo,Ponta de Matos,ponta de matos,-6.9691149,-34.840267,brasil_aberto,True
+PB,2503209,Cabedelo,Portal do Poço,portal do poco,-7.0290715,-34.8399415,brasil_aberto,True
+PB,2503209,Cabedelo,Poço,poco,-7.0319059,-34.8411061,brasil_aberto,True
+PB,2503209,Cabedelo,Recanto do Poço,recanto do poco,-7.0282863,-34.8395973,brasil_aberto,True
+PB,2503209,Cabedelo,Renascer,renascer,-5.2585346,-49.3248959,brasil_aberto,True
+PB,2503209,Cabedelo,Salinas de Ribamar,salinas de ribamar,-7.0402944,-34.8430206,brasil_aberto,True
+PB,2503209,Cabedelo,Santa Catarina,santa catarina,-6.9691149,-34.840267,brasil_aberto,True
+PB,2503209,Cabedelo,Área Rural de Cabedelo,area rural de cabedelo,-7.0402944,-34.8430206,brasil_aberto,True
+PB,2503308,Cachoeira dos Índios,Balanços,balancos,-6.97028399,-38.73383713,brasil_aberto,True
+PB,2503308,Cachoeira dos Índios,Centro,centro,-6.9249729,-38.6739023,brasil_aberto,True
+PB,2503308,Cachoeira dos Índios,Fátima,fatima,-6.9520817,-38.7142919,brasil_aberto,True
+PB,2503308,Cachoeira dos Índios,São José de Marimbas,sao jose de marimbas,-7.03013611,-38.67505264,brasil_aberto,True
+PB,2503407,Cacimba de Areia,Centro,centro,-7.1299386,-37.15771484,brasil_aberto,True
+PB,2503506,Cacimba de Dentro,Centro,centro,-6.641269200000001,-35.7937011,brasil_aberto,True
+PB,2503555,Cacimbas,Centro,centro,-22.9012249,-43.1791747,brasil_aberto,True
+PB,2503605,Caiçara,Centro,centro,-6.6154143,-35.4669114,brasil_aberto,True
+PB,2503704,Cajazeiras,Centro,centro,-6.8879177,-38.5567764,brasil_aberto,True
+PB,2503704,Cajazeiras,Engenheiro Ávidos,engenheiro avidos,-6.97824097,-38.45175552,brasil_aberto,True
+PB,2503753,Cajazeirinhas,Centro,centro,-6.765309999999999,-37.7935928,brasil_aberto,True
+PB,2503803,Caldas Brandão,Centro,centro,,,brasil_aberto,True
+PB,2503902,Camalaú,Centro,centro,-7.88855886,-36.82329178,brasil_aberto,True
+PB,2503902,Camalaú,Pindurão,pindurao,-7.91143417,-36.60471344,brasil_aberto,True
+PB,2504009,Campina Grande,Acácio Figueiredo,acacio figueiredo,-7.26061201,-35.91238403,brasil_aberto,True
+PB,2504009,Campina Grande,Alto Branco,alto branco,-7.1998539,-35.88146591,brasil_aberto,True
+PB,2504009,Campina Grande,Aluízio Campos,aluizio campos,-7.2900724,-35.8882898,brasil_aberto,True
+PB,2504009,Campina Grande,Araxá,araxa,-7.202026,-35.9072811,brasil_aberto,True
+PB,2504009,Campina Grande,Bela Vista,bela vista,-7.21541357,-35.90007019,brasil_aberto,True
+PB,2504009,Campina Grande,Bodocongó,bodocongo,-7.2310953,-35.9204297,brasil_aberto,True
+PB,2504009,Campina Grande,Castelo Branco,castelo branco,-7.2206167,-35.8888328,brasil_aberto,True
+PB,2504009,Campina Grande,Catolé,catole,-7.23749113,-35.88151169,brasil_aberto,True
+PB,2504009,Campina Grande,Centenário,centenario,-7.22751379,-35.9050827,brasil_aberto,True
+PB,2504009,Campina Grande,Centro,centro,-7.2193398,-35.8816382,brasil_aberto,True
+PB,2504009,Campina Grande,Cidades,cidades,-7.2724845,-35.9301027,brasil_aberto,True
+PB,2504009,Campina Grande,Conceição,conceicao,-7.2086011,-35.8870209,brasil_aberto,True
+PB,2504009,Campina Grande,Cruzeiro,cruzeiro,-7.25114727,-35.90328598,brasil_aberto,True
+PB,2504009,Campina Grande,Cuités,cuites,-7.1928831,-35.901587,brasil_aberto,True
+PB,2504009,Campina Grande,Dinamérica,dinamerica,-7.24331236,-35.91400909,brasil_aberto,True
+PB,2504009,Campina Grande,Distrito Industrial,distrito industrial,-22.7591877,-43.4625206,brasil_aberto,True
+PB,2504009,Campina Grande,Estação Velha,estacao velha,-7.23165941,-35.88533401,brasil_aberto,True
+PB,2504009,Campina Grande,Galante,galante,-7.305728599999998,-35.7801993,brasil_aberto,True
+PB,2504009,Campina Grande,Itararé,itarare,-7.2518719,-35.8744855,brasil_aberto,True
+PB,2504009,Campina Grande,Jardim Continental,jardim continental,-7.1951833,-35.8926413,brasil_aberto,True
+PB,2504009,Campina Grande,Jardim Paulistano,jardim paulistano,-7.25563574,-35.89733887,brasil_aberto,True
+PB,2504009,Campina Grande,Jardim Quarenta,jardim quarenta,-7.2361952,-35.9000815,brasil_aberto,True
+PB,2504009,Campina Grande,Jardim Tavares,jardim tavares,-7.2065938,-35.8744395,brasil_aberto,True
+PB,2504009,Campina Grande,Jeremias,jeremias,-7.2024107,-35.90227509,brasil_aberto,True
+PB,2504009,Campina Grande,José Pinheiro,jose pinheiro,-7.22406578,-35.876194,brasil_aberto,True
+PB,2504009,Campina Grande,Lagoa de Dentro,lagoa de dentro,-7.2206167,-35.8888328,brasil_aberto,True
+PB,2504009,Campina Grande,Lauritzen,lauritzen,-7.2134656,-35.880725,brasil_aberto,True
+PB,2504009,Campina Grande,Liberdade,liberdade,-7.23728132,-35.89198685,brasil_aberto,True
+PB,2504009,Campina Grande,Louzeiro,louzeiro,-7.19858313,-35.89265442,brasil_aberto,True
+PB,2504009,Campina Grande,Malvinas,malvinas,-7.2293397,-35.9290353,brasil_aberto,True
+PB,2504009,Campina Grande,Mirante,mirante,-7.2355829,-35.8638009,brasil_aberto,True
+PB,2504009,Campina Grande,Monte Castelo,monte castelo,-7.2182915,-35.8674611,brasil_aberto,True
+PB,2504009,Campina Grande,Monte Santo,monte santo,-7.2103959,-35.9017476,brasil_aberto,True
+PB,2504009,Campina Grande,Nações,nacoes,-7.1925107,-35.8821749,brasil_aberto,True
+PB,2504009,Campina Grande,Nova Brasília,nova brasilia,-7.2198631,-35.8615476,brasil_aberto,True
+PB,2504009,Campina Grande,Novo Bodocongó,novo bodocongo,-7.2078106,-35.9242592,brasil_aberto,True
+PB,2504009,Campina Grande,Palmeira,palmeira,-7.2083835,-35.8937329,brasil_aberto,True
+PB,2504009,Campina Grande,Palmeira Imperial,palmeira imperial,-7.26428938,-35.90967941,brasil_aberto,True
+PB,2504009,Campina Grande,Pedregal,pedregal,-7.22260094,-35.9068222,brasil_aberto,True
+PB,2504009,Campina Grande,Porteirinha de Pedra,porteirinha de pedra,-7.2448186,-35.8504768,brasil_aberto,True
+PB,2504009,Campina Grande,Prata,prata,-7.2201574,-35.8940334,brasil_aberto,True
+PB,2504009,Campina Grande,Presidente Médici,presidente medici,-7.2526538,-35.9132741,brasil_aberto,True
+PB,2504009,Campina Grande,Quarenta,quarenta,-7.2324713,-35.8993913,brasil_aberto,True
+PB,2504009,Campina Grande,Ramadinha,ramadinha,-7.2150457,-35.9264501,brasil_aberto,True
+PB,2504009,Campina Grande,Ronaldo Cunha Lima,ronaldo cunha lima,-7.22967815,-35.86723709,brasil_aberto,True
+PB,2504009,Campina Grande,Sandra Cavalcante,sandra cavalcante,-7.25013256,-35.87813187,brasil_aberto,True
+PB,2504009,Campina Grande,Santa Cruz,santa cruz,-7.2466598,-35.906904,brasil_aberto,True
+PB,2504009,Campina Grande,Santa Rosa,santa rosa,-7.2337632,-35.9054355,brasil_aberto,True
+PB,2504009,Campina Grande,Santa Terezinha,santa terezinha,-7.2087562,-35.9331212,brasil_aberto,True
+PB,2504009,Campina Grande,Santo Antônio,santo antonio,-7.2191577,-35.87351227,brasil_aberto,True
+PB,2504009,Campina Grande,Serrotão,serrotao,-7.2155024,-35.9499494,brasil_aberto,True
+PB,2504009,Campina Grande,São José,sao jose,-7.2236744,-35.8908931,brasil_aberto,True
+PB,2504009,Campina Grande,São José da Mata,sao jose da mata,-7.2206525,-35.8888951,brasil_aberto,True
+PB,2504009,Campina Grande,Tambor,tambor,-7.2540783,-35.8931904,brasil_aberto,True
+PB,2504009,Campina Grande,Três Irmãs,tres irmas,-7.2556841,-35.9253763,brasil_aberto,True
+PB,2504009,Campina Grande,Universitário,universitario,-7.2201289,-35.9106188,brasil_aberto,True
+PB,2504009,Campina Grande,Velame,velame,-7.2797838,-35.9105535,brasil_aberto,True
+PB,2504009,Campina Grande,Vila Cabral,vila cabral,-7.2480275,-35.8700562,brasil_aberto,True
+PB,2504009,Campina Grande,Área Rural de Campina Grande,area rural de campina grande,-7.2206167,-35.8888328,brasil_aberto,True
+PB,2504033,Capim,Centro,centro,-6.9259852,-35.1598773,brasil_aberto,True
+PB,2504074,Caraúbas,Centro,centro,-5.793239799999999,-37.5593115,brasil_aberto,True
+PB,2504074,Caraúbas,Povoado de Barreiras,povoado de barreiras,,,brasil_aberto,True
+PB,2504108,Carrapateira,Centro,centro,-7.0381249,-38.3441132,brasil_aberto,True
+PB,2504157,Casserengue,Centro,centro,-6.78282738,-35.81735229,brasil_aberto,True
+PB,2504207,Catingueira,Centro,centro,-7.119561399999999,-34.8817282,brasil_aberto,True
+PB,2504207,Catingueira,Itajubatiba,itajubatiba,-7.0218269,-37.6514174,brasil_aberto,True
+PB,2504306,Catolé do Rocha,Centro,centro,-6.342901899999999,-37.7461795,brasil_aberto,True
+PB,2504306,Catolé do Rocha,Coronel Maia,coronel maia,-6.225751199999999,-37.7025012,brasil_aberto,True
+PB,2504355,Caturité,Centro,centro,-7.4230565,-36.0190791,brasil_aberto,True
+PB,2504405,Conceição,Cardoso,cardoso,-7.4274879,-38.5584957,brasil_aberto,True
+PB,2504405,Conceição,Centro,centro,-7.119561399999999,-34.8817282,brasil_aberto,True
+PB,2504405,Conceição,Montevidéu,montevideu,-7.352987499999999,-38.4138701,brasil_aberto,True
+PB,2504504,Condado,Centro,centro,-6.91013622,-37.59989166,brasil_aberto,True
+PB,2504702,Congo,Centro,centro,-7.797220999999999,-36.6608972,brasil_aberto,True
+PB,2504801,Coremas,Centro,centro,-7.0177194,-37.9470256,brasil_aberto,True
+PB,2504850,Coxixola,Centro,centro,-7.62634802,-36.60542679,brasil_aberto,True
+PB,2504900,Cruz do Espírito Santo,Centro,centro,-7.140924099999999,-35.0903527,brasil_aberto,True
+PB,2505006,Cubati,Centro,centro,-6.86662531,-36.35270309,brasil_aberto,True
+PB,2505204,Cuitegi,Centro,centro,-6.84948063,-35.48908997,brasil_aberto,True
+PB,2505105,Cuité,Centro,centro,-6.4852453,-36.1516974,brasil_aberto,True
+PB,2505105,Cuité,Melo,melo,-6.58408165,-36.10992813,brasil_aberto,True
+PB,2505238,Cuité de Mamanguape,Centro,centro,-6.91345358,-35.24948883,brasil_aberto,True
+PB,2505303,Curral Velho,Centro,centro,-7.536514599999999,-38.197316,brasil_aberto,True
+PB,2505279,Curral de Cima,Centro,centro,-6.71718597,-35.26692581,brasil_aberto,True
+PB,2505279,Curral de Cima,Povoado Estacada,povoado estacada,,,brasil_aberto,True
+PB,2505352,Damião,Centro,centro,-2.54146147,-44.29019547,brasil_aberto,True
+PB,2505402,Desterro,Centro,centro,-7.288315600000001,-37.0886392,brasil_aberto,True
+PB,2505600,Diamante,Centro,centro,-7.426115299999999,-38.2644105,brasil_aberto,True
+PB,2505600,Diamante,Vazante,vazante,-7.393707099999999,-38.3903087,brasil_aberto,True
+PB,2505709,Dona Inês,Centro,centro,-6.60484266,-35.62677765,brasil_aberto,True
+PB,2505808,Duas Estradas,Centro,centro,-6.6863907,-35.4183203,brasil_aberto,True
+PB,2505907,Emas,Centro,centro,-7.10799742,-37.71400452,brasil_aberto,True
+PB,2506004,Esperança,Centro,centro,-7.020206,-35.8573149,brasil_aberto,True
+PB,2506103,Fagundes,Centro,centro,-7.358083100000001,-35.7841808,brasil_aberto,True
+PB,2506202,Frei Martinho,Centro,centro,-6.4038717,-36.4550126,brasil_aberto,True
+PB,2506251,Gado Bravo,Centro,centro,-7.58244276,-35.79079819,brasil_aberto,True
+PB,2506301,Guarabira,Cachoeira,cachoeira,-6.9092479,-35.4328692,brasil_aberto,True
+PB,2506301,Guarabira,Centro,centro,-6.8528162,-35.488703,brasil_aberto,True
+PB,2506301,Guarabira,Povoado,povoado,,,brasil_aberto,True
+PB,2506400,Gurinhém,Centro,centro,-7.124163999999999,-35.4250739,brasil_aberto,True
+PB,2506509,Gurjão,Centro,centro,-7.247533599999999,-36.4863898,brasil_aberto,True
+PB,2506608,Ibiara,Cachoeirinha,cachoeirinha,-6.59785652,-35.533535,brasil_aberto,True
+PB,2506608,Ibiara,Centro,centro,-7.4997816,-38.403682,brasil_aberto,True
+PB,2502607,Igaracy,Centro,centro,-7.1833437,-38.1552094,brasil_aberto,True
+PB,2506707,Imaculada,Centro,centro,-7.3900905,-37.5104033,brasil_aberto,True
+PB,2506806,Ingá,Centro,centro,-7.2905428,-35.6106432,brasil_aberto,True
+PB,2506905,Itabaiana,Campo Grande,campo grande,-7.3343883,-35.3580674,brasil_aberto,True
+PB,2506905,Itabaiana,Centro,centro,-10.6882515,-37.42635345,brasil_aberto,True
+PB,2506905,Itabaiana,Guarita,guarita,-7.33694935,-35.38021469,brasil_aberto,True
+PB,2507101,Itapororoca,Centro,centro,-6.82943106,-35.24737549,brasil_aberto,True
+PB,2507200,Itatuba,Centro,centro,-7.37676811,-35.6288414,brasil_aberto,True
+PB,2507309,Jacaraú,Centro,centro,-6.6159646,-35.2907143,brasil_aberto,True
+PB,2507408,Jericó,Centro,centro,-6.55069494,-37.80373001,brasil_aberto,True
+PB,2513653,Joca Claudino,Centro,centro,-6.4843509,-38.4794135,brasil_aberto,True
+PB,2507507,João Pessoa,Aeroclube,aeroclube,-7.0942749,-34.8453645,brasil_aberto,True
+PB,2507507,João Pessoa,Altiplano Cabo Branco,altiplano cabo branco,-7.1303349,-34.8287467,brasil_aberto,True
+PB,2507507,João Pessoa,Alto do Céu,alto do ceu,-7.0988793,-34.8674579,brasil_aberto,True
+PB,2507507,João Pessoa,Alto do Mateus,alto do mateus,-7.14180565,-34.90888214,brasil_aberto,True
+PB,2507507,João Pessoa,Anatólia,anatolia,-7.1502481,-34.841609,brasil_aberto,True
+PB,2507507,João Pessoa,Bancários,bancarios,-7.1496159,-34.836107,brasil_aberto,True
+PB,2507507,João Pessoa,Barra de Gramame,barra de gramame,-7.21584511,-34.80414581,brasil_aberto,True
+PB,2507507,João Pessoa,Bessa,bessa,-7.0684624,-34.8404557,brasil_aberto,True
+PB,2507507,João Pessoa,Brisamar,brisamar,-7.1139197,-34.8388274,brasil_aberto,True
+PB,2507507,João Pessoa,Cabo Branco,cabo branco,-7.14412832,-34.81407547,brasil_aberto,True
+PB,2507507,João Pessoa,Castelo Branco,castelo branco,-7.1304202,-34.8440898,brasil_aberto,True
+PB,2507507,João Pessoa,Centro,centro,-7.119561399999999,-34.8817282,brasil_aberto,True
+PB,2507507,João Pessoa,Cidade dos Colibris,cidade dos colibris,-7.1643699,-34.8477698,brasil_aberto,True
+PB,2507507,João Pessoa,Costa do Sol,costa do sol,-7.1802792,-34.8162078,brasil_aberto,True
+PB,2507507,João Pessoa,Costa e Silva,costa e silva,-7.1785133,-34.8968986,brasil_aberto,True
+PB,2507507,João Pessoa,Cristo Redentor,cristo redentor,-7.1550639,-34.8811858,brasil_aberto,True
+PB,2507507,João Pessoa,Cruz das Armas,cruz das armas,-7.1419667,-34.8860185,brasil_aberto,True
+PB,2507507,João Pessoa,Cuiá,cuia,-7.1825867,-34.8593629,brasil_aberto,True
+PB,2507507,João Pessoa,Distrito Industrial,distrito industrial,-7.1742005,-34.9363638,brasil_aberto,True
+PB,2507507,João Pessoa,Ernani Sátiro,ernani satiro,-7.1731417,-34.8947673,brasil_aberto,True
+PB,2507507,João Pessoa,Ernesto Geisel,ernesto geisel,-7.17787743,-34.86791229,brasil_aberto,True
+PB,2507507,João Pessoa,Estados,estados,-7.1067051,-34.8545354,brasil_aberto,True
+PB,2507507,João Pessoa,Expedicionários,expedicionarios,-7.1239512,-34.8533507,brasil_aberto,True
+PB,2507507,João Pessoa,Funcionários,funcionarios,-7.1784054,-34.8882223,brasil_aberto,True
+PB,2507507,João Pessoa,Gramame,gramame,-7.2079969,-34.854689,brasil_aberto,True
+PB,2507507,João Pessoa,Grotão,grotao,-7.18956614,-34.88418198,brasil_aberto,True
+PB,2507507,João Pessoa,Ilha do Bispo,ilha do bispo,-7.1258998,-34.8964746,brasil_aberto,True
+PB,2507507,João Pessoa,Indústrias,industrias,-7.18079901,-34.91936874,brasil_aberto,True
+PB,2507507,João Pessoa,Ipês,ipes,-7.1029827,-34.8564849,brasil_aberto,True
+PB,2507507,João Pessoa,Jaguaribe,jaguaribe,-7.1379462,-34.8738618,brasil_aberto,True
+PB,2507507,João Pessoa,Jardim Cidade Universitária,jardim cidade universitaria,-7.1574826,-34.8351479,brasil_aberto,True
+PB,2507507,João Pessoa,Jardim Oceania,jardim oceania,-7.07777691,-34.8390274,brasil_aberto,True
+PB,2507507,João Pessoa,Jardim São Paulo,jardim sao paulo,-7.1530221,-34.8470062,brasil_aberto,True
+PB,2507507,João Pessoa,Jardim Veneza,jardim veneza,-7.1625512,-34.9037477,brasil_aberto,True
+PB,2507507,João Pessoa,José Américo de Almeida,jose americo de almeida,-7.1678882,-34.8565799,brasil_aberto,True
+PB,2507507,João Pessoa,João Agripino,joao agripino,-7.1099376,-34.8409997,brasil_aberto,True
+PB,2507507,João Pessoa,João Paulo II,joao paulo ii,-7.1775358,-34.8785167,brasil_aberto,True
+PB,2507507,João Pessoa,Manaíra,manaira,-7.11104536,-34.83533859,brasil_aberto,True
+PB,2507507,João Pessoa,Mandacaru,mandacaru,-7.1042868,-34.861037,brasil_aberto,True
+PB,2507507,João Pessoa,Mangabeira,mangabeira,-7.1648128,-34.8327356,brasil_aberto,True
+PB,2507507,João Pessoa,Miramar,miramar,-7.12122726,-34.83280945,brasil_aberto,True
+PB,2507507,João Pessoa,Mumbaba,mumbaba,-7.1729768,-34.9265526,brasil_aberto,True
+PB,2507507,João Pessoa,Muçumagro,mucumagro,-7.2150772,-34.8314311,brasil_aberto,True
+PB,2507507,João Pessoa,Oitizeiro,oitizeiro,-7.1634171,-34.8911711,brasil_aberto,True
+PB,2507507,João Pessoa,Padre Zé,padre ze,-7.1043204,-34.8663347,brasil_aberto,True
+PB,2507507,João Pessoa,Paratibe,paratibe,-7.2060999,-34.840963,brasil_aberto,True
+PB,2507507,João Pessoa,Pedro Gondim,pedro gondim,-7.11181402,-34.84371185,brasil_aberto,True
+PB,2507507,João Pessoa,Penha,penha,-7.1625633,-34.7990276,brasil_aberto,True
+PB,2507507,João Pessoa,Planalto Boa Esperança,planalto boa esperanca,-7.2016997,-34.8571773,brasil_aberto,True
+PB,2507507,João Pessoa,Ponta do Seixas,ponta do seixas,-7.1571132,-34.7959976,brasil_aberto,True
+PB,2507507,João Pessoa,Portal do Sol,portal do sol,-7.1448519,-34.8209589,brasil_aberto,True
+PB,2507507,João Pessoa,Roger,roger,-7.11094284,-34.87620926,brasil_aberto,True
+PB,2507507,João Pessoa,São José,sao jose,-7.1069809,-34.8412815,brasil_aberto,True
+PB,2507507,João Pessoa,Tambauzinho,tambauzinho,-7.12165,-34.8430015,brasil_aberto,True
+PB,2507507,João Pessoa,Tambaú,tambau,-7.114162,-34.8224907,brasil_aberto,True
+PB,2507507,João Pessoa,Tambiá,tambia,-7.114174,-34.8715423,brasil_aberto,True
+PB,2507507,João Pessoa,Torre,torre,-7.1304044,-34.8554745,brasil_aberto,True
+PB,2507507,João Pessoa,Treze de Maio,treze de maio,-7.1129061,-34.8665552,brasil_aberto,True
+PB,2507507,João Pessoa,Trincheiras,trincheiras,-7.129435,-34.8858658,brasil_aberto,True
+PB,2507507,João Pessoa,Valentina de Figueiredo,valentina de figueiredo,-7.1976917,-34.8440214,brasil_aberto,True
+PB,2507507,João Pessoa,Varadouro,varadouro,-7.1163426,-34.8903177,brasil_aberto,True
+PB,2507507,João Pessoa,Varjão,varjao,-7.02838898,-37.28321457,brasil_aberto,True
+PB,2507507,João Pessoa,Água Fria,agua fria,-7.1597123,-34.8593587,brasil_aberto,True
+PB,2507507,João Pessoa,Área Rural de João Pessoa,area rural de joao pessoa,-7.118835199999999,-34.8814339,brasil_aberto,True
+PB,2507606,Juarez Távora,Centro,centro,-7.1704988,-35.5916845,brasil_aberto,True
+PB,2507606,Juarez Távora,Povoado,povoado,,,brasil_aberto,True
+PB,2507705,Juazeirinho,Centro,centro,-7.1211853,-34.88346481,brasil_aberto,True
+PB,2507804,Junco do Seridó,Centro,centro,-6.99742603,-36.71197891,brasil_aberto,True
+PB,2507804,Junco do Seridó,Povoado,povoado,,,brasil_aberto,True
+PB,2507903,Juripiranga,Centro,centro,-7.1247548,-34.9137291,brasil_aberto,True
+PB,2508000,Juru,Centro,centro,-7.534939100000001,-37.8186908,brasil_aberto,True
+PB,2508109,Lagoa,Centro,centro,-6.5903505,-37.9151289,brasil_aberto,True
+PB,2508307,Lagoa Seca,Centro,centro,-7.157464999999999,-35.8537904,brasil_aberto,True
+PB,2508307,Lagoa Seca,Povoado Chã do Marinho,povoado cha do marinho,-7.1887502,-35.8251813,brasil_aberto,True
+PB,2508307,Lagoa Seca,Povoado Floriano,povoado floriano,-7.1332086,-35.8411246,brasil_aberto,True
+PB,2508307,Lagoa Seca,Povoado São Pedro,povoado sao pedro,-7.1569088,-35.8534783,brasil_aberto,True
+PB,2508307,Lagoa Seca,Sítio,sitio,-7.1499375,-35.8956875,brasil_aberto,True
+PB,2508208,Lagoa de Dentro,Centro,centro,-6.67233038,-35.37091827,brasil_aberto,True
+PB,2508406,Lastro,Centro,centro,-6.5204361,-38.1797555,brasil_aberto,True
+PB,2508505,Livramento,Centro,centro,-7.3751399,-36.944602,brasil_aberto,True
+PB,2508554,Logradouro,Centro,centro,-6.67301321,-35.37287521,brasil_aberto,True
+PB,2508604,Lucena,Centro,centro,-6.8986455,-34.8704796,brasil_aberto,True
+PB,2508802,Malta,Centro,centro,-6.9060904,-37.5182246,brasil_aberto,True
+PB,2508901,Mamanguape,Centro,centro,-6.836960899999999,-35.1269855,brasil_aberto,True
+PB,2508901,Mamanguape,Pitanga de Estrada,pitanga de estrada,-6.6007738,-35.1456546,brasil_aberto,True
+PB,2508901,Mamanguape,Povoado,povoado,-6.8596486,-35.1229477,brasil_aberto,True
+PB,2509008,Manaíra,Centro,centro,-7.7069233,-38.1514805,brasil_aberto,True
+PB,2509008,Manaíra,Distritos,distritos,-7.7062062,-38.1546776,brasil_aberto,True
+PB,2509008,Manaíra,Pelo Sinal,pelo sinal,-7.7856283,-38.2926568,brasil_aberto,True
+PB,2509057,Marcação,Centro,centro,-6.769271499999999,-35.0138308,brasil_aberto,True
+PB,2509107,Mari,Centro,centro,-7.0599155,-35.3186401,brasil_aberto,True
+PB,2509156,Marizópolis,Centro,centro,-6.84378004,-38.34683228,brasil_aberto,True
+PB,2509206,Massaranduba,Centro,centro,,,brasil_aberto,True
+PB,2509305,Mataraca,Barra do Camaratuba,barra do camaratuba,-6.5764998,-35.0243443,brasil_aberto,True
+PB,2509305,Mataraca,Centro,centro,-6.593119700000001,-35.0573905,brasil_aberto,True
+PB,2509339,Matinhas,Centro,centro,-7.1225815,-35.771372,brasil_aberto,True
+PB,2509370,Mato Grosso,Centro,centro,-6.54123878,-37.71224976,brasil_aberto,True
+PB,2509396,Maturéia,Centro,centro,-7.2653013,-37.3454457,brasil_aberto,True
+PB,2509404,Mogeiro,Centro,centro,-7.3018202,-35.4786171,brasil_aberto,True
+PB,2509503,Montadas,Centro,centro,-7.0878451,-35.9585537,brasil_aberto,True
+PB,2509602,Monte Horebe,Centro,centro,-7.214421600000001,-38.5853752,brasil_aberto,True
+PB,2509701,Monteiro,Centro,centro,-7.892197699999999,-37.123774,brasil_aberto,True
+PB,2509701,Monteiro,Sitio,sitio,-7.9058512,-37.112932,brasil_aberto,True
+PB,2508703,Mãe d'Água,Centro,centro,,,brasil_aberto,True
+PB,2509909,Natuba,Centro,centro,-7.641513,-35.5521473,brasil_aberto,True
+PB,2509909,Natuba,Pirauá,piraua,-7.603497600000001,-35.5674262,brasil_aberto,True
+PB,2510006,Nazarezinho,Centro,centro,-6.9157211,-38.3246676,brasil_aberto,True
+PB,2510105,Nova Floresta,Centro,centro,-6.45438051,-36.2040596,brasil_aberto,True
+PB,2510303,Nova Palmeira,Centro,centro,-6.6783328,-36.4191938,brasil_aberto,True
+PB,2510402,Olho d'Água,Centro,centro,-6.4937962,-36.1578336,brasil_aberto,True
+PB,2510501,Olivedos,Centro,centro,-6.991459499999999,-36.2440286,brasil_aberto,True
+PB,2510600,Ouro Velho,Centro,centro,-7.62102509,-37.15085983,brasil_aberto,True
+PB,2510659,Parari,Centro,centro,-7.3183452,-36.6549985,brasil_aberto,True
+PB,2510709,Passagem,Centro,centro,-6.279485,-35.3768103,brasil_aberto,True
+PB,2510709,Passagem,Povoado,povoado,,,brasil_aberto,True
+PB,2510808,Patos,Alto da Tubiba,alto da tubiba,-7.0654267,-37.2808298,brasil_aberto,True
+PB,2510808,Patos,Ana Leite,ana leite,-7.0211327,-37.2501901,brasil_aberto,True
+PB,2510808,Patos,Bela Vista,bela vista,-7.0131027,-37.2812325,brasil_aberto,True
+PB,2510808,Patos,Belo Horizonte,belo horizonte,-7.0188345,-37.2848764,brasil_aberto,True
+PB,2510808,Patos,Bivar Olinto,bivar olinto,-7.0372013,-37.3014151,brasil_aberto,True
+PB,2510808,Patos,Brasília,brasilia,-7.0268094,-37.2709123,brasil_aberto,True
+PB,2510808,Patos,Centro,centro,-7.0234967,-37.2768726,brasil_aberto,True
+PB,2510808,Patos,Distrito Industrial,distrito industrial,-7.0062633,-37.2918251,brasil_aberto,True
+PB,2510808,Patos,Estados,estados,-6.9965231,-37.2887878,brasil_aberto,True
+PB,2510808,Patos,Jardim Europa,jardim europa,-7.0187791,-37.2755426,brasil_aberto,True
+PB,2510808,Patos,Jardim Magnólia,jardim magnolia,-7.005049499999999,-37.2784835,brasil_aberto,True
+PB,2510808,Patos,Jatobá,jatoba,-7.05259562,-37.27544403,brasil_aberto,True
+PB,2510808,Patos,Liberdade,liberdade,-7.0288176,-37.2878809,brasil_aberto,True
+PB,2510808,Patos,Maternidade,maternidade,-7.0394114,-37.2892517,brasil_aberto,True
+PB,2510808,Patos,Monte Castelo,monte castelo,-7.04358625,-37.27435684,brasil_aberto,True
+PB,2510808,Patos,Morada do Sol,morada do sol,-7.0323736,-37.303544,brasil_aberto,True
+PB,2510808,Patos,Morro,morro,-7.0290788,-37.2904354,brasil_aberto,True
+PB,2510808,Patos,Nova Conquista,nova conquista,-7.0600214,-37.2783108,brasil_aberto,True
+PB,2510808,Patos,Novo Horizonte,novo horizonte,-6.977517,-36.7388443,brasil_aberto,True
+PB,2510808,Patos,Noé Trajano,noe trajano,-7.0084695,-37.2895254,brasil_aberto,True
+PB,2510808,Patos,Salgadinho,salgadinho,-7.022274,-37.2608906,brasil_aberto,True
+PB,2510808,Patos,Santa Cecília,santa cecilia,-7.0554861,-37.2771177,brasil_aberto,True
+PB,2510808,Patos,Santa Gertrudes,santa gertrudes,-6.9607236,-37.3898867,brasil_aberto,True
+PB,2510808,Patos,Santo Antônio,santo antonio,-7.0322466,-37.2794894,brasil_aberto,True
+PB,2510808,Patos,Sete Casas,sete casas,-7.0132257,-37.2600145,brasil_aberto,True
+PB,2510808,Patos,São Sebastião,sao sebastiao,-7.22160769,-35.89624405,brasil_aberto,True
+PB,2510808,Patos,Área Rural de Patos,area rural de patos,-7.0263449,-37.2769775,brasil_aberto,True
+PB,2510907,Paulista,Centro,centro,-7.94046021,-34.88127899,brasil_aberto,True
+PB,2511103,Pedra Lavrada,Centro,centro,-6.7577695,-36.4718971,brasil_aberto,True
+PB,2511202,Pedras de Fogo,Centro,centro,-7.4032512,-35.1126593,brasil_aberto,True
+PB,2511202,Pedras de Fogo,Povoado,povoado,-7.330234700000001,-35.182728,brasil_aberto,True
+PB,2512721,Pedro Régis,Centro,centro,-6.641096699999999,-35.2931306,brasil_aberto,True
+PB,2511301,Piancó,Centro,centro,-7.19814634,-37.93093872,brasil_aberto,True
+PB,2511400,Picuí,Centro,centro,-7.119561399999999,-34.8817282,brasil_aberto,True
+PB,2511608,Pilões,Centro,centro,-6.2683842,-38.0428721,brasil_aberto,True
+PB,2511707,Pilõezinhos,Centro,centro,-6.843522399999999,-35.5310769,brasil_aberto,True
+PB,2511806,Pirpirituba,Centro,centro,-6.77918339,-35.49670792,brasil_aberto,True
+PB,2511905,Pitimbu,Centro,centro,-7.47263288,-34.80792999,brasil_aberto,True
+PB,2512002,Pocinhos,Centro,centro,-7.07627583,-36.06167221,brasil_aberto,True
+PB,2512002,Pocinhos,Nazaré,nazare,-7.0966258,-36.1979764,brasil_aberto,True
+PB,2512101,Pombal,Centro,centro,-6.7719979,-37.8023471,brasil_aberto,True
+PB,2512101,Pombal,Várzea Comprida,varzea comprida,-6.91459799,-37.94055557,brasil_aberto,True
+PB,2512036,Poço Dantas,Centro,centro,-6.4053838,-38.4984283,brasil_aberto,True
+PB,2512036,Poço Dantas,Tanques,tanques,-6.4038568,-38.4961446,brasil_aberto,True
+PB,2512077,Poço de José de Moura,Centro,centro,-6.5734149,-38.5114926,brasil_aberto,True
+PB,2512309,Princesa Isabel,Centro,centro,-7.738346,-37.993188,brasil_aberto,True
+PB,2512408,Puxinanã,Centro,centro,-7.1468408,-35.9633525,brasil_aberto,True
+PB,2512408,Puxinanã,Povoado,povoado,-7.1467643,-35.9622093,brasil_aberto,True
+PB,2512606,Quixaba,Centro,centro,,,brasil_aberto,True
+PB,2512705,Remígio,Centro,centro,-6.9675072,-35.7959769,brasil_aberto,True
+PB,2512705,Remígio,Povoado,povoado,,,brasil_aberto,True
+PB,2512788,Riacho de Santo Antônio,Centro,centro,-7.6919131,-36.1570942,brasil_aberto,True
+PB,2512804,Riacho dos Cavalos,Centro,centro,-6.43736315,-37.65151596,brasil_aberto,True
+PB,2512754,Riachão do Bacamarte,Centro,centro,-7.2497961,-35.6631339,brasil_aberto,True
+PB,2512762,Riachão do Poço,Centro,centro,-7.147239799999999,-35.2595223,brasil_aberto,True
+PB,2512903,Rio Tinto,Camurupim,camurupim,-6.7437849,-34.9439293,brasil_aberto,True
+PB,2512903,Rio Tinto,Centro,centro,-6.8102239,-35.0776118,brasil_aberto,True
+PB,2512903,Rio Tinto,Povoado,povoado,-6.807966899999999,-35.0767189,brasil_aberto,True
+PB,2512903,Rio Tinto,Salema,salema,-6.807966899999999,-35.0767189,brasil_aberto,True
+PB,2513000,Salgadinho,Centro,centro,-7.1028916,-36.8444726,brasil_aberto,True
+PB,2513109,Salgado de São Félix,Centro,centro,-7.35551548,-35.43829727,brasil_aberto,True
+PB,2513109,Salgado de São Félix,Povoado,povoado,-7.3555209,-35.4401442,brasil_aberto,True
+PB,2513158,Santa Cecília,Centro,centro,-26.9670437,-50.42558649999999,brasil_aberto,True
+PB,2513208,Santa Cruz,Casinha do Homem,casinha do homem,-6.54727077,-38.00388718,brasil_aberto,True
+PB,2513208,Santa Cruz,Centro,centro,-6.228305799999999,-36.0219549,brasil_aberto,True
+PB,2513208,Santa Cruz,São Pedro,sao pedro,-6.5938256,-38.1204501,brasil_aberto,True
+PB,2513703,Santa Rita,Bebelândia,bebelandia,-7.0782454,-34.9593948,brasil_aberto,True
+PB,2513703,Santa Rita,Capitão,capitao,-7.135889499999999,-34.9662323,brasil_aberto,True
+PB,2513703,Santa Rita,Forte Velho,forte velho,-6.9881813,-34.8742423,brasil_aberto,True
+PB,2513703,Santa Rita,Lerolândia,lerolandia,-6.9758282,-34.9812946,brasil_aberto,True
+PB,2513703,Santa Rita,Liberdade,liberdade,-7.1205282,-34.9746651,brasil_aberto,True
+PB,2513703,Santa Rita,Municípios,municipios,-7.1274388,-34.9534221,brasil_aberto,True
+PB,2513703,Santa Rita,Nossa Senhora do Livramento,nossa senhora do livramento,-7.0105016,-34.9511665,brasil_aberto,True
+PB,2513703,Santa Rita,Odilândia,odilandia,-7.2391126,-35.0222448,brasil_aberto,True
+PB,2513703,Santa Rita,Popular,popular,-7.1315166,-34.9822895,brasil_aberto,True
+PB,2513703,Santa Rita,Ribeira,ribeira,-7.0225981,-34.8708091,brasil_aberto,True
+PB,2513703,Santa Rita,Tambauzinho,tambauzinho,,,brasil_aberto,True
+PB,2513703,Santa Rita,Vila Tibiri,vila tibiri,,,brasil_aberto,True
+PB,2513703,Santa Rita,Várzea Nova,varzea nova,-7.1225787,-34.9544208,brasil_aberto,True
+PB,2513703,Santa Rita,Área Rural de Santa Rita,area rural de santa rita,-7.128388999999999,-35.0167866,brasil_aberto,True
+PB,2513802,Santa Teresinha,Centro,centro,-7.085075,-37.4445652,brasil_aberto,True
+PB,2513505,Santana de Mangueira,Centro,centro,-7.5528369,-38.3335672,brasil_aberto,True
+PB,2513604,Santana dos Garrotes,Centro,centro,-7.386837099999998,-37.9878331,brasil_aberto,True
+PB,2513604,Santana dos Garrotes,Distritos,distritos,-7.482167,-38.0422076,brasil_aberto,True
+PB,2515302,Sapé,Centro,centro,-7.0940489,-35.2326792,brasil_aberto,True
+PB,2515500,Serra Branca,Centro,centro,-7.22407389,-35.87998199,brasil_aberto,True
+PB,2515500,Serra Branca,Santa Luzia do Cariri,santa luzia do cariri,-7.60386133,-36.81641769,brasil_aberto,True
+PB,2515500,Serra Branca,Sucuru,sucuru,-7.67611742,-36.7878418,brasil_aberto,True
+PB,2515708,Serra Grande,Centro,centro,-7.2137528,-38.3698555,brasil_aberto,True
+PB,2515807,Serra Redonda,Centro,centro,-7.185082,-35.679719,brasil_aberto,True
+PB,2515807,Serra Redonda,Povoado,povoado,,,brasil_aberto,True
+PB,2515609,Serra da Raiz,Centro,centro,-6.68689156,-35.4437027,brasil_aberto,True
+PB,2515906,Serraria,Centro,centro,-7.11871624,-34.86997223,brasil_aberto,True
+PB,2515971,Sobrado,Centro,centro,-7.1477846,-35.2374469,brasil_aberto,True
+PB,2516102,Soledade,Bom Sucesso,bom sucesso,-7.175951899999999,-36.3776917,brasil_aberto,True
+PB,2516102,Soledade,Centro,centro,-7.061448599999999,-36.3649121,brasil_aberto,True
+PB,2516003,Solânea,Centro,centro,-6.75718641,-35.6592865,brasil_aberto,True
+PB,2516151,Sossêgo,Centro,centro,,,brasil_aberto,True
+PB,2516201,Sousa,Alto do Capanema,alto do capanema,-6.7639424,-38.235619,brasil_aberto,True
+PB,2516201,Sousa,Alto do Cruzeiro,alto do cruzeiro,-6.7498218,-38.2382335,brasil_aberto,True
+PB,2516201,Sousa,André Gadelha,andre gadelha,-6.75043154,-38.24422836,brasil_aberto,True
+PB,2516201,Sousa,Angelim,angelim,-6.7538414,-38.2178714,brasil_aberto,True
+PB,2516201,Sousa,Areias,areias,-6.75681162,-38.22649765,brasil_aberto,True
+PB,2516201,Sousa,Assis Garrido,assis garrido,-6.7625815,-38.2274167,brasil_aberto,True
+PB,2516201,Sousa,Augusto Braga,augusto braga,-6.7840792,-38.251764,brasil_aberto,True
+PB,2516201,Sousa,Bancários,bancarios,-6.7641126,-38.2248435,brasil_aberto,True
+PB,2516201,Sousa,Boa Vista,boa vista,-6.7752125,-38.2309985,brasil_aberto,True
+PB,2516201,Sousa,Campo Alegre,campo alegre,-6.7599258,-38.2304695,brasil_aberto,True
+PB,2516201,Sousa,Centro,centro,-6.7587385,-38.2340866,brasil_aberto,True
+PB,2516201,Sousa,Doutor Zezé,doutor zeze,-6.7674369,-38.2258853,brasil_aberto,True
+PB,2516201,Sousa,Estação,estacao,-6.77132177,-38.23517609,brasil_aberto,True
+PB,2516201,Sousa,Estreito,estreito,-6.7660317,-38.2300418,brasil_aberto,True
+PB,2516201,Sousa,Frei Damião,frei damiao,-6.7715673,-38.2295749,brasil_aberto,True
+PB,2516201,Sousa,Gato Preto,gato preto,-6.7598571,-38.2244007,brasil_aberto,True
+PB,2516201,Sousa,Guanabara,guanabara,-6.7555439,-38.229465,brasil_aberto,True
+PB,2516201,Sousa,Jardim Bela Vista,jardim bela vista,-6.777037,-38.2372658,brasil_aberto,True
+PB,2516201,Sousa,Jardim Brasília,jardim brasilia,-6.7762029,-38.2460148,brasil_aberto,True
+PB,2516201,Sousa,Jardim Iracema,jardim iracema,-6.7747223,-38.2414359,brasil_aberto,True
+PB,2516201,Sousa,Jardim Santana,jardim santana,-6.7661047,-38.2351182,brasil_aberto,True
+PB,2516201,Sousa,Jardim Sorrilândia I,jardim sorrilandia i,-6.7736607,-38.2370922,brasil_aberto,True
+PB,2516201,Sousa,Jardim Sorrilândia II,jardim sorrilandia ii,-6.7733479,-38.2305422,brasil_aberto,True
+PB,2516201,Sousa,Jardim Sorrilândia III,jardim sorrilandia iii,-6.7805847,-38.2328742,brasil_aberto,True
+PB,2516201,Sousa,Jardins,jardins,-6.7630756,-38.2214363,brasil_aberto,True
+PB,2516201,Sousa,José Lins do Rego,jose lins do rego,-6.7758224,-38.2424892,brasil_aberto,True
+PB,2516201,Sousa,Lagoa das Estrelas,lagoa das estrelas,-6.7599258,-38.2304695,brasil_aberto,True
+PB,2516201,Sousa,Maria Rachel,maria rachel,-6.7712346,-38.2219987,brasil_aberto,True
+PB,2516201,Sousa,Nossa Senhora de Fátima,nossa senhora de fatima,-6.7783962,-38.2303231,brasil_aberto,True
+PB,2516201,Sousa,Núcleo N 2,nucleo n 2,-6.7599258,-38.2304695,brasil_aberto,True
+PB,2516201,Sousa,Núcleo N 3,nucleo n 3,-6.7599258,-38.2304695,brasil_aberto,True
+PB,2516201,Sousa,Pereiros,pereiros,-7.239960900000001,-36.7819505,brasil_aberto,True
+PB,2516201,Sousa,Projeto Mariz,projeto mariz,-6.7840792,-38.251764,brasil_aberto,True
+PB,2516201,Sousa,São Gonçalo,sao goncalo,-6.839623700000001,-38.3129269,brasil_aberto,True
+PB,2516201,Sousa,São José,sao jose,-6.7687655,-38.2292928,brasil_aberto,True
+PB,2516201,Sousa,Várzea da Cruz,varzea da cruz,-6.75309849,-38.23472977,brasil_aberto,True
+PB,2516201,Sousa,Zú Silva,zu silva,-6.7704129,-38.2270074,brasil_aberto,True
+PB,2516201,Sousa,Área Rural de Sousa,area rural de sousa,-6.7599116,-38.2304763,brasil_aberto,True
+PB,2516300,Sumé,Centro,centro,-7.671430000000001,-36.87848090000001,brasil_aberto,True
+PB,2516300,Sumé,Pio X,pio x,-7.566980699999999,-36.9742505,brasil_aberto,True
+PB,2513927,São Bentinho,Centro,centro,-6.89026,-37.7265,brasil_aberto,True
+PB,2513943,São Domingos do Cariri,Centro,centro,-7.6358557,-36.4324656,brasil_aberto,True
+PB,2514206,São José da Lagoa Tapada,Centro,centro,-6.94149828,-38.16449356,brasil_aberto,True
+PB,2514305,São José de Caiana,Centro,centro,-7.2499938,-38.3006209,brasil_aberto,True
+PB,2514404,São José de Espinharas,Centro,centro,-6.8479683,-37.3257891,brasil_aberto,True
+PB,2514503,São José de Piranhas,Centro,centro,-7.1203201,-38.5012787,brasil_aberto,True
+PB,2514552,São José de Princesa,Centro,centro,-7.7407616,-38.0982594,brasil_aberto,True
+PB,2514602,São José do Bonfim,Centro,centro,-7.162237699999999,-37.3085212,brasil_aberto,True
+PB,2514651,São José do Brejo do Cruz,Centro,centro,-6.2134363,-37.3521556,brasil_aberto,True
+PB,2514701,São José do Sabugi,Centro,centro,-6.7760452,-36.7983852,brasil_aberto,True
+PB,2514800,São José dos Cordeiros,Centro,centro,-7.39189434,-36.81089401,brasil_aberto,True
+PB,2514453,São José dos Ramos,Centro,centro,-7.24904871,-35.38031006,brasil_aberto,True
+PB,2514008,São João do Cariri,Centro,centro,-7.3918338,-36.5319384,brasil_aberto,True
+PB,2500700,São João do Rio do Peixe,Centro,centro,-6.7312594,-38.4474184,brasil_aberto,True
+PB,2500700,São João do Rio do Peixe,Umari,umari,-6.84093237,-38.38259888,brasil_aberto,True
+PB,2514107,São João do Tigre,Centro,centro,-8.080242000000002,-36.8472549,brasil_aberto,True
+PB,2514107,São João do Tigre,Santa Maria,santa maria,-8.1049379,-36.6397127,brasil_aberto,True
+PB,2514909,São Mamede,Centro,centro,-6.9274225,-37.0960411,brasil_aberto,True
+PB,2515005,São Miguel de Taipu,Centro,centro,-7.249567400000001,-35.20951549999999,brasil_aberto,True
+PB,2515104,São Sebastião de Lagoa de Roça,Centro,centro,-7.10306549,-35.86591721,brasil_aberto,True
+PB,2515203,São Sebastião do Umbuzeiro,Centro,centro,-8.15230465,-37.00934219,brasil_aberto,True
+PB,2515401,São Vicente do Seridó,Centro,centro,-6.93877649,-36.40377045,brasil_aberto,True
+PB,2515401,São Vicente do Seridó,Seridó,serido,-6.85634613,-36.41130829,brasil_aberto,True
+PB,2516409,Tacima,Centro,centro,-6.91438532,-35.25019073,brasil_aberto,True
+PB,2516607,Tavares,Centro,centro,-7.636263599999999,-37.8776716,brasil_aberto,True
+PB,2516706,Teixeira,Centro,centro,-7.22221851,-37.2506218,brasil_aberto,True
+PB,2516755,Tenório,Centro,centro,-6.94041824,-36.62807846,brasil_aberto,True
+PB,2516805,Triunfo,Centro,centro,-6.5781071,-38.5979985,brasil_aberto,True
+PB,2516904,Uiraúna,Areias,areias,-6.4569592,-38.4444707,brasil_aberto,True
+PB,2516904,Uiraúna,Centro,centro,-6.5205823,-38.41305699999999,brasil_aberto,True
+PB,2516904,Uiraúna,Fazenda Nova,fazenda nova,-6.517092799999999,-38.4066042,brasil_aberto,True
+PB,2516904,Uiraúna,Quixadá,quixada,-6.517092799999999,-38.4066042,brasil_aberto,True
+PB,2516904,Uiraúna,Santa Rita,santa rita,-7.135889499999999,-34.9662323,brasil_aberto,True
+PB,2516904,Uiraúna,São João Bosco,sao joao bosco,-6.517092799999999,-38.4066042,brasil_aberto,True
+PB,2517001,Umbuzeiro,Centro,centro,-7.69670963,-35.66252899,brasil_aberto,True
+PB,2517001,Umbuzeiro,Mata Virgem,mata virgem,-7.7396144,-35.7930398,brasil_aberto,True
+PB,2517209,Vieirópolis,Centro,centro,-6.544553199999999,-38.27769199999999,brasil_aberto,True
+PB,2505501,Vista Serrana,Centro,centro,-6.73794651,-37.56728363,brasil_aberto,True
+PB,2517100,Várzea,Centro,centro,-6.348683899999999,-35.3751912,brasil_aberto,True
+PB,2517407,Zabelê,Centro,centro,-8.0760493,-37.0975589,brasil_aberto,True

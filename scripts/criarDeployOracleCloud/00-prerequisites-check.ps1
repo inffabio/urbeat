@@ -11,7 +11,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
@@ -99,10 +102,10 @@ $null = Test-Requirement "Server reachable (Port 80 HTTP)" {
     }
 } "Check firewall rules in OCI Console for Port 80"
 
-$null = Test-Requirement "Server reachable (Port 22 SSH)" {
+$null = Test-Requirement "Server reachable (Port 2208 SSH)" {
     # Custom TCP connection test with a strict 3-minute (180s) timeout
     $tcpClient = New-Object System.Net.Sockets.TcpClient
-    $asyncResult = $tcpClient.BeginConnect($ServerIP, 22, $null, $null)
+    $asyncResult = $tcpClient.BeginConnect($ServerIP, $SSHPort, $null, $null)
     $wait = $asyncResult.AsyncWaitHandle.WaitOne(180000) # 3 minutes in milliseconds
     if ($wait) {
         try { $tcpClient.EndConnect($asyncResult); $tcpClient.Close(); $true } catch { $false }
@@ -110,18 +113,19 @@ $null = Test-Requirement "Server reachable (Port 22 SSH)" {
         $tcpClient.Close()
         $false
     }
-} "Check firewall rules in OCI Console for Port 22"
+} "Check firewall rules in OCI Console for Port $SSHPort"
 
 Write-Host "`n☁️  ORACLE CLOUD CHECKS" -ForegroundColor Yellow
 
-# Pre-defined vault details for reliability
-$compartmentId = "ocid1.tenancy.oc1..aaaaaaaah2m3lpf3efb7ulylcs4t3iurlzhjidsgwdp4tjiov2gvxzfdbv2q"
-$vaultEndpoint = "https://ffvctmavaacuu-management.kms.sa-saopaulo-1.oraclecloud.com"
+# OCI identifiers are supplied through the local OCI environment, not stored in the script.
+$compartmentId = $env:OCI_COMPARTMENT_OCID
+$vaultEndpoint = $env:OCI_VAULT_MANAGEMENT_ENDPOINT
 
-$null = Test-Requirement "OCI Vault 'urbeat-vault' exists" {
+$null = Test-Requirement "OCI Vault 'urbeat' exists" {
+    if ([string]::IsNullOrWhiteSpace($compartmentId)) { return $false }
     try {
         $vaults = oci kms management vault list --compartment-id $compartmentId --all 2>&1 | ConvertFrom-Json
-        @($vaults.data | Where-Object { $_.'display-name' -eq 'urbeat-vault' }).Count -gt 0
+        @($vaults.data | Where-Object { $_.'display-name' -eq 'urbeat' }).Count -gt 0
     } catch {
         Write-Host " ⚠️ SKIP (vault may use legacy endpoint)" -ForegroundColor Yellow -NoNewline
         $true
@@ -129,6 +133,7 @@ $null = Test-Requirement "OCI Vault 'urbeat-vault' exists" {
 } "Verify vault exists or check secrets-map.json is valid"
 
 $null = Test-Requirement "OCI Vault has encryption key" {
+    if ([string]::IsNullOrWhiteSpace($compartmentId) -or [string]::IsNullOrWhiteSpace($vaultEndpoint)) { return $false }
     try {
         $keys = oci kms management key list --compartment-id $compartmentId --endpoint $vaultEndpoint --all 2>&1 | ConvertFrom-Json
         @($keys.data | Where-Object { $_.'lifecycle-state' -eq 'ENABLED' }).Count -gt 0
@@ -141,11 +146,11 @@ $null = Test-Requirement "OCI Vault has encryption key" {
 Write-Host "`n🖥️  SERVER CHECKS" -ForegroundColor Yellow
 
 # Use hardcoded path and ignore SSH config (-F NUL) to prevent hanging
-$keyPath = "$env:USERPROFILE\.ssh\id_ed25519"
-if (-not (Test-Path $keyPath)) { $keyPath = "C:\Users\intfa\.ssh\id_ed25519" }
+$keyPath = (Resolve-Path $SSHKeyPath -ErrorAction SilentlyContinue).Path
+if (-not $keyPath) { $keyPath = (Resolve-Path "$env:USERPROFILE\.ssh\id_rsa" -ErrorAction SilentlyContinue).Path }
 $target = "${SSHUser}@${ServerIP}"
 # 3-minute (180s) timeout as explicitly requested, with disabled GSSAPI to prevent Windows SSH hangs
-$sshArgs = @("-F", "NUL", "-i", $keyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$sshArgs = @("-p", $SSHPort, "-i", $keyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 
 # Combine all server checks into a SINGLE SSH connection to prevent overloading the SSH daemon
 $serverChecksRaw = (& ssh @sshArgs $target @'
@@ -166,7 +171,7 @@ foreach ($line in $serverChecksRaw) {
 $null = Test-Requirement "Server is aarch64" { $checks['ARCH'] } "This deployment is designed for aarch64 architecture"
 $null = Test-Requirement "NGINX is installed" { $checks['NGINX_INSTALLED'] } "Install NGINX: sudo apt-get install nginx"
 $null = Test-Requirement "NGINX is running" { $checks['NGINX_RUNNING'] } "Start NGINX: sudo systemctl start nginx"
-$null = Test-Requirement "Ubuntu user has sudo" { $checks['SUDO_OK'] } "Add ubuntu to sudoers"
+$null = Test-Requirement "$SSHUser user has sudo" { $checks['SUDO_OK'] } "Grant sudo access to $SSHUser"
 
 # ─────────────────────────────────────────
 # Summary

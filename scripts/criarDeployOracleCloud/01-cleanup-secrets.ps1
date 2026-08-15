@@ -8,7 +8,7 @@
 
 param(
     [Parameter(Mandatory=$false)]
-    [string]$VaultName = "urbeat-vault",
+    [string]$VaultName = "urbeat",
 
     [Parameter(Mandatory=$false)]
     [string]$Region = "sa-saopaulo-1"
@@ -19,7 +19,11 @@ $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
 Write-Host "🧹 Starting Oracle Vault Secrets Cleanup for Urbeat..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
-$compartmentId = "ocid1.tenancy.oc1..aaaaaaaah2m3lpf3efb7ulylcs4t3iurlzhjidsgwdp4tjiov2gvxzfdbv2q"
+$compartmentId = $env:OCI_COMPARTMENT_OCID
+if ([string]::IsNullOrWhiteSpace($compartmentId)) {
+    Write-Error "OCI_COMPARTMENT_OCID is required."
+    exit 1
+}
 
 Write-Host "`n📦 Fetching all active secrets in compartment..." -ForegroundColor Yellow
 

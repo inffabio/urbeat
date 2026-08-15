@@ -56,7 +56,7 @@
 
 ### Visão Geral da Tela
 
-> Esta tela representa a página inicial de um cardápio de delivery mobile do cliente da happe
+> Esta tela representa a página inicial de um cardápio de delivery mobile do cliente da urbeat
 
 > Ela tem como principais objetivos:
 

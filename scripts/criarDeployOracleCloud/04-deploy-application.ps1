@@ -11,7 +11,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519",
@@ -330,13 +333,13 @@ SET timezone = 'America/Sao_Paulo';
 CREATE SCHEMA IF NOT EXISTS urbeat;
 
 -- Grant permissions
-GRANT ALL PRIVILEGES ON DATABASE urbeatdb TO "urbeatPostg";
-GRANT ALL PRIVILEGES ON SCHEMA urbeat TO "urbeatPostg";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA urbeat TO "urbeatPostg";
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA urbeat TO "urbeatPostg";
+GRANT ALL PRIVILEGES ON DATABASE urbeatdb TO urbeatpostg;
+GRANT ALL PRIVILEGES ON SCHEMA urbeat TO urbeatpostg;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA urbeat TO urbeatpostg;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA urbeat TO urbeatpostg;
 
 -- Set default search path
-ALTER USER "urbeatPostg" SET search_path TO urbeat, public;
+ALTER USER urbeatpostg SET search_path TO urbeat, public;
 
 -- Log initialization
 DO $$
@@ -365,11 +368,12 @@ function Upload-FileToServer {
 
     Write-Host "  📄 Uploading: $FileName" -ForegroundColor White -NoNewline
 
-    $sshOpts = @("-F", "NUL", "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-    scp @sshOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+        $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+        $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
 
     if ($LASTEXITCODE -eq 0) {
-        ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mv /tmp/$FileName $RemotePath/$FileName && sudo chown ubuntu:ubuntu $RemotePath/$FileName"
+        ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mv /tmp/$FileName $RemotePath/$FileName && sudo chown ${SSHUser}:${SSHUser} $RemotePath/$FileName"
         Write-Host " ✅" -ForegroundColor Green
     } else {
         Write-Host " ❌" -ForegroundColor Red
@@ -379,8 +383,9 @@ function Upload-FileToServer {
 }
 
 # Create postgres config directory
-$sshOpts = @("-F", "NUL", "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mkdir -p $AppDir/configs/postgres && sudo chown -R ubuntu:ubuntu $AppDir/configs"
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mkdir -p $AppDir/configs/postgres && sudo chown -R ${SSHUser}:${SSHUser} $AppDir/configs"
 
 # Upload files
 Upload-FileToServer -Content $dockerCompose -RemotePath $AppDir -FileName "docker-compose.yml"
@@ -394,7 +399,7 @@ Upload-FileToServer -Content $postgresInit -RemotePath "$AppDir/configs/postgres
 
 Write-Host "`n📦 Preparing and uploading source code for local build..." -ForegroundColor Yellow
 
-$projectRoot = "C:\Projetos\urbeat"
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $backendDir = Join-Path $projectRoot "backend"
 $frontendDir = Join-Path $projectRoot "frontend"
 
@@ -429,11 +434,11 @@ Write-Host "  🗜️  Compressing frontend..." -ForegroundColor White
 
 # Upload tars using scp (with strict timeouts to prevent Windows hangs)
 Write-Host "  📤 Uploading backend source (this may take a minute)..." -ForegroundColor White
-$sshOpts = @("-F", "NUL", "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-scp @sshOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
 
 Write-Host "  📤 Uploading frontend source (this may take a minute)..." -ForegroundColor White
-scp @sshOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
+scp @scpOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
 
 # Extract on server
 Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
@@ -442,7 +447,7 @@ ssh @sshOpts "${SSHUser}@${ServerIP}" "
     sudo mkdir -p $AppDir/backend $AppDir/frontend
     sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
     sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
-    sudo chown -R ubuntu:ubuntu $AppDir/backend $AppDir/frontend
+    sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend
     rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz
     echo '✅ Source code extracted successfully'
 "
@@ -514,8 +519,9 @@ $tempDeploy = [System.IO.Path]::GetTempFileName() + ".sh"
 $cleanScript = $deployScript -replace "`r`n", "`n"
 [System.IO.File]::WriteAllText($tempDeploy, $cleanScript, [System.Text.UTF8Encoding]::new($false))
 
-$sshOpts = @("-F", "NUL", "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-scp @sshOpts $tempDeploy "${SSHUser}@${ServerIP}:/tmp/deploy.sh" | Out-Null
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempDeploy "${SSHUser}@${ServerIP}:/tmp/deploy.sh" | Out-Null
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/deploy.sh && /tmp/deploy.sh && rm /tmp/deploy.sh"
 
 Remove-Item $tempDeploy -Force

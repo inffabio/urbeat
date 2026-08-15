@@ -18,6 +18,7 @@ import {
   ResetPasswordResponse,
   UpdateEmailRequest,
   CustomerProfileResponse,
+  SellerProfileResponse,
 } from '../../shared/models/auth.model';
 
 const TOKEN_KEY = 'urbeat_token';
@@ -40,6 +41,10 @@ export class AuthService {
 
   registerSeller(req: RegisterCustomerRequest): Observable<RegisterResponse> {
     return this.api.post<RegisterResponse>('/api/auth/register/seller', req);
+  }
+
+  getSellerProfile(): Observable<SellerProfileResponse> {
+    return this.api.get<SellerProfileResponse>('/api/seller/profile');
   }
 
   login(req: LoginRequest): Observable<AuthTokenResponse> {

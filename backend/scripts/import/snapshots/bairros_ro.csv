@@ -1,0 +1,410 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+RO,1100015,Alta Floresta D'Oeste,Centro,centro,-11.9276056,-61.9919216,brasil_aberto,True
+RO,1100015,Alta Floresta D'Oeste,Terra Indígena Massaco,terra indigena massaco,-11.9291869,-61.9942423,brasil_aberto,True
+RO,1100015,Alta Floresta D'Oeste,Terra Indígena Rio Branco,terra indigena rio branco,-11.9343994,-62.0000435,brasil_aberto,True
+RO,1100379,Alto Alegre dos Parecis,Centro,centro,-12.1326054,-61.8583764,brasil_aberto,True
+RO,1100346,Alvorada D'Oeste,Centro,centro,-11.3468586,-62.287207,brasil_aberto,True
+RO,1100346,Alvorada D'Oeste,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru-eu-wau-wau,-11.3481406,-62.28778059999999,brasil_aberto,True
+RO,1100023,Ariquemes,Apoio BR-364,apoio br-364,-9.905927,-63.0557733,brasil_aberto,True
+RO,1100023,Ariquemes,Apoio BR-421,apoio br-421,-9.915981,-63.0555758,brasil_aberto,True
+RO,1100023,Ariquemes,Apoio Rodoviário,apoio rodoviario,-9.9153071,-63.0485056,brasil_aberto,True
+RO,1100023,Ariquemes,Apoio Rodoviário Sul,apoio rodoviario sul,-13.8329458,-59.6289509,brasil_aberto,True
+RO,1100023,Ariquemes,Apoio Social,apoio social,-9.8854874,-63.0309024,brasil_aberto,True
+RO,1100023,Ariquemes,BNH,bnh,-9.9009517,-63.0429174,brasil_aberto,True
+RO,1100023,Ariquemes,Bela Vista,bela vista,-9.8965847,-63.0177926,brasil_aberto,True
+RO,1100023,Ariquemes,Bom Futuro,bom futuro,-9.9112215,-63.0205734,brasil_aberto,True
+RO,1100023,Ariquemes,Bom Jesus,bom jesus,-9.8913816,-63.0320708,brasil_aberto,True
+RO,1100023,Ariquemes,Colonial,colonial,-9.9039678,-63.0353906,brasil_aberto,True
+RO,1100023,Ariquemes,Condomínio São Paulo,condominio sao paulo,-9.887881,-63.0227385,brasil_aberto,True
+RO,1100023,Ariquemes,Coqueiral,coqueiral,-9.9145979,-63.0151245,brasil_aberto,True
+RO,1100023,Ariquemes,Entre Rios,entre rios,-10.0361229,-62.9768042,brasil_aberto,True
+RO,1100023,Ariquemes,Estância Sol Nascente,estancia sol nascente,-10.0361229,-62.9768042,brasil_aberto,True
+RO,1100023,Ariquemes,Feliz Cidade,feliz cidade,-9.8847944,-63.0191219,brasil_aberto,True
+RO,1100023,Ariquemes,Flores,flores,-9.9304707,-63.0369739,brasil_aberto,True
+RO,1100023,Ariquemes,Grandes Áreas,grandes areas,-9.9228545,-63.0350635,brasil_aberto,True
+RO,1100023,Ariquemes,Industrial Jamari,industrial jamari,-9.9119761,-63.0556256,brasil_aberto,True
+RO,1100023,Ariquemes,Jamari,jamari,-9.900934,-63.0208938,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim América,jardim america,-9.8961228,-63.0479421,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Bela Vista,jardim bela vista,-9.8725348,-63.0324823,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Europa,jardim europa,-9.8942193,-63.0367026,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Jorge Teixeira,jardim jorge teixeira,-9.924915,-63.0355741,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Paraná,jardim parana,-9.8830087,-63.0443232,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Paulista,jardim paulista,-9.8941727,-63.0448964,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Primavera,jardim primavera,-9.9117655,-63.0124462,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Rio de Janeiro,jardim rio de janeiro,-9.8946695,-63.0478562,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Vitória,jardim vitoria,-9.8982538,-63.0347564,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim Zona Sul,jardim zona sul,-9.9352691,-63.0139622,brasil_aberto,True
+RO,1100023,Ariquemes,Jardim das Palmeiras,jardim das palmeiras,-9.9279772,-63.0325527,brasil_aberto,True
+RO,1100023,Ariquemes,Loteamento Renascer,loteamento renascer,-9.920748,-63.0319709,brasil_aberto,True
+RO,1100023,Ariquemes,Marechal Rondon 01,marechal rondon 01,-9.9297648,-63.0585136,brasil_aberto,True
+RO,1100023,Ariquemes,Marechal Rondon 02,marechal rondon 02,-9.9241725,-63.0536879,brasil_aberto,True
+RO,1100023,Ariquemes,Monte Alegre,monte alegre,-9.8902917,-63.048609,brasil_aberto,True
+RO,1100023,Ariquemes,Monte Cristo,monte cristo,-9.9127635,-63.0629994,brasil_aberto,True
+RO,1100023,Ariquemes,Nova Londrina,nova londrina,-9.9530603,-63.109733,brasil_aberto,True
+RO,1100023,Ariquemes,Nova União 01,nova uniao 01,-9.9145979,-63.0151245,brasil_aberto,True
+RO,1100023,Ariquemes,Nova União 03,nova uniao 03,-9.8853711,-63.0462501,brasil_aberto,True
+RO,1100023,Ariquemes,Nova Vida,nova vida,-10.180546,-62.82107409999999,brasil_aberto,True
+RO,1100023,Ariquemes,Park Tropical,park tropical,-9.9258253,-63.0362005,brasil_aberto,True
+RO,1100023,Ariquemes,Parque das Gemas,parque das gemas,-9.9106427,-63.0158496,brasil_aberto,True
+RO,1100023,Ariquemes,Pedras,pedras,-9.9258208,-63.0441244,brasil_aberto,True
+RO,1100023,Ariquemes,Polo Moveleiro de Ariquemes,polo moveleiro de ariquemes,-9.8943097,-63.0334711,brasil_aberto,True
+RO,1100023,Ariquemes,Raio de Luz,raio de luz,-9.914047,-63.0243239,brasil_aberto,True
+RO,1100023,Ariquemes,Residencial Alvorada,residencial alvorada,-9.8927441,-63.0178588,brasil_aberto,True
+RO,1100023,Ariquemes,Residencial Eldorado,residencial eldorado,-9.8906997,-63.0269605,brasil_aberto,True
+RO,1100023,Ariquemes,Residencial Gerson Neco,residencial gerson neco,-9.8971208,-63.01586159999999,brasil_aberto,True
+RO,1100023,Ariquemes,Rota do Sol,rota do sol,-9.8943097,-63.0334711,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 01,setor 01,-9.9149238,-63.0441901,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 02,setor 02,-9.9121199,-63.031129,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 03,setor 03,-9.9039678,-63.0353906,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 04,setor 04,-9.9105621,-63.031683,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 05,setor 05,-9.8992428,-63.0387632,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 06,setor 06,-9.9081353,-63.0319151,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 08,setor 08,-9.9061607,-63.0229707,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 09,setor 09,-9.933719499999999,-63.02751619999999,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 10,setor 10,-9.9394388,-63.0160402,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 11,setor 11,-9.8943105,-63.0192264,brasil_aberto,True
+RO,1100023,Ariquemes,Setor 12,setor 12,-9.9218502,-63.049742,brasil_aberto,True
+RO,1100023,Ariquemes,Setor Institucional,setor institucional,-9.9177314,-63.0331283,brasil_aberto,True
+RO,1100023,Ariquemes,Setor Recreativo,setor recreativo,-9.920748,-63.0319709,brasil_aberto,True
+RO,1100023,Ariquemes,São Geraldo,sao geraldo,-9.9142005,-63.0631688,brasil_aberto,True
+RO,1100023,Ariquemes,São Luiz,sao luiz,-9.9016959,-63.0168526,brasil_aberto,True
+RO,1100023,Ariquemes,Trevo,trevo,-13.8329458,-59.6289509,brasil_aberto,True
+RO,1100023,Ariquemes,Área Industrial,area industrial,-9.9022522,-63.0472338,brasil_aberto,True
+RO,1100023,Ariquemes,Área Rural de Ariquemes,area rural de ariquemes,-9.903959,-63.0346209,brasil_aberto,True
+RO,1100023,Ariquemes,Áreas Especiais,areas especiais,-9.9105038,-63.0486616,brasil_aberto,True
+RO,1100023,Ariquemes,Áreas Especiais 01,areas especiais 01,-9.9204461,-63.0329614,brasil_aberto,True
+RO,1100023,Ariquemes,Áreas Especiais 02,areas especiais 02,-9.9106716,-63.031889,brasil_aberto,True
+RO,1100023,Ariquemes,Áreas de Chácara,areas de chacara,-9.8921655,-63.0300053,brasil_aberto,True
+RO,1100452,Buritis,Setor 3,setor 3,-10.2108504,-63.82773779999999,brasil_aberto,True
+RO,1100031,Cabixi,Centro,centro,-13.4935415,-60.5423981,brasil_aberto,True
+RO,1100601,Cacaulândia,Centro,centro,-10.3416058,-62.90021059999999,brasil_aberto,True
+RO,1100049,Cacoal,Alpha Parque,alpha parque,-11.4346957,-61.45669909999999,brasil_aberto,True
+RO,1100049,Cacoal,Alphaville,alphaville,-11.4236948,-61.4214804,brasil_aberto,True
+RO,1100049,Cacoal,Balneário Arco-Íris,balneario arco-iris,-11.4305497,-61.4654465,brasil_aberto,True
+RO,1100049,Cacoal,Centro,centro,-11.434793,-61.4492664,brasil_aberto,True
+RO,1100049,Cacoal,Chácaras Brizon,chacaras brizon,-11.4203818,-61.4479819,brasil_aberto,True
+RO,1100049,Cacoal,Conjunto Halley,conjunto halley,-11.420346,-61.4723642,brasil_aberto,True
+RO,1100049,Cacoal,Eldorado,eldorado,-11.4440152,-61.4314953,brasil_aberto,True
+RO,1100049,Cacoal,Embratel,embratel,-11.4339227,-61.435527,brasil_aberto,True
+RO,1100049,Cacoal,Floresta,floresta,-11.437529,-61.4379702,brasil_aberto,True
+RO,1100049,Cacoal,Habitar Brasil,habitar brasil,-11.4214678,-61.4784129,brasil_aberto,True
+RO,1100049,Cacoal,Habitar Brasil II,habitar brasil ii,-11.4242305,-61.4802844,brasil_aberto,True
+RO,1100049,Cacoal,Incra,incra,-11.7244007,-61.7780674,brasil_aberto,True
+RO,1100049,Cacoal,Industrial,industrial,-11.4388647,-61.4665135,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Bandeirantes,jardim bandeirantes,-11.4339733,-61.4689602,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Clodoaldo,jardim clodoaldo,-11.4293957,-61.4492405,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Europa,jardim europa,-11.4375045,-61.4573838,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Itália,jardim italia,-11.4286561,-61.4723598,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Itália I,jardim italia i,,,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Limoeiro,jardim limoeiro,-11.4136801,-61.4706021,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Paulista,jardim paulista,-11.4185315,-61.4135863,brasil_aberto,True
+RO,1100049,Cacoal,Jardim Saúde,jardim saude,-11.43165,-61.4406513,brasil_aberto,True
+RO,1100049,Cacoal,Jardim São Pedro I,jardim sao pedro i,-11.4171366,-61.4633672,brasil_aberto,True
+RO,1100049,Cacoal,Jardim São Pedro II,jardim sao pedro ii,-11.4172129,-61.4582254,brasil_aberto,True
+RO,1100049,Cacoal,Josino Brito,josino brito,-11.4171155,-61.4664758,brasil_aberto,True
+RO,1100049,Cacoal,Liberdade,liberdade,-11.441502,-61.4536724,brasil_aberto,True
+RO,1100049,Cacoal,Morada do Bosque,morada do bosque,-11.4152871,-61.4475069,brasil_aberto,True
+RO,1100049,Cacoal,Morada do Sol,morada do sol,-11.4130326,-61.4707738,brasil_aberto,True
+RO,1100049,Cacoal,Nova Esperança,nova esperanca,-11.4257337,-61.4655443,brasil_aberto,True
+RO,1100049,Cacoal,Novo Cacoal,novo cacoal,-11.4311088,-61.4551555,brasil_aberto,True
+RO,1100049,Cacoal,Novo Horizonte,novo horizonte,-11.4368427,-61.4562581,brasil_aberto,True
+RO,1100049,Cacoal,Parque Fortaleza,parque fortaleza,-11.4255265,-61.4723623,brasil_aberto,True
+RO,1100049,Cacoal,Parque Industrial Governador Jeronimo Santana,parque industrial governador jeronimo santana,-11.4397971,-61.4734636,brasil_aberto,True
+RO,1100049,Cacoal,Parque dos Lagos,parque dos lagos,-11.4165253,-61.4876778,brasil_aberto,True
+RO,1100049,Cacoal,Princesa Isabel,princesa isabel,-11.435703,-61.4438092,brasil_aberto,True
+RO,1100049,Cacoal,Residencial Cidade Verde,residencial cidade verde,-11.4164646,-61.4740788,brasil_aberto,True
+RO,1100049,Cacoal,Residencial Paineiras,residencial paineiras,-11.4142231,-61.409829,brasil_aberto,True
+RO,1100049,Cacoal,Residencial Parque Alvorada,residencial parque alvorada,-11.4171366,-61.4633672,brasil_aberto,True
+RO,1100049,Cacoal,Residencial Parque Brizon,residencial parque brizon,-11.412693,-61.4633709,brasil_aberto,True
+RO,1100049,Cacoal,Riozinho,riozinho,-11.27259,-61.2505,brasil_aberto,True
+RO,1100049,Cacoal,Santo Antônio,santo antonio,-11.4348105,-61.4430737,brasil_aberto,True
+RO,1100049,Cacoal,Sete de Setembro,sete de setembro,-11.4146934,-61.4423772,brasil_aberto,True
+RO,1100049,Cacoal,Sociedade Bela Vista,sociedade bela vista,,,brasil_aberto,True
+RO,1100049,Cacoal,Teixeirão,teixeirao,-11.425162,-61.4341786,brasil_aberto,True
+RO,1100049,Cacoal,Vila Romana,vila romana,-11.453156,-61.4286773,brasil_aberto,True
+RO,1100049,Cacoal,Vila Verde,vila verde,-11.4258612,-61.4807416,brasil_aberto,True
+RO,1100049,Cacoal,Village do Sol,village do sol,-11.4271378,-61.4402959,brasil_aberto,True
+RO,1100049,Cacoal,Village do Sol II,village do sol ii,-11.4227378,-61.4381054,brasil_aberto,True
+RO,1100049,Cacoal,Vista Alegre,vista alegre,-11.4343213,-61.4739588,brasil_aberto,True
+RO,1100049,Cacoal,Área Rural de Cacoal,area rural de cacoal,-11.4319111,-61.45485389999999,brasil_aberto,True
+RO,1100700,Campo Novo de Rondônia,Centro,centro,-10.2618414,-64.0615775,brasil_aberto,True
+RO,1100809,Candeias do Jamari,Centro,centro,-8.7960003,-63.6969067,brasil_aberto,True
+RO,1100809,Candeias do Jamari,Triunfo,triunfo,-9.279476,-63.4684339,brasil_aberto,True
+RO,1100908,Castanheiras,Centro,centro,-11.4283768,-61.9509744,brasil_aberto,True
+RO,1100056,Cerejeiras,Centro,centro,-13.192647,-60.820986,brasil_aberto,True
+RO,1100924,Chupinguaia,Centro,centro,-12.5555197,-60.90255449999999,brasil_aberto,True
+RO,1100924,Chupinguaia,Guaporé,guapore,-28.8479609,-51.890107,brasil_aberto,True
+RO,1100924,Chupinguaia,Terra Indígena Rio Omerê,terra indigena rio omere,-12.8265122,-61.10437699999999,brasil_aberto,True
+RO,1100924,Chupinguaia,Terra Indígena Tanaru,terra indigena tanaru,-12.5551459,-60.90229749999999,brasil_aberto,True
+RO,1100064,Colorado do Oeste,Centro,centro,-13.1227862,-60.5433402,brasil_aberto,True
+RO,1100072,Corumbiara,Centro,centro,-12.9985038,-60.95042540000001,brasil_aberto,True
+RO,1100080,Costa Marques,Centro,centro,-12.4407015,-64.2293816,brasil_aberto,True
+RO,1100080,Costa Marques,Príncipe da Beira,principe da beira,-12.4256671,-64.42300279999999,brasil_aberto,True
+RO,1100940,Cujubim,Centro,centro,-9.373253199999999,-62.58086459999999,brasil_aberto,True
+RO,1100098,Espigão D'Oeste,Boa Vista de Pacarana,boa vista de pacarana,-11.5393104,-61.0096744,brasil_aberto,True
+RO,1100098,Espigão D'Oeste,Centro,centro,-11.5296412,-61.02249759999999,brasil_aberto,True
+RO,1100098,Espigão D'Oeste,Nova Esperança,nova esperanca,-11.5212424,-61.1170184,brasil_aberto,True
+RO,1101005,Governador Jorge Teixeira,Centro,centro,-10.6140735,-62.73495200000001,brasil_aberto,True
+RO,1100106,Guajará-Mirim,Centro,centro,-10.7922671,-65.3453036,brasil_aberto,True
+RO,1101104,Itapuã do Oeste,Centro,centro,-9.1919167,-63.187774,brasil_aberto,True
+RO,1100114,Jaru,Bom Jesus,bom jesus,-10.4283629,-62.4736737,brasil_aberto,True
+RO,1100114,Jaru,Centro,centro,-10.4357674,-62.47361649999999,brasil_aberto,True
+RO,1100114,Jaru,Santa Cruz,santa cruz,-10.4283629,-62.4736737,brasil_aberto,True
+RO,1100114,Jaru,Setor 01,setor 01,-10.4350861,-62.4736769,brasil_aberto,True
+RO,1100114,Jaru,Tarilândia,tarilandia,-10.8566907,-62.79816630000001,brasil_aberto,True
+RO,1100122,Ji-Paraná,Alto Alegre,alto alegre,-10.875096,-61.9054101,brasil_aberto,True
+RO,1100122,Ji-Paraná,Araçá,araca,-10.8703713,-61.9533474,brasil_aberto,True
+RO,1100122,Ji-Paraná,Açaí,acai,-10.8463349,-61.967771,brasil_aberto,True
+RO,1100122,Ji-Paraná,Bela Vista,bela vista,-10.8644357,-61.9522612,brasil_aberto,True
+RO,1100122,Ji-Paraná,Boa Esperança,boa esperanca,-10.879106,-61.9059928,brasil_aberto,True
+RO,1100122,Ji-Paraná,Bosque dos Ipês,bosque dos ipes,-10.8674204,-61.9829609,brasil_aberto,True
+RO,1100122,Ji-Paraná,Cafezinho,cafezinho,-10.8928254,-61.9112091,brasil_aberto,True
+RO,1100122,Ji-Paraná,Capelasso,capelasso,-10.8999174,-61.8833431,brasil_aberto,True
+RO,1100122,Ji-Paraná,Casa Preta,casa preta,-10.8729536,-61.9495191,brasil_aberto,True
+RO,1100122,Ji-Paraná,Centro,centro,-10.8841957,-61.9459192,brasil_aberto,True
+RO,1100122,Ji-Paraná,Colina Park I,colina park i,-10.8558482,-61.953581,brasil_aberto,True
+RO,1100122,Ji-Paraná,Colina Park II,colina park ii,-10.8558482,-61.953581,brasil_aberto,True
+RO,1100122,Ji-Paraná,Copas Verdes,copas verdes,-10.8619547,-61.989483,brasil_aberto,True
+RO,1100122,Ji-Paraná,Distrito Industrial,distrito industrial,-10.8463349,-61.967771,brasil_aberto,True
+RO,1100122,Ji-Paraná,Dois de Abril,dois de abril,-10.8722738,-61.9611576,brasil_aberto,True
+RO,1100122,Ji-Paraná,Dom Bosco,dom bosco,-10.8657596,-61.9436597,brasil_aberto,True
+RO,1100122,Ji-Paraná,Duque de Caxias,duque de caxias,-10.8779371,-61.9302125,brasil_aberto,True
+RO,1100122,Ji-Paraná,Ecoville,ecoville,-10.8702646,-61.9577496,brasil_aberto,True
+RO,1100122,Ji-Paraná,Espelho D' Água,espelho d' agua,-10.8615951,-62.0056256,brasil_aberto,True
+RO,1100122,Ji-Paraná,Flórida,florida,-10.8722749,-61.9551778,brasil_aberto,True
+RO,1100122,Ji-Paraná,Green Park,green park,-10.8814533,-61.9805698,brasil_aberto,True
+RO,1100122,Ji-Paraná,Greenville,greenville,-10.9036189,-61.9114183,brasil_aberto,True
+RO,1100122,Ji-Paraná,Habitar Brasil,habitar brasil,-10.8802661,-61.9064334,brasil_aberto,True
+RO,1100122,Ji-Paraná,JK,jk,-10.8757495,-61.9053362,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim Aurélio Bernardi,jardim aurelio bernardi,-10.8673578,-61.9579953,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim Capelasso,jardim capelasso,-10.9013946,-61.8825116,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim Presidencial,jardim presidencial,-10.8724816,-61.9751084,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim São Cristóvão,jardim sao cristovao,-10.8722749,-61.9551778,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim das Seringueiras,jardim das seringueiras,-10.9026393,-61.9175631,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jardim dos Migrantes,jardim dos migrantes,-10.8758931,-61.9600358,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jorge Teixeira,jorge teixeira,-10.8832621,-61.9077068,brasil_aberto,True
+RO,1100122,Ji-Paraná,Jotão,jotao,-10.8812546,-61.9309131,brasil_aberto,True
+RO,1100122,Ji-Paraná,Milão,milao,-10.9078848,-61.9076082,brasil_aberto,True
+RO,1100122,Ji-Paraná,Mutirão,mutirao,-10.8958642,-61.9045954,brasil_aberto,True
+RO,1100122,Ji-Paraná,Mário Andreazza,mario andreazza,-10.9096345,-61.9318739,brasil_aberto,True
+RO,1100122,Ji-Paraná,Nossa Senhora de Fátima,nossa senhora de fatima,-10.8823426,-61.9056015,brasil_aberto,True
+RO,1100122,Ji-Paraná,Nova Brasília,nova brasilia,-10.8865938,-61.913989,brasil_aberto,True
+RO,1100122,Ji-Paraná,Nova Colina,nova colina,-10.7917,-61.6931024,brasil_aberto,True
+RO,1100122,Ji-Paraná,Nova Londrina,nova londrina,-11.0409888,-62.00481379999999,brasil_aberto,True
+RO,1100122,Ji-Paraná,Novo Horizonte,novo horizonte,-10.8504445,-61.9742995,brasil_aberto,True
+RO,1100122,Ji-Paraná,Novo Ji-Paraná,novo ji-parana,-10.8834165,-61.9704435,brasil_aberto,True
+RO,1100122,Ji-Paraná,Novo Urupá,novo urupa,-10.8814647,-61.9624975,brasil_aberto,True
+RO,1100122,Ji-Paraná,Orleans Ji-Paraná I,orleans ji-parana i,-10.8790596,-61.9321691,brasil_aberto,True
+RO,1100122,Ji-Paraná,Orleans Ji-Paraná II,orleans ji-parana ii,-10.8597101,-61.9687133,brasil_aberto,True
+RO,1100122,Ji-Paraná,Park Amazonas,park amazonas,-10.8493954,-61.9716538,brasil_aberto,True
+RO,1100122,Ji-Paraná,Parque São Pedro,parque sao pedro,-10.8613734,-61.9375568,brasil_aberto,True
+RO,1100122,Ji-Paraná,Parque dos Pioneiros,parque dos pioneiros,-10.9024827,-61.9117761,brasil_aberto,True
+RO,1100122,Ji-Paraná,Planalto I,planalto i,-10.8758574,-61.9811907,brasil_aberto,True
+RO,1100122,Ji-Paraná,Primavera,primavera,-10.8914139,-61.9347711,brasil_aberto,True
+RO,1100122,Ji-Paraná,Residencial Carneiro,residencial carneiro,-10.8781412,-61.93267280000001,brasil_aberto,True
+RO,1100122,Ji-Paraná,Residencial Veneza,residencial veneza,-10.8640676,-61.99924259999999,brasil_aberto,True
+RO,1100122,Ji-Paraná,Riachuelo,riachuelo,-10.8935966,-61.9282641,brasil_aberto,True
+RO,1100122,Ji-Paraná,Rondon,rondon,-10.9048933,-61.8893077,brasil_aberto,True
+RO,1100122,Ji-Paraná,Santiago,santiago,-10.86765,-61.9755328,brasil_aberto,True
+RO,1100122,Ji-Paraná,Setor Anel Viário,setor anel viario,-10.9214672,-61.9302408,brasil_aberto,True
+RO,1100122,Ji-Paraná,São Bernardo,sao bernardo,-10.8571477,-61.9696622,brasil_aberto,True
+RO,1100122,Ji-Paraná,São Francisco,sao francisco,-10.8776824,-61.9228655,brasil_aberto,True
+RO,1100122,Ji-Paraná,São Pedro,sao pedro,-10.8942763,-61.9194681,brasil_aberto,True
+RO,1100122,Ji-Paraná,Talismã,talisma,-10.8682994,-61.9002861,brasil_aberto,True
+RO,1100122,Ji-Paraná,Terra Nova,terra nova,-10.8619184,-61.9012692,brasil_aberto,True
+RO,1100122,Ji-Paraná,União,uniao,-10.8813425,-61.943533,brasil_aberto,True
+RO,1100122,Ji-Paraná,União II,uniao ii,-10.911506,-61.9111169,brasil_aberto,True
+RO,1100122,Ji-Paraná,Urupá,urupa,-10.8859533,-61.9484967,brasil_aberto,True
+RO,1100122,Ji-Paraná,Valparaíso,valparaiso,-10.8778351,-61.9138614,brasil_aberto,True
+RO,1100122,Ji-Paraná,Vila de Rondônia,vila de rondonia,-10.8530107,-61.9497986,brasil_aberto,True
+RO,1100122,Ji-Paraná,Área Rural de Ji-Paraná,area rural de ji-parana,-10.8724473,-61.95928869999999,brasil_aberto,True
+RO,1100130,Machadinho D'Oeste,Centro,centro,-9.4253964,-62.0021976,brasil_aberto,True
+RO,1100130,Machadinho D'Oeste,Tabajara,tabajara,-8.970727900000002,-62.12197250000001,brasil_aberto,True
+RO,1101203,Ministro Andreazza,Centro,centro,-11.1950893,-61.5176607,brasil_aberto,True
+RO,1101302,Mirante da Serra,Centro,centro,-11.0294607,-62.67280499999999,brasil_aberto,True
+RO,1101401,Monte Negro,Centro,centro,-10.2617306,-63.29530489999999,brasil_aberto,True
+RO,1100148,Nova Brasilândia D'Oeste,Centro,centro,-11.7306103,-62.32659959999999,brasil_aberto,True
+RO,1100338,Nova Mamoré,Centro,centro,-10.4163294,-65.3323632,brasil_aberto,True
+RO,1100338,Nova Mamoré,Nova Dimensão,nova dimensao,-10.369779,-64.8073424,brasil_aberto,True
+RO,1100338,Nova Mamoré,Palmeiras,palmeiras,-10.3871943,-65.0008536,brasil_aberto,True
+RO,1100502,Novo Horizonte do Oeste,Centro,centro,-11.7108972,-61.9997748,brasil_aberto,True
+RO,1100155,Ouro Preto do Oeste,Centro,centro,-10.7209164,-62.2559803,brasil_aberto,True
+RO,1101450,Parecis,Centro,centro,-12.1834993,-61.6048211,brasil_aberto,True
+RO,1100189,Pimenta Bueno,Centro,centro,-11.6729304,-61.1866789,brasil_aberto,True
+RO,1100189,Pimenta Bueno,Marco Rondon,marco rondon,-12.0130986,-60.871008,brasil_aberto,True
+RO,1101468,Pimenteiras do Oeste,Centro,centro,-13.4783407,-61.0401763,brasil_aberto,True
+RO,1100205,Porto Velho,Abunã,abuna,-9.700347599999999,-65.3681399,brasil_aberto,True
+RO,1100205,Porto Velho,Aeroclube,aeroclube,-8.8037303,-63.8605559,brasil_aberto,True
+RO,1100205,Porto Velho,Aeroporto,aeroporto,-8.7291605,-63.9010851,brasil_aberto,True
+RO,1100205,Porto Velho,Agenor de Carvalho,agenor de carvalho,-8.7541446,-63.8640248,brasil_aberto,True
+RO,1100205,Porto Velho,Aponiã,aponia,-8.7521541,-63.8213404,brasil_aberto,True
+RO,1100205,Porto Velho,Areal,areal,-8.7759467,-63.8971732,brasil_aberto,True
+RO,1100205,Porto Velho,Areia Branca,areia branca,-8.8051534,-63.903613,brasil_aberto,True
+RO,1100205,Porto Velho,Arigolândia,arigolandia,-8.7574789,-63.9111815,brasil_aberto,True
+RO,1100205,Porto Velho,Bairro Novo,bairro novo,-8.811266,-63.8078558,brasil_aberto,True
+RO,1100205,Porto Velho,Baixa União,baixa uniao,-8.7730138,-63.9042174,brasil_aberto,True
+RO,1100205,Porto Velho,Caiari,caiari,-8.7630934,-63.9062682,brasil_aberto,True
+RO,1100205,Porto Velho,Caladinho,caladinho,-8.7981184,-63.8841289,brasil_aberto,True
+RO,1100205,Porto Velho,Calama,calama,-8.0290156,-62.8758749,brasil_aberto,True
+RO,1100205,Porto Velho,Cascalheira,cascalheira,-8.7774,-63.8374318,brasil_aberto,True
+RO,1100205,Porto Velho,Castanheira,castanheira,-8.8015014,-63.8761547,brasil_aberto,True
+RO,1100205,Porto Velho,Centro,centro,-8.7657645,-63.9030092,brasil_aberto,True
+RO,1100205,Porto Velho,Cidade Jardim,cidade jardim,-13.8329458,-59.6289509,brasil_aberto,True
+RO,1100205,Porto Velho,Cidade Nova,cidade nova,-8.8081288,-63.8740451,brasil_aberto,True
+RO,1100205,Porto Velho,Cidade do Lobo,cidade do lobo,-8.8063133,-63.8827735,brasil_aberto,True
+RO,1100205,Porto Velho,Cohab,cohab,-8.789411,-63.8755563,brasil_aberto,True
+RO,1100205,Porto Velho,Conceição,conceicao,-8.7987526,-63.88916939999999,brasil_aberto,True
+RO,1100205,Porto Velho,Costa e Silva,costa e silva,-8.7383378,-63.8949933,brasil_aberto,True
+RO,1100205,Porto Velho,Cuniã,cunia,-8.7577154,-63.8606912,brasil_aberto,True
+RO,1100205,Porto Velho,Demarcação,demarcacao,-8.1715453,-62.78071670000001,brasil_aberto,True
+RO,1100205,Porto Velho,Eldorado,eldorado,-8.7817019,-63.8717482,brasil_aberto,True
+RO,1100205,Porto Velho,Eletronorte,eletronorte,-8.7929132,-63.8974313,brasil_aberto,True
+RO,1100205,Porto Velho,Embratel,embratel,-8.752342,-63.8780276,brasil_aberto,True
+RO,1100205,Porto Velho,Escola de Polícia,escola de policia,-8.7523384,-63.8436268,brasil_aberto,True
+RO,1100205,Porto Velho,Esperança da Comunidade,esperanca da comunidade,-8.7537342,-63.8780004,brasil_aberto,True
+RO,1100205,Porto Velho,Extrema,extrema,-9.771095299999999,-66.3560451,brasil_aberto,True
+RO,1100205,Porto Velho,Flodoaldo Pontes Pinto,flodoaldo pontes pinto,-8.7477356,-63.8715768,brasil_aberto,True
+RO,1100205,Porto Velho,Floresta,floresta,-8.7747021,-63.8849565,brasil_aberto,True
+RO,1100205,Porto Velho,Fortaleza do Abunã,fortaleza do abuna,-9.784687199999999,-65.527262,brasil_aberto,True
+RO,1100205,Porto Velho,Igarapé,igarape,-8.7466099,-63.8627754,brasil_aberto,True
+RO,1100205,Porto Velho,Industrial,industrial,-8.736418,-63.8823029,brasil_aberto,True
+RO,1100205,Porto Velho,Jaci Paraná,jaci parana,-9.2541514,-64.409753,brasil_aberto,True
+RO,1100205,Porto Velho,Jardim Santana,jardim santana,-8.7501347,-63.8144509,brasil_aberto,True
+RO,1100205,Porto Velho,Juscelino Kubitschek,juscelino kubitschek,-8.7678465,-63.8377738,brasil_aberto,True
+RO,1100205,Porto Velho,KM 1,km 1,-8.7673086,-63.8901198,brasil_aberto,True
+RO,1100205,Porto Velho,Lagoa,lagoa,-8.7754994,-63.8656759,brasil_aberto,True
+RO,1100205,Porto Velho,Lagoinha,lagoinha,-8.7654837,-63.852709,brasil_aberto,True
+RO,1100205,Porto Velho,Liberdade,liberdade,-8.7461079,-63.892124,brasil_aberto,True
+RO,1100205,Porto Velho,Marcos Freire,marcos freire,-8.782108,-63.8026311,brasil_aberto,True
+RO,1100205,Porto Velho,Mariana,mariana,-8.7675055,-63.8190856,brasil_aberto,True
+RO,1100205,Porto Velho,Maringá,maringa,-8.7432566,-63.8358509,brasil_aberto,True
+RO,1100205,Porto Velho,Mato Grosso,mato grosso,-8.7715191,-63.8916802,brasil_aberto,True
+RO,1100205,Porto Velho,Militar,militar,-8.7826191,-63.9037105,brasil_aberto,True
+RO,1100205,Porto Velho,Mocambo,mocambo,-8.7693135,-63.9030587,brasil_aberto,True
+RO,1100205,Porto Velho,Mutum Paraná,mutum parana,-9.682132,-64.7990001,brasil_aberto,True
+RO,1100205,Porto Velho,Nacional,nacional,-8.7260998,-63.9116281,brasil_aberto,True
+RO,1100205,Porto Velho,Nazaré,nazare,-9.360923399999999,-64.36326869999999,brasil_aberto,True
+RO,1100205,Porto Velho,Nossa Senhora das Graças,nossa senhora das gracas,-8.76305,-63.8868559,brasil_aberto,True
+RO,1100205,Porto Velho,Nova Califórnia,nova california,-9.7614076,-66.6169318,brasil_aberto,True
+RO,1100205,Porto Velho,Nova Esperança,nova esperanca,-8.6991656,-63.8673421,brasil_aberto,True
+RO,1100205,Porto Velho,Nova Floresta,nova floresta,-8.7896335,-63.8939669,brasil_aberto,True
+RO,1100205,Porto Velho,Nova Porto Velho,nova porto velho,-8.7732806,-63.8746163,brasil_aberto,True
+RO,1100205,Porto Velho,Novo Horizonte,novo horizonte,-8.80937,-63.8891657,brasil_aberto,True
+RO,1100205,Porto Velho,Olaria,olaria,-8.7561159,-63.9047587,brasil_aberto,True
+RO,1100205,Porto Velho,Panair,panair,-8.7510597,-63.912352,brasil_aberto,True
+RO,1100205,Porto Velho,Pantanal,pantanal,-8.752761,-63.8350997,brasil_aberto,True
+RO,1100205,Porto Velho,Pedrinhas,pedrinhas,-8.7440295,-63.9037079,brasil_aberto,True
+RO,1100205,Porto Velho,Planalto,planalto,-8.785015,-63.8717566,brasil_aberto,True
+RO,1100205,Porto Velho,Rio Madeira,rio madeira,-8.7366133,-63.8719183,brasil_aberto,True
+RO,1100205,Porto Velho,Ronaldo Aragão,ronaldo aragao,-8.7790584,-63.7973934,brasil_aberto,True
+RO,1100205,Porto Velho,Roque,roque,-8.7677749,-63.8858155,brasil_aberto,True
+RO,1100205,Porto Velho,Santa Bárbara,santa barbara,-8.767201,-63.8968366,brasil_aberto,True
+RO,1100205,Porto Velho,Socialista,socialista,-8.7568485,-63.8305767,brasil_aberto,True
+RO,1100205,Porto Velho,São Carlos,sao carlos,-9.069990299999999,-64.1032106,brasil_aberto,True
+RO,1100205,Porto Velho,São Cristóvão,sao cristovao,-8.7559556,-63.8884002,brasil_aberto,True
+RO,1100205,Porto Velho,São Francisco,sao francisco,-8.7698368,-63.8294754,brasil_aberto,True
+RO,1100205,Porto Velho,São João Bosco,sao joao bosco,-8.7427758,-63.8988217,brasil_aberto,True
+RO,1100205,Porto Velho,São Sebastião,sao sebastiao,-8.7405037,-63.9061669,brasil_aberto,True
+RO,1100205,Porto Velho,Tancredo Neves,tancredo neves,-8.7615225,-63.8416597,brasil_aberto,True
+RO,1100205,Porto Velho,Teixeirão,teixeirao,-8.7413708,-63.8440035,brasil_aberto,True
+RO,1100205,Porto Velho,Tiradentes,tiradentes,-8.7558483,-63.835025,brasil_aberto,True
+RO,1100205,Porto Velho,Triângulo,triangulo,-8.7878219,-63.9171284,brasil_aberto,True
+RO,1100205,Porto Velho,Três Marias,tres marias,-8.7746974,-63.8539208,brasil_aberto,True
+RO,1100205,Porto Velho,Tucumanzal,tucumanzal,-8.7800408,-63.8941329,brasil_aberto,True
+RO,1100205,Porto Velho,Tupy,tupy,-8.7839278,-63.8988369,brasil_aberto,True
+RO,1100205,Porto Velho,Ulisses Guimarães,ulisses guimaraes,-8.7731533,-63.8026863,brasil_aberto,True
+RO,1100205,Porto Velho,União Bandeirante,uniao bandeirante,-9.7095444,-64.53162979999999,brasil_aberto,True
+RO,1100205,Porto Velho,Vista Alegre do Abunã,vista alegre do abuna,-9.6581507,-65.7320402,brasil_aberto,True
+RO,1100205,Porto Velho,Área Rural de Porto Velho,area rural de porto velho,-8.7635475,-63.89717229999999,brasil_aberto,True
+RO,1101476,Primavera de Rondônia,Centro,centro,-11.8312074,-61.32324999999999,brasil_aberto,True
+RO,1100262,Rio Crespo,Centro,centro,-9.7066122,-62.8998028,brasil_aberto,True
+RO,1100288,Rolim de Moura,Centro,centro,-11.7212439,-61.77301840000001,brasil_aberto,True
+RO,1100296,Santa Luzia D'Oeste,Centro,centro,-11.9069169,-61.78086329999999,brasil_aberto,True
+RO,1101500,Seringueiras,Centro,centro,-11.7665653,-63.03811459999999,brasil_aberto,True
+RO,1101484,São Felipe D'Oeste,Centro,centro,-11.9071699,-61.5128607,brasil_aberto,True
+RO,1101492,São Francisco do Guaporé,Centro,centro,-12.0605158,-63.56851109999999,brasil_aberto,True
+RO,1101492,São Francisco do Guaporé,Pedras Negras,pedras negras,-12.8526419,-62.899499,brasil_aberto,True
+RO,1100320,São Miguel do Guaporé,Centro,centro,-11.6992726,-62.7175288,brasil_aberto,True
+RO,1101559,Teixeirópolis,Centro,centro,-11.4435632,-61.4396004,brasil_aberto,True
+RO,1101609,Theobroma,Centro,centro,-10.2454319,-62.34992529999999,brasil_aberto,True
+RO,1101708,Urupá,Centro,centro,-11.125378,-62.3679678,brasil_aberto,True
+RO,1101757,Vale do Anari,Centro,centro,-9.8575933,-62.17455870000001,brasil_aberto,True
+RO,1101807,Vale do Paraíso,Centro,centro,-10.4274767,-62.1302933,brasil_aberto,True
+RO,1100304,Vilhena,Alto Alegre,alto alegre,-12.7291619,-60.1140263,brasil_aberto,True
+RO,1100304,Vilhena,Aripuanã,aripuana,-12.7184323,-60.1066414,brasil_aberto,True
+RO,1100304,Vilhena,Assosete,assosete,-12.7343982,-60.0924559,brasil_aberto,True
+RO,1100304,Vilhena,BNH,bnh,-11.6844285,-61.1774632,brasil_aberto,True
+RO,1100304,Vilhena,Bela Vista,bela vista,-12.7238992,-60.1284257,brasil_aberto,True
+RO,1100304,Vilhena,Bodanese,bodanese,-12.7310338,-60.1531724,brasil_aberto,True
+RO,1100304,Vilhena,Centro (5º BEC),centro (5º bec),-12.7434118,-60.1435657,brasil_aberto,True
+RO,1100304,Vilhena,Centro (S-01),centro (s-01),-12.7415607,-60.1318933,brasil_aberto,True
+RO,1100304,Vilhena,Cidade Nova,cidade nova,-12.7566029,-60.1436835,brasil_aberto,True
+RO,1100304,Vilhena,Cidade Nova 4ª Etapa,cidade nova 4ª etapa,-12.7382703,-60.1566538,brasil_aberto,True
+RO,1100304,Vilhena,Cidade Nova 6ª Etapa,cidade nova 6ª etapa,-12.7602542,-60.1401125,brasil_aberto,True
+RO,1100304,Vilhena,Cristo Rei,cristo rei,-12.7277857,-60.1409863,brasil_aberto,True
+RO,1100304,Vilhena,Green Ville,green ville,-12.7293297,-60.1458316,brasil_aberto,True
+RO,1100304,Vilhena,Hípica,hipica,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Acácia,jardim acacia,-12.7505607,-60.1212386,brasil_aberto,True
+RO,1100304,Vilhena,Jardim América,jardim america,-12.7366135,-60.1308801,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Araucária,jardim araucaria,-12.722971,-60.1070107,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Bandeirante,jardim bandeirante,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Eldorado,jardim eldorado,-12.7363061,-60.1306893,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Novo Horizonte,jardim novo horizonte,-12.7221162,-60.1043206,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Oliveiras,jardim oliveiras,-12.7281,-60.129076,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Primavera,jardim primavera,-12.726934,-60.1442627,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Social,jardim social,-12.7478711,-60.1527429,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Universitário,jardim universitario,-12.7418999,-60.1401543,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Vilhena,jardim vilhena,-12.7380611,-60.1595713,brasil_aberto,True
+RO,1100304,Vilhena,Jardim Vitória,jardim vitoria,-12.7338215,-60.1009328,brasil_aberto,True
+RO,1100304,Vilhena,João Pedro,joao pedro,-12.7329898,-60.1032583,brasil_aberto,True
+RO,1100304,Vilhena,Marcos Freire,marcos freire,-12.7289712,-60.1556758,brasil_aberto,True
+RO,1100304,Vilhena,Nova Conquista,nova conquista,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,Nova Esperança,nova esperanca,-12.726164,-60.1089638,brasil_aberto,True
+RO,1100304,Vilhena,Nova Jerusalém,nova jerusalem,-12.7335441,-60.1057579,brasil_aberto,True
+RO,1100304,Vilhena,Parque Cidade Jardim I,parque cidade jardim i,-12.7202121,-60.15265369999999,brasil_aberto,True
+RO,1100304,Vilhena,Parque Cidade Jardim II,parque cidade jardim ii,-12.7190633,-60.1577628,brasil_aberto,True
+RO,1100304,Vilhena,Parque Industrial Novo Tempo,parque industrial novo tempo,-12.7238992,-60.1284257,brasil_aberto,True
+RO,1100304,Vilhena,Parque Industrial Tancredo Neves,parque industrial tancredo neves,-12.7469207,-60.1127267,brasil_aberto,True
+RO,1100304,Vilhena,Parque Recreativo,parque recreativo,-12.7511343,-60.1457405,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Alphaville I,residencial alphaville i,-12.7329046,-60.1027155,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Alto dos Parecis,residencial alto dos parecis,-12.7206558,-60.1249445,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Alvorada,residencial alvorada,-12.7329046,-60.1027155,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Barão Melgaço I,residencial barao melgaco i,-12.7151893,-60.1294779,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Barão Melgaço II,residencial barao melgaco ii,-12.7151893,-60.1294779,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Barão Melgaço III,residencial barao melgaco iii,-12.6927329,-60.1200443,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Cidade Verde,residencial cidade verde,-12.7125006,-60.1293213,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Cidade Verde II,residencial cidade verde ii,-12.7234881,-60.1419674,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Cidade Verde III,residencial cidade verde iii,-12.7125006,-60.1293213,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Florença,residencial florenca,-12.7289972,-60.10311659999999,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Ipê,residencial ipe,-12.7726892,-60.0807781,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Iquê,residencial ique,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Maria Moura,residencial maria moura,-12.7237039,-60.1065636,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Moriá,residencial moria,-12.7197077,-60.1367721,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Moysés de Freitas,residencial moyses de freitas,-12.7113833,-60.1459625,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Orleans,residencial orleans,-12.7243366,-60.1015019,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Santos Dumont II,residencial santos dumont ii,-12.701871,-60.1169443,brasil_aberto,True
+RO,1100304,Vilhena,Residencial Solar de Vilhena,residencial solar de vilhena,-12.7215191,-60.1156192,brasil_aberto,True
+RO,1100304,Vilhena,Residencial União,residencial uniao,-12.7151893,-60.1294779,brasil_aberto,True
+RO,1100304,Vilhena,S-11,s-11,-12.7916735,-60.08696759999999,brasil_aberto,True
+RO,1100304,Vilhena,S-12,s-12,-12.7634193,-60.09461679999999,brasil_aberto,True
+RO,1100304,Vilhena,S-13,s-13,-12.7836312,-60.08808519999999,brasil_aberto,True
+RO,1100304,Vilhena,S-22,s-22,-12.7324112,-60.1172881,brasil_aberto,True
+RO,1100304,Vilhena,S-23,s-23,-12.7220595,-60.110467,brasil_aberto,True
+RO,1100304,Vilhena,S-26,s-26,-12.734755,-60.1043945,brasil_aberto,True
+RO,1100304,Vilhena,S-27,s-27,-12.7181221,-60.10776549999999,brasil_aberto,True
+RO,1100304,Vilhena,S-29,s-29,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,S-30,s-30,-12.7329898,-60.1032583,brasil_aberto,True
+RO,1100304,Vilhena,S-31,s-31,-12.7339857,-60.15912410000001,brasil_aberto,True
+RO,1100304,Vilhena,S-32,s-32,-12.7343073,-60.1591335,brasil_aberto,True
+RO,1100304,Vilhena,S-35,s-35,-12.7243092,-60.1394337,brasil_aberto,True
+RO,1100304,Vilhena,S-43A,s-43a,-12.7401377,-60.13173949999999,brasil_aberto,True
+RO,1100304,Vilhena,S-45,s-45,-12.7180617,-60.1074825,brasil_aberto,True
+RO,1100304,Vilhena,S-56,s-56,-12.7401402,-60.106067,brasil_aberto,True
+RO,1100304,Vilhena,S-70,s-70,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,S-90,s-90,-12.7572204,-60.144039,brasil_aberto,True
+RO,1100304,Vilhena,S-94,s-94,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,Santo Antônio,santo antonio,-12.743813,-60.1588594,brasil_aberto,True
+RO,1100304,Vilhena,São Jerônimo,sao jeronimo,-12.7384594,-60.1221512,brasil_aberto,True
+RO,1100304,Vilhena,São José,sao jose,-12.7394504,-60.1544878,brasil_aberto,True
+RO,1100304,Vilhena,São Paulo,sao paulo,-12.722971,-60.1070107,brasil_aberto,True
+RO,1100304,Vilhena,Área Rural de Vilhena,area rural de vilhena,-12.7384594,-60.1221512,brasil_aberto,True

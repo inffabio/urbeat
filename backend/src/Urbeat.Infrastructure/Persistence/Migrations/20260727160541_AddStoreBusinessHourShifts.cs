@@ -117,10 +117,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                 column: "CreatedAtUtc",
                 value: new DateTime(2026, 7, 27, 16, 5, 40, 590, DateTimeKind.Utc).AddTicks(8009));
 
-            migrationBuilder.CreateIndex(
-                name: "IX_StoreBusinessHourShift_StoreBusinessHourId",
-                table: "StoreBusinessHourShift",
-                column: "StoreBusinessHourId");
         }
 
         /// <inheritdoc />

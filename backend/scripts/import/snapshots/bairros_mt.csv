@@ -1,0 +1,1180 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+MT,5100102,Acorizal,Aldeia,aldeia,,,brasil_aberto,True
+MT,5100102,Acorizal,Baús,baus,,,brasil_aberto,True
+MT,5100102,Acorizal,Centro,centro,,,brasil_aberto,True
+MT,5100102,Acorizal,Engenho,engenho,,,brasil_aberto,True
+MT,5100250,Alta Floresta,Centro,centro,-9.8792122,-56.0868045,brasil_aberto,True
+MT,5100250,Alta Floresta,Novo Cruzeiro,novo cruzeiro,,,brasil_aberto,True
+MT,5100250,Alta Floresta,São José do Apuí,sao jose do apui,,,brasil_aberto,True
+MT,5100250,Alta Floresta,Vila Mutum,vila mutum,-9.9008731,-56.0732109,brasil_aberto,True
+MT,5100300,Alto Araguaia,Buriti,buriti,-17.8730122,-53.6935405,brasil_aberto,True
+MT,5100300,Alto Araguaia,Centro,centro,-17.3164035,-53.2134773,brasil_aberto,True
+MT,5100359,Alto Boa Vista,Centro,centro,-11.6723148,-51.3792904,brasil_aberto,True
+MT,5100409,Alto Garças,Centro,centro,-16.9430516,-53.5312309,brasil_aberto,True
+MT,5100508,Alto Paraguai,Campos Novos,campos novos,-14.5121632,-56.4959467,brasil_aberto,True
+MT,5100508,Alto Paraguai,Capão Verde,capao verde,-14.9294608,-56.8441304,brasil_aberto,True
+MT,5100508,Alto Paraguai,Centro,centro,-14.5132251,-56.4823215,brasil_aberto,True
+MT,5100508,Alto Paraguai,Lavouras,lavouras,-14.8839748,-56.67383290000001,brasil_aberto,True
+MT,5100508,Alto Paraguai,Tira Sentido,tira sentido,,,brasil_aberto,True
+MT,5100607,Alto Taquari,Centro,centro,-17.8301967,-53.2837957,brasil_aberto,True
+MT,5100805,Apiacás,Centro,centro,-9.5618511,-57.3892688,brasil_aberto,True
+MT,5101001,Araguaiana,Centro,centro,-15.7219655,-51.8357156,brasil_aberto,True
+MT,5101209,Araguainha,Centro,centro,-16.8586044,-53.0334584,brasil_aberto,True
+MT,5101258,Araputanga,Centro,centro,-15.4701261,-58.3482096,brasil_aberto,True
+MT,5101308,Arenápolis,Centro,centro,-16.0704947,-57.6864138,brasil_aberto,True
+MT,5101407,Aripuanã,Centro,centro,-10.1762623,-59.45332630000001,brasil_aberto,True
+MT,5101407,Aripuanã,Cidade Morena,cidade morena,-10.5796148,-59.3831493,brasil_aberto,True
+MT,5101407,Aripuanã,Conselvan,conselvan,-9.927987,-59.91637549999999,brasil_aberto,True
+MT,5101704,Barra do Bugres,Assari,assari,-14.8758431,-57.1749902,brasil_aberto,True
+MT,5101704,Barra do Bugres,Centro,centro,-15.068166,-57.1798095,brasil_aberto,True
+MT,5101704,Barra do Bugres,Nova Fernandopolis,nova fernandopolis,,,brasil_aberto,True
+MT,5101704,Barra do Bugres,Tapirapua,tapirapua,-14.8509028,-58.143739,brasil_aberto,True
+MT,5101803,Barra do Garças,Anchieta,anchieta,-15.8765038,-52.2360824,brasil_aberto,True
+MT,5101803,Barra do Garças,Campinas,campinas,-15.8903642,-52.2643634,brasil_aberto,True
+MT,5101803,Barra do Garças,Centro,centro,-14.5390627,-52.8002243,brasil_aberto,True
+MT,5101803,Barra do Garças,Condomínio Parque da Serra,condominio parque da serra,-15.8756837,-52.2276131,brasil_aberto,True
+MT,5101803,Barra do Garças,Conjunto Habitacional Araguaia,conjunto habitacional araguaia,-15.8872098,-52.2621024,brasil_aberto,True
+MT,5101803,Barra do Garças,Conjunto Habitacional Jardim Amazônia,conjunto habitacional jardim amazonia,-15.8769378,-52.236959,brasil_aberto,True
+MT,5101803,Barra do Garças,Conjunto Habitacional Piracema,conjunto habitacional piracema,-15.8835522,-52.2892196,brasil_aberto,True
+MT,5101803,Barra do Garças,Distrito Industrial,distrito industrial,-15.8799139,-52.2306474,brasil_aberto,True
+MT,5101803,Barra do Garças,Indianápolis,indianapolis,-15.8916202,-52.2618826,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Araguaia,jardim araguaia,-15.8839296,-52.2749487,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Bela Vista,jardim bela vista,,,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Domingos Mariano,jardim domingos mariano,-15.8845449,-52.2764878,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Floresta I,jardim floresta i,-15.8880225,-52.263506,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Maria Lúcia,jardim maria lucia,-15.8872098,-52.2621024,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Moema,jardim moema,-15.8882444,-52.2515054,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Morada do Sol,jardim morada do sol,-15.878272,-52.22907,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Nova Barra do Garças,jardim nova barra do garcas,-15.8816681,-52.3294539,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Ouro Fino,jardim ouro fino,-15.8854116,-52.2918513,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Ouro Fino II,jardim ouro fino ii,-15.8838854,-52.2928462,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Palmares,jardim palmares,-15.8703087,-52.3235304,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Paraíso,jardim paraiso,-15.8788796,-52.2408063,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Petrópolis,jardim petropolis,-15.8892134,-52.2732029,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Pitaluga,jardim pitaluga,-15.8687217,-52.2692199,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Rainha de Fátima,jardim rainha de fatima,-15.8689599,-52.2766641,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Rodrigues,jardim rodrigues,-15.8794241,-52.2644881,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Serra Azul,jardim serra azul,-15.880886,-52.2231638,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim São João,jardim sao joao,-15.8917205,-52.2706416,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim Toledo,jardim toledo,-15.9005724,-52.2835511,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim das Garças,jardim das garcas,-15.896356,-52.260118,brasil_aberto,True
+MT,5101803,Barra do Garças,Jardim das Mangueiras,jardim das mangueiras,-15.8831397,-52.2506403,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Alto da Boa Vista,loteamento alto da boa vista,,,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento BR-070,loteamento br-070,-15.8781184,-52.2989529,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Cidade Universitária,loteamento cidade universitaria,-15.8925333,-52.2835099,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Floresta,loteamento floresta,-15.891792,-52.2620008,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Jardim Amazônia I,loteamento jardim amazonia i,-15.8835385,-52.2519397,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Jardim Amazônia II,loteamento jardim amazonia ii,-15.8792952,-52.2627419,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Jardim Cuiabá,loteamento jardim cuiaba,-15.8880225,-52.263506,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Jardim São Sebastião,loteamento jardim sao sebastiao,-15.8892134,-52.2732029,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Jardim São Sebastião II,loteamento jardim sao sebastiao ii,-15.8897605,-52.2785764,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento João XXIII,loteamento joao xxiii,-15.8836732,-52.2580976,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Lacerda,loteamento lacerda,-15.8820323,-52.26624,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Remanescente I,loteamento remanescente i,-15.8916202,-52.2618826,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Residencial Cidade Jardim,loteamento residencial cidade jardim,-15.8878489,-52.3140841,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Residencial Tambury,loteamento residencial tambury,-15.8866073,-52.2953594,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Roncador,loteamento roncador,-15.8762094,-52.22304399999999,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Sena Marques,loteamento sena marques,-15.8945038,-52.2721736,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Serra Dourada,loteamento serra dourada,-15.8799616,-52.284645,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Solar Ville,loteamento solar ville,-15.8854116,-52.2918513,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento São Benedito,loteamento sao benedito,-15.8984133,-52.2633302,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento União,loteamento uniao,-15.8843438,-52.2690137,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Vista Alegre,loteamento vista alegre,-15.8880225,-52.263506,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Vista Alegre II,loteamento vista alegre ii,-15.8880225,-52.263506,brasil_aberto,True
+MT,5101803,Barra do Garças,Loteamento Zeca Ribeiro,loteamento zeca ribeiro,-15.9005898,-52.2782257,brasil_aberto,True
+MT,5101803,Barra do Garças,Madre Marta,madre marta,-15.8894008,-52.2590487,brasil_aberto,True
+MT,5101803,Barra do Garças,Recanto das Acácias,recanto das acacias,-15.8753859,-52.2238916,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial Jardim Nova Canaã,residencial jardim nova canaa,-23.7741184,-46.6144346,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial Jardim dos Ipês,residencial jardim dos ipes,-15.8868744,-52.3177805,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial Monte Sinai,residencial monte sinai,-15.8702576,-52.2725241,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial Serra Alta,residencial serra alta,-15.8800438,-52.229992,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial São Conrado,residencial sao conrado,-15.9012671,-52.2819552,brasil_aberto,True
+MT,5101803,Barra do Garças,Residencial Wilmar Peres de Farias,residencial wilmar peres de farias,-15.8899789,-52.3126294,brasil_aberto,True
+MT,5101803,Barra do Garças,Santa Rosa,santa rosa,-15.8854196,-52.2763713,brasil_aberto,True
+MT,5101803,Barra do Garças,Santo Antônio,santo antonio,-15.8777739,-52.2650069,brasil_aberto,True
+MT,5101803,Barra do Garças,Setor Cidade Velha,setor cidade velha,-15.8880225,-52.263506,brasil_aberto,True
+MT,5101803,Barra do Garças,Setor Cristino Cortês,setor cristino cortes,-15.8905516,-52.2587375,brasil_aberto,True
+MT,5101803,Barra do Garças,Setor Sul I,setor sul i,-15.8957416,-52.261414,brasil_aberto,True
+MT,5101803,Barra do Garças,Setor Sul II,setor sul ii,-15.8957416,-52.261414,brasil_aberto,True
+MT,5101803,Barra do Garças,Toricueyje,toricueyje,-15.2515741,-53.0556169,brasil_aberto,True
+MT,5101803,Barra do Garças,Vale dos Sonhos,vale dos sonhos,-15.3861807,-52.20339689999999,brasil_aberto,True
+MT,5101803,Barra do Garças,Vila Manoel Camerino,vila manoel camerino,-15.8847901,-52.2658399,brasil_aberto,True
+MT,5101803,Barra do Garças,Vila Maria Gomes dos Santos,vila maria gomes dos santos,-15.8919696,-52.2747161,brasil_aberto,True
+MT,5101803,Barra do Garças,Vila Serrinha,vila serrinha,-15.8792952,-52.2627419,brasil_aberto,True
+MT,5101803,Barra do Garças,Vila Varjão,vila varjao,-15.8690815,-52.2769681,brasil_aberto,True
+MT,5101803,Barra do Garças,Área Rural de Barra do Garças,area rural de barra do garcas,-15.8916202,-52.2618826,brasil_aberto,True
+MT,5101605,Barão de Melgaço,Centro,centro,-16.4741542,-54.6295387,brasil_aberto,True
+MT,5101605,Barão de Melgaço,Joselândia,joselandia,-16.9163431,-56.0249982,brasil_aberto,True
+MT,5101852,Bom Jesus do Araguaia,Centro,centro,-12.1728187,-51.5057422,brasil_aberto,True
+MT,5101902,Brasnorte,Centro,centro,-12.1231068,-58.0006723,brasil_aberto,True
+MT,5101902,Brasnorte,Terra Indígena Enawenê-Nawê,terra indigena enawene-nawe,-12.1578612,-58.7787098,brasil_aberto,True
+MT,5101902,Brasnorte,Água da Prata,agua da prata,-11.6598635,-58.2804541,brasil_aberto,True
+MT,5102603,Campinápolis,Centro,centro,-14.5395659,-52.7961167,brasil_aberto,True
+MT,5102603,Campinápolis,São José,sao jose,-14.543297,-52.7956792,brasil_aberto,True
+MT,5102637,Campo Novo do Parecis,Centro,centro,-13.6624104,-57.89036779999999,brasil_aberto,True
+MT,5102637,Campo Novo do Parecis,Itanorte,itanorte,-14.3350542,-58.05312449999999,brasil_aberto,True
+MT,5102637,Campo Novo do Parecis,Jardim das Palmeiras,jardim das palmeiras,,,brasil_aberto,True
+MT,5102637,Campo Novo do Parecis,Marechal Rondon,marechal rondon,-13.2702765,-57.9617144,brasil_aberto,True
+MT,5102678,Campo Verde,Centro,centro,,,brasil_aberto,True
+MT,5102678,Campo Verde,Condomínio das Palmeiras,condominio das palmeiras,-15.5494275,-55.1688988,brasil_aberto,True
+MT,5102678,Campo Verde,Coronel Ponce,coronel ponce,,,brasil_aberto,True
+MT,5102678,Campo Verde,Jardim Campo Verde,jardim campo verde,,,brasil_aberto,True
+MT,5102678,Campo Verde,Loteamento Greenville II,loteamento greenville ii,,,brasil_aberto,True
+MT,5102678,Campo Verde,São Lourenço,sao lourenco,,,brasil_aberto,True
+MT,5102686,Campos de Júlio,Centro,centro,,,brasil_aberto,True
+MT,5102694,Canabrava do Norte,Centro,centro,-11.0506187,-51.8253632,brasil_aberto,True
+MT,5102694,Canabrava do Norte,Nova Primavera,nova primavera,-11.0529586,-51.8334038,brasil_aberto,True
+MT,5102702,Canarana,Serra Dourada,serra dourada,-13.7056966,-52.0246863,brasil_aberto,True
+MT,5102793,Carlinda,Centro,centro,-9.971043,-55.826313,brasil_aberto,True
+MT,5102850,Castanheira,Centro,centro,-11.1352105,-58.6078144,brasil_aberto,True
+MT,5102850,Castanheira,Fontanilhas,fontanilhas,-11.0937405,-58.5973309,brasil_aberto,True
+MT,5103007,Chapada dos Guimarães,Centro,centro,-15.4634626,-55.7497194,brasil_aberto,True
+MT,5103007,Chapada dos Guimarães,Praia Rica,praia rica,-14.8081327,-55.6090914,brasil_aberto,True
+MT,5103007,Chapada dos Guimarães,Água Fria,agua fria,-15.1802761,-55.7518669,brasil_aberto,True
+MT,5103056,Cláudia,Centro,centro,-11.5136991,-54.87406499999999,brasil_aberto,True
+MT,5103106,Cocalinho,Centro,centro,-14.394216,-51.0026478,brasil_aberto,True
+MT,5103254,Colniza,Centro,centro,-9.4549288,-59.21869059999999,brasil_aberto,True
+MT,5103254,Colniza,Guariba,guariba,-9.1666207,-61.14031960000001,brasil_aberto,True
+MT,5103254,Colniza,Terra Indígena Kawahiva do Rio Pardo,terra indigena kawahiva do rio pardo,-8.9954945,-59.9598051,brasil_aberto,True
+MT,5103254,Colniza,Terra Indígena Piripkura,terra indigena piripkura,-9.4623242,-59.22443829999999,brasil_aberto,True
+MT,5103205,Colíder,Centro,centro,-10.8082973,-55.45802639999999,brasil_aberto,True
+MT,5103205,Colíder,Nonoai do Norte,nonoai do norte,-10.4877441,-55.2148736,brasil_aberto,True
+MT,5103304,Comodoro,Alto Juruena,alto juruena,-14.0678565,-59.23784930000001,brasil_aberto,True
+MT,5103304,Comodoro,Centro,centro,-13.6577248,-59.7841569,brasil_aberto,True
+MT,5103304,Comodoro,Nova Alvorada,nova alvorada,-13.6499363,-59.91299710000001,brasil_aberto,True
+MT,5103304,Comodoro,Padronal,padronal,-13.1787424,-59.8740187,brasil_aberto,True
+MT,5103304,Comodoro,São Jorge,sao jorge,,,brasil_aberto,True
+MT,5103304,Comodoro,São José,sao jose,-13.6598794,-59.78972719999999,brasil_aberto,True
+MT,5103353,Confresa,Centro,centro,-10.6468476,-51.56858339999999,brasil_aberto,True
+MT,5103353,Confresa,Veranópolis,veranopolis,-10.216164,-51.6412826,brasil_aberto,True
+MT,5103361,Conquista D'Oeste,Centro,centro,-14.5367275,-59.54690060000001,brasil_aberto,True
+MT,5103379,Cotriguaçu,Centro,centro,-9.9041167,-58.56599000000001,brasil_aberto,True
+MT,5103403,Cuiabá,Aguaçu,aguacu,-14.6518236,-56.1253384,brasil_aberto,True
+MT,5103403,Cuiabá,Altos da Glória,altos da gloria,-15.5553204,-56.0220825,brasil_aberto,True
+MT,5103403,Cuiabá,Altos da Serra I,altos da serra i,-15.5807552,-56.0244945,brasil_aberto,True
+MT,5103403,Cuiabá,Altos da Serra II,altos da serra ii,-15.634697,-56.0028356,brasil_aberto,True
+MT,5103403,Cuiabá,Altos do Coxipó,altos do coxipo,-15.629762,-56.0223353,brasil_aberto,True
+MT,5103403,Cuiabá,Alvorada,alvorada,-15.5804984,-56.0797284,brasil_aberto,True
+MT,5103403,Cuiabá,Araés,araes,-15.5879316,-56.09156979999999,brasil_aberto,True
+MT,5103403,Cuiabá,Areão,areao,-15.599215,-56.0798182,brasil_aberto,True
+MT,5103403,Cuiabá,Bandeirantes,bandeirantes,-15.5997866,-56.0916397,brasil_aberto,True
+MT,5103403,Cuiabá,Barbado,barbado,-15.62286,-56.0761157,brasil_aberto,True
+MT,5103403,Cuiabá,Barra do Pari,barra do pari,-15.5934357,-56.1232893,brasil_aberto,True
+MT,5103403,Cuiabá,Baú,bau,-15.5934059,-56.0890816,brasil_aberto,True
+MT,5103403,Cuiabá,Bela Marina,bela marina,-15.5656799,-56.1176455,brasil_aberto,True
+MT,5103403,Cuiabá,Bela Vista,bela vista,-15.5809226,-56.0669291,brasil_aberto,True
+MT,5103403,Cuiabá,Boa Esperança,boa esperanca,-15.6116002,-56.0626895,brasil_aberto,True
+MT,5103403,Cuiabá,Bosque da Saúde,bosque da saude,-15.58756447,-56.07757187,brasil_aberto,True
+MT,5103403,Cuiabá,Cachoeira das Garças,cachoeira das garcas,-15.6203468,-56.0409772,brasil_aberto,True
+MT,5103403,Cuiabá,Campo Velho,campo velho,-15.6152488,-56.0831871,brasil_aberto,True
+MT,5103403,Cuiabá,Campo Verde,campo verde,-15.5893705,-56.0697559,brasil_aberto,True
+MT,5103403,Cuiabá,Canjica,canjica,-15.5849164,-56.0735636,brasil_aberto,True
+MT,5103403,Cuiabá,Carumbé,carumbe,-15.5869865,-56.0577512,brasil_aberto,True
+MT,5103403,Cuiabá,Centro América,centro america,-15.5645759,-56.0573147,brasil_aberto,True
+MT,5103403,Cuiabá,Centro Político Administrativo,centro politico administrativo,-15.5490257,-56.0736236,brasil_aberto,True
+MT,5103403,Cuiabá,Centro-Norte,centro-norte,-15.5917704,-56.0977449,brasil_aberto,True
+MT,5103403,Cuiabá,Centro-Sul,centro-sul,-15.597535,-56.1013538,brasil_aberto,True
+MT,5103403,Cuiabá,Chácara dos Pinheiros,chacara dos pinheiros,-15.6225793,-56.0533621,brasil_aberto,True
+MT,5103403,Cuiabá,Cidade Alta,cidade alta,-15.6067022,-56.1221332,brasil_aberto,True
+MT,5103403,Cuiabá,Cidade Verde,cidade verde,-15.6108988,-56.1336929,brasil_aberto,True
+MT,5103403,Cuiabá,Cohab São Gonçalo,cohab sao goncalo,-15.6473351,-56.0467442,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Belvedere,condominio belvedere,-15.6066619,-56.0254,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Belvedere II,condominio belvedere ii,-15.5999322,-56.028707,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Flor do Cerrado,condominio flor do cerrado,-15.6356003,-56.0028546,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Florais Cuiabá Residencial,condominio florais cuiaba residencial,-15.5425747,-56.0926377,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Florais Itália,condominio florais italia,-15.5943021,-56.044534,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Jardim Botânico,condominio jardim botanico,,,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Primor das Torres,condominio primor das torres,-15.6116638,-56.0237731,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Residencial Florais dos Lagos,condominio residencial florais dos lagos,-15.5350342,-56.0937959,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Residencial Ilhas Canárias,condominio residencial ilhas canarias,-15.6150968,-56.0068664,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Residencial Ilhéus,condominio residencial ilheus,-15.6167002,-55.9807817,brasil_aberto,True
+MT,5103403,Cuiabá,Condomínio Residencial Vila Jardim,condominio residencial vila jardim,-15.5951504,-56.1156201,brasil_aberto,True
+MT,5103403,Cuiabá,Conjunto Residencial Jonas Pinheiro,conjunto residencial jonas pinheiro,-15.5391349,-56.0282507,brasil_aberto,True
+MT,5103403,Cuiabá,Coophamil,coophamil,-15.6159441,-56.1269881,brasil_aberto,True
+MT,5103403,Cuiabá,Coophema,coophema,-15.6338067,-56.0588391,brasil_aberto,True
+MT,5103403,Cuiabá,Coxipó,coxipo,-15.6304667,-56.0573279,brasil_aberto,True
+MT,5103403,Cuiabá,Coxipó Açu,coxipo acu,-15.6286866,-56.0598422,brasil_aberto,True
+MT,5103403,Cuiabá,Coxipó do Ouro,coxipo do ouro,-15.457344,-55.9806201,brasil_aberto,True
+MT,5103403,Cuiabá,Despraiado,despraiado,-15.5658002,-56.0872621,brasil_aberto,True
+MT,5103403,Cuiabá,Distrito Industrial,distrito industrial,-15.6597582,-55.9747201,brasil_aberto,True
+MT,5103403,Cuiabá,Dom Aquino,dom aquino,-15.6136164,-56.0951738,brasil_aberto,True
+MT,5103403,Cuiabá,Dom Bosco,dom bosco,-15.5869042,-56.0653347,brasil_aberto,True
+MT,5103403,Cuiabá,Doutor Fábio Leite,doutor fabio leite,-15.5726137,-56.0254168,brasil_aberto,True
+MT,5103403,Cuiabá,Doutor Fábio Leite II,doutor fabio leite ii,-15.6822057,-56.1519173,brasil_aberto,True
+MT,5103403,Cuiabá,Duque de Caxias,duque de caxias,-15.5848485,-56.1116589,brasil_aberto,True
+MT,5103403,Cuiabá,Goiabeira,goiabeira,-15.5933441,-56.10361709999999,brasil_aberto,True
+MT,5103403,Cuiabá,Goiabeiras,goiabeiras,,,brasil_aberto,True
+MT,5103403,Cuiabá,Grande Terceiro,grande terceiro,-15.6266773,-56.0820295,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Aclimação,jardim aclimacao,-15.585226,-56.1196771,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Califórnia,jardim california,-15.626333,-56.0745459,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Campus Elizius,jardim campus elizius,-15.5587923,-56.0761801,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Comodoro,jardim comodoro,-15.6439636,-56.0430277,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Cuiabá,jardim cuiaba,-15.5726532,-56.0919386,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Eldorado,jardim eldorado,-15.5871503,-56.0482973,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Europa,jardim europa,-15.6227256,-56.0858662,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Florianópolis,jardim florianopolis,-15.5469509,-56.0825123,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Fortaleza,jardim fortaleza,-15.6160724,-55.9932536,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Gramado,jardim gramado,-15.6399023,-56.0559868,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Hawaí,jardim hawai,-20.0381194,-47.76067399999999,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Imperial,jardim imperial,-15.6111848,-56.0247988,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Industriário,jardim industriario,-15.653777,-55.9759893,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Itália,jardim italia,-15.6058771,-56.0587326,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Jockey Club,jardim jockey club,-15.5898442,-56.0504331,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Leblon,jardim leblon,-15.6020751,-56.0751289,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Malouf,jardim malouf,-15.6564842,-55.9774545,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Mariana,jardim mariana,-15.5777206,-56.1136119,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Mossoró,jardim mossoro,-15.6480502,-56.04138,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Paraná,jardim parana,-15.5733675,-56.064443,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Passaredo,jardim passaredo,-15.6482214,-55.9928916,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Paulista,jardim paulista,-15.6196806,-56.0867791,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Petrópolis,jardim petropolis,-15.6183782,-56.0729069,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Presidente,jardim presidente,-15.6448635,-56.027942,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Santa Isabel,jardim santa isabel,-15.6007985,-56.1346415,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Santa Marta,jardim santa marta,-15.5977394,-56.0958926,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Shangri-Lá,jardim shangri-la,-15.6220013,-56.0707297,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Tropical,jardim tropical,-15.6128769,-56.0819365,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Ubirajara,jardim ubirajara,-15.5607007,-56.0909196,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Umuarama II,jardim umuarama ii,-15.6297536,-55.9598831,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Universitário,jardim universitario,-15.6173725,-56.0338981,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim Vitória,jardim vitoria,-15.5553204,-56.0220825,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim das Américas,jardim das americas,-15.6055223,-56.0655441,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim das Palmeiras,jardim das palmeiras,-15.6267196,-56.0504745,brasil_aberto,True
+MT,5103403,Cuiabá,Jardim dos Ipês,jardim dos ipes,-15.6123813,-56.0344686,brasil_aberto,True
+MT,5103403,Cuiabá,Liberdade,liberdade,-15.6116186,-55.9912179,brasil_aberto,True
+MT,5103403,Cuiabá,Lixeira,lixeira,-15.5961091,-56.0861457,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Belita Costa Marques,loteamento belita costa marques,,,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Jardim das Aroeiras,loteamento jardim das aroeiras,-15.548719,-56.0418318,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Residencial Flor-de-Lis,loteamento residencial flor-de-lis,-15.5790711,-56.0781192,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Residencial Francisca Loureiro Borba,loteamento residencial francisca loureiro borba,-15.6061613,-55.9865155,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Residencial Jamil Boutros Nadaf,loteamento residencial jamil boutros nadaf,-15.5330093,-56.0356504,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Residencial Mirante do Parque,loteamento residencial mirante do parque,-15.6174517,-55.98478429999999,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Residencial Nico Baracat,loteamento residencial nico baracat,-15.6143957,-55.9822771,brasil_aberto,True
+MT,5103403,Cuiabá,Loteamento Salvador Costa Marques,loteamento salvador costa marques,-15.6273307,-55.9909825,brasil_aberto,True
+MT,5103403,Cuiabá,Machado,machado,-15.6103692,-56.0959471,brasil_aberto,True
+MT,5103403,Cuiabá,Mata Dentro,mata dentro,-15.5954635,-56.0925824,brasil_aberto,True
+MT,5103403,Cuiabá,Morada da Serra,morada da serra,-15.5602026,-56.0334202,brasil_aberto,True
+MT,5103403,Cuiabá,Morada do Ouro,morada do ouro,-15.5831215,-56.0716927,brasil_aberto,True
+MT,5103403,Cuiabá,Morada dos Nobres,morada dos nobres,-15.5875378,-56.0476005,brasil_aberto,True
+MT,5103403,Cuiabá,Nossa Senhora Aparecida,nossa senhora aparecida,-15.6590581,-56.0493273,brasil_aberto,True
+MT,5103403,Cuiabá,Nossa Senhora da Guia,nossa senhora da guia,-15.5750918,-56.1024006,brasil_aberto,True
+MT,5103403,Cuiabá,Nova Conquista,nova conquista,-15.5476811,-56.0373663,brasil_aberto,True
+MT,5103403,Cuiabá,Nova Esperança,nova esperanca,-15.6411076,-55.9713843,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Colorado,novo colorado,-15.5692781,-56.1178248,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Horizonte,novo horizonte,-15.5775779,-56.0320847,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Mato Grosso,novo mato grosso,-15.5781733,-56.0387354,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Paraíso,novo paraiso,-15.547785,-56.0535434,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Tempo,novo tempo,-15.563596,-56.1317766,brasil_aberto,True
+MT,5103403,Cuiabá,Novo Terceiro,novo terceiro,-15.6129753,-56.1319045,brasil_aberto,True
+MT,5103403,Cuiabá,Núcleo Habitacional Sucuri,nucleo habitacional sucuri,-15.5621523,-56.1133642,brasil_aberto,True
+MT,5103403,Cuiabá,Osmar Cabral,osmar cabral,-15.6102001,-55.9939549,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Amperco,parque amperco,-15.5750229,-56.1210737,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Atalaia,parque atalaia,-15.597453,-56.0658178,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Cuiabá,parque cuiaba,-15.6590581,-56.0493273,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Geórgia,parque georgia,-15.6418305,-56.0605405,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Ohara,parque ohara,-15.6337405,-56.0450301,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Residencial Tropical Ville,parque residencial tropical ville,-15.5693761,-56.1233383,brasil_aberto,True
+MT,5103403,Cuiabá,Parque Residencial das Nações Indígenas,parque residencial das nacoes indigenas,-15.6280458,-55.9484748,brasil_aberto,True
+MT,5103403,Cuiabá,Pascoal Ramos,pascoal ramos,-15.6421272,-55.9812973,brasil_aberto,True
+MT,5103403,Cuiabá,Pedra 90,pedra 90,-15.6280306,-55.9557392,brasil_aberto,True
+MT,5103403,Cuiabá,Pico do Amor,pico do amor,-15.6108934,-56.0814966,brasil_aberto,True
+MT,5103403,Cuiabá,Planalto,planalto,-15.5851112,-56.042533,brasil_aberto,True
+MT,5103403,Cuiabá,Popular,popular,-15.592001,-56.1067496,brasil_aberto,True
+MT,5103403,Cuiabá,Porto,porto,-15.6149025,-56.1215873,brasil_aberto,True
+MT,5103403,Cuiabá,Poção,pocao,-15.6047569,-56.0899498,brasil_aberto,True
+MT,5103403,Cuiabá,Praeirinho,praeirinho,-15.6325656,-56.0761859,brasil_aberto,True
+MT,5103403,Cuiabá,Praeiro,praeiro,-15.629976,-56.0769788,brasil_aberto,True
+MT,5103403,Cuiabá,Primeiro de Março,primeiro de marco,-15.5600652,-56.0179713,brasil_aberto,True
+MT,5103403,Cuiabá,Quilombo,quilombo,-15.5829993,-56.0985303,brasil_aberto,True
+MT,5103403,Cuiabá,Real Parque,real parque,-15.6729567,-56.0385671,brasil_aberto,True
+MT,5103403,Cuiabá,Recanto dos Pássaros,recanto dos passaros,-15.6110565,-56.0358552,brasil_aberto,True
+MT,5103403,Cuiabá,Renascer,renascer,-15.6028839,-56.0610003,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Altos do Parque I,residencial altos do parque i,-15.6838889,-56.0401125,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Altos do Parque II,residencial altos do parque ii,-15.6861257,-56.0349705,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Ana Maria,residencial ana maria,-15.5499835,-56.0441581,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Aricá,residencial arica,-15.6233278,-55.9903492,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Buriti,residencial buriti,-15.5531071,-56.029743,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Claúdio Marchetti,residencial claudio marchetti,-15.6165299,-56.0194033,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Clocy Hugueney,residencial clocy hugueney,-15.6304667,-56.0573279,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Concadoro,residencial concadoro,-15.6484448,-56.044701,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Coxipó,residencial coxipo,-15.6338278,-56.0445252,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Ilza Therezinha Picoli Pagot,residencial ilza therezinha picoli pagot,-15.5474153,-56.0337998,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Itamarati,residencial itamarati,-15.5855675,-56.0385965,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Jardim Pauliceia,residencial jardim pauliceia,-15.6793232,-56.0335415,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Lagoa Azul,residencial lagoa azul,-15.6348739,-56.0034357,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Milton Figueiredo,residencial milton figueiredo,-15.5404342,-56.0800998,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Nova Canaã,residencial nova canaa,-15.5583935,-56.0183289,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Paiaguás,residencial paiaguas,-15.564575,-56.0844782,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Pádova,residencial padova,-15.5459888,-56.0498482,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Santa Inês,residencial santa ines,-15.587258,-56.0561019,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Santorini,residencial santorini,-15.6195975,-56.0589785,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Solar da Chapada,residencial solar da chapada,-15.534509,-56.0393876,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial São Carlos,residencial sao carlos,-15.5844998,-56.0487398,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial São Matheus,residencial sao matheus,-15.6304667,-56.0573279,brasil_aberto,True
+MT,5103403,Cuiabá,Residencial Wantuil de Freitas,residencial wantuil de freitas,-15.5387383,-56.027703,brasil_aberto,True
+MT,5103403,Cuiabá,Ribeirão da Ponte,ribeirao da ponte,-15.5791503,-56.1209485,brasil_aberto,True
+MT,5103403,Cuiabá,Ribeirão do Lipa,ribeirao do lipa,-15.5629254,-56.1128424,brasil_aberto,True
+MT,5103403,Cuiabá,Santa Cruz,santa cruz,-15.6073843,-56.0501792,brasil_aberto,True
+MT,5103403,Cuiabá,Santa Laura,santa laura,-15.6151648,-55.9913915,brasil_aberto,True
+MT,5103403,Cuiabá,Santa Rosa,santa rosa,-15.5827963,-56.1211563,brasil_aberto,True
+MT,5103403,Cuiabá,Santo Antônio do Pedregal,santo antonio do pedregal,-15.5945575,-56.0693226,brasil_aberto,True
+MT,5103403,Cuiabá,Serra Dourada,serra dourada,-15.5474179,-56.0459031,brasil_aberto,True
+MT,5103403,Cuiabá,Sol Nascente,sol nascente,-15.5840223,-56.0467488,brasil_aberto,True
+MT,5103403,Cuiabá,Sucuri,sucuri,-15.5566849,-56.135417,brasil_aberto,True
+MT,5103403,Cuiabá,São Francisco,sao francisco,-15.6382969,-56.011762,brasil_aberto,True
+MT,5103403,Cuiabá,São Gonçalo Beira Rio,sao goncalo beira rio,-15.65507,-56.0690011,brasil_aberto,True
+MT,5103403,Cuiabá,São José,sao jose,-15.6028225,-56.0415151,brasil_aberto,True
+MT,5103403,Cuiabá,São João Del Rei,sao joao del rei,-15.6028225,-56.0415151,brasil_aberto,True
+MT,5103403,Cuiabá,São Roque,sao roque,-15.5804621,-56.0545189,brasil_aberto,True
+MT,5103403,Cuiabá,São Sebastião,sao sebastiao,-15.6336016,-55.9878007,brasil_aberto,True
+MT,5103403,Cuiabá,São Vicente,sao vicente,-15.584832,-56.0444512,brasil_aberto,True
+MT,5103403,Cuiabá,Tancredo Neves,tancredo neves,-15.5826777,-56.0253976,brasil_aberto,True
+MT,5103403,Cuiabá,Terceiro,terceiro,-15.6182766,-56.0920996,brasil_aberto,True
+MT,5103403,Cuiabá,Terra Nova,terra nova,-15.582536,-56.0727036,brasil_aberto,True
+MT,5103403,Cuiabá,Tijucal,tijucal,-15.6328845,-56.0090314,brasil_aberto,True
+MT,5103403,Cuiabá,Três Barras,tres barras,-15.5568429,-56.0269664,brasil_aberto,True
+MT,5103403,Cuiabá,UFMT,ufmt,-15.6147541,-56.0726414,brasil_aberto,True
+MT,5103403,Cuiabá,Vista Alegre,vista alegre,-15.6328606,-56.049312,brasil_aberto,True
+MT,5103403,Cuiabá,Área Rural de Cuiabá,area rural de cuiaba,-15.5954635,-56.0925824,brasil_aberto,True
+MT,5103437,Curvelândia,Centro,centro,-15.6103423,-57.9213943,brasil_aberto,True
+MT,5102504,Cáceres,Aparecida,aparecida,-16.0834412,-57.6788995,brasil_aberto,True
+MT,5102504,Cáceres,Aroldo Fanaia,aroldo fanaia,-16.09342,-57.6756993,brasil_aberto,True
+MT,5102504,Cáceres,Betel,betel,-16.062291,-57.6626082,brasil_aberto,True
+MT,5102504,Cáceres,Bezerro Branco,bezerro branco,-15.7827025,-57.4217058,brasil_aberto,True
+MT,5102504,Cáceres,Caramujo,caramujo,-15.8812858,-57.87081569999999,brasil_aberto,True
+MT,5102504,Cáceres,Cavalhada I,cavalhada i,-16.0689423,-57.6751689,brasil_aberto,True
+MT,5102504,Cáceres,Cavalhada II,cavalhada ii,-16.0649725,-57.6801249,brasil_aberto,True
+MT,5102504,Cáceres,Cavalhada III,cavalhada iii,-16.0651203,-57.6674009,brasil_aberto,True
+MT,5102504,Cáceres,Centro,centro,-16.0676928,-57.680997,brasil_aberto,True
+MT,5102504,Cáceres,Cidade Alta,cidade alta,-16.0718613,-57.6784891,brasil_aberto,True
+MT,5102504,Cáceres,Cidade Nova,cidade nova,-16.0944635,-57.6789696,brasil_aberto,True
+MT,5102504,Cáceres,Cohab Nova,cohab nova,-16.0481685,-57.6555979,brasil_aberto,True
+MT,5102504,Cáceres,Cohab Velha,cohab velha,-16.0739989,-57.6836808,brasil_aberto,True
+MT,5102504,Cáceres,DNER,dner,-16.0775215,-57.6667131,brasil_aberto,True
+MT,5102504,Cáceres,Distrito Industrial,distrito industrial,-16.0873856,-57.6754995,brasil_aberto,True
+MT,5102504,Cáceres,Espírito Santo,espirito santo,-16.0873856,-57.6754995,brasil_aberto,True
+MT,5102504,Cáceres,Garçês,garces,-16.1002258,-57.7067103,brasil_aberto,True
+MT,5102504,Cáceres,Getúlio Vargas,getulio vargas,-16.0829806,-57.676763,brasil_aberto,True
+MT,5102504,Cáceres,Horizonte do Oeste,horizonte do oeste,-15.8410621,-58.04506259999999,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Aeroporto,jardim aeroporto,-16.0412708,-57.63739210000001,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Celeste,jardim celeste,-16.0825782,-57.6736593,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Guanabara,jardim guanabara,-16.0967331,-57.6613222,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Imperial,jardim imperial,-16.124682,-57.6608294,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Marajoara,jardim marajoara,-16.0909338,-57.6824976,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Padre Paulo,jardim padre paulo,-16.0472298,-57.6540675,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Panorama,jardim panorama,-16.1031827,-57.7023095,brasil_aberto,True
+MT,5102504,Cáceres,Jardim Paraíso,jardim paraiso,-16.0809742,-57.6994937,brasil_aberto,True
+MT,5102504,Cáceres,Jardim São Luiz da Ponte,jardim sao luiz da ponte,-16.0830954,-57.692869,brasil_aberto,True
+MT,5102504,Cáceres,Jardim União,jardim uniao,-15.8199924,-55.4102266,brasil_aberto,True
+MT,5102504,Cáceres,Jardim das Oliveiras,jardim das oliveiras,-16.045951,-57.650947,brasil_aberto,True
+MT,5102504,Cáceres,Jardim do Trevo,jardim do trevo,-16.0978975,-57.6783216,brasil_aberto,True
+MT,5102504,Cáceres,Joaquim Murtinho,joaquim murtinho,-16.0708542,-57.6664226,brasil_aberto,True
+MT,5102504,Cáceres,Junco,junco,-16.0818466,-57.6965662,brasil_aberto,True
+MT,5102504,Cáceres,Lavapés,lavapes,-16.0796768,-57.6683102,brasil_aberto,True
+MT,5102504,Cáceres,Lobo,lobo,-16.0937999,-57.6492285,brasil_aberto,True
+MT,5102504,Cáceres,Maracanãzinho,maracanazinho,-16.0818922,-57.687562,brasil_aberto,True
+MT,5102504,Cáceres,Massa-Barro,massa-barro,-16.0504069,-57.6664713,brasil_aberto,True
+MT,5102504,Cáceres,Monte Verde,monte verde,-16.0750271,-57.6777702,brasil_aberto,True
+MT,5102504,Cáceres,Nova Cáceres,nova caceres,-15.9402368,-57.2366964,brasil_aberto,True
+MT,5102504,Cáceres,Nova Era,nova era,-16.0948354,-57.669516,brasil_aberto,True
+MT,5102504,Cáceres,Rodeio,rodeio,-16.0886968,-57.696077,brasil_aberto,True
+MT,5102504,Cáceres,Santa Cruz,santa cruz,-16.0830954,-57.692869,brasil_aberto,True
+MT,5102504,Cáceres,Santa Isabel,santa isabel,-16.0819788,-57.6798442,brasil_aberto,True
+MT,5102504,Cáceres,Santa Rosa,santa rosa,-16.0520107,-57.676225,brasil_aberto,True
+MT,5102504,Cáceres,Santo Antônio,santo antonio,-16.1081701,-57.6746411,brasil_aberto,True
+MT,5102504,Cáceres,Santos Dumont,santos dumont,-16.0834883,-57.6562759,brasil_aberto,True
+MT,5102504,Cáceres,São Jorge,sao jorge,-16.0750087,-57.6578403,brasil_aberto,True
+MT,5102504,Cáceres,São Lourenço,sao lourenco,-16.0929167,-57.69279160000001,brasil_aberto,True
+MT,5102504,Cáceres,São Miguel,sao miguel,-16.0702594,-57.6942658,brasil_aberto,True
+MT,5102504,Cáceres,Vila Irene,vila irene,-16.056305,-57.6723963,brasil_aberto,True
+MT,5102504,Cáceres,Vila Mariana,vila mariana,-16.0741285,-57.6859956,brasil_aberto,True
+MT,5102504,Cáceres,Vila Nova,vila nova,-16.0540037,-57.6647226,brasil_aberto,True
+MT,5102504,Cáceres,Vila Real,vila real,-16.1099103,-57.6878204,brasil_aberto,True
+MT,5102504,Cáceres,Vitória-Régia,vitoria-regia,-16.1047734,-57.6731184,brasil_aberto,True
+MT,5102504,Cáceres,Área Rural de Cáceres,area rural de caceres,-16.0664933,-57.6845017,brasil_aberto,True
+MT,5103452,Denise,Centro,centro,-14.7273832,-57.0471405,brasil_aberto,True
+MT,5103502,Diamantino,Bel Rios,bel rios,-14.4053887,-56.4335262,brasil_aberto,True
+MT,5103502,Diamantino,Bojui,bojui,-14.2493422,-56.4780323,brasil_aberto,True
+MT,5103502,Diamantino,Centro,centro,-14.4124129,-56.4515099,brasil_aberto,True
+MT,5103502,Diamantino,Del Rios,del rios,-14.4053887,-56.4335262,brasil_aberto,True
+MT,5103502,Diamantino,Novo Diamantino,novo diamantino,-14.3752171,-56.3964126,brasil_aberto,True
+MT,5103502,Diamantino,Sumidouro,sumidouro,-14.1287255,-56.6936171,brasil_aberto,True
+MT,5103601,Dom Aquino,Centro,centro,-15.8117882,-54.9215733,brasil_aberto,True
+MT,5103601,Dom Aquino,Entre Rios,entre rios,-15.9056321,-54.8704297,brasil_aberto,True
+MT,5103601,Dom Aquino,Pombas,pombas,-15.8099632,-54.9185385,brasil_aberto,True
+MT,5103700,Feliz Natal,Centro,centro,-12.3842452,-54.9344109,brasil_aberto,True
+MT,5103809,Figueirópolis D'Oeste,Centro,centro,-15.4459432,-58.7365439,brasil_aberto,True
+MT,5103858,Gaúcha do Norte,Centro,centro,-13.1824774,-53.2554422,brasil_aberto,True
+MT,5103908,General Carneiro,Centro,centro,-15.708516,-52.7575916,brasil_aberto,True
+MT,5103908,General Carneiro,Paredão,paredao,-15.5749046,-53.4555449,brasil_aberto,True
+MT,5103908,General Carneiro,Sangradouro,sangradouro,-15.6080211,-53.9170414,brasil_aberto,True
+MT,5103957,Glória D'Oeste,Centro,centro,-15.7684164,-58.3111426,brasil_aberto,True
+MT,5103957,Glória D'Oeste,Monte Castelo do Oeste,monte castelo do oeste,-15.7684167,-58.31113389999999,brasil_aberto,True
+MT,5104104,Guarantã do Norte,Centro,centro,-9.953261,-54.907725,brasil_aberto,True
+MT,5104104,Guarantã do Norte,Cotrel,cotrel,-9.947683699999999,-54.9539857,brasil_aberto,True
+MT,5104203,Guiratinga,Alcantilado,alcantilado,-16.4206557,-53.5303056,brasil_aberto,True
+MT,5104203,Guiratinga,Buriti,buriti,-16.4705998,-53.4651758,brasil_aberto,True
+MT,5104203,Guiratinga,Centro,centro,-16.3499923,-53.7562432,brasil_aberto,True
+MT,5104203,Guiratinga,Estrela do Leste,estrela do leste,-16.3324577,-53.5812263,brasil_aberto,True
+MT,5104203,Guiratinga,Vale Rico,vale rico,-16.3895661,-54.1549461,brasil_aberto,True
+MT,5104500,Indiavaí,Centro,centro,-11.1387088,-58.6113069,brasil_aberto,True
+MT,5104526,Ipiranga do Norte,Centro,centro,-12.2400739,-56.1550695,brasil_aberto,True
+MT,5104542,Itanhangá,Centro,centro,-12.2382957,-56.6437285,brasil_aberto,True
+MT,5104559,Itaúba,Centro,centro,-11.0070444,-55.245904,brasil_aberto,True
+MT,5104609,Itiquira,Centro,centro,-17.2077017,-54.1444812,brasil_aberto,True
+MT,5104609,Itiquira,Michelin,michelin,-17.205963,-54.1469561,brasil_aberto,True
+MT,5104807,Jaciara,Centro,centro,-15.9605593,-54.97244749999999,brasil_aberto,True
+MT,5104807,Jaciara,Jatobá,jatoba,-15.961171,-54.9601948,brasil_aberto,True
+MT,5104807,Jaciara,Selma,selma,,,brasil_aberto,True
+MT,5104906,Jangada,Centro,centro,-15.2400371,-56.4862887,brasil_aberto,True
+MT,5105002,Jauru,Centro,centro,-15.3388958,-58.87335459999999,brasil_aberto,True
+MT,5105002,Jauru,Lucialva,lucialva,-15.1673018,-58.8622063,brasil_aberto,True
+MT,5105101,Juara,Centro,centro,-11.2535828,-57.50869600000001,brasil_aberto,True
+MT,5105101,Juara,Paranorte,paranorte,-10.3940817,-57.7169053,brasil_aberto,True
+MT,5105101,Juara,Águas Claras,aguas claras,-10.99248,-57.6892483,brasil_aberto,True
+MT,5105176,Juruena,Centro,centro,-10.3371699,-58.4902379,brasil_aberto,True
+MT,5105200,Juscimeira,Centro,centro,-16.0516201,-54.8854842,brasil_aberto,True
+MT,5105200,Juscimeira,Irenópolis,irenopolis,-16.0624518,-54.8245406,brasil_aberto,True
+MT,5105200,Juscimeira,Placa de Santo Antônio,placa de santo antonio,-16.0517997,-54.8879519,brasil_aberto,True
+MT,5105200,Juscimeira,Santa Elvira,santa elvira,-16.1630605,-54.79529530000001,brasil_aberto,True
+MT,5105200,Juscimeira,São Lourenço de Fátima,sao lourenco de fatima,-16.3153245,-54.93713,brasil_aberto,True
+MT,5105150,Juína,Filadélfia,filadelfia,-10.9914154,-59.0582632,brasil_aberto,True
+MT,5105150,Juína,Módulo 3,modulo 3,-11.4161084,-58.7592628,brasil_aberto,True
+MT,5105150,Juína,Padre Duílio,padre duilio,-11.4158788,-58.7479302,brasil_aberto,True
+MT,5105150,Juína,Terra Roxa,terra roxa,-11.4829422,-59.15010559999999,brasil_aberto,True
+MT,5105234,Lambari D'Oeste,Centro,centro,-15.3175058,-58.0051222,brasil_aberto,True
+MT,5105234,Lambari D'Oeste,São José do Pingador,sao jose do pingador,-15.352347,-57.90198279999999,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Bandeirantes,bandeirantes,-13.060723,-55.9332743,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Centro,centro,-13.0675063,-55.9206473,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Groslândia,groslandia,-12.8017702,-56.2176747,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Jardim Amazônia,jardim amazonia,-13.0877291,-55.9007019,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Jardim Primaveras,jardim primaveras,-13.0790984,-55.8980698,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Jardim das Palmeiras,jardim das palmeiras,-13.0813958,-55.9095763,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Luiz Carlos Tesseles Júnior,luiz carlos tesseles junior,,,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Menino Deus,menino deus,-13.0782407,-55.9302954,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Rio Verde,rio verde,-13.1097711,-55.9029647,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Veneza,veneza,-13.0878704,-55.9156138,brasil_aberto,True
+MT,5105259,Lucas do Rio Verde,Área Rural de Lucas do Rio Verde,area rural de lucas do rio verde,-13.0764296,-55.9093949,brasil_aberto,True
+MT,5105309,Luciara,Centro,centro,-11.2209722,-50.6671107,brasil_aberto,True
+MT,5105580,Marcelândia,Analândia do Norte,analandia do norte,-11.2522534,-54.2007698,brasil_aberto,True
+MT,5105580,Marcelândia,Centro,centro,-11.08565,-54.5206674,brasil_aberto,True
+MT,5105580,Marcelândia,Vila Atlântica,vila atlantica,-11.0831615,-54.5223774,brasil_aberto,True
+MT,5105606,Matupá,Centro,centro,-10.1698735,-54.9339176,brasil_aberto,True
+MT,5105606,Matupá,Flor da Serra,flor da serra,-10.0859226,-55.1306234,brasil_aberto,True
+MT,5105622,Mirassol d'Oeste,Centro,centro,-15.6748886,-58.0982853,brasil_aberto,True
+MT,5105622,Mirassol d'Oeste,Sonho Azul,sonho azul,-15.7703888,-58.1211018,brasil_aberto,True
+MT,5105903,Nobres,Centro,centro,-14.8348634,-56.4285351,brasil_aberto,True
+MT,5105903,Nobres,Coqueiral,coqueiral,-14.379164,-55.916482,brasil_aberto,True
+MT,5105903,Nobres,Santa Rita,santa rita,,,brasil_aberto,True
+MT,5106000,Nortelândia,Centro,centro,,,brasil_aberto,True
+MT,5106109,Nossa Senhora do Livramento,Centro,centro,-15.7706211,-56.347248,brasil_aberto,True
+MT,5106109,Nossa Senhora do Livramento,Faval,faval,-15.6549459,-56.7860396,brasil_aberto,True
+MT,5106109,Nossa Senhora do Livramento,Pirizal,pirizal,-16.2323942,-56.38037689999999,brasil_aberto,True
+MT,5106109,Nossa Senhora do Livramento,Ribeirão dos Cocais,ribeirao dos cocais,-15.8043125,-56.22282930000001,brasil_aberto,True
+MT,5106158,Nova Bandeirantes,Centro,centro,-9.8605741,-57.80996039999999,brasil_aberto,True
+MT,5106158,Nova Bandeirantes,Japuranã,japurana,-10.2122104,-58.0982046,brasil_aberto,True
+MT,5106208,Nova Brasilândia,Centro,centro,-14.9274294,-54.9731719,brasil_aberto,True
+MT,5106208,Nova Brasilândia,Peresópolis,peresopolis,-14.7507178,-54.9679636,brasil_aberto,True
+MT,5106208,Nova Brasilândia,Rancharia,rancharia,-14.862156,-54.655803,brasil_aberto,True
+MT,5106208,Nova Brasilândia,Rio Manso,rio manso,-14.9318023,-54.9738059,brasil_aberto,True
+MT,5106208,Nova Brasilândia,Riolândia,riolandia,-14.695474,-55.1817407,brasil_aberto,True
+MT,5106216,Nova Canaã do Norte,Centro,centro,-10.6369788,-55.7094499,brasil_aberto,True
+MT,5106216,Nova Canaã do Norte,Colorado do Norte,colorado do norte,-10.4442236,-56.0971717,brasil_aberto,True
+MT,5106216,Nova Canaã do Norte,Flôr da Serra,flor da serra,-10.485908,-56.035928,brasil_aberto,True
+MT,5106216,Nova Canaã do Norte,Ouro Branco,ouro branco,-10.555941,-55.9481478,brasil_aberto,True
+MT,5108808,Nova Guarita,Centro,centro,-15.7685485,-58.31109550000001,brasil_aberto,True
+MT,5106182,Nova Lacerda,Centro,centro,-14.47005,-59.58652050000001,brasil_aberto,True
+MT,5108857,Nova Marilândia,Centro,centro,-14.3642692,-56.968916,brasil_aberto,True
+MT,5108907,Nova Maringá,Brianorte,brianorte,-12.2874487,-57.3416035,brasil_aberto,True
+MT,5108907,Nova Maringá,Centro,centro,,,brasil_aberto,True
+MT,5108956,Nova Monte Verde,Alto Paraíso,alto paraiso,-9.940938899999999,-57.1345935,brasil_aberto,True
+MT,5108956,Nova Monte Verde,Centro,centro,-9.9798159,-57.4679688,brasil_aberto,True
+MT,5106224,Nova Mutum,Alto da Colina,alto da colina,-13.8345901,-56.0891659,brasil_aberto,True
+MT,5106224,Nova Mutum,Bela Vista,bela vista,-13.8223184,-56.0927147,brasil_aberto,True
+MT,5106224,Nova Mutum,Centro,centro,-13.8398331,-56.1006273,brasil_aberto,True
+MT,5106224,Nova Mutum,Jardim das Orquídeas,jardim das orquideas,-13.809985,-56.0877156,brasil_aberto,True
+MT,5106224,Nova Mutum,Loteamento Reserva Técnica,loteamento reserva tecnica,,,brasil_aberto,True
+MT,5106224,Nova Mutum,Ranchão,ranchao,-12.8653998,-56.24822769999999,brasil_aberto,True
+MT,5106224,Nova Mutum,Residencial Paraíso,residencial paraiso,,,brasil_aberto,True
+MT,5106224,Nova Mutum,Área Rural de Nova Mutum,area rural de nova mutum,-13.8169976,-56.0884274,brasil_aberto,True
+MT,5106174,Nova Nazaré,Setor Norte,setor norte,-13.9887737,-51.7971003,brasil_aberto,True
+MT,5106232,Nova Olímpia,Centro,centro,-14.7817759,-57.2885284,brasil_aberto,True
+MT,5106190,Nova Santa Helena,Centro,centro,-10.8511358,-55.171008,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Centro,centro,-13.0339562,-55.25236650000001,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Entre Rios,entre rios,-12.4200299,-54.30300159999999,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Novo Mato Grosso,novo mato grosso,-12.8830032,-54.5218074,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Parque Água Limpa,parque agua limpa,,,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Piratininga,piratininga,,,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Santa Terezinha do Rio Ferro,santa terezinha do rio ferro,-12.5508289,-54.6533747,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Santo Antonio do Rio Bonito,santo antonio do rio bonito,-13.0946537,-54.8731219,brasil_aberto,True
+MT,5106240,Nova Ubiratã,Água Limpa,agua limpa,,,brasil_aberto,True
+MT,5106257,Nova Xavantina,Centro,centro,-14.6640609,-52.3572838,brasil_aberto,True
+MT,5106257,Nova Xavantina,Nova Brasília,nova brasilia,-14.6613967,-52.3513549,brasil_aberto,True
+MT,5106273,Novo Horizonte do Norte,Centro,centro,-11.3924358,-57.3173733,brasil_aberto,True
+MT,5106265,Novo Mundo,Centro,centro,-9.9756062,-55.1765556,brasil_aberto,True
+MT,5106315,Novo Santo Antônio,Centro,centro,-12.2695218,-50.9674555,brasil_aberto,True
+MT,5106281,Novo São Joaquim,Centro,centro,-14.9141719,-53.01943559999999,brasil_aberto,True
+MT,5106307,Paranatinga,Centro,centro,-14.43198,-54.05079060000001,brasil_aberto,True
+MT,5106307,Paranatinga,Salto da Alegria,salto da alegria,-13.0619447,-54.0858404,brasil_aberto,True
+MT,5106299,Paranaíta,Centro,centro,-15.6463035,-56.1294025,brasil_aberto,True
+MT,5106372,Pedra Preta,Centro,centro,-5.5818393,-36.1042152,brasil_aberto,True
+MT,5106372,Pedra Preta,Garça Branca,garca branca,-16.6161211,-54.4654975,brasil_aberto,True
+MT,5106372,Pedra Preta,São José do Planalto,sao jose do planalto,-16.9918122,-54.5340325,brasil_aberto,True
+MT,5106422,Peixoto de Azevedo,Centro,centro,-10.2448583,-54.98997240000001,brasil_aberto,True
+MT,5106422,Peixoto de Azevedo,União do Norte,uniao do norte,-10.4310759,-54.4447332,brasil_aberto,True
+MT,5106455,Planalto da Serra,Centro,centro,-14.6598343,-54.77508419999999,brasil_aberto,True
+MT,5106505,Poconé,Cangas,cangas,-16.0623686,-56.5168094,brasil_aberto,True
+MT,5106505,Poconé,Centro,centro,-16.2630416,-56.6280801,brasil_aberto,True
+MT,5106505,Poconé,Chumbo,chumbo,-16.0481164,-56.7230484,brasil_aberto,True
+MT,5106505,Poconé,Fazenda de Cima,fazenda de cima,-16.2645026,-56.6281145,brasil_aberto,True
+MT,5106653,Pontal do Araguaia,Centro,centro,-15.900049,-52.25703379999999,brasil_aberto,True
+MT,5106703,Ponte Branca,Centro,centro,-16.7636688,-52.8348612,brasil_aberto,True
+MT,5106752,Pontes e Lacerda,Centro,centro,-15.2345363,-59.3362201,brasil_aberto,True
+MT,5106778,Porto Alegre do Norte,Centro,centro,-10.8853599,-51.63889200000001,brasil_aberto,True
+MT,5106828,Porto Esperidião,Bocaiuval,bocaiuval,-15.727734,-58.62333940000001,brasil_aberto,True
+MT,5106828,Porto Esperidião,Parque das Américas,parque das americas,-15.853368,-58.4691944,brasil_aberto,True
+MT,5106828,Porto Esperidião,Pedro Neca,pedro neca,-15.6850912,-58.7249534,brasil_aberto,True
+MT,5106828,Porto Esperidião,Vila Cardoso,vila cardoso,-15.735026,-58.922904,brasil_aberto,True
+MT,5106851,Porto Estrela,Centro,centro,-15.3266367,-57.1951979,brasil_aberto,True
+MT,5106802,Porto dos Gaúchos,Centro,centro,-11.5344024,-57.40778830000001,brasil_aberto,True
+MT,5106802,Porto dos Gaúchos,Novo Paraná,novo parana,-11.6181804,-57.2343481,brasil_aberto,True
+MT,5106802,Porto dos Gaúchos,São João,sao joao,-11.479104,-56.967608,brasil_aberto,True
+MT,5107008,Poxoréu,Alto Coité,alto coite,-15.8266009,-54.4021042,brasil_aberto,True
+MT,5107008,Poxoréu,Aparecida do Leste,aparecida do leste,-15.9978158,-54.2561387,brasil_aberto,True
+MT,5107008,Poxoréu,Centro,centro,-15.8375236,-54.38773699999999,brasil_aberto,True
+MT,5107008,Poxoréu,Jarudore,jarudore,-15.8266009,-54.4021042,brasil_aberto,True
+MT,5107008,Poxoréu,Paraíso do Leste,paraiso do leste,-16.0684724,-54.1647245,brasil_aberto,True
+MT,5107040,Primavera do Leste,Centro,centro,-15.560012,-54.297686,brasil_aberto,True
+MT,5107040,Primavera do Leste,Jardim Riva,jardim riva,-15.5627541,-54.3032993,brasil_aberto,True
+MT,5107065,Querência,Centro,centro,-14.6185905,-57.4881852,brasil_aberto,True
+MT,5107065,Querência,Coutinho,coutinho,-11.9590358,-52.4948753,brasil_aberto,True
+MT,5107156,Reserva do Cabaçal,Centro,centro,-15.1238098,-58.38242140000001,brasil_aberto,True
+MT,5107180,Ribeirão Cascalheira,Centro,centro,-12.9429194,-51.826717,brasil_aberto,True
+MT,5107180,Ribeirão Cascalheira,Novo Paraíso,novo paraiso,,,brasil_aberto,True
+MT,5107198,Ribeirãozinho,Centro,centro,-16.4876109,-52.69205760000001,brasil_aberto,True
+MT,5107578,Rondolândia,Centro,centro,-10.842202,-61.4596389,brasil_aberto,True
+MT,5107602,Rondonópolis,Ainhumas,ainhumas,-16.8566101,-54.6533747,brasil_aberto,True
+MT,5107602,Rondonópolis,Boa Vista,boa vista,-16.214492,-54.7785926,brasil_aberto,True
+MT,5107602,Rondonópolis,Centro,centro,-16.4711174,-54.6342915,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácara Alegria,chacara alegria,-16.4787435,-54.5862499,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácara Beija-Flor,chacara beija-flor,-16.4396725,-54.6656631,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácara Beira Rio,chacara beira rio,-16.4416135,-54.6289878,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácara Globo Recreio,chacara globo recreio,-16.4230777,-54.5905047,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácara Residencial Parque das Nações,chacara residencial parque das nacoes,-16.4566209,-54.6440985,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácaras Adriana Quito,chacaras adriana quito,-16.4736206,-54.5474279,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácaras Nossa Senhora da Guia,chacaras nossa senhora da guia,-16.4853212,-54.5906454,brasil_aberto,True
+MT,5107602,Rondonópolis,Chácaras Paraíso,chacaras paraiso,-16.4892044,-54.6026752,brasil_aberto,True
+MT,5107602,Rondonópolis,Cidade Natal,cidade natal,-16.4356838,-54.6202042,brasil_aberto,True
+MT,5107602,Rondonópolis,Cidade Salmen,cidade salmen,-16.4731012,-54.65200309999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Cidade Universitária,cidade universitaria,-16.4770471,-54.5973244,brasil_aberto,True
+MT,5107602,Rondonópolis,Colina Verde,colina verde,-16.4835662,-54.6085978,brasil_aberto,True
+MT,5107602,Rondonópolis,Conjunto Habitacional Cidade de Deus,conjunto habitacional cidade de deus,-16.4765274,-54.5852315,brasil_aberto,True
+MT,5107602,Rondonópolis,Conjunto Habitacional Lúcia Maggi,conjunto habitacional lucia maggi,-16.4480065,-54.5996484,brasil_aberto,True
+MT,5107602,Rondonópolis,Coophalis,coophalis,-16.4798894,-54.6125386,brasil_aberto,True
+MT,5107602,Rondonópolis,Coophasem,coophasem,-16.4748413,-54.61048899999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Distrito Industrial,distrito industrial,-16.4748759,-54.6730651,brasil_aberto,True
+MT,5107602,Rondonópolis,Distrito Industrial Augusto Bortoli Razia,distrito industrial augusto bortoli razia,-16.4944122,-54.6476525,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim América,jardim america,-16.4422737,-54.6373894,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Ana Carla,jardim ana carla,-16.4798123,-54.6771148,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Arco Íris,jardim arco iris,-16.469331,-54.6284739,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Assunção,jardim assuncao,-16.4543654,-54.6218558,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Atlântico,jardim atlantico,-16.4719502,-54.5801482,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Beira Rio,jardim beira rio,-16.4612281,-54.6334683,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Bela Vista,jardim bela vista,-16.4465832,-54.6228913,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Belo Horizonte,jardim belo horizonte,-16.4501453,-54.6623049,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Belo Panorama,jardim belo panorama,-16.4516556,-54.6287595,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Bispo Pedro Casaldáliga,jardim bispo pedro casaldaliga,-16.4654757,-54.6387229,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Brasil,jardim brasil,-16.431752,-54.6196743,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Brasília,jardim brasilia,-16.463344,-54.6194347,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Copacabana,jardim copacabana,-16.4378622,-54.6348149,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Cuiabá,jardim cuiaba,-16.4692979,-54.6238878,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Dinalva Muniz,jardim dinalva muniz,-16.4265599,-54.643359,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Dom Bosco,jardim dom bosco,-16.4457929,-54.6109128,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Ebenezer,jardim ebenezer,-16.4503004,-54.6347206,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Eldorado,jardim eldorado,-16.4341823,-54.635203,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Eldorado II,jardim eldorado ii,-16.4344668,-54.6330806,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Esmeralda,jardim esmeralda,-16.4598796,-54.6482991,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Europa,jardim europa,-16.4682532,-54.5748981,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Gloria,jardim gloria,-16.4271473,-54.6260203,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Gramado I,jardim gramado i,-16.4422277,-54.6352737,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Gramado II,jardim gramado ii,-16.4409852,-54.6332523,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Guanabara,jardim guanabara,-16.4400927,-54.6295725,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Guanabara II,jardim guanabara ii,-16.4580342,-54.644169,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim HD,jardim hd,-16.4364738,-54.6500355,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Iguassu,jardim iguassu,-16.4594631,-54.6069665,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Iguassu II,jardim iguassu ii,-16.453606,-54.6064231,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Ipanema,jardim ipanema,-16.4785246,-54.64489,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Ipiranga III,jardim ipiranga iii,-16.4439896,-54.6112075,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Ipê,jardim ipe,-16.4445127,-54.6311713,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Itapuã,jardim itapua,-16.440047,-54.6151756,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Kenia,jardim kenia,-16.4711174,-54.6342915,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Liberdade,jardim liberdade,-16.4391557,-54.6521913,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Liberdade II,jardim liberdade ii,-16.4391557,-54.6521913,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Lourdes,jardim lourdes,-16.4711412,-54.6468413,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Luz da Yara,jardim luz da yara,-16.4439947,-54.6262364,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Maracanã,jardim maracana,-16.4779135,-54.657467,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Marajó,jardim marajo,-16.433361,-54.6276613,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Maria Tereza,jardim maria tereza,-16.4745877,-54.6575012,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Maria Vetorasso,jardim maria vetorasso,-16.5106138,-54.62863,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Maria Vetorasso - 2ª Parte,jardim maria vetorasso - 2ª parte,-16.5105056,-54.624919,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Marialva,jardim marialva,-16.4514761,-54.6239328,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Mato Grosso,jardim mato grosso,-16.4803898,-54.6120529,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Mirassol,jardim mirassol,-16.4352384,-54.6374955,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Modelo,jardim modelo,-16.4436684,-54.6221768,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Morada dos Bandeirantes,jardim morada dos bandeirantes,-16.4553135,-54.6400027,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Morumbi,jardim morumbi,-16.4745877,-54.6575012,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Nilmara,jardim nilmara,-16.4304828,-54.6307465,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Nossa Senhora da Glória,jardim nossa senhora da gloria,-16.4422229,-54.6314954,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Novo Horizonte,jardim novo horizonte,-16.4497229,-54.6524156,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Oliveira,jardim oliveira,-16.4596892,-54.6239263,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Padre Rodolfo Lunkenbein,jardim padre rodolfo lunkenbein,-16.4654757,-54.6387229,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Paiaguás,jardim paiaguas,-16.4235793,-54.6878642,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Paulista,jardim paulista,-16.4685938,-54.6217142,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Pindorama I,jardim pindorama i,-16.4536156,-54.640342,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Pindorama II,jardim pindorama ii,-16.4485887,-54.6395507,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Primavera I,jardim primavera i,-16.4505689,-54.6170355,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Primavera II,jardim primavera ii,-16.4491404,-54.6178514,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Progresso,jardim progresso,-16.4255401,-54.6340828,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Reis,jardim reis,-16.4317021,-54.6256046,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial Carlos Bezerra I,jardim residencial carlos bezerra i,-16.4284865,-54.6350715,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial Carlos Bezerra II,jardim residencial carlos bezerra ii,-16.4217275,-54.637289,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial Francisca Garcete de Almeida,jardim residencial francisca garcete de almeida,-16.4809892,-54.5903814,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial João Moraes,jardim residencial joao moraes,-16.4377075,-54.6705923,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial Mathias Neves,jardim residencial mathias neves,-16.4301131,-54.6764054,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial Sunflower,jardim residencial sunflower,-16.4650105,-54.5952598,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Residencial São José,jardim residencial sao jose,-16.4672232,-54.6131344,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Rivera,jardim rivera,-16.4400927,-54.6295725,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Rondônia,jardim rondonia,-16.4604474,-54.6199939,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Royal Boulevard do Cerrado,jardim royal boulevard do cerrado,-16.4641686,-54.5899205,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Rui Barbosa,jardim rui barbosa,-16.4600627,-54.6406498,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Bárbara,jardim santa barbara,-16.4438165,-54.6267593,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Clara I,jardim santa clara i,-16.4549336,-54.6290858,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Clara II,jardim santa clara ii,-16.4546409,-54.630479,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Fé,jardim santa fe,-16.4483303,-54.6317365,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Luzia,jardim santa luzia,-16.445036,-54.621862,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Marta,jardim santa marta,-16.4490622,-54.6423594,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Santa Rosa,jardim santa rosa,-16.451233,-54.6349628,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Serra Dourada I,jardim serra dourada i,-16.427508,-54.6390532,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Serra Dourada II,jardim serra dourada ii,-16.4263676,-54.6391375,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Sumaré,jardim sumare,-16.4316087,-54.6228841,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim São Bento,jardim sao bento,-16.4285989,-54.6368855,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim São Francisco,jardim sao francisco,-16.4272599,-54.6443459,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Taiti,jardim taiti,-16.44074,-54.6138576,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Tancredo Neves,jardim tancredo neves,-16.4367631,-54.6388401,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Tropical,jardim tropical,-16.4453893,-54.6344018,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Três Poderes,jardim tres poderes,-16.424934,-54.6301435,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Urupês,jardim urupes,-16.4607852,-54.6354696,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Vera Cruz,jardim vera cruz,-16.449852,-54.6306627,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim Village do Cerrado,jardim village do cerrado,-16.4674421,-54.5834532,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim da Mata,jardim da mata,-16.4551456,-54.6425335,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim da Mata II,jardim da mata ii,-16.4594076,-54.6594405,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim das Flores,jardim das flores,-16.4228864,-54.6139016,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim das Paineiras,jardim das paineiras,-16.4610905,-54.6637574,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim do Parque,jardim do parque,-16.4308467,-54.6568314,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim do Parque II,jardim do parque ii,-16.4308467,-54.6568314,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim do Sol,jardim do sol,-16.4418172,-54.6495888,brasil_aberto,True
+MT,5107602,Rondonópolis,Jardim dos Pioneiros,jardim dos pioneiros,-16.4619636,-54.6207,brasil_aberto,True
+MT,5107602,Rondonópolis,La Salle I,la salle i,-16.4643515,-54.6384179,brasil_aberto,True
+MT,5107602,Rondonópolis,La Salle II,la salle ii,-16.4600617,-54.6406508,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Alves,loteamento alves,-16.4705456,-54.6443248,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Cellos,loteamento cellos,-16.4624228,-54.6307501,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Cellos II,loteamento cellos ii,-16.4618229,-54.6313458,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Chácaras Pica-pau,loteamento chacaras pica-pau,-16.4993111,-54.6007535,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Esplanada,loteamento esplanada,-16.4459654,-54.6208837,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Green Valley,loteamento green valley,-16.4662523,-54.6145025,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Jacob,loteamento jacob,-16.4700843,-54.6443921,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Jambalaia I,loteamento jambalaia i,-16.4663253,-54.6209771,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Jambalaia II,loteamento jambalaia ii,-16.4669816,-54.6197014,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento João de Barro,loteamento joao de barro,-16.4564347,-54.6077613,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Kennedy,loteamento kennedy,-16.4705923,-54.6250904,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Monte Líbano,loteamento monte libano,-16.4467316,-54.6508472,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Nossa Senhora Aparecida,loteamento nossa senhora aparecida,-16.45708,-54.6380705,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Nossa Senhora do Amparo,loteamento nossa senhora do amparo,-16.4661832,-54.6111561,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Olivina,loteamento olivina,-16.456417,-54.6242044,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Padre Ezequiel Ramim,loteamento padre ezequiel ramim,-16.4272952,-54.6260105,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Padre João Bosco Burnier,loteamento padre joao bosco burnier,-16.4452492,-54.6492545,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Parque das Rosas,loteamento parque das rosas,-16.4908374,-54.5936304,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Parque dos Lírios,loteamento parque dos lirios,-16.4525523,-54.5948443,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Pedra 90,loteamento pedra 90,-16.4741008,-54.6008888,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Quitéria Teruel Lopes,loteamento quiteria teruel lopes,-16.4452492,-54.6492545,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Recanto do Parque,loteamento recanto do parque,-16.4691399,-54.567471,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Alfredo de Castro Araújo,loteamento residencial alfredo de castro araujo,-16.4630036,-54.5472809,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Altamirando,loteamento residencial altamirando,-16.4752292,-54.5488063,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Dom Osório Stoffel,loteamento residencial dom osorio stoffel,-16.4314394,-54.6614761,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Juscelino Ferreira de Farias,loteamento residencial juscelino ferreira de farias,-16.4382635,-54.6149147,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Maria José Fernandes de Souza,loteamento residencial maria jose fernandes de souza,-16.4807949,-54.6690078,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Residencial Três Américas,loteamento residencial tres americas,-16.4711466,-54.5690046,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Santa Esther,loteamento santa esther,-16.469068,-54.6098381,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Santa Laura,loteamento santa laura,-16.490049,-54.5979059,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Santos Dumont,loteamento santos dumont,-16.4585353,-54.6314328,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Sítios de Recreio São Rosalvo,loteamento sitios de recreio sao rosalvo,-16.4949405,-54.5861089,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Vila Valéria Cristina,loteamento vila valeria cristina,,,brasil_aberto,True
+MT,5107602,Rondonópolis,Loteamento Zé Sobrinho,loteamento ze sobrinho,-16.4397349,-54.6604394,brasil_aberto,True
+MT,5107602,Rondonópolis,Micro Distrito Anézio Pereira de Oliveira,micro distrito anezio pereira de oliveira,-16.4114435,-54.619692,brasil_aberto,True
+MT,5107602,Rondonópolis,Morada do Paraty,morada do paraty,-16.4537323,-54.6584576,brasil_aberto,True
+MT,5107602,Rondonópolis,Nova Catanduva,nova catanduva,-16.4654757,-54.6387229,brasil_aberto,True
+MT,5107602,Rondonópolis,Nova Galileia,nova galileia,-16.5544368,-54.40139070000001,brasil_aberto,True
+MT,5107602,Rondonópolis,Novo Horizonte,novo horizonte,-16.4594076,-54.6594405,brasil_aberto,True
+MT,5107602,Rondonópolis,Nucleo Habitacional São José I,nucleo habitacional sao jose i,-16.4705825,-54.5813101,brasil_aberto,True
+MT,5107602,Rondonópolis,Nucleo Habitacional São José II,nucleo habitacional sao jose ii,-16.4365369,-54.6405688,brasil_aberto,True
+MT,5107602,Rondonópolis,Nucleo Habitacional São José III,nucleo habitacional sao jose iii,-16.4297499,-54.6535688,brasil_aberto,True
+MT,5107602,Rondonópolis,Núcleo Habitacional Marechal Rondon,nucleo habitacional marechal rondon,-16.4286564,-54.65406050000001,brasil_aberto,True
+MT,5107602,Rondonópolis,Núcleo Habitacional Participação,nucleo habitacional participacao,-16.4641341,-54.6088099,brasil_aberto,True
+MT,5107602,Rondonópolis,Núcleo Habitacional Rio Vermelho,nucleo habitacional rio vermelho,-16.4785325,-54.6193426,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Industrial Fabrício Vetorasso Mendes,parque industrial fabricio vetorasso mendes,-16.5108555,-54.6535844,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Industrial Vetorasso,parque industrial vetorasso,-16.5023017,-54.6396599,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Real,parque real,-16.480013,-54.6217951,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial André Maggi,parque residencial andre maggi,-16.4692151,-54.6284865,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial Buriti,parque residencial buriti,-16.439431,-54.6445299,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial Cidade Alta,parque residencial cidade alta,-16.4641785,-54.6030982,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial Nova Era,parque residencial nova era,-16.4313895,-54.6485742,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial Oasis,parque residencial oasis,-16.4583445,-54.6665466,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Residencial Universitário,parque residencial universitario,-16.4633744,-54.6750236,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque Sagrada Família,parque sagrada familia,-16.4709038,-54.5835618,brasil_aberto,True
+MT,5107602,Rondonópolis,Parque São Jorge,parque sao jorge,-16.4854002,-54.5919041,brasil_aberto,True
+MT,5107602,Rondonópolis,Ponte de Pedra,ponte de pedra,-16.6291134,-54.81264059999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Prolongamento Jardim Mato Grosso,prolongamento jardim mato grosso,-16.4812976,-54.6150507,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Acácias,residencial acacias,-16.4802009,-54.661877,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Antônio Geraldino,residencial antonio geraldino,,,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Bela Vista,residencial bela vista,-16.4923197,-54.6276072,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Jardim das Hortências,residencial jardim das hortencias,-16.4516942,-54.617513,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial João Antônio Fagundes,residencial joao antonio fagundes,-16.4924598,-54.5855088,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Lageadinho,residencial lageadinho,-16.4266625,-54.6787837,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Magnólia Angélica de Araujo,residencial magnolia angelica de araujo,-16.4779981,-54.59188,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Mariela,residencial mariela,-16.4316842,-54.6428053,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Padre Lothar,residencial padre lothar,-16.4319879,-54.6674556,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Paraíso,residencial paraiso,-16.4758217,-54.5836176,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Parque das Laranjeiras,residencial parque das laranjeiras,-16.4379992,-54.5966092,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Santa Clara,residencial santa clara,-16.4453166,-54.6138999,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Santa Marina,residencial santa marina,-16.474431,-54.608764,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Sítio Farias,residencial sitio farias,-16.4958353,-54.5940927,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Vila Mineira,residencial vila mineira,-16.4219728,-54.6248094,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial Villa Toscana,residencial villa toscana,-16.4949645,-54.6257398,brasil_aberto,True
+MT,5107602,Rondonópolis,Residencial das Orquídeas,residencial das orquideas,-16.4809892,-54.5903814,brasil_aberto,True
+MT,5107602,Rondonópolis,Santa Cruz,santa cruz,-16.4570021,-54.632898,brasil_aberto,True
+MT,5107602,Rondonópolis,Setor Residencial Granville I,setor residencial granville i,-16.4634824,-54.59236139999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Setor Residencial Granville II,setor residencial granville ii,-16.4562657,-54.5967357,brasil_aberto,True
+MT,5107602,Rondonópolis,Setor Rodoviária,setor rodoviaria,-16.4778464,-54.5846947,brasil_aberto,True
+MT,5107602,Rondonópolis,Sítio de Recreio Boa Vista,sitio de recreio boa vista,-16.214492,-54.7785926,brasil_aberto,True
+MT,5107602,Rondonópolis,Sítios de Recreio Recanto Maria Flávia,sitios de recreio recanto maria flavia,-16.5063836,-54.6358297,brasil_aberto,True
+MT,5107602,Rondonópolis,Três Pontes,tres pontes,-16.3940326,-54.47205779999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Verde Teto,verde teto,-16.5097255,-54.6225196,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Adriana,vila adriana,-16.444328,-54.658934,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Andréia,vila andreia,-16.4575437,-54.646702,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Aurora,vila aurora,-16.487019,-54.6097123,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Aurora I,vila aurora i,-16.4775574,-54.6292825,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Aurora II,vila aurora ii,-16.4714291,-54.6140078,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Aurora III,vila aurora iii,-16.4762543,-54.6261533,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Baixa,vila baixa,-16.473895,-54.6531903,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Birigui,vila birigui,-16.4632063,-54.6460712,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Boa Esperança,vila boa esperanca,-16.4782719,-54.6437788,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Bom Pastor,vila bom pastor,-16.461587,-54.623282,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Bueno,vila bueno,-16.4654757,-54.6387229,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Canaã,vila canaa,-16.4765041,-54.6411148,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Cardoso,vila cardoso,-16.457809,-54.6199541,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Carvalho,vila carvalho,-16.4431177,-54.6288717,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Castelo,vila castelo,-16.4801904,-54.6541515,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Clarion,vila clarion,-16.4297473,-54.6195334,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Dom Oscar Romero,vila dom oscar romero,-16.4323753,-54.620714,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Dom Pedro,vila dom pedro,-16.4531947,-54.6308603,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Duarte,vila duarte,-16.4549919,-54.6287886,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Dueti Vilalba,vila dueti vilalba,-16.4557202,-54.6121168,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Esperança,vila esperanca,-16.4556425,-54.6257064,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Estrela Dalva,vila estrela dalva,-16.4791075,-54.6547515,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Florisbela,vila florisbela,-16.4377743,-54.6331197,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Goulart,vila goulart,-16.4908297,-54.6434315,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Goulart II,vila goulart ii,-16.4879275,-54.6435172,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Goulart III,vila goulart iii,-16.4918365,-54.638666,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Ipiranga,vila ipiranga,-16.4248108,-54.62254000000001,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Iracy,vila iracy,-16.4429929,-54.6170355,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Itamaraty,vila itamaraty,-16.4359622,-54.6280609,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila José Luiz,vila jose luiz,-16.46615,-54.6407024,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Kamal Jumblat,vila kamal jumblat,-16.4496327,-54.6554004,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Mamed,vila mamed,-16.4802401,-54.6534154,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Maria,vila maria,-16.4654442,-54.6368178,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Mariana,vila mariana,-16.4370101,-54.6318472,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Mariley,vila mariley,-16.4736148,-54.6492264,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Marinópolis,vila marinopolis,-16.4661701,-54.6376264,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Nova,vila nova,-16.4380616,-54.6373266,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Olga Maria,vila olga maria,-16.4454391,-54.6192783,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Olinda,vila olinda,-16.4463164,-54.5926432,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Operária,vila operaria,-16.4406041,-54.6214451,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Padre Rodolfo Lunkenbein,vila padre rodolfo lunkenbein,-16.4488284,-54.6281855,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Paulista,vila paulista,-16.4738014,-54.540761,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Planalto,vila planalto,-16.4571645,-54.6352539,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Poroxo,vila poroxo,-16.4571116,-54.6125379,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Portal das Águas,vila portal das aguas,-16.4981601,-54.6253599,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Rica,vila rica,-16.4388465,-54.6787279,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Rosely,vila rosely,-16.4734315,-54.6561472,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Salmem,vila salmem,-16.456997,-54.6733251,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Salmem II,vila salmem ii,-16.4724195,-54.6457779,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Santa Catarina,vila santa catarina,-16.4583192,-54.6245082,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Santa Catarina II Parte,vila santa catarina ii parte,-16.4427114,-54.6275898,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Santa Maria,vila santa maria,-16.4663617,-54.6126295,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Santo Antônio,vila santo antonio,-16.4619922,-54.6216481,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila São José,vila sao jose,-16.4540081,-54.6282766,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila São Paulo,vila sao paulo,-16.4791075,-54.6547515,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila São Pedro,vila sao pedro,-16.4587317,-54.6118944,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila São Sebastião I,vila sao sebastiao i,-16.4545738,-54.6113087,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila São Sebastião II,vila sao sebastiao ii,-16.4568225,-54.61018079999999,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila União,vila uniao,-16.4322304,-54.6283469,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Valeria,vila valeria,-16.4563925,-54.6216717,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila Verde,vila verde,-16.4342428,-54.6296949,brasil_aberto,True
+MT,5107602,Rondonópolis,Vila da Amizade,vila da amizade,-16.4784822,-54.6464986,brasil_aberto,True
+MT,5107602,Rondonópolis,Área Rural de Rondonópolis,area rural de rondonopolis,-16.4654757,-54.6387229,brasil_aberto,True
+MT,5107701,Rosário Oeste,Arruda,arruda,-15.1544011,-56.413812,brasil_aberto,True
+MT,5107701,Rosário Oeste,Bauxi,bauxi,-15.146497,-56.7257988,brasil_aberto,True
+MT,5107701,Rosário Oeste,Centro,centro,-15.2000779,-56.3652719,brasil_aberto,True
+MT,5107701,Rosário Oeste,Marzagão,marzagao,-14.667793,-55.652762,brasil_aberto,True
+MT,5107750,Salto do Céu,Centro,centro,-15.1282581,-58.12939859999999,brasil_aberto,True
+MT,5107750,Salto do Céu,Cristinópolis,cristinopolis,-15.1802456,-57.99047469999999,brasil_aberto,True
+MT,5107750,Salto do Céu,Vila Progresso,vila progresso,-15.0223285,-58.2509005,brasil_aberto,True
+MT,5107248,Santa Carmem,Centro,centro,-11.9758761,-55.2785524,brasil_aberto,True
+MT,5107743,Santa Cruz do Xingu,Centro,centro,-10.1557474,-52.3919778,brasil_aberto,True
+MT,5107768,Santa Rita do Trivelato,Centro,centro,-13.0348887,-57.0917611,brasil_aberto,True
+MT,5107263,Santo Afonso,Centro,centro,-14.4945399,-56.9992781,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Caite,caite,-15.7593018,-55.9735259,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Engenho Velho,engenho velho,-15.7520463,-56.0273691,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Fronteira,fronteira,,,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Mimoso,mimoso,,,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Palmeiras,palmeiras,-15.9688026,-55.5385071,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Porto de Fora,porto de fora,-16.0890841,-55.8074264,brasil_aberto,True
+MT,5107800,Santo Antônio de Leverger,Varginha,varginha,-15.7725587,-56.0244268,brasil_aberto,True
+MT,5107792,Santo Antônio do Leste,Centro,centro,-14.8051194,-53.6107194,brasil_aberto,True
+MT,5107875,Sapezal,Cidezal III,cidezal iii,,,brasil_aberto,True
+MT,5107883,Serra Nova Dourada,Centro,centro,-16.4709248,-54.63417459999999,brasil_aberto,True
+MT,5107909,Sinop,Alameda das Cores Residencial,alameda das cores residencial,-11.8296868,-55.5068572,brasil_aberto,True
+MT,5107909,Sinop,Aquarela Brasil Residencial,aquarela brasil residencial,-11.8662638,-55.5451863,brasil_aberto,True
+MT,5107909,Sinop,Aquarela das Artes,aquarela das artes,-11.8428515,-55.5490002,brasil_aberto,True
+MT,5107909,Sinop,Belvedere Residencial,belvedere residencial,-14.7066793,-54.9601851,brasil_aberto,True
+MT,5107909,Sinop,Belvedere Residencial II,belvedere residencial ii,-11.861312,-55.4834668,brasil_aberto,True
+MT,5107909,Sinop,Belvedere Residencial III,belvedere residencial iii,-11.8208266,-55.5017421,brasil_aberto,True
+MT,5107909,Sinop,Camping Club,camping club,-11.901299,-55.5020543,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Boa Esperança,chacara de lazer boa esperanca,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Boa Vista,chacara de lazer boa vista,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Comunidade Vitória,chacara de lazer comunidade vitoria,-11.895329,-55.4718846,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Maria Carolina I,chacara de lazer maria carolina i,-11.8189486,-55.5147131,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Maria Carolina II,chacara de lazer maria carolina ii,-11.8968165,-55.5018965,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer Monaliza,chacara de lazer monaliza,-11.8968165,-55.5018965,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer São Cristovão,chacara de lazer sao cristovao,,,brasil_aberto,True
+MT,5107909,Sinop,Chácara de Lazer São Cristovão II,chacara de lazer sao cristovao ii,,,brasil_aberto,True
+MT,5107909,Sinop,Comunidade Betel,comunidade betel,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Comunidade Campo Verde,comunidade campo verde,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Distrito Industrial,distrito industrial,-11.8798543,-55.4951519,brasil_aberto,True
+MT,5107909,Sinop,Eunice,eunice,-11.8457146,-55.5292125,brasil_aberto,True
+MT,5107909,Sinop,Jardim América,jardim america,-11.8494374,-55.5016253,brasil_aberto,True
+MT,5107909,Sinop,Jardim Atenas,jardim atenas,-11.903723,-55.511033,brasil_aberto,True
+MT,5107909,Sinop,Jardim Aurora,jardim aurora,-11.9152943,-55.4989148,brasil_aberto,True
+MT,5107909,Sinop,Jardim Barcelona,jardim barcelona,-11.8514531,-55.5342225,brasil_aberto,True
+MT,5107909,Sinop,Jardim Barcelona II,jardim barcelona ii,-11.8514531,-55.5342225,brasil_aberto,True
+MT,5107909,Sinop,Jardim Belo Horizonte,jardim belo horizonte,-16.4549457,-54.6561179,brasil_aberto,True
+MT,5107909,Sinop,Jardim Boa Esperança,jardim boa esperanca,-11.8327083,-55.5240337,brasil_aberto,True
+MT,5107909,Sinop,Jardim Botânico,jardim botanico,-11.868203,-55.5064736,brasil_aberto,True
+MT,5107909,Sinop,Jardim Bougainville,jardim bougainville,-11.8839157,-55.5411397,brasil_aberto,True
+MT,5107909,Sinop,Jardim Califórnia,jardim california,-11.8189486,-55.5147131,brasil_aberto,True
+MT,5107909,Sinop,Jardim Caribe,jardim caribe,-11.8080858,-55.506324,brasil_aberto,True
+MT,5107909,Sinop,Jardim Celeste,jardim celeste,-11.8757497,-55.512009,brasil_aberto,True
+MT,5107909,Sinop,Jardim Conquista,jardim conquista,-11.8384649,-55.5233232,brasil_aberto,True
+MT,5107909,Sinop,Jardim Copacabana,jardim copacabana,-11.883766,-55.4898233,brasil_aberto,True
+MT,5107909,Sinop,Jardim Curitiba,jardim curitiba,-11.8840827,-55.5215349,brasil_aberto,True
+MT,5107909,Sinop,Jardim Dubai,jardim dubai,-11.8820163,-55.4914693,brasil_aberto,True
+MT,5107909,Sinop,Jardim Europa,jardim europa,-11.843841,-55.5265403,brasil_aberto,True
+MT,5107909,Sinop,Jardim Gramado,jardim gramado,-11.8234404,-55.4930044,brasil_aberto,True
+MT,5107909,Sinop,Jardim Ibirapuera,jardim ibirapuera,-11.8864393,-55.5122164,brasil_aberto,True
+MT,5107909,Sinop,Jardim Imperial,jardim imperial,-11.8492145,-55.5163333,brasil_aberto,True
+MT,5107909,Sinop,Jardim Iporã,jardim ipora,-11.8619183,-55.490528,brasil_aberto,True
+MT,5107909,Sinop,Jardim Itália,jardim italia,-11.8267154,-55.5135103,brasil_aberto,True
+MT,5107909,Sinop,Jardim Itália II,jardim italia ii,-11.8495605,-55.5289599,brasil_aberto,True
+MT,5107909,Sinop,Jardim Itália III,jardim italia iii,-11.8465484,-55.5343226,brasil_aberto,True
+MT,5107909,Sinop,Jardim Jacarandás,jardim jacarandas,-11.8801499,-55.5038061,brasil_aberto,True
+MT,5107909,Sinop,Jardim Maria Carolina,jardim maria carolina,-11.8232985,-55.500139,brasil_aberto,True
+MT,5107909,Sinop,Jardim Maria Vindilina I,jardim maria vindilina i,-11.8182713,-55.5152348,brasil_aberto,True
+MT,5107909,Sinop,Jardim Maria Vindilina II,jardim maria vindilina ii,-11.8182713,-55.5152348,brasil_aberto,True
+MT,5107909,Sinop,Jardim Maria Vindilina III,jardim maria vindilina iii,-11.8172358,-55.5206269,brasil_aberto,True
+MT,5107909,Sinop,Jardim Maringá,jardim maringa,-11.8643883,-55.5216239,brasil_aberto,True
+MT,5107909,Sinop,Jardim Milão I,jardim milao i,-11.8961434,-55.5327496,brasil_aberto,True
+MT,5107909,Sinop,Jardim Milão II,jardim milao ii,-11.8961434,-55.5327496,brasil_aberto,True
+MT,5107909,Sinop,Jardim Monte Carlo,jardim monte carlo,-11.8840827,-55.5215349,brasil_aberto,True
+MT,5107909,Sinop,Jardim Morumbi,jardim morumbi,-11.8258247,-55.5153044,brasil_aberto,True
+MT,5107909,Sinop,Jardim Novo Estado,jardim novo estado,-11.8284025,-55.5271879,brasil_aberto,True
+MT,5107909,Sinop,Jardim Novo Horizonte,jardim novo horizonte,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Jardim Paraíso,jardim paraiso,-11.8657573,-55.516153,brasil_aberto,True
+MT,5107909,Sinop,Jardim Paulista,jardim paulista,-11.8849454,-55.518052,brasil_aberto,True
+MT,5107909,Sinop,Jardim Pequena Londres,jardim pequena londres,-11.8905727,-55.5138386,brasil_aberto,True
+MT,5107909,Sinop,Jardim Planalto,jardim planalto,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Jardim Portinari,jardim portinari,-11.8526711,-55.5333129,brasil_aberto,True
+MT,5107909,Sinop,Jardim Porto Rico,jardim porto rico,,,brasil_aberto,True
+MT,5107909,Sinop,Jardim Primavera,jardim primavera,-11.8575279,-55.4979348,brasil_aberto,True
+MT,5107909,Sinop,Jardim Rio Preto,jardim rio preto,-14.6295637,-57.4888925,brasil_aberto,True
+MT,5107909,Sinop,Jardim Roma,jardim roma,-11.905179,-55.5051565,brasil_aberto,True
+MT,5107909,Sinop,Jardim Safira,jardim safira,-11.8619183,-55.490528,brasil_aberto,True
+MT,5107909,Sinop,Jardim Santa Mônica,jardim santa monica,-11.8882829,-55.5048208,brasil_aberto,True
+MT,5107909,Sinop,Jardim Santa Rita,jardim santa rita,-11.8292773,-55.5276751,brasil_aberto,True
+MT,5107909,Sinop,Jardim São Paulo,jardim sao paulo,-11.8260954,-55.5206921,brasil_aberto,True
+MT,5107909,Sinop,Jardim Terra Rica,jardim terra rica,-11.8792402,-55.4920433,brasil_aberto,True
+MT,5107909,Sinop,Jardim Umuarama,jardim umuarama,-11.9096374,-55.514019,brasil_aberto,True
+MT,5107909,Sinop,Jardim Umuarama III,jardim umuarama iii,-11.9242352,-55.5065216,brasil_aberto,True
+MT,5107909,Sinop,Jardim Veneza,jardim veneza,-11.8189486,-55.5147131,brasil_aberto,True
+MT,5107909,Sinop,Jardim Viena,jardim viena,-11.9641442,-55.5272811,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Azaléias,jardim das azaleias,,,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Itaúbas,jardim das itaubas,-11.8537743,-55.5102214,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Nações,jardim das nacoes,-11.8548491,-55.5294747,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Oliveiras,jardim das oliveiras,-11.8261325,-55.5081229,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Orquídeas,jardim das orquideas,-11.8245169,-55.4952377,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Palmeiras,jardim das palmeiras,-11.8391311,-55.5114766,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Rosas,jardim das rosas,-11.8377547,-55.5179162,brasil_aberto,True
+MT,5107909,Sinop,Jardim das Violetas,jardim das violetas,-11.8335077,-55.5100202,brasil_aberto,True
+MT,5107909,Sinop,Jardim do Ouro,jardim do ouro,-11.8097382,-55.4898503,brasil_aberto,True
+MT,5107909,Sinop,Jardim dos Cravos,jardim dos cravos,-11.8188969,-55.50622079999999,brasil_aberto,True
+MT,5107909,Sinop,Jardim dos Ipês,jardim dos ipes,-11.831569,-55.5104021,brasil_aberto,True
+MT,5107909,Sinop,Jardim dos Tarumãs,jardim dos tarumas,-11.8249237,-55.5118581,brasil_aberto,True
+MT,5107909,Sinop,LIC Norte,lic norte,-11.8419514,-55.4802106,brasil_aberto,True
+MT,5107909,Sinop,LIC Sul,lic sul,-11.8188082,-55.5062413,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Alto da Glória,loteamento alto da gloria,-11.9815707,-55.5001087,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Ativa Saúde Center,loteamento ativa saude center,-11.8526711,-55.5333129,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Bom Jardim,loteamento bom jardim,-11.895329,-55.4718846,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Bourbon Residencial,loteamento bourbon residencial,-11.8918367,-55.5160916,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Cidade Alta,loteamento cidade alta,-11.863242,-55.4961478,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Empresarial Sul,loteamento empresarial sul,-11.8676853,-55.491805,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Florais da Amazônia,loteamento florais da amazonia,-11.8619183,-55.490528,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Jardim Bella Morada,loteamento jardim bella morada,-11.9062427,-55.5053314,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Jardim Goiabeiras,loteamento jardim goiabeiras,-11.877549,-55.4837952,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Jardim de Monet,loteamento jardim de monet,,,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Menino Jesus I,loteamento menino jesus i,-11.8993078,-55.5010044,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Menino Jesus II,loteamento menino jesus ii,-11.8955465,-55.4974968,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Residencial San Martini,loteamento residencial san martini,-11.8526711,-55.5333129,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Residencial Santa Cecília,loteamento residencial santa cecilia,-11.8345248,-55.5359182,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Umuarama II,loteamento umuarama ii,-11.9058652,-55.503725,brasil_aberto,True
+MT,5107909,Sinop,Loteamento Village,loteamento village,-11.8507209,-55.5265277,brasil_aberto,True
+MT,5107909,Sinop,Parque Tangará,parque tangara,-11.863242,-55.4961478,brasil_aberto,True
+MT,5107909,Sinop,Parque das Araras,parque das araras,-11.8293081,-55.4906495,brasil_aberto,True
+MT,5107909,Sinop,Recanto da Mata,recanto da mata,-11.8454299,-55.5223706,brasil_aberto,True
+MT,5107909,Sinop,Reserva Celeste,reserva celeste,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Residencial Adalgiza,residencial adalgiza,-11.8968165,-55.5018965,brasil_aberto,True
+MT,5107909,Sinop,Residencial Bella Suíça,residencial bella suica,-11.863226,-55.530133,brasil_aberto,True
+MT,5107909,Sinop,Residencial Boa Vista,residencial boa vista,-11.8968165,-55.5018965,brasil_aberto,True
+MT,5107909,Sinop,Residencial Buritis,residencial buritis,-11.9021542,-55.4641735,brasil_aberto,True
+MT,5107909,Sinop,Residencial Canadá,residencial canada,-11.8214347,-55.5007318,brasil_aberto,True
+MT,5107909,Sinop,Residencial Carandá Bosque,residencial caranda bosque,-11.8281226,-55.5127591,brasil_aberto,True
+MT,5107909,Sinop,Residencial Cidade Jardim,residencial cidade jardim,-11.8623829,-55.4791565,brasil_aberto,True
+MT,5107909,Sinop,Residencial Daury Riva,residencial daury riva,-11.8200103,-55.5131343,brasil_aberto,True
+MT,5107909,Sinop,Residencial Delta,residencial delta,-11.8396926,-55.5281206,brasil_aberto,True
+MT,5107909,Sinop,Residencial Deville,residencial deville,-11.8441289,-55.5363844,brasil_aberto,True
+MT,5107909,Sinop,Residencial Florença,residencial florenca,-11.8520335,-55.5324804,brasil_aberto,True
+MT,5107909,Sinop,Residencial Gente Feliz,residencial gente feliz,-11.8305462,-55.481179,brasil_aberto,True
+MT,5107909,Sinop,Residencial Gente Feliz 2,residencial gente feliz 2,-11.8304362,-55.4777356,brasil_aberto,True
+MT,5107909,Sinop,Residencial Ipanema,residencial ipanema,-11.8528689,-55.5440921,brasil_aberto,True
+MT,5107909,Sinop,Residencial Ipiranga,residencial ipiranga,-11.8940543,-55.5061383,brasil_aberto,True
+MT,5107909,Sinop,Residencial Jaraguá,residencial jaragua,-11.9025361,-55.5203447,brasil_aberto,True
+MT,5107909,Sinop,Residencial Jardim Araguaia,residencial jardim araguaia,-11.8542652,-55.4795086,brasil_aberto,True
+MT,5107909,Sinop,Residencial Jequitibás,residencial jequitibas,-11.8335077,-55.5100202,brasil_aberto,True
+MT,5107909,Sinop,Residencial José Adriano Leitão,residencial jose adriano leitao,-11.8921996,-55.5181695,brasil_aberto,True
+MT,5107909,Sinop,Residencial Kaiabi,residencial kaiabi,-11.8479044,-55.4822267,brasil_aberto,True
+MT,5107909,Sinop,Residencial Lisboa,residencial lisboa,-11.901192,-55.51345,brasil_aberto,True
+MT,5107909,Sinop,Residencial Maripá,residencial maripa,-11.8964246,-55.5095784,brasil_aberto,True
+MT,5107909,Sinop,Residencial Moinho dos Ventos,residencial moinho dos ventos,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Residencial Montreal Park,residencial montreal park,-11.8905528,-55.5138035,brasil_aberto,True
+MT,5107909,Sinop,Residencial Moriá,residencial moria,-11.895329,-55.4718846,brasil_aberto,True
+MT,5107909,Sinop,Residencial Nossa Senhora Aparecida,residencial nossa senhora aparecida,-11.8543741,-55.5295845,brasil_aberto,True
+MT,5107909,Sinop,Residencial Nossa Senhora de Fátima,residencial nossa senhora de fatima,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Residencial Novo Jardim,residencial novo jardim,-11.9263826,-55.4928843,brasil_aberto,True
+MT,5107909,Sinop,Residencial Panamby,residencial panamby,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Residencial Paris,residencial paris,-11.8656018,-55.5086174,brasil_aberto,True
+MT,5107909,Sinop,Residencial Pienza,residencial pienza,-11.8910975,-55.5259876,brasil_aberto,True
+MT,5107909,Sinop,Residencial Pérola,residencial perola,-11.9009154,-55.5118918,brasil_aberto,True
+MT,5107909,Sinop,Residencial Recanto Suíço,residencial recanto suico,-11.8526711,-55.5333129,brasil_aberto,True
+MT,5107909,Sinop,Residencial Recanto dos Pássaros,residencial recanto dos passaros,-11.8636051,-55.50890279999999,brasil_aberto,True
+MT,5107909,Sinop,Residencial Sabrina I,residencial sabrina i,-11.8213175,-55.5006753,brasil_aberto,True
+MT,5107909,Sinop,Residencial Sabrina II,residencial sabrina ii,-11.9276775,-55.5010376,brasil_aberto,True
+MT,5107909,Sinop,Residencial Sabrina III,residencial sabrina iii,-11.9152943,-55.4989148,brasil_aberto,True
+MT,5107909,Sinop,Residencial Santa Catarina,residencial santa catarina,-11.9151289,-55.5154552,brasil_aberto,True
+MT,5107909,Sinop,Residencial Sebastião de Matos,residencial sebastiao de matos,-11.9280826,-55.5075128,brasil_aberto,True
+MT,5107909,Sinop,Residencial Sebastião de Matos II,residencial sebastiao de matos ii,-11.8213185,-55.5006731,brasil_aberto,True
+MT,5107909,Sinop,Residencial Shalon,residencial shalon,-11.8588241,-55.4662425,brasil_aberto,True
+MT,5107909,Sinop,Residencial São Francisco,residencial sao francisco,-11.8944459,-55.4763741,brasil_aberto,True
+MT,5107909,Sinop,Residencial Tulipas,residencial tulipas,-11.8881964,-55.52488409999999,brasil_aberto,True
+MT,5107909,Sinop,Residencial Vila Rica,residencial vila rica,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107909,Sinop,Residencial Villa Verde,residencial villa verde,-11.8619183,-55.490528,brasil_aberto,True
+MT,5107909,Sinop,Residencial Vitória Régia,residencial vitoria regia,-11.8399295,-55.5250744,brasil_aberto,True
+MT,5107909,Sinop,Residencial das Acácias,residencial das acacias,-11.8205892,-55.5119347,brasil_aberto,True
+MT,5107909,Sinop,Setor Comercial,setor comercial,-11.8575901,-55.5080757,brasil_aberto,True
+MT,5107909,Sinop,Setor Industrial,setor industrial,-11.8574527,-55.4978033,brasil_aberto,True
+MT,5107909,Sinop,Setor Industrial Norte,setor industrial norte,-11.84046,-55.4935296,brasil_aberto,True
+MT,5107909,Sinop,Setor Industrial Sul,setor industrial sul,-11.8573162,-55.5087256,brasil_aberto,True
+MT,5107909,Sinop,Setor Residencial Norte,setor residencial norte,-11.8502557,-55.5061735,brasil_aberto,True
+MT,5107909,Sinop,Setor Residencial Sul,setor residencial sul,-11.8589649,-55.5026399,brasil_aberto,True
+MT,5107909,Sinop,São Cristovão,sao cristovao,-11.8976014,-55.5077616,brasil_aberto,True
+MT,5107909,Sinop,Vida Nova,vida nova,-11.8479044,-55.4822267,brasil_aberto,True
+MT,5107909,Sinop,Vila Itália,vila italia,-11.895329,-55.4718846,brasil_aberto,True
+MT,5107909,Sinop,Área Rural de Sinop,area rural de sinop,-11.8543783,-55.5102602,brasil_aberto,True
+MT,5107925,Sorriso,Alphaville,alphaville,-12.539384,-55.7390063,brasil_aberto,True
+MT,5107925,Sorriso,Bela Vista,bela vista,-12.5499591,-55.7305778,brasil_aberto,True
+MT,5107925,Sorriso,Bell Valle,bell valle,-12.5509522,-55.7567675,brasil_aberto,True
+MT,5107925,Sorriso,Benjamim Raiser,benjamim raiser,,,brasil_aberto,True
+MT,5107925,Sorriso,Boa Esperança,boa esperanca,-12.5514395,-55.7022002,brasil_aberto,True
+MT,5107925,Sorriso,Boa Esperança II,boa esperanca ii,-12.5407237,-55.7226752,brasil_aberto,True
+MT,5107925,Sorriso,Bom Jesus,bom jesus,-12.5378327,-55.7207337,brasil_aberto,True
+MT,5107925,Sorriso,Brasil Norte,brasil norte,-12.5401349,-55.754883,brasil_aberto,True
+MT,5107925,Sorriso,Caravagio,caravagio,-13.1434622,-55.4471613,brasil_aberto,True
+MT,5107925,Sorriso,Centro-Norte,centro-norte,-12.5397008,-55.727279,brasil_aberto,True
+MT,5107925,Sorriso,Centro-Sul,centro-sul,-12.5561865,-55.721693,brasil_aberto,True
+MT,5107925,Sorriso,Colinas,colinas,-12.5514742,-55.7442801,brasil_aberto,True
+MT,5107925,Sorriso,Condomínio Residencial Cidade Jardim,condominio residencial cidade jardim,-12.6144422,-55.6360173,brasil_aberto,True
+MT,5107925,Sorriso,Condomínio Residencial Costa Brava,condominio residencial costa brava,-12.6144422,-55.6360173,brasil_aberto,True
+MT,5107925,Sorriso,Condomínio Residencial Ilha Bela,condominio residencial ilha bela,-12.532386,-55.7461489,brasil_aberto,True
+MT,5107925,Sorriso,Condomínio Residencial Porto Seguro,condominio residencial porto seguro,-12.5299403,-55.7208032,brasil_aberto,True
+MT,5107925,Sorriso,Copenhagen,copenhagen,-12.5369963,-55.7277535,brasil_aberto,True
+MT,5107925,Sorriso,Estrela do Sul,estrela do sul,-12.5438924,-55.7051609,brasil_aberto,True
+MT,5107925,Sorriso,Europark,europark,-12.5369963,-55.7277535,brasil_aberto,True
+MT,5107925,Sorriso,Flor do Cerrado,flor do cerrado,-12.5391693,-55.7503165,brasil_aberto,True
+MT,5107925,Sorriso,Florais da Mata,florais da mata,-12.5374454,-55.7280514,brasil_aberto,True
+MT,5107925,Sorriso,Fraternidade,fraternidade,-12.5872975,-55.7080423,brasil_aberto,True
+MT,5107925,Sorriso,Green Park,green park,-12.5279669,-55.7324821,brasil_aberto,True
+MT,5107925,Sorriso,Industrial - 1ª Etapa,industrial - 1ª etapa,-12.5616549,-55.7092858,brasil_aberto,True
+MT,5107925,Sorriso,Industrial - 2ª Etapa,industrial - 2ª etapa,-12.543573,-55.7082831,brasil_aberto,True
+MT,5107925,Sorriso,Industrial Leonel Bedin,industrial leonel bedin,-12.6015795,-55.7407917,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Alvorada,jardim alvorada,-12.5515561,-55.7253934,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Amazônia,jardim amazonia,-12.5574972,-55.7347245,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Aurora,jardim aurora,-12.552159,-55.7359521,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Bela Vista,jardim bela vista,-12.5378617,-55.7424482,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Califórnia,jardim california,-12.5655417,-55.726945,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Carolina,jardim carolina,-12.5509522,-55.7567675,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Europa,jardim europa,-12.5519501,-55.732637,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Itália,jardim italia,-12.5514742,-55.7442801,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Liberdade,jardim liberdade,-12.546125,-55.7273732,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Ocidental,jardim ocidental,-12.5436005,-55.7038866,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Paraíso,jardim paraiso,-12.56587,-55.7432072,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Primavera,jardim primavera,-12.5396817,-55.7444116,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Primavera II,jardim primavera ii,-12.5396817,-55.7444116,brasil_aberto,True
+MT,5107925,Sorriso,Jardim Tropical,jardim tropical,-12.5655418,-55.726945,brasil_aberto,True
+MT,5107925,Sorriso,Jardim das Acácias,jardim das acacias,-12.5350278,-55.7225341,brasil_aberto,True
+MT,5107925,Sorriso,Jardim das Américas,jardim das americas,-12.5572234,-55.7260856,brasil_aberto,True
+MT,5107925,Sorriso,Jardim dos Imigrantes,jardim dos imigrantes,-12.5369963,-55.7277535,brasil_aberto,True
+MT,5107925,Sorriso,Jardim dos Ipês,jardim dos ipes,-12.5169715,-55.7146657,brasil_aberto,True
+MT,5107925,Sorriso,Loteamento Monte Líbano I,loteamento monte libano i,-12.5653134,-55.7424717,brasil_aberto,True
+MT,5107925,Sorriso,Loteamento Monte Líbano II,loteamento monte libano ii,-16.449835,-54.64926,brasil_aberto,True
+MT,5107925,Sorriso,Loteamento Valo,loteamento valo,-12.5686452,-55.7244525,brasil_aberto,True
+MT,5107925,Sorriso,Mont Serrat,mont serrat,-12.532386,-55.7461489,brasil_aberto,True
+MT,5107925,Sorriso,Morada do Bosque I,morada do bosque i,-12.5812228,-55.68976,brasil_aberto,True
+MT,5107925,Sorriso,Morada do Bosque II,morada do bosque ii,-12.5656211,-55.709376,brasil_aberto,True
+MT,5107925,Sorriso,Morada do Sol,morada do sol,-12.5541663,-55.7326799,brasil_aberto,True
+MT,5107925,Sorriso,Mário Raiter,mario raiter,-12.5331756,-55.7244552,brasil_aberto,True
+MT,5107925,Sorriso,Nova Aliança,nova alianca,-12.5666877,-55.7100029,brasil_aberto,True
+MT,5107925,Sorriso,Nova Prata,nova prata,-12.5747574,-55.7148608,brasil_aberto,True
+MT,5107925,Sorriso,Novo Horizonte I,novo horizonte i,-12.5656211,-55.709376,brasil_aberto,True
+MT,5107925,Sorriso,Novo Horizonte II,novo horizonte ii,-12.5666877,-55.7100029,brasil_aberto,True
+MT,5107925,Sorriso,Novo Horizonte III,novo horizonte iii,-12.5733614,-55.70462329999999,brasil_aberto,True
+MT,5107925,Sorriso,Novos Campos,novos campos,-12.5576488,-55.70685289999999,brasil_aberto,True
+MT,5107925,Sorriso,Park das Araras,park das araras,-12.5344004,-55.7115395,brasil_aberto,True
+MT,5107925,Sorriso,Parque Universitário,parque universitario,-12.5339438,-55.7487086,brasil_aberto,True
+MT,5107925,Sorriso,Pinheiros,pinheiros,-12.5389037,-55.7424035,brasil_aberto,True
+MT,5107925,Sorriso,Pinheiros III,pinheiros iii,-12.537535,-55.7646906,brasil_aberto,True
+MT,5107925,Sorriso,Portal Kaiabi,portal kaiabi,-12.5655417,-55.726945,brasil_aberto,True
+MT,5107925,Sorriso,Porto Alegre,porto alegre,-12.5460637,-55.7274384,brasil_aberto,True
+MT,5107925,Sorriso,Primavera,primavera,-12.8598457,-55.8322977,brasil_aberto,True
+MT,5107925,Sorriso,Recanto Seguro,recanto seguro,-12.5284121,-55.72072989999999,brasil_aberto,True
+MT,5107925,Sorriso,Recanto dos Pássaros,recanto dos passaros,-12.5369382,-55.7172985,brasil_aberto,True
+MT,5107925,Sorriso,Reserva Jardim,reserva jardim,-12.5369963,-55.7277535,brasil_aberto,True
+MT,5107925,Sorriso,Residencial Topázio,residencial topazio,-12.5514742,-55.7442801,brasil_aberto,True
+MT,5107925,Sorriso,Rota do Sol,rota do sol,-12.5750774,-55.7408644,brasil_aberto,True
+MT,5107925,Sorriso,Santa Clara,santa clara,-12.5765546,-55.7387606,brasil_aberto,True
+MT,5107925,Sorriso,Santa Maria I,santa maria i,-12.539949,-55.7663065,brasil_aberto,True
+MT,5107925,Sorriso,Santa Maria II,santa maria ii,-12.539949,-55.7663065,brasil_aberto,True
+MT,5107925,Sorriso,Santa Mônica,santa monica,-12.5570128,-55.7244773,brasil_aberto,True
+MT,5107925,Sorriso,Serra Dourada,serra dourada,-12.539384,-55.7390063,brasil_aberto,True
+MT,5107925,Sorriso,São Conrado,sao conrado,-12.5249339,-55.72667029999999,brasil_aberto,True
+MT,5107925,Sorriso,São Cristóvão,sao cristovao,-12.5705983,-55.7263085,brasil_aberto,True
+MT,5107925,Sorriso,São Domingos,sao domingos,-12.5564236,-55.7059151,brasil_aberto,True
+MT,5107925,Sorriso,São Francisco,sao francisco,-12.5387106,-55.7034899,brasil_aberto,True
+MT,5107925,Sorriso,São José I,sao jose i,-12.5484333,-55.7490262,brasil_aberto,True
+MT,5107925,Sorriso,São José II,sao jose ii,-12.5477056,-55.750194,brasil_aberto,True
+MT,5107925,Sorriso,São Mateus,sao mateus,-12.5529712,-55.70367470000001,brasil_aberto,True
+MT,5107925,Sorriso,Taiamã,taiama,-12.5355717,-55.7509706,brasil_aberto,True
+MT,5107925,Sorriso,Terra Brasil,terra brasil,-12.5434375,-55.76909,brasil_aberto,True
+MT,5107925,Sorriso,Terra Ville,terra ville,-12.5235388,-55.7209538,brasil_aberto,True
+MT,5107925,Sorriso,União,uniao,-12.5213493,-55.7578607,brasil_aberto,True
+MT,5107925,Sorriso,Verdes Campos,verdes campos,-12.5228398,-55.701393,brasil_aberto,True
+MT,5107925,Sorriso,Vila Bela,vila bela,-12.5660806,-55.7121419,brasil_aberto,True
+MT,5107925,Sorriso,Vila Rica,vila rica,-12.5407237,-55.7226752,brasil_aberto,True
+MT,5107925,Sorriso,Vila Romana,vila romana,-12.539384,-55.7390063,brasil_aberto,True
+MT,5107925,Sorriso,Village I,village i,-12.539384,-55.7390063,brasil_aberto,True
+MT,5107925,Sorriso,Village II,village ii,-12.532386,-55.7461489,brasil_aberto,True
+MT,5107925,Sorriso,Vitória-Régia,vitoria-regia,-12.5355182,-55.7462149,brasil_aberto,True
+MT,5107925,Sorriso,Área Rural de Sorriso,area rural de sorriso,-12.5461191,-55.7273709,brasil_aberto,True
+MT,5107859,São Félix do Araguaia,Centro,centro,-11.6184345,-50.666549,brasil_aberto,True
+MT,5107859,São Félix do Araguaia,Espigão do Leste,espigao do leste,-11.2748641,-52.5318604,brasil_aberto,True
+MT,5107859,São Félix do Araguaia,Pontinópolis,pontinopolis,-11.4967244,-51.3165156,brasil_aberto,True
+MT,5107859,São Félix do Araguaia,Posto da Mata,posto da mata,-11.7034508,-51.6255004,brasil_aberto,True
+MT,5107297,São José do Povo,Centro,centro,-16.4652679,-54.2534886,brasil_aberto,True
+MT,5107305,São José do Rio Claro,Catuai,catuai,,,brasil_aberto,True
+MT,5107305,São José do Rio Claro,Centro,centro,-13.4469642,-56.7211485,brasil_aberto,True
+MT,5107354,São José do Xingu,Centro,centro,-10.8065363,-52.7313862,brasil_aberto,True
+MT,5107354,São José do Xingu,Santo Antônio,santo antonio,-10.5752715,-52.2433381,brasil_aberto,True
+MT,5107107,São José dos Quatro Marcos,Jardim Santa Marta,jardim santa marta,-15.6253803,-58.18010549999999,brasil_aberto,True
+MT,5107107,São José dos Quatro Marcos,Santa Fé,santa fe,-15.6194397,-58.17668920000001,brasil_aberto,True
+MT,5107404,São Pedro da Cipa,Centro,centro,-16.0004185,-54.9211793,brasil_aberto,True
+MT,5107941,Tabaporã,Centro,centro,-11.3152869,-56.8199501,brasil_aberto,True
+MT,5107941,Tabaporã,Mercedes,mercedes,-11.3059668,-56.2644493,brasil_aberto,True
+MT,5107958,Tangará da Serra,Centro,centro,-15.0747352,-57.179732,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Acácia,jardim acacia,-14.626212,-57.4960882,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Cidade Alta,jardim cidade alta,-14.626411,-57.4961268,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Dona Júlia,jardim dona julia,-14.6066781,-57.5049236,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Nazaré,jardim nazare,-14.64398,-57.4830719,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Rio Preto,jardim rio preto,-14.6316719,-57.4917722,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Santa Lúcia,jardim santa lucia,-14.6196222,-57.5037073,brasil_aberto,True
+MT,5107958,Tangará da Serra,Jardim Tarumã,jardim taruma,-14.6011132,-57.4956031,brasil_aberto,True
+MT,5107958,Tangará da Serra,Parque Leblon,parque leblon,,,brasil_aberto,True
+MT,5107958,Tangará da Serra,Parque Mansões,parque mansoes,-14.6110219,-57.4969253,brasil_aberto,True
+MT,5107958,Tangará da Serra,Parque Tangará,parque tangara,-14.6255689,-57.5088698,brasil_aberto,True
+MT,5107958,Tangará da Serra,Progresso,progresso,-14.657357,-57.360461,brasil_aberto,True
+MT,5107958,Tangará da Serra,São Joaquim,sao joaquim,-14.6450921,-57.3132667,brasil_aberto,True
+MT,5108006,Tapurah,Centro,centro,-12.7411181,-56.51543299999999,brasil_aberto,True
+MT,5108006,Tapurah,Ipiranga,ipiranga,,,brasil_aberto,True
+MT,5108006,Tapurah,Novo Eldorado,novo eldorado,-12.534753,-56.1588712,brasil_aberto,True
+MT,5108055,Terra Nova do Norte,Centro,centro,-10.5155711,-55.2308321,brasil_aberto,True
+MT,5108055,Terra Nova do Norte,Décima Agrovila,decima agrovila,-10.4219871,-54.852214,brasil_aberto,True
+MT,5108055,Terra Nova do Norte,Miraguai do Norte,miraguai do norte,-10.3625636,-55.0448734,brasil_aberto,True
+MT,5108055,Terra Nova do Norte,Nona Agrovila,nona agrovila,-10.4081281,-54.9565546,brasil_aberto,True
+MT,5108105,Tesouro,Batovi,batovi,-15.8632384,-53.5133982,brasil_aberto,True
+MT,5108105,Tesouro,Cassununga,cassununga,-16.0670506,-53.682346,brasil_aberto,True
+MT,5108105,Tesouro,Centro,centro,-16.0774723,-53.5553411,brasil_aberto,True
+MT,5108204,Torixoréu,Centro,centro,-14.720423,-56.3350504,brasil_aberto,True
+MT,5108303,União do Sul,Centro,centro,-11.5330366,-54.3667631,brasil_aberto,True
+MT,5108352,Vale de São Domingos,Centro,centro,-15.2970054,-59.06637680000001,brasil_aberto,True
+MT,5108501,Vera,Centro,centro,-12.2860654,-55.2987698,brasil_aberto,True
+MT,5105507,Vila Bela da Santíssima Trindade,Aguapeí,aguapei,-15.3558443,-60.1184797,brasil_aberto,True
+MT,5105507,Vila Bela da Santíssima Trindade,Centro,centro,-15.0035858,-59.95335609999999,brasil_aberto,True
+MT,5105507,Vila Bela da Santíssima Trindade,Santa Clara do Monte Cristo,santa clara do monte cristo,-16.0997596,-59.96275360000001,brasil_aberto,True
+MT,5108600,Vila Rica,Santaninha,santaninha,-9.9022549,-51.1491447,brasil_aberto,True
+MT,5108600,Vila Rica,Setor Norte,setor norte,-10.0153989,-51.1216329,brasil_aberto,True
+MT,5108402,Várzea Grande,23 de Setembro,23 de setembro,-15.6349687,-56.126293,brasil_aberto,True
+MT,5108402,Várzea Grande,Bom Sucesso,bom sucesso,-15.7216579,-56.1314392,brasil_aberto,True
+MT,5108402,Várzea Grande,Canelas,canelas,-15.6808449,-56.1588503,brasil_aberto,True
+MT,5108402,Várzea Grande,Capão Grande,capao grande,-15.713839,-56.168445,brasil_aberto,True
+MT,5108402,Várzea Grande,Capão do Pequi,capao do pequi,-15.7288501,-56.1449171,brasil_aberto,True
+MT,5108402,Várzea Grande,Centro-Norte,centro-norte,-15.6469943,-56.1243319,brasil_aberto,True
+MT,5108402,Várzea Grande,Centro-Sul,centro-sul,-15.651396,-56.1372967,brasil_aberto,True
+MT,5108402,Várzea Grande,Comunidade Parque Boa Vista,comunidade parque boa vista,-15.6396128,-56.1755821,brasil_aberto,True
+MT,5108402,Várzea Grande,Costa Verde,costa verde,-15.6428225,-56.153671,brasil_aberto,True
+MT,5108402,Várzea Grande,Cristo Rei,cristo rei,-15.6418445,-56.0980994,brasil_aberto,True
+MT,5108402,Várzea Grande,Glória,gloria,-15.6423817,-56.1495847,brasil_aberto,True
+MT,5108402,Várzea Grande,Guarita,guarita,-15.63587,-56.13888,brasil_aberto,True
+MT,5108402,Várzea Grande,Ikaray,ikaray,-15.6776937,-56.1436996,brasil_aberto,True
+MT,5108402,Várzea Grande,Jardim dos Estados,jardim dos estados,-15.6254276,-56.1747129,brasil_aberto,True
+MT,5108402,Várzea Grande,Mapim,mapim,-15.6277356,-56.1590886,brasil_aberto,True
+MT,5108402,Várzea Grande,Marajoara,marajoara,-15.6513822,-56.1581827,brasil_aberto,True
+MT,5108402,Várzea Grande,Novo Mundo,novo mundo,-15.6562664,-56.1998076,brasil_aberto,True
+MT,5108402,Várzea Grande,Pai André,pai andre,-15.7493457,-56.1196861,brasil_aberto,True
+MT,5108402,Várzea Grande,Paiaguás,paiaguas,-15.6566907,-56.12349,brasil_aberto,True
+MT,5108402,Várzea Grande,Panamericano,panamericano,,,brasil_aberto,True
+MT,5108402,Várzea Grande,Parque do Lago,parque do lago,-15.6747343,-56.0913388,brasil_aberto,True
+MT,5108402,Várzea Grande,Passagem da Conceição,passagem da conceicao,-15.5738075,-56.14707500000001,brasil_aberto,True
+MT,5108402,Várzea Grande,Petrópolis,petropolis,-15.6021494,-56.1783069,brasil_aberto,True
+MT,5108402,Várzea Grande,Ponte Nova,ponte nova,-15.6345884,-56.1079726,brasil_aberto,True
+MT,5108402,Várzea Grande,Primavera,primavera,-15.6952445,-56.1421265,brasil_aberto,True
+MT,5108402,Várzea Grande,Santa Isabel,santa isabel,-15.6549561,-56.1738225,brasil_aberto,True
+MT,5108402,Várzea Grande,São Matheus,sao matheus,-15.6709495,-56.18539,brasil_aberto,True
+MT,5108402,Várzea Grande,São Simão,sao simao,-15.6965206,-56.162106,brasil_aberto,True
+MT,5108402,Várzea Grande,Vitória Régia,vitoria regia,-15.6888405,-56.1240235,brasil_aberto,True
+MT,5108402,Várzea Grande,Área Rural de Várzea Grande,area rural de varzea grande,-15.6505125,-56.1354693,brasil_aberto,True
+MT,5100201,Água Boa,Jaragua,jaragua,-14.1751873,-52.70241120000001,brasil_aberto,True
+MT,5100201,Água Boa,Serrinha,serrinha,-13.8720842,-52.7563708,brasil_aberto,True

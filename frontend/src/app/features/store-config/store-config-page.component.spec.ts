@@ -4,9 +4,12 @@ import { provideRouter, Router } from '@angular/router';
 import { StoreConfigPageComponent } from './store-config-page.component';
 import { StoreService } from '../../core/services/store.service';
 import { AddressService } from '../../core/services/address.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { of, throwError } from 'rxjs';
 import { CuisineTypeDto } from '../../shared/models/store.model';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Mocks
 const mockStoreService = {
@@ -18,6 +21,10 @@ const mockStoreService = {
 
 const mockAddressService = {
   lookupCep: jest.fn(),
+};
+
+const mockAuthService = {
+  getSellerProfile: jest.fn(),
 };
 
 const mockToastService = {
@@ -41,6 +48,7 @@ describe('StoreConfigPageComponent', () => {
         provideRouter([]),
         { provide: StoreService, useValue: mockStoreService },
         { provide: AddressService, useValue: mockAddressService },
+        { provide: AuthService, useValue: mockAuthService },
         { provide: ToastService, useValue: mockToastService },
       ]
     }).compileComponents();
@@ -55,6 +63,7 @@ describe('StoreConfigPageComponent', () => {
     ]));
     mockStoreService.getMyStore.mockReturnValue(throwError(() => new Error('Not found'))); // Simulate new user
     mockStoreService.getDeliveryTimeOptions.mockReturnValue(of([]));
+    mockAuthService.getSellerProfile.mockReturnValue(of({}));
     mockStoreService.createCuisineType.mockImplementation((name: string) =>
       of({ id: 'new-id', name } as CuisineTypeDto),
     );
@@ -64,6 +73,21 @@ describe('StoreConfigPageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('does not render dashboard-only configuration navigation in the wizard', () => {
+    expect(fixture.nativeElement.querySelector('app-config-subnav')).toBeNull();
+  });
+
+  it('keeps vertical scrolling and footer spacing scoped to wizard surfaces', () => {
+    const globalStyles = readFileSync(resolve(__dirname, '../../../theme/global.scss'), 'utf8');
+    const componentStyles = readFileSync(resolve(__dirname, 'store-config-page.component.scss'), 'utf8');
+
+    expect(globalStyles).toContain('.app-shell:has(.urbeat-onboarding)');
+    expect(globalStyles).toContain('ion-app:has(.urbeat-onboarding)');
+    expect(globalStyles).toContain('overflow-y: auto;');
+    expect(componentStyles).toContain('padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));');
+    expect(globalStyles).not.toMatch(/\.seller-main\s*\{[^}]*overflow-y\s*:/s);
   });
 
   describe('addCategory', () => {

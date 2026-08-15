@@ -1,0 +1,389 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+RN,2400109,Acari,Centro,centro,-6.435110900000001,-36.63965779999999,brasil_aberto,True
+RN,2400307,Afonso Bezerra,Centro,centro,-5.5001551,-36.5066455,brasil_aberto,True
+RN,2400505,Alexandria,Centro,centro,-6.4136701,-38.0174329,brasil_aberto,True
+RN,2400604,Almino Afonso,Centro,centro,-6.1527246,-37.765986,brasil_aberto,True
+RN,2400703,Alto do Rodrigues,Centro,centro,-5.2878438,-36.7612978,brasil_aberto,True
+RN,2400802,Angicos,Centro,centro,-5.6641621,-36.6000213,brasil_aberto,True
+RN,2400901,Antônio Martins,Centro,centro,-6.2169795,-37.8908661,brasil_aberto,True
+RN,2401008,Apodi,Centro,centro,-5.6658614,-37.79923,brasil_aberto,True
+RN,2401008,Apodi,Povoado Soledade,povoado soledade,,,brasil_aberto,True
+RN,2401107,Areia Branca,Centro,centro,-4.9570747,-37.1336908,brasil_aberto,True
+RN,2401107,Areia Branca,Povoado Cristovão,povoado cristovao,,,brasil_aberto,True
+RN,2401107,Areia Branca,Povoado Ponta do Mel,povoado ponta do mel,,,brasil_aberto,True
+RN,2401107,Areia Branca,Povoado Redonda,povoado redonda,,,brasil_aberto,True
+RN,2401206,Arez,Centro,centro,-6.1969749,-35.1655188,brasil_aberto,True
+RN,2401206,Arez,Patané,patane,-6.1756186,-35.1292123,brasil_aberto,True
+RN,2400208,Assú,Centro,centro,-5.5744011,-36.9068836,brasil_aberto,True
+RN,2400208,Assú,Sítio Linda Flor,sitio linda flor,,,brasil_aberto,True
+RN,2400208,Assú,Sítio Nova Esperança,sitio nova esperanca,,,brasil_aberto,True
+RN,2400208,Assú,Sítio Panom,sitio panom,,,brasil_aberto,True
+RN,2401503,Barcelona,Centro,centro,-5.9506853,-35.926106,brasil_aberto,True
+RN,2401404,Baía Formosa,Centro,centro,-6.3689877,-35.0071861,brasil_aberto,True
+RN,2401602,Bento Fernandes,Belo Horizonte,belo horizonte,-5.6685311,-35.8934136,brasil_aberto,True
+RN,2401602,Bento Fernandes,Centro,centro,-5.6927271,-35.8207872,brasil_aberto,True
+RN,2401602,Bento Fernandes,Sítio Arisco,sitio arisco,,,brasil_aberto,True
+RN,2401602,Bento Fernandes,Sítio Quinturure,sitio quinturure,,,brasil_aberto,True
+RN,2401651,Bodó,Centro,centro,-5.9881331,-36.4131185,brasil_aberto,True
+RN,2401800,Brejinho,Esperança,esperanca,,,brasil_aberto,True
+RN,2401800,Brejinho,Remédio,remedio,,,brasil_aberto,True
+RN,2402006,Caicó,Centro,centro,-6.459264000000001,-37.0959074,brasil_aberto,True
+RN,2401859,Caiçara do Norte,Centro,centro,-5.063311,-36.052417,brasil_aberto,True
+RN,2401909,Caiçara do Rio do Vento,Centro,centro,-5.7587635,-35.9992283,brasil_aberto,True
+RN,2402105,Campo Redondo,Centro,centro,-6.2412323,-36.18289040000001,brasil_aberto,True
+RN,2402105,Campo Redondo,Malhada Vermelha,malhada vermelha,,,brasil_aberto,True
+RN,2402105,Campo Redondo,Serra do Doutor,serra do doutor,-6.2038994,-36.193749,brasil_aberto,True
+RN,2402204,Canguaretama,Areia Branca,areia branca,,,brasil_aberto,True
+RN,2402204,Canguaretama,Barra de Cunhaú,barra de cunhau,-6.4110117,-35.1819399,brasil_aberto,True
+RN,2402204,Canguaretama,Centro,centro,-6.4121311,-35.1787617,brasil_aberto,True
+RN,2402204,Canguaretama,Piquirí,piquiri,-6.3137079,-35.0426424,brasil_aberto,True
+RN,2402303,Caraúbas,Miranda,miranda,-5.7962739,-37.5602026,brasil_aberto,True
+RN,2402303,Caraúbas,São Geraldo,sao geraldo,-5.677230199999999,-37.6599483,brasil_aberto,True
+RN,2402501,Carnaubais,Centro,centro,-5.3390876,-36.8357133,brasil_aberto,True
+RN,2402501,Carnaubais,Povoado Entroncamento,povoado entroncamento,,,brasil_aberto,True
+RN,2402402,Carnaúba dos Dantas,Centro,centro,-6.556058699999999,-36.5938871,brasil_aberto,True
+RN,2402402,Carnaúba dos Dantas,Ermo,ermo,-6.5433869,-36.5092974,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Capela,capela,-5.6506047,-35.4260885,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Coqueiros,coqueiros,-5.6403981,-35.3088863,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Gravatá,gravata,-5.6403981,-35.3088863,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Massangana,massangana,-5.6464411,-35.3518101,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Massaranduba,massaranduba,-5.6463886,-35.3519336,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Matas,matas,-5.5836395,-35.4834123,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Muriú,muriu,-5.5643808,-35.2423547,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Ponta do Mato,ponta do mato,-5.684315199999999,-35.4586178,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Primeira Lagoa,primeira lagoa,-5.6403981,-35.3088863,brasil_aberto,True
+RN,2402600,Ceará-Mirim,Santa Agueda,santa agueda,-5.6331563,-35.4244906,brasil_aberto,True
+RN,2402709,Cerro Corá,Centro,centro,-6.0443476,-36.3463451,brasil_aberto,True
+RN,2402709,Cerro Corá,Ipueira,ipueira,-6.0229182,-36.3691954,brasil_aberto,True
+RN,2402709,Cerro Corá,Santa Clara,santa clara,,,brasil_aberto,True
+RN,2402709,Cerro Corá,Sítio Baixa do Meio,sitio baixa do meio,,,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Cachoeira,cachoeira,,,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Centro,centro,-6.382337799999999,-36.2161745,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Gurjau,gurjau,-6.3975812,-36.141855,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Santa Quitéria,santa quiteria,,,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Sítio Figueredo,sitio figueredo,,,brasil_aberto,True
+RN,2402808,Coronel Ezequiel,Sítio Riacho Fechado,sitio riacho fechado,,,brasil_aberto,True
+RN,2402907,Coronel João Pessoa,Centro,centro,-6.2610021,-38.44320829999999,brasil_aberto,True
+RN,2403004,Cruzeta,Centro,centro,-6.411638,-36.78895869999999,brasil_aberto,True
+RN,2403103,Currais Novos,Centro,centro,-6.263319800000001,-36.5160429,brasil_aberto,True
+RN,2403202,Doutor Severiano,Centro,centro,-6.0955344,-38.37400960000001,brasil_aberto,True
+RN,2403301,Encanto,Centro,centro,-6.111585199999999,-38.3064419,brasil_aberto,True
+RN,2403400,Equador,Dinarte Mariz,dinarte mariz,-6.9460839,-36.71469280000001,brasil_aberto,True
+RN,2403509,Espírito Santo,Centro,centro,-6.3324129,-35.3096158,brasil_aberto,True
+RN,2403509,Espírito Santo,Retiro,retiro,,,brasil_aberto,True
+RN,2403509,Espírito Santo,Sítio Barrocas,sitio barrocas,,,brasil_aberto,True
+RN,2403509,Espírito Santo,Sítio Taboca,sitio taboca,,,brasil_aberto,True
+RN,2403608,Extremoz,Central Parque I,central parque i,-5.7044447,-35.2938041,brasil_aberto,True
+RN,2403608,Extremoz,Conjunto das Dunas - Pitangui,conjunto das dunas - pitangui,,,brasil_aberto,True
+RN,2403608,Extremoz,Povoado de Araça,povoado de araca,,,brasil_aberto,True
+RN,2403608,Extremoz,Praia de Santa Rita,praia de santa rita,-5.6866817,-35.2112646,brasil_aberto,True
+RN,2403608,Extremoz,Área Litorânea,area litoranea,,,brasil_aberto,True
+RN,2403707,Felipe Guerra,Cidade Alta,cidade alta,-5.5972271,-37.6973359,brasil_aberto,True
+RN,2403756,Fernando Pedroza,Centro,centro,-5.697388,-36.5316874,brasil_aberto,True
+RN,2403806,Florânia,Centro,centro,-6.1271895,-36.8186157,brasil_aberto,True
+RN,2403905,Francisco Dantas,Centro,centro,-6.0896462,-38.1225096,brasil_aberto,True
+RN,2404002,Frutuoso Gomes,Centro,centro,-6.1610816,-37.8431776,brasil_aberto,True
+RN,2404101,Galinhos,Centro,centro,-5.0912948,-36.2757781,brasil_aberto,True
+RN,2404200,Goianinha,Centro,centro,-6.2657396,-35.2108325,brasil_aberto,True
+RN,2404200,Goianinha,Lagoa do Mato,lagoa do mato,,,brasil_aberto,True
+RN,2404200,Goianinha,Miranda,miranda,,,brasil_aberto,True
+RN,2404200,Goianinha,Sumaré,sumare,-6.2663927,-35.2091685,brasil_aberto,True
+RN,2404200,Goianinha,Umari,umari,,,brasil_aberto,True
+RN,2404309,Governador Dix-Sept Rosado,Centro,centro,-5.4583288,-37.5219695,brasil_aberto,True
+RN,2404408,Grossos,Centro,centro,-4.9888685,-37.1489255,brasil_aberto,True
+RN,2404507,Guamaré,Baixa do Meio,baixa do meio,-5.254133,-36.3543607,brasil_aberto,True
+RN,2404507,Guamaré,Centro,centro,-5.1111889,-36.3280722,brasil_aberto,True
+RN,2404606,Ielmo Marinho,Centro,centro,-5.823874099999999,-35.5506305,brasil_aberto,True
+RN,2404705,Ipanguaçu,Centro,centro,-5.5112771,-36.8602182,brasil_aberto,True
+RN,2404705,Ipanguaçu,Povoado Pataxó,povoado pataxo,,,brasil_aberto,True
+RN,2404804,Ipueira,Centro,centro,-6.815075200000001,-37.1996487,brasil_aberto,True
+RN,2404853,Itajá,Centro,centro,,,brasil_aberto,True
+RN,2404903,Itaú,Centro,centro,-5.840300099999999,-37.9928772,brasil_aberto,True
+RN,2405207,Janduís,Centro,centro,-6.014376,-37.4078452,brasil_aberto,True
+RN,2405306,Januário Cicco,Centro,centro,,,brasil_aberto,True
+RN,2405306,Januário Cicco,Córrego de São Mateus,corrego de sao mateus,-6.0847744,-35.556604,brasil_aberto,True
+RN,2405405,Japi,Centro,centro,-6.4663952,-35.9463758,brasil_aberto,True
+RN,2405504,Jardim de Angicos,Centro,centro,-5.6527254,-35.96984399999999,brasil_aberto,True
+RN,2405603,Jardim de Piranhas,Centro,centro,-6.380045700000001,-37.3505304,brasil_aberto,True
+RN,2405702,Jardim do Seridó,Centro,centro,-6.5855729,-36.7714046,brasil_aberto,True
+RN,2405009,Jaçanã,Centro,centro,-6.426015599999999,-36.2038919,brasil_aberto,True
+RN,2406007,José da Penha,Centro,centro,-6.321341200000001,-38.2858915,brasil_aberto,True
+RN,2406007,José da Penha,Major Felipe,major felipe,-6.375929600000001,-38.2997372,brasil_aberto,True
+RN,2405801,João Câmara,Centro,centro,-5.539661,-35.8166656,brasil_aberto,True
+RN,2405900,João Dias,Centro,centro,-6.278083199999999,-37.7968743,brasil_aberto,True
+RN,2405900,João Dias,Rosário,rosario,-6.2667563,-37.7822176,brasil_aberto,True
+RN,2406106,Jucurutu,Boi Selado,boi selado,-6.0230555,-36.9081727,brasil_aberto,True
+RN,2406106,Jucurutu,Centro,centro,-6.0349454,-37.0183655,brasil_aberto,True
+RN,2406106,Jucurutu,Povoado Barra de Santana,povoado barra de santana,,,brasil_aberto,True
+RN,2406155,Jundiá,Santa Fé,santa fe,-6.2413611,-35.3467023,brasil_aberto,True
+RN,2406502,Lagoa Nova,Buraco de Lagoa,buraco de lagoa,,,brasil_aberto,True
+RN,2406502,Lagoa Nova,Centro,centro,-5.8218932,-35.2084841,brasil_aberto,True
+RN,2406502,Lagoa Nova,Povoado Barro Branco,povoado barro branco,,,brasil_aberto,True
+RN,2406502,Lagoa Nova,Sitio Manoel Domingo,sitio manoel domingo,,,brasil_aberto,True
+RN,2406502,Lagoa Nova,Sítio de Dentro,sitio de dentro,,,brasil_aberto,True
+RN,2406601,Lagoa Salgada,Cajueiro,cajueiro,,,brasil_aberto,True
+RN,2406601,Lagoa Salgada,Centro,centro,-6.1221005,-35.4753625,brasil_aberto,True
+RN,2406205,Lagoa d'Anta,Centro,centro,-5.1974371,-45.6826812,brasil_aberto,True
+RN,2406304,Lagoa de Pedras,Centro,centro,-6.149327,-35.437012,brasil_aberto,True
+RN,2406403,Lagoa de Velhos,Bom Descanso,bom descanso,,,brasil_aberto,True
+RN,2406403,Lagoa de Velhos,Centro,centro,-6.0033895,-35.8707441,brasil_aberto,True
+RN,2406403,Lagoa de Velhos,Monte Alegre,monte alegre,,,brasil_aberto,True
+RN,2406700,Lajes,Centro,centro,-5.698028,-36.2434485,brasil_aberto,True
+RN,2406700,Lajes,Firmamento,firmamento,-5.517374999999999,-36.195083,brasil_aberto,True
+RN,2406809,Lajes Pintadas,Centro,centro,-6.1497709,-36.1168309,brasil_aberto,True
+RN,2406908,Lucrécia,Centro,centro,-6.116246299999999,-37.8126936,brasil_aberto,True
+RN,2407005,Luís Gomes,Centro,centro,-6.4135189,-38.3877424,brasil_aberto,True
+RN,2407005,Luís Gomes,São Bernardo,sao bernardo,-6.3718156,-38.42188489999999,brasil_aberto,True
+RN,2407203,Macau,Barreiras,barreiras,,,brasil_aberto,True
+RN,2407203,Macau,Centro,centro,-5.084694,-36.4612381,brasil_aberto,True
+RN,2407203,Macau,Diogo Lopes,diogo lopes,-5.0825966,-36.463045,brasil_aberto,True
+RN,2407104,Macaíba,Cajazeiras,cajazeiras,-5.9464126,-35.5126933,brasil_aberto,True
+RN,2407104,Macaíba,Campinas,campinas,-5.8741532,-35.3510552,brasil_aberto,True
+RN,2407104,Macaíba,Campo da Santa Cruz,campo da santa cruz,-5.8461027,-35.3549825,brasil_aberto,True
+RN,2407104,Macaíba,Cana Brava,cana brava,-5.9700256,-35.4081888,brasil_aberto,True
+RN,2407104,Macaíba,Centro,centro,-5.8578835,-35.3517488,brasil_aberto,True
+RN,2407104,Macaíba,Fabrício Pedroza,fabricio pedroza,-5.8518614,-35.35083,brasil_aberto,True
+RN,2407104,Macaíba,Mangabeira,mangabeira,-5.8477679,-35.3016297,brasil_aberto,True
+RN,2407104,Macaíba,Tavares de Lira,tavares de lira,-5.8623837,-35.3518608,brasil_aberto,True
+RN,2407104,Macaíba,Traíras,trairas,-5.9995509,-35.4948129,brasil_aberto,True
+RN,2407104,Macaíba,Zona de Expansão Urbana Sul,zona de expansao urbana sul,,,brasil_aberto,True
+RN,2407104,Macaíba,Área Rural de Macaíba,area rural de macaiba,-5.8567493,-35.3521828,brasil_aberto,True
+RN,2407252,Major Sales,Centro,centro,-6.4076935,-38.3236156,brasil_aberto,True
+RN,2407302,Marcelino Vieira,Centro,centro,-6.2954543,-38.1574608,brasil_aberto,True
+RN,2407401,Martins,Centro,centro,-6.0891673,-37.9119312,brasil_aberto,True
+RN,2407401,Martins,Povoado Lagoa Nova,povoado lagoa nova,-6.0929879,-36.4748571,brasil_aberto,True
+RN,2407401,Martins,Salva Vida,salva vida,-6.0572735,-37.8627002,brasil_aberto,True
+RN,2407500,Maxaranguape,Centro,centro,-5.5186131,-35.2575147,brasil_aberto,True
+RN,2407500,Maxaranguape,Povoado Dom Marcolino,povoado dom marcolino,-5.4622382,-35.3959879,brasil_aberto,True
+RN,2407500,Maxaranguape,Povoado Maracajau,povoado maracajau,-5.4101309,-35.3114825,brasil_aberto,True
+RN,2407609,Messias Targino,Centro,centro,-6.0788385,-37.5136334,brasil_aberto,True
+RN,2407708,Montanhas,Centro,centro,-6.486285899999999,-35.2879464,brasil_aberto,True
+RN,2407807,Monte Alegre,Centro,centro,-6.0680723,-35.33453739999999,brasil_aberto,True
+RN,2407807,Monte Alegre,Fazenda Albertina,fazenda albertina,,,brasil_aberto,True
+RN,2407906,Monte das Gameleiras,Centro,centro,-6.4399552,-35.7865886,brasil_aberto,True
+RN,2408003,Mossoró,Abolição,abolicao,-5.1698987,-37.3560808,brasil_aberto,True
+RN,2408003,Mossoró,Aeroporto,aeroporto,-5.1962271,-37.3702811,brasil_aberto,True
+RN,2408003,Mossoró,Alto da Conceição,alto da conceicao,-5.1978384,-37.3485455,brasil_aberto,True
+RN,2408003,Mossoró,Alto de São Manoel,alto de sao manoel,-5.2139173,-37.3344534,brasil_aberto,True
+RN,2408003,Mossoró,Alto do Sumaré,alto do sumare,-5.2275101,-37.3256366,brasil_aberto,True
+RN,2408003,Mossoró,Barrocas,barrocas,-5.167362,-37.3298608,brasil_aberto,True
+RN,2408003,Mossoró,Bela Vista,bela vista,-5.1726342,-37.3642607,brasil_aberto,True
+RN,2408003,Mossoró,Belo Horizonte,belo horizonte,-5.2131813,-37.3589073,brasil_aberto,True
+RN,2408003,Mossoró,Boa Vista,boa vista,-5.1952725,-37.3554203,brasil_aberto,True
+RN,2408003,Mossoró,Bom Jardim,bom jardim,-5.1826713,-37.3390777,brasil_aberto,True
+RN,2408003,Mossoró,Bom Jesus,bom jesus,-5.2283902,-37.3527495,brasil_aberto,True
+RN,2408003,Mossoró,Centro,centro,-5.1929359,-37.344442,brasil_aberto,True
+RN,2408003,Mossoró,Dix-Sept Rosado,dix-sept rosado,-5.1929714,-37.3819183,brasil_aberto,True
+RN,2408003,Mossoró,Dom Jaime Câmara,dom jaime camara,-5.2341003,-37.3133606,brasil_aberto,True
+RN,2408003,Mossoró,Doze Anos,doze anos,-5.1920106,-37.3496611,brasil_aberto,True
+RN,2408003,Mossoró,Ilha de Santa Luzia,ilha de santa luzia,-5.2010925,-37.3375126,brasil_aberto,True
+RN,2408003,Mossoró,Itapetinga,itapetinga,-5.2111696,-37.3595628,brasil_aberto,True
+RN,2408003,Mossoró,Lagoa do Mato,lagoa do mato,-5.2002679,-37.353954,brasil_aberto,True
+RN,2408003,Mossoró,Monsenhor Américo,monsenhor americo,-5.1610223,-37.3559979,brasil_aberto,True
+RN,2408003,Mossoró,Nova Betânia,nova betania,-5.1846611,-37.355292,brasil_aberto,True
+RN,2408003,Mossoró,Paredões,paredoes,-5.1850377,-37.3352746,brasil_aberto,True
+RN,2408003,Mossoró,Pintos,pintos,-5.1942398,-37.3192511,brasil_aberto,True
+RN,2408003,Mossoró,Planalto Treze de Maio,planalto treze de maio,-5.2256463,-37.3293225,brasil_aberto,True
+RN,2408003,Mossoró,Presidente Costa e Silva,presidente costa e silva,-5.2133177,-37.3175888,brasil_aberto,True
+RN,2408003,Mossoró,Redenção,redencao,-5.1409513,-37.3465007,brasil_aberto,True
+RN,2408003,Mossoró,Rincão,rincao,-5.2013284,-37.303093,brasil_aberto,True
+RN,2408003,Mossoró,Santa Delmira,santa delmira,-5.1385966,-37.3541108,brasil_aberto,True
+RN,2408003,Mossoró,Santa Júlia,santa julia,-5.2233957,-37.3072428,brasil_aberto,True
+RN,2408003,Mossoró,Santo Antônio,santo antonio,-5.1797102,-37.3439404,brasil_aberto,True
+RN,2408003,Mossoró,Àrea Rural de Mossoró,area rural de mossoro,-5.1934422,-37.3399451,brasil_aberto,True
+RN,2408102,Natal,Alecrim,alecrim,-5.7996045,-35.2220717,brasil_aberto,True
+RN,2408102,Natal,Areia Preta,areia preta,-5.7843728,-35.1929214,brasil_aberto,True
+RN,2408102,Natal,Barro Vermelho,barro vermelho,-5.80150604,-35.20983887,brasil_aberto,True
+RN,2408102,Natal,Bom Pastor,bom pastor,-5.807496899999999,-35.2429333,brasil_aberto,True
+RN,2408102,Natal,Candelária,candelaria,-5.8440931,-35.2182336,brasil_aberto,True
+RN,2408102,Natal,Capim Macio,capim macio,-5.8644563,-35.1956201,brasil_aberto,True
+RN,2408102,Natal,Cidade Alta,cidade alta,-5.7904882,-35.2075547,brasil_aberto,True
+RN,2408102,Natal,Cidade Nova,cidade nova,-5.8442471,-35.245067,brasil_aberto,True
+RN,2408102,Natal,Cidade da Esperança,cidade da esperanca,-5.8282208,-35.2343728,brasil_aberto,True
+RN,2408102,Natal,Dix-Sept Rosado,dix-sept rosado,-5.8129041,-35.228107,brasil_aberto,True
+RN,2408102,Natal,Felipe Camarão,felipe camarao,-5.8182282,-35.2491637,brasil_aberto,True
+RN,2408102,Natal,Guarapes,guarapes,-5.838481,-35.2658948,brasil_aberto,True
+RN,2408102,Natal,Igapó,igapo,-5.7653529,-35.2748605,brasil_aberto,True
+RN,2408102,Natal,Lagoa Azul,lagoa azul,-5.729184,-35.2724889,brasil_aberto,True
+RN,2408102,Natal,Lagoa Nova,lagoa nova,-5.8243514,-35.218121,brasil_aberto,True
+RN,2408102,Natal,Lagoa Seca,lagoa seca,-5.806222,-35.21306,brasil_aberto,True
+RN,2408102,Natal,Mãe Luiza,mae luiza,-5.79380894,-35.18769073,brasil_aberto,True
+RN,2408102,Natal,Neópolis,neopolis,-5.8566099,-35.2116558,brasil_aberto,True
+RN,2408102,Natal,Nordeste,nordeste,-5.806136,-35.2319368,brasil_aberto,True
+RN,2408102,Natal,Nossa Senhora da Apresentação,nossa senhora da apresentacao,-5.7468508,-35.2625001,brasil_aberto,True
+RN,2408102,Natal,Nossa Senhora de Nazaré,nossa senhora de nazare,-5.8189709,-35.2276777,brasil_aberto,True
+RN,2408102,Natal,Nova Descoberta,nova descoberta,-5.8232887,-35.199522,brasil_aberto,True
+RN,2408102,Natal,Pajuçara,pajucara,-5.741496,-35.233462,brasil_aberto,True
+RN,2408102,Natal,Parque das Dunas,parque das dunas,-5.8291668,-35.1829154,brasil_aberto,True
+RN,2408102,Natal,Petrópolis,petropolis,-5.7859078,-35.1942929,brasil_aberto,True
+RN,2408102,Natal,Pitimbu,pitimbu,-5.8605006,-35.232643,brasil_aberto,True
+RN,2408102,Natal,Planalto,planalto,-5.8619436,-35.2523903,brasil_aberto,True
+RN,2408102,Natal,Ponta Negra,ponta negra,-5.8913664,-35.1732333,brasil_aberto,True
+RN,2408102,Natal,Potengi,potengi,-5.7651923,-35.2623053,brasil_aberto,True
+RN,2408102,Natal,Praia do Meio,praia do meio,-5.7798662,-35.197789,brasil_aberto,True
+RN,2408102,Natal,Quintas,quintas,-5.801573599999999,-35.2266272,brasil_aberto,True
+RN,2408102,Natal,Redinha,redinha,-5.7444853,-35.2052754,brasil_aberto,True
+RN,2408102,Natal,Ribeira,ribeira,-5.7779097,-35.2062943,brasil_aberto,True
+RN,2408102,Natal,Rocas,rocas,-5.7734403,-35.19825,brasil_aberto,True
+RN,2408102,Natal,Salinas,salinas,-5.7774221,-35.249007,brasil_aberto,True
+RN,2408102,Natal,Santos Reis,santos reis,-5.7646187,-35.2020229,brasil_aberto,True
+RN,2408102,Natal,Tirol,tirol,-5.7887603,-35.2006742,brasil_aberto,True
+RN,2408102,Natal,Área Rural de Natal,area rural de natal,-5.7875315,-35.2036206,brasil_aberto,True
+RN,2408300,Nova Cruz,Centro,centro,-6.4774392,-35.4369457,brasil_aberto,True
+RN,2408300,Nova Cruz,Lagoa Limpa,lagoa limpa,-6.4330126,-35.4465295,brasil_aberto,True
+RN,2408201,Nísia Floresta,Alcaçuz,alcacuz,-6.0040347,-35.139861,brasil_aberto,True
+RN,2408201,Nísia Floresta,Barra de Tabatinga,barra de tabatinga,-6.0543727,-35.1059888,brasil_aberto,True
+RN,2408201,Nísia Floresta,Búzios,buzios,-6.0202178,-35.115916,brasil_aberto,True
+RN,2408201,Nísia Floresta,Campo de Santana,campo de santana,-6.1109629,-35.1267348,brasil_aberto,True
+RN,2408201,Nísia Floresta,Centro,centro,-6.090379899999999,-35.2101514,brasil_aberto,True
+RN,2408201,Nísia Floresta,Povoado de Pium,povoado de pium,,,brasil_aberto,True
+RN,2408409,Olho d'Água do Borges,Centro,centro,,,brasil_aberto,True
+RN,2408607,Paraná,Centro,centro,-6.4847978,-38.3125557,brasil_aberto,True
+RN,2408607,Paraná,Povoado Caiçara,povoado caicara,-6.463548100000001,-38.2605562,brasil_aberto,True
+RN,2408805,Parazinho,Centro,centro,-5.2261098,-35.840398,brasil_aberto,True
+RN,2408805,Parazinho,Pereiros,pereiros,-5.2793334,-35.9881745,brasil_aberto,True
+RN,2408706,Paraú,Centro,centro,-5.773134,-37.1009454,brasil_aberto,True
+RN,2408904,Parelhas,Cachoeira,cachoeira,-6.6277139,-36.6801524,brasil_aberto,True
+RN,2408904,Parelhas,Centro,centro,-6.6880172,-36.6548336,brasil_aberto,True
+RN,2408904,Parelhas,Juazeiro,juazeiro,,,brasil_aberto,True
+RN,2408904,Parelhas,Povoado Barra,povoado barra,-6.8032536,-36.5830302,brasil_aberto,True
+RN,2408904,Parelhas,Santo Antônio,santo antonio,-6.6053164,-36.5752086,brasil_aberto,True
+RN,2403251,Parnamirim,Bela Parnamirim,bela parnamirim,-5.9093443,-35.2891372,brasil_aberto,True
+RN,2403251,Parnamirim,Boa Esperança,boa esperanca,-5.9341428,-35.2624888,brasil_aberto,True
+RN,2403251,Parnamirim,Cajupiranga,cajupiranga,-5.941491,-35.2524034,brasil_aberto,True
+RN,2403251,Parnamirim,Cohabinal,cohabinal,-5.925024,-35.2651739,brasil_aberto,True
+RN,2403251,Parnamirim,Cotovelo (Distrito Litoral),cotovelo (distrito litoral),-5.9438393,-35.1722486,brasil_aberto,True
+RN,2403251,Parnamirim,Emaús,emaus,-5.8911395,-35.2362383,brasil_aberto,True
+RN,2403251,Parnamirim,Encanto Verde,encanto verde,-5.8650838,-35.259056,brasil_aberto,True
+RN,2403251,Parnamirim,Jardim Planalto,jardim planalto,-5.9284184,-35.2587612,brasil_aberto,True
+RN,2403251,Parnamirim,Liberdade,liberdade,-5.9257505,-35.2439151,brasil_aberto,True
+RN,2403251,Parnamirim,Monte Castelo,monte castelo,-5.9068107,-35.2700403,brasil_aberto,True
+RN,2403251,Parnamirim,Nova Esperança,nova esperanca,-5.943058,-35.2784962,brasil_aberto,True
+RN,2403251,Parnamirim,Nova Parnamirim,nova parnamirim,-5.8875453,-35.2021782,brasil_aberto,True
+RN,2403251,Parnamirim,Parque das Nações,parque das nacoes,-5.9251385,-35.2031956,brasil_aberto,True
+RN,2403251,Parnamirim,Parque das Árvores,parque das arvores,-5.9161336,-35.2104146,brasil_aberto,True
+RN,2403251,Parnamirim,Parque de Exposições,parque de exposicoes,-5.9020944,-35.2653332,brasil_aberto,True
+RN,2403251,Parnamirim,Parque do Jiqui,parque do jiqui,-5.9113256,-35.1951301,brasil_aberto,True
+RN,2403251,Parnamirim,Passagem de Areia,passagem de areia,-5.9195487,-35.2841868,brasil_aberto,True
+RN,2403251,Parnamirim,Pirangi do Norte (Distrito Litoral),pirangi do norte (distrito litoral),-5.9732898,-35.1281762,brasil_aberto,True
+RN,2403251,Parnamirim,Pium (Distrito Litoral),pium (distrito litoral),-5.9517492,-35.1592622,brasil_aberto,True
+RN,2403251,Parnamirim,Rosa dos Ventos,rosa dos ventos,-5.9166225,-35.2756865,brasil_aberto,True
+RN,2403251,Parnamirim,Santa Tereza,santa tereza,-5.9282202,-35.282446,brasil_aberto,True
+RN,2403251,Parnamirim,Santos Reis,santos reis,-5.9151071,-35.2695956,brasil_aberto,True
+RN,2403251,Parnamirim,Vale do Sol,vale do sol,-5.9315269,-35.2808983,brasil_aberto,True
+RN,2403251,Parnamirim,Vida Nova,vida nova,-5.902779,-35.264502,brasil_aberto,True
+RN,2403251,Parnamirim,Área Rural de Parnamirim,area rural de parnamirim,-5.924287,-35.26639,brasil_aberto,True
+RN,2409100,Passa e Fica,Centro,centro,-6.4350638,-35.6438657,brasil_aberto,True
+RN,2409308,Patu,Centro,centro,-6.1023382,-37.6372943,brasil_aberto,True
+RN,2409407,Pau dos Ferros,Centro,centro,-6.1123153,-38.2051447,brasil_aberto,True
+RN,2409407,Pau dos Ferros,Jatobá,jatoba,,,brasil_aberto,True
+RN,2409506,Pedra Grande,Centro,centro,-5.1505553,-35.878262,brasil_aberto,True
+RN,2409704,Pedro Avelino,Centro,centro,-5.5210299,-36.38627049999999,brasil_aberto,True
+RN,2409803,Pedro Velho,Carnaúba,carnauba,,,brasil_aberto,True
+RN,2409803,Pedro Velho,Centro,centro,-6.4392982,-35.2209406,brasil_aberto,True
+RN,2409803,Pedro Velho,Cuité,cuite,,,brasil_aberto,True
+RN,2409902,Pendências,Centro,centro,-5.2564628,-36.7197627,brasil_aberto,True
+RN,2409902,Pendências,Mulungu,mulungu,-5.349857,-36.5418753,brasil_aberto,True
+RN,2410207,Portalegre,Centro,centro,-6.025155600000001,-37.9871133,brasil_aberto,True
+RN,2410256,Porto do Mangue,Centro,centro,-5.0680963,-36.7805317,brasil_aberto,True
+RN,2410108,Poço Branco,Centro,centro,-5.6195955,-35.6586969,brasil_aberto,True
+RN,2410405,Pureza,Bebida Velha,bebida velha,-5.3320738,-35.5320452,brasil_aberto,True
+RN,2410405,Pureza,Centro,centro,-5.467336599999999,-35.555871,brasil_aberto,True
+RN,2410504,Rafael Fernandes,Centro,centro,-6.1929058,-38.2245533,brasil_aberto,True
+RN,2410603,Rafael Godeiro,Centro,centro,-6.075317399999999,-37.7173143,brasil_aberto,True
+RN,2410702,Riacho da Cruz,Centro,centro,-5.9372016,-37.9493216,brasil_aberto,True
+RN,2410900,Riachuelo,Centro,centro,-5.817605299999999,-35.8237274,brasil_aberto,True
+RN,2410900,Riachuelo,São José do Potengi,sao jose do potengi,,,brasil_aberto,True
+RN,2408953,Rio do Fogo,Centro,centro,-5.2755132,-35.3828827,brasil_aberto,True
+RN,2408953,Rio do Fogo,Povoado Punau,povoado punau,,,brasil_aberto,True
+RN,2411007,Rodolfo Fernandes,Centro,centro,-5.785447599999999,-38.0572771,brasil_aberto,True
+RN,2409332,Santa Maria,Centro,centro,-29.6867476,-53.8190318,brasil_aberto,True
+RN,2411403,Santana do Matos,Barão de Serra Branca,barao de serra branca,-5.937037399999999,-36.7921604,brasil_aberto,True
+RN,2411403,Santana do Matos,Centro,centro,-5.957008999999999,-36.6550355,brasil_aberto,True
+RN,2411403,Santana do Matos,Santa Teresa,santa teresa,-5.930217799999999,-36.6416647,brasil_aberto,True
+RN,2411403,Santana do Matos,São José da Passagem,sao jose da passagem,-5.8735425,-36.4365676,brasil_aberto,True
+RN,2411429,Santana do Seridó,Centro,centro,-6.7726734,-36.7358428,brasil_aberto,True
+RN,2411429,Santana do Seridó,São Bento I,sao bento i,,,brasil_aberto,True
+RN,2411429,Santana do Seridó,Tuiuiu,tuiuiu,,,brasil_aberto,True
+RN,2411502,Santo Antônio,Centro,centro,-6.3123394,-35.4798402,brasil_aberto,True
+RN,2413102,Senador Elói de Souza,Centro,centro,-6.0350983,-35.6921064,brasil_aberto,True
+RN,2413102,Senador Elói de Souza,Sítio Lagoa dos Cavalos,sitio lagoa dos cavalos,,,brasil_aberto,True
+RN,2413201,Senador Georgino Avelino,Centro,centro,-6.1602671,-35.1227462,brasil_aberto,True
+RN,2410306,Serra Caiada,Centro,centro,-6.1062446,-35.7114112,brasil_aberto,True
+RN,2413409,Serra Negra do Norte,Centro,centro,-6.6660562,-37.3966679,brasil_aberto,True
+RN,2413300,Serra de São Bento,Centro,centro,-6.4174982,-35.7048258,brasil_aberto,True
+RN,2413359,Serra do Mel,Zona Rural,zona rural,-5.1712405,-37.0356804,brasil_aberto,True
+RN,2413508,Serrinha,Serrinha,serrinha,-6.2569911,-35.5657308,brasil_aberto,True
+RN,2413557,Serrinha dos Pintos,Centro,centro,-6.1110178,-37.9561278,brasil_aberto,True
+RN,2413607,Severiano Melo,Centro,centro,-5.783585,-37.9581971,brasil_aberto,True
+RN,2413607,Severiano Melo,Sítio Santo Antônio,sitio santo antonio,,,brasil_aberto,True
+RN,2411601,São Bento do Norte,Centro,centro,-5.0668678,-36.0415568,brasil_aberto,True
+RN,2411700,São Bento do Trairí,Centro,centro,,,brasil_aberto,True
+RN,2411809,São Fernando,Centro,centro,-6.3797168,-37.1863667,brasil_aberto,True
+RN,2411908,São Francisco do Oeste,Centro,centro,-5.999297599999999,-38.170792,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Amarante,amarante,-5.7790166,-35.2755031,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Golandim,golandim,-5.7739106,-35.2856457,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Guajiru,guajiru,-5.7578437,-35.307885,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Guanduba,guanduba,-5.787842899999999,-35.3562297,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Igreja Nova,igreja nova,-5.8168982,-35.4474306,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Jardim Lola,jardim lola,-5.7761588,-35.2618488,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Jardins,jardins,-5.750921099999999,-35.3040949,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Maçaranduba,macaranduba,-5.7530181,-35.3145557,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Novo Amarante,novo amarante,-5.749191,-35.2779485,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Oiteiros,oiteiros,-5.792576899999999,-35.3288239,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Olho D'agua,olho d'agua,-5.7663586,-35.3059348,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Poço de Pedra,poco de pedra,-5.803505299999999,-35.4401804,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Regomoleiro,regomoleiro,-5.7893444,-35.2955413,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Santa Terezinha,santa terezinha,-5.7799414,-35.3186693,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Santo Antônio do Potengi,santo antonio do potengi,-5.7789601,-35.316517,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Serrinha,serrinha,-5.7466937,-35.4441756,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Uruaçu,uruacu,-5.8204926,-35.3154809,brasil_aberto,True
+RN,2412005,São Gonçalo do Amarante,Área Rural de São Gonçalo do Amarante,area rural de sao goncalo do amarante,-5.792576899999999,-35.3288239,brasil_aberto,True
+RN,2412203,São José de Mipibu,Arenã,arena,-6.0742528,-35.2369601,brasil_aberto,True
+RN,2412203,São José de Mipibu,Centro,centro,-6.0728247,-35.2391974,brasil_aberto,True
+RN,2412203,São José de Mipibu,Laranjeira dos Cosmes,laranjeira dos cosmes,-6.1538991,-35.3188499,brasil_aberto,True
+RN,2412203,São José de Mipibu,Manibu,manibu,-6.1538991,-35.3188499,brasil_aberto,True
+RN,2412203,São José de Mipibu,Pau Brasil,pau brasil,-6.0742528,-35.2369601,brasil_aberto,True
+RN,2412203,São José de Mipibu,Povoado Curral Novo,povoado curral novo,,,brasil_aberto,True
+RN,2412203,São José de Mipibu,Povoado Laranjeira do Abdias,povoado laranjeira do abdias,-6.1538991,-35.3188499,brasil_aberto,True
+RN,2412203,São José de Mipibu,Sítio Arenã,sitio arena,-6.1538991,-35.3188499,brasil_aberto,True
+RN,2412203,São José de Mipibu,Sítio Japecanga,sitio japecanga,-6.0742528,-35.2369601,brasil_aberto,True
+RN,2412302,São José do Campestre,Centro,centro,-6.3184577,-35.7125402,brasil_aberto,True
+RN,2412302,São José do Campestre,Distrito Ipiranga,distrito ipiranga,,,brasil_aberto,True
+RN,2412302,São José do Campestre,Ipiranga,ipiranga,-6.3184577,-35.7125402,brasil_aberto,True
+RN,2412401,São José do Seridó,Centro,centro,-6.4503187,-36.8778718,brasil_aberto,True
+RN,2412104,São João do Sabugi,Centro,centro,-6.717829999999999,-37.202845,brasil_aberto,True
+RN,2412500,São Miguel,Centro,centro,-6.2128714,-38.4984968,brasil_aberto,True
+RN,2412559,São Miguel do Gostoso,Centro,centro,-5.123314,-35.6347191,brasil_aberto,True
+RN,2412609,São Paulo do Potengi,Cabaço,cabaco,-5.9132938,-35.7041073,brasil_aberto,True
+RN,2412609,São Paulo do Potengi,Centro,centro,-5.8953511,-35.7644444,brasil_aberto,True
+RN,2412708,São Pedro,Centro,centro,-5.8976633,-35.6340019,brasil_aberto,True
+RN,2412807,São Rafael,Centro,centro,-5.8095931,-36.8830159,brasil_aberto,True
+RN,2413706,Sítio Novo,Serra da Tapuia,serra da tapuia,-6.0900342,-35.95946380000001,brasil_aberto,True
+RN,2413805,Taboleiro Grande,Centro,centro,-5.9314573,-38.044626,brasil_aberto,True
+RN,2413904,Taipu,Centro,centro,-5.6196343,-35.5971406,brasil_aberto,True
+RN,2413904,Taipu,Gameleira,gameleira,-5.622215799999999,-35.5969707,brasil_aberto,True
+RN,2413904,Taipu,Serra Pelada,serra pelada,,,brasil_aberto,True
+RN,2414001,Tangará,Centro,centro,-6.2002164,-35.8021026,brasil_aberto,True
+RN,2414001,Tangará,Trairi,trairi,-6.24944,-35.834632,brasil_aberto,True
+RN,2414100,Tenente Ananias,Centro,centro,-6.466676199999999,-38.1784669,brasil_aberto,True
+RN,2414100,Tenente Ananias,Mata de São Braz,mata de sao braz,-6.401605699999999,-38.1442693,brasil_aberto,True
+RN,2414100,Tenente Ananias,Projeto Crescer,projeto crescer,,,brasil_aberto,True
+RN,2414159,Tenente Laurentino Cruz,Centro,centro,-6.1468301,-36.7198248,brasil_aberto,True
+RN,2411056,Tibau,Centro,centro,-4.8404409,-37.2554683,brasil_aberto,True
+RN,2414209,Tibau do Sul,Centro,centro,-6.1877334,-35.0918569,brasil_aberto,True
+RN,2414209,Tibau do Sul,Piau,piau,-6.2345901,-35.1343194,brasil_aberto,True
+RN,2414209,Tibau do Sul,Pipa,pipa,-6.2289957,-35.0491825,brasil_aberto,True
+RN,2414308,Timbaúba dos Batistas,Centro,centro,-6.4650584,-37.2733758,brasil_aberto,True
+RN,2414407,Touros,Centro,centro,-5.2004533,-35.4577775,brasil_aberto,True
+RN,2414407,Touros,Povoado Boa Cica,povoado boa cica,,,brasil_aberto,True
+RN,2414407,Touros,Povoado Santa Luzia,povoado santa luzia,,,brasil_aberto,True
+RN,2414407,Touros,Povoado de Cajueiro,povoado de cajueiro,,,brasil_aberto,True
+RN,2414456,Triunfo Potiguar,Centro,centro,-5.8654639,-37.1881127,brasil_aberto,True
+RN,2414506,Umarizal,Centro,centro,-5.9892691,-37.8133868,brasil_aberto,True
+RN,2414605,Upanema,Centro,centro,-5.6407606,-37.2579171,brasil_aberto,True
+RN,2414753,Venha-Ver,Centro,centro,-6.3220923,-38.4888629,brasil_aberto,True
+RN,2414803,Vera Cruz,Cobé de Cima,cobe de cima,,,brasil_aberto,True
+RN,2415008,Vila Flor,Centro,centro,-6.3153801,-35.075898,brasil_aberto,True
+RN,2414704,Várzea,Lagedo Grande,lagedo grande,,,brasil_aberto,True
+RN,2400406,Água Nova,Centro,centro,-6.2074639,-38.2932584,brasil_aberto,True

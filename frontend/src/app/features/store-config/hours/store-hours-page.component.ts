@@ -13,7 +13,6 @@ import { ToastService } from '../../../core/services/toast.service';
 import { UpsertStoreBusinessHoursRequest, BusinessHour } from '../../../shared/models/store.model';
 import { WizardFooterComponent } from '../../../shared/components/wizard-footer/wizard-footer.component';
 import { WizardHeaderComponent } from '../../../shared/components/wizard-header/wizard-header.component';
-import { ConfigSubnavComponent } from '../../seller-shell/config-subnav.component';
 import { createStepperSteps } from '../../../shared/config/wizard-steps.config';
 
 addIcons({
@@ -83,10 +82,11 @@ const PRESETS: Preset[] = [
     CommonModule, FormsModule,
     IonContent, IonIcon, IonModal, IonHeader, IonToolbar,
     IonTitle, IonButtons, IonButton,
-    WizardHeaderComponent, WizardFooterComponent, ConfigSubnavComponent,
+    WizardHeaderComponent, WizardFooterComponent,
   ],
   templateUrl: './store-hours-page.component.html',
   styleUrl: './store-hours-page.component.scss',
+  host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
 })
 export class StoreHoursPageComponent implements OnInit {
   private readonly storeService = inject(StoreService);

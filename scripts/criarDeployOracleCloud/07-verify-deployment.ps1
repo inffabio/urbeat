@@ -11,7 +11,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
@@ -146,7 +149,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 $tempVerify = [System.IO.Path]::GetTempFileName() + ".sh"
 $verifyScript | Out-File -FilePath $tempVerify -Encoding UTF8 -NoNewline
 
-scp -i $resolvedKeyPath -o StrictHostKeyChecking=no $tempVerify "${SSHUser}@${ServerIP}:/tmp/verify.sh"
-ssh -i $resolvedKeyPath -o StrictHostKeyChecking=no "${SSHUser}@${ServerIP}" "chmod +x /tmp/verify.sh && /tmp/verify.sh && rm /tmp/verify.sh"
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempVerify "${SSHUser}@${ServerIP}:/tmp/verify.sh"
+ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/verify.sh && /tmp/verify.sh && rm /tmp/verify.sh"
 
 Remove-Item $tempVerify -Force

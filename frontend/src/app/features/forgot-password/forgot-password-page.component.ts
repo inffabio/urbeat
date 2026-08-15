@@ -15,7 +15,7 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
       <div class="login-shell">
         <div class="login-form-side">
           <div class="form-wrapper">
-            <img src="/images/logo_v2.png" alt="Urbeat" class="login-logo" width="150" />
+            <img src="/images/logo_urbeat.png" alt="Urbeat" class="login-logo" width="150" />
             <h1 class="login-title">Recuperar senha</h1>
             <p class="login-subtitle">Informe o e-mail cadastrado na sua conta. Enviaremos um link para você criar uma nova senha.</p>
 

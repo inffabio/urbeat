@@ -14,7 +14,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
@@ -42,14 +45,9 @@ $nginxFrontend = @'
 # ═══════════════════════════════════════════════════════════
 
 server {
-    # SSL Configuration (Managed by Certbot)
-    listen [::]:443 ssl ipv6only=on; # managed by Certbot
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/www.urbeat.com.br/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/www.urbeat.com.br/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
+    # Initial configuration is HTTP-only. Certbot adds HTTPS after this passes nginx -t.
+    listen 80;
+    listen [::]:80;
     server_name www.urbeat.com.br urbeat.com.br;
 
     root /opt/urbeat/frontend-dist;
@@ -119,21 +117,6 @@ server {
     error_log /var/log/nginx/urbeat-frontend-error.log;
 }
 
-# HTTP to HTTPS Redirect (Managed by Certbot)
-server {
-    if ($host = urbeat.com.br) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-    if ($host = www.urbeat.com.br) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-    listen 80;
-    listen [::]:80;
-    server_name www.urbeat.com.br urbeat.com.br;
-    return 404; # managed by Certbot
-}
 '@
 
 # ─────────────────────────────────────────
@@ -226,11 +209,11 @@ $nginxMonitoring = @'
 # ═══════════════════════════════════════════════════════════
 
 # Grafana - accessible only via SSH tunnel
-# ssh -L 3000:localhost:3000 ubuntu@136.248.115.135
+# ssh -p 2208 -L 3000:localhost:3000 dexter@136.248.115.135
 # Then access: http://localhost:3000
 
 # Prometheus - accessible only via SSH tunnel
-# ssh -L 9090:localhost:9090 ubuntu@136.248.115.135
+# ssh -p 2208 -L 9090:localhost:9090 dexter@136.248.115.135
 # Then access: http://localhost:9090
 '@
 
@@ -253,8 +236,9 @@ function Upload-NginxConfig {
 
     Write-Host "  📄 Uploading: $FileName" -ForegroundColor White -NoNewline
 
-    $sshOpts = @("-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-    scp @sshOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+    $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
 
     if ($LASTEXITCODE -eq 0) {
         ssh @sshOpts "${SSHUser}@${ServerIP}" `
@@ -288,13 +272,17 @@ sudo ln -sf /etc/nginx/sites-available/urbeat-api.conf /etc/nginx/sites-enabled/
 # Remove default site if exists
 sudo rm -f /etc/nginx/sites-enabled/default
 
+# Remove legacy single-site config (happee/urbeat era) that conflicts on 443
+sudo rm -f /etc/nginx/sites-enabled/urbeat.conf
+sudo rm -f /etc/nginx/sites-available/urbeat.conf
+
 echo "🔍 Testing NGINX configuration..."
 sudo nginx -t
 
 if [ $? -eq 0 ]; then
     echo "✅ NGINX configuration is valid"
     echo "🔄 Reloading NGINX..."
-    sudo systemctl reload nginx
+    sudo nginx -s reload || sudo systemctl reload nginx
     echo "✅ NGINX reloaded successfully"
     sudo systemctl status nginx --no-pager
 else
@@ -315,8 +303,9 @@ $tempNginxScript = [System.IO.Path]::GetTempFileName() + ".sh"
 $cleanScript = $nginxSetupScript -replace "`r`n", "`n"
 [System.IO.File]::WriteAllText($tempNginxScript, $cleanScript, [System.Text.UTF8Encoding]::new($false))
 
-$sshOpts = @("-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-scp @sshOpts $tempNginxScript "${SSHUser}@${ServerIP}:/tmp/nginx-setup.sh" | Out-Null
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempNginxScript "${SSHUser}@${ServerIP}:/tmp/nginx-setup.sh" | Out-Null
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/nginx-setup.sh && /tmp/nginx-setup.sh && rm /tmp/nginx-setup.sh"
 
 Remove-Item $tempNginxScript -Force

@@ -64,7 +64,7 @@ public sealed class SystemParameterSeeder
             new() { Key = "Url.CustomerHub", Value = "/hubs/customer-notifications", Type = SystemParameterType.String, Group = "Url", Description = "Path do hub SignalR do cliente" },
 
             // ── Email ─────────────────────────────────────────────────
-            new() { Key = "Email.FromAddress", Value = "no-reply@urbeat.local", Type = SystemParameterType.String, Group = "Email", Description = "Remetente padrão de e-mails" },
+            new() { Key = "Email.FromAddress", Value = "nao-responda@urbeat.com.br", Type = SystemParameterType.String, Group = "Email", Description = "Remetente padrão de e-mails" },
             new() { Key = "Email.FromName", Value = "Urbeat", Type = SystemParameterType.String, Group = "Email", Description = "Nome do remetente" },
             new() { Key = "Email.SmtpPort", Value = "587", Type = SystemParameterType.Int32, Group = "Email", Description = "Porta SMTP" },
             new() { Key = "Email.UseStartTls", Value = "true", Type = SystemParameterType.Boolean, Group = "Email", Description = "Habilitar STARTTLS" },

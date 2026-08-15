@@ -11,13 +11,16 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519",
 
     [Parameter(Mandatory=$false)]
-    [string]$VaultName = "urbeat-vault",
+    [string]$VaultName = "urbeat",
 
     [Parameter(Mandatory=$false)]
     [string]$AppDir = "/opt/urbeat"
@@ -41,7 +44,7 @@ if (-not $resolvedKeyPath) {
 
 Write-Host "`n🔐 Fetching secrets from Oracle Vault using secrets-map.json..." -ForegroundColor Yellow
 
-$secretsMapPath = Join-Path (Split-Path -Parent $PSCommandPath) "configs\secrets-map.json"
+$secretsMapPath = Join-Path $PSScriptRoot "configs\secrets-map.json"
 if (-not (Test-Path $secretsMapPath)) {
     Write-Host "❌ secrets-map.json not found at: $secretsMapPath" -ForegroundColor Red
     exit 1
@@ -98,6 +101,7 @@ APP_ENV=production
 APP_VERSION=1.0.0
 
 # ─── URLs ───────────────────────────────────────────────────
+FRONTEND_BASE_URL=$($envVars['URBEAT_FRONTEND_URL'])
 FRONTEND_URL=$($envVars['URBEAT_FRONTEND_URL'])
 API_URL=$($envVars['URBEAT_API_URL'])
 CORS_ORIGINS=$($envVars['URBEAT_CORS_ORIGINS'])
@@ -142,6 +146,9 @@ ASPNETCORE_URLS=http://+:5000
 DOTNET_RUNNING_IN_CONTAINER=true
 
 # ─── Cloudinary (Image Uploads) ──────────────────────────────
+CLOUDINARY_CLOUD_NAME=$($envVars['CLOUDINARY_CLOUD_NAME'])
+CLOUDINARY_API_KEY=$($envVars['CLOUDINARY_API_KEY'])
+CLOUDINARY_API_SECRET=$($envVars['CLOUDINARY_API_SECRET'])
 Cloudinary__CloudName=$($envVars['CLOUDINARY_CLOUD_NAME'])
 Cloudinary__ApiKey=$($envVars['CLOUDINARY_API_KEY'])
 Cloudinary__ApiSecret=$($envVars['CLOUDINARY_API_SECRET'])
@@ -167,13 +174,13 @@ set -e
 echo "📁 Creating Urbeat directory structure..."
 
 # Create main app directories
-sudo mkdir -p $AppDir/{backend,frontend,configs,data,logs,ssl}
+sudo mkdir -p $AppDir/{backend,frontend,configs,data,logs,ssl,downloads}
 sudo mkdir -p $AppDir/data/{postgres,grafana,prometheus}
 sudo mkdir -p $AppDir/configs/{nginx,prometheus,grafana/provisioning/{datasources,dashboards}}
 sudo mkdir -p $AppDir/logs/{backend,frontend,nginx}
 
 # Set permissions
-sudo chown -R ubuntu:ubuntu $AppDir
+sudo chown -R __SSH_USER__:__SSH_USER__ $AppDir
 sudo chmod -R 755 $AppDir
 sudo chmod -R 777 $AppDir/data
 sudo chmod -R 777 $AppDir/logs
@@ -187,10 +194,12 @@ echo "✅ Directories created successfully!"
 $tempDirScript = [System.IO.Path]::GetTempFileName() + ".sh"
 # Convert CRLF to LF and write as UTF-8 without BOM for Linux bash compatibility
 $cleanDirScript = $setupDirsScript -replace "`r`n", "`n"
+$cleanDirScript = $cleanDirScript.Replace("__SSH_USER__", $SSHUser)
 [System.IO.File]::WriteAllText($tempDirScript, $cleanDirScript, [System.Text.UTF8Encoding]::new($false))
 
-$sshOpts = @("-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-scp @sshOpts $tempDirScript "${SSHUser}@${ServerIP}:/tmp/setup-dirs.sh" | Out-Null
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempDirScript "${SSHUser}@${ServerIP}:/tmp/setup-dirs.sh" | Out-Null
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/setup-dirs.sh && /tmp/setup-dirs.sh && rm /tmp/setup-dirs.sh"
 
 Remove-Item $tempDirScript -Force
@@ -206,8 +215,8 @@ $tempEnvFile = [System.IO.Path]::GetTempFileName()
 $cleanEnv = $mainEnv -replace "`r`n", "`n"
 [System.IO.File]::WriteAllText($tempEnvFile, $cleanEnv, [System.Text.UTF8Encoding]::new($false))
 
-scp $sshOpts $tempEnvFile "${SSHUser}@${ServerIP}:/tmp/.env.urbeat" | Out-Null
-ssh $sshOpts "${SSHUser}@${ServerIP}" "cp /tmp/.env.urbeat $AppDir/.env && chmod 600 $AppDir/.env && rm /tmp/.env.urbeat"
+scp @scpOpts $tempEnvFile "${SSHUser}@${ServerIP}:/tmp/.env.urbeat" | Out-Null
+ssh @sshOpts "${SSHUser}@${ServerIP}" "cp /tmp/.env.urbeat $AppDir/.env && chmod 600 $AppDir/.env && rm /tmp/.env.urbeat"
 
 Remove-Item $tempEnvFile -Force
 

@@ -16,7 +16,6 @@ import { ToastService } from '../../../core/services/toast.service';
 import { StoreDeliveryArea, DeliveryNeighborhood, UpdateDeliveryConfigRequest } from '../../../shared/models/store.model';
 import { WizardFooterComponent } from '../../../shared/components/wizard-footer/wizard-footer.component';
 import { WizardHeaderComponent } from '../../../shared/components/wizard-header/wizard-header.component';
-import { ConfigSubnavComponent } from '../../seller-shell/config-subnav.component';
 import { createStepperSteps } from '../../../shared/config/wizard-steps.config';
 
 addIcons({
@@ -39,10 +38,11 @@ addIcons({
     CommonModule, ReactiveFormsModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonIcon, IonModal,
-    IonSearchbar, IonList, IonItem, IonLabel, IonNote, WizardHeaderComponent, WizardFooterComponent, ConfigSubnavComponent
+    IonSearchbar, IonList, IonItem, IonLabel, IonNote, WizardHeaderComponent, WizardFooterComponent
   ],
   templateUrl: './store-delivery-page.component.html',
-  styleUrl: './store-delivery-page.component.scss'
+  styleUrl: './store-delivery-page.component.scss',
+  host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
 })
 export class StoreDeliveryPageComponent implements OnInit {
   private readonly storeService = inject(StoreService);

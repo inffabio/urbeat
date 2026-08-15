@@ -10,13 +10,13 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "assets/images/logo_v2.png",
+      "src": "assets/images/logo_urbeat.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/images/logo_v2.png",
+      "src": "assets/images/logo_urbeat.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

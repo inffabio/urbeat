@@ -1,0 +1,1274 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+SC,4200051,Abdon Batista,Centro,centro,-27.6154895,-51.0197697,brasil_aberto,True
+SC,4200101,Abelardo Luz,Centro,centro,-26.5682782,-52.33018089999999,brasil_aberto,True
+SC,4200200,Agrolândia,Centro,centro,-27.4104835,-49.8289655,brasil_aberto,True
+SC,4200309,Agronômica,Centro,centro,-27.2645004,-49.71075219999999,brasil_aberto,True
+SC,4200705,Alfredo Wagner,Arnópolis,arnopolis,-27.6175419,-49.4385278,brasil_aberto,True
+SC,4200705,Alfredo Wagner,Catuíra,catuira,-27.6631147,-49.4002351,brasil_aberto,True
+SC,4200705,Alfredo Wagner,Centro,centro,-27.7017214,-49.3339121,brasil_aberto,True
+SC,4200705,Alfredo Wagner,São Leonardo,sao leonardo,-27.6715594,-49.20120989999999,brasil_aberto,True
+SC,4200754,Alto Bela Vista,Centro,centro,-27.4318976,-51.9078862,brasil_aberto,True
+SC,4200903,Angelina,Barra Clara,barra clara,-27.5296176,-49.1243854,brasil_aberto,True
+SC,4200903,Angelina,Betania,betania,-27.5206914,-48.9285843,brasil_aberto,True
+SC,4200903,Angelina,Centro,centro,-27.5831223,-48.98387049999999,brasil_aberto,True
+SC,4200903,Angelina,Garcia,garcia,-27.4904406,-48.991694,brasil_aberto,True
+SC,4201000,Anita Garibaldi,Centro,centro,-27.6854895,-51.1310503,brasil_aberto,True
+SC,4201000,Anita Garibaldi,Lagoa da Estiva,lagoa da estiva,-27.747598,-51.0265728,brasil_aberto,True
+SC,4201109,Anitápolis,Centro,centro,-27.9027377,-49.1267495,brasil_aberto,True
+SC,4201257,Apiúna,Centro,centro,-28.2395725,-48.6618567,brasil_aberto,True
+SC,4201273,Arabutã,Centro,centro,-27.1023899,-48.9162815,brasil_aberto,True
+SC,4201273,Arabutã,Nova Estrela,nova estrela,-27.1503161,-52.2041269,brasil_aberto,True
+SC,4201307,Araquari,Centro,centro,-26.3709519,-48.72267739999999,brasil_aberto,True
+SC,4201307,Araquari,Itapocu,itapocu,-26.5449835,-48.7153778,brasil_aberto,True
+SC,4201406,Araranguá,Alto Feliz,alto feliz,-28.9419696,-49.4920859,brasil_aberto,True
+SC,4201406,Araranguá,Arapongas,arapongas,-28.9399093,-49.45823439999999,brasil_aberto,True
+SC,4201406,Araranguá,Balneário de Ilhas (Hercílio Luz),balneario de ilhas (hercilio luz),-28.9088632,-49.3324185,brasil_aberto,True
+SC,4201406,Araranguá,Barranca,barranca,-28.93459,-49.4940004,brasil_aberto,True
+SC,4201406,Araranguá,Caverazinho,caverazinho,-28.9576406,-49.4706383,brasil_aberto,True
+SC,4201406,Araranguá,Centro,centro,-28.9345758,-49.4852043,brasil_aberto,True
+SC,4201406,Araranguá,Centro Cívico,centro civico,-28.9568555,-49.4987971,brasil_aberto,True
+SC,4201406,Araranguá,Cidade Alta,cidade alta,-28.9434382,-49.4936343,brasil_aberto,True
+SC,4201406,Araranguá,Coloninha,coloninha,-28.9411391,-49.4735965,brasil_aberto,True
+SC,4201406,Araranguá,Hercílio Luz (Hercílio Luz),hercilio luz (hercilio luz),-28.9117053,-49.3600284,brasil_aberto,True
+SC,4201406,Araranguá,Industrial,industrial,-28.9370964,-49.4840256,brasil_aberto,True
+SC,4201406,Araranguá,Jardim Cibeli,jardim cibeli,-28.9434909,-49.5148433,brasil_aberto,True
+SC,4201406,Araranguá,Jardim das Avenidas,jardim das avenidas,-28.9495262,-49.4584688,brasil_aberto,True
+SC,4201406,Araranguá,Lagoa da Serra,lagoa da serra,-28.9478912,-49.4536979,brasil_aberto,True
+SC,4201406,Araranguá,Lagoão,lagoao,-28.9601559,-49.4952283,brasil_aberto,True
+SC,4201406,Araranguá,Mato Alto,mato alto,-28.9542296,-49.5049513,brasil_aberto,True
+SC,4201406,Araranguá,Morro dos Conventos,morro dos conventos,-28.9391761,-49.3738146,brasil_aberto,True
+SC,4201406,Araranguá,Nova Divinéia,nova divineia,-28.9538734,-49.4855243,brasil_aberto,True
+SC,4201406,Araranguá,Operária,operaria,-28.9510154,-49.5250367,brasil_aberto,True
+SC,4201406,Araranguá,Polícia Rodoviária,policia rodoviaria,-28.9680744,-49.5284198,brasil_aberto,True
+SC,4201406,Araranguá,Sanga da Areia,sanga da areia,-28.9944718,-49.5494373,brasil_aberto,True
+SC,4201406,Araranguá,Sanga da Toca,sanga da toca,-28.9982483,-49.5789316,brasil_aberto,True
+SC,4201406,Araranguá,Sanga da Toca 1ª,sanga da toca 1ª,-29.010406,-49.5742459,brasil_aberto,True
+SC,4201406,Araranguá,Santa Bárbara,santa barbara,-28.9544578,-49.51328239999999,brasil_aberto,True
+SC,4201406,Araranguá,Santa Catarina,santa catarina,-28.9551499,-49.5260369,brasil_aberto,True
+SC,4201406,Araranguá,Santa Rosa de Lima,santa rosa de lima,-28.9346077,-49.4605845,brasil_aberto,True
+SC,4201406,Araranguá,Urussanguinha,urussanguinha,-28.9496245,-49.4809957,brasil_aberto,True
+SC,4201406,Araranguá,Vila São José,vila sao jose,-28.9275141,-49.478775,brasil_aberto,True
+SC,4201406,Araranguá,Área Rural de Araranguá,area rural de ararangua,-28.9370964,-49.4840256,brasil_aberto,True
+SC,4201505,Armazém,Centro,centro,-28.2598503,-49.0157564,brasil_aberto,True
+SC,4201604,Arroio Trinta,Centro,centro,-26.9320066,-51.3357325,brasil_aberto,True
+SC,4201653,Arvoredo,Centro,centro,-27.0744484,-52.4579853,brasil_aberto,True
+SC,4201703,Ascurra,Centro,centro,-26.9563166,-49.3760897,brasil_aberto,True
+SC,4201802,Atalanta,Centro,centro,-27.2248884,-49.6456599,brasil_aberto,True
+SC,4201950,Balneário Arroio do Silva,Centro,centro,-28.9852064,-49.4177128,brasil_aberto,True
+SC,4202057,Balneário Barra do Sul,Centro,centro,-26.459474,-48.6038544,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Ariribá,aririba,-26.9644497,-48.6397334,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Barra,barra,-27.005899,-48.6004087,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Centro,centro,-26.9913584,-48.6312467,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Estados,estados,-26.9945561,-48.6453643,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Jardim Iate Clube,jardim iate clube,-27.0139148,-48.6329276,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Municípios,municipios,-27.0070291,-48.6321748,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Nações,nacoes,-26.9730894,-48.6512177,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Nova Esperança,nova esperanca,-27.0318488,-48.6051811,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Pioneiros,pioneiros,-26.9690716,-48.6393115,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Praia das Laranjeiras,praia das laranjeiras,-26.9971859,-48.5908443,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Praia das Taquaras,praia das taquaras,-27.0061904,-48.5818082,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Praia do Estaleirinho,praia do estaleirinho,-27.0469907,-48.588509,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Praia do Estaleiro,praia do estaleiro,-27.0350541,-48.5931063,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Praia dos Amores,praia dos amores,-26.960151,-48.6396994,brasil_aberto,True
+SC,4202008,Balneário Camboriú,São Judas Tadeu,sao judas tadeu,-27.0136386,-48.6031881,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Vila Real,vila real,-27.0058405,-48.6238701,brasil_aberto,True
+SC,4202008,Balneário Camboriú,Área Rural de Balneário Camboriú,area rural de balneario camboriu,-26.9979839,-48.63258,brasil_aberto,True
+SC,4202073,Balneário Gaivota,Centro,centro,-29.152664,-49.58382710000001,brasil_aberto,True
+SC,4212809,Balneário Piçarras,Centro,centro,-26.7677688,-48.6706339,brasil_aberto,True
+SC,4212809,Balneário Piçarras,Nossa Senhora da Conceição,nossa senhora da conceicao,-26.7706284,-48.69067,brasil_aberto,True
+SC,4220000,Balneário Rincão,Centro,centro,-28.8256297,-49.2308683,brasil_aberto,True
+SC,4202081,Bandeirante,Centro,centro,-26.7658067,-53.6384564,brasil_aberto,True
+SC,4202107,Barra Velha,Centro,centro,-26.6339181,-48.6883748,brasil_aberto,True
+SC,4202131,Bela Vista do Toldo,Centro,centro,-26.2708938,-50.4651936,brasil_aberto,True
+SC,4202156,Belmonte,Centro,centro,-26.8429995,-53.5760922,brasil_aberto,True
+SC,4202206,Benedito Novo,Barra São João,barra sao joao,-26.8409999,-49.5076392,brasil_aberto,True
+SC,4202206,Benedito Novo,Centro,centro,-26.7823763,-49.3629527,brasil_aberto,True
+SC,4202206,Benedito Novo,Santa Maria,santa maria,-26.7292775,-49.4166332,brasil_aberto,True
+SC,4202305,Biguaçu,Areias de Cima (Guaporanga),areias de cima (guaporanga),-27.3856607,-48.634769,brasil_aberto,True
+SC,4202305,Biguaçu,Beira Rio,beira rio,-27.4904631,-48.6752066,brasil_aberto,True
+SC,4202305,Biguaçu,Boa Vista,boa vista,-27.4983025,-48.6600491,brasil_aberto,True
+SC,4202305,Biguaçu,Bom Viver,bom viver,-27.5287622,-48.6338871,brasil_aberto,True
+SC,4202305,Biguaçu,Cachoeiras (Guaporanga),cachoeiras (guaporanga),-27.4023749,-48.631119,brasil_aberto,True
+SC,4202305,Biguaçu,Centro,centro,-27.4915422,-48.6557864,brasil_aberto,True
+SC,4202305,Biguaçu,Encruzilhada,encruzilhada,-27.471181,-48.6682249,brasil_aberto,True
+SC,4202305,Biguaçu,Estiva (Guaporanga),estiva (guaporanga),-27.4028782,-48.6293415,brasil_aberto,True
+SC,4202305,Biguaçu,Fundos,fundos,-27.5101562,-48.6625012,brasil_aberto,True
+SC,4202305,Biguaçu,Jardim Janaína,jardim janaina,-27.5165393,-48.6408887,brasil_aberto,True
+SC,4202305,Biguaçu,Mar das Pedras,mar das pedras,-27.5244353,-48.6346231,brasil_aberto,True
+SC,4202305,Biguaçu,Morro da Bina,morro da bina,-27.5203926,-48.6363311,brasil_aberto,True
+SC,4202305,Biguaçu,Prado,prado,-27.4866268,-48.6494377,brasil_aberto,True
+SC,4202305,Biguaçu,Prado de Baixo,prado de baixo,-27.4865717,-48.6485352,brasil_aberto,True
+SC,4202305,Biguaçu,Praia João Rosa,praia joao rosa,-27.504646,-48.6445712,brasil_aberto,True
+SC,4202305,Biguaçu,Rio Caveiras,rio caveiras,-27.5159853,-48.6493247,brasil_aberto,True
+SC,4202305,Biguaçu,Saudade,saudade,-27.5007807,-48.6627978,brasil_aberto,True
+SC,4202305,Biguaçu,Saveiro,saveiro,-27.5097357,-48.6392329,brasil_aberto,True
+SC,4202305,Biguaçu,Sorocaba do Sul,sorocaba do sul,-27.3688911,-48.7257403,brasil_aberto,True
+SC,4202305,Biguaçu,São Miguel (Guaporanga),sao miguel (guaporanga),-27.4724333,-48.6407466,brasil_aberto,True
+SC,4202305,Biguaçu,Tijuquinhas (Guaporanga),tijuquinhas (guaporanga),-27.4956726,-48.6522205,brasil_aberto,True
+SC,4202305,Biguaçu,Universitário,universitario,-27.494699,-48.6655866,brasil_aberto,True
+SC,4202305,Biguaçu,Vendaval,vendaval,-27.4934033,-48.6678479,brasil_aberto,True
+SC,4202305,Biguaçu,Área Rural de Biguaçu,area rural de biguacu,-27.4955772,-48.6553657,brasil_aberto,True
+SC,4202404,Blumenau,Badenfurt,badenfurt,-26.8577511,-49.1324024,brasil_aberto,True
+SC,4202404,Blumenau,Boa Vista,boa vista,-26.9007539,-49.0691837,brasil_aberto,True
+SC,4202404,Blumenau,Bom Retiro,bom retiro,-26.9253578,-49.074304,brasil_aberto,True
+SC,4202404,Blumenau,Centro,centro,-26.9112957,-49.0776901,brasil_aberto,True
+SC,4202404,Blumenau,Do Salto,do salto,-26.8831183,-49.0953782,brasil_aberto,True
+SC,4202404,Blumenau,Escola Agrícola,escola agricola,-26.8916442,-49.1010007,brasil_aberto,True
+SC,4202404,Blumenau,Fidélis,fidelis,-26.8505705,-49.0705138,brasil_aberto,True
+SC,4202404,Blumenau,Fortaleza,fortaleza,-26.8728544,-49.073867,brasil_aberto,True
+SC,4202404,Blumenau,Fortaleza Alta,fortaleza alta,-26.8602608,-49.0445441,brasil_aberto,True
+SC,4202404,Blumenau,Garcia,garcia,-26.9345043,-49.0541945,brasil_aberto,True
+SC,4202404,Blumenau,Glória,gloria,-26.9657243,-49.0580227,brasil_aberto,True
+SC,4202404,Blumenau,Itoupava Central,itoupava central,-26.8158495,-49.0972497,brasil_aberto,True
+SC,4202404,Blumenau,Itoupava Norte,itoupava norte,-26.8824468,-49.0741956,brasil_aberto,True
+SC,4202404,Blumenau,Itoupava Seca,itoupava seca,-26.892241,-49.0822753,brasil_aberto,True
+SC,4202404,Blumenau,Itoupavazinha,itoupavazinha,-26.8516847,-49.1017451,brasil_aberto,True
+SC,4202404,Blumenau,Jardim Blumenau,jardim blumenau,-26.9307978,-49.0632094,brasil_aberto,True
+SC,4202404,Blumenau,Nova Esperança,nova esperanca,-26.8893005,-49.0568278,brasil_aberto,True
+SC,4202404,Blumenau,Passo Manso,passo manso,-26.91147,-49.1469275,brasil_aberto,True
+SC,4202404,Blumenau,Ponta Aguda,ponta aguda,-26.8961433,-49.0572622,brasil_aberto,True
+SC,4202404,Blumenau,Progresso,progresso,-26.9973251,-49.0640002,brasil_aberto,True
+SC,4202404,Blumenau,Ribeirão Fresco,ribeirao fresco,-26.9273712,-49.047814,brasil_aberto,True
+SC,4202404,Blumenau,Salto Weissbach,salto weissbach,-26.8950313,-49.1289667,brasil_aberto,True
+SC,4202404,Blumenau,Salto do Norte,salto do norte,-26.8781878,-49.1005725,brasil_aberto,True
+SC,4202404,Blumenau,Testo Salto,testo salto,-26.8546143,-49.1505596,brasil_aberto,True
+SC,4202404,Blumenau,Tribess,tribess,-26.8779662,-49.0605587,brasil_aberto,True
+SC,4202404,Blumenau,Valparaiso,valparaiso,-26.9536316,-49.0724245,brasil_aberto,True
+SC,4202404,Blumenau,Velha,velha,-26.9249136,-49.1148389,brasil_aberto,True
+SC,4202404,Blumenau,Velha Central,velha central,-26.9330286,-49.1366184,brasil_aberto,True
+SC,4202404,Blumenau,Velha Grande,velha grande,-26.9593245,-49.1298796,brasil_aberto,True
+SC,4202404,Blumenau,Victor Konder,victor konder,-26.9055284,-49.0750247,brasil_aberto,True
+SC,4202404,Blumenau,Vila Formosa,vila formosa,-26.9385801,-49.0705457,brasil_aberto,True
+SC,4202404,Blumenau,Vila Itoupava,vila itoupava,-26.6680076,-49.0422593,brasil_aberto,True
+SC,4202404,Blumenau,Vila Nova,vila nova,-26.9040084,-49.0874449,brasil_aberto,True
+SC,4202404,Blumenau,Vorstadt,vorstadt,-26.8991244,-49.0437183,brasil_aberto,True
+SC,4202404,Blumenau,Água Verde,agua verde,-26.9128936,-49.1162211,brasil_aberto,True
+SC,4202404,Blumenau,Área Rural de Blumenau,area rural de blumenau,-26.9165792,-49.0717331,brasil_aberto,True
+SC,4202438,Bocaina do Sul,Centro,centro,-27.7459267,-49.9429232,brasil_aberto,True
+SC,4202503,Bom Jardim da Serra,Centro,centro,-28.3387031,-49.6244763,brasil_aberto,True
+SC,4202578,Bom Jesus do Oeste,Centro,centro,-26.7203087,-53.1294521,brasil_aberto,True
+SC,4202602,Bom Retiro,Canoas,canoas,-27.806237,-49.7731943,brasil_aberto,True
+SC,4202602,Bom Retiro,Centro,centro,-27.7991309,-49.49009849999999,brasil_aberto,True
+SC,4202453,Bombinhas,Centro,centro,-27.1525793,-48.50856290000001,brasil_aberto,True
+SC,4202453,Bombinhas,Distrito de Canto Grande,distrito de canto grande,,,brasil_aberto,True
+SC,4202701,Botuverá,Centro,centro,-28.3450281,-48.81576219999999,brasil_aberto,True
+SC,4202800,Braço do Norte,Centro,centro,-28.2759027,-49.1660562,brasil_aberto,True
+SC,4202800,Braço do Norte,Pinheiral,pinheiral,-28.1991368,-49.0847898,brasil_aberto,True
+SC,4202859,Braço do Trombudo,Centro,centro,,,brasil_aberto,True
+SC,4202875,Brunópolis,Centro,centro,-27.3134975,-50.8382377,brasil_aberto,True
+SC,4202875,Brunópolis,Marombas,marombas,-27.3301365,-50.7656966,brasil_aberto,True
+SC,4202909,Brusque,Azambuja,azambuja,-27.1287777,-48.9106777,brasil_aberto,True
+SC,4202909,Brusque,Bateas,bateas,-27.0593428,-48.908286,brasil_aberto,True
+SC,4202909,Brusque,Cedrinho,cedrinho,-27.1486328,-48.9243629,brasil_aberto,True
+SC,4202909,Brusque,Cedro Grande,cedro grande,-27.2023717,-48.9449773,brasil_aberto,True
+SC,4202909,Brusque,Centro I,centro i,-27.0934513,-48.9086332,brasil_aberto,True
+SC,4202909,Brusque,Centro II,centro ii,-27.1063785,-48.9062623,brasil_aberto,True
+SC,4202909,Brusque,Cerâmica Reis,ceramica reis,-27.0682476,-48.9180539,brasil_aberto,True
+SC,4202909,Brusque,Dom Joaquim,dom joaquim,-27.1420733,-48.9608785,brasil_aberto,True
+SC,4202909,Brusque,Guarani,guarani,-27.1001913,-48.9425222,brasil_aberto,True
+SC,4202909,Brusque,Jardim Maluche,jardim maluche,-27.1056733,-48.9304507,brasil_aberto,True
+SC,4202909,Brusque,Limeira Alta,limeira alta,-27.1155067,-48.8411321,brasil_aberto,True
+SC,4202909,Brusque,Limeira Baixa,limeira baixa,-27.0913116,-48.854324,brasil_aberto,True
+SC,4202909,Brusque,Limoeiro,limoeiro,-27.059334,-48.8784375,brasil_aberto,True
+SC,4202909,Brusque,Nova Brasília,nova brasilia,-27.0806992,-48.8921126,brasil_aberto,True
+SC,4202909,Brusque,Paquetá,paqueta,-27.1470072,-48.9204549,brasil_aberto,True
+SC,4202909,Brusque,Planalto,planalto,-27.0564324,-48.8720874,brasil_aberto,True
+SC,4202909,Brusque,Ponta Russa,ponta russa,-27.141122,-48.8924171,brasil_aberto,True
+SC,4202909,Brusque,Poço Fundo,poco fundo,-27.1266845,-48.8735669,brasil_aberto,True
+SC,4202909,Brusque,Primeiro de Maio,primeiro de maio,-27.1345305,-48.9024739,brasil_aberto,True
+SC,4202909,Brusque,Rio Branco,rio branco,-27.1218353,-48.9400185,brasil_aberto,True
+SC,4202909,Brusque,Santa Luzia,santa luzia,-27.151237,-48.8992736,brasil_aberto,True
+SC,4202909,Brusque,Santa Rita,santa rita,-27.0849304,-48.9058254,brasil_aberto,True
+SC,4202909,Brusque,Santa Terezinha,santa terezinha,-27.0786133,-48.8914634,brasil_aberto,True
+SC,4202909,Brusque,Souza Cruz,souza cruz,-27.1159963,-48.9319587,brasil_aberto,True
+SC,4202909,Brusque,Steffen,steffen,-27.076898,-48.9033448,brasil_aberto,True
+SC,4202909,Brusque,São João,sao joao,-27.1604876,-48.9566816,brasil_aberto,True
+SC,4202909,Brusque,São Luiz,sao luiz,-27.0818607,-48.9150973,brasil_aberto,True
+SC,4202909,Brusque,São Pedro,sao pedro,-27.0759978,-48.9212182,brasil_aberto,True
+SC,4202909,Brusque,Tomaz Coelho,tomaz coelho,-27.1685425,-48.9470083,brasil_aberto,True
+SC,4202909,Brusque,Volta Grande,volta grande,-27.032014,-48.883179,brasil_aberto,True
+SC,4202909,Brusque,Zantão,zantao,-27.1714728,-48.9042446,brasil_aberto,True
+SC,4202909,Brusque,Águas Claras,aguas claras,-27.145562,-48.9029996,brasil_aberto,True
+SC,4202909,Brusque,Área Rural de Brusque,area rural de brusque,-27.0989969,-48.91706910000001,brasil_aberto,True
+SC,4203105,Caibi,Centro,centro,-27.0768032,-53.2494494,brasil_aberto,True
+SC,4203154,Calmon,Centro,centro,-26.606947,-51.0977005,brasil_aberto,True
+SC,4203204,Camboriú,Areias,areias,-27.0314255,-48.656888,brasil_aberto,True
+SC,4203204,Camboriú,Cedro,cedro,-27.0393513,-48.6426376,brasil_aberto,True
+SC,4203204,Camboriú,Centro,centro,-27.0349374,-48.6584637,brasil_aberto,True
+SC,4203204,Camboriú,Lídia Duarte,lidia duarte,-27.0345495,-48.6528228,brasil_aberto,True
+SC,4203204,Camboriú,Monte Alegre,monte alegre,-27.0028911,-48.6643897,brasil_aberto,True
+SC,4203204,Camboriú,Monte Alegre (Monte Alegre),monte alegre (monte alegre),-27.0051216,-48.6571548,brasil_aberto,True
+SC,4203204,Camboriú,Rio Pequeno,rio pequeno,-27.0460723,-48.6406013,brasil_aberto,True
+SC,4203204,Camboriú,Santa Regina,santa regina,-27.0293007,-48.6676871,brasil_aberto,True
+SC,4203204,Camboriú,São Francisco de Assis,sao francisco de assis,-27.0264221,-48.637608,brasil_aberto,True
+SC,4203204,Camboriú,Tabuleiro (Monte Alegre),tabuleiro (monte alegre),-27.0051216,-48.6571548,brasil_aberto,True
+SC,4203204,Camboriú,Várzea do Ranchinho (Monte Alegre),varzea do ranchinho (monte alegre),-26.9856761,-48.6780222,brasil_aberto,True
+SC,4203204,Camboriú,Área Rural de Camboriú,area rural de camboriu,-27.0217451,-48.6515664,brasil_aberto,True
+SC,4203303,Campo Alegre,Bateias de Baixo,bateias de baixo,-26.0884838,-49.2614168,brasil_aberto,True
+SC,4203303,Campo Alegre,Fragosos,fragosos,-26.1670952,-49.4008167,brasil_aberto,True
+SC,4203402,Campo Belo do Sul,Centro,centro,-27.2195043,-49.6458714,brasil_aberto,True
+SC,4203501,Campo Erê,Centro,centro,-26.3923847,-53.0785269,brasil_aberto,True
+SC,4203600,Campos Novos,Bela Vista,bela vista,-27.2529148,-51.241375,brasil_aberto,True
+SC,4203600,Campos Novos,Centro,centro,-27.4008158,-51.2270024,brasil_aberto,True
+SC,4203600,Campos Novos,Dal Pai,dal pai,-27.2545319,-50.91644429999999,brasil_aberto,True
+SC,4203600,Campos Novos,Encruzilhada,encruzilhada,-27.529256,-51.38686939999999,brasil_aberto,True
+SC,4203600,Campos Novos,Espinilho,espinilho,-27.2914177,-51.1047603,brasil_aberto,True
+SC,4203600,Campos Novos,Guarani,guarani,-27.395739,-51.2224465,brasil_aberto,True
+SC,4203600,Campos Novos,Ibicuí,ibicui,-27.5323339,-51.1945715,brasil_aberto,True
+SC,4203600,Campos Novos,Leão,leao,-27.3111294,-51.5625819,brasil_aberto,True
+SC,4203709,Canelinha,Centro,centro,-27.26695,-48.772417,brasil_aberto,True
+SC,4203808,Canoinhas,Alto da Tijuca,alto da tijuca,-26.158884,-50.3932696,brasil_aberto,True
+SC,4203808,Canoinhas,Alto das Palmeiras,alto das palmeiras,-26.1888348,-50.4000822,brasil_aberto,True
+SC,4203808,Canoinhas,Boa Vista,boa vista,-26.1934002,-50.4035766,brasil_aberto,True
+SC,4203808,Canoinhas,Campo da Água Verde,campo da agua verde,-26.180218,-50.375095,brasil_aberto,True
+SC,4203808,Canoinhas,Centro,centro,-26.1794895,-50.3930148,brasil_aberto,True
+SC,4203808,Canoinhas,Felipe Schmidt,felipe schmidt,-26.1845452,-50.6902374,brasil_aberto,True
+SC,4203808,Canoinhas,Industrial 1,industrial 1,-26.1661016,-50.4031027,brasil_aberto,True
+SC,4203808,Canoinhas,Industrial 2,industrial 2,-26.248482,-50.5074287,brasil_aberto,True
+SC,4203808,Canoinhas,Jardim Esperança,jardim esperanca,-26.1663374,-50.396217,brasil_aberto,True
+SC,4203808,Canoinhas,Marcílio Dias,marcilio dias,-26.1363453,-50.3921165,brasil_aberto,True
+SC,4203808,Canoinhas,Paula Pereira,paula pereira,-26.0506564,-50.52486950000001,brasil_aberto,True
+SC,4203808,Canoinhas,Piedade,piedade,-26.1940718,-50.4211451,brasil_aberto,True
+SC,4203808,Canoinhas,Pinheiros,pinheiros,-26.4266487,-50.6171429,brasil_aberto,True
+SC,4203808,Canoinhas,Sossego,sossego,-26.1746134,-50.4000078,brasil_aberto,True
+SC,4203808,Canoinhas,Tricolin,tricolin,-26.1798622,-50.4012671,brasil_aberto,True
+SC,4203808,Canoinhas,Água Verde,agua verde,-26.1899152,-50.3785596,brasil_aberto,True
+SC,4203808,Canoinhas,Área Rural de Canoinhas,area rural de canoinhas,-26.1745621,-50.3949633,brasil_aberto,True
+SC,4203907,Capinzal,Alto Alegre,alto alegre,-27.4017986,-51.6623517,brasil_aberto,True
+SC,4203907,Capinzal,Centro,centro,-27.3413586,-51.6108318,brasil_aberto,True
+SC,4203956,Capivari de Baixo,Centro,centro,-28.4480663,-48.9542818,brasil_aberto,True
+SC,4203253,Capão Alto,Centro,centro,-27.9376764,-50.5098947,brasil_aberto,True
+SC,4204103,Caxambu do Sul,Centro,centro,-27.162434,-52.8783779,brasil_aberto,True
+SC,4203006,Caçador,Aeroporto,aeroporto,-26.7811206,-50.9612816,brasil_aberto,True
+SC,4203006,Caçador,Alto Bonito,alto bonito,-26.7844719,-51.0000085,brasil_aberto,True
+SC,4203006,Caçador,Bello,bello,-26.7816073,-50.99901389999999,brasil_aberto,True
+SC,4203006,Caçador,Berger,berger,-26.7810419,-51.0101701,brasil_aberto,True
+SC,4203006,Caçador,Bom Jesus,bom jesus,-26.7778949,-51.0238338,brasil_aberto,True
+SC,4203006,Caçador,Bom Sucesso,bom sucesso,-26.795673,-51.0191012,brasil_aberto,True
+SC,4203006,Caçador,Centro,centro,-26.7743976,-51.016213,brasil_aberto,True
+SC,4203006,Caçador,Champagnat,champagnat,-26.7791699,-51.0435449,brasil_aberto,True
+SC,4203006,Caçador,Der,der,-26.7684469,-51.019527,brasil_aberto,True
+SC,4203006,Caçador,Figueroa,figueroa,-26.7928056,-51.022649,brasil_aberto,True
+SC,4203006,Caçador,Gioppo,gioppo,-26.7738768,-51.0028924,brasil_aberto,True
+SC,4203006,Caçador,Industrial,industrial,-26.7831617,-50.9634227,brasil_aberto,True
+SC,4203006,Caçador,Kurtz,kurtz,-26.767041,-51.0097917,brasil_aberto,True
+SC,4203006,Caçador,Martello,martello,-26.791445,-50.9947987,brasil_aberto,True
+SC,4203006,Caçador,Municípios,municipios,-26.7766233,-51.0259411,brasil_aberto,True
+SC,4203006,Caçador,Nossa Senhora Salete,nossa senhora salete,-26.7647455,-51.0172631,brasil_aberto,True
+SC,4203006,Caçador,Paraíso,paraiso,-26.7792646,-51.0222714,brasil_aberto,True
+SC,4203006,Caçador,Rancho Fundo,rancho fundo,-26.7805555,-50.9883767,brasil_aberto,True
+SC,4203006,Caçador,Reunidas,reunidas,-26.7734631,-51.0229742,brasil_aberto,True
+SC,4203006,Caçador,Santa Catarina,santa catarina,-26.7704823,-51.0143113,brasil_aberto,True
+SC,4203006,Caçador,Sorgatto,sorgatto,-26.7861794,-51.0307238,brasil_aberto,True
+SC,4203006,Caçador,São Cristóvão,sao cristovao,-26.7839724,-50.9797311,brasil_aberto,True
+SC,4203006,Caçador,Taquara Verde,taquara verde,-26.7665043,-51.20356760000001,brasil_aberto,True
+SC,4203006,Caçador,Área Rural de Caçador,area rural de cacador,-26.7829927,-50.9980996,brasil_aberto,True
+SC,4204152,Celso Ramos,Centro,centro,-27.6326677,-51.3382167,brasil_aberto,True
+SC,4204178,Cerro Negro,Centro,centro,-27.7961906,-50.8751081,brasil_aberto,True
+SC,4204194,Chapadão do Lageado,Centro,centro,-27.5816513,-49.5420781,brasil_aberto,True
+SC,4204202,Chapecó,Alto da Serra,alto da serra,-27.0289223,-52.7991269,brasil_aberto,True
+SC,4204202,Chapecó,Alvorada,alvorada,-27.0797618,-52.6373669,brasil_aberto,True
+SC,4204202,Chapecó,Araras,araras,-27.0900956,-52.6848828,brasil_aberto,True
+SC,4204202,Chapecó,Autódromo,autodromo,-27.0892834,-52.7111715,brasil_aberto,True
+SC,4204202,Chapecó,Bela Vista,bela vista,-27.0819539,-52.6340185,brasil_aberto,True
+SC,4204202,Chapecó,Belvedere,belvedere,-27.0374972,-52.6316767,brasil_aberto,True
+SC,4204202,Chapecó,Boa Vista,boa vista,-27.0962968,-52.579108,brasil_aberto,True
+SC,4204202,Chapecó,Bom Pastor,bom pastor,-27.1000894,-52.5932384,brasil_aberto,True
+SC,4204202,Chapecó,Bom Retiro,bom retiro,-27.0684134,-52.6231373,brasil_aberto,True
+SC,4204202,Chapecó,Campestre,campestre,-27.1425895,-52.6126478,brasil_aberto,True
+SC,4204202,Chapecó,Centro,centro,-27.1110041,-52.609708,brasil_aberto,True
+SC,4204202,Chapecó,Centro (Marechal Bormann),centro (marechal bormann),-27.1898028,-52.6549849,brasil_aberto,True
+SC,4204202,Chapecó,Cristo Rei,cristo rei,-27.0682292,-52.6298054,brasil_aberto,True
+SC,4204202,Chapecó,Desbravador,desbravador,-27.0529229,-52.6035534,brasil_aberto,True
+SC,4204202,Chapecó,Dom Gerônimo,dom geronimo,-27.0572552,-52.6339632,brasil_aberto,True
+SC,4204202,Chapecó,Dom Pascoal,dom pascoal,-27.1314217,-52.6108554,brasil_aberto,True
+SC,4204202,Chapecó,Efapi,efapi,-27.0929803,-52.6740173,brasil_aberto,True
+SC,4204202,Chapecó,Eldorado,eldorado,-27.0634725,-52.6391541,brasil_aberto,True
+SC,4204202,Chapecó,Engenho Braun,engenho braun,-27.0969059,-52.6455362,brasil_aberto,True
+SC,4204202,Chapecó,Esplanada,esplanada,-27.1194784,-52.5961021,brasil_aberto,True
+SC,4204202,Chapecó,Figueira,figueira,-26.9742976,-52.7446464,brasil_aberto,True
+SC,4204202,Chapecó,Fronteira Sul,fronteira sul,-27.1018806,-52.6992775,brasil_aberto,True
+SC,4204202,Chapecó,Goio-En,goio-en,-27.2809251,-52.6923016,brasil_aberto,True
+SC,4204202,Chapecó,Industrial,industrial,-27.1581614,-52.6004953,brasil_aberto,True
+SC,4204202,Chapecó,Jardim América,jardim america,-27.0999663,-52.6366738,brasil_aberto,True
+SC,4204202,Chapecó,Jardim Europa,jardim europa,-27.0812877,-52.5980868,brasil_aberto,True
+SC,4204202,Chapecó,Jardim Itália,jardim italia,-27.0980218,-52.6258841,brasil_aberto,True
+SC,4204202,Chapecó,Jardins,jardins,-27.0635625,-52.6318943,brasil_aberto,True
+SC,4204202,Chapecó,Lajeado,lajeado,-27.0743723,-52.6548193,brasil_aberto,True
+SC,4204202,Chapecó,Líder,lider,-27.0655639,-52.6285178,brasil_aberto,True
+SC,4204202,Chapecó,Maria Goretti,maria goretti,-27.1014528,-52.606341,brasil_aberto,True
+SC,4204202,Chapecó,Monte Belo,monte belo,-27.1171137,-52.5875916,brasil_aberto,True
+SC,4204202,Chapecó,Palmital,palmital,-27.1191212,-52.6169348,brasil_aberto,True
+SC,4204202,Chapecó,Paraíso,paraiso,-27.1104316,-52.6030742,brasil_aberto,True
+SC,4204202,Chapecó,Parque das Palmeiras,parque das palmeiras,-27.1007801,-52.6412694,brasil_aberto,True
+SC,4204202,Chapecó,Passo dos Fortes,passo dos fortes,-27.0822331,-52.6042336,brasil_aberto,True
+SC,4204202,Chapecó,Pinheirinho,pinheirinho,-27.087479,-52.5932697,brasil_aberto,True
+SC,4204202,Chapecó,Presidente Médici,presidente medici,-27.0964938,-52.5942949,brasil_aberto,True
+SC,4204202,Chapecó,Progresso,progresso,-27.1377357,-52.592026,brasil_aberto,True
+SC,4204202,Chapecó,Quedas do Palmital,quedas do palmital,-27.1337335,-52.6194462,brasil_aberto,True
+SC,4204202,Chapecó,SAIC,saic,-27.1057188,-52.6256734,brasil_aberto,True
+SC,4204202,Chapecó,Santa Maria,santa maria,-27.1110041,-52.609708,brasil_aberto,True
+SC,4204202,Chapecó,Santa Paulina,santa paulina,-27.073042,-52.6035479,brasil_aberto,True
+SC,4204202,Chapecó,Santo Antônio,santo antonio,-27.119897,-52.62533,brasil_aberto,True
+SC,4204202,Chapecó,Santos Dumont,santos dumont,-27.1403447,-52.630069,brasil_aberto,True
+SC,4204202,Chapecó,Seminário,seminario,-27.1312419,-52.6015231,brasil_aberto,True
+SC,4204202,Chapecó,São Cristóvão,sao cristovao,-27.0852537,-52.6263014,brasil_aberto,True
+SC,4204202,Chapecó,São Lucas,sao lucas,-27.1068985,-52.5913844,brasil_aberto,True
+SC,4204202,Chapecó,São Pedro,sao pedro,-27.0975606,-52.5905516,brasil_aberto,True
+SC,4204202,Chapecó,Trevo,trevo,-27.0036226,-52.6436777,brasil_aberto,True
+SC,4204202,Chapecó,Universitário,universitario,-27.1224276,-52.6093211,brasil_aberto,True
+SC,4204202,Chapecó,Vila Real,vila real,-27.0673808,-52.6053582,brasil_aberto,True
+SC,4204202,Chapecó,Vila Rica,vila rica,-27.0360565,-52.6147145,brasil_aberto,True
+SC,4204202,Chapecó,Água Santa,agua santa,-27.0692668,-52.6471929,brasil_aberto,True
+SC,4204202,Chapecó,Área Rural de Chapecó,area rural de chapeco,-27.0954122,-52.6169738,brasil_aberto,True
+SC,4204251,Cocal do Sul,Centro,centro,-28.6023702,-49.3253065,brasil_aberto,True
+SC,4204301,Concórdia,Arvoredo,arvoredo,-27.2143723,-52.0298382,brasil_aberto,True
+SC,4204301,Concórdia,Catarina Fontana,catarina fontana,-27.2467187,-52.0359412,brasil_aberto,True
+SC,4204301,Concórdia,Centro,centro,-27.2299721,-52.0272557,brasil_aberto,True
+SC,4204301,Concórdia,Cinquentenário,cinquentenario,-27.2274516,-52.0166099,brasil_aberto,True
+SC,4204301,Concórdia,Colibri,colibri,-27.2435088,-52.0518698,brasil_aberto,True
+SC,4204301,Concórdia,Colinas,colinas,-27.2151186,-52.055745,brasil_aberto,True
+SC,4204301,Concórdia,Cristal,cristal,-27.2422805,-52.0453295,brasil_aberto,True
+SC,4204301,Concórdia,Engenho Velho,engenho velho,-27.2313442,-52.02388149999999,brasil_aberto,True
+SC,4204301,Concórdia,Estados,estados,-27.2186047,-52.0482208,brasil_aberto,True
+SC,4204301,Concórdia,Flamengo,flamengo,-27.2313442,-52.02388149999999,brasil_aberto,True
+SC,4204301,Concórdia,Floresta,floresta,-27.2353989,-52.0285319,brasil_aberto,True
+SC,4204301,Concórdia,Fragosos,fragosos,-27.2148339,-52.0608711,brasil_aberto,True
+SC,4204301,Concórdia,Gruta,gruta,-27.2283097,-52.0501029,brasil_aberto,True
+SC,4204301,Concórdia,Guilherme Reich,guilherme reich,-27.2456895,-52.0225481,brasil_aberto,True
+SC,4204301,Concórdia,Imigrantes,imigrantes,-27.2323826,-52.0155882,brasil_aberto,True
+SC,4204301,Concórdia,Imperial,imperial,-27.2353761,-52.0302632,brasil_aberto,True
+SC,4204301,Concórdia,Industrial,industrial,-27.2303049,-52.022894,brasil_aberto,True
+SC,4204301,Concórdia,Industriários,industriarios,-27.2356559,-52.0404727,brasil_aberto,True
+SC,4204301,Concórdia,Itaíba,itaiba,-27.2362194,-52.0387031,brasil_aberto,True
+SC,4204301,Concórdia,Jardim,jardim,-27.227595,-52.0291244,brasil_aberto,True
+SC,4204301,Concórdia,Jardim Sul,jardim sul,-27.2313442,-52.02388149999999,brasil_aberto,True
+SC,4204301,Concórdia,Liberdade,liberdade,-27.2399868,-52.0163262,brasil_aberto,True
+SC,4204301,Concórdia,Natureza,natureza,-27.2126321,-52.0619219,brasil_aberto,True
+SC,4204301,Concórdia,Nazaré,nazare,-27.2355354,-52.0362814,brasil_aberto,True
+SC,4204301,Concórdia,Nações,nacoes,-27.2417895,-52.0269341,brasil_aberto,True
+SC,4204301,Concórdia,Nossa Senhora da Salete,nossa senhora da salete,-27.2227788,-52.0176872,brasil_aberto,True
+SC,4204301,Concórdia,Nova Brasília,nova brasilia,-27.260032,-52.0113045,brasil_aberto,True
+SC,4204301,Concórdia,Parque de Exposições,parque de exposicoes,-27.2277286,-52.0049481,brasil_aberto,True
+SC,4204301,Concórdia,Petrópolis,petropolis,-27.2224661,-52.0478149,brasil_aberto,True
+SC,4204301,Concórdia,Planalto,planalto,-27.1592135,-51.862255,brasil_aberto,True
+SC,4204301,Concórdia,Poente do Sol,poente do sol,-27.221239,-52.06216149999999,brasil_aberto,True
+SC,4204301,Concórdia,Presidente Kennedy,presidente kennedy,-27.2313442,-52.02388149999999,brasil_aberto,True
+SC,4204301,Concórdia,Primavera,primavera,-27.2153572,-52.0218098,brasil_aberto,True
+SC,4204301,Concórdia,Santa Cruz,santa cruz,-27.2214934,-52.0377637,brasil_aberto,True
+SC,4204301,Concórdia,Santa Rita,santa rita,-27.2457761,-52.0556482,brasil_aberto,True
+SC,4204301,Concórdia,Santa Terezinha,santa terezinha,-27.2354396,-52.0007156,brasil_aberto,True
+SC,4204301,Concórdia,Santo Antônio,santo antonio,-27.2268355,-51.9844386,brasil_aberto,True
+SC,4204301,Concórdia,Sintrial,sintrial,-27.2374633,-52.0683368,brasil_aberto,True
+SC,4204301,Concórdia,Sunti,sunti,-27.2394618,-52.0359746,brasil_aberto,True
+SC,4204301,Concórdia,São Cristóvão,sao cristovao,-27.2241627,-51.9653176,brasil_aberto,True
+SC,4204301,Concórdia,São José,sao jose,-27.2313442,-52.02388149999999,brasil_aberto,True
+SC,4204301,Concórdia,São Miguel,sao miguel,-27.2364545,-52.023918,brasil_aberto,True
+SC,4204301,Concórdia,São Paulo,sao paulo,-27.2061737,-52.0240597,brasil_aberto,True
+SC,4204301,Concórdia,Tamanduá,tamandua,-27.3039462,-51.997639,brasil_aberto,True
+SC,4204301,Concórdia,Vila Jacob Biezus,vila jacob biezus,-27.2443609,-51.9549566,brasil_aberto,True
+SC,4204301,Concórdia,Vista Alegre,vista alegre,-27.2227788,-52.0176872,brasil_aberto,True
+SC,4204301,Concórdia,Área Rural de Concórdia,area rural de concordia,-27.2245936,-52.01535519999999,brasil_aberto,True
+SC,4204350,Cordilheira Alta,Centro,centro,-26.9860333,-52.6034985,brasil_aberto,True
+SC,4204400,Coronel Freitas,Centro,centro,-26.8999881,-52.7021296,brasil_aberto,True
+SC,4204459,Coronel Martins,Centro,centro,,,brasil_aberto,True
+SC,4204558,Correia Pinto,Centro,centro,-27.5878272,-50.3605954,brasil_aberto,True
+SC,4204509,Corupá,Centro,centro,-26.4252319,-49.2429158,brasil_aberto,True
+SC,4204608,Criciúma,Ana Maria,ana maria,-28.7028133,-49.3479416,brasil_aberto,True
+SC,4204608,Criciúma,Archimedes Naspolini,archimedes naspolini,-28.6527857,-49.3816447,brasil_aberto,True
+SC,4204608,Criciúma,Argentina,argentina,-28.6662639,-49.3307966,brasil_aberto,True
+SC,4204608,Criciúma,Boa Vista,boa vista,-28.6852482,-49.4073928,brasil_aberto,True
+SC,4204608,Criciúma,Bosque do Repouso,bosque do repouso,-28.7045785,-49.3627765,brasil_aberto,True
+SC,4204608,Criciúma,Brasília,brasilia,-28.6752079,-49.3385106,brasil_aberto,True
+SC,4204608,Criciúma,Buenos Aires,buenos aires,-28.6512075,-49.3095635,brasil_aberto,True
+SC,4204608,Criciúma,Capão Bonito,capao bonito,-28.7668108,-49.4136264,brasil_aberto,True
+SC,4204608,Criciúma,Catarinense,catarinense,-28.661453,-49.4322843,brasil_aberto,True
+SC,4204608,Criciúma,Ceará,ceara,-28.6871527,-49.3484985,brasil_aberto,True
+SC,4204608,Criciúma,Centro,centro,-28.6846218,-49.3749827,brasil_aberto,True
+SC,4204608,Criciúma,Cidade Mineira Nova,cidade mineira nova,-28.6840546,-49.4211237,brasil_aberto,True
+SC,4204608,Criciúma,Cidade Mineira Velha,cidade mineira velha,-28.6917841,-49.4203959,brasil_aberto,True
+SC,4204608,Criciúma,Colonial,colonial,-28.6459277,-49.4406774,brasil_aberto,True
+SC,4204608,Criciúma,Coloninha Zilli,coloninha zilli,-28.6579952,-49.4008559,brasil_aberto,True
+SC,4204608,Criciúma,Comerciário,comerciario,-28.6858041,-49.3646564,brasil_aberto,True
+SC,4204608,Criciúma,Cristo Redentor,cristo redentor,-28.6992344,-49.3339904,brasil_aberto,True
+SC,4204608,Criciúma,Cruzeiro do Sul,cruzeiro do sul,-28.6657186,-49.3658382,brasil_aberto,True
+SC,4204608,Criciúma,Dagostin,dagostin,-28.7556404,-49.3634735,brasil_aberto,True
+SC,4204608,Criciúma,Demboski,demboski,-28.6777183,-49.3100918,brasil_aberto,True
+SC,4204608,Criciúma,Distrito Industrial,distrito industrial,-28.6801066,-49.4258912,brasil_aberto,True
+SC,4204608,Criciúma,Estaçãozinha,estacaozinha,-28.656245,-49.422424,brasil_aberto,True
+SC,4204608,Criciúma,Fábio Silva,fabio silva,-28.6990384,-49.3785977,brasil_aberto,True
+SC,4204608,Criciúma,Imperatriz,imperatriz,-28.6877684,-49.4189041,brasil_aberto,True
+SC,4204608,Criciúma,Jardim Angélica,jardim angelica,-28.7039361,-49.4012756,brasil_aberto,True
+SC,4204608,Criciúma,Jardim Maristela,jardim maristela,-28.689757,-49.3467151,brasil_aberto,True
+SC,4204608,Criciúma,Jardim Montevidéu,jardim montevideu,-28.6914898,-49.4538046,brasil_aberto,True
+SC,4204608,Criciúma,Jardim das Paineiras,jardim das paineiras,-28.7138441,-49.3643791,brasil_aberto,True
+SC,4204608,Criciúma,Laranjinha,laranjinha,-28.6539888,-49.4164429,brasil_aberto,True
+SC,4204608,Criciúma,Liberdade,liberdade,-28.6782796,-49.4174603,brasil_aberto,True
+SC,4204608,Criciúma,Linha Anta,linha anta,-28.6713287,-49.2569656,brasil_aberto,True
+SC,4204608,Criciúma,Linha Batista,linha batista,-28.6567905,-49.3056846,brasil_aberto,True
+SC,4204608,Criciúma,Linha Cabral,linha cabral,-28.6426756,-49.3161335,brasil_aberto,True
+SC,4204608,Criciúma,Lote Seis,lote seis,-28.6706113,-49.3730524,brasil_aberto,True
+SC,4204608,Criciúma,Maria Céu,maria ceu,-28.671635,-49.3902003,brasil_aberto,True
+SC,4204608,Criciúma,Metropol,metropol,-28.645464,-49.4298198,brasil_aberto,True
+SC,4204608,Criciúma,Michel,michel,-28.6875547,-49.3698552,brasil_aberto,True
+SC,4204608,Criciúma,Milanese,milanese,-28.6985692,-49.3902874,brasil_aberto,True
+SC,4204608,Criciúma,Mina Brasil,mina brasil,-28.6666367,-49.3629803,brasil_aberto,True
+SC,4204608,Criciúma,Mina União,mina uniao,-28.6878457,-49.4282608,brasil_aberto,True
+SC,4204608,Criciúma,Mina do Mato,mina do mato,-28.6572005,-49.3853568,brasil_aberto,True
+SC,4204608,Criciúma,Mina do Toco,mina do toco,-28.639546,-49.3857211,brasil_aberto,True
+SC,4204608,Criciúma,Monte Castelo,monte castelo,-28.6678895,-49.4090287,brasil_aberto,True
+SC,4204608,Criciúma,Morro Albino,morro albino,-28.7865387,-49.3900027,brasil_aberto,True
+SC,4204608,Criciúma,Morro Estevão,morro estevao,-28.7384608,-49.3798417,brasil_aberto,True
+SC,4204608,Criciúma,Mãe Luzia,mae luzia,-28.7054975,-49.4703758,brasil_aberto,True
+SC,4204608,Criciúma,Nossa Senhora da Salete,nossa senhora da salete,-28.684548,-49.3408318,brasil_aberto,True
+SC,4204608,Criciúma,Nossa Senhora do Carmo,nossa senhora do carmo,-28.66233,-49.4374192,brasil_aberto,True
+SC,4204608,Criciúma,Operária Nova,operaria nova,-28.6758033,-49.3842457,brasil_aberto,True
+SC,4204608,Criciúma,Paraíso,paraiso,-28.688417,-49.4023083,brasil_aberto,True
+SC,4204608,Criciúma,Pedro Zanivan,pedro zanivan,-28.7305384,-49.3757795,brasil_aberto,True
+SC,4204608,Criciúma,Pinheirinho,pinheirinho,-28.6916873,-49.3904952,brasil_aberto,True
+SC,4204608,Criciúma,Pio Corrêa,pio correa,-28.6740547,-49.3622421,brasil_aberto,True
+SC,4204608,Criciúma,Poço Um,poco um,-28.6431695,-49.4346862,brasil_aberto,True
+SC,4204608,Criciúma,Primeira Linha,primeira linha,-28.710517,-49.3734128,brasil_aberto,True
+SC,4204608,Criciúma,Primeira Linha Pontilhão,primeira linha pontilhao,-28.7621692,-49.4084425,brasil_aberto,True
+SC,4204608,Criciúma,Progresso,progresso,-28.6975984,-49.431523,brasil_aberto,True
+SC,4204608,Criciúma,Promorar Vila Vitória,promorar vila vitoria,,,brasil_aberto,True
+SC,4204608,Criciúma,Próspera,prospera,-28.6762774,-49.3485045,brasil_aberto,True
+SC,4204608,Criciúma,Quarta Linha,quarta linha,-28.7899033,-49.3618677,brasil_aberto,True
+SC,4204608,Criciúma,Recanto Verde,recanto verde,-28.7053798,-49.3771478,brasil_aberto,True
+SC,4204608,Criciúma,Renascer,renascer,-28.7115692,-49.3613509,brasil_aberto,True
+SC,4204608,Criciúma,Rio Maina,rio maina,-28.6663351,-49.427264,brasil_aberto,True
+SC,4204608,Criciúma,Sangão,sangao,-28.7399681,-49.405771,brasil_aberto,True
+SC,4204608,Criciúma,Santa Augusta,santa augusta,-28.6963959,-49.4079846,brasil_aberto,True
+SC,4204608,Criciúma,Santa Bárbara,santa barbara,-28.6899336,-49.3858892,brasil_aberto,True
+SC,4204608,Criciúma,Santa Catarina,santa catarina,-28.6753678,-49.3810293,brasil_aberto,True
+SC,4204608,Criciúma,Santa Luzia,santa luzia,-28.7009117,-49.424779,brasil_aberto,True
+SC,4204608,Criciúma,Santo Antônio,santo antonio,-28.6790135,-49.3911659,brasil_aberto,True
+SC,4204608,Criciúma,São Cristóvão,sao cristovao,-28.6816881,-49.3603351,brasil_aberto,True
+SC,4204608,Criciúma,São Defende,sao defende,-28.704511,-49.4568671,brasil_aberto,True
+SC,4204608,Criciúma,São Domingos,sao domingos,-27.6565513,-48.6784952,brasil_aberto,True
+SC,4204608,Criciúma,São Francisco,sao francisco,-28.6885842,-49.4097625,brasil_aberto,True
+SC,4204608,Criciúma,São João,sao joao,-28.7132946,-49.3580785,brasil_aberto,True
+SC,4204608,Criciúma,São Luiz,sao luiz,-28.6959165,-49.3745669,brasil_aberto,True
+SC,4204608,Criciúma,São Marcos,sao marcos,-28.6381033,-49.4186371,brasil_aberto,True
+SC,4204608,Criciúma,São Roque,sao roque,-28.7550175,-49.4162089,brasil_aberto,True
+SC,4204608,Criciúma,São Sebastião,sao sebastiao,-28.699087,-49.4427282,brasil_aberto,True
+SC,4204608,Criciúma,São Simão,sao simao,-28.6611065,-49.3409896,brasil_aberto,True
+SC,4204608,Criciúma,Tereza Cristina,tereza cristina,-28.6919366,-49.4055948,brasil_aberto,True
+SC,4204608,Criciúma,Universitário,universitario,-28.71035,-49.4160956,brasil_aberto,True
+SC,4204608,Criciúma,Vera Cruz,vera cruz,-28.6708028,-49.3782792,brasil_aberto,True
+SC,4204608,Criciúma,Verdinho,verdinho,-28.8048843,-49.4170511,brasil_aberto,True
+SC,4204608,Criciúma,Vila Floresta,vila floresta,-28.6723671,-49.4086612,brasil_aberto,True
+SC,4204608,Criciúma,Vila Floresta II,vila floresta ii,-28.6791579,-49.4060473,brasil_aberto,True
+SC,4204608,Criciúma,Vila Francesa,vila francesa,-28.6754399,-49.414283,brasil_aberto,True
+SC,4204608,Criciúma,Vila Isabel,vila isabel,-28.6679568,-49.4282851,brasil_aberto,True
+SC,4204608,Criciúma,Vila Macarini,vila macarini,-28.6750979,-49.4382054,brasil_aberto,True
+SC,4204608,Criciúma,Vila Manaus,vila manaus,-28.6926338,-49.4248017,brasil_aberto,True
+SC,4204608,Criciúma,Vila Maria,vila maria,-28.8376954,-49.3685033,brasil_aberto,True
+SC,4204608,Criciúma,Vila Miguel,vila miguel,-28.6493846,-49.4227983,brasil_aberto,True
+SC,4204608,Criciúma,Vila Nova Esperança,vila nova esperanca,-28.7059433,-49.4356651,brasil_aberto,True
+SC,4204608,Criciúma,Vila Rica,vila rica,-28.6761676,-49.329532,brasil_aberto,True
+SC,4204608,Criciúma,Vila Selinger,vila selinger,-28.6891363,-49.3897965,brasil_aberto,True
+SC,4204608,Criciúma,Vila São José,vila sao jose,-28.6557918,-49.4254135,brasil_aberto,True
+SC,4204608,Criciúma,Vila Visconde,vila visconde,-28.6555544,-49.4384763,brasil_aberto,True
+SC,4204608,Criciúma,Vila Zuleima,vila zuleima,-28.6637971,-49.403381,brasil_aberto,True
+SC,4204608,Criciúma,Wosocris,wosocris,-28.6653269,-49.4340227,brasil_aberto,True
+SC,4204608,Criciúma,dos Imigrantes,dos imigrantes,-28.6791312,-49.3235245,brasil_aberto,True
+SC,4204608,Criciúma,Área Rural de Criciúma,area rural de criciuma,-28.6774759,-49.3704155,brasil_aberto,True
+SC,4204707,Cunha Porã,Centro,centro,-26.8941253,-53.1703403,brasil_aberto,True
+SC,4204756,Cunhataí,Centro,centro,-26.9740234,-53.0912573,brasil_aberto,True
+SC,4204806,Curitibanos,Bosque,bosque,,,brasil_aberto,True
+SC,4204806,Curitibanos,Centro,centro,-27.2660138,-50.4432639,brasil_aberto,True
+SC,4204806,Curitibanos,Marombas Bossardi,marombas bossardi,-27.2030032,-50.6372356,brasil_aberto,True
+SC,4204806,Curitibanos,Santa Cruz do Pery,santa cruz do pery,-27.4334724,-50.6437406,brasil_aberto,True
+SC,4204905,Descanso,Cento,cento,-26.8253874,-53.5032726,brasil_aberto,True
+SC,4204905,Descanso,Itajubá,itajuba,-26.9077417,-53.4662269,brasil_aberto,True
+SC,4205001,Dionísio Cerqueira,Centro,centro,-26.2549596,-53.6376803,brasil_aberto,True
+SC,4205001,Dionísio Cerqueira,Idamar,idamar,-26.3337036,-53.4122052,brasil_aberto,True
+SC,4205001,Dionísio Cerqueira,Jorge Lacerda,jorge lacerda,-26.3763583,-53.66102550000001,brasil_aberto,True
+SC,4205001,Dionísio Cerqueira,São Pedro Tobias,sao pedro tobias,-26.350444,-53.5780734,brasil_aberto,True
+SC,4205100,Dona Emma,Centro,centro,-26.9848401,-49.724092,brasil_aberto,True
+SC,4205159,Doutor Pedrinho,Centro,centro,-26.7349796,-49.4772407,brasil_aberto,True
+SC,4205191,Ermo,Centro,centro,-28.9848211,-49.6516052,brasil_aberto,True
+SC,4205209,Erval Velho,Barra Fria,barra fria,-27.2702688,-51.5426491,brasil_aberto,True
+SC,4205209,Erval Velho,Centro,centro,-27.2739607,-51.4431673,brasil_aberto,True
+SC,4205308,Faxinal dos Guedes,Barra Grande,barra grande,-26.7831961,-52.19512659999999,brasil_aberto,True
+SC,4205308,Faxinal dos Guedes,Centro,centro,-26.8551318,-52.26130879999999,brasil_aberto,True
+SC,4205357,Flor do Sertão,Centro,centro,,,brasil_aberto,True
+SC,4205407,Florianópolis,Abraão,abraao,-27.6073179,-48.5903846,brasil_aberto,True
+SC,4205407,Florianópolis,Agronômica,agronomica,-27.5792924,-48.5316184,brasil_aberto,True
+SC,4205407,Florianópolis,Armação do Pântano do Sul,armacao do pantano do sul,-27.7497704,-48.5119273,brasil_aberto,True
+SC,4205407,Florianópolis,Balneário,balneario,-27.5779882,-48.5868355,brasil_aberto,True
+SC,4205407,Florianópolis,Barra da Lagoa,barra da lagoa,-27.584767,-48.4298607,brasil_aberto,True
+SC,4205407,Florianópolis,Bom Abrigo,bom abrigo,-27.612985,-48.5956262,brasil_aberto,True
+SC,4205407,Florianópolis,Cachoeira do Bom Jesus,cachoeira do bom jesus,-27.4234898,-48.4357058,brasil_aberto,True
+SC,4205407,Florianópolis,Cacupé,cacupe,-27.5383121,-48.5274885,brasil_aberto,True
+SC,4205407,Florianópolis,Campeche,campeche,-27.6712247,-48.4851709,brasil_aberto,True
+SC,4205407,Florianópolis,Canasvieiras,canasvieiras,-27.4304898,-48.4548627,brasil_aberto,True
+SC,4205407,Florianópolis,Canto,canto,-27.5900451,-48.5838547,brasil_aberto,True
+SC,4205407,Florianópolis,Capoeiras,capoeiras,-27.5953474,-48.6040119,brasil_aberto,True
+SC,4205407,Florianópolis,Carianos,carianos,-27.5786676,-48.5979978,brasil_aberto,True
+SC,4205407,Florianópolis,Carvoeira,carvoeira,-27.6068943,-48.5269866,brasil_aberto,True
+SC,4205407,Florianópolis,Centro,centro,-27.5861065,-48.5395216,brasil_aberto,True
+SC,4205407,Florianópolis,Coloninha,coloninha,-27.5874655,-48.5903297,brasil_aberto,True
+SC,4205407,Florianópolis,Coqueiros,coqueiros,-27.6155168,-48.5869822,brasil_aberto,True
+SC,4205407,Florianópolis,Costeira do Pirajubaé,costeira do pirajubae,-27.6385169,-48.5215327,brasil_aberto,True
+SC,4205407,Florianópolis,Córrego Grande,corrego grande,-27.5935269,-48.5047459,brasil_aberto,True
+SC,4205407,Florianópolis,Daniela,daniela,-27.4501031,-48.5310496,brasil_aberto,True
+SC,4205407,Florianópolis,Estreito,estreito,-27.5927813,-48.5815668,brasil_aberto,True
+SC,4205407,Florianópolis,Ingleses do Rio Vermelho,ingleses do rio vermelho,-27.4380805,-48.3973718,brasil_aberto,True
+SC,4205407,Florianópolis,Itacorubi,itacorubi,-27.5793964,-48.510268,brasil_aberto,True
+SC,4205407,Florianópolis,Itaguaçu,itaguacu,-27.6103158,-48.588971,brasil_aberto,True
+SC,4205407,Florianópolis,Jardim Atlântico,jardim atlantico,-27.5842,-48.595353,brasil_aberto,True
+SC,4205407,Florianópolis,José Mendes,jose mendes,-27.6099747,-48.5439484,brasil_aberto,True
+SC,4205407,Florianópolis,João Paulo,joao paulo,-27.5622437,-48.5041458,brasil_aberto,True
+SC,4205407,Florianópolis,Jurerê,jurere,-27.4378834,-48.4823912,brasil_aberto,True
+SC,4205407,Florianópolis,Jurerê Internacional,jurere internacional,-27.4403156,-48.5040721,brasil_aberto,True
+SC,4205407,Florianópolis,Lagoa da Conceição,lagoa da conceicao,-27.6307649,-48.4730625,brasil_aberto,True
+SC,4205407,Florianópolis,Monte Cristo,monte cristo,-27.5903763,-48.6002329,brasil_aberto,True
+SC,4205407,Florianópolis,Monte Verde,monte verde,-27.5581052,-48.4970012,brasil_aberto,True
+SC,4205407,Florianópolis,Morro das Pedras,morro das pedras,-27.7105472,-48.5040404,brasil_aberto,True
+SC,4205407,Florianópolis,Pantanal,pantanal,-27.5949414,-48.5408447,brasil_aberto,True
+SC,4205407,Florianópolis,Ponta das Canas,ponta das canas,-27.394765,-48.4238834,brasil_aberto,True
+SC,4205407,Florianópolis,Praia Brava,praia brava,-27.3955552,-48.4154963,brasil_aberto,True
+SC,4205407,Florianópolis,Pântano do Sul,pantano do sul,-27.7806068,-48.5246266,brasil_aberto,True
+SC,4205407,Florianópolis,Ratones,ratones,-27.494318,-48.5053544,brasil_aberto,True
+SC,4205407,Florianópolis,Ribeirão da Ilha,ribeirao da ilha,-27.7194341,-48.563498,brasil_aberto,True
+SC,4205407,Florianópolis,Rio Tavares,rio tavares,-27.6520059,-48.4782465,brasil_aberto,True
+SC,4205407,Florianópolis,Saco Grande,saco grande,-27.53842354,-48.50768661,brasil_aberto,True
+SC,4205407,Florianópolis,Saco dos Limões,saco dos limoes,-27.6034122,-48.5268569,brasil_aberto,True
+SC,4205407,Florianópolis,Sambaqui,sambaqui,-27.4883688,-48.5308889,brasil_aberto,True
+SC,4205407,Florianópolis,Santa Mônica,santa monica,-27.5897144,-48.5045135,brasil_aberto,True
+SC,4205407,Florianópolis,Santo Antônio de Lisboa,santo antonio de lisboa,-27.4982275,-48.5100972,brasil_aberto,True
+SC,4205407,Florianópolis,São João do Rio Vermelho,sao joao do rio vermelho,-27.4838064,-48.4096375,brasil_aberto,True
+SC,4205407,Florianópolis,Tapera,tapera,-27.6821619,-48.5697278,brasil_aberto,True
+SC,4205407,Florianópolis,Tapera da Base,tapera da base,-27.6864025,-48.5657951,brasil_aberto,True
+SC,4205407,Florianópolis,Trindade,trindade,-27.5865809,-48.5229377,brasil_aberto,True
+SC,4205407,Florianópolis,Vargem Grande,vargem grande,-27.494318,-48.5053544,brasil_aberto,True
+SC,4205407,Florianópolis,Vargem Pequena,vargem pequena,-27.4653405,-48.4648715,brasil_aberto,True
+SC,4205407,Florianópolis,Vargem do Bom Jesus,vargem do bom jesus,-27.4442349,-48.425152,brasil_aberto,True
+SC,4205407,Florianópolis,Área Rural de Florianópolis,area rural de florianopolis,-27.5968578,-48.5468118,brasil_aberto,True
+SC,4205431,Formosa do Sul,Centro,centro,-26.6487376,-52.79635949999999,brasil_aberto,True
+SC,4205456,Forquilhinha,Centro,centro,-28.7499402,-49.4735306,brasil_aberto,True
+SC,4205506,Fraiburgo,Centro,centro,-27.0240926,-50.9271554,brasil_aberto,True
+SC,4205555,Frei Rogério,Centro,centro,-27.1733086,-50.8062327,brasil_aberto,True
+SC,4205555,Frei Rogério,Núcleo Triticula,nucleo triticula,-27.1440319,-50.7408949,brasil_aberto,True
+SC,4205605,Galvão,Centro,centro,-26.9186691,-49.0696893,brasil_aberto,True
+SC,4205704,Garopaba,Campo D'una,campo d'una,-28.1092997,-48.681519,brasil_aberto,True
+SC,4205704,Garopaba,Centro,centro,-28.0258169,-48.6190868,brasil_aberto,True
+SC,4205803,Garuva,Centro,centro,-26.0301282,-48.8559598,brasil_aberto,True
+SC,4205902,Gaspar,Alto Gasparinho,alto gasparinho,-26.9749654,-48.9140434,brasil_aberto,True
+SC,4205902,Gaspar,Arraial D'Ouro,arraial d'ouro,-26.8932803,-48.9113805,brasil_aberto,True
+SC,4205902,Gaspar,Barracão,barracao,-26.9966289,-48.8929122,brasil_aberto,True
+SC,4205902,Gaspar,Bateias,bateias,-26.9805306,-48.9140109,brasil_aberto,True
+SC,4205902,Gaspar,Bela Vista,bela vista,-26.8962921,-49.0036594,brasil_aberto,True
+SC,4205902,Gaspar,Belchior Alto,belchior alto,-26.8303766,-49.03072,brasil_aberto,True
+SC,4205902,Gaspar,Belchior Baixo,belchior baixo,-26.8748062,-49.0114515,brasil_aberto,True
+SC,4205902,Gaspar,Belchior Central,belchior central,-26.8519125,-49.0345837,brasil_aberto,True
+SC,4205902,Gaspar,Centro,centro,-26.9287077,-48.9560786,brasil_aberto,True
+SC,4205902,Gaspar,Coloninha,coloninha,-26.9320806,-48.9661962,brasil_aberto,True
+SC,4205902,Gaspar,Figueira,figueira,-26.9132382,-48.981197,brasil_aberto,True
+SC,4205902,Gaspar,Gaspar Alto,gaspar alto,-26.994031,-49.03623,brasil_aberto,True
+SC,4205902,Gaspar,Gaspar Grande,gaspar grande,-26.9385123,-48.9828939,brasil_aberto,True
+SC,4205902,Gaspar,Gaspar Mirim,gaspar mirim,-26.9459317,-48.9548617,brasil_aberto,True
+SC,4205902,Gaspar,Gasparinho,gasparinho,-26.9451735,-48.9667148,brasil_aberto,True
+SC,4205902,Gaspar,Lagoa,lagoa,-26.8934462,-48.9122986,brasil_aberto,True
+SC,4205902,Gaspar,Macucos,macucos,-26.965967,-48.9121642,brasil_aberto,True
+SC,4205902,Gaspar,Margem Esquerda,margem esquerda,-26.9125303,-48.9575925,brasil_aberto,True
+SC,4205902,Gaspar,Poço Grande,poco grande,-26.9240932,-48.8958287,brasil_aberto,True
+SC,4205902,Gaspar,Santa Terezinha,santa terezinha,-26.9388737,-48.9470003,brasil_aberto,True
+SC,4205902,Gaspar,Sete de Setembro,sete de setembro,-26.9306683,-48.9477584,brasil_aberto,True
+SC,4205902,Gaspar,Área Rural de Gaspar,area rural de gaspar,-26.9317642,-48.9549734,brasil_aberto,True
+SC,4206009,Governador Celso Ramos,Centro,centro,-27.314324,-48.5531075,brasil_aberto,True
+SC,4206207,Gravatal,Centro,centro,-28.3301648,-49.0350587,brasil_aberto,True
+SC,4206108,Grão-Pará,Aiurê,aiure,-28.1079469,-49.298501,brasil_aberto,True
+SC,4206108,Grão-Pará,Centro,centro,-28.1081639,-49.2975232,brasil_aberto,True
+SC,4206108,Grão-Pará,Invernada,invernada,-28.2181147,-49.3366726,brasil_aberto,True
+SC,4206306,Guabiruba,Centro,centro,-27.0847656,-48.9729511,brasil_aberto,True
+SC,4206405,Guaraciaba,Ouro Verde,ouro verde,-26.5454551,-53.6827007,brasil_aberto,True
+SC,4206504,Guaramirim,Centro,centro,-26.4742845,-48.99751,brasil_aberto,True
+SC,4206603,Guarujá do Sul,Centro,centro,-26.3874063,-53.5267349,brasil_aberto,True
+SC,4206652,Guatambú,Centro,centro,-27.1322581,-52.7862589,brasil_aberto,True
+SC,4206652,Guatambú,Fazenda Zandavalli,fazenda zandavalli,-27.0756195,-52.7631661,brasil_aberto,True
+SC,4206702,Herval d'Oeste,Centro,centro,-27.1724469,-51.4950962,brasil_aberto,True
+SC,4206751,Ibiam,Centro,centro,-27.1802515,-51.238463,brasil_aberto,True
+SC,4206801,Ibicaré,Centro,centro,-27.0903306,-51.365046,brasil_aberto,True
+SC,4206900,Ibirama,Centro,centro,-27.0542554,-49.5149059,brasil_aberto,True
+SC,4206900,Ibirama,Dalbérgia,dalbergia,-27.0320401,-49.5912896,brasil_aberto,True
+SC,4207106,Ilhota,Centro,centro,-26.9016505,-48.8284765,brasil_aberto,True
+SC,4207106,Ilhota,Missões,missoes,-26.9214194,-48.8414813,brasil_aberto,True
+SC,4207205,Imaruí,Centro,centro,-28.3452759,-48.814602,brasil_aberto,True
+SC,4207205,Imaruí,Rio D'Una,rio d'una,-28.1521095,-48.8196226,brasil_aberto,True
+SC,4207304,Imbituba,Alto Arroio,alto arroio,-28.1620929,-48.6775256,brasil_aberto,True
+SC,4207304,Imbituba,Araçatuba,aracatuba,-28.1194626,-48.6895294,brasil_aberto,True
+SC,4207304,Imbituba,Centro,centro,-28.2407564,-48.6698513,brasil_aberto,True
+SC,4207304,Imbituba,Ibiraquera,ibiraquera,-28.1162512,-48.65115429999999,brasil_aberto,True
+SC,4207304,Imbituba,Mirim,mirim,-28.2321321,-48.7048565,brasil_aberto,True
+SC,4207304,Imbituba,Povoado de Nova Brasília,povoado de nova brasilia,-28.2141868,-48.7097993,brasil_aberto,True
+SC,4207304,Imbituba,Vila Nova,vila nova,-28.2624634,-48.6891697,brasil_aberto,True
+SC,4207403,Imbuia,Centro,centro,-27.4912435,-49.4216593,brasil_aberto,True
+SC,4207502,Indaial,Arapongas,arapongas,-26.8857772,-49.2832882,brasil_aberto,True
+SC,4207502,Indaial,Benedito,benedito,-26.8828835,-49.2462213,brasil_aberto,True
+SC,4207502,Indaial,Carijós,carijos,-26.8769433,-49.234427,brasil_aberto,True
+SC,4207502,Indaial,Centro,centro,-26.8939477,-49.2329149,brasil_aberto,True
+SC,4207502,Indaial,Encano,encano,-26.8865681,-49.1865835,brasil_aberto,True
+SC,4207502,Indaial,Encano do Norte,encano do norte,-26.8698593,-49.2059595,brasil_aberto,True
+SC,4207502,Indaial,Estados,estados,-26.9001516,-49.2252147,brasil_aberto,True
+SC,4207502,Indaial,Estrada das Areias,estrada das areias,-26.929398,-49.237642,brasil_aberto,True
+SC,4207502,Indaial,Estradinha,estradinha,-26.9056375,-49.27224,brasil_aberto,True
+SC,4207502,Indaial,João Paulo II,joao paulo ii,-26.8938396,-49.260461,brasil_aberto,True
+SC,4207502,Indaial,Mulde,mulde,-26.8740936,-49.2348589,brasil_aberto,True
+SC,4207502,Indaial,Nações,nacoes,-26.8877398,-49.2443467,brasil_aberto,True
+SC,4207502,Indaial,Polaquia,polaquia,-26.9225605,-49.212593,brasil_aberto,True
+SC,4207502,Indaial,Ribeirão das Pedras,ribeirao das pedras,-26.9147133,-49.2624631,brasil_aberto,True
+SC,4207502,Indaial,Rio Morto,rio morto,-26.9110616,-49.2769978,brasil_aberto,True
+SC,4207502,Indaial,Sol,sol,-26.8959867,-49.2276642,brasil_aberto,True
+SC,4207502,Indaial,Tapajós,tapajos,-26.897826,-49.2378073,brasil_aberto,True
+SC,4207502,Indaial,Warnow,warnow,-26.9474708,-49.287922,brasil_aberto,True
+SC,4207502,Indaial,Área Rural de Indaial,area rural de indaial,-26.8977448,-49.2363217,brasil_aberto,True
+SC,4207577,Iomerê,Centro,centro,-27.0030336,-51.238654,brasil_aberto,True
+SC,4207601,Ipira,Centro,centro,-27.4058087,-51.7719073,brasil_aberto,True
+SC,4207650,Iporã do Oeste,Centro,centro,-26.9873902,-53.5332064,brasil_aberto,True
+SC,4207684,Ipuaçu,Centro,centro,-26.629424,-52.4554625,brasil_aberto,True
+SC,4207700,Ipumirim,Centro,centro,-27.0737485,-52.1350944,brasil_aberto,True
+SC,4207759,Iraceminha,Centro,centro,-27.5922687,-48.5490266,brasil_aberto,True
+SC,4207759,Iraceminha,São José do Laranjal,sao jose do laranjal,-26.8711223,-53.39612349999999,brasil_aberto,True
+SC,4207809,Irani,Centro,centro,-27.0218069,-51.90476940000001,brasil_aberto,True
+SC,4207908,Irineópolis,Centro,centro,-26.2407081,-50.79837850000001,brasil_aberto,True
+SC,4207908,Irineópolis,Poço Preto,poco preto,-26.2868736,-50.88079219999999,brasil_aberto,True
+SC,4208104,Itaiópolis,Centro,centro,-26.3395465,-49.9060336,brasil_aberto,True
+SC,4208104,Itaiópolis,Distrito de Moema,distrito de moema,-26.5736609,-49.7910988,brasil_aberto,True
+SC,4208104,Itaiópolis,Iraputã,iraputa,-26.4517912,-50.01111100000001,brasil_aberto,True
+SC,4208104,Itaiópolis,Itaió,itaio,-26.476141,-49.8684267,brasil_aberto,True
+SC,4208104,Itaiópolis,Rio da Anta,rio da anta,-26.339495,-49.90607079999999,brasil_aberto,True
+SC,4208203,Itajaí,Arraial dos Cunhas,arraial dos cunhas,-26.9757438,-48.7930763,brasil_aberto,True
+SC,4208203,Itajaí,Barra do Rio,barra do rio,-26.891998,-48.6786389,brasil_aberto,True
+SC,4208203,Itajaí,Brilhante I,brilhante i,-26.9827087,-48.8022108,brasil_aberto,True
+SC,4208203,Itajaí,Brilhante II,brilhante ii,-27.0642211,-48.7952945,brasil_aberto,True
+SC,4208203,Itajaí,Cabeçudas,cabecudas,-26.9315178,-48.6346277,brasil_aberto,True
+SC,4208203,Itajaí,Campeche,campeche,-26.9728068,-48.7888524,brasil_aberto,True
+SC,4208203,Itajaí,Canhanduba,canhanduba,-26.9550516,-48.6796991,brasil_aberto,True
+SC,4208203,Itajaí,Carvalho,carvalho,-26.933016,-48.6860579,brasil_aberto,True
+SC,4208203,Itajaí,Centro,centro,-26.914713,-48.6675965,brasil_aberto,True
+SC,4208203,Itajaí,Cidade Nova,cidade nova,-26.9227594,-48.6941082,brasil_aberto,True
+SC,4208203,Itajaí,Cordeiros,cordeiros,-26.8898189,-48.6869886,brasil_aberto,True
+SC,4208203,Itajaí,Dom Bosco,dom bosco,-26.9205579,-48.6812688,brasil_aberto,True
+SC,4208203,Itajaí,Espinheiros,espinheiros,-26.8972677,-48.7241501,brasil_aberto,True
+SC,4208203,Itajaí,Fazenda,fazenda,-26.926249,-48.6514022,brasil_aberto,True
+SC,4208203,Itajaí,Fazendinha,fazendinha,-26.9248609,-48.6466688,brasil_aberto,True
+SC,4208203,Itajaí,Itaipava,itaipava,-26.9524117,-48.7512644,brasil_aberto,True
+SC,4208203,Itajaí,Limoeiro,limoeiro,-27.0389498,-48.8562268,brasil_aberto,True
+SC,4208203,Itajaí,Marui,marui,-26.8874325,-48.6702287,brasil_aberto,True
+SC,4208203,Itajaí,Murta,murta,-26.8751735,-48.6913413,brasil_aberto,True
+SC,4208203,Itajaí,Paciência,paciencia,-26.9980795,-48.7694397,brasil_aberto,True
+SC,4208203,Itajaí,Praia Brava de Itajaí,praia brava de itajai,-26.9568056,-48.6301386,brasil_aberto,True
+SC,4208203,Itajaí,Quilometro 12,quilometro 12,-26.9595039,-48.7558659,brasil_aberto,True
+SC,4208203,Itajaí,Ressacada,ressacada,-26.9267084,-48.6763932,brasil_aberto,True
+SC,4208203,Itajaí,Rio do Meio,rio do meio,-26.9417628,-48.70942,brasil_aberto,True
+SC,4208203,Itajaí,Salseiros,salseiros,-26.8669658,-48.7300702,brasil_aberto,True
+SC,4208203,Itajaí,Santa Regina,santa regina,-26.8780961,-48.7488856,brasil_aberto,True
+SC,4208203,Itajaí,São João,sao joao,-26.8968428,-48.678076,brasil_aberto,True
+SC,4208203,Itajaí,São Judas,sao judas,-26.9116313,-48.680755,brasil_aberto,True
+SC,4208203,Itajaí,São Roque,sao roque,-26.9065431,-48.7193585,brasil_aberto,True
+SC,4208203,Itajaí,São Vicente,sao vicente,-26.8970086,-48.6878585,brasil_aberto,True
+SC,4208203,Itajaí,Vila Operária,vila operaria,-26.9164869,-48.6704152,brasil_aberto,True
+SC,4208203,Itajaí,Área Rural de Itajaí,area rural de itajai,-26.9082859,-48.6775167,brasil_aberto,True
+SC,4208302,Itapema,Centro,centro,-27.1017812,-48.6154351,brasil_aberto,True
+SC,4208302,Itapema,Meia Praia,meia praia,-27.128857,-48.6060978,brasil_aberto,True
+SC,4208450,Itapoá,Itapema do Norte,itapema do norte,-26.0724221,-48.6119789,brasil_aberto,True
+SC,4208500,Ituporanga,Centro,centro,-27.4145483,-49.6034334,brasil_aberto,True
+SC,4208500,Ituporanga,Rio Bonito,rio bonito,-27.567578,-49.4364335,brasil_aberto,True
+SC,4208500,Ituporanga,Rio dos Bugres,rio dos bugres,-27.5144611,-49.4988834,brasil_aberto,True
+SC,4208005,Itá,Centro,centro,-27.2743988,-52.3408311,brasil_aberto,True
+SC,4207007,Içara,Centro,centro,-28.7143124,-49.3006316,brasil_aberto,True
+SC,4208609,Jaborá,Centro,centro,-27.1738565,-51.7351914,brasil_aberto,True
+SC,4208708,Jacinto Machado,Centro,centro,-28.9982337,-49.761095,brasil_aberto,True
+SC,4208807,Jaguaruna,Camacho,camacho,-28.6106946,-48.8645243,brasil_aberto,True
+SC,4208807,Jaguaruna,Campo Bom,campo bom,-28.7208546,-49.06506479999999,brasil_aberto,True
+SC,4208807,Jaguaruna,Centro,centro,-28.6164835,-49.0248834,brasil_aberto,True
+SC,4208807,Jaguaruna,Olho D'Água,olho d'agua,-28.7310765,-49.1705243,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Amizade,amizade,-26.4549585,-49.1087465,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Cerro,barra do rio cerro,-26.5110914,-49.13452,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Molha,barra do rio molha,-26.5063824,-49.0905363,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Boa Vista,boa vista,-26.5020334,-49.067189,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Braço do Ribeirão Cavalo,braco do ribeirao cavalo,-26.4709664,-49.2033356,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Centenário,centenario,-26.4822798,-49.0494463,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Centro,centro,-26.4860429,-49.0792295,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Chico de Paulo,chico de paulo,-26.5169364,-49.1177621,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Czerniewicz,czerniewicz,-26.4719225,-49.0927008,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Estrada Nova,estrada nova,-26.4728838,-49.1270098,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Ilha da Figueira,ilha da figueira,-26.4926847,-49.0545409,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Jaraguá 84,jaragua 84,-26.5065093,-49.157568,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Jaraguá 99,jaragua 99,-26.5051642,-49.1368779,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Jaraguá Esquerdo,jaragua esquerdo,-26.4938535,-49.0914685,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,João Pessoa,joao pessoa,-26.4460993,-49.0599542,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Nereu Ramos,nereu ramos,-26.4524582,-49.1693235,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Nova Brasília,nova brasilia,-26.4824707,-49.0903715,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Núcleo Urbano Isolado Residencial Duquesa de Chartres,nucleo urbano isolado residencial duquesa de chartres,-26.4185967,-49.1071037,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Parque Malwee,parque malwee,-26.5010418,-49.1357538,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Rau,rau,-26.4624266,-49.1123854,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Ribeirão Cavalo,ribeirao cavalo,-26.4650878,-49.18395,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Rio Cerro I,rio cerro i,-26.5323506,-49.1243874,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Rio Cerro II,rio cerro ii,-26.5779378,-49.1422077,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Rio Molha,rio molha,-26.5253295,-49.0735883,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Rio da Luz,rio da luz,-26.5402496,-49.1541799,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Santa Luzia,santa luzia,-26.3744415,-49.1214507,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Santo Antônio,santo antonio,-26.4381612,-49.1515835,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,São Luís,sao luis,-26.5064254,-49.1098404,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Tifa Martins,tifa martins,-26.4922473,-49.1158108,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Tifa Monos,tifa monos,-26.4618501,-49.1430933,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Três Rios do Norte,tres rios do norte,-26.4450427,-49.1037879,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Três Rios do Sul,tres rios do sul,-26.4570765,-49.1352893,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Vieira,vieira,-26.475013,-49.0415459,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Baependi,vila baependi,-26.4790571,-49.0762931,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Lalau,vila lalau,-26.4831216,-49.0597515,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Lenzi,vila lenzi,-26.4851852,-49.1031657,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Nova,vila nova,-26.4964605,-49.0737801,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Água Verde,agua verde,-26.4698078,-49.1072022,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Águas Claras,aguas claras,-26.4997023,-49.0528426,brasil_aberto,True
+SC,4208906,Jaraguá do Sul,Área Rural de Jaraguá do Sul,area rural de jaragua do sul,-26.4813798,-49.0842138,brasil_aberto,True
+SC,4209003,Joaçaba,Centro,centro,-27.1734671,-51.5023184,brasil_aberto,True
+SC,4209003,Joaçaba,Frei Bruno,frei bruno,-27.1710897,-51.5095397,brasil_aberto,True
+SC,4209003,Joaçaba,Nova Petrópolis,nova petropolis,-27.0959807,-51.60969129999999,brasil_aberto,True
+SC,4209003,Joaçaba,Santa Helena,santa helena,-27.1583396,-51.65685509999999,brasil_aberto,True
+SC,4209102,Joinville,Adhemar Garcia,adhemar garcia,-26.3245447,-48.8045749,brasil_aberto,True
+SC,4209102,Joinville,América,america,-26.2888521,-48.8508655,brasil_aberto,True
+SC,4209102,Joinville,Anita Garibaldi,anita garibaldi,-26.3177889,-48.8519717,brasil_aberto,True
+SC,4209102,Joinville,Atiradores,atiradores,-26.25506,-48.8148515,brasil_aberto,True
+SC,4209102,Joinville,Aventureiro,aventureiro,-26.25506,-48.8148515,brasil_aberto,True
+SC,4209102,Joinville,Boa Vista,boa vista,-26.2902136,-48.8126596,brasil_aberto,True
+SC,4209102,Joinville,Boehmerwald,boehmerwald,-26.3708401,-48.8238111,brasil_aberto,True
+SC,4209102,Joinville,Bom Retiro,bom retiro,-26.2548902,-48.8453644,brasil_aberto,True
+SC,4209102,Joinville,Bucarein,bucarein,-26.3101261,-48.8404066,brasil_aberto,True
+SC,4209102,Joinville,Centro,centro,-26.3014741,-48.8479904,brasil_aberto,True
+SC,4209102,Joinville,Comasa,comasa,-26.2780745,-48.795456,brasil_aberto,True
+SC,4209102,Joinville,Costa e Silva,costa e silva,-26.2676108,-48.8951118,brasil_aberto,True
+SC,4209102,Joinville,Dona Francisca (Pirabeiraba),dona francisca (pirabeiraba),-26.2000266,-48.920732,brasil_aberto,True
+SC,4209102,Joinville,Espinheiros,espinheiros,-26.2805371,-48.7872274,brasil_aberto,True
+SC,4209102,Joinville,Floresta,floresta,-26.3362824,-48.8521022,brasil_aberto,True
+SC,4209102,Joinville,Fátima,fatima,-26.324637,-48.8108995,brasil_aberto,True
+SC,4209102,Joinville,Glória,gloria,-26.3013377,-48.87158,brasil_aberto,True
+SC,4209102,Joinville,Guanabara,guanabara,-26.3243731,-48.8337978,brasil_aberto,True
+SC,4209102,Joinville,Iririú,iririu,-26.2753491,-48.8173409,brasil_aberto,True
+SC,4209102,Joinville,Itaum,itaum,-26.324637,-48.8108995,brasil_aberto,True
+SC,4209102,Joinville,Itinga,itinga,-26.3859711,-48.823809,brasil_aberto,True
+SC,4209102,Joinville,Jardim Iririú,jardim iririu,-26.2590893,-48.8164657,brasil_aberto,True
+SC,4209102,Joinville,Jardim Paraíso,jardim paraiso,-26.2171296,-48.8203944,brasil_aberto,True
+SC,4209102,Joinville,Jardim Sofia,jardim sofia,-26.240449,-48.8365508,brasil_aberto,True
+SC,4209102,Joinville,Jarivatuba,jarivatuba,-26.3320873,-48.8122397,brasil_aberto,True
+SC,4209102,Joinville,João Costa,joao costa,-26.3502851,-48.8200613,brasil_aberto,True
+SC,4209102,Joinville,Morro do Meio,morro do meio,-26.3334226,-48.9023203,brasil_aberto,True
+SC,4209102,Joinville,Nova Brasília,nova brasilia,-26.3281821,-48.8845937,brasil_aberto,True
+SC,4209102,Joinville,Paranaguamirim,paranaguamirim,-26.356439,-48.7924111,brasil_aberto,True
+SC,4209102,Joinville,Parque Guarani,parque guarani,-26.3585151,-48.8112469,brasil_aberto,True
+SC,4209102,Joinville,Petrópolis,petropolis,-26.3546564,-48.8218386,brasil_aberto,True
+SC,4209102,Joinville,Pirabeiraba (Pirabeiraba),pirabeiraba (pirabeiraba),-26.2128813,-48.9141173,brasil_aberto,True
+SC,4209102,Joinville,Profipo,profipo,-26.3602621,-48.8432739,brasil_aberto,True
+SC,4209102,Joinville,Rio Bonito (Pirabeiraba),rio bonito (pirabeiraba),-26.1463303,-48.9085457,brasil_aberto,True
+SC,4209102,Joinville,Saguaçu,saguacu,-26.2758518,-48.8393726,brasil_aberto,True
+SC,4209102,Joinville,Santa Catarina,santa catarina,-26.3527641,-48.8535303,brasil_aberto,True
+SC,4209102,Joinville,Santo Antônio,santo antonio,-26.269271,-48.8592047,brasil_aberto,True
+SC,4209102,Joinville,São Marcos,sao marcos,-26.3241537,-48.8691769,brasil_aberto,True
+SC,4209102,Joinville,Ulysses Guimarães,ulysses guimaraes,-26.330773,-48.8009417,brasil_aberto,True
+SC,4209102,Joinville,Vila Cubatão,vila cubatao,-26.218988,-48.7982233,brasil_aberto,True
+SC,4209102,Joinville,Vila Nova,vila nova,-26.2803257,-48.8997951,brasil_aberto,True
+SC,4209102,Joinville,Zona Industrial Norte,zona industrial norte,-26.2521325,-48.8733195,brasil_aberto,True
+SC,4209102,Joinville,Zona Industrial Tupy,zona industrial tupy,-26.2940147,-48.8094214,brasil_aberto,True
+SC,4209102,Joinville,Área Rural de Joinville,area rural de joinville,-26.3043758,-48.84637439999999,brasil_aberto,True
+SC,4209151,José Boiteux,Centro,centro,-26.9593066,-49.6275163,brasil_aberto,True
+SC,4209177,Jupiá,Centro,centro,,,brasil_aberto,True
+SC,4209201,Lacerdópolis,Centro,centro,-27.261546,-51.5567925,brasil_aberto,True
+SC,4209300,Lages,Araucária,araucaria,-27.8406989,-50.3416757,brasil_aberto,True
+SC,4209300,Lages,Bates,bates,-27.7954408,-50.2898362,brasil_aberto,True
+SC,4209300,Lages,Beatriz,beatriz,-27.8116073,-50.336935,brasil_aberto,True
+SC,4209300,Lages,Bela Vista,bela vista,-27.8236995,-50.3600981,brasil_aberto,True
+SC,4209300,Lages,Bom Jesus,bom jesus,-27.8388311,-50.3254935,brasil_aberto,True
+SC,4209300,Lages,Boqueirão,boqueirao,-27.8052334,-50.348803,brasil_aberto,True
+SC,4209300,Lages,Brusque,brusque,-27.8255954,-50.3270813,brasil_aberto,True
+SC,4209300,Lages,CDL,cdl,-27.748572,-50.3365722,brasil_aberto,True
+SC,4209300,Lages,Caravágio,caravagio,-27.8162301,-50.2999592,brasil_aberto,True
+SC,4209300,Lages,Caroba,caroba,-27.8030486,-50.3780851,brasil_aberto,True
+SC,4209300,Lages,Caça e Tiro,caca e tiro,-27.8401911,-50.3162871,brasil_aberto,True
+SC,4209300,Lages,Centenário,centenario,-27.8342997,-50.3339775,brasil_aberto,True
+SC,4209300,Lages,Centro,centro,-27.815216,-50.3324323,brasil_aberto,True
+SC,4209300,Lages,Chapada,chapada,-27.787939,-50.2570757,brasil_aberto,True
+SC,4209300,Lages,Cidade Alta,cidade alta,-27.8168201,-50.3740541,brasil_aberto,True
+SC,4209300,Lages,Conta Dinheiro,conta dinheiro,-27.7925049,-50.308269,brasil_aberto,True
+SC,4209300,Lages,Copacabana,copacabana,-27.8240511,-50.3421427,brasil_aberto,True
+SC,4209300,Lages,Coral,coral,-27.809537,-50.3002291,brasil_aberto,True
+SC,4209300,Lages,Cruz de Malta,cruz de malta,-27.8558084,-50.3460747,brasil_aberto,True
+SC,4209300,Lages,Dom Daniel,dom daniel,-27.7885318,-50.2998128,brasil_aberto,True
+SC,4209300,Lages,Ferrovia,ferrovia,-27.8192609,-50.2992311,brasil_aberto,True
+SC,4209300,Lages,Frei Rogério,frei rogerio,-27.8025835,-50.3215542,brasil_aberto,True
+SC,4209300,Lages,Gethal,gethal,-27.7938439,-50.3014955,brasil_aberto,True
+SC,4209300,Lages,Guadalupe,guadalupe,-27.8046009,-50.3231786,brasil_aberto,True
+SC,4209300,Lages,Guarujá,guaruja,-27.7868198,-50.2883706,brasil_aberto,True
+SC,4209300,Lages,Habitação,habitacao,-27.8365612,-50.3183388,brasil_aberto,True
+SC,4209300,Lages,Ipiranga,ipiranga,-27.8144592,-50.3434348,brasil_aberto,True
+SC,4209300,Lages,Jardim Celina,jardim celina,-27.7773884,-50.3045573,brasil_aberto,True
+SC,4209300,Lages,Jardim Panorâmico,jardim panoramico,-27.802777,-50.2913243,brasil_aberto,True
+SC,4209300,Lages,Jardim das Camélias,jardim das camelias,-27.7800926,-50.3242591,brasil_aberto,True
+SC,4209300,Lages,Maria Luiza,maria luiza,-27.7867074,-50.3110757,brasil_aberto,True
+SC,4209300,Lages,Morro Grande,morro grande,-27.8350315,-50.3312746,brasil_aberto,True
+SC,4209300,Lages,Morro do Posto,morro do posto,-27.8114023,-50.3351022,brasil_aberto,True
+SC,4209300,Lages,Nossa Senhora Aparecida,nossa senhora aparecida,-27.7861975,-50.3117823,brasil_aberto,True
+SC,4209300,Lages,Passo Fundo,passo fundo,-27.7932638,-50.3135281,brasil_aberto,True
+SC,4209300,Lages,Penha,penha,-27.8101299,-50.2819742,brasil_aberto,True
+SC,4209300,Lages,Petrópolis,petropolis,-27.8109726,-50.3474936,brasil_aberto,True
+SC,4209300,Lages,Pinheiro Seco,pinheiro seco,-27.8239919,-50.2590088,brasil_aberto,True
+SC,4209300,Lages,Pisani,pisani,-27.7725734,-50.3012519,brasil_aberto,True
+SC,4209300,Lages,Ponte Grande,ponte grande,-27.7994233,-50.2959554,brasil_aberto,True
+SC,4209300,Lages,Popular,popular,-27.8259071,-50.3082293,brasil_aberto,True
+SC,4209300,Lages,Promorar,promorar,-27.8260646,-50.3630922,brasil_aberto,True
+SC,4209300,Lages,Restinga Seca,restinga seca,-27.7725733,-50.3147704,brasil_aberto,True
+SC,4209300,Lages,Sagrado Coração de Jesus,sagrado coracao de jesus,-27.8066451,-50.3130237,brasil_aberto,True
+SC,4209300,Lages,Santa Catarina,santa catarina,-27.8458313,-50.3480182,brasil_aberto,True
+SC,4209300,Lages,Santa Clara,santa clara,-27.8465777,-50.3549882,brasil_aberto,True
+SC,4209300,Lages,Santa Cândida,santa candida,-27.8107106,-50.3631994,brasil_aberto,True
+SC,4209300,Lages,Santa Helena,santa helena,-27.8254438,-50.3552328,brasil_aberto,True
+SC,4209300,Lages,Santa Maria,santa maria,-27.7984377,-50.2999329,brasil_aberto,True
+SC,4209300,Lages,Santa Mônica,santa monica,-27.8020995,-50.3672481,brasil_aberto,True
+SC,4209300,Lages,Santa Rita,santa rita,-27.8259416,-50.3299864,brasil_aberto,True
+SC,4209300,Lages,Santa Terezinha do Salto,santa terezinha do salto,-27.8337659,-50.5333288,brasil_aberto,True
+SC,4209300,Lages,Santo Antônio,santo antonio,-27.8299092,-50.3387322,brasil_aberto,True
+SC,4209300,Lages,São Cristóvão,sao cristovao,-27.8145793,-50.310591,brasil_aberto,True
+SC,4209300,Lages,São Francisco,sao francisco,-27.7991131,-50.3385205,brasil_aberto,True
+SC,4209300,Lages,São Luiz,sao luiz,-27.8396828,-50.3393775,brasil_aberto,True
+SC,4209300,Lages,São Miguel,sao miguel,-27.8200578,-50.2871739,brasil_aberto,True
+SC,4209300,Lages,São Paulo,sao paulo,-27.7933854,-50.3393475,brasil_aberto,True
+SC,4209300,Lages,São Pedro,sao pedro,-27.8097472,-50.3390549,brasil_aberto,True
+SC,4209300,Lages,São Sebastião,sao sebastiao,-27.7914774,-50.2958304,brasil_aberto,True
+SC,4209300,Lages,Tributo,tributo,-27.7669855,-50.291562,brasil_aberto,True
+SC,4209300,Lages,Triângulo,triangulo,-27.826396,-50.3393115,brasil_aberto,True
+SC,4209300,Lages,Universitário,universitario,-27.8235124,-50.3191819,brasil_aberto,True
+SC,4209300,Lages,Vila Comboni,vila comboni,-27.8014992,-50.328404,brasil_aberto,True
+SC,4209300,Lages,Vila Maria,vila maria,-27.7904372,-50.323298,brasil_aberto,True
+SC,4209300,Lages,Vila Mariza,vila mariza,-27.7952349,-50.2795606,brasil_aberto,True
+SC,4209300,Lages,Vila Nova,vila nova,-27.8280026,-50.3234409,brasil_aberto,True
+SC,4209300,Lages,Vista Alegre,vista alegre,-27.7912167,-50.3745232,brasil_aberto,True
+SC,4209300,Lages,Várzea,varzea,-27.8368811,-50.3108613,brasil_aberto,True
+SC,4209300,Lages,Área Industrial,area industrial,-27.8185953,-50.3684538,brasil_aberto,True
+SC,4209300,Lages,Área Rural de Lages,area rural de lages,-27.8287621,-50.3381134,brasil_aberto,True
+SC,4209300,Lages,Índios,indios,-27.7729418,-50.19734090000001,brasil_aberto,True
+SC,4209409,Laguna,Centro,centro,-28.4851955,-48.7822944,brasil_aberto,True
+SC,4209409,Laguna,Ribeirão Pequeno,ribeirao pequeno,-28.4844088,-48.8849363,brasil_aberto,True
+SC,4209458,Lajeado Grande,Centro,centro,-26.8599202,-52.5681015,brasil_aberto,True
+SC,4209508,Laurentino,Centro,centro,-28.6801566,-49.3657389,brasil_aberto,True
+SC,4209607,Lauro Müller,Barro Branco,barro branco,-28.4076757,-49.4262379,brasil_aberto,True
+SC,4209607,Lauro Müller,Centro,centro,-28.3952817,-49.39738140000001,brasil_aberto,True
+SC,4209607,Lauro Müller,Guatá,guata,-28.3768891,-49.4512118,brasil_aberto,True
+SC,4209607,Lauro Müller,Povoado de Itanema,povoado de itanema,-28.4308804,-49.3860101,brasil_aberto,True
+SC,4209706,Lebon Régis,Centro,centro,-26.9317207,-50.6930584,brasil_aberto,True
+SC,4209706,Lebon Régis,São Sebastião do Sul,sao sebastiao do sul,-26.7830261,-50.782954,brasil_aberto,True
+SC,4209805,Leoberto Leal,Centro,centro,-27.507845,-49.2865309,brasil_aberto,True
+SC,4209854,Lindóia do Sul,Centro,centro,-27.0519548,-52.0854655,brasil_aberto,True
+SC,4209904,Lontras,Centro,centro,-27.1760912,-49.5592196,brasil_aberto,True
+SC,4210001,Luiz Alves,Vila do Salto,vila do salto,-26.710496,-48.9102758,brasil_aberto,True
+SC,4210035,Luzerna,Centro,centro,-27.1327407,-51.4699756,brasil_aberto,True
+SC,4210050,Macieira,Centro,centro,-26.8549388,-51.37669020000001,brasil_aberto,True
+SC,4210100,Mafra,Autódromo,autodromo,-26.1327602,-49.7984373,brasil_aberto,True
+SC,4210100,Mafra,Bela Vista do Sul,bela vista do sul,-26.181804,-49.9808196,brasil_aberto,True
+SC,4210100,Mafra,Campo da Lança,campo da lanca,-26.1565347,-49.8127359,brasil_aberto,True
+SC,4210100,Mafra,Centro I Baixada,centro i baixada,-26.1109324,-49.8034705,brasil_aberto,True
+SC,4210100,Mafra,Centro II Alto de Mafra,centro ii alto de mafra,-26.121201,-49.8032526,brasil_aberto,True
+SC,4210100,Mafra,Espigão do Bugre,espigao do bugre,-26.1782843,-49.8147217,brasil_aberto,True
+SC,4210100,Mafra,Faxinal,faxinal,-26.1510512,-49.8297265,brasil_aberto,True
+SC,4210100,Mafra,Jardim América,jardim america,-26.1184533,-49.7877931,brasil_aberto,True
+SC,4210100,Mafra,Jardim do Moinho,jardim do moinho,-26.1284324,-49.8033225,brasil_aberto,True
+SC,4210100,Mafra,Restinga,restinga,-26.1259739,-49.82071,brasil_aberto,True
+SC,4210100,Mafra,Rio Preto do Sul,rio preto do sul,-26.2231103,-49.614175,brasil_aberto,True
+SC,4210100,Mafra,Vila Argentina,vila argentina,-26.122641,-49.7950583,brasil_aberto,True
+SC,4210100,Mafra,Vila Buenos Aires,vila buenos aires,-26.1179078,-49.7878387,brasil_aberto,True
+SC,4210100,Mafra,Vila Ferroviária,vila ferroviaria,-26.121201,-49.8032526,brasil_aberto,True
+SC,4210100,Mafra,Vila Formosa,vila formosa,-26.1261046,-49.8211753,brasil_aberto,True
+SC,4210100,Mafra,Vila Ivete,vila ivete,-26.1148645,-49.8265936,brasil_aberto,True
+SC,4210100,Mafra,Vila Nova,vila nova,-26.1403608,-49.8297487,brasil_aberto,True
+SC,4210100,Mafra,Vila das Flores,vila das flores,-26.0960734,-49.8092499,brasil_aberto,True
+SC,4210100,Mafra,Águas Claras,aguas claras,,,brasil_aberto,True
+SC,4210100,Mafra,Área Rural de Mafra,area rural de mafra,-26.1155584,-49.8104671,brasil_aberto,True
+SC,4210209,Major Gercino,Boiteuxburgo,boiteuxburgo,-27.4684989,-49.1828385,brasil_aberto,True
+SC,4210209,Major Gercino,Centro,centro,-27.4146452,-48.9509394,brasil_aberto,True
+SC,4210209,Major Gercino,Pinheiral,pinheiral,-27.4254483,-49.0945507,brasil_aberto,True
+SC,4210308,Major Vieira,Centro,centro,-26.3650301,-50.3264247,brasil_aberto,True
+SC,4210407,Maracajá,Vila Beatriz,vila beatriz,-28.8627437,-49.4511162,brasil_aberto,True
+SC,4210555,Marema,Centro,centro,-26.8030608,-52.6274461,brasil_aberto,True
+SC,4210704,Matos Costa,Centro,centro,-26.4737306,-51.1516531,brasil_aberto,True
+SC,4210803,Meleiro,Centro,centro,-28.8316016,-49.6335945,brasil_aberto,True
+SC,4210803,Meleiro,Sapiranga,sapiranga,-28.8988622,-49.5498746,brasil_aberto,True
+SC,4210852,Mirim Doce,Centro,centro,-27.2006854,-50.0706546,brasil_aberto,True
+SC,4210902,Modelo,Centro,centro,-28.6801913,-49.3652258,brasil_aberto,True
+SC,4211009,Mondaí,Centro,centro,-27.1042163,-53.39885349999999,brasil_aberto,True
+SC,4211058,Monte Carlo,Centro,centro,-27.2227499,-50.978204,brasil_aberto,True
+SC,4211108,Monte Castelo,Residência Fuck,residencia fuck,-26.7121534,-50.2932708,brasil_aberto,True
+SC,4211256,Morro Grande,Centro,centro,-28.6723036,-49.1090445,brasil_aberto,True
+SC,4211207,Morro da Fumaça,Centro,centro,-28.6521143,-49.2114302,brasil_aberto,True
+SC,4211207,Morro da Fumaça,Estação Cocal,estacao cocal,-28.5974266,-49.2457002,brasil_aberto,True
+SC,4211306,Navegantes,Centro,centro,-26.9013831,-48.6458436,brasil_aberto,True
+SC,4211306,Navegantes,Escalvados,escalvados,-26.8331638,-48.73222380000001,brasil_aberto,True
+SC,4211306,Navegantes,Gravatá,gravata,-26.8278747,-48.6309017,brasil_aberto,True
+SC,4211306,Navegantes,Machados,machados,-26.8841151,-48.6828083,brasil_aberto,True
+SC,4211306,Navegantes,Meia Praia,meia praia,-26.8671307,-48.64126,brasil_aberto,True
+SC,4211306,Navegantes,Nossa Senhora das Graças,nossa senhora das gracas,-26.8770412,-48.6835587,brasil_aberto,True
+SC,4211306,Navegantes,Pedreiras,pedreiras,-26.8472073,-48.6748991,brasil_aberto,True
+SC,4211306,Navegantes,São Domingos,sao domingos,-26.8827258,-48.6634178,brasil_aberto,True
+SC,4211306,Navegantes,São Paulo,sao paulo,-26.87647,-48.662785,brasil_aberto,True
+SC,4211306,Navegantes,São Pedro,sao pedro,-26.8954069,-48.6569206,brasil_aberto,True
+SC,4211306,Navegantes,Volta Grande,volta grande,-26.8635972,-48.7238503,brasil_aberto,True
+SC,4211306,Navegantes,Área Rural de Navegantes,area rural de navegantes,-26.8954069,-48.6569206,brasil_aberto,True
+SC,4211405,Nova Erechim,Centro,centro,-26.90403,-52.9069096,brasil_aberto,True
+SC,4211454,Nova Itaberaba,Centro,centro,-26.9422683,-52.8107828,brasil_aberto,True
+SC,4211504,Nova Trento,Aguti,aguti,-27.316849,-49.1180582,brasil_aberto,True
+SC,4211504,Nova Trento,Centro,centro,-27.2859665,-48.9298701,brasil_aberto,True
+SC,4211504,Nova Trento,Claraíba,claraiba,-27.2158682,-48.89914599999999,brasil_aberto,True
+SC,4211603,Nova Veneza,Centro,centro,-28.6377169,-49.5000058,brasil_aberto,True
+SC,4211603,Nova Veneza,Nossa Senhora de Caravaggio,nossa senhora de caravaggio,-28.6626408,-49.4682247,brasil_aberto,True
+SC,4211603,Nova Veneza,São Bento Baixo,sao bento baixo,-28.7096389,-49.5082195,brasil_aberto,True
+SC,4211702,Orleans,Barracão,barracao,-28.2709499,-49.3177707,brasil_aberto,True
+SC,4211702,Orleans,Brusque do Sul,brusque do sul,-28.2507702,-49.3847615,brasil_aberto,True
+SC,4211702,Orleans,Centro,centro,-28.3600229,-49.2926109,brasil_aberto,True
+SC,4211702,Orleans,Pindotiba,pindotiba,-28.4132591,-49.2278253,brasil_aberto,True
+SC,4211702,Orleans,Rio Pinheiros,rio pinheiros,-28.3061529,-49.2588002,brasil_aberto,True
+SC,4211702,Orleans,Rio das Furnas,rio das furnas,-28.2788828,-49.23198499999999,brasil_aberto,True
+SC,4211751,Otacílio Costa,Pinheiros,pinheiros,-27.503857,-50.1141946,brasil_aberto,True
+SC,4211801,Ouro,Centro,centro,-26.4912873,-49.0832408,brasil_aberto,True
+SC,4211801,Ouro,Santa Lúcia,santa lucia,-27.2227106,-51.6939679,brasil_aberto,True
+SC,4211876,Paial,Centro,centro,-27.2555162,-52.4996599,brasil_aberto,True
+SC,4211892,Painel,Centro,centro,-27.9207526,-50.10344509999999,brasil_aberto,True
+SC,4211900,Palhoça,Alto Aririú,alto aririu,-27.6784897,-48.7090636,brasil_aberto,True
+SC,4211900,Palhoça,Aririú,aririu,-27.6770745,-48.6816531,brasil_aberto,True
+SC,4211900,Palhoça,Aririú da Formiga,aririu da formiga,-27.6907612,-48.6613665,brasil_aberto,True
+SC,4211900,Palhoça,Balneário Ponta do Papagaio (Ens Brito),balneario ponta do papagaio (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Barra do Aririú,barra do aririu,-27.6797233,-48.6623915,brasil_aberto,True
+SC,4211900,Palhoça,Bela Vista,bela vista,-27.6581139,-48.6954352,brasil_aberto,True
+SC,4211900,Palhoça,Brejarú,brejaru,-27.6129255,-48.6685464,brasil_aberto,True
+SC,4211900,Palhoça,Caminho Novo,caminho novo,-27.6482051,-48.6880865,brasil_aberto,True
+SC,4211900,Palhoça,Centro,centro,-27.6608021,-48.6710783,brasil_aberto,True
+SC,4211900,Palhoça,Enseada do Brito (Ens Brito),enseada do brito (ens brito),-27.6460297,-48.7065416,brasil_aberto,True
+SC,4211900,Palhoça,Guarda do Cubatão,guarda do cubatao,-27.6808719,-48.6715373,brasil_aberto,True
+SC,4211900,Palhoça,Guarda do Embaú (Ens Brito),guarda do embau (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Jardim Eldorado,jardim eldorado,-27.6320052,-48.662754,brasil_aberto,True
+SC,4211900,Palhoça,Madri,madri,-27.6432247,-48.6914373,brasil_aberto,True
+SC,4211900,Palhoça,Nova Palhoça,nova palhoca,-27.6626793,-48.6633255,brasil_aberto,True
+SC,4211900,Palhoça,Pachecos,pachecos,-27.680774,-48.6615219,brasil_aberto,True
+SC,4211900,Palhoça,Pagani,pagani,-27.6375759,-48.6772541,brasil_aberto,True
+SC,4211900,Palhoça,Passa Vinte,passa vinte,-27.6311976,-48.6679998,brasil_aberto,True
+SC,4211900,Palhoça,Passagem de Maciambú (Ens Brito),passagem de maciambu (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Pedra Branca,pedra branca,-27.6364217,-48.6906683,brasil_aberto,True
+SC,4211900,Palhoça,Pinheira (Ens Brito),pinheira (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Ponte do Imaruim,ponte do imaruim,-27.6334026,-48.6589373,brasil_aberto,True
+SC,4211900,Palhoça,Praia de Fora,praia de fora,-27.7371619,-48.6366465,brasil_aberto,True
+SC,4211900,Palhoça,Praia do Meio (Ens Brito),praia do meio (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Praia do Sonho (Ens Brito),praia do sonho (ens brito),,,brasil_aberto,True
+SC,4211900,Palhoça,Rio Grande,rio grande,-27.666233,-48.6541806,brasil_aberto,True
+SC,4211900,Palhoça,São Sebastião,sao sebastiao,-27.6449603,-48.7209664,brasil_aberto,True
+SC,4211900,Palhoça,Área Rural de Palhoça,area rural de palhoca,-27.6411215,-48.6789533,brasil_aberto,True
+SC,4212007,Palma Sola,Centro,centro,-26.346869,-53.2783131,brasil_aberto,True
+SC,4212106,Palmitos,Centro,centro,-27.0715099,-53.16014999999999,brasil_aberto,True
+SC,4212106,Palmitos,Diamantina,diamantina,-27.0007521,-53.1776208,brasil_aberto,True
+SC,4212106,Palmitos,Santa Lúcia,santa lucia,-27.1330923,-53.2395973,brasil_aberto,True
+SC,4212106,Palmitos,Sede Oldemburg,sede oldemburg,-27.1386316,-53.1244466,brasil_aberto,True
+SC,4212205,Papanduva,Centro,centro,-26.4071015,-50.143742,brasil_aberto,True
+SC,4212205,Papanduva,Nova Cultura,nova cultura,-26.6899985,-50.1429319,brasil_aberto,True
+SC,4212239,Paraíso,Grápia,grapia,-26.6739182,-53.6876747,brasil_aberto,True
+SC,4212254,Passo de Torres,Balneário Rosa do Mar,balneario rosa do mar,,,brasil_aberto,True
+SC,4212254,Passo de Torres,Centro,centro,-29.3234405,-49.7192338,brasil_aberto,True
+SC,4212270,Passos Maia,Centro,centro,-26.7796349,-52.0583064,brasil_aberto,True
+SC,4212304,Paulo Lopes,Centro,centro,-27.963556,-48.6827092,brasil_aberto,True
+SC,4212304,Paulo Lopes,Penha,penha,-28.0652457,-48.7133827,brasil_aberto,True
+SC,4212403,Pedras Grandes,Azambuja,azambuja,-28.494741,-49.24860349999999,brasil_aberto,True
+SC,4212403,Pedras Grandes,Centro,centro,-28.43588,-49.1857126,brasil_aberto,True
+SC,4212502,Penha,Centro,centro,-26.7714897,-48.6432866,brasil_aberto,True
+SC,4212601,Peritiba,Centro,centro,-27.0011858,-48.6298047,brasil_aberto,True
+SC,4212650,Pescaria Brava,Barreiros,barreiros,-28.3952984,-48.88504649999999,brasil_aberto,True
+SC,4212650,Pescaria Brava,Estiva,estiva,-28.4252134,-48.9254145,brasil_aberto,True
+SC,4212650,Pescaria Brava,Laranjeiras,laranjeiras,-28.4308759,-48.8744224,brasil_aberto,True
+SC,4212650,Pescaria Brava,Pescaria Brava,pescaria brava,-28.3916695,-48.8815657,brasil_aberto,True
+SC,4212650,Pescaria Brava,Santiago,santiago,-28.415004,-48.9015916,brasil_aberto,True
+SC,4212650,Pescaria Brava,Sertão de Cima,sertao de cima,-28.4001776,-48.9314318,brasil_aberto,True
+SC,4212700,Petrolândia,Rio Antinha,rio antinha,-27.4746763,-49.632485,brasil_aberto,True
+SC,4213005,Pinheiro Preto,Centro,centro,,,brasil_aberto,True
+SC,4213104,Piratuba,Centro,centro,-27.4209577,-51.7805974,brasil_aberto,True
+SC,4213104,Piratuba,Uruguai,uruguai,-27.4197664,-51.7752272,brasil_aberto,True
+SC,4213153,Planalto Alegre,Centro,centro,-27.067428,-52.8652313,brasil_aberto,True
+SC,4213203,Pomerode,Centro,centro,-26.7367328,-49.1771916,brasil_aberto,True
+SC,4213302,Ponte Alta,Centro,centro,-27.4822491,-50.3812007,brasil_aberto,True
+SC,4213351,Ponte Alta do Norte,Centro,centro,-27.1593965,-50.4664034,brasil_aberto,True
+SC,4213401,Ponte Serrada,Baia Alta,baia alta,-26.8588646,-52.02849399999999,brasil_aberto,True
+SC,4213401,Ponte Serrada,Centro,centro,-26.8715432,-52.0181525,brasil_aberto,True
+SC,4213500,Porto Belo,Centro,centro,-27.1552927,-48.5419143,brasil_aberto,True
+SC,4213609,Porto União,Centro,centro,-26.2347343,-51.084183,brasil_aberto,True
+SC,4213609,Porto União,Santa Cruz do Timbó,santa cruz do timbo,-26.3868744,-50.881313,brasil_aberto,True
+SC,4213609,Porto União,São Miguel da Serra,sao miguel da serra,-26.3725105,-51.0795349,brasil_aberto,True
+SC,4213708,Pouso Redondo,Aterrado Torto,aterrado torto,-27.2699966,-49.8835066,brasil_aberto,True
+SC,4213708,Pouso Redondo,Centro,centro,-27.257383,-49.9373014,brasil_aberto,True
+SC,4213708,Pouso Redondo,Progresso,progresso,-27.2530238,-49.9328637,brasil_aberto,True
+SC,4213807,Praia Grande,Cachoeira de Fátima,cachoeira de fatima,-29.1414291,-49.8931556,brasil_aberto,True
+SC,4213807,Praia Grande,Centro,centro,-29.1980345,-49.9507217,brasil_aberto,True
+SC,4213906,Presidente Castello Branco,Centro,centro,-27.2210911,-51.8103645,brasil_aberto,True
+SC,4214003,Presidente Getúlio,Centro,centro,-27.0457253,-49.6211226,brasil_aberto,True
+SC,4214003,Presidente Getúlio,Mirador,mirador,-27.0680915,-49.7086762,brasil_aberto,True
+SC,4214102,Presidente Nereu,Centro,centro,-27.2787911,-49.3887021,brasil_aberto,True
+SC,4214151,Princesa,Centro,centro,-26.2987341,-48.8467518,brasil_aberto,True
+SC,4214201,Quilombo,Centro,centro,-26.7280073,-52.71729490000001,brasil_aberto,True
+SC,4214300,Rancho Queimado,Centro,centro,-27.6734899,-49.01287019999999,brasil_aberto,True
+SC,4214300,Rancho Queimado,Taquaras,taquaras,-27.6416788,-49.1098176,brasil_aberto,True
+SC,4214904,Rio Fortuna,Centro,centro,-28.1387385,-49.11554599999999,brasil_aberto,True
+SC,4215000,Rio Negrinho,Centro,centro,-26.2538211,-49.5177304,brasil_aberto,True
+SC,4215000,Rio Negrinho,São Rafael,sao rafael,-26.2677557,-49.5285008,brasil_aberto,True
+SC,4215000,Rio Negrinho,Vila Nova,vila nova,-26.2446725,-49.5119818,brasil_aberto,True
+SC,4215000,Rio Negrinho,Vila de Volta Grande,vila de volta grande,,,brasil_aberto,True
+SC,4215000,Rio Negrinho,Vista Alegre,vista alegre,-26.248037,-49.5408007,brasil_aberto,True
+SC,4215059,Rio Rufino,Centro,centro,-27.8627136,-49.7820046,brasil_aberto,True
+SC,4214409,Rio das Antas,Centro,centro,-26.898249,-51.0747569,brasil_aberto,True
+SC,4214409,Rio das Antas,Ipoméia,ipomeia,-26.9387231,-51.0990803,brasil_aberto,True
+SC,4214508,Rio do Campo,Centro,centro,-26.9459903,-50.1398313,brasil_aberto,True
+SC,4214607,Rio do Oeste,Centro,centro,-27.1929635,-49.7975551,brasil_aberto,True
+SC,4214805,Rio do Sul,Albertina,albertina,-27.2465705,-49.6453665,brasil_aberto,True
+SC,4214805,Rio do Sul,Barra Itoupava,barra itoupava,-27.1938666,-49.6208386,brasil_aberto,True
+SC,4214805,Rio do Sul,Barra do Trombudo,barra do trombudo,-27.2552514,-49.6921123,brasil_aberto,True
+SC,4214805,Rio do Sul,Barragem,barragem,-27.2420168,-49.676295,brasil_aberto,True
+SC,4214805,Rio do Sul,Bela Aliança,bela alianca,-27.1905227,-49.5947003,brasil_aberto,True
+SC,4214805,Rio do Sul,Boa Vista,boa vista,-27.2220836,-49.632081,brasil_aberto,True
+SC,4214805,Rio do Sul,Bremer,bremer,-27.1942548,-49.6081653,brasil_aberto,True
+SC,4214805,Rio do Sul,Budag,budag,-27.2232311,-49.6523522,brasil_aberto,True
+SC,4214805,Rio do Sul,Canoas,canoas,-27.2186823,-49.6497407,brasil_aberto,True
+SC,4214805,Rio do Sul,Canta Galo,canta galo,-27.2063424,-49.631495,brasil_aberto,True
+SC,4214805,Rio do Sul,Centro,centro,-27.215002,-49.6415594,brasil_aberto,True
+SC,4214805,Rio do Sul,Eugênio Schneider,eugenio schneider,-27.2250488,-49.6388324,brasil_aberto,True
+SC,4214805,Rio do Sul,Fundo Canoas,fundo canoas,-27.2028728,-49.6649142,brasil_aberto,True
+SC,4214805,Rio do Sul,Jardim América,jardim america,-27.2114187,-49.6337242,brasil_aberto,True
+SC,4214805,Rio do Sul,Laranjeiras,laranjeiras,-27.2344885,-49.6454714,brasil_aberto,True
+SC,4214805,Rio do Sul,Navegantes,navegantes,-27.1883325,-49.6062524,brasil_aberto,True
+SC,4214805,Rio do Sul,Pamplona,pamplona,-27.2232868,-49.6679666,brasil_aberto,True
+SC,4214805,Rio do Sul,Progresso,progresso,-27.2154736,-49.6617903,brasil_aberto,True
+SC,4214805,Rio do Sul,Rainha,rainha,-27.1722397,-49.5869842,brasil_aberto,True
+SC,4214805,Rio do Sul,Santa Rita,santa rita,-27.1747732,-49.6059156,brasil_aberto,True
+SC,4214805,Rio do Sul,Santana,santana,-27.2080907,-49.6258757,brasil_aberto,True
+SC,4214805,Rio do Sul,Sumaré,sumare,-27.2266121,-49.6534927,brasil_aberto,True
+SC,4214805,Rio do Sul,Taboão,taboao,-27.2018748,-49.6195263,brasil_aberto,True
+SC,4214805,Rio do Sul,Valada Itoupava,valada itoupava,-27.1884414,-49.6181671,brasil_aberto,True
+SC,4214805,Rio do Sul,Valada São Paulo,valada sao paulo,-27.1714536,-49.5980424,brasil_aberto,True
+SC,4214805,Rio do Sul,Área Rural de Rio do Sul,area rural de rio do sul,-27.2163185,-49.6428769,brasil_aberto,True
+SC,4214706,Rio dos Cedros,Cedro Alto,cedro alto,-26.5910803,-49.4059435,brasil_aberto,True
+SC,4214706,Rio dos Cedros,Centro (Rio Rosinha),centro (rio rosinha),,,brasil_aberto,True
+SC,4214706,Rio dos Cedros,Divinéia,divineia,-26.7439467,-49.2841037,brasil_aberto,True
+SC,4215075,Riqueza,Centro,centro,-27.0698431,-53.3250313,brasil_aberto,True
+SC,4215109,Rodeio,Centro,centro,-26.9258061,-49.3696463,brasil_aberto,True
+SC,4215208,Romelândia,Centro,centro,-26.6769058,-53.3204907,brasil_aberto,True
+SC,4215307,Salete,Centro,centro,-26.9794212,-50.0028483,brasil_aberto,True
+SC,4215406,Salto Veloso,Centro,centro,-26.9050678,-51.4058363,brasil_aberto,True
+SC,4215455,Sangão,Centro,centro,-28.638445,-49.1269894,brasil_aberto,True
+SC,4215455,Sangão,Distrito de Morro Grande,distrito de morro grande,-28.6783385,-49.1095648,brasil_aberto,True
+SC,4215554,Santa Helena,Santa Helena,santa helena,-27.1559137,-51.6557974,brasil_aberto,True
+SC,4215604,Santa Rosa de Lima,Centro,centro,-28.0389229,-49.1242149,brasil_aberto,True
+SC,4215653,Santa Rosa do Sul,Centro,centro,-29.1377015,-49.71454019999999,brasil_aberto,True
+SC,4215653,Santa Rosa do Sul,Vila São Cristovão,vila sao cristovao,-29.1667349,-49.7482541,brasil_aberto,True
+SC,4215679,Santa Terezinha,Craveiro,craveiro,-26.5687677,-50.0392002,brasil_aberto,True
+SC,4215687,Santa Terezinha do Progresso,Centro,centro,-26.6210756,-53.2001061,brasil_aberto,True
+SC,4215695,Santiago do Sul,Centro,centro,-26.6330577,-52.6755509,brasil_aberto,True
+SC,4215703,Santo Amaro da Imperatriz,Centro,centro,-27.6874276,-48.7776988,brasil_aberto,True
+SC,4217303,Saudades,Centro,centro,-26.9264548,-53.0064675,brasil_aberto,True
+SC,4217402,Schroeder,Centro,centro,-26.4143038,-49.0743348,brasil_aberto,True
+SC,4217501,Seara,Caraíba,caraiba,-27.2158815,-52.3253861,brasil_aberto,True
+SC,4217501,Seara,Centro,centro,-27.1519433,-52.3089075,brasil_aberto,True
+SC,4217501,Seara,Nova Teutônia,nova teutonia,-27.1641184,-52.42315559999999,brasil_aberto,True
+SC,4217550,Serra Alta,Centro,centro,-26.7274349,-53.0424776,brasil_aberto,True
+SC,4217600,Siderópolis,Centro,centro,-28.5959356,-49.4261215,brasil_aberto,True
+SC,4217600,Siderópolis,Vila São Jorge,vila sao jorge,-28.6310651,-49.4076161,brasil_aberto,True
+SC,4217709,Sombrio,Centro,centro,-29.1131412,-49.6364654,brasil_aberto,True
+SC,4217709,Sombrio,Nova Guarita,nova guarita,-29.0701987,-49.6239628,brasil_aberto,True
+SC,4217758,Sul Brasil,Centro,centro,-26.7383759,-52.96514519999999,brasil_aberto,True
+SC,4215802,São Bento do Sul,25 de Julho,25 de julho,-26.2621572,-49.3794437,brasil_aberto,True
+SC,4215802,São Bento do Sul,Alpino,alpino,-26.2434776,-49.4581899,brasil_aberto,True
+SC,4215802,São Bento do Sul,Bela Aliança,bela alianca,-26.2183317,-49.3619802,brasil_aberto,True
+SC,4215802,São Bento do Sul,Boehmerwald,boehmerwald,-26.2278321,-49.3963012,brasil_aberto,True
+SC,4215802,São Bento do Sul,Brasília,brasilia,-26.236433,-49.3585236,brasil_aberto,True
+SC,4215802,São Bento do Sul,Centenário,centenario,-26.2427833,-49.3509322,brasil_aberto,True
+SC,4215802,São Bento do Sul,Centro,centro,-26.2552454,-49.3856605,brasil_aberto,True
+SC,4215802,São Bento do Sul,Colonial,colonial,-26.2316839,-49.3941465,brasil_aberto,True
+SC,4215802,São Bento do Sul,Cruzeiro,cruzeiro,-26.2192087,-49.4214167,brasil_aberto,True
+SC,4215802,São Bento do Sul,Dona Francisca,dona francisca,-26.2138362,-49.3823316,brasil_aberto,True
+SC,4215802,São Bento do Sul,Industrial Sudoeste,industrial sudoeste,-26.2629024,-49.4381763,brasil_aberto,True
+SC,4215802,São Bento do Sul,Lençol,lencol,-26.2457333,-49.4551065,brasil_aberto,True
+SC,4215802,São Bento do Sul,Mato Preto,mato preto,-26.1974469,-49.3970975,brasil_aberto,True
+SC,4215802,São Bento do Sul,Oxford,oxford,-26.2074038,-49.4083937,brasil_aberto,True
+SC,4215802,São Bento do Sul,Progresso,progresso,-26.2354869,-49.3730774,brasil_aberto,True
+SC,4215802,São Bento do Sul,Rio Negro,rio negro,-26.2519244,-49.3994042,brasil_aberto,True
+SC,4215802,São Bento do Sul,Rio Vermelho Estação,rio vermelho estacao,-26.2815231,-49.3325731,brasil_aberto,True
+SC,4215802,São Bento do Sul,Rio Vermelho Povoado,rio vermelho povoado,-26.2653818,-49.3120065,brasil_aberto,True
+SC,4215802,São Bento do Sul,Schramm,schramm,-26.2498639,-49.3730082,brasil_aberto,True
+SC,4215802,São Bento do Sul,Serra Alta,serra alta,-26.2895902,-49.4303907,brasil_aberto,True
+SC,4215802,São Bento do Sul,Área Rural de São Bento do Sul,area rural de sao bento do sul,-26.2497682,-49.3839372,brasil_aberto,True
+SC,4215752,São Bernardino,Centro,centro,-26.4722755,-52.965911,brasil_aberto,True
+SC,4215901,São Bonifácio,Centro,centro,-27.8997542,-48.92939440000001,brasil_aberto,True
+SC,4216057,São Cristóvão do Sul,Centro,centro,-27.2689941,-50.4427882,brasil_aberto,True
+SC,4216107,São Domingos,Maratá,marata,-26.5837352,-52.640834,brasil_aberto,True
+SC,4216107,São Domingos,Vila Milani,vila milani,-26.4749282,-52.52681579999999,brasil_aberto,True
+SC,4216206,São Francisco do Sul,Balneário Enseada,balneario enseada,-26.2310072,-48.5081493,brasil_aberto,True
+SC,4216206,São Francisco do Sul,Centro,centro,-26.2436644,-48.6352955,brasil_aberto,True
+SC,4216206,São Francisco do Sul,Sai,sai,-26.210422,-48.6990679,brasil_aberto,True
+SC,4216206,São Francisco do Sul,Ubatuba,ubatuba,-26.1984317,-48.5385654,brasil_aberto,True
+SC,4216503,São Joaquim,Centro,centro,-28.2919445,-49.9337604,brasil_aberto,True
+SC,4216503,São Joaquim,Pericó,perico,-28.1630874,-49.7572017,brasil_aberto,True
+SC,4216503,São Joaquim,Santa Izabel,santa izabel,-28.1102617,-49.9889387,brasil_aberto,True
+SC,4216503,São Joaquim,São Sebastião do Arvoredo,sao sebastiao do arvoredo,-28.3904813,-50.124826,brasil_aberto,True
+SC,4216602,São José,Areias,areias,-27.556734,-48.6232854,brasil_aberto,True
+SC,4216602,São José,Barreiros,barreiros,-27.5683687,-48.6123316,brasil_aberto,True
+SC,4216602,São José,Bela Vista,bela vista,-27.5680293,-48.6149357,brasil_aberto,True
+SC,4216602,São José,Bosque das Mansões,bosque das mansoes,-27.5862226,-48.6220666,brasil_aberto,True
+SC,4216602,São José,Campinas,campinas,-27.5973171,-48.60965,brasil_aberto,True
+SC,4216602,São José,Centro,centro,-27.6103479,-48.6331803,brasil_aberto,True
+SC,4216602,São José,Colônia Santana,colonia santana,-27.5840224,-48.7155011,brasil_aberto,True
+SC,4216602,São José,Distrito Industrial,distrito industrial,-27.6241134,-48.64496,brasil_aberto,True
+SC,4216602,São José,Fazenda Santo Antônio,fazenda santo antonio,-27.6214511,-48.6398929,brasil_aberto,True
+SC,4216602,São José,Flor de Nápolis,flor de napolis,-27.6071244,-48.6393844,brasil_aberto,True
+SC,4216602,São José,Forquilhas,forquilhas,-27.5760522,-48.6703556,brasil_aberto,True
+SC,4216602,São José,Forquilhinha,forquilhinha,-27.5920717,-48.6498153,brasil_aberto,True
+SC,4216602,São José,Ipiranga,ipiranga,-27.5662843,-48.6238019,brasil_aberto,True
+SC,4216602,São José,Jardim Cidade de Florianópolis,jardim cidade de florianopolis,-27.572925,-48.6310883,brasil_aberto,True
+SC,4216602,São José,Jardim Santiago,jardim santiago,-27.556053,-48.6191701,brasil_aberto,True
+SC,4216602,São José,Kobrasol,kobrasol,-27.5951913,-48.6177936,brasil_aberto,True
+SC,4216602,São José,Nossa Senhora do Rosário,nossa senhora do rosario,-27.5787495,-48.621476,brasil_aberto,True
+SC,4216602,São José,Pedregal,pedregal,-27.5723219,-48.6435745,brasil_aberto,True
+SC,4216602,São José,Picadas do Sul,picadas do sul,-27.6124125,-48.6424545,brasil_aberto,True
+SC,4216602,São José,Ponta de Baixo,ponta de baixo,-27.6349061,-48.6305906,brasil_aberto,True
+SC,4216602,São José,Potecas,potecas,-27.5523861,-48.660867,brasil_aberto,True
+SC,4216602,São José,Praia Comprida,praia comprida,-27.608074,-48.6303759,brasil_aberto,True
+SC,4216602,São José,Real Parque,real parque,-27.568264,-48.6426707,brasil_aberto,True
+SC,4216602,São José,Roçado,rocado,-27.5939962,-48.6205567,brasil_aberto,True
+SC,4216602,São José,Serraria,serraria,-27.5375636,-48.6307672,brasil_aberto,True
+SC,4216602,São José,Sertão do Maruim,sertao do maruim,-27.5988353,-48.6749789,brasil_aberto,True
+SC,4216602,São José,São Luiz,sao luiz,-27.5992873,-48.6320003,brasil_aberto,True
+SC,4216602,São José,Área Rural de São José,area rural de sao jose,-27.5950396,-48.61376809999999,brasil_aberto,True
+SC,4216701,São José do Cedro,Centro,centro,-26.4537851,-53.4985508,brasil_aberto,True
+SC,4216701,São José do Cedro,Mariflor,mariflor,-26.5060047,-53.6176937,brasil_aberto,True
+SC,4216701,São José do Cedro,Padre Reus,padre reus,-26.4863813,-53.6718626,brasil_aberto,True
+SC,4216800,São José do Cerrito,Centro,centro,-27.6606111,-50.57990059999999,brasil_aberto,True
+SC,4216305,São João Batista,Tigipió,tigipio,,,brasil_aberto,True
+SC,4216354,São João do Itaperiú,Centro,centro,-26.6154224,-48.7660095,brasil_aberto,True
+SC,4216255,São João do Oeste,Centro,centro,-27.0963924,-53.595833,brasil_aberto,True
+SC,4216255,São João do Oeste,Distrito de Cristo Rei,distrito de cristo rei,,,brasil_aberto,True
+SC,4216404,São João do Sul,Centro,centro,-29.2236005,-49.8081009,brasil_aberto,True
+SC,4216404,São João do Sul,Vila Conceição,vila conceicao,-29.2127238,-49.7581004,brasil_aberto,True
+SC,4216909,São Lourenço do Oeste,Centro,centro,-26.3520124,-52.8508911,brasil_aberto,True
+SC,4216909,São Lourenço do Oeste,Frederico Wastner,frederico wastner,-26.4053393,-52.7874199,brasil_aberto,True
+SC,4216909,São Lourenço do Oeste,Presidente Juscelino,presidente juscelino,-26.4226765,-52.8955875,brasil_aberto,True
+SC,4216909,São Lourenço do Oeste,São Roque,sao roque,-26.5579547,-52.8419824,brasil_aberto,True
+SC,4217006,São Ludgero,Centro,centro,-28.3273657,-49.1785809,brasil_aberto,True
+SC,4217105,São Martinho,Vargem do Cedro,vargem do cedro,-28.0905222,-48.9194389,brasil_aberto,True
+SC,4217154,São Miguel da Boa Vista,Centro,centro,-26.6926279,-53.2558004,brasil_aberto,True
+SC,4217204,São Miguel do Oeste,Centro,centro,-26.7291483,-53.5177667,brasil_aberto,True
+SC,4217204,São Miguel do Oeste,Prata,prata,-26.725999,-53.5204071,brasil_aberto,True
+SC,4217253,São Pedro de Alcântara,Centro,centro,-27.5645058,-48.7992258,brasil_aberto,True
+SC,4217253,São Pedro de Alcântara,Santa Teresa,santa teresa,-27.5727661,-48.7536519,brasil_aberto,True
+SC,4217808,Taió,Centro,centro,-27.1164209,-50.0106723,brasil_aberto,True
+SC,4217808,Taió,Passo Manso,passo manso,-27.0561214,-50.1422361,brasil_aberto,True
+SC,4217907,Tangará,Irakitan,irakitan,-27.1470576,-51.0411993,brasil_aberto,True
+SC,4217907,Tangará,Marari,marari,-27.2095848,-51.1113649,brasil_aberto,True
+SC,4217956,Tigrinhos,Centro,centro,-26.686751,-53.1570714,brasil_aberto,True
+SC,4218004,Tijucas,Centro,centro,-27.2407246,-48.6325807,brasil_aberto,True
+SC,4218103,Timbé do Sul,Centro,centro,-28.8324009,-49.8459456,brasil_aberto,True
+SC,4218202,Timbó,Centro,centro,-26.8254953,-49.2753337,brasil_aberto,True
+SC,4218202,Timbó,Fritz Lorenz,fritz lorenz,-26.8506869,-49.2581888,brasil_aberto,True
+SC,4218251,Timbó Grande,Centro,centro,-26.6177787,-50.67430239999999,brasil_aberto,True
+SC,4218350,Treviso,Centro,centro,-28.5168579,-49.4573755,brasil_aberto,True
+SC,4218509,Treze Tílias,Centro,centro,-26.9977921,-51.4088064,brasil_aberto,True
+SC,4218400,Treze de Maio,Centro,centro,-28.5586335,-49.1480729,brasil_aberto,True
+SC,4218400,Treze de Maio,São Gabriel,sao gabriel,-28.5786198,-49.10383650000001,brasil_aberto,True
+SC,4218608,Trombudo Central,Centro,centro,-27.3009035,-49.7925112,brasil_aberto,True
+SC,4218301,Três Barras,Centro,centro,-26.1080237,-50.3180309,brasil_aberto,True
+SC,4218301,Três Barras,São Cristóvão,sao cristovao,-26.1502217,-50.3719824,brasil_aberto,True
+SC,4218707,Tubarão,Aeroporto,aeroporto,-28.4747573,-48.9924457,brasil_aberto,True
+SC,4218707,Tubarão,Campestre,campestre,-28.4758354,-48.9711822,brasil_aberto,True
+SC,4218707,Tubarão,Centro,centro,-28.4808179,-49.0137771,brasil_aberto,True
+SC,4218707,Tubarão,Congonhas,congonhas,-28.5057715,-49.006759,brasil_aberto,True
+SC,4218707,Tubarão,Cruzeiro,cruzeiro,-28.4960166,-49.0391253,brasil_aberto,True
+SC,4218707,Tubarão,Dehon,dehon,-28.4736343,-49.0209601,brasil_aberto,True
+SC,4218707,Tubarão,Fábio Silva,fabio silva,-28.4833412,-49.0325374,brasil_aberto,True
+SC,4218707,Tubarão,Humaitá,humaita,-28.4720925,-49.0052062,brasil_aberto,True
+SC,4218707,Tubarão,Humaitá de Cima,humaita de cima,-28.4754289,-49.02875299999999,brasil_aberto,True
+SC,4218707,Tubarão,Monte Castelo,monte castelo,-28.5011373,-49.034721,brasil_aberto,True
+SC,4218707,Tubarão,Morrotes,morrotes,-28.4773815,-49.0276692,brasil_aberto,True
+SC,4218707,Tubarão,Nova Tubarão,nova tubarao,-28.4519758,-49.009635,brasil_aberto,True
+SC,4218707,Tubarão,Oficinas,oficinas,-28.5015511,-49.0155309,brasil_aberto,True
+SC,4218707,Tubarão,Passagem,passagem,-28.4764149,-48.9831215,brasil_aberto,True
+SC,4218707,Tubarão,Passo do Gado,passo do gado,-28.4882759,-48.9903077,brasil_aberto,True
+SC,4218707,Tubarão,Praia Redonda,praia redonda,-28.4956101,-48.9941708,brasil_aberto,True
+SC,4218707,Tubarão,Recife,recife,-28.4819355,-48.9916282,brasil_aberto,True
+SC,4218707,Tubarão,Revoredo,revoredo,-28.472093,-48.9986385,brasil_aberto,True
+SC,4218707,Tubarão,Santa Luzia,santa luzia,-28.5018673,-48.9950826,brasil_aberto,True
+SC,4218707,Tubarão,Santo Antônio de Pádua,santo antonio de padua,-28.4928311,-49.0123071,brasil_aberto,True
+SC,4218707,Tubarão,Sertão dos Correias,sertao dos correias,-28.4956952,-49.0437978,brasil_aberto,True
+SC,4218707,Tubarão,São Bernardo,sao bernardo,-28.4548226,-49.0302948,brasil_aberto,True
+SC,4218707,Tubarão,São Clemente,sao clemente,-28.4972531,-48.9854853,brasil_aberto,True
+SC,4218707,Tubarão,São Cristóvão,sao cristovao,-28.5155772,-49.0534503,brasil_aberto,True
+SC,4218707,Tubarão,São João (Margem Direita),sao joao (margem direita),-28.4689938,-49.0354437,brasil_aberto,True
+SC,4218707,Tubarão,São João (Margem Esquerda),sao joao (margem esquerda),-28.4656776,-49.0369523,brasil_aberto,True
+SC,4218707,Tubarão,São Martinho,sao martinho,-28.4440687,-49.020785,brasil_aberto,True
+SC,4218707,Tubarão,Vila Esperança,vila esperanca,-28.4673511,-49.0164291,brasil_aberto,True
+SC,4218707,Tubarão,Vila Moema,vila moema,-28.4764041,-48.9975604,brasil_aberto,True
+SC,4218707,Tubarão,Área Rural de Tubarão,area rural de tubarao,-28.48189,-49.0058806,brasil_aberto,True
+SC,4218756,Tunápolis,Centro,centro,-26.9722336,-53.6408932,brasil_aberto,True
+SC,4218806,Turvo,Morro Chato,morro chato,-28.8415934,-49.7171187,brasil_aberto,True
+SC,4218855,União do Oeste,Centro,centro,-26.7624593,-52.85239989999999,brasil_aberto,True
+SC,4218905,Urubici,Centro,centro,-28.0157402,-49.5956416,brasil_aberto,True
+SC,4218905,Urubici,Águas Brancas,aguas brancas,-27.947854,-49.5483671,brasil_aberto,True
+SC,4218954,Urupema,Centro,centro,-27.9555065,-49.8738944,brasil_aberto,True
+SC,4219002,Urussanga,Centro,centro,-28.5198966,-49.3223593,brasil_aberto,True
+SC,4219002,Urussanga,Povoado Rio América,povoado rio america,-28.5144043,-49.3695849,brasil_aberto,True
+SC,4219002,Urussanga,Povoado de Santana,povoado de santana,-28.4658323,-49.3574515,brasil_aberto,True
+SC,4219176,Vargem Bonita,Campina da Alegria,campina da alegria,-26.8720227,-51.7921121,brasil_aberto,True
+SC,4219101,Vargeão,Centro,centro,-26.8619669,-52.1582746,brasil_aberto,True
+SC,4219200,Vidal Ramos,Centro,centro,-27.3925993,-49.361597,brasil_aberto,True
+SC,4219309,Videira,Aeroporto,aeroporto,-27.0010535,-51.1419789,brasil_aberto,True
+SC,4219309,Videira,Alvorada,alvorada,-27.0210019,-51.1491744,brasil_aberto,True
+SC,4219309,Videira,Amarante,amarante,-26.9982225,-51.1780126,brasil_aberto,True
+SC,4219309,Videira,Anta Gorda,anta gorda,-26.9467718,-51.2400132,brasil_aberto,True
+SC,4219309,Videira,Bom Sucesso,bom sucesso,-27.0013937,-51.1592126,brasil_aberto,True
+SC,4219309,Videira,Campo Experimental,campo experimental,-27.0234339,-51.1477863,brasil_aberto,True
+SC,4219309,Videira,Carboni,carboni,-26.9862951,-51.162515,brasil_aberto,True
+SC,4219309,Videira,Carelli,carelli,-26.9906399,-51.155947,brasil_aberto,True
+SC,4219309,Videira,Centro,centro,-27.0058303,-51.153193,brasil_aberto,True
+SC,4219309,Videira,Cetrevi,cetrevi,-26.9826872,-51.197952,brasil_aberto,True
+SC,4219309,Videira,Cibrazém,cibrazem,-27.0152078,-51.1551916,brasil_aberto,True
+SC,4219309,Videira,Cidade Alta,cidade alta,-26.9868201,-51.1782513,brasil_aberto,True
+SC,4219309,Videira,Dois Pinheiros,dois pinheiros,-27.0038414,-51.1361103,brasil_aberto,True
+SC,4219309,Videira,Farroupilha,farroupilha,-26.9979317,-51.1514199,brasil_aberto,True
+SC,4219309,Videira,Floresta,floresta,-27.0059797,-51.16050019999999,brasil_aberto,True
+SC,4219309,Videira,Lourdes,lourdes,-27.0631706,-51.0288569,brasil_aberto,True
+SC,4219309,Videira,Marafon,marafon,-27.0036176,-51.1507882,brasil_aberto,True
+SC,4219309,Videira,Matriz,matriz,-27.0059528,-51.1437839,brasil_aberto,True
+SC,4219309,Videira,Morada do Sol,morada do sol,-27.001815,-51.1252298,brasil_aberto,True
+SC,4219309,Videira,Nossa Senhora Aparecida,nossa senhora aparecida,-27.0081605,-51.1184611,brasil_aberto,True
+SC,4219309,Videira,Oficina,oficina,-27.0170855,-51.1376717,brasil_aberto,True
+SC,4219309,Videira,Panazzolo,panazzolo,-26.9998721,-51.1719647,brasil_aberto,True
+SC,4219309,Videira,Portal das Videiras,portal das videiras,-26.998216,-51.1299433,brasil_aberto,True
+SC,4219309,Videira,Rio das Pedras,rio das pedras,-27.0006553,-51.0796579,brasil_aberto,True
+SC,4219309,Videira,Santa Gema,santa gema,-26.9868201,-51.1782513,brasil_aberto,True
+SC,4219309,Videira,Santa Lucia,santa lucia,-27.0088894,-51.1210276,brasil_aberto,True
+SC,4219309,Videira,Santa Tereza,santa tereza,-27.0050294,-51.1368963,brasil_aberto,True
+SC,4219309,Videira,Santos Dumont,santos dumont,-26.9969648,-51.1476221,brasil_aberto,True
+SC,4219309,Videira,Sesi,sesi,-27.0119948,-51.1510752,brasil_aberto,True
+SC,4219309,Videira,São Cristovão,sao cristovao,-27.0165989,-51.1386486,brasil_aberto,True
+SC,4219309,Videira,São Francisco,sao francisco,-27.0151441,-51.1408631,brasil_aberto,True
+SC,4219309,Videira,Universitário,universitario,-26.9972181,-51.1642711,brasil_aberto,True
+SC,4219309,Videira,Vila Verde,vila verde,-27.0238581,-51.1510523,brasil_aberto,True
+SC,4219309,Videira,Vila de Carli,vila de carli,-27.01837,-51.1486619,brasil_aberto,True
+SC,4219309,Videira,Água Verde,agua verde,-27.0251144,-51.1376332,brasil_aberto,True
+SC,4219309,Videira,Área Rural de Videira,area rural de videira,-27.0052677,-51.1543274,brasil_aberto,True
+SC,4219358,Vitor Meireles,Barra da Prata,barra da prata,-26.707688,-49.8352186,brasil_aberto,True
+SC,4219358,Vitor Meireles,Centro,centro,-26.8828814,-49.8363692,brasil_aberto,True
+SC,4219358,Vitor Meireles,Lagoas,lagoas,-26.8828814,-49.8363692,brasil_aberto,True
+SC,4219408,Witmarsum,Centro,centro,-26.9264089,-49.793105,brasil_aberto,True
+SC,4219507,Xanxerê,Cambuinzal,cambuinzal,-26.9637641,-52.4257808,brasil_aberto,True
+SC,4219507,Xanxerê,Centro,centro,-26.878122,-52.402711,brasil_aberto,True
+SC,4219606,Xavantina,Centro,centro,-28.273775,-49.1686426,brasil_aberto,True
+SC,4219606,Xavantina,Linha das Palmeiras,linha das palmeiras,-27.023288,-52.3286105,brasil_aberto,True
+SC,4219705,Xaxim,Centro,centro,-26.9635626,-52.5317957,brasil_aberto,True
+SC,4219853,Zortéa,Imigrantes,imigrantes,-27.4551208,-51.5498297,brasil_aberto,True
+SC,4200408,Água Doce,Centro,centro,-26.9983885,-51.553515,brasil_aberto,True
+SC,4200408,Água Doce,Herciliópolis,herciliopolis,-26.8189225,-51.5209424,brasil_aberto,True
+SC,4200408,Água Doce,Três Pinheiros,tres pinheiros,-26.6838939,-51.5635428,brasil_aberto,True
+SC,4200556,Águas Frias,Centro,centro,-26.8826741,-52.86031,brasil_aberto,True
+SC,4200606,Águas Mornas,Centro,centro,-27.6942221,-48.8222144,brasil_aberto,True
+SC,4200606,Águas Mornas,Santa Cruz da Figueira,santa cruz da figueira,-27.7216073,-48.8914937,brasil_aberto,True
+SC,4200507,Águas de Chapecó,Centro,centro,-27.0732381,-52.9858644,brasil_aberto,True

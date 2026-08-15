@@ -1,0 +1,77 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+RR,1400027,Amajari,Centro,centro,3.5720992,-61.0921496,brasil_aberto,True
+RR,1400100,Boa Vista,Aeroporto,aeroporto,2.8305285,-60.6914276,brasil_aberto,True
+RR,1400100,Boa Vista,Alvorada,alvorada,2.816211,-60.7514932,brasil_aberto,True
+RR,1400100,Boa Vista,Asa Branca,asa branca,2.8141611,-60.7175305,brasil_aberto,True
+RR,1400100,Boa Vista,Bela Vista,bela vista,2.7714002,-60.7219471,brasil_aberto,True
+RR,1400100,Boa Vista,Buritis,buritis,2.8223236,-60.7062008,brasil_aberto,True
+RR,1400100,Boa Vista,Caimbé,caimbe,2.8301364,-60.7150463,brasil_aberto,True
+RR,1400100,Boa Vista,Calungá,calunga,2.8016072,-60.6793056,brasil_aberto,True
+RR,1400100,Boa Vista,Cambará,cambara,2.8152956,-60.7319309,brasil_aberto,True
+RR,1400100,Boa Vista,Canarinho,canarinho,2.8372515,-60.6554957,brasil_aberto,True
+RR,1400100,Boa Vista,Caranã,carana,2.8350009,-60.7202384,brasil_aberto,True
+RR,1400100,Boa Vista,Cauamé,cauame,2.8541898,-60.7207008,brasil_aberto,True
+RR,1400100,Boa Vista,Caçari,cacari,2.8436144,-60.6538952,brasil_aberto,True
+RR,1400100,Boa Vista,Centenário,centenario,2.7963195,-60.7147874,brasil_aberto,True
+RR,1400100,Boa Vista,Cidade Satélite,cidade satelite,2.8401977,-60.7410624,brasil_aberto,True
+RR,1400100,Boa Vista,Cinturão Verde,cinturao verde,2.805417,-60.7162414,brasil_aberto,True
+RR,1400100,Boa Vista,Distrito Industrial Governador Aquilino Mota Duarte,distrito industrial governador aquilino mota duarte,2.7687546,-60.7118988,brasil_aberto,True
+RR,1400100,Boa Vista,Doutor Sílvio Botelho,doutor silvio botelho,2.8052304,-60.7413438,brasil_aberto,True
+RR,1400100,Boa Vista,Doutor Sílvio Leite,doutor silvio leite,2.8208371,-60.7412179,brasil_aberto,True
+RR,1400100,Boa Vista,Dr. Airton Rocha,dr. airton rocha,2.7613544,-60.740628,brasil_aberto,True
+RR,1400100,Boa Vista,Equatorial,equatorial,2.8124213,-60.7644594,brasil_aberto,True
+RR,1400100,Boa Vista,Estados,estados,2.8467931,-60.6701753,brasil_aberto,True
+RR,1400100,Boa Vista,Jardim Caranã,jardim carana,2.8523587,-60.718602,brasil_aberto,True
+RR,1400100,Boa Vista,Jardim Floresta,jardim floresta,2.8279435,-60.7021249,brasil_aberto,True
+RR,1400100,Boa Vista,Jardim Primavera,jardim primavera,2.8281321,-60.7362731,brasil_aberto,True
+RR,1400100,Boa Vista,Jardim Tropical,jardim tropical,2.7950908,-60.7346805,brasil_aberto,True
+RR,1400100,Boa Vista,Jóquei Clube,joquei clube,2.8036242,-60.7292713,brasil_aberto,True
+RR,1400100,Boa Vista,Laura Moreira,laura moreira,2.8029765,-60.7779164,brasil_aberto,True
+RR,1400100,Boa Vista,Liberdade,liberdade,2.8208146,-60.6984075,brasil_aberto,True
+RR,1400100,Boa Vista,Marechal Rondon,marechal rondon,2.7937272,-60.6934254,brasil_aberto,True
+RR,1400100,Boa Vista,Mecejana,mecejana,2.8269497,-60.6915819,brasil_aberto,True
+RR,1400100,Boa Vista,Murilo Teixeira Cidade,murilo teixeira cidade,2.8277495,-60.7716273,brasil_aberto,True
+RR,1400100,Boa Vista,Nossa Senhora Aparecida,nossa senhora aparecida,2.8394611,-60.6672055,brasil_aberto,True
+RR,1400100,Boa Vista,Nova Canaã,nova canaa,2.812752,-60.7358223,brasil_aberto,True
+RR,1400100,Boa Vista,Nova Cidade,nova cidade,2.7691289,-60.7315905,brasil_aberto,True
+RR,1400100,Boa Vista,Olímpico,olimpico,2.8062612,-60.7328896,brasil_aberto,True
+RR,1400100,Boa Vista,Operário,operario,2.8206339,-60.6737553,brasil_aberto,True
+RR,1400100,Boa Vista,Paraviana,paraviana,2.8539478,-60.6558868,brasil_aberto,True
+RR,1400100,Boa Vista,Pedra Pintada,pedra pintada,2.8822767,-60.6866022,brasil_aberto,True
+RR,1400100,Boa Vista,Pintolândia,pintolandia,2.8131609,-60.7473865,brasil_aberto,True
+RR,1400100,Boa Vista,Piscicultura,piscicultura,2.8340227,-60.7336977,brasil_aberto,True
+RR,1400100,Boa Vista,Pricumã,pricuma,2.8101983,-60.6972083,brasil_aberto,True
+RR,1400100,Boa Vista,Professora Araceli Souto Maior,professora araceli souto maior,2.7930274,-60.7215971,brasil_aberto,True
+RR,1400100,Boa Vista,Raiar do Sol,raiar do sol,2.7738342,-60.7194303,brasil_aberto,True
+RR,1400100,Boa Vista,Residencial Monte Cristo,residencial monte cristo,,,brasil_aberto,True
+RR,1400100,Boa Vista,Residencial Vila Primavera,residencial vila primavera,2.7498406,-60.7374504,brasil_aberto,True
+RR,1400100,Boa Vista,Residencial Village,residencial village,,,brasil_aberto,True
+RR,1400100,Boa Vista,Said Salomão,said salomao,2.888921,-60.6899045,brasil_aberto,True
+RR,1400100,Boa Vista,Santa Luzia,santa luzia,2.8204957,-60.7537049,brasil_aberto,True
+RR,1400100,Boa Vista,Santa Tereza,santa tereza,2.8234472,-60.7305905,brasil_aberto,True
+RR,1400100,Boa Vista,Senador Hélio Campos,senador helio campos,2.804736,-60.7529506,brasil_aberto,True
+RR,1400100,Boa Vista,São Bento,sao bento,2.782317,-60.7072365,brasil_aberto,True
+RR,1400100,Boa Vista,São Francisco,sao francisco,2.8370684,-60.6763989,brasil_aberto,True
+RR,1400100,Boa Vista,São Pedro,sao pedro,2.8236731,-60.6623885,brasil_aberto,True
+RR,1400100,Boa Vista,São Vicente,sao vicente,2.8122118,-60.6775457,brasil_aberto,True
+RR,1400100,Boa Vista,Tancredo Neves,tancredo neves,2.8287875,-60.7243502,brasil_aberto,True
+RR,1400100,Boa Vista,Treze de Setembro,treze de setembro,2.7984266,-60.6830477,brasil_aberto,True
+RR,1400100,Boa Vista,Trinta e Um de Março,trinta e um de marco,2.8395971,-60.6688116,brasil_aberto,True
+RR,1400100,Boa Vista,União,uniao,2.8493826,-60.7298164,brasil_aberto,True
+RR,1400100,Boa Vista,Área Rural de Boa Vista,area rural de boa vista,2.9408775,-60.720026,brasil_aberto,True
+RR,1400175,Cantá,Bairro Novo,bairro novo,2.6101704,-60.5990833,brasil_aberto,True
+RR,1400175,Cantá,Centro,centro,2.6104887,-60.6039996,brasil_aberto,True
+RR,1400175,Cantá,Félix Pinto,felix pinto,2.6101143,-60.6010943,brasil_aberto,True
+RR,1400175,Cantá,Santa Cecília,santa cecilia,2.6101143,-60.6010943,brasil_aberto,True
+RR,1400175,Cantá,Taboca,taboca,2.6101056,-60.6011329,brasil_aberto,True
+RR,1400209,Caracaraí,Centro,centro,1.8198651,-61.1275298,brasil_aberto,True
+RR,1400209,Caracaraí,Novo Paraíso,novo paraiso,1.8177395,-61.1285681,brasil_aberto,True
+RR,1400233,Caroebe,Centro,centro,0.8807168999999999,-59.6960126,brasil_aberto,True
+RR,1400308,Mucajaí,Centro,centro,2.4466679,-60.9185025,brasil_aberto,True
+RR,1400407,Normandia,Centro,centro,3.8834383,-59.6275779,brasil_aberto,True
+RR,1400456,Pacaraima,Vila Nova,vila nova,4.4823193,-61.1397358,brasil_aberto,True
+RR,1400472,Rorainópolis,Centro,centro,0.9428297000000001,-60.4260321,brasil_aberto,True
+RR,1400472,Rorainópolis,Terra Indígena Pirititi,terra indigena pirititi,0.9396299,-60.4394125,brasil_aberto,True
+RR,1400506,São João da Baliza,Centro,centro,0.9489857,-59.9119413,brasil_aberto,True
+RR,1400605,São Luiz do Anauá,Centro,centro,,,brasil_aberto,True
+RR,1400704,Uiramutã,Centro,centro,4.5934998,-60.1659717,brasil_aberto,True

@@ -349,6 +349,11 @@ public sealed class AuthService : IAuthService
             var cleanDoc = new string(request.Document.Where(char.IsDigit).ToArray());
             await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Document", cleanDoc));
         }
+
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+        {
+            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", request.FullName.Trim()));
+        }
         var roleResult = await _userManager.AddToRoleAsync(user, role);
         if (!roleResult.Succeeded)
         {

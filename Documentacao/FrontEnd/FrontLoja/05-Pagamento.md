@@ -41,7 +41,7 @@ readonly selected = signal<PayCategory | null>('delivery');
 
 ## Visão Geral da Tela
 
-> Esta tela representa a etapa de pagamento no fluxo de delivery mobile do cliente do estabelecimento cadastrado na happe.
+> Esta tela representa a etapa de pagamento no fluxo de delivery mobile do cliente do estabelecimento cadastrado na urbeat.
 
 > Ela tem como principais objetivos:
 

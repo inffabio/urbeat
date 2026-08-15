@@ -24,7 +24,7 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
               <button class="btn-submit" routerLink="/recuperar-senha" style="margin-bottom:12px">Solicitar novo link</button>
               <p class="signup-call"><a routerLink="/login-vendedor">← Voltar para o login</a></p>
             } @else {
-              <img src="/images/logo_v2.png" alt="Urbeat" class="login-logo" width="150" />
+              <img src="/images/logo_urbeat.png" alt="Urbeat" class="login-logo" width="150" />
               <h1 class="login-title">Criar nova senha</h1>
               <p class="login-subtitle">Digite sua nova senha nos campos abaixo.</p>
               <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">

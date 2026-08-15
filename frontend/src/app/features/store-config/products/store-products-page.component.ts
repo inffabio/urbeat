@@ -65,6 +65,7 @@ export interface WeightConfigForm {
   imports: [CommonModule, FormsModule, IonIcon, IonSpinner, IonReorderGroup, IonReorder, WizardHeaderComponent, WizardFooterComponent, CardapioMenuTabsComponent, SubscriptionBannerComponent],
   templateUrl: './store-products-page.component.html',
   styleUrl: './store-products-page.component.scss',
+  host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
 })
 export class StoreProductsPageComponent implements OnInit {
   private readonly storeService = inject(StoreService);

@@ -1,0 +1,443 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+PI,2200053,Acauã,Centro,centro,-8.2153169,-41.0832166,brasil_aberto,True
+PI,2200103,Agricolândia,Centro,centro,-5.7964424,-42.660279,brasil_aberto,True
+PI,2200251,Alagoinha do Piauí,Centro,centro,-7.00933504,-40.93802643,brasil_aberto,True
+PI,2200277,Alegrete do Piauí,Centro,centro,-7.243898,-40.85901,brasil_aberto,True
+PI,2200301,Alto Longá,Centro,centro,-5.2518216,-42.2100468,brasil_aberto,True
+PI,2200400,Altos,Centro,centro,-5.0396477,-42.4593426,brasil_aberto,True
+PI,2200459,Alvorada do Gurguéia,Centro,centro,-8.4460377,-43.8660812,brasil_aberto,True
+PI,2200509,Amarante,Centro,centro,-6.246324,-42.85449310000001,brasil_aberto,True
+PI,2200608,Angical do Piauí,Centro,centro,-6.0782435,-42.7322679,brasil_aberto,True
+PI,2200806,Antônio Almeida,Centro,centro,-7.219828099999999,-44.1971439,brasil_aberto,True
+PI,2200707,Anísio de Abreu,Centro,centro,-9.1905386,-43.0478589,brasil_aberto,True
+PI,2200905,Aroazes,Centro,centro,-6.1117345,-41.7885801,brasil_aberto,True
+PI,2200954,Aroeiras do Itaim,Centro,centro,-7.280365,-41.5619542,brasil_aberto,True
+PI,2201002,Arraial,Centro,centro,-6.6529337,-42.5370287,brasil_aberto,True
+PI,2201051,Assunção do Piauí,Centro,centro,-5.8698705,-41.0457674,brasil_aberto,True
+PI,2201101,Avelino Lopes,Centro,centro,-10.1353877,-43.9508477,brasil_aberto,True
+PI,2201150,Baixa Grande do Ribeiro,Centro,centro,-7.867812799999998,-45.2098528,brasil_aberto,True
+PI,2201176,Barra D'Alcântara,Centro,centro,-6.51803827,-42.10591507,brasil_aberto,True
+PI,2201200,Barras,Centro,centro,-4.241880099999999,-42.2935046,brasil_aberto,True
+PI,2201309,Barreiras do Piauí,Centro,centro,-9.92342758,-45.4778862,brasil_aberto,True
+PI,2201408,Barro Duro,Centro,centro,-5.8201952,-42.5094955,brasil_aberto,True
+PI,2201556,Bela Vista do Piauí,Centro,centro,-7.973235099999999,-41.8708246,brasil_aberto,True
+PI,2201572,Belém do Piauí,Centro,centro,-7.378213000000001,-40.972299,brasil_aberto,True
+PI,2201606,Beneditinos,Centro,centro,-5.0891518,-42.8106503,brasil_aberto,True
+PI,2201705,Bertolínia,Centro,centro,-7.64138126,-43.95207977,brasil_aberto,True
+PI,2201739,Betânia do Piauí,Centro,centro,-8.14348221,-40.79863358,brasil_aberto,True
+PI,2201770,Boa Hora,Centro,centro,-4.41247559,-42.12846375,brasil_aberto,True
+PI,2201919,Bom Princípio do Piauí,Centro,centro,-3.1919406,-41.6435615,brasil_aberto,True
+PI,2201929,Bonfim do Piauí,Centro,centro,-9.1664728,-42.8770178,brasil_aberto,True
+PI,2201945,Boqueirão do Piauí,Centro,centro,-4.487329900000001,-42.1177179,brasil_aberto,True
+PI,2201960,Brasileira,Centro,centro,-4.12993765,-41.7813797,brasil_aberto,True
+PI,2201988,Brejo do Piauí,Centro,centro,-8.20728683,-42.83369827,brasil_aberto,True
+PI,2202000,Buriti dos Lopes,Centro,centro,-3.1765927,-41.8705809,brasil_aberto,True
+PI,2202026,Buriti dos Montes,Centro,centro,-5.313350199999999,-41.099104,brasil_aberto,True
+PI,2202059,Cabeceiras do Piauí,Centro,centro,-4.475723599999999,-42.3095056,brasil_aberto,True
+PI,2202075,Cajazeiras do Piauí,Centro,centro,-6.7935952,-42.3989713,brasil_aberto,True
+PI,2202083,Cajueiro da Praia,Centro,centro,-2.9287405,-41.33849170000001,brasil_aberto,True
+PI,2202091,Caldeirão Grande do Piauí,Centro,centro,-7.3289876,-40.63850403,brasil_aberto,True
+PI,2202109,Campinas do Piauí,Centro,centro,-7.663368299999999,-41.8816937,brasil_aberto,True
+PI,2202117,Campo Alegre do Fidalgo,Centro,centro,-8.375797,-41.8374104,brasil_aberto,True
+PI,2202133,Campo Grande do Piauí,Centro,centro,-7.1328553,-41.0348033,brasil_aberto,True
+PI,2202174,Campo Largo do Piauí,Centro,centro,-3.8111683,-42.6291763,brasil_aberto,True
+PI,2202208,Campo Maior,Centro,centro,-4.8258145,-42.1666213,brasil_aberto,True
+PI,2202251,Canavieira,Centro,centro,-7.688879,-43.7212081,brasil_aberto,True
+PI,2202307,Canto do Buriti,Centro,centro,-8.1107235,-42.94440079,brasil_aberto,True
+PI,2202455,Capitão Gervásio Oliveira,Centro,centro,-8.4897109,-41.8185762,brasil_aberto,True
+PI,2202406,Capitão de Campos,Centro,centro,-4.459277,-41.942108,brasil_aberto,True
+PI,2202539,Caraúbas do Piauí,Centro,centro,-3.4794981,-41.8435063,brasil_aberto,True
+PI,2202554,Caridade do Piauí,Centro,centro,-7.7323122,-40.98493958,brasil_aberto,True
+PI,2202604,Castelo do Piauí,Centro,centro,-5.3228667,-41.5504678,brasil_aberto,True
+PI,2202653,Caxingó,Centro,centro,-3.42263889,-41.89142227,brasil_aberto,True
+PI,2202703,Cocal,Centro,centro,-3.46209979,-41.55615997,brasil_aberto,True
+PI,2202711,Cocal de Telha,Centro,centro,-4.5552971,-41.9719538,brasil_aberto,True
+PI,2202729,Cocal dos Alves,Centro,centro,-3.6013272,-41.4433501,brasil_aberto,True
+PI,2202737,Coivaras,Centro,centro,-5.092564,-42.20536570000001,brasil_aberto,True
+PI,2202752,Colônia do Gurguéia,Centro,centro,-8.1830727,-43.7942777,brasil_aberto,True
+PI,2202778,Colônia do Piauí,Centro,centro,-7.2257645,-42.1772218,brasil_aberto,True
+PI,2202802,Conceição do Canindé,Centro,centro,-7.8778425,-41.5966851,brasil_aberto,True
+PI,2202851,Coronel José Dias,Centro,centro,-5.08234978,-42.79495621,brasil_aberto,True
+PI,2202901,Corrente,Centro,centro,-10.4414058,-45.16091309999999,brasil_aberto,True
+PI,2203008,Cristalândia do Piauí,Vila Nova República,vila nova republica,-10.6503409,-45.1865669,brasil_aberto,True
+PI,2203107,Cristino Castro,Centro,centro,-8.818136,-44.2234403,brasil_aberto,True
+PI,2203206,Curimatá,Centro,centro,-10.028171,-44.301094,brasil_aberto,True
+PI,2203230,Currais,Centro,centro,-9.0073569,-44.4096841,brasil_aberto,True
+PI,2203271,Curral Novo do Piauí,Centro,centro,-7.8346506,-40.9023938,brasil_aberto,True
+PI,2203255,Curralinhos,Centro,centro,-5.6191407,-42.8312237,brasil_aberto,True
+PI,2203305,Demerval Lobão,Centro,centro,-5.3660879,-42.6740199,brasil_aberto,True
+PI,2203354,Dirceu Arcoverde,Centro,centro,-9.3412802,-42.4392053,brasil_aberto,True
+PI,2203404,Dom Expedito Lopes,Centro,centro,-6.9664,-41.6501482,brasil_aberto,True
+PI,2203453,Dom Inocêncio,Centro,centro,-9.00436306,-41.97235489,brasil_aberto,True
+PI,2203420,Domingos Mourão,Centro,centro,-4.2545061,-41.2717295,brasil_aberto,True
+PI,2203503,Elesbão Veloso,Matias,matias,-6.2029594,-42.1400115,brasil_aberto,True
+PI,2203602,Eliseu Martins,Centro,centro,-8.096398299999999,-43.6658408,brasil_aberto,True
+PI,2203701,Esperantina,Centro,centro,-3.8951506,-42.2336726,brasil_aberto,True
+PI,2203750,Fartura do Piauí,Centro,centro,-9.481892,-42.789628,brasil_aberto,True
+PI,2203800,Flores do Piauí,Centro,centro,-7.7927543,-42.9255664,brasil_aberto,True
+PI,2203859,Floresta do Piauí,Centro,centro,-7.4667523,-41.8001311,brasil_aberto,True
+PI,2203909,Floriano,Alto da Cruz,alto da cruz,-6.7625529,-43.0024663,brasil_aberto,True
+PI,2203909,Floriano,Alto da Guia,alto da guia,-6.7882276,-43.0158459,brasil_aberto,True
+PI,2203909,Floriano,Bom Lugar,bom lugar,-6.7841173,-43.0018754,brasil_aberto,True
+PI,2203909,Floriano,Bosque Santa Teresinha,bosque santa teresinha,-6.7656059,-43.017628,brasil_aberto,True
+PI,2203909,Floriano,Caixa D'Agua,caixa d'agua,-6.78067398,-43.02251053,brasil_aberto,True
+PI,2203909,Floriano,Cajueiro II,cajueiro ii,-6.7947333,-42.9887296,brasil_aberto,True
+PI,2203909,Floriano,Campo Velho,campo velho,-6.7850695,-43.0353637,brasil_aberto,True
+PI,2203909,Floriano,Cancela,cancela,-6.777292,-43.0075777,brasil_aberto,True
+PI,2203909,Floriano,Canoas,canoas,-6.7753485,-43.0054101,brasil_aberto,True
+PI,2203909,Floriano,Catumbí,catumbi,-6.7723178,-43.0171143,brasil_aberto,True
+PI,2203909,Floriano,Centro,centro,-6.7716673,-43.0174002,brasil_aberto,True
+PI,2203909,Floriano,Curador,curador,-6.7770087,-43.0187194,brasil_aberto,True
+PI,2203909,Floriano,Curtume,curtume,-6.7861361,-43.0127226,brasil_aberto,True
+PI,2203909,Floriano,Hermes Pacheco,hermes pacheco,-6.787304199999999,-43.038312,brasil_aberto,True
+PI,2203909,Floriano,Ibiapaba,ibiapaba,-6.7649183,-43.0146647,brasil_aberto,True
+PI,2203909,Floriano,Irapuá I,irapua i,-6.7707524,-43.0326787,brasil_aberto,True
+PI,2203909,Floriano,Irapuá II,irapua ii,-6.7764305,-43.0345132,brasil_aberto,True
+PI,2203909,Floriano,Juá,jua,-6.760273799999999,-43.0043054,brasil_aberto,True
+PI,2203909,Floriano,Manguinha,manguinha,-6.7743196,-43.0297602,brasil_aberto,True
+PI,2203909,Floriano,Matadouro,matadouro,-6.7609678,-43.0101774,brasil_aberto,True
+PI,2203909,Floriano,Meladão,meladao,-6.777729099999999,-43.04620310000001,brasil_aberto,True
+PI,2203909,Floriano,Morro do Tiro,morro do tiro,-6.7855102,-43.034396,brasil_aberto,True
+PI,2203909,Floriano,Nossa Senhora da Guia,nossa senhora da guia,-6.799727100000001,-43.0091648,brasil_aberto,True
+PI,2203909,Floriano,Paraíso,paraiso,-6.7833375,-43.0370979,brasil_aberto,True
+PI,2203909,Floriano,Pau Ferrado,pau ferrado,-6.7817665,-43.017215,brasil_aberto,True
+PI,2203909,Floriano,Pedro Simplício,pedro simplicio,-6.780794600000001,-43.0322411,brasil_aberto,True
+PI,2203909,Floriano,Planalto Sambaíba,planalto sambaiba,-6.765663600000001,-43.0018754,brasil_aberto,True
+PI,2203909,Floriano,Princesa do Sul,princesa do sul,-6.78987646,-43.02595901,brasil_aberto,True
+PI,2203909,Floriano,Rede Nova,rede nova,-6.7861473,-43.0475145,brasil_aberto,True
+PI,2203909,Floriano,Riacho Fundo,riacho fundo,-6.7616694,-42.9981474,brasil_aberto,True
+PI,2203909,Floriano,Sambaíba Nova,sambaiba nova,-6.7712641,-43.0088715,brasil_aberto,True
+PI,2203909,Floriano,Sambaíba Velha,sambaiba velha,-6.7653168,-43.0114097,brasil_aberto,True
+PI,2203909,Floriano,Santa Rita,santa rita,-6.7625937,-42.9988816,brasil_aberto,True
+PI,2203909,Floriano,São Borja,sao borja,-6.7830631,-43.0255622,brasil_aberto,True
+PI,2203909,Floriano,São Cristóvão,sao cristovao,-6.7701984,-43.0327179,brasil_aberto,True
+PI,2203909,Floriano,Taboca,taboca,-6.7665919,-43.0449892,brasil_aberto,True
+PI,2203909,Floriano,Tamboril,tamboril,-6.7851194,-43.0352899,brasil_aberto,True
+PI,2203909,Floriano,Tiberão,tiberao,-6.7807187,-43.006064,brasil_aberto,True
+PI,2203909,Floriano,Via Azul,via azul,-6.7860811,-43.018159,brasil_aberto,True
+PI,2203909,Floriano,Vila Leão,vila leao,-6.769052299999999,-43.0036979,brasil_aberto,True
+PI,2203909,Floriano,Área Rural de Floriano,area rural de floriano,-6.7812705,-43.0233615,brasil_aberto,True
+PI,2204006,Francinópolis,Centro,centro,-6.3972418,-42.2645293,brasil_aberto,True
+PI,2204105,Francisco Ayres,Centro,centro,-6.6259593,-42.6937006,brasil_aberto,True
+PI,2204154,Francisco Macedo,Centro,centro,-7.3291085,-40.7919749,brasil_aberto,True
+PI,2204204,Francisco Santos,Centro,centro,-6.9950757,-41.1373081,brasil_aberto,True
+PI,2204303,Fronteiras,Centro,centro,-8.322948799999999,-43.1747162,brasil_aberto,True
+PI,2204352,Geminiano,Centro,centro,-7.15814209,-41.36271667,brasil_aberto,True
+PI,2204402,Gilbués,Centro,centro,-9.8320744,-45.3423155,brasil_aberto,True
+PI,2204501,Guadalupe,Centro,centro,-6.787914799999999,-43.5706527,brasil_aberto,True
+PI,2204550,Guaribas,Centro,centro,-9.396181,-43.6888583,brasil_aberto,True
+PI,2204600,Hugo Napoleão,Centro,centro,-5.98847294,-42.56108475,brasil_aberto,True
+PI,2204709,Inhuma,Centro,centro,-6.669212099999999,-41.7108418,brasil_aberto,True
+PI,2204808,Ipiranga do Piauí,Centro,centro,-6.827999699999999,-41.7406161,brasil_aberto,True
+PI,2204907,Isaías Coelho,Centro,centro,-7.7361128,-41.6790757,brasil_aberto,True
+PI,2205003,Itainópolis,Centro,centro,-7.4473625,-41.4808593,brasil_aberto,True
+PI,2205102,Itaueira,Centro,centro,-7.5974571,-43.0252095,brasil_aberto,True
+PI,2205151,Jacobina do Piauí,Centro,centro,-7.9347743,-41.2106371,brasil_aberto,True
+PI,2205201,Jaicós,Centro,centro,-7.3613181,-41.1403095,brasil_aberto,True
+PI,2205250,Jardim do Mulato,Centro,centro,-6.0955034,-42.6363149,brasil_aberto,True
+PI,2205276,Jatobá do Piauí,Centro,centro,-4.7707967,-41.8175408,brasil_aberto,True
+PI,2205300,Jerumenha,Centro,centro,-7.0908548,-43.509612,brasil_aberto,True
+PI,2205409,Joaquim Pires,Centro,centro,-3.50880241,-42.19285965,brasil_aberto,True
+PI,2205458,Joca Marques,Centro,centro,-3.4965416,-42.4321136,brasil_aberto,True
+PI,2205508,José de Freitas,Centro,centro,-5.06348228,-42.78816605,brasil_aberto,True
+PI,2205359,João Costa,Centro,centro,-27.0011858,-48.6298047,brasil_aberto,True
+PI,2205516,Juazeiro do Piauí,Centro,centro,-5.1709272,-41.7033977,brasil_aberto,True
+PI,2205524,Júlio Borges,Centro,centro,-10.3257648,-44.2427648,brasil_aberto,True
+PI,2205557,Lagoa Alegre,Centro,centro,-4.5165429,-42.62398580000001,brasil_aberto,True
+PI,2205573,Lagoa de São Francisco,Centro,centro,-4.3920016,-41.6006143,brasil_aberto,True
+PI,2205565,Lagoa do Barro do Piauí,Centro,centro,-8.48088551,-41.53020859,brasil_aberto,True
+PI,2205581,Lagoa do Piauí,Centro,centro,-5.4074382,-42.6487245,brasil_aberto,True
+PI,2205599,Lagoa do Sítio,Centro,centro,-6.5203824,-41.57310104,brasil_aberto,True
+PI,2205540,Lagoinha do Piauí,Centro,centro,-5.7859515,-42.6423073,brasil_aberto,True
+PI,2205607,Landri Sales,Centro,centro,-7.2644338,-43.9288339,brasil_aberto,True
+PI,2205805,Luzilândia,Centro,centro,-3.4642329,-42.3692659,brasil_aberto,True
+PI,2205706,Luís Correia,Centro,centro,-2.88053966,-41.66218567,brasil_aberto,True
+PI,2205854,Madeiro,Centro,centro,-3.4921588,-42.506345,brasil_aberto,True
+PI,2205904,Manoel Emídio,Centro,centro,-4.2774936,-41.7778686,brasil_aberto,True
+PI,2205953,Marcolândia,Centro,centro,-7.4430005,-40.6638313,brasil_aberto,True
+PI,2206001,Marcos Parente,Centro,centro,-7.1209888,-43.8937319,brasil_aberto,True
+PI,2206050,Massapê do Piauí,Centro,centro,-7.4637469,-41.1257519,brasil_aberto,True
+PI,2206100,Matias Olímpio,Centro,centro,-3.7186863,-42.5551865,brasil_aberto,True
+PI,2206209,Miguel Alves,Centro,centro,-4.1657516,-42.892602,brasil_aberto,True
+PI,2206308,Miguel Leão,Centro,centro,-5.6802258,-42.7376487,brasil_aberto,True
+PI,2206357,Milton Brandão,Centro,centro,-4.7024264,-41.4475472,brasil_aberto,True
+PI,2206407,Monsenhor Gil,Centro,centro,-5.565133299999999,-42.6087029,brasil_aberto,True
+PI,2206506,Monsenhor Hipólito,Centro,centro,-6.998378,-41.0288077,brasil_aberto,True
+PI,2206605,Monte Alegre do Piauí,Centro,centro,-5.0759325,-42.82106018,brasil_aberto,True
+PI,2206654,Morro Cabeça no Tempo,Centro,centro,-9.7289728,-43.9054864,brasil_aberto,True
+PI,2206670,Morro do Chapéu do Piauí,Centro,centro,-3.7427412,-42.3116534,brasil_aberto,True
+PI,2206696,Murici dos Portelas,Centro,centro,-3.3250035,-42.089164,brasil_aberto,True
+PI,2206704,Nazaré do Piauí,Centro,centro,-6.974679,-42.673387,brasil_aberto,True
+PI,2206720,Nazária,Centro,centro,-5.3585185,-42.8252576,brasil_aberto,True
+PI,2206753,Nossa Senhora de Nazaré,Centro,centro,-4.632061,-42.17161179,brasil_aberto,True
+PI,2206803,Nossa Senhora dos Remédios,Centro,centro,-3.9820084,-42.620748,brasil_aberto,True
+PI,2207959,Nova Santa Rita,Centro,centro,-29.855151,-51.2740879,brasil_aberto,True
+PI,2206902,Novo Oriente do Piauí,Centro,centro,-6.44883776,-41.93004608,brasil_aberto,True
+PI,2207009,Oeiras,Centro,centro,-7.01776171,-42.13106918,brasil_aberto,True
+PI,2207108,Olho D'Água do Piauí,Centro,centro,-29.6882192,-53.8047376,brasil_aberto,True
+PI,2207207,Padre Marcos,Centro,centro,-7.3530973,-40.908362,brasil_aberto,True
+PI,2207306,Paes Landim,Centro,centro,-20.28413963,-40.33065796,brasil_aberto,True
+PI,2207355,Pajeú do Piauí,Centro,centro,-7.8558967,-42.822281,brasil_aberto,True
+PI,2207405,Palmeira do Piauí,Centro,centro,-8.728096,-44.233647,brasil_aberto,True
+PI,2207504,Palmeirais,Centro,centro,-5.976603,-43.061135,brasil_aberto,True
+PI,2207553,Paquetá,Centro,centro,-7.1035987,-41.7032975,brasil_aberto,True
+PI,2207603,Parnaguá,Centro,centro,-10.2253127,-44.6376256,brasil_aberto,True
+PI,2207702,Parnaíba,Alto Santa Maria,alto santa maria,-2.9333474,-41.7544371,brasil_aberto,True
+PI,2207702,Parnaíba,Bebedouro,bebedouro,-2.920395,-41.7675992,brasil_aberto,True
+PI,2207702,Parnaíba,Boa Esperança,boa esperanca,-2.91517401,-41.76182938,brasil_aberto,True
+PI,2207702,Parnaíba,Campos,campos,-2.9102667,-41.7709735,brasil_aberto,True
+PI,2207702,Parnaíba,Cantagalo,cantagalo,-2.89936,-41.7668669,brasil_aberto,True
+PI,2207702,Parnaíba,Ceará,ceara,-2.9230937,-41.7614455,brasil_aberto,True
+PI,2207702,Parnaíba,Centro,centro,-2.9020501,-41.7785291,brasil_aberto,True
+PI,2207702,Parnaíba,Conselheiro Alberto Silva,conselheiro alberto silva,-2.9231897,-41.709714,brasil_aberto,True
+PI,2207702,Parnaíba,Dirceu Arcoverde,dirceu arcoverde,-2.9409496,-41.71086409999999,brasil_aberto,True
+PI,2207702,Parnaíba,Floriópolis,floriopolis,-2.8822713,-41.7107109,brasil_aberto,True
+PI,2207702,Parnaíba,Frei Higino,frei higino,-2.9116666,-41.7502873,brasil_aberto,True
+PI,2207702,Parnaíba,Igaraçu,igaracu,-2.9513816,-41.7898376,brasil_aberto,True
+PI,2207702,Parnaíba,João XXIII,joao xxiii,-2.9098468,-41.6716279,brasil_aberto,True
+PI,2207702,Parnaíba,Mendonça Clark,mendonca clark,-2.905383,-41.7881861,brasil_aberto,True
+PI,2207702,Parnaíba,Nossa Senhora de Fátima,nossa senhora de fatima,-22.91622353,-43.17635727,brasil_aberto,True
+PI,2207702,Parnaíba,Nossa Senhora do Carmo,nossa senhora do carmo,-2.8980637,-41.7749618,brasil_aberto,True
+PI,2207702,Parnaíba,Nova Parnaíba,nova parnaiba,-2.909798,-41.7769839,brasil_aberto,True
+PI,2207702,Parnaíba,Piauí,piaui,-2.9182497,-41.7415656,brasil_aberto,True
+PI,2207702,Parnaíba,Pindorama,pindorama,-2.91096544,-41.75921631,brasil_aberto,True
+PI,2207702,Parnaíba,Planalto de Monteserra The,planalto de monteserra the,-2.9096093,-41.7537178,brasil_aberto,True
+PI,2207702,Parnaíba,Primavera,primavera,-2.9422149,-41.7604149,brasil_aberto,True
+PI,2207702,Parnaíba,Reis Veloso,reis veloso,-2.9078108,-41.7451434,brasil_aberto,True
+PI,2207702,Parnaíba,Rodoviária,rodoviaria,-2.9322812,-41.7554522,brasil_aberto,True
+PI,2207702,Parnaíba,Sabiazal,sabiazal,-2.9422501,-41.7531595,brasil_aberto,True
+PI,2207702,Parnaíba,Santa Isabel,santa isabel,-2.9003524,-41.7871942,brasil_aberto,True
+PI,2207702,Parnaíba,Santa Luzia,santa luzia,-2.9234432,-41.759398,brasil_aberto,True
+PI,2207702,Parnaíba,São Benedito,sao benedito,-2.90174699,-41.75505447,brasil_aberto,True
+PI,2207702,Parnaíba,São Francisco da Guarita,sao francisco da guarita,-2.916759,-41.7677756,brasil_aberto,True
+PI,2207702,Parnaíba,São José,sao jose,-2.9132703,-41.7819682,brasil_aberto,True
+PI,2207702,Parnaíba,São Judas Tadeu,sao judas tadeu,-2.9004823,-41.7419838,brasil_aberto,True
+PI,2207702,Parnaíba,São Pedro,sao pedro,-2.8999624,-41.7405108,brasil_aberto,True
+PI,2207702,Parnaíba,São Vicente de Paula,sao vicente de paula,-2.9319415,-41.7691302,brasil_aberto,True
+PI,2207702,Parnaíba,Taboleiro,taboleiro,-2.9251304,-41.7887562,brasil_aberto,True
+PI,2207702,Parnaíba,Área Rural de Parnaíba,area rural de parnaiba,-2.9096093,-41.7537178,brasil_aberto,True
+PI,2207751,Passagem Franca do Piauí,Centro,centro,-5.8571905,-42.441565,brasil_aberto,True
+PI,2207777,Patos do Piauí,Centro,centro,-7.6782922,-41.2449857,brasil_aberto,True
+PI,2207793,Pau D'Arco do Piauí,Centro,centro,-5.254923,-42.3882164,brasil_aberto,True
+PI,2207801,Paulistana,Centro,centro,-8.1395329,-41.1469002,brasil_aberto,True
+PI,2207850,Pavussu,Centro,centro,-7.9650257,-43.22470879999999,brasil_aberto,True
+PI,2207900,Pedro II,Centro,centro,-4.42546463,-41.45641708,brasil_aberto,True
+PI,2207934,Pedro Laurentino,Centro,centro,-8.0663279,-42.2895748,brasil_aberto,True
+PI,2208007,Picos,Aerolândia,aerolandia,-7.077878,-41.47676468,brasil_aberto,True
+PI,2208007,Picos,Altamira,altamira,-5.55534363,-42.61187363,brasil_aberto,True
+PI,2208007,Picos,Alto da Boa Vista,alto da boa vista,-7.0956297,-41.47716,brasil_aberto,True
+PI,2208007,Picos,Aroeiras,aroeiras,-7.088648099999999,-41.4980408,brasil_aberto,True
+PI,2208007,Picos,Bela Vista,bela vista,-7.0852499,-41.47636032,brasil_aberto,True
+PI,2208007,Picos,Belo Norte,belo norte,-7.0786651,-41.4992011,brasil_aberto,True
+PI,2208007,Picos,Boa Sorte,boa sorte,-7.07961416,-41.43284225,brasil_aberto,True
+PI,2208007,Picos,Boa Vista,boa vista,-7.09457541,-41.47371292,brasil_aberto,True
+PI,2208007,Picos,Bomba,bomba,-7.0767509,-41.4703674,brasil_aberto,True
+PI,2208007,Picos,Canto da Varzea,canto da varzea,-7.0862713,-41.4762323,brasil_aberto,True
+PI,2208007,Picos,Catavento,catavento,-7.0811721,-41.4541052,brasil_aberto,True
+PI,2208007,Picos,Centro,centro,-7.08394337,-41.47025681,brasil_aberto,True
+PI,2208007,Picos,Conduru,conduru,-7.0824101,-41.4188319,brasil_aberto,True
+PI,2208007,Picos,DNER,dner,-7.0780305,-41.4452637,brasil_aberto,True
+PI,2208007,Picos,Fátima,fatima,-7.0834837,-41.47272873,brasil_aberto,True
+PI,2208007,Picos,Ipueiras,ipueiras,-7.0722096,-41.4659624,brasil_aberto,True
+PI,2208007,Picos,Jardim Natal,jardim natal,-7.0826858,-41.4165969,brasil_aberto,True
+PI,2208007,Picos,Junco,junco,-7.0791732,-41.4341081,brasil_aberto,True
+PI,2208007,Picos,Malva,malva,-7.0855682,-41.4730585,brasil_aberto,True
+PI,2208007,Picos,Morada do Sol,morada do sol,-7.07371521,-41.48094177,brasil_aberto,True
+PI,2208007,Picos,Paraibinha,paraibinha,-7.08694,-41.4060889,brasil_aberto,True
+PI,2208007,Picos,Paroquial,paroquial,-7.0811466,-41.4733073,brasil_aberto,True
+PI,2208007,Picos,Parque Industrial,parque industrial,-7.0727704,-41.3988715,brasil_aberto,True
+PI,2208007,Picos,Parque de Exposição,parque de exposicao,-7.0824768,-41.43172,brasil_aberto,True
+PI,2208007,Picos,Passagem das Pedras,passagem das pedras,-7.0905121,-41.4685881,brasil_aberto,True
+PI,2208007,Picos,Pedrinhas,pedrinhas,-7.072726599999999,-41.4282651,brasil_aberto,True
+PI,2208007,Picos,Samambaia,samambaia,-7.0894508,-41.4024693,brasil_aberto,True
+PI,2208007,Picos,São José,sao jose,-7.0753837,-41.4806522,brasil_aberto,True
+PI,2208007,Picos,São Sebastião,sao sebastiao,-7.085610399999999,-41.465334,brasil_aberto,True
+PI,2208007,Picos,Área Rural de Picos,area rural de picos,-7.0842108,-41.4707971,brasil_aberto,True
+PI,2208106,Pimenteiras,Centro,centro,-6.23804092,-41.42056274,brasil_aberto,True
+PI,2208205,Pio IX,Centro,centro,-6.8351818,-40.6126436,brasil_aberto,True
+PI,2208304,Piracuruca,Centro,centro,-3.9326908,-41.7080035,brasil_aberto,True
+PI,2208403,Piripiri,Centro,centro,-4.2872995,-41.7763483,brasil_aberto,True
+PI,2208502,Porto,Centro,centro,-3.894196,-42.7144668,brasil_aberto,True
+PI,2208551,Porto Alegre do Piauí,Centro,centro,-6.970791699999999,-44.1982417,brasil_aberto,True
+PI,2208601,Prata do Piauí,Centro,centro,-5.6671888,-42.20471450000001,brasil_aberto,True
+PI,2208650,Queimada Nova,Centro,centro,-8.5847214,-41.4180726,brasil_aberto,True
+PI,2208700,Redenção do Gurguéia,Centro,centro,-9.48689842,-44.58672333,brasil_aberto,True
+PI,2208809,Regeneração,Centro,centro,-6.23835278,-42.69241333,brasil_aberto,True
+PI,2208858,Riacho Frio,Centro,centro,-10.1277508,-44.9523906,brasil_aberto,True
+PI,2208874,Ribeira do Piauí,Centro,centro,-7.69125986,-42.71434021,brasil_aberto,True
+PI,2208908,Ribeiro Gonçalves,Centro,centro,-7.559164,-45.242277,brasil_aberto,True
+PI,2209005,Rio Grande do Piauí,Centro,centro,-7.778240299999999,-43.1372822,brasil_aberto,True
+PI,2209104,Santa Cruz do Piauí,Centro,centro,-7.1845469,-41.7657129,brasil_aberto,True
+PI,2209153,Santa Cruz dos Milagres,Centro,centro,-5.8020014,-41.95352339999999,brasil_aberto,True
+PI,2209302,Santa Luz,Centro,centro,-8.949228399999999,-44.1299422,brasil_aberto,True
+PI,2209377,Santa Rosa do Piauí,Centro,centro,-6.7976726,-42.2807078,brasil_aberto,True
+PI,2209351,Santana do Piauí,Centro,centro,-6.9465419,-41.5192181,brasil_aberto,True
+PI,2209401,Santo Antônio de Lisboa,Centro,centro,-6.9862662,-41.2228478,brasil_aberto,True
+PI,2209450,Santo Antônio dos Milagres,Centro,centro,-6.044752,-42.7108023,brasil_aberto,True
+PI,2209500,Santo Inácio do Piauí,Centro,centro,-7.4222926,-41.9150838,brasil_aberto,True
+PI,2210623,Sebastião Barros,Centro,centro,-10.8149969,-44.8328948,brasil_aberto,True
+PI,2210631,Sebastião Leal,Centro,centro,-2.8518118,-41.8156269,brasil_aberto,True
+PI,2210656,Sigefredo Pacheco,Centro,centro,-4.9150044,-41.7328745,brasil_aberto,True
+PI,2210805,Simplício Mendes,Centro,centro,-7.860291200000001,-41.90846,brasil_aberto,True
+PI,2210706,Simões,Centro,centro,-7.5959345,-40.8184785,brasil_aberto,True
+PI,2210904,Socorro do Piauí,Centro,centro,-7.8680062,-42.5049557,brasil_aberto,True
+PI,2210938,Sussuapara,Centro,centro,-27.0011858,-48.6298047,brasil_aberto,True
+PI,2209559,São Braz do Piauí,Centro,centro,-9.0655824,-42.9990067,brasil_aberto,True
+PI,2209658,São Francisco de Assis do Piauí,Centro,centro,-8.2394209,-41.6842854,brasil_aberto,True
+PI,2209708,São Francisco do Piauí,Centro,centro,-7.245049,-42.5410343,brasil_aberto,True
+PI,2209609,São Félix do Piauí,Centro,centro,-5.93342018,-42.1129303,brasil_aberto,True
+PI,2209757,São Gonçalo do Gurguéia,Centro,centro,-10.0288858,-45.3048452,brasil_aberto,True
+PI,2209807,São Gonçalo do Piauí,Centro,centro,-5.99825764,-42.70335388,brasil_aberto,True
+PI,2210102,São José do Peixe,Centro,centro,-7.4956834,-42.5647933,brasil_aberto,True
+PI,2210201,São José do Piauí,Centro,centro,-6.8737549,-41.4753456,brasil_aberto,True
+PI,2209856,São João da Canabrava,Centro,centro,-6.8155236,-41.3461706,brasil_aberto,True
+PI,2209872,São João da Fronteira,Centro,centro,-3.9389503,-41.2582165,brasil_aberto,True
+PI,2209906,São João da Serra,Centro,centro,-5.5152091,-41.8993515,brasil_aberto,True
+PI,2209955,São João da Varjota,Centro,centro,-6.9118025,-41.8656209,brasil_aberto,True
+PI,2209971,São João do Arraial,Centro,centro,-3.8141615,-42.4551383,brasil_aberto,True
+PI,2210003,São João do Piauí,Centro,centro,-8.35775948,-42.24788284,brasil_aberto,True
+PI,2210300,São Julião,Centro,centro,-7.083981199999999,-40.8346468,brasil_aberto,True
+PI,2210359,São Lourenço do Piauí,Centro,centro,-9.1728021,-42.5430779,brasil_aberto,True
+PI,2210375,São Luis do Piauí,Centro,centro,-8.3627694,-42.248965,brasil_aberto,True
+PI,2210383,São Miguel da Baixa Grande,Centro,centro,-5.86499786,-42.18638229,brasil_aberto,True
+PI,2210391,São Miguel do Fidalgo,Centro,centro,-7.5846894,-42.3734569,brasil_aberto,True
+PI,2210409,São Miguel do Tapuio,Centro,centro,-5.5019906,-41.3226931,brasil_aberto,True
+PI,2210508,São Pedro do Piauí,Centro,centro,-5.9255703,-42.720097,brasil_aberto,True
+PI,2210607,São Raimundo Nonato,Centro,centro,-9.01635647,-42.69379425,brasil_aberto,True
+PI,2210953,Tamboril do Piauí,Centro,centro,-4.5894306,-42.8601325,brasil_aberto,True
+PI,2210979,Tanque do Piauí,Centro,centro,-6.5987487,-42.2844125,brasil_aberto,True
+PI,2211001,Teresina,Acarape,acarape,-5.0719188,-42.8295198,brasil_aberto,True
+PI,2211001,Teresina,Aeroporto,aeroporto,-5.0599379,-42.8213461,brasil_aberto,True
+PI,2211001,Teresina,Alegre,alegre,-5.0033242,-42.7969122,brasil_aberto,True
+PI,2211001,Teresina,Alto Alegre,alto alegre,-5.0403942,-42.822093,brasil_aberto,True
+PI,2211001,Teresina,Angelim,angelim,-5.18880892,-42.77517319,brasil_aberto,True
+PI,2211001,Teresina,Angélica,angelica,-5.209562399999999,-42.763099,brasil_aberto,True
+PI,2211001,Teresina,Areias,areias,-5.1604365,-42.7928876,brasil_aberto,True
+PI,2211001,Teresina,Aroeiras,aroeiras,-5.0109641,-42.7937479,brasil_aberto,True
+PI,2211001,Teresina,Beira Rio,beira rio,-5.1104012,-42.774776,brasil_aberto,True
+PI,2211001,Teresina,Bela Vista,bela vista,-5.1310391,-42.7758489,brasil_aberto,True
+PI,2211001,Teresina,Bom Jesus,bom jesus,-5.0377602,-42.815822,brasil_aberto,True
+PI,2211001,Teresina,Bom Princípio,bom principio,-5.1184065,-42.69439000000001,brasil_aberto,True
+PI,2211001,Teresina,Brasilar,brasilar,-5.1424331,-42.7495668,brasil_aberto,True
+PI,2211001,Teresina,Buenos Aires,buenos aires,-5.03828478,-42.80122375,brasil_aberto,True
+PI,2211001,Teresina,Cabral,cabral,-5.0788937,-42.8057182,brasil_aberto,True
+PI,2211001,Teresina,Campestre,campestre,-5.0674757,-42.75402510000001,brasil_aberto,True
+PI,2211001,Teresina,Catarina,catarina,-5.12294197,-42.78319931,brasil_aberto,True
+PI,2211001,Teresina,Centro,centro,-5.0891376,-42.8087104,brasil_aberto,True
+PI,2211001,Teresina,Chapadinha,chapadinha,-4.966667,-42.85,brasil_aberto,True
+PI,2211001,Teresina,Cidade Jardim,cidade jardim,-5.0198631,-42.7777329,brasil_aberto,True
+PI,2211001,Teresina,Cidade Nova,cidade nova,-5.1091333,-42.7931415,brasil_aberto,True
+PI,2211001,Teresina,Colorado,colorado,-5.095253,-42.7388817,brasil_aberto,True
+PI,2211001,Teresina,Comprida,comprida,-5.1177685,-42.7613534,brasil_aberto,True
+PI,2211001,Teresina,Cristo Rei,cristo rei,-5.1015288,-42.7886787,brasil_aberto,True
+PI,2211001,Teresina,Distrito Industrial,distrito industrial,-5.1488213,-42.7955679,brasil_aberto,True
+PI,2211001,Teresina,Embrapa,embrapa,-5.1170549,-42.8141292,brasil_aberto,True
+PI,2211001,Teresina,Esplanada,esplanada,-5.1871501,-42.7536382,brasil_aberto,True
+PI,2211001,Teresina,Extrema,extrema,-5.11894989,-42.75731659,brasil_aberto,True
+PI,2211001,Teresina,Frei Serafim,frei serafim,-5.0859971,-42.7960619,brasil_aberto,True
+PI,2211001,Teresina,Fátima,fatima,-5.0629778,-42.799008,brasil_aberto,True
+PI,2211001,Teresina,Gurupi,gurupi,-5.0849312,-42.7399356,brasil_aberto,True
+PI,2211001,Teresina,Horto,horto,-5.070301,-42.7725969,brasil_aberto,True
+PI,2211001,Teresina,Ilhotas,ilhotas,-5.0937251,-42.7922487,brasil_aberto,True
+PI,2211001,Teresina,Ininga,ininga,-5.0513715,-42.7975929,brasil_aberto,True
+PI,2211001,Teresina,Itaperu,itaperu,-5.0469656,-42.8235685,brasil_aberto,True
+PI,2211001,Teresina,Itararé,itarare,-5.105397099999999,-42.7616738,brasil_aberto,True
+PI,2211001,Teresina,Jacinta Andrade,jacinta andrade,-5.0532922,-42.760935,brasil_aberto,True
+PI,2211001,Teresina,Jóquei,joquei,-5.0769994,-42.7852016,brasil_aberto,True
+PI,2211001,Teresina,Livramento,livramento,-5.092662,-42.7569013,brasil_aberto,True
+PI,2211001,Teresina,Lourival Parente,lourival parente,-5.1283222,-42.7879171,brasil_aberto,True
+PI,2211001,Teresina,Macaúba,macauba,-5.1152696,-42.7969381,brasil_aberto,True
+PI,2211001,Teresina,Mafrense,mafrense,-5.0390883,-42.8320203,brasil_aberto,True
+PI,2211001,Teresina,Mafuá,mafua,-5.0796607,-42.8186425,brasil_aberto,True
+PI,2211001,Teresina,Marquês,marques,-5.0757223,-42.8142697,brasil_aberto,True
+PI,2211001,Teresina,Matadouro,matadouro,-5.0677656,-42.8312118,brasil_aberto,True
+PI,2211001,Teresina,Matinha,matinha,-5.0811207,-42.8222247,brasil_aberto,True
+PI,2211001,Teresina,Memorare,memorare,-5.0429728,-42.8208797,brasil_aberto,True
+PI,2211001,Teresina,Mocambinho,mocambinho,-5.0223096,-42.8158608,brasil_aberto,True
+PI,2211001,Teresina,Monte Castelo,monte castelo,-5.113092,-42.7954611,brasil_aberto,True
+PI,2211001,Teresina,Monte Verde,monte verde,-19.75069809,-44.07673645,brasil_aberto,True
+PI,2211001,Teresina,Morada Nova,morada nova,-5.1207072,-42.7907142,brasil_aberto,True
+PI,2211001,Teresina,Morada do Sol,morada do sol,-5.0673482,-42.7653099,brasil_aberto,True
+PI,2211001,Teresina,Morro da Esperança,morro da esperanca,-5.0693182,-42.8074953,brasil_aberto,True
+PI,2211001,Teresina,Morros,morros,-5.03172684,-42.76077271,brasil_aberto,True
+PI,2211001,Teresina,Noivos,noivos,-5.0874033,-42.77885818,brasil_aberto,True
+PI,2211001,Teresina,Nossa Senhora das Graças,nossa senhora das gracas,-5.1008578,-42.8039762,brasil_aberto,True
+PI,2211001,Teresina,Nova Brasília,nova brasilia,-5.0534173,-42.8272895,brasil_aberto,True
+PI,2211001,Teresina,Novo Horizonte,novo horizonte,-5.1142424,-42.75178,brasil_aberto,True
+PI,2211001,Teresina,Novo Uruguai,novo uruguai,-5.032262,-42.739305,brasil_aberto,True
+PI,2211001,Teresina,Núcleo Urbano Fazenda Real,nucleo urbano fazenda real,-5.0924423,-42.6513495,brasil_aberto,True
+PI,2211001,Teresina,Núcleo Urbano Tabocas,nucleo urbano tabocas,-5.0878332,-42.6986369,brasil_aberto,True
+PI,2211001,Teresina,Olarias,olarias,-5.041819299999999,-42.8381973,brasil_aberto,True
+PI,2211001,Teresina,Parque Alvorada,parque alvorada,-5.058668,-42.8278122,brasil_aberto,True
+PI,2211001,Teresina,Parque Brasil,parque brasil,-5.0017426,-42.8336277,brasil_aberto,True
+PI,2211001,Teresina,Parque Ideal,parque ideal,-5.099347,-42.7515167,brasil_aberto,True
+PI,2211001,Teresina,Parque Jacinta,parque jacinta,-5.17368,-42.7645727,brasil_aberto,True
+PI,2211001,Teresina,Parque Juliana,parque juliana,-5.1716682,-42.7655296,brasil_aberto,True
+PI,2211001,Teresina,Parque Piauí,parque piaui,-5.1468058,-42.791349,brasil_aberto,True
+PI,2211001,Teresina,Parque Poti,parque poti,-5.1119309,-42.7371445,brasil_aberto,True
+PI,2211001,Teresina,Parque Sul,parque sul,-5.1438562,-42.7511959,brasil_aberto,True
+PI,2211001,Teresina,Parque São João,parque sao joao,-5.1308879,-42.7969879,brasil_aberto,True
+PI,2211001,Teresina,Pedra Miúda,pedra miuda,-5.1592835,-42.7708949,brasil_aberto,True
+PI,2211001,Teresina,Pedra Mole,pedra mole,-5.025874,-42.778437,brasil_aberto,True
+PI,2211001,Teresina,Pio XII,pio xii,-5.09975624,-42.8110199,brasil_aberto,True
+PI,2211001,Teresina,Pirajá,piraja,-5.0723502,-42.8247378,brasil_aberto,True
+PI,2211001,Teresina,Piçarra,picarra,-5.0973072,-42.7968953,brasil_aberto,True
+PI,2211001,Teresina,Piçarreira,picarreira,-5.059766,-42.7605546,brasil_aberto,True
+PI,2211001,Teresina,Planalto,planalto,-5.0590346,-42.7699061,brasil_aberto,True
+PI,2211001,Teresina,Porenquanto,porenquanto,-5.0839525,-42.8148341,brasil_aberto,True
+PI,2211001,Teresina,Portal da Alegria,portal da alegria,-5.1929942,-42.7429968,brasil_aberto,True
+PI,2211001,Teresina,Porto do Centro,porto do centro,-5.0412631,-42.7560531,brasil_aberto,True
+PI,2211001,Teresina,Poti Velho,poti velho,-5.0352618,-42.8291291,brasil_aberto,True
+PI,2211001,Teresina,Primavera,primavera,-5.06144238,-42.81626511,brasil_aberto,True
+PI,2211001,Teresina,Promorar,promorar,-5.1549251,-42.790728,brasil_aberto,True
+PI,2211001,Teresina,Real Copagri,real copagri,-5.0531557,-42.8204917,brasil_aberto,True
+PI,2211001,Teresina,Recanto das Palmeiras,recanto das palmeiras,-5.0830288,-42.7610714,brasil_aberto,True
+PI,2211001,Teresina,Redenção,redencao,-5.1170602,-42.7919715,brasil_aberto,True
+PI,2211001,Teresina,Redonda,redonda,-5.1190441,-42.7454874,brasil_aberto,True
+PI,2211001,Teresina,Renascença,renascenca,-5.0970552,-42.7448989,brasil_aberto,True
+PI,2211001,Teresina,Saci,saci,-5.1381566,-42.8023646,brasil_aberto,True
+PI,2211001,Teresina,Samapi,samapi,-5.0524559,-42.7616519,brasil_aberto,True
+PI,2211001,Teresina,Santa Cruz,santa cruz,-5.1547524,-42.786116,brasil_aberto,True
+PI,2211001,Teresina,Santa Isabel,santa isabel,-5.0750084,-42.7589084,brasil_aberto,True
+PI,2211001,Teresina,Santa Lia,santa lia,-5.0649823,-42.7502241,brasil_aberto,True
+PI,2211001,Teresina,Santa Luzia,santa luzia,-5.1313765,-42.8060711,brasil_aberto,True
+PI,2211001,Teresina,Santa Maria,santa maria,-4.9937885,-42.8371011,brasil_aberto,True
+PI,2211001,Teresina,Santa Rosa,santa rosa,-5.0388975,-42.7484034,brasil_aberto,True
+PI,2211001,Teresina,Santana,santana,-5.1525614,-42.6891497,brasil_aberto,True
+PI,2211001,Teresina,Santo Antônio,santo antonio,-5.1535608,-42.7701096,brasil_aberto,True
+PI,2211001,Teresina,Satélite,satelite,-5.05004549,-42.75732422,brasil_aberto,True
+PI,2211001,Teresina,Socopo,socopo,-5.0040211,-42.7539888,brasil_aberto,True
+PI,2211001,Teresina,São Cristóvão,sao cristovao,-5.077204,-42.7678732,brasil_aberto,True
+PI,2211001,Teresina,São Joaquim,sao joaquim,-5.0531888,-42.83611298,brasil_aberto,True
+PI,2211001,Teresina,São João,sao joao,-5.0830747,-42.7707432,brasil_aberto,True
+PI,2211001,Teresina,São Lourenço,sao lourenco,-5.1059895,-42.7309401,brasil_aberto,True
+PI,2211001,Teresina,São Pedro,sao pedro,-5.1147846,-42.8138635,brasil_aberto,True
+PI,2211001,Teresina,São Raimundo,sao raimundo,-5.1015747,-42.77355559999999,brasil_aberto,True
+PI,2211001,Teresina,São Sebastião,sao sebastiao,-5.1049753,-42.72152,brasil_aberto,True
+PI,2211001,Teresina,Tabajaras,tabajaras,-5.01182175,-42.77214813,brasil_aberto,True
+PI,2211001,Teresina,Tabuleta,tabuleta,-5.1218053,-42.7999542,brasil_aberto,True
+PI,2211001,Teresina,Tancredo Neves,tancredo neves,-5.1130564,-42.7694908,brasil_aberto,True
+PI,2211001,Teresina,Todos os Santos,todos os santos,-5.0980848,-42.718863,brasil_aberto,True
+PI,2211001,Teresina,Triunfo,triunfo,-5.1283644,-42.7950295,brasil_aberto,True
+PI,2211001,Teresina,Três Andares,tres andares,-5.1104915,-42.7849103,brasil_aberto,True
+PI,2211001,Teresina,Uruguai,uruguai,-5.0701766,-42.74528122,brasil_aberto,True
+PI,2211001,Teresina,Vale Quem Tem,vale quem tem,-5.05133772,-42.7467041,brasil_aberto,True
+PI,2211001,Teresina,Vale do Gavião,vale do gaviao,-5.032262,-42.739305,brasil_aberto,True
+PI,2211001,Teresina,Verde Lar,verde lar,-5.032262,-42.739305,brasil_aberto,True
+PI,2211001,Teresina,Verdecap,verdecap,-5.1136657,-42.7061504,brasil_aberto,True
+PI,2211001,Teresina,Vermelha,vermelha,-5.1038292,-42.8087889,brasil_aberto,True
+PI,2211001,Teresina,Vila Operária,vila operaria,-5.0734649,-42.816661,brasil_aberto,True
+PI,2211001,Teresina,Vila São Francisco,vila sao francisco,-5.032365,-42.8216444,brasil_aberto,True
+PI,2211001,Teresina,Zoobotânico,zoobotanico,-5.0374042,-42.7738917,brasil_aberto,True
+PI,2211001,Teresina,Água Mineral,agua mineral,-5.0421224,-42.8026256,brasil_aberto,True
+PI,2211001,Teresina,Área Rural de Teresina,area rural de teresina,-5.1013556,-42.7316939,brasil_aberto,True
+PI,2211001,Teresina,Árvores Verdes,arvores verdes,-5.0385487,-42.7282958,brasil_aberto,True
+PI,2211100,União,Centro,centro,-4.5854378,-42.8660479,brasil_aberto,True
+PI,2211100,União,Novo Nilo,novo nilo,-4.399897999999999,-42.889365,brasil_aberto,True
+PI,2211209,Uruçuí,Centro,centro,-7.2336313,-44.5558685,brasil_aberto,True
+PI,2211308,Valença do Piauí,Centro,centro,-6.4025258,-41.740644,brasil_aberto,True
+PI,2211506,Vera Mendes,Centro,centro,-7.604527900000001,-41.4822346,brasil_aberto,True
+PI,2211605,Vila Nova do Piauí,Centro,centro,-7.1425926,-40.9419759,brasil_aberto,True
+PI,2211357,Várzea Branca,Centro,centro,-9.2378611,-42.9643597,brasil_aberto,True
+PI,2211407,Várzea Grande,Centro,centro,-6.5459355,-42.2466127,brasil_aberto,True
+PI,2211704,Wall Ferraz,Centro,centro,-7.234365200000001,-41.9105471,brasil_aberto,True

@@ -1,636 +1,444 @@
-﻿<div class="lp-root"><!-- ═════════════ HEADER ═════════════ -->
-<header class="site-header" id="header">
-  <div class="container header-inner">
-    <a href="#top" class="brand" aria-label="urbeat home">
-      <img src="images/logo_v2.svg" alt="urbeat" class="brand-logo" width="120" />
-    </a>
-
-    <nav class="nav-main" aria-label="Navegação principal">
-      <a href="#recursos">Recursos</a>
-      <a href="#como-funciona">Como funciona</a>
-      <a href="#demonstracao">Demonstração</a>
-      <a href="#planos">Planos</a>
-      <a href="#depoimentos">Depoimentos</a>
-      <a href="#faq">FAQ</a>
-    </nav>
-
-    <div class="nav-actions">
-      <a routerLink="/login-vendedor" class="btn btn-ghost">Acessar painel</a>
-      <a routerLink="/cadastro" class="btn btn-brand">Criar meu cardápio <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-    </div>
-
-    <button class="mobile-toggle" id="mobile-toggle" aria-label="Abrir menu" aria-expanded="false">
-      <svg class="icon-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
-      <svg class="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6l-12 12" stroke-linecap="round"/></svg>
-    </button>
-  </div>
-
-  <div id="mobile-menu" aria-hidden="true">
-    <div class="container">
-      <nav aria-label="Navegação mobile">
-        <a href="#recursos">Recursos</a>
-        <a href="#como-funciona">Como funciona</a>
-        <a href="#demonstracao">Demonstração</a>
-        <a href="#planos">Planos</a>
-        <a href="#depoimentos">Depoimentos</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-      <div class="mobile-cta">
-        <a routerLink="/login-vendedor" class="btn btn-ghost">Acessar painel</a>
-        <a routerLink="/cadastro" class="btn btn-brand">Criar meu cardápio <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+﻿<div class="lp-root">
+  <!-- ═════════════════ HEADER ═════════════════ -->
+  <header class="lp-header">
+    <div class="lp-container lp-header-inner">
+      <div class="lp-brand">
+        <img src="assets/images/urbeat-logo.jpg" alt="UrBeat" class="lp-logo" />
       </div>
-    </div>
-  </div>
-</header>
 
-<!-- ═════════════ HERO ═════════════ -->
-<section id="top" class="hero">
-  <div class="container">
-    <div class="hero-grid">
-      <div>
-        <div class="hero-eyebrow-row reveal">
-          <span class="eyebrow">Para pequenos delivers</span>
-          <span class="hero-badge">
-            <span class="dot"></span>
-            <span>+1.200 lojas ativas</span>
-          </span>
+      <nav class="lp-nav" aria-label="Navegação principal">
+        <a href="#iniciantes">Para iniciantes</a>
+        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#plano">Plano</a>
+      </nav>
+
+      <div class="lp-nav-actions">
+        <a routerLink="/login-vendedor" class="lp-btn-login">Entrar</a>
+        <a routerLink="/cadastro" class="lp-btn-cta">Criar meu cardápio</a>
+      </div>
+
+      <button type="button" class="lp-menu-toggle" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Abrir menu">
+        @if (menuOpen()) {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        } @else {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+        }
+      </button>
+    </div>
+
+    @if (menuOpen()) {
+      <div class="lp-mobile-menu">
+        <a href="#iniciantes" (click)="toggleMenu()">Para iniciantes</a>
+        <a href="#funcionalidades" (click)="toggleMenu()">Funcionalidades</a>
+        <a href="#como-funciona" (click)="toggleMenu()">Como funciona</a>
+        <a href="#plano" (click)="toggleMenu()">Plano único</a>
+        <a routerLink="/login-vendedor" class="lp-mobile-login" (click)="toggleMenu()">Entrar</a>
+        <a routerLink="/cadastro" class="lp-btn-cta lp-mobile-cta" (click)="toggleMenu()">Criar meu cardápio</a>
+      </div>
+    }
+  </header>
+
+  <!-- ═════════════════ HERO ═════════════════ -->
+  <section class="lp-hero">
+    <div class="lp-container lp-hero-grid">
+      <div class="lp-hero-copy">
+        <div class="lp-hero-badge">
+          <span class="lp-pulse-dot"></span>
+          {{ getContent('Hero', 'Badge', 'Chega de dividir seu lucro no delivery. Teste por 15 dias.') }}
         </div>
 
-        <h1 class="reveal delay-1">
-          Seu delivery, com&nbsp;cara
-          <br />
-          de <span class="accent">restaurante</span>.
+        @let titleParts = heroTitleParts();
+        <h1 class="lp-hero-title">
+          {{ titleParts.before }}@if (titleParts.highlight) {<span class="lp-highlight">{{ titleParts.highlight }}</span>}{{ titleParts.after }}
         </h1>
 
-        <p class="hero-lead reveal delay-2">
-          Cardápio digital, pedidos online e painel de gestão num só sistema —
-          feito pra quem ainda atende cada cliente pelo nome.
+        <p class="lp-hero-sub">
+          {{ getContent('Hero', 'Subtitle', 'A UrBeat foi feita para quem está começando. Sem complicação, sem taxas por pedido, sem precisar saber de tecnologia. Você cadastra sua loja, divulga seu link e começa a receber pedidos organizados.') }}
         </p>
 
-        <div class="hero-actions reveal delay-3">
-          <a routerLink="/cadastro" class="btn btn-primary">
-            Começar grátis por 14 dias
-            <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="lp-hero-actions">
+          <a routerLink="/cadastro" class="lp-btn-hero">
+            Quero começar meu delivery agora
+            <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
-          <a href="#demonstracao" class="btn btn-ghost">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            Ver demonstração
-          </a>
+
+          <div class="lp-hero-trust">
+            <span class="lp-trust-item">
+              <span class="lp-trust-check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              15 dias grátis
+            </span>
+            <span class="lp-trust-item">
+              <span class="lp-trust-check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              Sem cartão no início
+            </span>
+            <span class="lp-trust-item">
+              <span class="lp-trust-check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              Manual passo a passo
+            </span>
+          </div>
         </div>
 
-        <p class="hero-login reveal delay-4">
-          Já tem loja? <a routerLink="/login-vendedor">Acessar painel</a>
-        </p>
-
-        <div class="hero-trust reveal delay-4">
-          <span>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            Sem taxa por pedido
+        <div class="lp-hero-note">
+          <span class="lp-note-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
           </span>
-          <span>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            Cancela quando quiser
+          <p>Feito para quem vende <strong>de casa, marmita, bolo, hambúrguer e lanche</strong></p>
+        </div>
+      </div>
+
+      <div class="lp-hero-stage">
+        <div class="lp-stage-glow" aria-hidden="true">
+          <span class="lp-glow-circle"></span>
+          <span class="lp-glow-blur"></span>
+        </div>
+
+        <div class="lp-phone-card">
+          <div class="lp-phone-frame">
+            <img src="assets/images/empreendedora-urbeat.jpg" alt="Empreendedora usando o app UrBeat" />
+          </div>
+
+          <div class="lp-float-card lp-float-order">
+            <span class="lp-float-icon lp-float-icon-green">!</span>
+            <div>
+              <div class="lp-float-kicker">Pedido novo!</div>
+              <div class="lp-float-value">R$ 34,90</div>
+            </div>
+          </div>
+
+          <div class="lp-float-card lp-float-print">
+            <span class="lp-float-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+            </span>
+            <div>
+              <span class="lp-float-title">Impressão automática</span>
+              <span class="lp-float-sub">na cozinha 🖨️</span>
+            </div>
+          </div>
+
+          <div class="lp-float-live">
+            <span class="lp-live-dot"></span>
+            Painel UrBeat ao vivo
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ DORES ═════════════════ -->
+  <section class="lp-section lp-section-alt lp-dores">
+    <div class="lp-container">
+      <div class="lp-section-head lp-center">
+        <h2>Vender no WhatsApp no caderninho não dá mais?</h2>
+        <p>Se você está começando, a gente sabe: no início tudo é na raça. Mas dá pra começar certo, sem dor de cabeça.</p>
+      </div>
+
+      <div class="lp-pains-grid">
+        @for (pain of pains; track pain.title) {
+          <article class="lp-card lp-pain-card">
+            <div class="lp-pain-icon" [class.lp-tone-amber]="pain.tone === 'amber'" [class.lp-tone-blue]="pain.tone === 'blue'" [class.lp-tone-rose]="pain.tone === 'rose'">
+              @switch (pain.icon) {
+                @case ('whatsapp') {
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                }
+                @case ('smartphone') {
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                }
+                @case ('wallet') {
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+                }
+              }
+            </div>
+            <h3>{{ pain.title }}</h3>
+            <p>"{{ pain.desc }}"</p>
+            @if (pain.sub) {
+              <p class="lp-pain-sub">{{ pain.sub }}</p>
+            }
+          </article>
+        }
+      </div>
+
+      <div class="lp-dark-banner">
+        <span class="lp-banner-check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        <p>A UrBeat organiza tudo pra você <span>começar certo desde o dia 1.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ FUNCIONALIDADES ═════════════════ -->
+  <section id="funcionalidades" class="lp-section">
+    <div class="lp-container">
+      <div class="lp-section-head lp-split">
+        <div>
+          <div class="lp-eyebrow">Funcionalidades para iniciantes</div>
+          <h2>Tudo que você precisa para começar, sem complicação</h2>
+        </div>
+        <p>Nada de funções que você nunca vai usar. Só o essencial para você vender mais, com controle e com a sua marca.</p>
+      </div>
+
+      <div class="lp-features-grid">
+        @for (feature of features; track feature.title) {
+          <article class="lp-card lp-feature-card">
+            <div class="lp-feature-icon">
+              @switch (feature.icon) {
+                @case ('store') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></svg>
+                }
+                @case ('whatsapp') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                }
+                @case ('dashboard') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                }
+                @case ('printer') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+                }
+                @case ('sliders') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                }
+                @case ('chart') {
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                }
+              }
+            </div>
+            <h3>{{ feature.title }}</h3>
+            <p>{{ getContent('Features', feature.contentKey, feature.fallback) }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ COMO FUNCIONA ═════════════════ -->
+  <section id="como-funciona" class="lp-section lp-section-alt lp-how">
+    <div class="lp-container">
+      <div class="lp-section-head lp-center">
+        <h2>Em 4 passos simples você já está vendendo</h2>
+        <p>Você não precisa de ajuda técnica. Foi feito pra você fazer sozinho(a).</p>
+      </div>
+
+      <div class="lp-steps">
+        <div class="lp-steps-line" aria-hidden="true"></div>
+        <div class="lp-steps-grid">
+          @for (step of steps; track step.n) {
+            <article class="lp-card lp-step-card">
+              <div class="lp-step-top">
+                <span class="lp-step-num">{{ step.n }}</span>
+                <span class="lp-step-icon">
+                  @switch (step.icon) {
+                    @case ('store') {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+                    }
+                    @case ('smartphone') {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    }
+                    @case ('wallet') {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+                    }
+                    @case ('printer') {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+                    }
+                  }
+                </span>
+              </div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.desc }}</p>
+              @if (!$last) {
+                <span class="lp-step-connector" aria-hidden="true"></span>
+              }
+            </article>
+          }
+        </div>
+      </div>
+
+      <div class="lp-how-cards">
+        <div class="lp-how-card">
+          <span class="lp-how-icon lp-how-icon-dark">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
           </span>
-          <span>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            Suporte por WhatsApp
+          <div>
+            <div class="lp-how-title">Cliente informa tudo certinho</div>
+            <div class="lp-how-chips">
+              <span class="lp-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V5a2 2 0 1 0-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg> Nome</span>
+              <span class="lp-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> Endereço</span>
+              <span class="lp-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg> Pagamento</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lp-how-card lp-how-card-dark">
+          <span class="lp-how-icon lp-how-icon-glass">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           </span>
-        </div>
-      </div>
-
-      <div class="hero-stage reveal delay-2">
-        <img src="images/imghero.webp" alt="Painel do urbeat no celular e desktop" />
-      </div>
-    </div>
-
-    <div class="hero-stats reveal delay-5">
-      <div class="stat">
-        <div class="stat-num">1.2<span class="small">k+</span></div>
-        <div class="stat-label">Lojas confiam no urbeat</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">38<span class="small">%</span></div>
-        <div class="stat-label">Aumento médio em pedidos</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">5<span class="small">min</span></div>
-        <div class="stat-label">Pra colocar seu menu no ar</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">0<span class="small">%</span></div>
-        <div class="stat-label">Taxa por pedido recebido</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ STACK ═════════════ -->
-<section class="section section-pearl">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Controle, agilidade e organização <span class="italic">no seu dia&nbsp;a&nbsp;dia</span>.</h2>
-      <p>Um painel feito pra quem cozinha, atende e administra ao mesmo tempo.</p>
-    </div>
-
-    <div class="stack-grid">
-      <div class="feat-card reveal">
-        <div class="feat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>Pedidos em tempo real</h3>
-        <p>Alertas instantâneos com som personalizado. Nenhum pedido passa batido.</p>
-      </div>
-
-      <div class="feat-card leaf reveal delay-1">
-        <div class="feat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>Status do pedido</h3>
-        <p>Recebido, em preparo, saiu pra entrega, entregue. Cliente acompanha em tempo real.</p>
-      </div>
-
-      <div class="feat-card reveal delay-2">
-        <div class="feat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <h3>Gestão sem stress</h3>
-        <p>Cardápio, preços, horários e taxas num painel simples. Edita e publica em segundos.</p>
-      </div>
-
-      <div class="feat-card leaf reveal delay-3">
-        <div class="feat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-        </div>
-        <h3>WhatsApp integrado</h3>
-        <p>Conversa com cliente direto do painel. Notificação automática a cada novo pedido.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ COMO FUNCIONA ═════════════ -->
-<section id="como-funciona" class="section section-cream">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="eyebrow">Como funciona</span>
-      <h2>Simples, rápido e feito pro <span class="italic">seu&nbsp;dia&nbsp;a&nbsp;dia</span>.</h2>
-      <p>Em menos tempo do que leva uma fritura.</p>
-    </div>
-
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-circle">1</div>
-        <h3>Cadastre seu cardápio</h3>
-        <p>Adicione produtos, fotos e preços em minutos.</p>
-      </div>
-      <div class="step reveal delay-1">
-        <div class="step-circle">2</div>
-        <h3>Compartilhe seu link</h3>
-        <p>Instagram, WhatsApp, Google — um link bonito, profissional, seu.</p>
-      </div>
-      <div class="step reveal delay-2">
-        <div class="step-circle">3</div>
-        <h3>Receba os pedidos</h3>
-        <p>Clientes escolhem, pagam pelo Pix ou app, você é notificado.</p>
-      </div>
-      <div class="step reveal delay-3">
-        <div class="step-circle">4</div>
-        <h3>Prepare e entregue</h3>
-        <p>Organize a cozinha e encante na entrega. Simples assim.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ RECURSOS ═════════════ -->
-<section id="recursos" class="section section-pearl">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Tudo que você precisa <span class="italic">— e nada que sobra</span>.</h2>
-      <p>Ferramentas certas para crescer sem complicação.</p>
-    </div>
-
-    <div class="feature-list">
-      <div class="feature-item reveal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round"/></svg>
-        <span>Cardápio digital responsivo</span>
-      </div>
-      <div class="feature-item reveal delay-1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" stroke-linecap="round"/></svg>
-        <span>Painel de pedidos completo</span>
-      </div>
-      <div class="feature-item reveal delay-2">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" stroke-linecap="round"/></svg>
-        <span>Histórico e relatórios</span>
-      </div>
-      <div class="feature-item reveal delay-3">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round"/></svg>
-        <span>Impressão de pedidos</span>
-      </div>
-      <div class="feature-item reveal delay-4">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.7 16.7L13.4 21a2 2 0 01-2.8 0L6.3 16.7a8 8 0 1111.4 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"/></svg>
-        <span>Taxa de entrega por bairro</span>
-      </div>
-      <div class="feature-item reveal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h.01M7 3h5c.5 0 1 .2 1.4.6l7 7a2 2 0 010 2.8l-7 7a2 2 0 01-2.8 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" stroke-linecap="round"/></svg>
-        <span>Promoções e combos</span>
-      </div>
-      <div class="feature-item reveal delay-1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round"/></svg>
-        <span>Produtos e adicionais</span>
-      </div>
-      <div class="feature-item reveal delay-2">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"/></svg>
-        <span>Horário de funcionamento</span>
-      </div>
-      <div class="feature-item reveal delay-3">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.4-1.9M17 20H7m10 0v-2c0-.7-.1-1.3-.4-1.9M7 20H2v-2a3 3 0 015.4-1.9M7 20v-2c0-.7.1-1.3.4-1.9m0 0a5 5 0 019.3 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"/></svg>
-        <span>Clientes e endereços</span>
-      </div>
-      <div class="feature-item reveal delay-4">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round"/></svg>
-        <span>Cupom de desconto</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ DEMONSTRAÇÃO ═════════════ -->
-<section id="demonstracao" class="section section-deep">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Veja como é fácil <span class="italic">usar o urbeat</span></h2>
-      <p>Do cardápio ao pedido entregue — tudo numa experiência só.</p>
-    </div>
-
-    <div class="demo-wrap">
-      <button class="demo-nav demo-nav--prev" id="demo-prev" aria-label="Anterior">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-
-      <div class="demo-track" id="demo-track">
-        <div class="phone reveal">
-          <div class="phone-frame">
-            <img src="images/cardapio.png" alt="Tela de cardápio" loading="lazy" />
-          </div>
-          <p class="phone-label">Cardápio</p>
-        </div>
-
-        <div class="demo-arrow" aria-hidden="true">→</div>
-
-        <div class="phone reveal delay-1">
-          <div class="phone-frame">
-            <img src="images/produto.png" alt="Tela de detalhe de produto" loading="lazy" />
-          </div>
-          <p class="phone-label">Produto</p>
-        </div>
-
-        <div class="demo-arrow" aria-hidden="true">→</div>
-
-        <div class="phone reveal delay-2">
-          <div class="phone-frame">
-            <img src="images/carrinho.png" alt="Tela de carrinho" loading="lazy" />
-          </div>
-          <p class="phone-label">Carrinho</p>
-        </div>
-
-        <div class="demo-arrow" aria-hidden="true">→</div>
-
-        <div class="phone reveal delay-3">
-          <div class="phone-frame">
-            <img src="images/pagamentos.png" alt="Tela de pagamento" loading="lazy" />
-          </div>
-          <p class="phone-label">Pagamento</p>
-        </div>
-
-        <div class="demo-arrow" aria-hidden="true">→</div>
-
-        <div class="phone reveal delay-4">
-          <div class="phone-frame">
-            <img src="images/pedidos.png" alt="Tela de pedido confirmado" loading="lazy" />
-          </div>
-          <p class="phone-label">Pedido</p>
-        </div>
-      </div>
-
-      <button class="demo-nav demo-nav--next" id="demo-next" aria-label="Próximo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-
-      <div class="demo-hint">
-        <span>Arraste para o lado</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ PLANOS ═════════════ -->
-<section id="planos" class="section section-cream">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Comece grátis. <span class="italic">Cresce&nbsp;junto</span>.</h2>
-      <p>Sem taxa por pedido. Sem fidelidade. Cancele quando quiser.</p>
-    </div>
-
-    <div class="billing-toggle-wrap reveal">
-      <div class="billing-toggle" id="billing-toggle" data-period="monthly">
-        <button data-period="monthly" class="active">Mensal</button>
-        <button data-period="yearly"><span>Anual</span> <span class="billing-save">−20%</span></button>
-      </div>
-    </div>
-
-    <div class="plans-grid">
-      <!-- Plano Básico -->
-      <div class="plan-card reveal delay-1">
-        <div class="plan-name">Básico</div>
-        <p class="plan-desc">Pra começar com o pé direito.</p>
-        <div class="plan-price">
-          <span class="sym">R$</span>
-          <span class="val" data-monthly="49,90" data-yearly="39,90">49,90</span>
-          <span class="per">/mês</span>
-        </div>
-        <ul class="plan-features">
-          <li>Cardápio digital ilimitado</li>
-          <li>Pedidos online ilimitados</li>
-          <li>Painel de gestão completo</li>
-          <li>WhatsApp integrado</li>
-          <li>Suporte por chat</li>
-          <li><strong>Taxa por pedido:</strong> 8%</li>
-        </ul>
-        <a routerLink="/cadastro" class="btn btn-ghost">Começar grátis</a>
-      </div>
-
-      <!-- Plano Premium -->
-      <div class="plan-card featured reveal delay-2">
-        <div class="plan-name">Premium <span class="italic">happ</span></div>
-        <p class="plan-desc">Pra quem já decola.</p>
-        <div class="plan-price">
-          <span class="sym">R$</span>
-          <span class="val" data-monthly="99,90" data-yearly="79,90">99,90</span>
-          <span class="per">/mês</span>
-        </div>
-        <ul class="plan-features">
-          <li>Tudo do plano Básico</li>
-          <li><strong>Zero taxa</strong> por pedido</li>
-          <li>Atendimento prioritário</li>
-          <li>Relatórios avançados</li>
-          <li>Domínio personalizado</li>
-          <li>Múltiplos operadores no painel</li>
-        </ul>
-        <a routerLink="/cadastro" class="btn btn-brand">Começar grátis</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ DEPOIMENTOS ═════════════ -->
-<section id="depoimentos" class="section section-pearl">
-  <div class="container">
-    <div class="section-header reveal">
-      <h2>Pequenos negócios <span class="italic">com&nbsp;ar&nbsp;de&nbsp;grandes</span>.</h2>
-      <p>Histórias reais de quem encontrou no urbeat uma forma de crescer.</p>
-    </div>
-
-    <div class="testimonials">
-      <article class="testimonial reveal">
-        <span class="quote-mark">"</span>
-        <div class="stars">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-        </div>
-        <p>Em duas semanas dobrei os pedidos do final de semana. O cliente acha que tenho equipe gigante — e sou eu, minha esposa e o forno.</p>
-        <div class="author">
-          <div class="avatar">RB</div>
-          <div class="author-meta">
-            <strong>Rafael Borges</strong>
-            <span>Burguer do Rafa · São Paulo</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="testimonial reveal delay-1">
-        <span class="quote-mark">"</span>
-        <div class="stars">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-        </div>
-        <p>Saí do iFood, parei de pagar 23% por pedido, comecei a falar com meu cliente pelo WhatsApp e a fidelização disparou. O urbeat me devolveu o controle.</p>
-        <div class="author">
-          <div class="avatar">MS</div>
-          <div class="author-meta">
-            <strong>Mariana Souto</strong>
-            <span>Pizza do Rafa · São Paulo</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="testimonial reveal delay-2">
-        <span class="quote-mark">"</span>
-        <div class="stars">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-        </div>
-        <p>Eu detesto tecnologia e em 5 minutos meu cardápio estava no ar. Suporte responde por WhatsApp como gente humana.</p>
-        <div class="author">
-          <div class="avatar">JT</div>
-          <div class="author-meta">
-            <strong>Juliana Takeshi</strong>
-            <span>Sushi Rafa · São Paulo</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="testimonial reveal delay-3">
-        <span class="quote-mark">"</span>
-        <div class="stars">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5.9 3.1 1.1-6.6L.6 7l6.6-1L10 0l2.8 6 6.6 1-4.6 4.5 1.1 6.6z"/></svg>
-        </div>
-        <p>O painel é a coisa mais bonita que já vi em sistema de delivery. Sério. Parece que foi feito por restaurante, não por programador.</p>
-        <div class="author">
-          <div class="avatar">CO</div>
-          <div class="author-meta">
-            <strong>Carlos Oliveira</strong>
-            <span>Cliente — São Paulo</span>
-          </div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════ FAQ ═════════════ -->
-<section id="faq" class="section section-cream">
-  <div class="container container-narrow">
-    <div class="section-header reveal">
-      <h2>Dúvidas? <span class="italic">A&nbsp;gente&nbsp;explica</span>.</h2>
-    </div>
-
-    <div class="faq reveal">
-      <div class="faq-item">
-        <button class="faq-q">
-          Preciso de cartão de crédito pra começar?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            Não. Você cadastra seu cardápio, configura sua loja e testa por 14 dias sem fornecer dado nenhum de pagamento. Depois, se gostar, escolhe o plano.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-q">
-          O urbeat cobra taxa por pedido?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            No plano <strong>Premium</strong>, não — zero taxa. No <strong>Básico</strong>, cobramos 8% sobre cada pedido (ainda é metade do que os marketplaces normais cobram). Você decide.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-q">
-          Funciona com Pix e Mercado Pago?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            Sim. Aceita Pix automático (com confirmação em segundos), cartão via Mercado Pago, e ainda permite pagamento na entrega (dinheiro ou maquininha).
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-q">
-          Posso usar meu domínio próprio?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            No plano Premium, sim. Você aponta seu domínio (ex: <em>pizzariadoze.com.br</em>) pro urbeat e seu cliente entra direto na sua marca, sem nenhuma URL estranha.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-q">
-          Preciso de equipamento especial?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            Não. Funciona em qualquer celular, tablet ou computador com navegador moderno. Se você usa WhatsApp, vai usar o urbeat.
-          </div>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-q">
-          E se eu quiser cancelar?
-          <span class="faq-toggle">+</span>
-        </button>
-        <div class="faq-a">
-          <div class="faq-a-inner">
-            Cancela com 1 clique no próprio painel. Sem fidelidade, sem multa, sem ligação pra call center. Você fica responsável por baixar seus dados antes — a gente nem segura.
+          <div>
+            <div class="lp-how-title">Status que cliente ama ver:</div>
+            <div class="lp-how-sub">"em preparo" → "saiu para entrega" → "entregue"</div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═════════════ CTA FINAL ═════════════ -->
-<section class="section cta-final">
-  <div class="container">
-    <div class="reveal">
-      <h2>Seu cardápio merece <span class="italic">uma vitrine bonita</span>.</h2>
-      <p>14 dias grátis. Sem cartão. Sem enrolação. Você só fala "ufa" no fim do mês.</p>
-      <a routerLink="/cadastro" class="btn btn-primary">
-        Começar agora →
-      </a>
-    </div>
-  </div>
-</section>
+  <!-- ═════════════════ INICIANTES ═════════════════ -->
+  <section id="iniciantes" class="lp-section">
+    <div class="lp-container">
+      <div class="lp-starter-panel">
+        <div class="lp-starter-head">
+          <h2>Feito para quem está começando agora</h2>
+          <p>A gente removeu tudo que assusta iniciante. Ficou só o que funciona.</p>
+        </div>
 
-<!-- ═════════════ FOOTER ═════════════ -->
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="#top" class="brand">
-          <img src="images/logo_v2.svg" alt="urbeat" class="brand-logo-footer" width="130" />
-        </a>
-        <p>O sistema completo pro seu delivery vender mais, organizar melhor e atender com elegância de restaurante.</p>
-        <div class="socials">
-          <a href="#" aria-label="Instagram">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8 0 3.2 0 3.6-.1 4.8-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1-3.2 0-3.6 0-4.8-.1-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-3.2 1.7-4.8 4.9-4.9 1.3-.1 1.6-.1 4.8-.1zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.1 8.3 0 8.7 0 12s0 3.7.1 4.9c.2 4.4 2.6 6.8 7 7 1.2.1 1.7.1 4.9.1 3.3 0 3.7 0 4.9-.1 4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9 0-3.3 0-3.7-.1-4.9-.2-4.4-2.6-6.8-7-7C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zm0 10.2a4 4 0 110-8 4 4 0 010 8zm6.4-11.8a1.4 1.4 0 100 2.8 1.4 1.4 0 000-2.8z"/></svg>
-          </a>
-          <a href="#" aria-label="Facebook">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.1C24 5.5 18.6.1 12 .1S0 5.5 0 12.1c0 6 4.4 11 10.1 11.9v-8.4H7.1v-3.5h3v-2.6c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3H15.8c-1.5 0-2 .9-2 1.9v2.3h3.3l-.5 3.5h-2.8v8.4c5.7-.9 10.2-5.9 10.2-11.9z"/></svg>
-          </a>
-          <a href="#" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0H5a5 5 0 00-5 5v14a5 5 0 005 5h14a5 5 0 005-5V5a5 5 0 00-5-5zm-11 19H5V8h3v11zm-1.5-12.3a1.8 1.8 0 110-3.5 1.8 1.8 0 010 3.5zm13.5 12.3h-3v-5.6c0-3.4-4-3.1-4 0V19h-3V8h3v1.8c1.4-2.6 7-2.8 7 2.5V19z"/></svg>
-          </a>
+        <div class="lp-starter-grid">
+          @for (benefit of starterBenefits; track benefit.title) {
+            <div class="lp-starter-card">
+              <span class="lp-starter-icon">
+                @switch (benefit.icon) {
+                  @case ('badge') {
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+                  }
+                  @case ('whatsapp') {
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  }
+                  @case ('book') {
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/><path d="m9 12 2 2 4-4"/></svg>
+                  }
+                }
+              </span>
+              <h3>{{ benefit.title }}</h3>
+              <p>{{ benefit.desc }}</p>
+            </div>
+          }
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="footer-col">
-        <h4>Produto</h4>
-        <ul>
-          <li><a href="#recursos">Recursos</a></li>
-          <li><a href="#planos">Planos</a></li>
-          <li><a href="#demonstracao">Demonstração</a></li>
-          <li><a href="#">Novidades</a></li>
-        </ul>
+  <!-- ═════════════════ PLANO ═════════════════ -->
+  <section id="plano" class="lp-section lp-section-alt lp-plans">
+    <div class="lp-container">
+      <div class="lp-section-head lp-center">
+        <div class="lp-eyebrow lp-eyebrow-bordered">Plano único • Sem complicação</div>
+        <h2>Um plano simples para você começar</h2>
+        <p>Sem pegadinha, sem letras miúdas. Só o que você precisa para vender.</p>
       </div>
 
-      <div class="footer-col">
-        <h4>Empresa</h4>
-        <ul>
-          <li><a href="#">Sobre</a></li>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Carreiras</a></li>
-          <li><a href="#">Contato</a></li>
-        </ul>
-      </div>
+      <div class="lp-plan-wrap">
+        <article class="lp-plan-card">
+          <header class="lp-plan-head">
+            <span class="lp-plan-tag">Plano único</span>
+            <h3>Primeiros 15 dias GRÁTIS!</h3>
+            <p class="lp-plan-after">Depois somente</p>
+            <div class="lp-plan-price">
+              <span class="lp-plan-value">R$29,90</span>
+              <span class="lp-plan-period">/mês</span>
+            </div>
+            <p class="lp-plan-note">Sem fidelidade • Cancele quando quiser</p>
+          </header>
 
-      <div class="footer-col">
-        <h4>Suporte</h4>
-        <ul>
-          <li><a href="#">Central de ajuda</a></li>
-          <li><a href="#">Tutoriais</a></li>
-          <li><a href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a></li>
-          <li><a href="#">Status</a></li>
-        </ul>
+          <ul class="lp-plan-features">
+            @for (feature of planFeatures; track feature) {
+              <li>
+                <span class="lp-plan-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                {{ feature }}
+              </li>
+            }
+          </ul>
+
+          <footer class="lp-plan-footer">
+            <div class="lp-plan-assurances">
+              @for (assurance of planAssurances; track assurance) {
+                <div class="lp-assurance">
+                  <span class="lp-assurance-check">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  </span>
+                  {{ assurance }}
+                </div>
+              }
+            </div>
+
+            <a routerLink="/cadastro" class="lp-btn-plan">
+              Quero começar grátis por 15 dias
+              <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <p class="lp-plan-fine">Sem fidelidade • Cancele quando quiser</p>
+          </footer>
+        </article>
+
+        <div class="lp-plan-proof">
+          <span class="lp-proof-check">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          Plano usado por quem vende marmita, hambúrguer, bolo, açaí e lanche
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="footer-bottom">
-      <span>© 2026 urbeat — Todos os direitos reservados.</span>
-      <div class="legal">
-        <a href="#">Termos</a>
-        <a href="#">Privacidade</a>
-        <a href="#">Cookies</a>
+  <!-- ═════════════════ CTA FINAL ═════════════════ -->
+  <section id="cta-final" class="lp-section lp-final">
+    <div class="lp-container">
+      <div class="lp-final-panel">
+        <span class="lp-final-orb lp-final-orb-top" aria-hidden="true"></span>
+        <span class="lp-final-orb lp-final-orb-bottom" aria-hidden="true"></span>
+
+        <div class="lp-final-grid">
+          <div>
+            <h2>Comece agora grátis e veja como é fácil transformar seu Delivery!</h2>
+            <div class="lp-final-bullets">
+              <div class="lp-final-bullet">
+                <span class="lp-final-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                Cancelamento fácil a qualquer momento
+              </div>
+              <div class="lp-final-bullet">
+                <span class="lp-final-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                15 dias para testar todos os recursos
+              </div>
+            </div>
+          </div>
+
+          <div class="lp-final-actions">
+            <a routerLink="/cadastro" class="lp-btn-final">
+              Criar minha loja em 15 minutos
+              <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <span class="lp-final-tag">
+              <span class="lp-final-tag-dot"></span>
+              Teste 15 dias grátis
+            </span>
+            <p>Você não precisa de cartão para começar. Manual em vídeo e suporte humano inclusos.</p>
+          </div>
+        </div>
       </div>
-      <span>Feito com ♥ no Brasil</span>
     </div>
-  </div>
-</footer>
+  </section>
 
+  <!-- ═════════════════ FOOTER ═════════════════ -->
+  <footer class="lp-footer">
+    <div class="lp-container lp-footer-inner">
+      <div class="lp-footer-brand">
+        <img src="assets/images/urbeat-logo.jpg" alt="UrBeat" class="lp-footer-logo" />
+        <span class="lp-footer-divider" aria-hidden="true"></span>
+        <p>UrBeat - Seu delivery, seu lucro. Feito para iniciantes em Rio das Ostras para todo o Brasil.</p>
+      </div>
+      <div class="lp-footer-meta">
+        <span>© {{ currentYear }} UrBeat</span>
+        <span class="lp-footer-dot" aria-hidden="true"></span>
+        <span class="lp-footer-made">Feito com 💚 para iniciantes</span>
+      </div>
+    </div>
+  </footer>
 </div>

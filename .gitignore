@@ -37,6 +37,7 @@ scripts/Zohokeys.txt
 *Zoho*.txt
 *zoho*.txt
 *ZOHO*.txt
+scripts/criarDeployOracleCloud/configs/*.local.json
 
 # Local agent/design artifacts
 .impeccable/critique/

@@ -7,6 +7,7 @@ import { checkmarkCircle, closeCircle, logoWhatsapp, arrowBackOutline, arrowForw
 import { IonContent, IonIcon, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonSpinner } from '@ionic/angular/standalone';
 import { StoreService } from '../../core/services/store.service';
 import { AddressService } from '../../core/services/address.service';
+import { AuthService } from '../../core/services/auth.service';
 import {
   CreateStoreRequest,
   UpdateStoreAddressRequest,
@@ -18,7 +19,6 @@ import { ToastService } from '../../core/services/toast.service';
 import { createStepperSteps } from '../../shared/config/wizard-steps.config';
 import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
 import { WizardFooterComponent } from '../../shared/components/wizard-footer/wizard-footer.component';
-import { ConfigSubnavComponent } from '../seller-shell/config-subnav.component';
 
 // Register icons to prevent Ionic standalone warnings
 addIcons({
@@ -34,13 +34,15 @@ addIcons({
 @Component({
   selector: 'app-store-config-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonSpinner, WizardHeaderComponent, WizardFooterComponent, ConfigSubnavComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonSpinner, WizardHeaderComponent, WizardFooterComponent],
   templateUrl: './store-config-page.component.html',
   styleUrl: './store-config-page.component.scss',
+  host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
 })
 export class StoreConfigPageComponent implements OnInit {
   private readonly storeService = inject(StoreService);
   private readonly addressService = inject(AddressService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   readonly stepperSteps = createStepperSteps(0);
@@ -251,6 +253,26 @@ export class StoreConfigPageComponent implements OnInit {
     this.storeService.getMyStore().subscribe({
       next: (store) => {
         this.populateFromExisting(store);
+      },
+      error: () => {
+        this.loadProfileFallback();
+      },
+    });
+  }
+
+  private loadProfileFallback(): void {
+    this.authService.getSellerProfile().subscribe({
+      next: (profile) => {
+        if (profile.fullName) {
+          this.storeName.set(profile.fullName);
+        }
+        if (profile.phoneNumber) {
+          this.whatsapp.set(profile.phoneNumber);
+          this.onWhatsappInput(profile.phoneNumber);
+        }
+        if (profile.document) {
+          this.onDocumentInput(profile.document);
+        }
       },
       error: () => {},
     });

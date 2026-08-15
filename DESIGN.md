@@ -106,7 +106,23 @@ components:
 
 Urbeat dresses small local merchants in a storefront they could never afford to build themselves — meticulously maintained, every detail intentional. The system's job is to disappear into *the merchant's* brand while quietly guaranteeing that every store feels credible, warm, and safe to hand your card to. The mood is a well-lit neighborhood shop at dusk: warm cream walls (`#ede9e3`), a single confident bordeaux sign (`#D54A51`), everything in its place. Warmth carries through the cream surface and bordeaux accent; the premium feeling comes from restraint, generous spacing, and rounded-but-not-cartoonish geometry — never from more color or more decoration.
 
-This is a **mobile-first product** first and a marketing surface second. Most surfaces (storefront, cart, checkout, order tracking, seller config) are transactional and must feel fast, obvious, and trustworthy under a thumb. The one marketing surface — the seller-recruitment landing page — is allowed a louder voice (Poppins display, JetBrains Mono accents, dark-ink palette) but pulls from the same brand accent. The landing page uses its own editorial tokens (`assets/css/styles.css`); those are a deliberate marketing variant, not the product system documented here.
+This is a **mobile-first product** first and a marketing surface second. Most surfaces (storefront, cart, checkout, order tracking, seller config) are transactional and must feel fast, obvious, and trustworthy under a thumb. The seller-recruitment landing page and the seller onboarding flow (login, cadastro, wizard `configurar-loja`) use a deliberate marketing variant — **UrBeat Green** (see "UrBeat Green variant" below) — not the bordeaux product system documented here.
+
+### UrBeat Green variant (landing + seller onboarding)
+
+The landing page and the lojista onboarding flow (login `/login-vendedor`, cadastro `/cadastro`, wizard `/configurar-loja/*`) are scoped with the `.urbeat-onboarding` class (partial `frontend/src/theme/onboarding-green.scss`), which redefines the brand tokens inside that subtree only. The product UI outside this scope stays bordeaux.
+
+- **Green Signal** (`#6EAF4A`): primary CTAs, badges, icons, price value. Replaces bordeaux inside the scope (`--app-brand`).
+- **Green Deep** (`#5fa13d`): hover/pressed for green elements (`--app-brand-dark`).
+- **Green Wash** (`#E8F5E9`): badge fills, icon chips, hero circles, pricing header (`--app-brand-soft`).
+- **Pale Green** (`#E6F4EA`): feature icon circles on the landing page.
+- **Dark Green Text** (`#2E7D32`): label text over Green Wash.
+- **Neutrals**: white and `#F9FAFB` section backgrounds, zinc-900 (`#18181b`) for dark cards/CTA, zinc scale for text (700/600/500/400).
+- **Shadows**: soft green-tinted (`rgba(110,175,74,.16–.4)`) on green CTAs and the pricing card; neutral soft shadows elsewhere.
+- **Geometry**: pill buttons (`999px`), cards at 24px radius, hero phone frame 32px, final CTA panel 32–40px.
+- **Typography**: Plus Jakarta Sans (`var(--app-font)`) only — the prototype's Inter is replaced app-wide. Weights up to 800/900 reserved for landing headings (marketing surface only).
+- **Motion**: `float` keyframes on hero floating cards, pulse on live dots, toast-style menu reveal; all disabled under `prefers-reduced-motion`.
+- **CMS**: hero title/subtitle/badge and the 6 feature descriptions are editable by the admin via `LandingPageService` (fallbacks ship the prototype copy).
 
 The system explicitly rejects three things: the **loud, ad-saturated big-delivery-app look** (iFood/Uber Eats density and banner-stacking), the **cheap templated-marketplace feel** (default-widget storefronts), and **sterile corporate-SaaS blandness** (cold gray dashboards) — even on the seller-facing config screens.
 
@@ -180,7 +196,7 @@ The neutral ramp is **warm** end to end — every grey carries a faint red/brown
 **Letter-spacing floor:** −0.04em. Never go tighter. Headings use −0.035em to −0.04em tracking.
 
 ### Named Rules
-**The Two-Voices Rule.** Poppins is for selling Urbeat to merchants on the landing page; Inter is for everything a customer or merchant actually *uses*. Never bring Poppins into the product UI or Inter into the landing hero.
+**The Two-Voices Rule.** The landing page and the seller onboarding flow (`.urbeat-onboarding` scope) use the UrBeat Green variant documented in the Overview; the product UI (storefront, checkout, seller dashboard) uses the bordeaux system documented here. Never bring UrBeat Green into the product UI or bordeaux into the onboarding/landing scope.
 
 **The Placeholder-Is-Not-Body Rule.** The codebase overrides browser-default placeholder opacity: `input::placeholder { color: var(--app-text-secondary) }` — secondary text, not muted. This is correct. Muted (`#8c8c91`) is reserved for tertiary metadata only. Real body text uses Primary Text or Secondary Text to hold AA contrast.
 

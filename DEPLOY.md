@@ -169,21 +169,77 @@ ssh ubuntu@136.248.115.135 'echo | openssl s_client -servername urbeat.com.br -c
 
 ### Backup manual (recomendado antes de migrations/destrutivas)
 ```bash
-ssh ubuntu@136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 cd /opt/urbeat
 mkdir -p backups
 TS=$(date +%Y%m%d_%H%M%S)
-sudo docker compose -f docker/docker-compose.yml exec -T db pg_dump -U postgres -d UrbeatDb \
+sudo docker compose --env-file .env -f docker-compose.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
   | gzip > backups/UrbeatDb_${TS}.sql.gz
-sudo docker compose -f docker/docker-compose.yml exec -T db pg_dump -U postgres -d UrbeatLogs \
+sudo docker compose --env-file .env -f docker-compose.yml exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d UrbeatLogs' \
   | gzip > backups/UrbeatLogs_${TS}.sql.gz
 ls -lh backups/
 ```
 
+## Recriar o banco usando migrations
+
+O banco OCI atual e o ambiente remoto usado como producao neste momento. O WebApi aplica automaticamente as migrations versionadas no startup (`backend/src/Urbeat.WebApi/Program.cs`). Nao use `dotnet ef database update` no servidor.
+
+O procedimento automatizado esta em `scripts/criarDeployOracleCloud/08-rebuild-database.ps1` e sempre cria backup antes de qualquer alteracao:
+
+```powershell
+Set-Location -LiteralPath "scripts\criarDeployOracleCloud"
+
+# Somente backup e verificacao, sem recriar o banco
+./08-rebuild-database.ps1 -SSHUser dexter -SSHPort 2208 -SSHKeyPath "$env:USERPROFILE\.ssh\id_ed25519"
+
+# Recriacao destrutiva, somente apos validar os arquivos de backup
+./08-rebuild-database.ps1 -ResetDatabase -ConfirmReset "RESET URBEAT DATABASE" `
+  -SSHUser dexter -SSHPort 2208 -SSHKeyPath "$env:USERPROFILE\.ssh\id_ed25519"
+```
+
+Regras:
+
+- A recriacao nao altera, apaga ou rotaciona secrets do OCI Vault.
+- O script salva backups em `/opt/urbeat/backups/database-rebuild-<timestamp>/`.
+- O reset recria somente o banco da aplicacao; depois reinicia o backend.
+- O startup do backend aplica o schema pela cadeia de migrations commitada e executa os seeders previstos.
+- O banco de logs e apenas salvo em backup quando existir; nao e apagado automaticamente.
+- Depois da migracao, valide `/health`, logs de migration e o total de tabelas antes de importar bairros.
+
+Enquanto este servidor continuar sendo o ambiente de producao, qualquer reset exige backup validado. Quando ele virar desenvolvimento, mantenha o mesmo procedimento e crie um servidor/banco separado para a producao real.
+
+### Estado da reconstrução em 2026-08-14
+
+- Backup validado em `/opt/urbeat/backups/database-rebuild-20260814_130826/urbeatdb.sql.gz`.
+- Banco da aplicação recriado e WebApi saudável após o startup.
+- `__EFMigrationsHistory`: 58 migrations aplicadas.
+- `Cities`: 0 registros após o reset.
+- `DeliveryNeighborhoods`: 0 registros após o reset.
+- A base de bairros de referência está no banco PostgreSQL de produção. Antes de um reset, exporte os estados existentes para snapshots CSV e versione-os em `backend/scripts/import/snapshots/bairros_<uf>.csv`; a reconstrução deve restaurar esses CSVs sem consultar a API externa. O CSV pode conter bairros sem geolocalização, mantendo `Latitude` e `Longitude` vazios; valide o total, os geolocalizados e os pendentes. Coordenadas são aproximadas pela primeira rua/CEP encontrada, com e-DNE/CEP antes de fontes reais como Nominatim, nunca por centroide municipal. A restauração via CSV preserva vazios e nunca inventa coordenadas.
+
+### Exportar bairros do banco de produção
+
+O exportador não consulta Brasil Aberto nem outro serviço externo: ele lê a tabela `DeliveryNeighborhoods` e gera um snapshot por UF. Execute em uma máquina com Python, `psycopg2` e acesso ao PostgreSQL de produção. Nunca coloque a senha no repositório ou na documentação.
+
+```bash
+cd /opt/urbeat/backend/scripts/import
+export URBEAT_DB_HOST=localhost
+export URBEAT_DB_PORT=5432
+export URBEAT_DB_NAME=UrbeatDb
+export URBEAT_DB_USER=postgres
+export URBEAT_DB_PASSWORD='use-a-senha-do-ambiente-sem-registrar-em-arquivo-versionado'
+
+for uf in AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO; do
+  python3 neighborhood_snapshot.py export --uf "$uf" --file "snapshots/bairros_${uf,,}.csv"
+done
+```
+
+Os CSVs gerados devem ser copiados para `backend/scripts/import/snapshots/` no repositório e revisados antes de qualquer reset. Em 2026-08-14, todas as 27 UFs foram importadas na produção e exportadas: 56.580 bairros no total, sendo 53.015 geolocalizados e 3.565 pendentes sem par completo de coordenadas. Estados sem registros produzem um snapshot vazio e devem ser confirmados antes de versionar. Depois do reset, restaure somente os arquivos disponíveis e valide a contagem de `Cities` e `DeliveryNeighborhoods`.
+
 ### Restore
 ```bash
 gunzip -c backups/UrbeatDb_20260528_180000.sql.gz \
-  | sudo docker compose -f /opt/urbeat/docker/docker-compose.yml exec -T db psql -U postgres -d UrbeatDb
+  | sudo docker compose --env-file /opt/urbeat/.env -f /opt/urbeat/docker-compose.yml exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 ```
 
 ---

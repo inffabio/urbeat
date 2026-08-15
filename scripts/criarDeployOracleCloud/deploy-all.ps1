@@ -15,7 +15,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
@@ -24,8 +27,11 @@ param(
 $commonParams = @{
     ServerIP   = $ServerIP
     SSHUser    = $SSHUser
+    SSHPort    = $SSHPort
     SSHKeyPath = $SSHKeyPath
 }
+
+$scriptRoot = $PSScriptRoot
 
 $banner = @"
 ╔═══════════════════════════════════════════════════════════╗
@@ -38,14 +44,14 @@ $banner = @"
 Write-Host $banner -ForegroundColor Cyan
 
 $steps = @{
-    "prerequisites" = ".\00-prerequisites-check.ps1"
-    "vault"         = ".\01-setup-vault-secrets.ps1"
-    "docker"        = ".\02-install-docker-aarch64.ps1"
-    "environment"   = ".\03-setup-environment.ps1"
-    "application"   = ".\04-deploy-application.ps1"
-    "nginx"         = ".\05-configure-nginx.ps1"
-    "ssl"           = ".\06-setup-ssl.ps1"
-    "verify"        = ".\07-verify-deployment.ps1"
+    "prerequisites" = Join-Path $scriptRoot "00-prerequisites-check.ps1"
+    "vault"         = Join-Path $scriptRoot "01-setup-vault-secrets.ps1"
+    "docker"        = Join-Path $scriptRoot "02-install-docker-aarch64.ps1"
+    "environment"   = Join-Path $scriptRoot "03-setup-environment.ps1"
+    "application"   = Join-Path $scriptRoot "04-deploy-application.ps1"
+    "nginx"         = Join-Path $scriptRoot "05-configure-nginx.ps1"
+    "ssl"           = Join-Path $scriptRoot "06-setup-ssl.ps1"
+    "verify"        = Join-Path $scriptRoot "07-verify-deployment.ps1"
 }
 
 function Run-Step {

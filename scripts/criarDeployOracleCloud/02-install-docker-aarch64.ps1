@@ -14,7 +14,10 @@ param(
     [string]$ServerIP = "136.248.115.135",
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHUser = "ubuntu",
+    [string]$SSHUser = "dexter",
+
+    [Parameter(Mandatory=$false)]
+    [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
@@ -98,8 +101,8 @@ sudo apt-get install -y \
     docker-buildx-plugin \
     docker-compose-plugin
 
-echo "👤 Adding ubuntu user to docker group..."
-sudo usermod -aG docker ubuntu
+echo "👤 Adding __SSH_USER__ user to docker group..."
+sudo usermod -aG docker __SSH_USER__
 
 echo "🔧 Enabling and starting Docker service..."
 sudo systemctl enable docker
@@ -134,12 +137,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 
 # Save script to temp file
 $tempScript = [System.IO.Path]::GetTempFileName() + ".sh"
+$dockerInstallScript = $dockerInstallScript.Replace("__SSH_USER__", $SSHUser)
 $dockerInstallScript | Out-File -FilePath $tempScript -Encoding UTF8 -NoNewline
 
 Write-Host "`n📤 Uploading installation script to server..." -ForegroundColor Yellow
 
 # Upload script via SCP
-scp -i $resolvedKeyPath -o StrictHostKeyChecking=no $tempScript "${SSHUser}@${ServerIP}:/tmp/install-docker.sh"
+$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+$scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+scp @scpOpts $tempScript "${SSHUser}@${ServerIP}:/tmp/install-docker.sh"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to upload script. Check SSH connection." -ForegroundColor Red
@@ -153,7 +159,7 @@ Write-Host "`n🚀 Executing Docker installation on server..." -ForegroundColor 
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
 # Execute script via SSH
-ssh -i $resolvedKeyPath -o StrictHostKeyChecking=no "${SSHUser}@${ServerIP}" "chmod +x /tmp/install-docker.sh && /tmp/install-docker.sh"
+ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/install-docker.sh && /tmp/install-docker.sh"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Docker installation failed!" -ForegroundColor Red
@@ -162,7 +168,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n🔍 Verifying Docker installation..." -ForegroundColor Yellow
-ssh -i $resolvedKeyPath -o StrictHostKeyChecking=no "${SSHUser}@${ServerIP}" "docker --version && docker compose version"
+ssh @sshOpts "${SSHUser}@${ServerIP}" "docker --version && docker compose version"
 
 Write-Host "`n🧹 Cleaning up temporary files..." -ForegroundColor Yellow
 try {
@@ -172,7 +178,7 @@ try {
 }
 
 try {
-    ssh -i $resolvedKeyPath -o StrictHostKeyChecking=no "${SSHUser}@${ServerIP}" "rm -f /tmp/install-docker.sh" 2>$null
+    ssh @sshOpts "${SSHUser}@${ServerIP}" "rm -f /tmp/install-docker.sh" 2>$null
 } catch {
     Write-Host "⚠️ Warning: Could not remove remote temp file" -ForegroundColor Yellow
 }

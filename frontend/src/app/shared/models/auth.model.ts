@@ -80,3 +80,10 @@ export interface UpdateEmailRequest {
   currentEmail: string;
   newEmail: string;
 }
+
+export interface SellerProfileResponse {
+  fullName: string;
+  document: string | null;
+  phoneNumber: string | null;
+  email: string;
+}

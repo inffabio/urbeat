@@ -1,0 +1,60 @@
+/* Variante "UrBeat Green" — landpage + onboarding do lojista (login, cadastro, wizard).
+   Aplicada adicionando a classe `.urbeat-onboarding` no elemento raiz da rota.
+   Fora desse escopo o app continua bordeaux (loja do cliente, dashboard). */
+
+.urbeat-onboarding {
+  /* === Cores principais (verde da nova landpage) === */
+  --app-brand: #6eaf4a;
+  --app-brand-rgb: 110, 175, 74;
+  --app-brand-dark: #5fa13d;
+  --app-brand-soft: #e8f5e9;
+  --app-brand-shadow: rgba(110, 175, 74, 0.22);
+
+  /* === Aliases de compatibilidade === */
+  --app-primary: var(--app-brand);
+  --app-primary-dark: var(--app-brand-dark);
+  --app-primary-light: var(--app-brand-soft);
+  --app-primary-tint: var(--app-brand-soft);
+
+  /* === Superfícies do fluxo (tom claro neutro da landpage) === */
+  --app-bg: #f9fafb;
+  --app-bg-warm: #f9fafb;
+  --app-surface-soft: #f2faf0;
+
+  /* === Semânticas === */
+  --app-accent-red: var(--app-brand);
+
+  /* === Sobrescreve Ionic === */
+  --ion-color-primary: var(--app-brand);
+  --ion-color-primary-rgb: 110, 175, 74;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #5fa13d;
+  --ion-color-primary-tint: var(--app-brand-soft);
+
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+
+  /* Botão primário global usado no wizard (horários/publicar) — sólido no lugar do gradiente bordeaux */
+  .btn-primary {
+    background: var(--app-brand);
+    border: 1px solid var(--app-brand);
+    color: #ffffff;
+
+    &:hover,
+    &:focus {
+      background: var(--app-brand-dark);
+      border-color: var(--app-brand-dark);
+      color: #ffffff;
+    }
+  }
+
+  /* Paleta verde da landpage para uso direto nos componentes */
+  --green-50: #e8f5e9;
+  --green-100: #e6f4ea;
+  --green-500: #6eaf4a;
+  --green-600: #5fa13d;
+  --green-700: #2e7d32;
+  --surface-alt: #f9fafb;
+  --ink-dark: #18181b;
+}

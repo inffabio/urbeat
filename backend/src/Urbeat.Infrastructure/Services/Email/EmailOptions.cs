@@ -4,7 +4,7 @@ public sealed class EmailOptions
 {
     public const string SectionName = "Email";
 
-    public string FromAddress { get; set; } = "no-reply@urbeat.local";
+    public string FromAddress { get; set; } = "nao-responda@urbeat.com.br";
 
     public string FromName { get; set; } = "Urbeat";
 

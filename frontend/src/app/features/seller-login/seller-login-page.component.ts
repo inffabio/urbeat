@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 
@@ -12,10 +13,12 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
   imports: [CommonModule, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, RouterModule],
   templateUrl: './seller-login-page.component.html',
   styleUrl: './seller-login-page.component.scss',
+  host: { '[class.urbeat-onboarding]': 'true' },
 })
 export class SellerLoginPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly storeService = inject(StoreService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
@@ -42,7 +45,7 @@ export class SellerLoginPageComponent {
     this.auth.loginSeller({ email, password }).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/app/dashboard']);
+        this.redirectAfterLogin();
       },
       error: (err) => {
         this.loading.set(false);
@@ -74,6 +77,33 @@ export class SellerLoginPageComponent {
           this.toastService.showError(backendError || 'Não foi possível fazer login. Verifique suas credenciais.');
         }
       },
+    });
+  }
+
+  /**
+   * Após login: se a loja existe e o wizard está completo (publicável),
+   * vai para o dashboard. Se está no meio do wizard ou não tem loja,
+   * continua no wizard (/configurar-loja).
+   */
+  private redirectAfterLogin(): void {
+    this.storeService.getMyStore().subscribe({
+      next: (store) => {
+        if (!store?.id) {
+          this.router.navigate(['/configurar-loja']);
+          return;
+        }
+        this.storeService.getStorePublishSummary(store.id).subscribe({
+          next: (summary) => {
+            if (summary?.canPublish) {
+              this.router.navigate(['/app/dashboard']);
+            } else {
+              this.router.navigate(['/configurar-loja']);
+            }
+          },
+          error: () => this.router.navigate(['/configurar-loja']),
+        });
+      },
+      error: () => this.router.navigate(['/configurar-loja']),
     });
   }
 }

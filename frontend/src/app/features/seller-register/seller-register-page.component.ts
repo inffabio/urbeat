@@ -13,6 +13,7 @@ import { RegisterCustomerRequest, RegisterResponse } from '../../shared/models/a
   imports: [CommonModule, FormsModule, IonContent, IonIcon, IonSpinner],
   templateUrl: './seller-register-page.component.html',
   styleUrl: './seller-register-page.component.scss',
+  host: { '[class.urbeat-onboarding]': 'true' },
 })
 export class SellerRegisterPageComponent {
   private readonly auth = inject(AuthService);
