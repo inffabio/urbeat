@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
+import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
@@ -17,6 +18,13 @@ interface PendingAction {
   label: string;
 }
 
+interface OrderStatusUpdateEvent {
+  orderId?: string;
+  orderCode?: string;
+  status?: OrderStatus;
+  changedAtUtc?: string;
+}
+
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
@@ -24,19 +32,22 @@ interface PendingAction {
   templateUrl: './seller-orders-page.component.html',
   styleUrl: './seller-orders-page.component.scss',
 })
-export class SellerOrdersPageComponent implements OnInit {
+export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
   private readonly toast = inject(ToastService);
   private readonly printing = inject(SellerPrintingService);
   private readonly shell = inject(SellerShellFacade);
   private readonly route = inject(ActivatedRoute);
+  private readonly signalR = inject(SignalRService);
   private lastPulseId: string | null = null;
   private readonly targetOrderId = this.route.snapshot.queryParamMap.get('order');
+  private orderStatusListener?: (payload: OrderStatusUpdateEvent) => void;
 
   readonly OrderStatus = OrderStatus;
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly updatingOrderId = signal<string | null>(null);
+  readonly completingOrderId = signal<string | null>(null);
   readonly orders = signal<OrderSummary[]>([]);
   readonly pendingAction = signal<PendingAction | null>(null);
   readonly orderDetails = signal<Map<string, OrderItem[]>>(new Map());
@@ -51,8 +62,12 @@ export class SellerOrdersPageComponent implements OnInit {
 
   readonly newOrders = computed(() => this.statusGroups().received);
 
+  readonly visibleOrders = computed(() =>
+    this.orders().filter((o) => !o.sellerCompletedAtUtc),
+  );
+
   readonly statusGroups = computed(() => {
-    const all = this.orders();
+    const all = this.visibleOrders();
     return {
       received: this.sortOrders(all.filter((o) => o.status === OrderStatus.Received)),
       preparing: this.sortOrders(all.filter((o) => o.status === OrderStatus.Preparing)),
@@ -82,6 +97,14 @@ export class SellerOrdersPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.registerOrderStatusListener();
+  }
+
+  ngOnDestroy(): void {
+    if (this.orderStatusListener) {
+      this.signalR.removeSellerListener('OrderStatusUpdated', this.orderStatusListener);
+      this.orderStatusListener = undefined;
+    }
   }
 
   load(options?: { silent?: boolean }): void {
@@ -161,6 +184,35 @@ export class SellerOrdersPageComponent implements OnInit {
     });
   }
 
+  completeOrder(order: OrderSummary): void {
+    if (this.completingOrderId()) return;
+    const orderId = order.id;
+    this.completingOrderId.set(orderId);
+
+    this.orderService.completeOrder(orderId).subscribe({
+      next: () => {
+        this.completingOrderId.set(null);
+        this.orders.update((items) => items.filter((o) => o.id !== orderId));
+        void this.toast.showSuccess('Pedido concluído.');
+      },
+      error: () => {
+        this.completingOrderId.set(null);
+        void this.toast.showError('Nao foi possivel concluir o pedido.');
+      },
+    });
+  }
+
+  canComplete(order: OrderSummary): boolean {
+    return order.status === OrderStatus.Delivered
+      && !!order.deliveryConfirmedAtUtc
+      && !order.sellerCompletedAtUtc;
+  }
+
+  firstName(customerName?: string): string {
+    if (!customerName) return '';
+    return customerName.trim().split(/\s+/)[0] ?? '';
+  }
+
   paymentLabel(method?: PaymentMethod): string {
     switch (method) {
       case PaymentMethod.PixOnline: return 'Pix ja pago';
@@ -173,6 +225,15 @@ export class SellerOrdersPageComponent implements OnInit {
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  private registerOrderStatusListener(): void {
+    this.orderStatusListener = (payload: OrderStatusUpdateEvent) => {
+      if (!payload?.orderId) return;
+      if (!this.orders().some((order) => order.id === payload.orderId)) return;
+      this.load({ silent: true });
+    };
+    this.signalR.onSellerEvent('OrderStatusUpdated', this.orderStatusListener);
   }
 
   private sortOrders(orders: OrderSummary[]): OrderSummary[] {

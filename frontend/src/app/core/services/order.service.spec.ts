@@ -120,4 +120,28 @@ describe('OrderService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([{ id: 'order1', code: '123', customerName: 'Cliente', customerPhoneNumber: '11999999999', addressSummary: 'Rua Teste, 10 - Centro', status: OrderStatus.OnDelivery, total: 40, createdAtUtc: '2026-07-29T10:00:00Z' }]);
   });
+
+  it('should complete a seller order', () => {
+    service.completeOrder('order1').subscribe((order) => {
+      expect(order.sellerCompletedAtUtc).toBe('2026-07-29T12:00:00Z');
+    });
+
+    const req = httpMock.expectOne('/api/orders/order1/complete');
+    expect(req.request.method).toBe('POST');
+    req.flush({
+      id: 'order1',
+      code: '123',
+      storeId: 'store1',
+      fulfillmentType: 1,
+      status: OrderStatus.Delivered,
+      paymentMethod: 1,
+      subtotal: 20,
+      deliveryFee: 0,
+      total: 20,
+      createdAtUtc: '2026-07-29T10:00:00Z',
+      sellerCompletedAtUtc: '2026-07-29T12:00:00Z',
+      items: [],
+      history: [],
+    });
+  });
 });

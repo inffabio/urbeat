@@ -55,7 +55,10 @@
           <h2 class="col-title">Novos Pedidos</h2>
           <div class="status-stack">
             @for (order of statusGroups().received; track order.id) {
-              <div class="status-card ref" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">{{ order.code }}</div>
+              <div class="status-card ref two-line" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
+                <span class="ref-code">#{{ order.code }}</span>
+                <span class="ref-client">{{ firstName(order.customerName) }}{{ order.customerPhoneNumber ? ' - ' + order.customerPhoneNumber : '' }}</span>
+              </div>
             }
           </div>
         </div>
@@ -102,7 +105,16 @@
           <h2 class="col-title">Concluido</h2>
           <div class="status-stack">
             @for (order of statusGroups().delivered; track order.id) {
-              <div class="status-card action-green" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">#{{ order.code }} concluído</div>
+              @if (canComplete(order)) {
+                <button type="button" class="status-card action-green"
+                  [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
+                  (click)="completeOrder(order)"
+                  [disabled]="completingOrderId() === order.id">
+                  {{ completingOrderId() === order.id ? 'Concluindo...' : 'Concluído' }}
+                </button>
+              } @else {
+                <div class="status-card action-green" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">#{{ order.code }} entregue</div>
+              }
             }
           </div>
         </div>

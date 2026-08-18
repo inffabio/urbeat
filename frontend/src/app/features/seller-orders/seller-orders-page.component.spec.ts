@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
+import { SignalRService } from '../../core/services/signalr.service';
 import { SellerPrintingService } from '../seller-printing/seller-printing.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -9,10 +10,11 @@ import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { SellerOrdersPageComponent } from './seller-orders-page.component';
 
 describe('SellerOrdersPageComponent', () => {
-  let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock };
+  let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock; completeOrder: jest.Mock };
   let printingServiceMock: { printAcceptedOrder: jest.Mock };
   let toastServiceMock: { showSuccess: jest.Mock; showError: jest.Mock };
   let shellMock: { newOrderPulse: any; notifyOrderChanged: jest.Mock };
+  let signalRServiceMock: { onSellerEvent: jest.Mock; removeSellerListener: jest.Mock };
   let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
 
   const buildOrder = (overrides: Partial<any> = {}) => ({
@@ -30,16 +32,19 @@ describe('SellerOrdersPageComponent', () => {
       getStoreOrders: jest.fn().mockReturnValue(of({ items: [], totalItems: 0 })),
       getStoreOrder: jest.fn().mockReturnValue(of({ id: '', code: '', items: [], total: 0, createdAtUtc: '' })),
       updateStoreOrderStatus: jest.fn().mockReturnValue(of({})),
+      completeOrder: jest.fn().mockReturnValue(of({})),
     };
     printingServiceMock = { printAcceptedOrder: jest.fn().mockResolvedValue(undefined) };
     toastServiceMock = { showSuccess: jest.fn().mockResolvedValue(undefined), showError: jest.fn().mockResolvedValue(undefined) };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
+    signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn() };
     activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}) } };
 
     await TestBed.configureTestingModule({
       imports: [SellerOrdersPageComponent],
       providers: [
         { provide: OrderService, useValue: orderServiceMock },
+        { provide: SignalRService, useValue: signalRServiceMock },
         { provide: SellerPrintingService, useValue: printingServiceMock },
         { provide: ToastService, useValue: toastServiceMock },
         { provide: SellerShellFacade, useValue: shellMock },
@@ -244,5 +249,177 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     expect(orderServiceMock.getStoreOrders).toHaveBeenCalled();
+  });
+
+  it('shows code and first name-phone on two lines of the new-order reference card', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Received) {
+        return of({ items: [buildOrder({ id: '1', code: 'URB-123456', customerName: 'Joao Silva', customerPhoneNumber: '1199999' })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const refCard = fixture.nativeElement.querySelector('.status-card.ref');
+    expect(refCard.textContent).toContain('#URB-123456');
+    expect(refCard.textContent).toContain('Joao - 1199999');
+  });
+
+  it('hides seller-completed orders from the day board', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({
+          items: [
+            buildOrder({ id: 'done', code: 'URB-1', status: OrderStatus.Delivered, sellerCompletedAtUtc: '2026-08-04T11:00:00Z' }),
+            buildOrder({ id: 'pending', code: 'URB-2', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' }),
+          ],
+          totalItems: 2,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.statusGroups().delivered.map((o) => o.id)).toEqual(['pending']);
+  });
+
+  it('shows the Concluído action for delivered orders confirmed by the customer', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({ items: [buildOrder({ id: 'done', code: 'URB-1', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Concluído');
+  });
+
+  it('does not show Concluído for delivered orders without customer confirmation', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({ items: [buildOrder({ id: 'wait', code: 'URB-3', status: OrderStatus.Delivered })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Concluído');
+  });
+
+  it('completes an order and removes it from the board on success', () => {
+    orderServiceMock.completeOrder.mockReturnValue(of({ sellerCompletedAtUtc: '2026-08-04T12:00:00Z' }));
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({ items: [buildOrder({ id: 'done', code: 'URB-1', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().delivered[0]);
+
+    expect(orderServiceMock.completeOrder).toHaveBeenCalledWith('done');
+    expect(fixture.componentInstance.statusGroups().delivered.length).toBe(0);
+    expect(toastServiceMock.showSuccess).toHaveBeenCalled();
+  });
+
+  it('shows a loading state and disables the action while completing', () => {
+    const subject = new Subject<any>();
+    orderServiceMock.completeOrder.mockReturnValue(subject.asObservable());
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({ items: [buildOrder({ id: 'done', code: 'URB-1', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().delivered[0]);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.completingOrderId()).toBe('done');
+    expect(fixture.nativeElement.textContent).toContain('Concluindo');
+    expect(fixture.nativeElement.querySelector('.status-card.action-green').disabled).toBe(true);
+
+    subject.next({ sellerCompletedAtUtc: '2026-08-04T12:00:00Z' });
+    subject.complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.completingOrderId()).toBeNull();
+  });
+
+  it('releases the Concluído button when completion fails', () => {
+    orderServiceMock.completeOrder.mockReturnValue(throwError(() => new Error('fail')));
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({ items: [buildOrder({ id: 'done', code: 'URB-1', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().delivered[0]);
+
+    expect(fixture.componentInstance.completingOrderId()).toBeNull();
+    expect(fixture.componentInstance.statusGroups().delivered.length).toBe(1);
+    expect(toastServiceMock.showError).toHaveBeenCalled();
+  });
+
+  it('reloads silently when OrderStatusUpdated arrives for a known order', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    const before = orderServiceMock.getStoreOrders.mock.calls.length;
+    listener({ orderId: '2', status: OrderStatus.Ready });
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBeGreaterThan(before);
+  });
+
+  it('ignores OrderStatusUpdated for an unknown order', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    const before = orderServiceMock.getStoreOrders.mock.calls.length;
+    listener({ orderId: 'unknown' });
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before);
+  });
+
+  it('removes the OrderStatusUpdated listener on destroy', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    fixture.destroy();
+
+    expect(signalRServiceMock.removeSellerListener).toHaveBeenCalledWith('OrderStatusUpdated', listener);
   });
 });

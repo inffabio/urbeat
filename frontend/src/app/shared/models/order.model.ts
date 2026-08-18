@@ -65,6 +65,7 @@ export interface OrderSummary {
   status: OrderStatus;
   total: number;
   createdAtUtc: string;
+  deliveryConfirmedAtUtc?: string;
   sellerCompletedAtUtc?: string;
 }
 

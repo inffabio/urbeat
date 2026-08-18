@@ -26,6 +26,10 @@ export class OrderService {
     return this.api.post<OrderDetails>(`/api/orders/${orderId}/delivery-confirmation`, {});
   }
 
+  completeOrder(orderId: string): Observable<OrderDetails> {
+    return this.api.post<OrderDetails>(`/api/orders/${orderId}/complete`, {});
+  }
+
   getMyOrders(): Observable<OrderSummary[]> {
     return this.api.get<OrderSummary[]>('/api/orders/my');
   }
