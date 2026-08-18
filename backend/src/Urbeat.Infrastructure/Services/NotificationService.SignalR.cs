@@ -169,6 +169,23 @@ public sealed partial class NotificationService : INotificationService
         }, cancellationToken);
     }
 
+    public async Task NotifyCustomerOrderStatusUpdatedAsync(
+        Guid customerUserId,
+        Guid orderId,
+        string orderCode,
+        OrderStatus status,
+        DateTime changedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        await TrySendNotificationAsync(_customerHub, customerUserId.ToString(), "OrderStatusUpdated", new
+        {
+            orderId,
+            orderCode,
+            status,
+            changedAtUtc
+        }, cancellationToken);
+    }
+
     private static async Task TrySendNotificationAsync(dynamic? hub, string userId, string method, object arg, CancellationToken ct)
     {
         if (hub is null)
@@ -176,7 +193,7 @@ public sealed partial class NotificationService : INotificationService
 
         try
         {
-            await hub.Clients.User(userId).SendAsync(method, arg, ct);
+            await hub.Clients.User(userId).SendCoreAsync(method, new object[] { arg }, ct);
         }
         catch
         {

@@ -43,6 +43,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IShortIdCache>();
             services.AddSingleton<IShortIdCache, InMemoryShortIdCache>();
 
+            services.RemoveAll(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>));
+            services.AddSingleton(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>), typeof(RecordingHubContext<>));
+
             // Program.cs relies on MigrateAsync which fails on InMemory,
             // so the built-in seeders never run. Seed reference data here.
             services.AddHostedService<TestDataSeeder>();

@@ -540,6 +540,7 @@ public sealed class OrderService : IOrderService
         }
 
         var previousStatus = order.Status;
+        var changedAtUtc = DateTime.UtcNow;
         order.Status = request.NewStatus;
         order.MarkAsUpdated();
 
@@ -573,6 +574,14 @@ public sealed class OrderService : IOrderService
             cancellationToken);
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _notificationService.NotifyCustomerOrderStatusUpdatedAsync(
+            order.CustomerUserId,
+            order.Id,
+            order.Code,
+            request.NewStatus,
+            changedAtUtc,
+            cancellationToken);
 
         var details = await LoadDetailsAsync(order, cancellationToken);
         return new UpdateOrderStatusResultDto

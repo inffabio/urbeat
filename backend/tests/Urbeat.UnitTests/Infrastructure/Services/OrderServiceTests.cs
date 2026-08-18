@@ -519,6 +519,105 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_ShouldEmitOrderStatusUpdatedEvent_AfterValidTransition()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-123456",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Received,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        DateTime capturedChangedAtUtc = default;
+        notificationService
+            .Setup(x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<OrderStatus>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<Guid, Guid, string, OrderStatus, DateTime, CancellationToken>(
+                (_, _, _, _, changedAtUtc, _) => capturedChangedAtUtc = changedAtUtc)
+            .Returns(Task.CompletedTask);
+
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), notificationService.Object);
+
+        var before = DateTime.UtcNow;
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing },
+            null);
+        var after = DateTime.UtcNow;
+
+        result.InvalidTransition.Should().BeFalse();
+        result.Order.Should().NotBeNull();
+        notificationService.Verify(
+            x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                customerUserId,
+                order.Id,
+                "URB-123456",
+                OrderStatus.Preparing,
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        capturedChangedAtUtc.Should().BeOnOrAfter(before);
+        capturedChangedAtUtc.Should().BeOnOrBefore(after);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldNotEmitOrderStatusUpdatedEvent_OnInvalidTransition()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-123456",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Received,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), notificationService.Object);
+
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered },
+            null);
+
+        result.InvalidTransition.Should().BeTrue();
+        result.Order.Should().BeNull();
+        notificationService.Verify(
+            x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<OrderStatus>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task CompleteForSellerBoardAsync_ShouldForbid_DifferentSeller()
     {
         var sellerUserId = Guid.NewGuid();

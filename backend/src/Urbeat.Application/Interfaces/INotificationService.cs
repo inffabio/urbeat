@@ -25,6 +25,14 @@ public interface INotificationService
         string? message,
         CancellationToken cancellationToken = default);
 
+    Task NotifyCustomerOrderStatusUpdatedAsync(
+        Guid customerUserId,
+        Guid orderId,
+        string orderCode,
+        Domain.Entities.OrderStatus status,
+        DateTime changedAtUtc,
+        CancellationToken cancellationToken = default);
+
     Task NotifySellerSubscriptionStatusAsync(
         Guid sellerUserId,
         Guid subscriptionReferenceId,
