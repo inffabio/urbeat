@@ -9,6 +9,7 @@ Sincronizar o fluxo operacional de pedidos entre o painel do lojista e o storefr
 - Manter o fluxo `Received -> Preparing -> Ready -> OnDelivery -> Delivered`.
 - Gravar cada transicao em `OrderStatusHistory`, com usuario, horario e observacao.
 - Preservar os snapshots existentes de itens, precos, endereco e total.
+- Usar codigos de pedido com prefixo `URB` em maiusculas e hifen, por exemplo `URB-123456`; nenhum codigo novo deve usar `HAP` ou `HAPP`.
 - Adicionar `DeliveryConfirmedAtUtc` ao pedido.
 - Adicionar `SellerCompletedAtUtc` ao pedido para ocultacao persistida no painel do dia.
 - Permitir confirmacao somente ao cliente dono de um pedido `Delivered` cujo tipo seja delivery.
@@ -37,7 +38,7 @@ Sincronizar o fluxo operacional de pedidos entre o painel do lojista e o storefr
 ## Painel do Vendedor
 
 - A coluna `Novos Pedidos` exibira cada pedido em duas linhas:
-  - `#Numero do pedido`
+  - `#URB-Numero do pedido`
   - `Primeiro nome - Telefone`
 - O pedido aparecera imediatamente na coluna correspondente ao status atual apos o aceite.
 - Cada transicao movera o pedido para a proxima coluna sem perder dados.
@@ -70,6 +71,7 @@ Sincronizar o fluxo operacional de pedidos entre o painel do lojista e o storefr
 - Ao marcar entregue, o cliente ve `Entregue` e o botao `Confirmar entrega`.
 - Ao confirmar, o cliente permanece na tela e a confirmacao fica gravada.
 - O vendedor ve numero, primeiro nome e telefone na coluna de novos pedidos.
+- O codigo exibido em todas as telas e notificacoes usa o formato `URB-123456`.
 - O vendedor pode ocultar um pedido concluido sem apagar seu historico ou snapshots.
 - Queda do SignalR nao impede a atualizacao eventual pelo polling.
 - Nenhuma conta consegue alterar ou confirmar pedido de outro usuario.
