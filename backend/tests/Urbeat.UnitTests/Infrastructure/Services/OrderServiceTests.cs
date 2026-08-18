@@ -3,6 +3,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
+using Urbeat.Infrastructure.Persistence.UnitOfWork;
 using Urbeat.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public sealed class OrderServiceTests : IDisposable
 
         _sut = new OrderService(
             _db,
-            Mock.Of<IEfUnitOfWork>(),
+            new EfUnitOfWork(_db),
             Mock.Of<INotificationService>());
     }
 
@@ -375,5 +376,172 @@ public sealed class OrderServiceTests : IDisposable
         result.Should().NotBeNull();
         result!.SellerCompletedAtUtc.Should().Be(completedAtUtc);
         result.DeliveryConfirmedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmDeliveryAsync_ShouldSucceedAndBeIdempotent_ForDeliveredDeliveryOrder()
+    {
+        var customerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var first = await _sut.ConfirmDeliveryAsync(customerUserId, order.Id, "127.0.0.1");
+        var second = await _sut.ConfirmDeliveryAsync(customerUserId, order.Id, "127.0.0.1");
+
+        first.Order.Should().NotBeNull();
+        first.Order!.DeliveryConfirmedAtUtc.Should().NotBeNull();
+        first.Order.SellerCompletedAtUtc.Should().BeNull();
+        second.Order.Should().NotBeNull();
+        second.Order!.DeliveryConfirmedAtUtc.Should().Be(first.Order.DeliveryConfirmedAtUtc);
+        (await _db.AuditLogs.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ConfirmDeliveryAsync_ShouldReject_DeliveredPickUpOrder()
+    {
+        var customerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ConfirmDeliveryAsync(customerUserId, order.Id, null);
+
+        result.InvalidState.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).DeliveryConfirmedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmDeliveryAsync_ShouldReject_NonDeliveredOrder()
+    {
+        var customerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.OnDelivery,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ConfirmDeliveryAsync(customerUserId, order.Id, null);
+
+        result.InvalidState.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).DeliveryConfirmedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmDeliveryAsync_ShouldForbid_DifferentCustomer()
+    {
+        var customerUserId = Guid.NewGuid();
+        var otherCustomerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ConfirmDeliveryAsync(otherCustomerUserId, order.Id, null);
+
+        result.Forbidden.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).DeliveryConfirmedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldSetSellerCompletedAtUtc_WithoutChangingStatus()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var first = await _sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+        var second = await _sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        first.Order.Should().NotBeNull();
+        first.Order!.SellerCompletedAtUtc.Should().NotBeNull();
+        first.Order.Status.Should().Be(OrderStatus.Delivered);
+        second.Order.Should().NotBeNull();
+        second.Order!.SellerCompletedAtUtc.Should().Be(first.Order.SellerCompletedAtUtc);
+        (await _db.Orders.SingleAsync()).Status.Should().Be(OrderStatus.Delivered);
+        (await _db.AuditLogs.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldForbid_DifferentSeller()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var otherSellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.CompleteForSellerBoardAsync(otherSellerUserId, order.Id, null);
+
+        result.Forbidden.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).SellerCompletedAtUtc.Should().BeNull();
     }
 }

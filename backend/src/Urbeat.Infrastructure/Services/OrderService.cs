@@ -581,6 +581,111 @@ public sealed class OrderService : IOrderService
         };
     }
 
+    public async Task<UpdateOrderConfirmationResultDto> ConfirmDeliveryAsync(
+        Guid customerUserId,
+        Guid orderId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            return new UpdateOrderConfirmationResultDto { NotFound = true };
+        }
+
+        if (order.CustomerUserId != customerUserId)
+        {
+            return new UpdateOrderConfirmationResultDto { Forbidden = true };
+        }
+
+        if (order.Status != OrderStatus.Delivered || order.FulfillmentType != FulfillmentType.Delivery)
+        {
+            return new UpdateOrderConfirmationResultDto { InvalidState = true };
+        }
+
+        if (order.DeliveryConfirmedAtUtc is not null)
+        {
+            return new UpdateOrderConfirmationResultDto
+            {
+                Order = await LoadDetailsAsync(order, cancellationToken)
+            };
+        }
+
+        order.DeliveryConfirmedAtUtc = DateTime.UtcNow;
+        order.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = customerUserId,
+            Event = "OrderDeliveryConfirmed",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = "Customer confirmed order delivery.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new UpdateOrderConfirmationResultDto
+        {
+            Order = await LoadDetailsAsync(order, cancellationToken)
+        };
+    }
+
+    public async Task<CompleteSellerOrderResultDto> CompleteForSellerBoardAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            return new CompleteSellerOrderResultDto { NotFound = true };
+        }
+
+        var ownsStore = await _dbContext.Stores
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == order.StoreId && x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (!ownsStore)
+        {
+            return new CompleteSellerOrderResultDto { Forbidden = true };
+        }
+
+        if (order.SellerCompletedAtUtc is not null)
+        {
+            return new CompleteSellerOrderResultDto
+            {
+                Order = await LoadDetailsAsync(order, cancellationToken)
+            };
+        }
+
+        order.SellerCompletedAtUtc = DateTime.UtcNow;
+        order.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "OrderSellerCompleted",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = "Seller marked order as completed on the day board.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new CompleteSellerOrderResultDto
+        {
+            Order = await LoadDetailsAsync(order, cancellationToken)
+        };
+    }
+
     private async Task<OrderDetailsResponseDto> LoadDetailsAsync(Order order, CancellationToken cancellationToken)
     {
         var items = await _dbContext.OrderItems

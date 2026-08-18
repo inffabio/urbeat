@@ -293,6 +293,76 @@ public sealed class OrdersController : ControllerBase
         return Ok(result.Order);
     }
 
+    [HttpPost("{orderId}/delivery-confirmation")]
+    [Authorize(Policy = AuthorizationPolicies.CustomerOnly)]
+    [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ConfirmDelivery([FromRoute] Guid orderId, CancellationToken cancellationToken)
+    {
+        var customerUserId = GetCurrentUserId();
+        if (customerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _orderService.ConfirmDeliveryAsync(
+            customerUserId.Value,
+            orderId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = "Delivery confirmation is only available for delivered delivery orders." });
+        }
+
+        return Ok(result.Order);
+    }
+
+    [HttpPost("{orderId}/complete")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CompleteForSellerBoard([FromRoute] Guid orderId, CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _orderService.CompleteForSellerBoardAsync(
+            sellerUserId.Value,
+            orderId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        return Ok(result.Order);
+    }
+
     private Guid? GetCurrentUserId()
     {
         var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value

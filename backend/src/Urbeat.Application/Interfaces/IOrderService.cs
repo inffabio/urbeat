@@ -31,4 +31,16 @@ public interface IOrderService
         UpdateOrderStatusRequestDto request,
         string? ipAddress,
         CancellationToken cancellationToken = default);
+
+    Task<UpdateOrderConfirmationResultDto> ConfirmDeliveryAsync(
+        Guid customerUserId,
+        Guid orderId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<CompleteSellerOrderResultDto> CompleteForSellerBoardAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
 }
