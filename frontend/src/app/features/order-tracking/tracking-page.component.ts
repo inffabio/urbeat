@@ -23,6 +23,13 @@ interface TimelineStep {
   state: 'past' | 'current' | 'future';
 }
 
+export interface OrderStatusUpdateEvent {
+  orderId: string;
+  orderCode: string;
+  status: OrderStatus;
+  changedAtUtc: string;
+}
+
 @Component({
   selector: 'app-tracking-page',
   standalone: true,
@@ -31,6 +38,8 @@ interface TimelineStep {
   styleUrl: './tracking-page.component.scss',
 })
 export class TrackingPageComponent implements OnInit, OnDestroy {
+  private static readonly POLL_INTERVAL_MS = 30_000;
+
   private readonly orders = inject(OrderService);
   private readonly cart = inject(CartService);
   private readonly signalR = inject(SignalRService);
@@ -40,7 +49,11 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
 
   readonly order = signal<OrderDetails | null>(null);
   readonly loading = signal(true);
+  readonly confirmLoading = signal(false);
   private currentOrderId: string | null = null;
+  private pollingTimer: ReturnType<typeof setInterval> | null = null;
+  private trackingActive = true;
+  private orderStatusListener?: (data: OrderStatusUpdateEvent) => void;
 
   readonly FulfillmentType = FulfillmentType;
   readonly PaymentMethod = PaymentMethod;
@@ -99,7 +112,13 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
     }
   });
 
-  private orderStatusListener?: (...args: any[]) => void;
+  readonly canConfirmDelivery = computed(() => {
+    const o = this.order();
+    return !!o
+      && o.status === OrderStatus.Delivered
+      && o.fulfillmentType === FulfillmentType.Delivery
+      && !o.deliveryConfirmedAtUtc;
+  });
 
   ngOnInit(): void {
     const orderId = this.route.snapshot.paramMap.get('orderId');
@@ -111,23 +130,26 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.trackingActive = false;
+    this.clearPolling();
     if (this.orderStatusListener) {
       this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
+      this.orderStatusListener = undefined;
     }
     this.signalR.stopCustomerHub();
   }
 
   private setupSignalR(): void {
     this.signalR.startCustomerHub().then(() => {
-      this.orderStatusListener = (data: any) => {
+      if (!this.trackingActive || !this.currentOrderId) return;
+      this.orderStatusListener = (data: OrderStatusUpdateEvent) => {
         if (data && data.orderId === this.currentOrderId) {
-          console.log('Real-time order update received:', data);
           this.load(this.currentOrderId!, true);
         }
       };
       this.signalR.onCustomerEvent('OrderStatusUpdated', this.orderStatusListener);
-    }).catch(err => {
-      console.warn('SignalR customer hub failed to start, falling back to polling or manual refresh.', err);
+    }).catch(() => {
+      console.warn('SignalR customer hub failed to start, falling back to polling.');
     });
   }
 
@@ -137,13 +159,55 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
       next: (o) => {
         this.order.set(o);
         this.loading.set(false);
-        if (o.status >= OrderStatus.Delivered) {
-          if (this.orderStatusListener) {
-            this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
-          }
-        }
+        this.syncTrackingState(o);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.clearPolling();
+      },
+    });
+  }
+
+  private syncTrackingState(o: OrderDetails): void {
+    const terminal = o.status === OrderStatus.Delivered || o.status === OrderStatus.Cancelled;
+    const confirmationPending = o.status === OrderStatus.Delivered
+      && o.fulfillmentType === FulfillmentType.Delivery
+      && !o.deliveryConfirmedAtUtc;
+
+    if (terminal && !confirmationPending) {
+      this.trackingActive = false;
+      this.clearPolling();
+      if (this.orderStatusListener) {
+        this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
+        this.orderStatusListener = undefined;
+      }
+      return;
+    }
+
+    if (!this.pollingTimer) {
+      this.pollingTimer = setInterval(() => {
+        if (this.currentOrderId) this.load(this.currentOrderId, true);
+      }, TrackingPageComponent.POLL_INTERVAL_MS);
+    }
+  }
+
+  private clearPolling(): void {
+    if (this.pollingTimer) {
+      clearInterval(this.pollingTimer);
+      this.pollingTimer = null;
+    }
+  }
+
+  confirmDelivery(): void {
+    const o = this.order();
+    if (!o || !this.currentOrderId || this.confirmLoading()) return;
+    this.confirmLoading.set(true);
+    this.orders.confirmDelivery(o.id).subscribe({
+      next: () => {
+        this.confirmLoading.set(false);
+        this.load(this.currentOrderId!, true);
+      },
+      error: () => this.confirmLoading.set(false),
     });
   }
 

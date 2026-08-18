@@ -39,6 +39,30 @@ describe('OrderService', () => {
     });
   });
 
+  it('should confirm delivery', () => {
+    service.confirmDelivery('order1').subscribe((order) => {
+      expect(order.deliveryConfirmedAtUtc).toBe('2026-07-29T11:00:00Z');
+    });
+
+    const req = httpMock.expectOne('/api/orders/order1/delivery-confirmation');
+    expect(req.request.method).toBe('POST');
+    req.flush({
+      id: 'order1',
+      code: '123',
+      storeId: 'store1',
+      fulfillmentType: 1,
+      status: OrderStatus.Delivered,
+      paymentMethod: 1,
+      subtotal: 20,
+      deliveryFee: 0,
+      total: 20,
+      createdAtUtc: '2026-07-29T10:00:00Z',
+      deliveryConfirmedAtUtc: '2026-07-29T11:00:00Z',
+      items: [],
+      history: [],
+    });
+  });
+
   it('should update seller order status', () => {
     service.updateStoreOrderStatus('order1', OrderStatus.Preparing, 'Aceito').subscribe((order) => {
       expect(order.status).toBe(OrderStatus.Preparing);

@@ -37,6 +37,8 @@ export interface OrderDetails {
   deliveryFee: number;
   total: number;
   createdAtUtc: string;
+  deliveryConfirmedAtUtc?: string;
+  sellerCompletedAtUtc?: string;
   addressCep?: string;
   addressStreet?: string;
   addressNumber?: string;
@@ -63,6 +65,7 @@ export interface OrderSummary {
   status: OrderStatus;
   total: number;
   createdAtUtc: string;
+  sellerCompletedAtUtc?: string;
 }
 
 export interface StoreOrdersReport {

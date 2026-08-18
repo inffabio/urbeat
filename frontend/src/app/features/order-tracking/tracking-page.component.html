@@ -108,6 +108,19 @@
 
       <app-back-to-menu-link class="link-orange" (navigateBack)="goToMenu()" />
     </section>
+
+    @if (canConfirmDelivery()) {
+      <button
+        type="button"
+        class="confirm-delivery-fab"
+        (click)="confirmDelivery()"
+        [disabled]="confirmLoading()"
+        [attr.aria-busy]="confirmLoading() ? 'true' : null"
+      >
+        <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+        {{ confirmLoading() ? 'Confirmando...' : 'Confirmar entrega' }}
+      </button>
+    }
   }
 
   @if (loading() && !order()) {
