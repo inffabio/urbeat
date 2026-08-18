@@ -35,7 +35,7 @@ public sealed class SystemParameterSeeder
             new() { Key = "Customer.MaxAddresses", Value = "3", Type = SystemParameterType.Int32, Group = "Business", Description = "Máximo de endereços por cliente" },
             new() { Key = "Order.DefaultPageSize", Value = "20", Type = SystemParameterType.Int32, Group = "Business", Description = "Tamanho padrão de página em listagens" },
             new() { Key = "Order.MaxPageSize", Value = "100", Type = SystemParameterType.Int32, Group = "Business", Description = "Tamanho máximo de página" },
-            new() { Key = "Order.CodePrefix", Value = "HAP-", Type = SystemParameterType.String, Group = "Business", Description = "Prefixo do código do pedido" },
+            new() { Key = "Order.CodePrefix", Value = "URB-", Type = SystemParameterType.String, Group = "Business", Description = "Prefixo do código do pedido" },
             new() { Key = "Order.CodeLength", Value = "8", Type = SystemParameterType.Int32, Group = "Business", Description = "Comprimento do código do pedido" },
             new() { Key = "Order.CodeChars", Value = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", Type = SystemParameterType.String, Group = "Business", Description = "Caracteres permitidos no código" },
             new() { Key = "Order.CodeMaxAttempts", Value = "10", Type = SystemParameterType.Int32, Group = "Business", Description = "Tentativas máximas de geração de código único" },

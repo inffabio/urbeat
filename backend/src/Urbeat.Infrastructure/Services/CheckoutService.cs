@@ -365,6 +365,6 @@ public sealed class CheckoutService : ICheckoutService
         {
             chars[i] = CodeChars[data[i] % CodeChars.Length];
         }
-        return $"HAP-{new string(chars)}";
+        return $"URB-{new string(chars)}";
     }
 }
