@@ -30,6 +30,10 @@ public sealed class OrderDetailsResponseDto
 
     public DateTime CreatedAtUtc { get; init; }
 
+    public DateTime? DeliveryConfirmedAtUtc { get; init; }
+
+    public DateTime? SellerCompletedAtUtc { get; init; }
+
     public string? AddressCep { get; init; }
 
     public string? AddressStreet { get; init; }

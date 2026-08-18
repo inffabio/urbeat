@@ -37,7 +37,9 @@ public sealed class OrderService : IOrderService
                 StoreId = x.StoreId,
                 Status = x.Status,
                 Total = x.Total,
-                CreatedAtUtc = x.CreatedAtUtc
+                CreatedAtUtc = x.CreatedAtUtc,
+                DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
+                SellerCompletedAtUtc = x.SellerCompletedAtUtc
             })
             .ToListAsync(cancellationToken);
     }
@@ -130,7 +132,9 @@ public sealed class OrderService : IOrderService
                 ItemsSummary = itemSummaries.GetValueOrDefault(x.Id),
                 Status = x.Status,
                 Total = x.Total,
-                CreatedAtUtc = x.CreatedAtUtc
+                CreatedAtUtc = x.CreatedAtUtc,
+                DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
+                SellerCompletedAtUtc = x.SellerCompletedAtUtc
             })
             .ToList();
 
@@ -638,6 +642,8 @@ public sealed class OrderService : IOrderService
             DeliveryFee = order.DeliveryFee,
             Total = order.Total,
             CreatedAtUtc = order.CreatedAtUtc,
+            DeliveryConfirmedAtUtc = order.DeliveryConfirmedAtUtc,
+            SellerCompletedAtUtc = order.SellerCompletedAtUtc,
             AddressCep = order.AddressCep,
             AddressStreet = order.AddressStreet,
             AddressNumber = order.AddressNumber,

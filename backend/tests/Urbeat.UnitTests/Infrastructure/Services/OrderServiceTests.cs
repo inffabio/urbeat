@@ -287,4 +287,93 @@ public sealed class OrderServiceTests : IDisposable
         delivery.AddressSummary.Should().Be("Rua Teste, 10 - Centro");
         delivery.Status.Should().Be(OrderStatus.OnDelivery);
     }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldReturnOrderWithNullConfirmationTimestamps()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            Status = OrderStatus.Received,
+            Subtotal = 35m,
+            DeliveryFee = 7.5m,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing },
+            null);
+
+        result.Order.Should().NotBeNull();
+        result.Order!.DeliveryConfirmedAtUtc.Should().BeNull();
+        result.Order.SellerCompletedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetStoreOrderAsync_ShouldPersistDeliveryConfirmedAtUtc()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var confirmedAtUtc = new DateTime(2026, 8, 18, 12, 0, 0, DateTimeKind.Utc);
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m,
+            DeliveryConfirmedAtUtc = confirmedAtUtc
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetStoreOrderAsync(sellerUserId, order.Id);
+
+        result.Should().NotBeNull();
+        result!.DeliveryConfirmedAtUtc.Should().Be(confirmedAtUtc);
+        result.SellerCompletedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetStoreOrderAsync_ShouldPersistSellerCompletedAtUtc()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var completedAtUtc = new DateTime(2026, 8, 18, 12, 0, 0, DateTimeKind.Utc);
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m,
+            SellerCompletedAtUtc = completedAtUtc
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetStoreOrderAsync(sellerUserId, order.Id);
+
+        result.Should().NotBeNull();
+        result!.SellerCompletedAtUtc.Should().Be(completedAtUtc);
+        result.DeliveryConfirmedAtUtc.Should().BeNull();
+    }
 }

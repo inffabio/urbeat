@@ -39,4 +39,8 @@ public sealed class Order : BaseEntity
     public decimal DeliveryFee { get; set; }
 
     public decimal Total { get; set; }
+
+    public DateTime? DeliveryConfirmedAtUtc { get; set; }
+
+    public DateTime? SellerCompletedAtUtc { get; set; }
 }

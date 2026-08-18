@@ -27,4 +27,8 @@ public sealed class OrderSummaryResponseDto
     public decimal Total { get; init; }
 
     public DateTime CreatedAtUtc { get; init; }
+
+    public DateTime? DeliveryConfirmedAtUtc { get; init; }
+
+    public DateTime? SellerCompletedAtUtc { get; init; }
 }
