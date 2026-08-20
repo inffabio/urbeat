@@ -9,6 +9,7 @@ builder.WebHost.UseUrls(loopbackUrl);
 
 builder.Services.AddSingleton<ILocalPrinterDiscovery, LocalPrinterDiscovery>();
 builder.Services.AddSingleton<ILocalPrintExecutor, LocalPrintExecutor>();
+builder.Services.AddSingleton<IPrintJobStore, PrintJobStore>();
 builder.Services.AddSingleton<IPrintJobService, PrintJobService>();
 builder.Services.AddSingleton(provider =>
 {
@@ -77,6 +78,14 @@ app.MapPost("/print/order", async (PrintOrderRequest request, AgentConfigStore s
 
     var result = await printJobService.BuildOrderJobAsync(request, cancellationToken);
     return Results.Ok(result);
+});
+
+app.MapGet("/jobs", (IPrintJobStore jobStore) => Results.Ok(jobStore.List()));
+
+app.MapGet("/jobs/{id}", (string id, IPrintJobStore jobStore) =>
+{
+    var job = jobStore.Get(id);
+    return job is null ? Results.NotFound() : Results.Ok(job);
 });
 
 app.Run();

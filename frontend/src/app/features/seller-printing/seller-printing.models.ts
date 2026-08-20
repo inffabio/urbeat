@@ -60,6 +60,7 @@ export interface PrintableOrderItem {
 }
 
 export interface PrintableOrder {
+  orderId?: string;
   code: string;
   customerName?: string;
   customerPhoneNumber?: string;

@@ -335,6 +335,25 @@ button.status-card.action-green {
   }
 }
 
+.btn-soft {
+  &.kiosk-toggle {
+    min-height: 44px;
+    gap: 6px;
+
+    &[aria-pressed='true'] {
+      background: var(--app-ink, #161616) !important;
+      border-color: var(--app-ink, #161616) !important;
+      color: #fff !important;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-toggle {
+    transition: none;
+  }
+}
+
 @media (max-width: 1199px) {
   .orders-page { padding: 24px; }
   .new-orders-list { grid-template-columns: repeat(2, minmax(260px, 1fr)); }

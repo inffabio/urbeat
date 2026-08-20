@@ -1,4 +1,5 @@
 ﻿import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { throwError, of } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
@@ -8,6 +9,7 @@ import { SellerPrintingService } from './seller-printing.service';
 describe('SellerPrintingService', () => {
   let apiServiceMock: { get: jest.Mock; put: jest.Mock };
   let orderServiceMock: { getStoreOrder: jest.Mock };
+  let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     localStorage.clear();
@@ -16,10 +18,16 @@ describe('SellerPrintingService', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: ApiService, useValue: apiServiceMock },
         { provide: OrderService, useValue: orderServiceMock },
       ],
     });
+    httpTesting = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
   });
 
   it('loads default config from localStorage fallback', () => {
@@ -163,6 +171,62 @@ describe('SellerPrintingService', () => {
     expect(printReceiptSpy).toHaveBeenCalledWith(expect.objectContaining({
       code: '123',
       createdAtUtc: '2026-08-04T03:30:00.000Z',
+    }));
+  });
+
+  it('loads installed printers and exposes a platform-filtered catalog from the local agent', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    service.platform.set('windows');
+
+    const refresh = service.refreshLocalAgent();
+    httpTesting.expectOne('http://127.0.0.1:43111/health').flush({ status: 'ok', mode: 'local-agent' });
+    httpTesting.expectOne('http://127.0.0.1:43111/printers').flush({
+      recommendedProfiles: [
+        { profileId: 'pos-58', displayName: 'POS-58', paperWidth: '58mm', supportsAutoCut: false, preferredConnection: 'android-bluetooth|wifi' },
+      ],
+      installedPrinters: ['POS-58 USB'],
+    });
+    await refresh;
+
+    expect(service.installedPrinters()).toEqual(['POS-58 USB']);
+    expect(service.catalogEntries().some((entry) => entry.source === 'installed' && entry.name === 'POS-58 USB')).toBe(true);
+  });
+
+  it('excludes installed printers and generic Bluetooth from the catalog on Android', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    service.platform.set('android');
+
+    const refresh = service.refreshLocalAgent();
+    httpTesting.expectOne('http://127.0.0.1:43111/health').flush({ status: 'ok', mode: 'local-agent' });
+    httpTesting.expectOne('http://127.0.0.1:43111/printers').flush({ recommendedProfiles: [], installedPrinters: ['POS-58 USB'] });
+    await refresh;
+
+    expect(service.installedPrinters()).toEqual(['POS-58 USB']);
+    expect(service.catalogEntries().some((entry) => entry.source === 'installed')).toBe(false);
+    expect(service.catalogEntries().some((entry) => entry.transport === 'android-bluetooth')).toBe(true);
+  });
+
+  it('reports a failed local-agent job as a failed print result', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    service.saveConfig({
+      ...service.config(),
+      connectionType: 'local-agent',
+      adapterId: 'local-agent',
+      printerName: 'POS-58 USB',
+    });
+
+    const print = service.printReceipt({
+      code: 'URB-TEST123',
+      total: 10,
+      createdAtUtc: '2026-08-20T00:00:00.000Z',
+    });
+
+    const request = httpTesting.expectOne('http://127.0.0.1:43111/print/order');
+    request.flush({ status: 'failed', message: 'Impressora sem papel' });
+
+    await expect(print).resolves.toEqual(expect.objectContaining({
+      ok: false,
+      message: 'Impressora sem papel',
     }));
   });
 });

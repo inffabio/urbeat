@@ -2,7 +2,9 @@
 
 public sealed class LocalPrintExecutionResult
 {
-    public bool Success { get; set; }
+    public PrintOutcome Outcome { get; set; } = PrintOutcome.Unknown;
 
     public string Message { get; set; } = string.Empty;
+
+    public string? JobId { get; set; }
 }

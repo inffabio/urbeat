@@ -10,7 +10,7 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
     {
         if (string.IsNullOrWhiteSpace(printerName))
         {
-            return new LocalPrintExecutionResult { Success = false, Message = "Nenhuma impressora local foi configurada." };
+            return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = "Nenhuma impressora local foi configurada." };
         }
 
         if (OperatingSystem.IsWindows())
@@ -23,7 +23,7 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
             return await PrintWithLpAsync(printerName, rawText, cancellationToken);
         }
 
-        return new LocalPrintExecutionResult { Success = false, Message = "Plataforma nao suportada pelo agente local." };
+        return new LocalPrintExecutionResult { Outcome = PrintOutcome.Unknown, Message = "Plataforma nao suportada pelo agente local." };
     }
 
     private static LocalPrintExecutionResult PrintOnWindows(string printerName, string rawText)
@@ -33,7 +33,7 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
 
         if (!NativeMethods.OpenPrinter(printerName, out var printerHandle, IntPtr.Zero))
         {
-            return new LocalPrintExecutionResult { Success = false, Message = $"Nao foi possivel abrir a impressora '{printerName}'." };
+            return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = $"Nao foi possivel abrir a impressora '{printerName}'." };
         }
 
         try
@@ -44,16 +44,17 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
                 pDataType = "RAW"
             };
 
-            if (NativeMethods.StartDocPrinter(printerHandle, 1, docInfo) == 0)
+            var jobId = NativeMethods.StartDocPrinter(printerHandle, 1, docInfo);
+            if (jobId == 0)
             {
-                return new LocalPrintExecutionResult { Success = false, Message = $"Falha ao iniciar o job RAW em '{printerName}'." };
+                return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = $"Falha ao iniciar o job RAW em '{printerName}'." };
             }
 
             try
             {
                 if (!NativeMethods.StartPagePrinter(printerHandle))
                 {
-                    return new LocalPrintExecutionResult { Success = false, Message = $"Falha ao iniciar a pagina em '{printerName}'." };
+                    return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = $"Falha ao iniciar a pagina em '{printerName}'." };
                 }
 
                 try
@@ -64,7 +65,7 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
                         Marshal.Copy(bytes, 0, pointer, bytes.Length);
                         if (!NativeMethods.WritePrinter(printerHandle, pointer, bytes.Length, out var written) || written != bytes.Length)
                         {
-                            return new LocalPrintExecutionResult { Success = false, Message = $"Falha ao escrever todos os bytes na impressora '{printerName}'." };
+                            return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = $"Falha ao escrever todos os bytes na impressora '{printerName}'." };
                         }
                     }
                     finally
@@ -82,7 +83,12 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
                 NativeMethods.EndDocPrinter(printerHandle);
             }
 
-            return new LocalPrintExecutionResult { Success = true, Message = $"Job enviado para '{printerName}'." };
+            return new LocalPrintExecutionResult
+            {
+                Outcome = PrintOutcome.Queued,
+                JobId = jobId.ToString(),
+                Message = $"Job {jobId} enfileirado para '{printerName}'."
+            };
         }
         finally
         {
@@ -109,22 +115,49 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
             using var process = Process.Start(startInfo);
             if (process is null)
             {
-                return new LocalPrintExecutionResult { Success = false, Message = "Nao foi possivel iniciar o comando lp." };
+                return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = "Nao foi possivel iniciar o comando lp." };
             }
 
+            var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
             await process.WaitForExitAsync(cancellationToken);
+            var output = await outputTask;
+            var error = await errorTask;
+
             if (process.ExitCode != 0)
             {
-                var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-                return new LocalPrintExecutionResult { Success = false, Message = string.IsNullOrWhiteSpace(error) ? "lp retornou erro." : error.Trim() };
+                return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = string.IsNullOrWhiteSpace(error) ? "lp retornou erro." : error.Trim() };
             }
 
-            return new LocalPrintExecutionResult { Success = true, Message = $"Job enviado para '{printerName}'." };
+            var requestId = ExtractLpRequestId(output);
+
+            return new LocalPrintExecutionResult
+            {
+                Outcome = PrintOutcome.Queued,
+                JobId = requestId,
+                Message = string.IsNullOrWhiteSpace(requestId)
+                    ? $"Job enfileirado em '{printerName}'."
+                    : $"Job {requestId} enfileirado em '{printerName}'."
+            };
         }
         finally
         {
             if (File.Exists(tempFile)) File.Delete(tempFile);
         }
+    }
+
+    internal static string? ExtractLpRequestId(string output)
+    {
+        const string marker = "request id is";
+        var index = output.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (index < 0) return null;
+
+        var rest = output[(index + marker.Length)..].TrimStart();
+        var end = rest.IndexOf(' ');
+        var token = end > 0 ? rest[..end] : rest;
+        token = token.Trim().TrimEnd('.');
+
+        return string.IsNullOrWhiteSpace(token) ? null : token;
     }
 
     private static class NativeMethods
@@ -149,7 +182,8 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
         public static extern bool ClosePrinter(IntPtr hPrinter);
 
         [DllImport("winspool.drv", EntryPoint = "StartDocPrinterA", SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern int StartDocPrinter(IntPtr hPrinter, int level, [In] DOCINFOA di);
+        [return: MarshalAs(UnmanagedType.U4)]
+        public static extern uint StartDocPrinter(IntPtr hPrinter, int level, [In] DOCINFOA di);
 
         [DllImport("winspool.drv", SetLastError = true)]
         public static extern bool EndDocPrinter(IntPtr hPrinter);

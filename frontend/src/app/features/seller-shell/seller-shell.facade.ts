@@ -45,6 +45,7 @@ export class SellerShellFacade {
 
   private initialized = false;
   private initVersion = 0;
+  private statusRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -60,6 +61,7 @@ export class SellerShellFacade {
       ]);
       if (currentVersion !== this.initVersion) return;
       this.store.set(store);
+      this.scheduleStoreStatusRefresh(store);
       if (store.logoUrl) this.printing.setLogoUrl(store.logoUrl);
       this.notifications.set(notifications.items);
       this.unreadCount.set(notifications.unreadCount);
@@ -97,6 +99,7 @@ export class SellerShellFacade {
 
   reset(): void {
     this.signalR.stopSellerHub();
+    this.clearStatusRefreshTimer();
     this.initVersion++;
     this.initialized = false;
     this.store.set(null);
@@ -106,6 +109,36 @@ export class SellerShellFacade {
     this.error.set(null);
     this.newOrderPulse.set(null);
     this.orderActivityPulse.set(null);
+  }
+
+  private scheduleStoreStatusRefresh(store: StoreResponse): void {
+    this.clearStatusRefreshTimer();
+    if (!store.nextStatusChangeAt) return;
+
+    const changeAt = new Date(store.nextStatusChangeAt).getTime();
+    if (Number.isNaN(changeAt)) return;
+
+    const delay = Math.min(Math.max(changeAt - Date.now() + 1000, 1000), 30_000);
+    this.statusRefreshTimer = setTimeout(() => this.refreshStoreStatus(), delay);
+  }
+
+  private refreshStoreStatus(): void {
+    this.storeService.getMyStore().subscribe({
+      next: (store) => {
+        this.store.set(store);
+        this.scheduleStoreStatusRefresh(store);
+      },
+      error: () => {
+        this.statusRefreshTimer = setTimeout(() => this.refreshStoreStatus(), 30_000);
+      },
+    });
+  }
+
+  private clearStatusRefreshTimer(): void {
+    if (this.statusRefreshTimer) {
+      clearTimeout(this.statusRefreshTimer);
+      this.statusRefreshTimer = null;
+    }
   }
 
   private handleSellerNotification(notification: SellerNotification): void {
@@ -121,7 +154,6 @@ export class SellerShellFacade {
         source: 'new-order',
       });
       void this.sound.playNewOrder();
-      if (notification.orderId) void this.printing.autoPrintOrder(notification.orderId);
     }
   }
 }

@@ -9,6 +9,15 @@ import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { SellerOrdersPageComponent } from './seller-orders-page.component';
 
+jest.mock('../../core/utils/platform.helper', () => ({
+  ...jest.requireActual('../../core/utils/platform.helper'),
+  isWindowsPlatform: jest.fn(),
+}));
+
+import { isWindowsPlatform } from '../../core/utils/platform.helper';
+
+const isWindowsPlatformMock = isWindowsPlatform as jest.Mock;
+
 describe('SellerOrdersPageComponent', () => {
   let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock; completeOrder: jest.Mock };
   let printingServiceMock: { printAcceptedOrder: jest.Mock };
@@ -28,6 +37,7 @@ describe('SellerOrdersPageComponent', () => {
   });
 
   beforeEach(async () => {
+    isWindowsPlatformMock.mockReturnValue(false);
     orderServiceMock = {
       getStoreOrders: jest.fn().mockReturnValue(of({ items: [], totalItems: 0 })),
       getStoreOrder: jest.fn().mockReturnValue(of({ id: '', code: '', items: [], total: 0, createdAtUtc: '' })),
@@ -55,6 +65,7 @@ describe('SellerOrdersPageComponent', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    isWindowsPlatformMock.mockReturnValue(false);
   });
 
   it('shows empty new orders panel when no orders exist', () => {
@@ -421,5 +432,97 @@ describe('SellerOrdersPageComponent', () => {
     fixture.destroy();
 
     expect(signalRServiceMock.removeSellerListener).toHaveBeenCalledWith('OrderStatusUpdated', listener);
+  });
+
+  it('does not show the fullscreen toggle outside Windows', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.kiosk-toggle')).toBeNull();
+  });
+
+  describe('fullscreen kiosk on Windows', () => {
+    let fullscreenElement: Element | null;
+    let requestFullscreenMock: jest.Mock;
+    let exitFullscreenMock: jest.Mock;
+
+    beforeEach(() => {
+      isWindowsPlatformMock.mockReturnValue(true);
+      fullscreenElement = null;
+
+      Object.defineProperty(document, 'fullscreenElement', { configurable: true, get: () => fullscreenElement });
+
+      requestFullscreenMock = jest.fn(() => {
+        fullscreenElement = document.documentElement;
+        return Promise.resolve();
+      });
+      Object.defineProperty(document.documentElement, 'requestFullscreen', { configurable: true, value: requestFullscreenMock });
+
+      exitFullscreenMock = jest.fn(() => {
+        fullscreenElement = null;
+        return Promise.resolve();
+      });
+      Object.defineProperty(document, 'exitFullscreen', { configurable: true, value: exitFullscreenMock });
+    });
+
+    it('shows the fullscreen toggle with an accessible pressed state', () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector('.kiosk-toggle');
+      expect(button).not.toBeNull();
+      expect(button.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('enters fullscreen via requestFullscreen and reflects the state', async () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      await fixture.componentInstance.toggleFullscreen();
+      fixture.detectChanges();
+
+      expect(requestFullscreenMock).toHaveBeenCalled();
+      expect(fixture.componentInstance.isFullscreen()).toBe(true);
+
+      const button = fixture.nativeElement.querySelector('.kiosk-toggle');
+      expect(button.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('exits fullscreen when Escape is pressed', async () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      await fixture.componentInstance.toggleFullscreen();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await Promise.resolve();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(exitFullscreenMock).toHaveBeenCalled();
+      expect(fixture.componentInstance.isFullscreen()).toBe(false);
+    });
+
+    it('ignores non-Escape keys while in fullscreen', async () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      await fixture.componentInstance.toggleFullscreen();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(exitFullscreenMock).not.toHaveBeenCalled();
+    });
+
+    it('cleans up fullscreen listeners on destroy', () => {
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+      fixture.destroy();
+
+      expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
+      expect(removeSpy).toHaveBeenCalledWith('fullscreenchange', expect.any(Function));
+
+      removeSpy.mockRestore();
+    });
   });
 });

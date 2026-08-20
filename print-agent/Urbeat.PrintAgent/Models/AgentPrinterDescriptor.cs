@@ -11,4 +11,14 @@ public sealed class AgentPrinterDescriptor
     public bool SupportsAutoCut { get; set; }
 
     public string PreferredConnection { get; set; } = string.Empty;
+
+    public string Connection { get; set; } = string.Empty;
+
+    public string Protocol { get; set; } = string.Empty;
+
+    public IReadOnlyList<string> Capabilities { get; set; } = [];
+
+    public bool Experimental { get; set; }
+
+    public bool CatalogOnly { get; set; }
 }

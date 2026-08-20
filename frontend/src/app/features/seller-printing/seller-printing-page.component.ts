@@ -5,6 +5,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { bluetoothOutline, desktopOutline, linkOutline, phonePortraitOutline, printOutline, searchOutline, serverOutline } from 'ionicons/icons';
 import { ConfigSubnavComponent } from '../seller-shell/config-subnav.component';
+import { PrinterCatalogEntry } from './printer-catalog';
 import { LocalAgentStatus, PrinterConnectionType, PrinterPaperWidth, PrintingConfig, PrintResult, PrinterPresetResponse } from './seller-printing.models';
 import { SellerPrintingService } from './seller-printing.service';
 
@@ -133,6 +134,42 @@ export class SellerPrintingPageComponent implements OnInit {
     return this.printing.agentHealth();
   }
 
+  get catalogProfiles(): PrinterCatalogEntry[] {
+    return this.printing.catalogEntries().filter((entry) => entry.source === 'catalog');
+  }
+
+  get installedCatalogEntries(): PrinterCatalogEntry[] {
+    return this.printing.catalogEntries().filter((entry) => entry.source === 'installed');
+  }
+
+  readonly selectedCatalogEntryId = computed(() => {
+    const current = this.form();
+    const match = this.printing.catalogEntries().find(
+      (entry) => entry.name === current.printerName && entry.connectionType === current.connectionType,
+    );
+    return match?.id ?? '';
+  });
+
+  selectCatalogPrinter(entryId: string): void {
+    const entry = this.printing.catalogEntries().find((item) => item.id === entryId);
+    if (!entry) return;
+
+    this.form.update((config) => ({
+      ...config,
+      presetId: entry.id,
+      printerName: entry.name,
+      connectionType: entry.connectionType,
+      paperWidth: entry.paperWidth,
+      adapterId: this.adapterIdForConnection(entry.connectionType),
+      autoCut: this.shouldKeepAutoCutDisabled(entry.paperWidth, entry.name) ? false : config.autoCut,
+    }));
+    this.persist(this.form());
+
+    if (entry.connectionType === 'local-agent') {
+      void this.printing.refreshLocalAgent();
+    }
+  }
+
   applyPreset(preset: PrinterPresetResponse): void {
     const config: PrintingConfig = {
       ...this.form(),
@@ -148,14 +185,7 @@ export class SellerPrintingPageComponent implements OnInit {
   }
 
   updateConnectionType(value: PrinterConnectionType): void {
-    const adapterMap: Record<PrinterConnectionType, string> = {
-      'android-bluetooth': 'escpos-bluetooth',
-      'browser-print': 'browser-print',
-      'local-agent': 'local-agent',
-      'mock': 'mock',
-      'wifi': 'wifi-escpos',
-    };
-    this.form.update((c) => ({ ...c, connectionType: value, adapterId: adapterMap[value] }));
+    this.form.update((c) => ({ ...c, connectionType: value, adapterId: this.adapterIdForConnection(value) }));
     this.persist(this.form());
     if (value === 'local-agent') {
       void this.printing.refreshLocalAgent();
@@ -268,6 +298,17 @@ export class SellerPrintingPageComponent implements OnInit {
   isAutoCutLocked(): boolean {
     const config = this.form();
     return this.shouldKeepAutoCutDisabled(config.paperWidth, config.printerName);
+  }
+
+  private adapterIdForConnection(connectionType: PrinterConnectionType): string {
+    const adapterMap: Record<PrinterConnectionType, string> = {
+      'android-bluetooth': 'escpos-bluetooth',
+      'browser-print': 'browser-print',
+      'local-agent': 'local-agent',
+      'mock': 'mock',
+      'wifi': 'wifi-escpos',
+    };
+    return adapterMap[connectionType];
   }
 
   private presetPriority(preset: PrinterPresetResponse): number {

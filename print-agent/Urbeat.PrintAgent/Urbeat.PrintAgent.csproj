@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Urbeat.PrintAgent.Tests" />
+  </ItemGroup>
+
 </Project>

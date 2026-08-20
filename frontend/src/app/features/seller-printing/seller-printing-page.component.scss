@@ -233,6 +233,14 @@ select {
   margin-top: 16px;
 }
 
+.catalog-select-field {
+  grid-column: 1 / -1;
+
+  select {
+    min-height: 44px;
+  }
+}
+
 label {
   display: grid;
   gap: 6px;

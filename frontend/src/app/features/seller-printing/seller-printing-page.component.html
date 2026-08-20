@@ -52,6 +52,26 @@
       </div>
 
       <div class="form-grid">
+        <label class="catalog-select-field">
+          <span>Impressora</span>
+          <select class="printer-select" [ngModel]="selectedCatalogEntryId()" (ngModelChange)="selectCatalogPrinter($event)">
+            <option value="">Selecione uma impressora...</option>
+            <optgroup label="Perfis do catalogo">
+              @for (entry of catalogProfiles; track entry.id) {
+                <option [value]="entry.id">{{ entry.name }} · {{ entry.manufacturer }} · {{ entry.paperWidth }}</option>
+              }
+            </optgroup>
+            @if (installedCatalogEntries.length > 0) {
+              <optgroup label="Impressoras instaladas (USB)">
+                @for (entry of installedCatalogEntries; track entry.id) {
+                  <option [value]="entry.id">{{ entry.name }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+          <small class="field-hint">Escolha explicitamente a impressora. Bluetooth generico so aparece no Android; USB instalado so aparece em Windows/Linux.</small>
+        </label>
+
         <label>
           <span>Nome/modelo</span>
           <input type="text" [ngModel]="form().printerName" (ngModelChange)="updatePrinterName($event)" />

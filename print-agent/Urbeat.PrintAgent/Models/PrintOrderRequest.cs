@@ -2,6 +2,8 @@
 
 public sealed class PrintOrderRequest
 {
+    public string OrderId { get; set; } = string.Empty;
+
     public string PrinterName { get; set; } = string.Empty;
 
     public string PrinterProfile { get; set; } = "pos-58";

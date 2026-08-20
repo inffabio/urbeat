@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -42,7 +43,11 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private lastPulseId: string | null = null;
   private readonly targetOrderId = this.route.snapshot.queryParamMap.get('order');
   private orderStatusListener?: (payload: OrderStatusUpdateEvent) => void;
+  private keydownHandler?: (event: KeyboardEvent) => void;
+  private fullscreenChangeHandler?: () => void;
 
+  readonly isWindows = isWindowsPlatform();
+  readonly isFullscreen = signal(false);
   readonly OrderStatus = OrderStatus;
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -98,6 +103,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.load();
     this.registerOrderStatusListener();
+    this.registerFullscreenListeners();
   }
 
   ngOnDestroy(): void {
@@ -105,6 +111,47 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       this.signalR.removeSellerListener('OrderStatusUpdated', this.orderStatusListener);
       this.orderStatusListener = undefined;
     }
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler);
+      this.keydownHandler = undefined;
+    }
+    if (this.fullscreenChangeHandler) {
+      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+      this.fullscreenChangeHandler = undefined;
+    }
+  }
+
+  async toggleFullscreen(): Promise<void> {
+    if (!this.isWindows) return;
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      this.isFullscreen.set(!!document.fullscreenElement);
+      return;
+    }
+
+    this.isFullscreen.set(!!document.fullscreenElement);
+  }
+
+  private registerFullscreenListeners(): void {
+    if (!this.isWindows) return;
+
+    this.keydownHandler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && this.isFullscreen()) {
+        void this.toggleFullscreen();
+      }
+    };
+    this.fullscreenChangeHandler = () => {
+      this.isFullscreen.set(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('keydown', this.keydownHandler);
+    document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
   }
 
   load(options?: { silent?: boolean }): void {

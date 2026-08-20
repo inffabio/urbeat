@@ -91,6 +91,7 @@ describe('SellerShellFacade', () => {
 
     expect(signalRServiceMock.startSellerHub).toHaveBeenCalled();
     expect(soundServiceMock.playNewOrder).toHaveBeenCalled();
+    expect(printingServiceMock.autoPrintOrder).not.toHaveBeenCalled();
     expect(facade.unreadCount()).toBe(1);
     expect(facade.newOrderPulse()?.orderId).toBe('o1');
   });

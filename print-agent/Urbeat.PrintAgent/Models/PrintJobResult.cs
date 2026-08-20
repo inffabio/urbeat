@@ -2,7 +2,7 @@
 
 public sealed class PrintJobResult
 {
-    public string Status { get; set; } = "simulated";
+    public string Status { get; set; } = "unknown";
 
     public string Message { get; set; } = string.Empty;
 
@@ -17,4 +17,6 @@ public sealed class PrintJobResult
     public bool AutoCut { get; set; }
 
     public string RawText { get; set; } = string.Empty;
+
+    public string? JobId { get; set; }
 }

@@ -1,12 +1,14 @@
 ﻿import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { detectPlatform } from '../../core/utils/platform.helper';
 import { ApiService } from '../../core/services/api.service';
 import { OrderService } from '../../core/services/order.service';
 import { OrderDetails } from '../../shared/models/order.model';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { BluetoothPrinterAdapter } from './bluetooth-printer.adapter';
 import { PrinterAdapterRegistry } from './printer-adapter-registry';
+import { buildSelectablePrinters, PrinterCatalogEntry } from './printer-catalog';
 import { LocalAgentStatus, PrintableOrder, PrintableOrderItem, PrintingConfig, PrintResult, PrinterConnectionType, PrinterPaperWidth, PrinterPresetResponse } from './seller-printing.models';
 
 const STORAGE_KEY = 'urbeat:seller-printing-config';
@@ -30,6 +32,12 @@ interface StorePrintingConfigResponse {
 interface LocalAgentHealthResponse {
   status?: string;
   mode?: string;
+}
+
+interface LocalAgentPrintResponse {
+  status?: 'queued' | 'sent' | 'failed' | 'unknown';
+  message?: string;
+  jobId?: string;
 }
 
 interface LocalAgentPrinterCatalogResponse {
@@ -67,6 +75,11 @@ export class SellerPrintingService {
   readonly config = signal<PrintingConfig>(this.loadLocalFallback());
   readonly lastResult = signal<PrintResult | null>(null);
   readonly loadingPresets = signal(false);
+  readonly platform = signal(detectPlatform());
+  readonly installedPrinters = signal<string[]>([]);
+  readonly catalogEntries = computed<PrinterCatalogEntry[]>(() =>
+    buildSelectablePrinters(this.platform(), this.installedPrinters()),
+  );
   readonly agentHealth = signal<LocalAgentStatus>({
     available: false,
     mode: 'local-agent',
@@ -132,6 +145,7 @@ export class SellerPrintingService {
         this.loadLocalAgentPrinters(),
       ]);
 
+      this.installedPrinters.set(printers);
       this.agentHealth.set({
         available: true,
         mode: 'local-agent',
@@ -141,6 +155,7 @@ export class SellerPrintingService {
           : 'Agente local respondeu, mas requer verificacao.',
       });
     } catch {
+      this.installedPrinters.set([]);
       this.agentHealth.set({
         available: false,
         mode: 'local-agent',
@@ -214,6 +229,7 @@ export class SellerPrintingService {
     ].filter(Boolean).join(', ');
 
     const order: PrintableOrder = {
+      orderId: details.id,
       code: details.code,
       customerName: details.customerName,
       customerPhoneNumber: details.customerPhoneNumber,
@@ -402,15 +418,32 @@ export class SellerPrintingService {
     return currentAdapterId || 'escpos-bluetooth';
   }
 
+  private localAgentProfile(config: PrintingConfig): string {
+    if (config.presetId === 'generic-pos-58-usb'
+      || config.presetId === 'generic-pos-58-wifi'
+      || config.presetId === 'generic-pos-80-wifi'
+      || config.presetId === 'generic-pos-58-bluetooth-android'
+      || config.presetId === 'epson-tm-m30iii'
+      || config.presetId === 'epson-tm-t20iii') {
+      return config.presetId;
+    }
+
+    if (config.paperWidth === '80mm') {
+      return 'thermal-80';
+    }
+
+    return 'pos-58';
+  }
+
   private shouldKeepAutoCutDisabled(paperWidth: PrinterPaperWidth, printerName: string): boolean {
     return paperWidth === '58mm' || printerName.toLowerCase().includes('pos-58');
   }
 
   private async printTestThroughLocalAgent(config: PrintingConfig): Promise<PrintResult> {
     try {
-      await firstValueFrom(this.http.post(`${LOCAL_AGENT_BASE_URL}/print/test`, {
+      const response = await firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/test`, {
         printerName: config.printerName,
-        printerProfile: config.paperWidth === '58mm' ? 'pos-58' : 'thermal-80',
+        printerProfile: this.localAgentProfile(config),
         paperWidth: config.paperWidth,
         autoCut: config.autoCut,
         copies: config.copies,
@@ -418,9 +451,9 @@ export class SellerPrintingService {
       }));
 
       const result: PrintResult = {
-        ok: true,
+        ok: response.status === 'queued' || response.status === 'sent',
         mode: 'local-agent',
-        message: `Teste enviado para ${config.printerName || 'a impressora do agente local'}.`,
+        message: response.message ?? `Teste enviado para ${config.printerName || 'a impressora do agente local'}.`,
         printedAtUtc: new Date().toISOString(),
       };
       this.lastResult.set(result);
@@ -439,9 +472,10 @@ export class SellerPrintingService {
 
   private async printOrderThroughLocalAgent(order: PrintableOrder, config: PrintingConfig): Promise<PrintResult> {
     try {
-      await firstValueFrom(this.http.post(`${LOCAL_AGENT_BASE_URL}/print/order`, {
+      const response = await firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/order`, {
         printerName: config.printerName,
-        printerProfile: config.paperWidth === '58mm' ? 'pos-58' : 'thermal-80',
+        orderId: order.orderId ?? '',
+        printerProfile: this.localAgentProfile(config),
         paperWidth: config.paperWidth,
         autoCut: config.autoCut,
         copies: config.copies,
@@ -453,9 +487,9 @@ export class SellerPrintingService {
       }));
 
       const result: PrintResult = {
-        ok: true,
+        ok: response.status === 'queued' || response.status === 'sent',
         mode: 'local-agent',
-        message: `Pedido #${order.code} enviado para ${config.printerName || 'o agente local'}.`,
+        message: response.message ?? `Pedido #${order.code} enviado para ${config.printerName || 'o agente local'}.`,
         printedAtUtc: new Date().toISOString(),
       };
       this.lastResult.set(result);

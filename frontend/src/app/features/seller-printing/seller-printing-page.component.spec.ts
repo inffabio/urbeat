@@ -33,6 +33,11 @@ describe('SellerPrintingPageComponent', () => {
       lastResult: signal(null),
       loadingPresets: signal(false),
       agentHealth: signal({ available: true, mode: 'local-agent', printers: ['POS-58 Balcao'], message: 'Agente local detectado.' }),
+      catalogEntries: signal([
+        { id: 'generic-pos-58-bluetooth-android', name: 'Generica 58mm Bluetooth', manufacturer: 'Generica', paperWidth: '58mm', protocol: 'esc-pos', transport: 'android-bluetooth', connectionType: 'android-bluetooth', platforms: ['android'], source: 'catalog' },
+        { id: 'generic-pos-58-usb', name: 'Generica 58mm USB', manufacturer: 'Generica', paperWidth: '58mm', protocol: 'esc-pos', transport: 'usb', connectionType: 'local-agent', platforms: ['windows', 'linux'], source: 'catalog' },
+        { id: 'installed:POS-58 USB', name: 'POS-58 USB', manufacturer: 'Instalada', paperWidth: '58mm', protocol: 'esc-pos', transport: 'usb', connectionType: 'local-agent', platforms: ['windows', 'linux'], source: 'installed' },
+      ]),
       bluetoothState: signal({ status: 'disconnected', devices: [], connectedDevice: null, lastError: null }),
       isCapacitorAndroid: false,
       loadPresets: jest.fn().mockResolvedValue(undefined),
@@ -164,5 +169,45 @@ describe('SellerPrintingPageComponent', () => {
     expect(option).not.toBeNull();
     expect(option.textContent).toContain('Travado para POS-58 / 58mm');
     expect(fixture.componentInstance.isAutoCutLocked()).toBe(true);
+  });
+
+  it('renders a listbox for explicit printer selection with catalog and installed groups', () => {
+    const fixture = TestBed.createComponent(SellerPrintingPageComponent);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('select.printer-select');
+    expect(select).not.toBeNull();
+
+    const groups = select.querySelectorAll('optgroup');
+    expect(groups.length).toBe(2);
+
+    expect(select.textContent).toContain('Generica 58mm USB');
+    expect(select.textContent).toContain('POS-58 USB');
+  });
+
+  it('applies a catalog selection to the form and persists it', () => {
+    const fixture = TestBed.createComponent(SellerPrintingPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.selectCatalogPrinter('generic-pos-58-usb');
+
+    expect(fixture.componentInstance.form().printerName).toBe('Generica 58mm USB');
+    expect(fixture.componentInstance.form().connectionType).toBe('local-agent');
+    expect(fixture.componentInstance.form().paperWidth).toBe('58mm');
+    expect(fixture.componentInstance.form().adapterId).toBe('local-agent');
+    expect(fixture.componentInstance.form().presetId).toBe('generic-pos-58-usb');
+
+    const service = TestBed.inject(SellerPrintingService);
+    expect(service.saveConfig).toHaveBeenCalled();
+  });
+
+  it('ignores unknown catalog selections', () => {
+    const fixture = TestBed.createComponent(SellerPrintingPageComponent);
+    fixture.detectChanges();
+
+    const before = { ...fixture.componentInstance.form() };
+    fixture.componentInstance.selectCatalogPrinter('does-not-exist');
+
+    expect(fixture.componentInstance.form()).toEqual(before);
   });
 });
