@@ -4,6 +4,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Repositories;
+using Urbeat.Domain.Security;
 using Urbeat.Infrastructure.Jobs;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -174,7 +175,7 @@ public sealed class AuthService : IAuthService
         await _refreshTokenRepository.AddAsync(new RefreshToken
         {
             UserId = user.Id,
-            Token = tokenResponse.RefreshToken,
+            TokenHash = RefreshTokenHasher.Hash(tokenResponse.RefreshToken),
             ExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
         }, cancellationToken);
 
@@ -193,26 +194,33 @@ public sealed class AuthService : IAuthService
         return new LoginResultDto
         {
             Succeeded = true,
-            Token = tokenResponse
+            Token = new AuthTokenResponseDto
+            {
+                AccessToken = tokenResponse.AccessToken,
+                ExpiresAtUtc = tokenResponse.ExpiresAtUtc
+            },
+            RefreshToken = tokenResponse.RefreshToken,
+            RefreshTokenExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
         };
     }
 
-    public async Task<AuthTokenResponseDto?> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<AuthTokenPairDto?> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var existingToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
-        if (existingToken is null || existingToken.IsExpired || existingToken.IsRevoked)
+        var tokenHash = RefreshTokenHasher.Hash(refreshToken);
+
+        // Atomic, one-time claim: the token is revoked before the new pair is issued. A replayed
+        // or concurrent request with the same token observes a null claim and is rejected.
+        var claimedUserId = await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
+        if (claimedUserId is null || !Guid.TryParse(claimedUserId, out var userId))
         {
             return null;
         }
 
-        var user = await _userManager.FindByIdAsync(existingToken.UserId.ToString());
+        var user = await _userManager.FindByIdAsync(claimedUserId);
         if (user is null)
         {
             return null;
         }
-
-        existingToken.RevokedAtUtc = DateTime.UtcNow;
-        existingToken.MarkAsUpdated();
 
         var roles = await _userManager.GetRolesAsync(user);
         var tokenResponse = _jwtTokenService.GenerateToken(user.Email ?? string.Empty, user.Id, roles.ToArray());
@@ -220,12 +228,20 @@ public sealed class AuthService : IAuthService
         await _refreshTokenRepository.AddAsync(new RefreshToken
         {
             UserId = user.Id,
-            Token = tokenResponse.RefreshToken,
+            TokenHash = RefreshTokenHasher.Hash(tokenResponse.RefreshToken),
             ExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
         }, cancellationToken);
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
         return tokenResponse;
+    }
+
+    public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        var tokenHash = RefreshTokenHasher.Hash(refreshToken);
+        await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
+
+        Log.Information("{EventType} | Logout processed | TokenRevoked", "USER_LOGGED_OUT");
     }
 
     private async Task<RegistrationResultDto> RegisterAsync(

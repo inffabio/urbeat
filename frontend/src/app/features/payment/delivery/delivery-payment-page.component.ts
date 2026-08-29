@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,27 +6,31 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 
 import { CartService } from '../../../core/services/cart.service';
 import { CheckoutService } from '../../../core/services/checkout.service';
+import { CustomerOrderTrackingService } from '../../../core/services/customer-order-tracking.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { PaymentMethod } from '../../../shared/enums/payment-method.enum';
 import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
-import { BackToMenuLinkComponent } from '../../../shared/components/back-to-menu-link/back-to-menu-link.component';
+import { StickyActionBarComponent } from '../../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
 type DeliveryPay = 'cash' | 'card';
 
 @Component({
   selector: 'app-delivery-payment-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, BrlCurrencyPipe, StickyActionBarComponent],
   templateUrl: './delivery-payment-page.component.html',
   styleUrl: './delivery-payment-page.component.scss',
 })
-export class DeliveryPaymentPageComponent implements OnInit {
+export class DeliveryPaymentPageComponent implements OnInit, OnDestroy {
   readonly cart = inject(CartService);
   readonly checkout = inject(CheckoutService);
+  private readonly tracking = inject(CustomerOrderTrackingService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly toast = inject(ToastService);
+
+  private destroyed = false;
 
   // Inicia com "Cartão" pré-selecionado (forma mais segura/usual)
   readonly selected = signal<DeliveryPay | null>('card');
@@ -58,6 +62,10 @@ export class DeliveryPaymentPageComponent implements OnInit {
 
   ngOnInit(): void {
     // Pre-set fulfillmentType
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
   }
 
   select(s: DeliveryPay): void {
@@ -130,14 +138,17 @@ export class DeliveryPaymentPageComponent implements OnInit {
       })
       .subscribe({
         next: (order) => {
+          if (this.destroyed) return;
           this.checkout.lastOrderId.set(order.orderId);
           this.checkout.lastOrderCode.set(order.code);
+          this.tracking.trackOrder(order.orderId);
           this.cart.clear();
           this.processing.set(false);
           this.toast.showSuccess('Pedido criado com sucesso!');
           this.router.navigate(['/', this.getStorePath(), 'pedido', order.orderId]);
         },
         error: () => {
+          if (this.destroyed) return;
           this.errorMessage.set('Não foi possível criar o pedido. Tente novamente.');
           this.toast.showError('Não foi possível criar o pedido. Tente novamente.');
           this.processing.set(false);

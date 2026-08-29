@@ -6,5 +6,7 @@ public sealed class CompleteSellerOrderResultDto
 
     public bool Forbidden { get; init; }
 
+    public bool InvalidState { get; init; }
+
     public OrderDetailsResponseDto? Order { get; init; }
 }

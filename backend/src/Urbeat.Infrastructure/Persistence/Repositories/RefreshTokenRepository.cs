@@ -18,8 +18,42 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
         await _dbContext.RefreshTokens.AddAsync(refreshToken, cancellationToken);
     }
 
-    public Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<string?> TryClaimAsync(string tokenHash, DateTime utcNow, CancellationToken cancellationToken = default)
     {
-        return _dbContext.RefreshTokens.SingleOrDefaultAsync(x => x.Token == token, cancellationToken);
+        if (_dbContext.Database.IsRelational())
+        {
+            // A single atomic conditional UPDATE doubles as the use-once guard: only one
+            // concurrent request can flip RevokedAtUtc for a given token hash. This is the
+            // source of truth across processes/replicas.
+            var affected = await _dbContext.RefreshTokens
+                .Where(x => x.TokenHash == tokenHash && x.RevokedAtUtc == null && x.ExpiresAtUtc > utcNow)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(x => x.RevokedAtUtc, utcNow),
+                    cancellationToken);
+
+            if (affected == 0)
+            {
+                return null;
+            }
+
+            return await _dbContext.RefreshTokens
+                .AsNoTracking()
+                .Where(x => x.TokenHash == tokenHash)
+                .Select(x => x.UserId.ToString())
+                .SingleAsync(cancellationToken);
+        }
+
+        // InMemory (unit/integration tests): best-effort claim, not concurrency-safe. Production
+        // relies on the relational path above.
+        var token = await _dbContext.RefreshTokens.SingleOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
+        if (token is null || token.IsRevoked || token.IsExpired)
+        {
+            return null;
+        }
+
+        token.RevokedAtUtc = utcNow;
+        token.MarkAsUpdated();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return token.UserId.ToString();
     }
 }

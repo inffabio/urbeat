@@ -13,4 +13,8 @@ public sealed class LoginResultDto
     public string? Error { get; init; }
 
     public AuthTokenResponseDto? Token { get; init; }
+
+    public string? RefreshToken { get; init; }
+
+    public DateTime? RefreshTokenExpiresAtUtc { get; init; }
 }

@@ -15,11 +15,13 @@ public sealed class OrderServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _db;
     private readonly OrderService _sut;
+    private readonly string _dbName;
 
     public OrderServiceTests()
     {
+        _dbName = $"urbeat-orders-{Guid.NewGuid()}";
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase($"urbeat-orders-{Guid.NewGuid()}")
+            .UseInMemoryDatabase(_dbName)
             .Options;
         _db = new ApplicationDbContext(options);
 
@@ -27,6 +29,19 @@ public sealed class OrderServiceTests : IDisposable
             _db,
             new EfUnitOfWork(_db),
             Mock.Of<INotificationService>());
+    }
+
+    private (ApplicationDbContext Db, OrderService Service) CreateServiceWithFreshContext()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(_dbName)
+            .Options;
+        var db = new ApplicationDbContext(options);
+        var service = new OrderService(
+            db,
+            new EfUnitOfWork(db),
+            Mock.Of<INotificationService>());
+        return (db, service);
     }
 
     public void Dispose()
@@ -84,7 +99,8 @@ public sealed class OrderServiceTests : IDisposable
             VariationName = "Grande",
             WeightGrams = 500,
             ChoiceOptionName = "Meio a meio",
-            AdditionalNames = "Borda recheada, Bacon"
+            AdditionalNames = "Borda recheada, Bacon",
+            OptionPricesJson = "[{\"Name\":\"Borda recheada\",\"Price\":4.50},{\"Name\":\"Bacon\",\"Price\":5.00}]"
         });
         await _db.SaveChangesAsync();
 
@@ -99,6 +115,9 @@ public sealed class OrderServiceTests : IDisposable
         item.WeightGrams.Should().Be(500);
         item.ChoiceOptionName.Should().Be("Meio a meio");
         item.AdditionalNames.Should().Be("Borda recheada, Bacon");
+        item.OptionPrices.Should().HaveCount(2);
+        item.OptionPrices.Should().Contain(x => x.Name == "Borda recheada" && x.Price == 4.50m);
+        item.OptionPrices.Should().Contain(x => x.Name == "Bacon" && x.Price == 5.00m);
     }
 
     [Fact]
@@ -162,6 +181,9 @@ public sealed class OrderServiceTests : IDisposable
         summary.PaymentMethod.Should().Be(PaymentMethod.CashOnDelivery);
         summary.AddressSummary.Should().Be("Rua Teste, 10 - Centro");
         summary.ItemsSummary.Should().Be("2x Pizza grande");
+        summary.Subtotal.Should().Be(35m);
+        summary.DeliveryFee.Should().Be(7.5m);
+        summary.Total.Should().Be(42.5m);
     }
 
     [Fact]
@@ -500,6 +522,7 @@ public sealed class OrderServiceTests : IDisposable
             StoreId = store.Id,
             FulfillmentType = FulfillmentType.Delivery,
             Status = OrderStatus.Delivered,
+            DeliveryConfirmedAtUtc = DateTime.UtcNow,
             Total = 42.5m
         };
         _db.Stores.Add(store);
@@ -516,6 +539,122 @@ public sealed class OrderServiceTests : IDisposable
         second.Order!.SellerCompletedAtUtc.Should().Be(first.Order.SellerCompletedAtUtc);
         (await _db.Orders.SingleAsync()).Status.Should().Be(OrderStatus.Delivered);
         (await _db.AuditLogs.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldCreateSingleAudit_WhenCalledConcurrently()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            DeliveryConfirmedAtUtc = DateTime.UtcNow,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var (dbA, serviceA) = CreateServiceWithFreshContext();
+        var (dbB, serviceB) = CreateServiceWithFreshContext();
+        using (dbA)
+        using (dbB)
+        {
+            var results = await Task.WhenAll(
+                serviceA.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1"),
+                serviceB.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1"));
+
+            results.Should().OnlyContain(r => r.Order != null && r.Order!.SellerCompletedAtUtc.HasValue);
+            results.Should().OnlyContain(r => !r.InvalidState && !r.NotFound && !r.Forbidden);
+
+            var verifyOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(_dbName)
+                .Options;
+            using var verify = new ApplicationDbContext(verifyOptions);
+            (await verify.AuditLogs.CountAsync()).Should().Be(1);
+            (await verify.Orders.SingleAsync()).SellerCompletedAtUtc.Should().NotBeNull();
+        }
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldPersistOrderAndAudit_InSingleSaveChanges()
+    {
+        // The InMemory provider has no real database transactions, so atomicity is verified
+        // unitarily by asserting the order update and the audit log are committed together in a
+        // single SaveChanges call (the unit EF Core wraps in one transaction).
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            DeliveryConfirmedAtUtc = DateTime.UtcNow,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var uow = new Mock<IEfUnitOfWork>();
+        uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>());
+
+        var result = await sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        result.Order.Should().NotBeNull();
+        result.Order!.SellerCompletedAtUtc.Should().NotBeNull();
+        uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldKeepSellerCompletedAtUtcNull_WhenAuditSaveFails()
+    {
+        // Simulates a failure in the single SaveChanges (e.g. the audit insert). The rollback must
+        // leave the order untouched. Real PostgreSQL transaction rollback is not available in the
+        // InMemory test provider, so this is covered unitarily with a failing unit-of-work.
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            DeliveryConfirmedAtUtc = DateTime.UtcNow,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var uow = new Mock<IEfUnitOfWork>();
+        uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException("Simulated audit insert failure."));
+
+        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>());
+
+        Func<Task> act = () => sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        await act.Should().ThrowAsync<DbUpdateException>();
+
+        using var verify = new ApplicationDbContext(
+            new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(_dbName).Options);
+        (await verify.Orders.SingleAsync()).SellerCompletedAtUtc.Should().BeNull();
+        (await verify.AuditLogs.CountAsync()).Should().Be(0);
     }
 
     [Fact]
@@ -642,5 +781,88 @@ public sealed class OrderServiceTests : IDisposable
         result.Forbidden.Should().BeTrue();
         result.Order.Should().BeNull();
         (await _db.Orders.SingleAsync()).SellerCompletedAtUtc.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(OrderStatus.Received)]
+    [InlineData(OrderStatus.Preparing)]
+    [InlineData(OrderStatus.Ready)]
+    [InlineData(OrderStatus.OnDelivery)]
+    public async Task CompleteForSellerBoardAsync_ShouldNotComplete_WhenStatusIsNotDelivered(OrderStatus status)
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = status,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        result.InvalidState.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).SellerCompletedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldNotComplete_Delivery_WithoutDeliveryConfirmedAtUtc()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        result.InvalidState.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).SellerCompletedAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CompleteForSellerBoardAsync_ShouldComplete_PickUpDelivered_WithoutDeliveryConfirmedAtUtc()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "123",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Delivered,
+            Total = 42.5m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
+
+        result.InvalidState.Should().BeFalse();
+        result.Order.Should().NotBeNull();
+        result.Order!.SellerCompletedAtUtc.Should().NotBeNull();
+        (await _db.Orders.SingleAsync()).SellerCompletedAtUtc.Should().NotBeNull();
     }
 }

@@ -27,5 +27,11 @@ public sealed class ItemPricingResultDto
     /// <summary>Nomes dos adicionais e itens de grupos selecionados (snapshot).</summary>
     public IReadOnlyCollection<string> ExtraNames { get; init; } = Array.Empty<string>();
 
+    /// <summary>
+    /// Opções selecionadas com preço incremental (opção de escolha, adicionais e itens de grupos).
+    /// A variação não é incluída aqui porque seu preço é a base do preço unitário.
+    /// </summary>
+    public IReadOnlyCollection<OrderItemOptionPriceDto> OptionPrices { get; init; } = Array.Empty<OrderItemOptionPriceDto>();
+
     public static ItemPricingResultDto Invalid(string error) => new() { IsValid = false, Error = error };
 }

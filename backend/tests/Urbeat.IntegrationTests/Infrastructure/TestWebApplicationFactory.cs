@@ -43,6 +43,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IShortIdCache>();
             services.AddSingleton<IShortIdCache, InMemoryShortIdCache>();
 
+            services.RemoveAll<IImageUploadService>();
+            services.AddSingleton<IImageUploadService, FakeImageUploadService>();
+
             services.RemoveAll(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>));
             services.AddSingleton(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>), typeof(RecordingHubContext<>));
 

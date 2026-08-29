@@ -52,3 +52,7 @@ export function hasRole(token: string, expectedRole: string): boolean {
 export function isSeller(token: string): boolean {
   return hasRole(token, 'Seller');
 }
+
+export function isCustomer(token: string): boolean {
+  return hasRole(token, 'Customer');
+}

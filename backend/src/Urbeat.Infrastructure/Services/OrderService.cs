@@ -5,6 +5,7 @@ using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using System.Text.Json;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -36,6 +37,8 @@ public sealed class OrderService : IOrderService
                 Code = x.Code,
                 StoreId = x.StoreId,
                 Status = x.Status,
+                Subtotal = x.Subtotal,
+                DeliveryFee = x.DeliveryFee,
                 Total = x.Total,
                 CreatedAtUtc = x.CreatedAtUtc,
                 DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
@@ -131,6 +134,8 @@ public sealed class OrderService : IOrderService
                 AddressSummary = BuildAddressSummary(x),
                 ItemsSummary = itemSummaries.GetValueOrDefault(x.Id),
                 Status = x.Status,
+                Subtotal = x.Subtotal,
+                DeliveryFee = x.DeliveryFee,
                 Total = x.Total,
                 CreatedAtUtc = x.CreatedAtUtc,
                 DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
@@ -146,6 +151,20 @@ public sealed class OrderService : IOrderService
             TotalPages = totalPages,
             Items = items
         };
+    }
+
+    private static IReadOnlyCollection<OrderItemOptionPriceDto> DeserializeOptionPrices(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<OrderItemOptionPriceDto>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<OrderItemOptionPriceDto>>(json) ?? new List<OrderItemOptionPriceDto>();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<OrderItemOptionPriceDto>();
+        }
     }
 
     private static string? BuildAddressSummary(Order order)
@@ -674,6 +693,16 @@ public sealed class OrderService : IOrderService
             };
         }
 
+        if (order.Status != OrderStatus.Delivered)
+        {
+            return new CompleteSellerOrderResultDto { InvalidState = true };
+        }
+
+        if (order.FulfillmentType == FulfillmentType.Delivery && order.DeliveryConfirmedAtUtc is null)
+        {
+            return new CompleteSellerOrderResultDto { InvalidState = true };
+        }
+
         order.SellerCompletedAtUtc = DateTime.UtcNow;
         order.MarkAsUpdated();
 
@@ -687,7 +716,26 @@ public sealed class OrderService : IOrderService
             IpAddress = ipAddress
         }, cancellationToken);
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            var current = await _dbContext.Orders
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+
+            if (current is null)
+            {
+                return new CompleteSellerOrderResultDto { NotFound = true };
+            }
+
+            return new CompleteSellerOrderResultDto
+            {
+                Order = await LoadDetailsAsync(current, cancellationToken)
+            };
+        }
 
         return new CompleteSellerOrderResultDto
         {
@@ -697,10 +745,26 @@ public sealed class OrderService : IOrderService
 
     private async Task<OrderDetailsResponseDto> LoadDetailsAsync(Order order, CancellationToken cancellationToken)
     {
-        var items = await _dbContext.OrderItems
+        var itemRows = await _dbContext.OrderItems
             .AsNoTracking()
             .Where(x => x.OrderId == order.Id)
             .OrderBy(x => x.CreatedAtUtc)
+            .Select(x => new
+            {
+                x.ProductName,
+                x.Quantity,
+                x.UnitPrice,
+                x.TotalPrice,
+                x.Notes,
+                x.VariationName,
+                x.WeightGrams,
+                x.ChoiceOptionName,
+                x.AdditionalNames,
+                x.OptionPricesJson
+            })
+            .ToListAsync(cancellationToken);
+
+        var items = itemRows
             .Select(x => new OrderItemResponseDto
             {
                 ProductName = x.ProductName,
@@ -711,9 +775,10 @@ public sealed class OrderService : IOrderService
                 VariationName = x.VariationName,
                 WeightGrams = x.WeightGrams,
                 ChoiceOptionName = x.ChoiceOptionName,
-                AdditionalNames = x.AdditionalNames
+                AdditionalNames = x.AdditionalNames,
+                OptionPrices = DeserializeOptionPrices(x.OptionPricesJson)
             })
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var customer = await _dbContext.Users
             .AsNoTracking()

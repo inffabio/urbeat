@@ -3,9 +3,14 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
 using Urbeat.IntegrationTests.Infrastructure;
+using Urbeat.Infrastructure.Services.Payments;
 
 namespace Urbeat.IntegrationTests.Api;
 
@@ -99,6 +104,81 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         paymentHistoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var paymentHistory = await paymentHistoryResponse.Content.ReadFromJsonAsync<List<PaymentStatusHistoryResponseDto>>();
         paymentHistory.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task Customer_ShouldReturnSamePayment_WhenPaymentStartIsRetried()
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 5m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 5m } },
+        });
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "444",
+            Street = "Rua Retry",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+        address.Should().NotBeNull();
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Retry", 25m);
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.PixOnline,
+            Items =
+            [
+                new CheckoutItemRequestDto
+                {
+                    ProductId = productId,
+                    Quantity = 1
+                }
+            ]
+        });
+
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var createdOrder = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        createdOrder.Should().NotBeNull();
+
+        var firstStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
+        {
+            OrderId = createdOrder!.OrderId
+        });
+        firstStart.StatusCode.Should().Be(HttpStatusCode.OK);
+        var firstPayment = await firstStart.Content.ReadFromJsonAsync<OrderPaymentResponseDto>();
+        firstPayment.Should().NotBeNull();
+
+        var retryStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
+        {
+            OrderId = createdOrder.OrderId
+        });
+        retryStart.StatusCode.Should().Be(HttpStatusCode.OK);
+        var retriedPayment = await retryStart.Content.ReadFromJsonAsync<OrderPaymentResponseDto>();
+        retriedPayment.Should().NotBeNull();
+
+        retriedPayment!.PaymentId.Should().Be(firstPayment!.PaymentId);
+        retriedPayment.GatewayTransactionId.Should().Be(firstPayment.GatewayTransactionId);
+        retriedPayment.GatewayCheckoutUrl.Should().Be(firstPayment.GatewayCheckoutUrl);
     }
 
     [Fact]
@@ -291,6 +371,129 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         customerNotifications!.Items.Count(x => x.OrderId == order.OrderId && x.Type == NotificationType.OrderReceived).Should().Be(1);
     }
 
+    [Fact]
+    public async Task Customer_ShouldRetryPayment_AfterFailedWebhook_WithoutRecreatingOrder()
+    {
+        var adapterMock = new Mock<IMercadoPagoCheckoutAdapter>();
+        var checkoutCalls = 0;
+        adapterMock
+            .Setup(x => x.CreateCheckoutAsync(It.IsAny<MercadoPagoCheckoutCreateRequest>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                checkoutCalls++;
+                return new MercadoPagoCheckoutCreateResponse
+                {
+                    TransactionId = $"pref_{checkoutCalls}",
+                    CheckoutUrl = $"https://checkout/{checkoutCalls}",
+                    RawPayload = "{}"
+                };
+            });
+        adapterMock
+            .Setup(x => x.GetPaymentDetailsAsync(It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string transactionId, Guid? _, CancellationToken _) => new MercadoPagoPaymentDetails
+            {
+                TransactionId = transactionId,
+                Status = "rejected",
+                RawPayload = "{}"
+            });
+
+        var factory = _factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<IMercadoPagoCheckoutAdapter>();
+            services.AddTransient<IMercadoPagoCheckoutAdapter>(_ => adapterMock.Object);
+        }));
+
+        var sellerClient = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 5m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 5m } },
+        });
+
+        var customerClient = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "555",
+            Street = "Rua Retry Falha",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+        address.Should().NotBeNull();
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Retry Falha", 25m);
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.CardOnline,
+            Items =
+            [
+                new CheckoutItemRequestDto
+                {
+                    ProductId = productId,
+                    Quantity = 1
+                }
+            ]
+        });
+
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var order = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        order.Should().NotBeNull();
+        order!.Status.Should().Be(OrderStatus.PendingPayment);
+
+        var firstStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
+        {
+            OrderId = order.OrderId
+        });
+        firstStart.StatusCode.Should().Be(HttpStatusCode.OK);
+        var firstPayment = await firstStart.Content.ReadFromJsonAsync<OrderPaymentResponseDto>();
+        firstPayment.Should().NotBeNull();
+        firstPayment!.GatewayTransactionId.Should().Be("pref_1");
+
+        var webhookPayload = $"{{\"type\":\"payment\",\"data\":{{\"id\":\"pref_1\"}}}}";
+        var webhookClient = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var webhookResponse = await webhookClient.PostAsync("/api/webhooks/mercadopago", new StringContent(webhookPayload, Encoding.UTF8, "application/json"));
+        webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var failedPayment = await customerClient.GetFromJsonAsync<OrderPaymentResponseDto>($"/api/payments/order/{order.OrderId}");
+        failedPayment.Should().NotBeNull();
+        failedPayment!.Status.Should().Be(PaymentStatus.Failed);
+
+        var orderAfterFailure = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{order.OrderId}");
+        orderAfterFailure.Should().NotBeNull();
+        orderAfterFailure!.Status.Should().Be(OrderStatus.PendingPayment);
+
+        var retryStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
+        {
+            OrderId = order.OrderId
+        });
+        retryStart.StatusCode.Should().Be(HttpStatusCode.OK);
+        var retriedPayment = await retryStart.Content.ReadFromJsonAsync<OrderPaymentResponseDto>();
+        retriedPayment.Should().NotBeNull();
+
+        retriedPayment!.PaymentId.Should().Be(firstPayment.PaymentId);
+        retriedPayment.GatewayTransactionId.Should().Be("pref_2");
+        retriedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        var orderAfterRetry = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{order.OrderId}");
+        orderAfterRetry.Should().NotBeNull();
+        orderAfterRetry!.Status.Should().Be(OrderStatus.PendingPayment);
+    }
+
     private async Task<(string AccessToken, Guid StoreId)> RegisterLoginAndCreateStoreAsync(HttpClient client, string cuisineType)
     {
         var email = $"payments.seller.{Guid.NewGuid():N}@urbeat.local";
@@ -319,7 +522,8 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
             Name = "Loja Payments",
             PhoneNumber = "11987770000",
             Description = "Loja para pagamentos",
-            CuisineType = cuisineType,
+            CuisineType = cuisineType
+,
             MaxDeliveryRadiusKm = 5,
         });
 

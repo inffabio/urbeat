@@ -1,25 +1,89 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpEvent, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError, Observable } from 'rxjs';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
+import { CheckoutService } from '../services/checkout.service';
+import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
+import { isCustomer } from '../utils/jwt.helper';
+
+interface RefreshSubscriber {
+  next: (token: string) => void;
+  error: (err: unknown) => void;
+}
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: RefreshSubscriber[] = [];
+const retriedRequests = new WeakSet<HttpRequest<unknown>>();
 const LOCAL_AGENT_ORIGIN = 'http://127.0.0.1:43111/';
 
-function onRefreshed(token: string): void {
-  for (const cb of refreshSubscribers) {
-    cb(token);
+function isDeliveryAreaError(req: HttpRequest<unknown>, error: HttpErrorResponse): boolean {
+  if (!req.url.includes('/checkout/preview') && !req.url.includes('/checkout/confirm')) {
+    return false;
   }
+
+  const message = typeof error.error === 'string' ? error.error : error.error?.error;
+  return typeof message === 'string' && /entregamos.*bairro/i.test(message);
+}
+
+function isCheckoutRequest(req: HttpRequest<unknown>): boolean {
+  return req.url.includes('/checkout/preview') || req.url.includes('/checkout/confirm');
+}
+
+function onRefreshed(token: string): void {
+  const subscribers = refreshSubscribers;
   refreshSubscribers = [];
+  for (const subscriber of subscribers) {
+    subscriber.next(token);
+  }
+}
+
+function onRefreshFailed(err: unknown): void {
+  const subscribers = refreshSubscribers;
+  refreshSubscribers = [];
+  for (const subscriber of subscribers) {
+    subscriber.error(err);
+  }
+}
+
+function retryWithToken(
+  req: HttpRequest<unknown>,
+  token: string,
+  next: HttpHandlerFn,
+): Observable<HttpEvent<unknown>> {
+  const retryReq = req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` },
+  });
+  retriedRequests.add(retryReq);
+  return next(retryReq);
 }
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastService = inject(ToastService);
   const authService = inject(AuthService);
   const router = inject(Router);
+  const checkoutService = inject(CheckoutService);
+  const trackingService = inject(CustomerOrderTrackingService);
+
+  const handleSessionExpired = (error: unknown): Observable<never> => {
+    const token = authService.getToken();
+    const customerSession = !!token && isCustomer(token);
+
+    authService.logout();
+    toastService.showError('Sua sessao expirou. Por favor, faca login novamente.');
+
+    if (customerSession) {
+      checkoutService.resetCheckout();
+      trackingService.reset();
+      const storePath = router.url.match(/^\/([^/]+)\//)?.[1];
+      router.navigate(storePath ? ['/', storePath] : ['/']);
+    } else {
+      router.navigate(['/login-vendedor']);
+    }
+
+    return throwError(() => error);
+  };
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
@@ -32,6 +96,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => err);
         }
 
+        if (retriedRequests.has(req)) {
+          return handleSessionExpired(err);
+        }
+
         if (!isRefreshing) {
           isRefreshing = true;
 
@@ -39,32 +107,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             switchMap((res) => {
               isRefreshing = false;
               onRefreshed(res.accessToken);
-
-              const retryReq = req.clone({
-                setHeaders: { Authorization: `Bearer ${res.accessToken}` }
-              });
-              return next(retryReq);
+              return retryWithToken(req, res.accessToken, next);
             }),
             catchError((refreshErr) => {
               isRefreshing = false;
-              refreshSubscribers = [];
-
-              authService.logout();
-              toastService.showError('Sua sessao expirou. Por favor, faca login novamente.');
-              router.navigate(['/login-vendedor']);
-              return throwError(() => refreshErr);
+              onRefreshFailed(refreshErr);
+              return handleSessionExpired(refreshErr);
             })
           );
         }
 
         return new Observable<HttpEvent<unknown>>((subscriber) => {
-          refreshSubscribers.push((token: string) => {
-            const retryReq = req.clone({
-              setHeaders: { Authorization: `Bearer ${token}` }
-            });
-            next(retryReq).subscribe(subscriber);
+          refreshSubscribers.push({
+            next: (token) => {
+              retryWithToken(req, token, next).subscribe(subscriber);
+            },
+            error: (refreshErr) => subscriber.error(refreshErr),
           });
         });
+      }
+
+      if (isCheckoutRequest(req) || isDeliveryAreaError(req, err)) {
+        return throwError(() => err);
       }
 
       console.error('[HTTP error]', req.url, err);

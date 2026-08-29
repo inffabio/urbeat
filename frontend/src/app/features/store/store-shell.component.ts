@@ -1,163 +1,213 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
-import { switchMap } from 'rxjs';
+import { EMPTY, catchError, filter, Subscription, switchMap } from 'rxjs';
 
 import { StoreContextService } from '../../core/services/store-context.service';
 import { StoreService } from '../../core/services/store.service';
+import { CartService } from '../../core/services/cart.service';
+import { AuthService } from '../../core/services/auth.service';
+import { CheckoutService } from '../../core/services/checkout.service';
+import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
+import { FooterNavComponent, FooterNavItem } from '../../shared/components/footer-nav/footer-nav.component';
+import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-sheet.component';
 
 @Component({
   selector: 'app-store-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, IonIcon],
+    imports: [CommonModule, RouterOutlet, IonIcon, FooterNavComponent, CartSheetComponent],
   template: `
-    <main class="app-shell">
-      <section class="store-route">
-        <router-outlet />
+     <main class="app-shell">
+       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()">
+        @if (storeResolved()) {
+          <router-outlet />
+        }
       </section>
-      @if (storeResolved() && showFooterNav()) {
-        <footer class="footer-nav" aria-label="Navegação principal">
-          <a
-            [class.active]="isActive('/')"
-            (click)="navigate('')"
-            [attr.aria-current]="isActive('/') ? 'page' : undefined"
-          >
-            <ion-icon name="storefront-outline" aria-hidden="true"></ion-icon>
-            <span>Cardápio</span>
-          </a>
-          <a
-            class="disabled"
-            aria-disabled="true"
-          >
-            <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
-            <span>Pedidos</span>
-          </a>
-          <a
-            [class.active]="isActive('/carrinho')"
-            (click)="navigate('carrinho')"
-          >
-            <ion-icon name="bag-check-outline" aria-hidden="true"></ion-icon>
-            <span>Carrinho</span>
-          </a>
-          <a
-            class="disabled"
-            aria-disabled="true"
-          >
-            <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
-            <span>Conta</span>
-          </a>
-        </footer>
-      }
+       @if (storeResolved() && showFooterNav()) {
+         <app-footer-nav
+           [class.sheet-open]="isCartSheetOpen() || isAccountMenuOpen()"
+           [inert]="isCartSheetOpen() || isAccountMenuOpen()"
+           [items]="footerItems()"
+           (select)="onFooterSelect($event)" />
+       }
+        @if (isAccountMenuOpen()) {
+          <div class="account-menu-backdrop" role="presentation" (click)="closeAccountMenu()"></div>
+          <nav id="account-menu" class="account-menu" role="menu" aria-label="Menu da conta" (click)="$event.stopPropagation()">
+           <button type="button" role="menuitem" (click)="openAccountProfile()">
+             <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+             <span>Cadastro</span>
+           </button>
+           <button type="button" role="menuitem" (click)="logoutCustomer()">
+             <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+             <span>Sair</span>
+           </button>
+         </nav>
+       }
+       <app-cart-sheet [isOpen]="isCartSheetOpen()" (close)="closeCartSheet()" (next)="goToCart()" />
     </main>
   `,
   styles: [`
-    .app-shell {
+     .app-shell {
       font-family: var(--app-font);
       overflow-x: hidden;
       position: relative;
       min-height: 100vh;
       background: var(--app-shell-bg);
       display: flex;
-      flex-direction: column;
-    }
+       flex-direction: column;
+     }
+
+     @media (min-width: 900px) {
+       .app-shell {
+         width: 100%;
+         max-width: 430px;
+         min-height: 100vh;
+         margin: 0 auto;
+         box-shadow: 0 30px 90px rgba(0, 0, 0, .18);
+       }
+     }
 
     .store-route {
       flex: 1;
       min-height: 0;
+      width: 100%;
     }
 
-    .footer-nav {
-      min-height: 78px;
-      background: rgba(255, 255, 255, .96);
-      border-top: 1px solid rgba(234, 223, 214, .9);
-      box-shadow: 0 -14px 30px rgba(0, 0, 0, .06);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      align-items: center;
-      padding: 7px 4px 9px;
-      position: relative;
-      z-index: 1;
-      border-radius: 0;
-      flex-shrink: 0;
-      box-sizing: border-box;
-      margin-bottom: max(28px, env(safe-area-inset-bottom, 0px));
-    }
+     .store-route.has-footer {
+         padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)));
+     }
 
-    .footer-nav a {
-      min-height: 54px;
-      display: grid;
-      place-items: center;
-      gap: 4px;
-      color: #505258;
-      font-size: 12px;
-      font-weight: 500;
-      text-decoration: none;
-      cursor: pointer;
-      transition: color .18s ease;
-    }
+     .account-menu-backdrop {
+       position: fixed;
+       inset: 0;
+       z-index: 55;
+       background: rgba(22, 22, 22, .18);
+     }
 
-    .footer-nav a ion-icon {
-      font-size: 22px;
-      line-height: 1;
-    }
+     .account-menu {
+       position: fixed;
+       right: max(12px, calc(50% - 203px));
+       bottom: calc(72px + max(8px, env(safe-area-inset-bottom, 0px)));
+       z-index: 60;
+       display: grid;
+       width: min(190px, calc(100% - 24px));
+       padding: 8px;
+       border: 1px solid var(--app-border-light, #eadfd6);
+       border-radius: 18px;
+       background: var(--app-surface, #fff);
+       box-shadow: var(--shadow-md);
+       animation: account-menu-rise .18s ease-out both;
+     }
 
-    .footer-nav a.active,
-    .footer-nav a.active ion-icon,
-    .footer-nav a:hover,
-    .footer-nav a:hover ion-icon {
-      color: var(--app-brand);
-      outline: none;
-    }
+     .account-menu button {
+       display: flex;
+       align-items: center;
+       gap: 10px;
+       min-height: 46px;
+       padding: 0 12px;
+       border: 0;
+       border-radius: 12px;
+       background: transparent;
+       color: var(--app-ink, #161616);
+       font: inherit;
+       font-size: 14px;
+       font-weight: 700;
+       text-align: left;
+       cursor: pointer;
+     }
 
-    .footer-nav a:active {
-      transform: scale(.96);
-    }
+     .account-menu button:hover,
+     .account-menu button:focus-visible { background: var(--app-brand-soft, #FDECEE); color: var(--app-brand, #D54A51); outline: none; }
+     .account-menu ion-icon { font-size: 20px; color: var(--app-brand, #D54A51); }
 
-    .footer-nav a.disabled {
-      opacity: .4;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+     @keyframes account-menu-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+     @media (prefers-reduced-motion: reduce) { .account-menu { animation: none; } }
 
-    @media (max-width: 400px) {
-      .footer-nav a { font-size: 11px; }
-      .footer-nav a ion-icon { font-size: 21px; }
-    }
   `],
 })
 export class StoreShellComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly storeService = inject(StoreService);
+  readonly cart = inject(CartService);
+  readonly auth = inject(AuthService);
   readonly storeContext = inject(StoreContextService);
+  private readonly checkout = inject(CheckoutService);
+  private readonly tracking = inject(CustomerOrderTrackingService);
 
   readonly storeResolved = signal(false);
+  readonly isCartSheetOpen = signal(false);
+  readonly isAccountMenuOpen = signal(false);
 
-  private storeSlug = '';
+  private readonly storeSlug = signal('');
+  private readonly currentUrl = signal(this.router.url);
+  private routerEventsSubscription?: Subscription;
+  private storeResolutionSubscription?: Subscription;
+  private trackingStarted = false;
+
+  readonly activeOrdersCount = computed(() =>
+    this.tracking.activeOrders().filter((order) => order.storeId === this.storeContext.storeId()).length,
+  );
+
+  readonly trackedOrdersCount = computed(() =>
+    this.tracking.trackedOrders().filter((order) => order.storeId === this.storeContext.storeId()).length,
+  );
+
+  readonly footerItems = computed<FooterNavItem[]>(() => [
+    { id: 'cardapio', icon: 'storefront-outline', label: 'Cardapio', active: this.isStoreHome() },
+    { id: 'carrinho', icon: 'bag-check-outline', label: 'Carrinho', active: this.currentUrl().includes('/carrinho'), badge: this.cart.totalItems() },
+    {
+      id: 'pedidos',
+      icon: 'receipt-outline',
+      label: 'Pedidos',
+      active: this.currentUrl().includes('/pedidos'),
+      disabled: this.trackedOrdersCount() === 0,
+      badge: this.activeOrdersCount(),
+      badgeLabel: 'pedidos',
+    },
+    { id: 'conta', icon: 'person-circle-outline', label: 'Conta', disabled: !this.auth.customerProfile(), ariaExpanded: this.isAccountMenuOpen(), ariaControls: 'account-menu' },
+  ]);
 
   ngOnInit(): void {
     document.body.classList.add('store-page-active');
-    this.route.paramMap
+    if (this.router.events) {
+      this.routerEventsSubscription = this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe((event) => this.currentUrl.set(event.urlAfterRedirects));
+    }
+    this.storeResolutionSubscription = this.route.paramMap
       .pipe(
         switchMap((params) => {
           const storePath = params.get('storePath');
-          if (!storePath) throw new Error('no storePath');
-          return this.storeService.getStoreByPath(storePath);
+          this.resetStoreContext();
+          if (!storePath) return EMPTY;
+          return this.storeService.getStoreByPath(storePath).pipe(
+            catchError(() => EMPTY),
+          );
         }),
       )
-      .subscribe({
-        next: (store) => {
-          this.storeSlug = store.slug;
-          this.storeContext.storeName.set(store.name);
-          this.storeContext.phoneNumber.set(store.phoneNumber);
-          this.storeContext.isOpen.set(store.isOpenNow);
-          this.storeResolved.set(true);
-        },
-        error: () => {
-          this.storeResolved.set(true);
-        },
+      .subscribe((store) => {
+        this.storeSlug.set(store.slug);
+        this.storeContext.storeId.set(store.id);
+        this.storeContext.storeName.set(store.name);
+        this.storeContext.phoneNumber.set(store.phoneNumber);
+        this.storeContext.isOpen.set(store.isOpenNow);
+        this.storeResolved.set(true);
+        if (!this.trackingStarted) {
+          this.trackingStarted = true;
+          void this.tracking.start();
+        }
       });
+  }
+
+  private resetStoreContext(): void {
+    this.storeResolved.set(false);
+    this.storeSlug.set('');
+    this.storeContext.storeId.set(null);
+    this.storeContext.storeName.set(null);
+    this.storeContext.phoneNumber.set(null);
+    this.storeContext.isOpen.set(true);
   }
 
   isActive(path: string): boolean {
@@ -168,24 +218,85 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   isStoreHome(): boolean {
     const url = this.router.url;
-    const slug = this.storeSlug;
+    const slug = this.storeSlug();
     if (!slug) return false;
-    return url === `/${slug}` || url === `/${slug}/`;
+     return url === `/${slug}` || url === `/${slug}/`;
   }
 
   showFooterNav(): boolean {
-    return !this.isStoreHome() && !this.router.url.includes('/checkout/');
+    const isPayment = this.router.url.includes('/checkout/pagamento');
+    return !this.router.url.includes('/checkout/') || isPayment;
   }
 
   navigate(path: string): void {
-    if (path === '') {
-      this.router.navigate(['/', this.storeSlug]);
-    } else {
-      this.router.navigate(['/', this.storeSlug, path]);
+    const segments = path.split('/').filter((segment) => segment.length > 0);
+    this.router.navigate(['/', this.currentSlug(), ...segments]);
+  }
+
+  private currentSlug(): string {
+    return this.storeSlug() || this.route.snapshot?.paramMap?.get('storePath') || '';
+  }
+
+  onFooterSelect(id: string): void {
+    if (id === 'cardapio') this.navigate('');
+    if (id === 'carrinho') this.isCartSheetOpen.set(true);
+    if (id === 'pedidos') this.navigate('pedidos');
+    if (id === 'conta') this.openAccountMenu();
+  }
+
+  openAccountMenu(): void {
+    this.isAccountMenuOpen.set(true);
+    setTimeout(() => this.focusAccountMenuFirstItem());
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.isAccountMenuOpen()) {
+      this.closeAccountMenu();
+      setTimeout(() => this.focusAccountTrigger());
     }
   }
 
+  private focusAccountMenuFirstItem(): void {
+    document.querySelector<HTMLElement>('#account-menu button')?.focus();
+  }
+
+  private focusAccountTrigger(): void {
+    document.querySelector<HTMLElement>('[data-footer-id="conta"]')?.focus();
+  }
+
+  closeCartSheet(): void {
+    this.isCartSheetOpen.set(false);
+  }
+
+  goToCart(): void {
+    if (this.cart.isEmpty()) return;
+    this.closeCartSheet();
+    this.navigate('carrinho');
+  }
+
+  closeAccountMenu(): void {
+    this.isAccountMenuOpen.set(false);
+  }
+
+  openAccountProfile(): void {
+    this.closeAccountMenu();
+    this.navigate('conta/cadastro');
+  }
+
+  logoutCustomer(): void {
+    this.auth.logout();
+    this.checkout.resetCheckout();
+    this.closeAccountMenu();
+    this.router.navigate(['/', this.currentSlug()]);
+  }
+
   ngOnDestroy(): void {
+    this.routerEventsSubscription?.unsubscribe();
+    this.storeResolutionSubscription?.unsubscribe();
+    if (this.trackingStarted) {
+      this.tracking.stop();
+    }
     document.body.classList.remove('store-page-active');
   }
 }

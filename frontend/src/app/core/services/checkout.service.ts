@@ -60,7 +60,11 @@ export class CheckoutService {
   }
 
   resetCheckout(): void {
+    this.fulfillmentType.set(FulfillmentType.Delivery);
     this.paymentMethod.set(null);
+    this.customerInfo.set(null);
+    this.customerAddress.set(null);
+    this.customerAddressId.set(null);
     this.orderNotes.set('');
     this.lastOrderId.set(null);
     this.lastOrderCode.set(null);

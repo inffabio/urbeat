@@ -5,15 +5,23 @@ import { errorInterceptor } from './error.interceptor';
 import { authInterceptor } from './auth.interceptor';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
+import { CheckoutService } from '../services/checkout.service';
+import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+
+function encodeTokenPayload(payload: unknown): string {
+  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify(payload))}.signature`;
+}
 
 describe('errorInterceptor', () => {
   let httpMock: HttpTestingController;
   let httpClient: HttpClient;
   let toastServiceMock: jest.Mocked<ToastService>;
   let authServiceMock: jest.Mocked<Partial<AuthService>>;
-  let routerMock: jest.Mocked<Partial<Router>>;
+  let routerMock: jest.Mocked<Partial<Router>> & { url: string };
+  let checkoutServiceMock: { resetCheckout: jest.Mock };
+  let trackingServiceMock: { reset: jest.Mock };
   let refreshTokenSpy: jest.Mock;
   let consoleErrorSpy: jest.SpyInstance;
 
@@ -36,8 +44,12 @@ describe('errorInterceptor', () => {
     };
 
     routerMock = {
+      url: '/app/dashboard',
       navigate: jest.fn().mockResolvedValue(true),
     };
+
+    checkoutServiceMock = { resetCheckout: jest.fn() };
+    trackingServiceMock = { reset: jest.fn() };
 
     TestBed.configureTestingModule({
       providers: [
@@ -45,6 +57,8 @@ describe('errorInterceptor', () => {
         provideHttpClientTesting(),
         { provide: ToastService, useValue: toastServiceMock },
         { provide: AuthService, useValue: authServiceMock },
+        { provide: CheckoutService, useValue: checkoutServiceMock },
+        { provide: CustomerOrderTrackingService, useValue: trackingServiceMock },
         { provide: Router, useValue: routerMock },
       ]
     });
@@ -87,6 +101,22 @@ describe('errorInterceptor', () => {
       triggerError('/api/checkout/preview', {
         error: 'Order is below minimum value.',
         summary: { subtotal: 10, minimumOrderValue: 20 }
+      }, 400);
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
+
+    it('should let checkout delivery-area errors be handled by the checkout modal', () => {
+      triggerError('/api/checkout/confirm', {
+        error: 'Ainda nao entregamos no seu bairro.'
+      }, 400);
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
+
+    it('should leave all checkout errors for the checkout screen', () => {
+      triggerError('/api/checkout/confirm', {
+        error: 'Não foi possível validar o pedido.'
       }, 400);
 
       expect(toastServiceMock.showError).not.toHaveBeenCalled();
@@ -134,6 +164,75 @@ describe('errorInterceptor', () => {
       expect(authServiceMock.logout).toHaveBeenCalled();
       expect(toastServiceMock.showError).toHaveBeenCalledWith('Sua sessao expirou. Por favor, faca login novamente.');
       expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
+    });
+
+    it('redirects customer sessions to the public store menu and clears customer state on refresh failure', () => {
+      authServiceMock.getToken.mockReturnValue(encodeTokenPayload({ role: 'Customer' }));
+      refreshTokenSpy.mockReturnValue(throwError(() => new Error('Refresh failed')));
+      routerMock.url = '/loja/checkout/pagamento';
+
+      httpClient.get('/api/customer/me').subscribe({ error: () => {} });
+
+      const req = httpMock.expectOne('/api/customer/me');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(authServiceMock.logout).toHaveBeenCalled();
+      expect(checkoutServiceMock.resetCheckout).toHaveBeenCalled();
+      expect(trackingServiceMock.reset).toHaveBeenCalled();
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+      expect(routerMock.navigate).not.toHaveBeenCalledWith(['/login-vendedor']);
+    });
+
+    it('resets the seller shell on seller session expiry', () => {
+      authServiceMock.getToken.mockReturnValue(encodeTokenPayload({ role: 'Seller' }));
+      refreshTokenSpy.mockReturnValue(throwError(() => new Error('Refresh failed')));
+
+      httpClient.get('/api/stores/my-store').subscribe({ error: () => {} });
+
+      const req = httpMock.expectOne('/api/stores/my-store');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(authServiceMock.logout).toHaveBeenCalled();
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
+      expect(checkoutServiceMock.resetCheckout).not.toHaveBeenCalled();
+      expect(trackingServiceMock.reset).not.toHaveBeenCalled();
+    });
+
+    it('resolves pending requests with an error when the refresh fails', () => {
+      let failRefresh: (err: unknown) => void = () => {};
+      refreshTokenSpy.mockReturnValue(new Observable((subscriber) => {
+        failRefresh = (err) => subscriber.error(err);
+      }));
+
+      let firstErrored = false;
+      let secondErrored = false;
+
+      httpClient.get('/api/first').subscribe({ error: () => { firstErrored = true; } });
+      httpMock.expectOne('/api/first').flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      httpClient.get('/api/second').subscribe({ error: () => { secondErrored = true; } });
+      httpMock.expectOne('/api/second').flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      failRefresh(new Error('Refresh failed'));
+
+      expect(firstErrored).toBe(true);
+      expect(secondErrored).toBe(true);
+      expect(authServiceMock.logout).toHaveBeenCalled();
+    });
+
+    it('retries only once and stops the loop when the refreshed token is rejected again', () => {
+      refreshTokenSpy.mockReturnValue(of({ accessToken: 'fresh-token', refreshToken: 'fresh-refresh' }));
+
+      httpClient.get('/api/loop').subscribe({ error: () => {} });
+
+      const req = httpMock.expectOne('/api/loop');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      const retryReq = httpMock.expectOne('/api/loop');
+      retryReq.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(refreshTokenSpy).toHaveBeenCalledTimes(1);
+      expect(authServiceMock.logout).toHaveBeenCalled();
     });
   });
 

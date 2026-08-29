@@ -129,6 +129,163 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
+    public async Task Logout_ShouldRevokeRefreshToken_AndRejectSubsequentRefresh()
+    {
+        var email = $"logout.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new()
+        {
+            AllowAutoRedirect = false
+        });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Logout Teste",
+            Email = email,
+            Password = password
+        });
+        await _factory.ConfirmEmailAsync(email);
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue();
+        var refreshCookie = cookies!
+            .Select(static cookie => cookie.Split(';')[0])
+            .Single(static cookie => cookie.StartsWith("urbeat.refresh_token="));
+
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        logoutRequest.Headers.Add("Cookie", refreshCookie);
+        var logoutResponse = await client.SendAsync(logoutRequest);
+        logoutResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        refreshRequest.Headers.Add("Cookie", refreshCookie);
+        var refreshResponse = await client.SendAsync(refreshRequest);
+        refreshResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ShouldRejectReplay_WhenSameTokenIsUsedTwice()
+    {
+        var email = $"replay.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Replay Teste",
+            Email = email,
+            Password = password
+        });
+        await _factory.ConfirmEmailAsync(email);
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var refreshCookie = ExtractRefreshCookie(loginResponse);
+
+        var firstRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        firstRefresh.Headers.Add("Cookie", refreshCookie);
+        (await client.SendAsync(firstRefresh)).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var replayRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        replayRefresh.Headers.Add("Cookie", refreshCookie);
+        (await client.SendAsync(replayRefresh)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ShouldRotate_AndRejectOldToken_WhileNewTokenWorks()
+    {
+        var email = $"rotate.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Rotation Teste",
+            Email = email,
+            Password = password
+        });
+        await _factory.ConfirmEmailAsync(email);
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var oldCookie = ExtractRefreshCookie(loginResponse);
+
+        var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        refreshRequest.Headers.Add("Cookie", oldCookie);
+        var refreshResponse = await client.SendAsync(refreshRequest);
+        refreshResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var newCookie = ExtractRefreshCookie(refreshResponse);
+        newCookie.Should().NotBe(oldCookie);
+
+        var oldTokenRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        oldTokenRefresh.Headers.Add("Cookie", oldCookie);
+        (await client.SendAsync(oldTokenRefresh)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        var newTokenRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+        newTokenRefresh.Headers.Add("Cookie", newCookie);
+        (await client.SendAsync(newTokenRefresh)).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    private static string ExtractRefreshCookie(HttpResponseMessage response)
+    {
+        response.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue();
+        return cookies!
+            .Select(static cookie => cookie.Split(';')[0])
+            .Single(static cookie => cookie.StartsWith("urbeat.refresh_token="));
+    }
+
+    [Fact]
+    public async Task Login_ShouldNotExposeRefreshToken_InResponseBody()
+    {
+        var email = $"secret.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Secret Teste",
+            Email = email,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        await _factory.ConfirmEmailAsync(email);
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await loginResponse.Content.ReadAsStringAsync();
+        body.Should().Contain("accessToken");
+        body.Should().Contain("expiresAtUtc");
+        body.Should().NotContain("refreshToken");
+        body.Should().NotContain("refresh_token");
+
+        loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue();
+        cookies!.Select(static cookie => cookie.Split(';')[0])
+            .Should().Contain(static cookie => cookie.StartsWith("urbeat.refresh_token="));
+    }
+
+    [Fact]
     public async Task Login_ShouldReturnLocked_WhenMaxFailedAttemptsIsReached()
     {
         var email = $"lockout.{Guid.NewGuid():N}@urbeat.local";

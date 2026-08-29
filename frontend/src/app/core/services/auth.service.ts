@@ -1,6 +1,6 @@
 ﻿import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpBackend } from '@angular/common/http';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, Subject, switchMap, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { environment } from '../../../environments/environment';
 import {
@@ -18,11 +18,11 @@ import {
   ResetPasswordResponse,
   UpdateEmailRequest,
   CustomerProfileResponse,
+  UpdateCustomerProfileRequest,
   SellerProfileResponse,
 } from '../../shared/models/auth.model';
 
 const TOKEN_KEY = 'urbeat_token';
-const REFRESH_KEY = 'urbeat_refresh';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -34,6 +34,8 @@ export class AuthService {
   readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
   readonly customerProfile = signal<CustomerProfileResponse | null>(null);
   readonly isAuthenticated = computed(() => !!this.token());
+  private readonly tokenSubject = new Subject<string | null>();
+  readonly token$ = this.tokenSubject.asObservable();
 
   register(req: RegisterCustomerRequest): Observable<RegisterResponse> {
     return this.api.post<RegisterResponse>('/api/auth/register/customer', req);
@@ -79,8 +81,8 @@ export class AuthService {
 
   saveToken(res: AuthTokenResponse): void {
     localStorage.setItem(TOKEN_KEY, res.accessToken);
-    localStorage.setItem(REFRESH_KEY, res.refreshToken);
     this.token.set(res.accessToken);
+    this.tokenSubject.next(res.accessToken);
   }
 
   getToken(): string | null {
@@ -112,11 +114,21 @@ export class AuthService {
     );
   }
 
+  updateCustomerProfile(request: UpdateCustomerProfileRequest): Observable<CustomerProfileResponse> {
+    return this.api.put<CustomerProfileResponse>('/api/customer/me', request).pipe(
+      tap((profile) => this.customerProfile.set(profile)),
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
     this.token.set(null);
     this.customerProfile.set(null);
+    this.tokenSubject.next(null);
+
+    this.rawHttp
+      .post(`${this.baseUrl}/api/auth/logout`, {}, { withCredentials: true })
+      .subscribe({ error: () => undefined });
   }
 
   forgotPassword(req: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {

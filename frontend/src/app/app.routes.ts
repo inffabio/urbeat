@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authChildGuard, authGuard } from './core/guards/auth.guard';
+import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
@@ -295,6 +295,12 @@ export const routes: Routes = [
           import('./features/checkout/payment-page.component').then((m) => m.PaymentPageComponent),
       },
       {
+        path: 'conta/cadastro',
+        canActivate: [customerGuard],
+        loadComponent: () =>
+          import('./features/checkout/customer-page.component').then((m) => m.CustomerPageComponent),
+      },
+      {
         path: 'checkout/confirmar-sms',
         loadComponent: () =>
           import('./features/checkout/sms-verification-page.component').then(
@@ -313,6 +319,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/payment/delivery/delivery-payment-page.component').then(
             (m) => m.DeliveryPaymentPageComponent,
+          ),
+      },
+      {
+        path: 'pedidos',
+        loadComponent: () =>
+          import('./features/customer-orders/customer-orders-page.component').then(
+            (m) => m.CustomerOrdersPageComponent,
           ),
       },
       {

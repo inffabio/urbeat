@@ -9,9 +9,9 @@
     </div>
   }
 
-  <h1 class="store-name">{{ cart.storeName() }}</h1>
+  <h1 class="store-name">{{ isAccountEdit() ? 'Meu cadastro' : cart.storeName() }}</h1>
 
-  @if (!cart.isEmpty()) {
+  @if (!isAccountEdit() && !cart.isEmpty()) {
     <details class="order-summary card">
       <summary>
         <div class="os-left">
@@ -39,6 +39,7 @@
   <form
     class="checkout-form"
     [class.checkout-form--compact]="!cart.storeLogoUrl() && !cart.storeName()"
+    [class.checkout-form--account]="isAccountEdit()"
     (ngSubmit)="continue()"
     autocomplete="on"
   >
@@ -51,7 +52,7 @@
         type="text"
         placeholder="Ex.: Maria Oliveira"
         [ngModel]="fullName()"
-        (ngModelChange)="fullName.set($event)"
+         (ngModelChange)="fullName.set($event); updateAccountDirty()"
         name="fullName"
         autocomplete="name"
         required
@@ -93,7 +94,7 @@
         type="email"
         placeholder="voce@email.com"
         [ngModel]="email()"
-        (ngModelChange)="email.set($event)"
+         (ngModelChange)="email.set($event); updateAccountDirty()"
         name="email"
         autocomplete="email"
         required
@@ -143,7 +144,7 @@
         type="text"
         placeholder="Cidade"
         [ngModel]="city()"
-        (ngModelChange)="city.set($event)"
+         (ngModelChange)="onAddressFieldChange('city', $event)"
         name="city"
         autocomplete="address-level2"
         required
@@ -165,7 +166,7 @@
           type="text"
           placeholder="UF"
           [ngModel]="state()"
-          (ngModelChange)="state.set($event.toUpperCase())"
+           (ngModelChange)="onAddressFieldChange('state', $event)"
           name="state"
           maxlength="2"
           autocomplete="address-level1"
@@ -188,7 +189,7 @@
         type="text"
         placeholder="Bairro"
         [ngModel]="neighborhood()"
-        (ngModelChange)="neighborhood.set($event)"
+         (ngModelChange)="onAddressFieldChange('neighborhood', $event)"
         name="neighborhood"
         autocomplete="address-level3"
         required
@@ -209,7 +210,7 @@
         type="text"
         placeholder="Rua"
         [ngModel]="street()"
-        (ngModelChange)="street.set($event)"
+         (ngModelChange)="onAddressFieldChange('street', $event)"
         name="street"
         autocomplete="address-line1"
         required
@@ -230,7 +231,7 @@
           type="text"
           placeholder="Número"
           [ngModel]="number()"
-          (ngModelChange)="number.set($event)"
+           (ngModelChange)="onAddressFieldChange('number', $event)"
           name="number"
           inputmode="numeric"
           required
@@ -247,7 +248,7 @@
           type="text"
           placeholder="Complemento (opcional)"
           [ngModel]="complement()"
-          (ngModelChange)="complement.set($event)"
+           (ngModelChange)="complement.set($event); updateAccountDirty()"
           name="complement"
           autocomplete="address-line2"
           aria-label="Complemento"
@@ -268,13 +269,24 @@
       </div>
     }
 
-    <button
-      type="submit"
-      class="btn-primary submit-btn"
-      [disabled]="!canContinue()"
-    >
-      Continuar
-    </button>
+    @if (isAccountEdit()) {
+      <div class="account-actions">
+        <button
+          type="submit"
+          class="account-save-btn"
+          [disabled]="!canSaveAccount()"
+          [attr.aria-busy]="accountSaving() || undefined"
+          aria-label="Salvar cadastro"
+        >
+          @if (accountSaving()) {
+            <span class="account-save-spinner" aria-hidden="true"></span>
+            <span>Salvando…</span>
+          } @else {
+            <span>Salvar</span>
+          }
+        </button>
+      </div>
+    }
 
   </form>
 
@@ -284,3 +296,22 @@
     </div>
   }
 </ion-content>
+
+@if (deliveryCoverageModalOpen()) {
+  <app-delivery-coverage-modal
+    [storeAddress]="storeAddress()"
+    [customerAddress]="{ city: city(), state: state(), cep: cep(), neighborhood: neighborhood() }"
+    (close)="closeDeliveryCoverageModal()"
+    (backToMenu)="goToMenu()"
+  />
+}
+
+@if (!isAccountEdit()) {
+  <app-sticky-action-bar
+    icon="person-outline"
+    label="Continuar"
+    detail="Informe seus dados e endereço"
+    [disabled]="!canContinue()"
+    (action)="continue()"
+  />
+}

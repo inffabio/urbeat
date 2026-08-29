@@ -8,6 +8,10 @@ export interface FooterNavItem {
   label: string;
   active?: boolean;
   disabled?: boolean;
+  badge?: number;
+  badgeLabel?: string;
+  ariaExpanded?: boolean;
+  ariaControls?: string;
 }
 
 @Component({
@@ -18,58 +22,120 @@ export interface FooterNavItem {
     <div class="footer-nav-safe-zone">
       <footer class="footer-nav" aria-label="Navegacao principal">
         @for (item of items; track item.id) {
-          <a
+          <button
+            type="button"
             [class.active]="item.active"
             [class.disabled]="item.disabled"
             [attr.aria-disabled]="item.disabled ? true : undefined"
+            [attr.aria-hidden]="inert ? 'true' : undefined"
             [attr.aria-current]="item.active ? 'page' : undefined"
-            (click)="!item.disabled && select.emit(item.id)"
-            (keydown.enter)="!item.disabled && select.emit(item.id)"
-            tabindex="0"
-            role="button">
-            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            [attr.aria-expanded]="item.ariaExpanded ?? undefined"
+            [attr.aria-controls]="item.ariaControls ?? undefined"
+            [attr.aria-haspopup]="item.ariaControls ? 'menu' : undefined"
+            [attr.data-footer-id]="item.id"
+            (click)="!inert && !item.disabled && select.emit(item.id)"
+            [attr.tabindex]="inert || item.disabled ? -1 : 0">
+            <span class="footer-icon-wrap">
+              <ion-icon
+                [name]="item.icon"
+                [class.cart-has-items]="item.badge && item.badge > 0"
+                aria-hidden="true"></ion-icon>
+              @if (item.badge && item.badge > 0) {
+                <span
+                  class="footer-nav-badge footer-nav-badge-over-icon"
+                  [class.footer-nav-badge-wide]="item.badge >= 10"
+                  aria-label="{{ item.badge }} {{ item.badgeLabel || 'itens' }}">{{ item.badge }}</span>
+              }
+            </span>
             <span>{{ item.label }}</span>
-          </a>
+          </button>
         }
       </footer>
     </div>
   `,
   styles: [`
-    :host { display: block; }
+     :host { display: block; position: relative; z-index: 70; }
+     :host(.sheet-open) { pointer-events: none; }
 
-    .footer-nav-safe-zone {
-      background: var(--app-surface, #fff);
-      padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
-    }
+     .footer-nav-safe-zone {
+       position: fixed;
+       left: 50%;
+       right: auto;
+       transform: translateX(-50%);
+       bottom: 0;
+        z-index: 70;
+       background: var(--app-surface, #fff);
+       padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+       width: min(430px, 100%);
+       max-width: 100%;
+       border-radius: 18px 18px 0 0;
+     }
 
     .footer-nav {
-      min-height: 78px;
+       min-height: 64px;
       background: rgba(255, 255, 255, .96);
-      border-top: 1px solid rgba(234, 223, 214, .9);
+       border-top: 1px solid var(--app-border-light, #eadfd6);
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
-      padding: 7px 4px 9px;
-      position: relative;
-      z-index: 1;
+       padding: 4px 4px 6px;
+       width: 100%;
+       max-width: none;
+       margin: 0;
       box-sizing: border-box;
     }
 
-    .footer-nav a {
+    .footer-nav button {
       min-height: 54px;
       display: grid;
       place-items: center;
       gap: 4px;
+      padding: 0;
+      border: 0;
+      background: transparent;
       color: #505258;
+      font-family: inherit;
       font-size: 12px;
       font-weight: 500;
-      text-decoration: none;
       cursor: pointer;
       transition: color .18s ease;
 
+      .footer-icon-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-width: 24px;
+        min-height: 24px;
+      }
+
       ion-icon { font-size: 22px; line-height: 1; }
 
-      &.active, &.active ion-icon { color: var(--app-brand, #D54A51); }
+      .footer-nav-badge {
+        position: absolute;
+        top: 1px;
+        right: -5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border: 2px solid var(--app-surface, #fff);
+        border-radius: 999px;
+          background: var(--app-brand, #D54A51);
+        color: #fff;
+         font-size: 10px;
+         line-height: 14px;
+         font-weight: 800;
+         text-align: center;
+         font-variant-numeric: tabular-nums;
+         white-space: nowrap;
+         box-sizing: border-box;
+       }
+
+       .footer-nav-badge-wide {
+         min-width: 28px;
+         padding-inline: 6px;
+       }
+
+       &.active, &.active ion-icon, ion-icon.cart-has-items { color: var(--app-brand, #D54A51); }
 
       &.disabled {
         opacity: .4;
@@ -79,12 +145,13 @@ export interface FooterNavItem {
     }
 
     @media (max-width: 400px) {
-      .footer-nav a { font-size: 11px; }
-      .footer-nav a ion-icon { font-size: 21px; }
+      .footer-nav button { font-size: 11px; }
+      .footer-nav button ion-icon { font-size: 21px; }
     }
   `],
 })
 export class FooterNavComponent {
   @Input({ required: true }) items!: FooterNavItem[];
+  @Input() inert = false;
   @Output() select = new EventEmitter<string>();
 }

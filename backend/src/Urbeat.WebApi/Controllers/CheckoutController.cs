@@ -53,9 +53,9 @@ public sealed class CheckoutController : ControllerBase
         try
         {
             var result = await _customerOtpService.CreateCustomerSessionAsync(request, cancellationToken);
-            if (!result.Succeeded)
+            if (!result.Response.Succeeded)
             {
-                return BadRequest(result);
+                return BadRequest(result.Response);
             }
 
             if (!string.IsNullOrWhiteSpace(result.RefreshToken) && result.RefreshTokenExpiresAtUtc is not null)
@@ -63,7 +63,7 @@ public sealed class CheckoutController : ControllerBase
                 SetRefreshCookie(result.RefreshToken, result.RefreshTokenExpiresAtUtc.Value);
             }
 
-            return Ok(result);
+            return Ok(result.Response);
         }
         catch (InvalidOperationException ex)
         {
@@ -78,9 +78,9 @@ public sealed class CheckoutController : ControllerBase
     public async Task<IActionResult> ConfirmCustomerVerification([FromBody] ConfirmCustomerVerificationRequestDto request, CancellationToken cancellationToken)
     {
         var result = await _customerOtpService.ConfirmAsync(request, cancellationToken);
-        if (!result.Succeeded)
+        if (!result.Response.Succeeded)
         {
-            return BadRequest(result);
+            return BadRequest(result.Response);
         }
 
         if (!string.IsNullOrWhiteSpace(result.RefreshToken) && result.RefreshTokenExpiresAtUtc is not null)
@@ -88,7 +88,7 @@ public sealed class CheckoutController : ControllerBase
             SetRefreshCookie(result.RefreshToken, result.RefreshTokenExpiresAtUtc.Value);
         }
 
-        return Ok(result);
+        return Ok(result.Response);
     }
 
     [HttpPost("customer-verification/resend")]

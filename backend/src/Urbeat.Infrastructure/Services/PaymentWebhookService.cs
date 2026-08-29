@@ -87,12 +87,24 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         }
 
         var previousPaymentStatus = payment.Status;
-        payment.Status = mappedPaymentStatus;
-        payment.RawPayload = gatewayDetails.RawPayload;
-        payment.MarkAsUpdated();
+        var canTransition = CanTransition(previousPaymentStatus, mappedPaymentStatus);
+        var isCurrentAttempt = string.Equals(payment.GatewayTransactionId, gatewayDetails.TransactionId, StringComparison.Ordinal);
 
-        if (previousPaymentStatus != mappedPaymentStatus)
+        var order = await _dbContext.Orders.SingleOrDefaultAsync(x => x.Id == payment.OrderId, cancellationToken);
+        var orderAllowsPaid = mappedPaymentStatus != PaymentStatus.Paid
+            || (order is not null && CanMarkPaid(order.Status));
+
+        var statusChanged = previousPaymentStatus != mappedPaymentStatus
+            && canTransition
+            && isCurrentAttempt
+            && orderAllowsPaid;
+
+        if (statusChanged)
         {
+            payment.Status = mappedPaymentStatus;
+            payment.RawPayload = gatewayDetails.RawPayload;
+            payment.MarkAsUpdated();
+
             await _dbContext.PaymentStatusHistories.AddAsync(new PaymentStatusHistory
             {
                 PaymentId = payment.Id,
@@ -102,58 +114,59 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
                 Notes = "Payment status changed from Mercado Pago webhook.",
                 RawPayload = gatewayDetails.RawPayload
             }, cancellationToken);
-        }
 
-        var order = await _dbContext.Orders.SingleOrDefaultAsync(x => x.Id == payment.OrderId, cancellationToken);
-        if (order is not null)
-        {
-            var storeOwnerUserId = await _dbContext.Stores
-                .AsNoTracking()
-                .Where(x => x.Id == order.StoreId)
-                .Select(x => x.OwnerUserId)
-                .SingleOrDefaultAsync(cancellationToken);
-
-            var targetOrderStatus = MapOrderStatus(order.Status, mappedPaymentStatus);
-            if (targetOrderStatus.HasValue && targetOrderStatus.Value != order.Status)
+            if (order is not null)
             {
-                var previous = order.Status;
-                order.Status = targetOrderStatus.Value;
-                order.MarkAsUpdated();
+                var storeOwnerUserId = await _dbContext.Stores
+                    .AsNoTracking()
+                    .Where(x => x.Id == order.StoreId)
+                    .Select(x => x.OwnerUserId)
+                    .SingleOrDefaultAsync(cancellationToken);
 
-                await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
+                var targetOrderStatus = MapOrderStatus(order.Status, mappedPaymentStatus);
+                if (targetOrderStatus.HasValue && targetOrderStatus.Value != order.Status)
                 {
-                    OrderId = order.Id,
-                    PreviousStatus = previous,
-                    NewStatus = targetOrderStatus.Value,
-                    ChangedByUserId = order.CustomerUserId,
-                    Notes = "Order status updated from Mercado Pago webhook."
-                }, cancellationToken);
+                    var previous = order.Status;
+                    order.Status = targetOrderStatus.Value;
+                    order.MarkAsUpdated();
 
-                if (targetOrderStatus.Value == OrderStatus.Received && storeOwnerUserId != Guid.Empty)
-                {
-                    await _notificationService.NotifySellerNewOrderAsync(
-                        storeOwnerUserId,
+                    await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
+                    {
+                        OrderId = order.Id,
+                        PreviousStatus = previous,
+                        NewStatus = targetOrderStatus.Value,
+                        ChangedByUserId = order.CustomerUserId,
+                        Notes = "Order status updated from Mercado Pago webhook."
+                    }, cancellationToken);
+
+                    if (targetOrderStatus.Value == OrderStatus.Received && storeOwnerUserId != Guid.Empty)
+                    {
+                        await _notificationService.NotifySellerNewOrderAsync(
+                            storeOwnerUserId,
+                            order.Id,
+                            $"Novo pedido {order.Code} confirmado com pagamento online.",
+                            cancellationToken);
+                    }
+
+                    await _notificationService.NotifyCustomerOrderStatusChangedAsync(
+                        order.CustomerUserId,
                         order.Id,
-                        $"Novo pedido {order.Code} confirmado com pagamento online.",
+                        targetOrderStatus.Value,
+                        $"Seu pedido {order.Code} foi atualizado para {targetOrderStatus.Value}.",
                         cancellationToken);
                 }
-
-                await _notificationService.NotifyCustomerOrderStatusChangedAsync(
-                    order.CustomerUserId,
-                    order.Id,
-                    targetOrderStatus.Value,
-                    $"Seu pedido {order.Code} foi atualizado para {targetOrderStatus.Value}.",
-                    cancellationToken);
             }
         }
 
         await _dbContext.AuditLogs.AddAsync(new AuditLog
         {
             UserId = order?.CustomerUserId,
-            Event = "MercadoPagoWebhookProcessed",
+            Event = statusChanged ? "MercadoPagoWebhookProcessed" : "MercadoPagoWebhookTerminalStateProtected",
             Entity = nameof(Payment),
             EntityId = payment.Id,
-            Description = $"Webhook processed with status {mappedPaymentStatus} for transaction {gatewayDetails.TransactionId}.",
+            Description = statusChanged
+                ? $"Webhook processed with status {mappedPaymentStatus} for transaction {gatewayDetails.TransactionId} (attempt {payment.Attempt})."
+                : DescribeIgnoredWebhook(previousPaymentStatus, mappedPaymentStatus, canTransition, isCurrentAttempt, order?.Status),
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -163,6 +176,53 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         {
             Processed = true
         };
+    }
+
+    /// <summary>
+    /// Defines the allowed payment status transitions as an explicit allow-list. Only a pending
+    /// payment may advance (to Paid, Failed or Cancelled) and only a paid payment may later be
+    /// refunded. Any other transition — including a late "approved" that would resurrect a failed,
+    /// cancelled or refunded payment — is ignored so the payment and its order cannot diverge.
+    /// </summary>
+    private static bool CanTransition(PaymentStatus current, PaymentStatus incoming)
+    {
+        return (current, incoming) switch
+        {
+            (PaymentStatus.Pending, PaymentStatus.Paid) => true,
+            (PaymentStatus.Pending, PaymentStatus.Failed) => true,
+            (PaymentStatus.Pending, PaymentStatus.Cancelled) => true,
+            (PaymentStatus.Paid, PaymentStatus.Refunded) => true,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// A late "approved" webhook must not mark a payment as Paid once the order has already been
+    /// cancelled or delivered, since doing so would leave the payment and order inconsistent.
+    /// </summary>
+    private static bool CanMarkPaid(OrderStatus orderStatus)
+    {
+        return orderStatus is not OrderStatus.Cancelled and not OrderStatus.Delivered;
+    }
+
+    private static string DescribeIgnoredWebhook(
+        PaymentStatus previous,
+        PaymentStatus incoming,
+        bool canTransition,
+        bool isCurrentAttempt,
+        OrderStatus? orderStatus)
+    {
+        if (!isCurrentAttempt)
+        {
+            return $"Webhook ignored: gateway transaction does not match the payment's current attempt (payment {previous}, incoming {incoming}).";
+        }
+
+        if (!canTransition)
+        {
+            return $"Webhook ignored: transition {previous} -> {incoming} is not allowed.";
+        }
+
+        return $"Webhook ignored: order status {orderStatus} cannot receive a paid payment from a late {incoming} webhook.";
     }
 
     private static PaymentStatus MapPaymentStatus(string externalStatus)
@@ -184,12 +244,12 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
             return null;
         }
 
+        // A failed or cancelled payment must leave the order in PendingPayment so the customer can
+        // safely retry payment. Only a paid payment advances the order to Received; terminal order
+        // states (Cancelled/Delivered) are guarded separately by CanMarkPaid.
         return paymentStatus switch
         {
             PaymentStatus.Paid => OrderStatus.Received,
-            PaymentStatus.Failed => OrderStatus.Cancelled,
-            PaymentStatus.Cancelled => OrderStatus.Cancelled,
-            PaymentStatus.Refunded => OrderStatus.Cancelled,
             _ => null
         };
     }

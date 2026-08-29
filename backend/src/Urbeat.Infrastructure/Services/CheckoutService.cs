@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Urbeat.Infrastructure.Helpers;
 
 namespace Urbeat.Infrastructure.Services;
@@ -267,7 +268,10 @@ public sealed class CheckoutService : ICheckoutService
             VariationName = x.Pricing.VariationName,
             WeightGrams = x.Pricing.WeightGrams,
             ChoiceOptionName = x.Pricing.ChoiceOptionName,
-            AdditionalNames = x.Pricing.ExtraNames.Count > 0 ? string.Join(", ", x.Pricing.ExtraNames) : null
+            AdditionalNames = x.Pricing.ExtraNames.Count > 0 ? string.Join(", ", x.Pricing.ExtraNames) : null,
+            OptionPricesJson = x.Pricing.OptionPrices.Count > 0
+                ? JsonSerializer.Serialize(x.Pricing.OptionPrices)
+                : null
         }).ToList();
 
         await _dbContext.OrderItems.AddRangeAsync(items, cancellationToken);
@@ -306,11 +310,14 @@ public sealed class CheckoutService : ICheckoutService
             ? $"Novo pedido {order.Code} recebido para {fulfillmentLabel} com pagamento via {paymentLabel}."
             : $"Novo pedido {order.Code} para {fulfillmentLabel} com pagamento via {paymentLabel}. Aguardando confirmação.";
 
-        await _notificationService.NotifySellerNewOrderAsync(
-            store.OwnerUserId,
-            order.Id,
-            orderMessage,
-            cancellationToken);
+        if (order.PaymentMethod is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery)
+        {
+            await _notificationService.NotifySellerNewOrderAsync(
+                store.OwnerUserId,
+                order.Id,
+                orderMessage,
+                cancellationToken);
+        }
 
         if (order.PaymentMethod is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery)
         {

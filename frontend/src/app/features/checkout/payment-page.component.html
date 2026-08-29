@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="payment-content">
   <header class="page-head">
-    <button type="button" class="ghost-btn" (click)="onBack()" aria-label="Voltar">
+     <button type="button" class="circle-btn" (click)="onBack()" aria-label="Voltar">
       <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
     </button>
     <div class="page-title">
@@ -107,16 +107,11 @@
       </div>
     </div>
 
-    <button type="button" class="btn-primary" [disabled]="!selected() || processing()" (click)="continue()">
-      {{ processing() ? 'PROCESSANDO...' : 'CONFIRMAR FORMA DE PAGAMENTO' }}
-    </button>
-
-    <app-back-to-menu-link (navigateBack)="goToMenu()" />
-  </section>
+   </section>
 
   @if (showDetailsModal()) {
-    <div class="modal-overlay" (click)="closeDetails()">
-      <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="details-title" (click)="$event.stopPropagation()">
+     <div class="modal-overlay" (click)="closeDetails()">
+       <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="details-title" (click)="$event.stopPropagation()">
         <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fechar">
           <ion-icon name="close" aria-hidden="true"></ion-icon>
         </button>
@@ -139,3 +134,20 @@
     </div>
   }
 </ion-content>
+
+@if (deliveryCoverageModalOpen()) {
+  <app-delivery-coverage-modal
+    [storeAddress]="storeAddress()"
+    [customerAddress]="customerAddress()"
+    (close)="closeDeliveryCoverageModal()"
+    (backToMenu)="goToMenu()"
+  />
+}
+
+ <app-sticky-action-bar
+  icon="wallet-outline"
+  [label]="actionLabel()"
+  detail="Confirme a forma de pagamento"
+  [disabled]="!selected() || processing()"
+  (action)="continue()"
+/>

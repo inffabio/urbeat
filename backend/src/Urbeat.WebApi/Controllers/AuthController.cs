@@ -185,7 +185,7 @@ public sealed class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        SetRefreshCookie(response.Token!.RefreshToken, response.Token.RefreshTokenExpiresAtUtc);
+        SetRefreshCookie(response.RefreshToken!, response.RefreshTokenExpiresAtUtc!.Value);
 
         return Ok(response.Token);
     }
@@ -207,7 +207,24 @@ public sealed class AuthController : ControllerBase
         }
 
         SetRefreshCookie(response.RefreshToken, response.RefreshTokenExpiresAtUtc);
-        return Ok(response);
+        return Ok(new AuthTokenResponseDto
+        {
+            AccessToken = response.AccessToken,
+            ExpiresAtUtc = response.ExpiresAtUtc
+        });
+    }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        if (Request.Cookies.TryGetValue("urbeat.refresh_token", out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await _authService.LogoutAsync(refreshToken, cancellationToken);
+        }
+
+        ClearRefreshCookie();
+        return NoContent();
     }
 
     [HttpPost("email/confirm/{code}")]
@@ -316,6 +333,18 @@ public sealed class AuthController : ControllerBase
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = new DateTimeOffset(refreshTokenExpiresAtUtc),
+            Path = "/"
+        });
+    }
+
+    private void ClearRefreshCookie()
+    {
+        Response.Cookies.Append("urbeat.refresh_token", string.Empty, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UnixEpoch,
             Path = "/"
         });
     }

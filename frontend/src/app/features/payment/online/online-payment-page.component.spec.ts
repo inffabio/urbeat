@@ -3,16 +3,20 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { OnlinePaymentPageComponent } from './online-payment-page.component';
 import { CartService } from '../../../core/services/cart.service';
 import { CheckoutService } from '../../../core/services/checkout.service';
+import { CustomerOrderTrackingService } from '../../../core/services/customer-order-tracking.service';
 import { OrderService } from '../../../core/services/order.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { PaymentService } from '../../../core/services/payment.service';
+import { SignalRService } from '../../../core/services/signalr.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../../shared/enums/payment-method.enum';
+import { PaymentStatus } from '../../../shared/enums/payment-status.enum';
 import { OrderStatus } from '../../../shared/enums/order-status.enum';
 
 describe('OnlinePaymentPageComponent', () => {
@@ -53,9 +57,21 @@ describe('OnlinePaymentPageComponent', () => {
       imports: [OnlinePaymentPageComponent],
       providers: [
         CartService,
+        CustomerOrderTrackingService,
         { provide: CheckoutService, useValue: checkoutMock },
         { provide: PaymentService, useValue: paymentMock },
         { provide: OrderService, useValue: orderMock },
+        { provide: AuthService, useValue: { token: signal('customer-token'), token$: of('customer-token'), getToken: () => 'customer-token' } },
+        {
+          provide: SignalRService,
+          useValue: {
+            startCustomerHub: jest.fn().mockResolvedValue(undefined),
+            onCustomerEvent: jest.fn(),
+            removeCustomerListener: jest.fn(),
+            stopCustomerHub: jest.fn(),
+            onCustomerStateChange: jest.fn(() => jest.fn()),
+          },
+        },
         { provide: ToastService, useValue: { showError: jest.fn() } },
         { provide: Router, useValue: routerMock },
         { provide: Location, useValue: { back: jest.fn() } },
@@ -93,6 +109,156 @@ describe('OnlinePaymentPageComponent', () => {
     jest.advanceTimersByTime(4000);
 
     expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'pedido', 'o1']);
+    jest.useRealTimers();
+  });
+
+  it('should register the order for tracking when payment releases it', () => {
+    jest.useFakeTimers();
+    orderMock.getOrder.mockReturnValue(of({ id: 'o1', status: OrderStatus.Received }));
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    const trackOrderSpy = jest.spyOn(tracking, 'trackOrder');
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+
+    expect(trackOrderSpy).toHaveBeenCalledWith('o1');
+    jest.useRealTimers();
+  });
+
+  it('does not navigate after destroy when a pending payment resolves as paid', () => {
+    const pending: ((payment: any) => void)[] = [];
+    paymentMock.getPayment.mockImplementation(
+      () =>
+        new Observable((subscriber) => {
+          pending.push((p) => subscriber.next(p));
+        }),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+    fixture.destroy();
+
+    pending[0]({
+      paymentId: 'pay1',
+      orderId: 'o1',
+      status: PaymentStatus.Paid,
+    });
+
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate after destroy when a pending order poll resolves as received', () => {
+    jest.useFakeTimers();
+    const pending: ((order: any) => void)[] = [];
+    orderMock.getOrder.mockImplementation(
+      () =>
+        new Observable((subscriber) => {
+          pending.push((o) => subscriber.next(o));
+        }),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+    jest.advanceTimersByTime(4000);
+    fixture.destroy();
+
+    pending[0]({ status: OrderStatus.Received });
+
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  it('navigates only once when payment and order polling resolve together', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of({
+      paymentId: 'pay1',
+      orderId: 'o1',
+      status: PaymentStatus.Paid,
+    }));
+    orderMock.getOrder.mockReturnValue(of({ id: 'o1', status: OrderStatus.Received }));
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    const trackOrderSpy = jest.spyOn(tracking, 'trackOrder');
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+
+    expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+    expect(trackOrderSpy).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('unsubscribes the previous payment load when refreshing', () => {
+    let firstUnsubscribed = false;
+    paymentMock.getPayment.mockReturnValue(
+      new Observable(() => () => {
+        firstUnsubscribed = true;
+      }),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    paymentMock.getPayment.mockReturnValue(of({
+      paymentId: 'pay1',
+      orderId: 'o1',
+      status: PaymentStatus.Pending,
+    }));
+
+    fixture.componentInstance.refreshPayment();
+
+    expect(firstUnsubscribed).toBe(true);
+  });
+
+  it('does not overlap order polls while a poll is still in flight', () => {
+    jest.useFakeTimers();
+    let calls = 0;
+    const pending: ((order: any) => void)[] = [];
+    orderMock.getOrder.mockImplementation(
+      () =>
+        new Observable((subscriber) => {
+          calls++;
+          pending.push((order) => subscriber.next(order));
+        }),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    jest.advanceTimersByTime(4000);
+    jest.advanceTimersByTime(4000);
+
+    expect(calls).toBe(1);
+
+    pending[0]({ status: OrderStatus.PendingPayment });
+    jest.advanceTimersByTime(4000);
+
+    expect(calls).toBe(2);
+    jest.useRealTimers();
+  });
+
+  it('cancels order polling when navigating to tracking after payment is paid', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of({
+      paymentId: 'pay1',
+      orderId: 'o1',
+      status: PaymentStatus.Paid,
+    }));
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'pedido', 'o1']);
+    const callsAfterNavigation = orderMock.getOrder.mock.calls.length;
+
+    jest.advanceTimersByTime(4000);
+
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(callsAfterNavigation);
     jest.useRealTimers();
   });
 });

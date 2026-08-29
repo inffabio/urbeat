@@ -18,5 +18,7 @@ public sealed class Payment : BaseEntity
 
     public PaymentStatus Status { get; set; }
 
+    public int Attempt { get; set; } = 1;
+
     public string? RawPayload { get; set; }
 }

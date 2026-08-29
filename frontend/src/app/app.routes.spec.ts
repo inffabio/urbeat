@@ -1,4 +1,4 @@
-import { authChildGuard, authGuard } from './core/guards/auth.guard';
+import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
@@ -105,6 +105,14 @@ describe('app routes', () => {
     expect(appRoute?.children?.find((child) => child.path === 'configuracoes/bairros')?.loadComponent?.toString()).toContain('seller-neighborhoods-page.component');
   });
 
+  it('routes storefront account registration to the existing customer page', () => {
+    const storeRoute = routes.find((route) => route.path === ':storePath');
+    const accountRoute = storeRoute?.children?.find((child) => child.path === 'conta/cadastro');
+
+    expect(accountRoute?.loadComponent?.toString()).toContain('customer-page.component');
+    expect(accountRoute?.canActivate).toEqual([customerGuard]);
+  });
+
   it('routes /app/configuracoes/bio to the dedicated bio page', () => {
     const appRoute = routes.find((route) => route.path === 'app');
     const bioRoute = appRoute?.children?.find((child) => child.path === 'configuracoes/bio');
@@ -117,5 +125,18 @@ describe('app routes', () => {
     const ordersRoute = appRoute?.children?.find((child) => child.path === 'pedidos');
 
     expect(ordersRoute?.loadComponent?.toString()).toContain('seller-orders-page.component');
+  });
+
+  it('routes /:storePath/pedidos to the customer orders list before the dynamic order route', () => {
+    const storeRoute = routes.find((route) => route.path === ':storePath');
+    const children = storeRoute?.children ?? [];
+
+    const pedidosIndex = children.findIndex((child) => child.path === 'pedidos');
+    const pedidoIndex = children.findIndex((child) => child.path === 'pedido/:orderId');
+
+    expect(pedidosIndex).toBeGreaterThanOrEqual(0);
+    expect(pedidoIndex).toBeGreaterThanOrEqual(0);
+    expect(pedidosIndex).toBeLessThan(pedidoIndex);
+    expect(children[pedidosIndex]?.loadComponent?.toString()).toContain('customer-orders-page.component');
   });
 });

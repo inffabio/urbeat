@@ -1,0 +1,71 @@
+<ion-content [fullscreen]="true">
+  <header class="orders-header safe-top">
+    <h1>Meus pedidos</h1>
+    @if (activeOrders().length > 0) {
+      <p>Acompanhe seus pedidos em andamento em tempo real.</p>
+    }
+  </header>
+
+  <section class="screen-padding">
+    @if (activeOrders().length > 0) {
+      <ul class="orders-list" role="list" aria-label="Pedidos ativos">
+        @for (order of activeOrders(); track order.id) {
+          <li role="listitem">
+            <button type="button" class="order-card" (click)="goToOrder(order.id)">
+              <span class="order-card-top">
+                <strong class="order-code">Pedido #{{ order.code }}</strong>
+                <span class="order-status">{{ statusLabel(order.status) }}</span>
+              </span>
+              <span class="order-meta">
+                <span>{{ itemCount(order) }} {{ itemCount(order) === 1 ? 'item' : 'itens' }}</span>
+                <span aria-hidden="true">·</span>
+                <span class="order-date">{{ formatDate(order.createdAtUtc) }}</span>
+              </span>
+              <span class="order-card-bottom">
+                <span class="order-total-label">Total</span>
+                <strong class="order-total">{{ order.total | brl }}</strong>
+                <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (finishedOrders().length > 0) {
+      <h2 class="orders-section-title">Histórico recente</h2>
+      <ul class="orders-list" role="list" aria-label="Histórico de pedidos">
+        @for (order of finishedOrders(); track order.id) {
+          <li role="listitem">
+            <button type="button" class="order-card" (click)="goToOrder(order.id)">
+              <span class="order-card-top">
+                <strong class="order-code">Pedido #{{ order.code }}</strong>
+                <span class="order-status">{{ statusLabel(order.status) }}</span>
+              </span>
+              <span class="order-meta">
+                <span>{{ itemCount(order) }} {{ itemCount(order) === 1 ? 'item' : 'itens' }}</span>
+                <span aria-hidden="true">·</span>
+                <span class="order-date">{{ formatDate(order.createdAtUtc) }}</span>
+              </span>
+              <span class="order-card-bottom">
+                <span class="order-total-label">Total</span>
+                <strong class="order-total">{{ order.total | brl }}</strong>
+                <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (activeOrders().length === 0 && finishedOrders().length === 0) {
+      <app-empty-state
+        icon="receipt-outline"
+        title="Nenhum pedido ativo"
+        description="Quando você fizer um pedido, ele aparecerá aqui para você acompanhar."
+        primaryLabel="Ver cardápio"
+        [showPrimaryAction]="true"
+        (primaryAction)="goToMenu()" />
+    }
+  </section>
+</ion-content>

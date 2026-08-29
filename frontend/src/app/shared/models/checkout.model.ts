@@ -86,8 +86,6 @@ export interface ConfirmCustomerVerificationResponse {
   error?: string;
   accessToken?: string;
   expiresAtUtc?: string;
-  refreshToken?: string;
-  refreshTokenExpiresAtUtc?: string;
   customerAddressId?: string;
 }
 

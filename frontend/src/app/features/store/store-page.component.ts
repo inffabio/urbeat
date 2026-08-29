@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, QueryList, ViewChild, ViewChildren, ElementRef, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
-import { forkJoin, switchMap } from 'rxjs';
+import { distinctUntilChanged, forkJoin, map, Subscription } from 'rxjs';
 
 import { StoreService } from '../../core/services/store.service';
 import { CatalogService } from '../../core/services/catalog.service';
@@ -16,8 +16,6 @@ import { Product, ProductCategory } from '../../shared/models/product.model';
 import { CartItem } from '../../shared/models/cart-item.model';
 
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-import { FloatingCartComponent } from '../../shared/components/floating-cart/floating-cart.component';
-import { FooterNavComponent, FooterNavItem } from '../../shared/components/footer-nav/footer-nav.component';
 import { StoreMetricsComponent } from '../../shared/components/store-metrics/store-metrics.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CategoryTabsComponent, CategoryTab } from '../../shared/components/category-tabs/category-tabs.component';
@@ -27,7 +25,7 @@ import { CategoryTabsComponent, CategoryTab } from '../../shared/components/cate
   standalone: true,
   imports: [
     CommonModule, IonIcon,
-    ProductCardComponent, FloatingCartComponent, FooterNavComponent,
+    ProductCardComponent,
     StoreMetricsComponent, EmptyStateComponent, CategoryTabsComponent,
   ],
   templateUrl: './store-page.component.html',
@@ -49,12 +47,23 @@ export class StorePageComponent implements OnInit, OnDestroy {
   readonly activeCategoryId = signal<string | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal(false);
+  readonly catalogError = signal(false);
+
+  @ViewChild('scrollContent') private scrollContent?: ElementRef<HTMLElement>;
+  @ViewChildren('categorySection', { read: ElementRef }) private categorySections!: QueryList<ElementRef<HTMLElement>>;
 
   readonly TODOS_ID = 'todos';
-  private isScrollingToCategory = false;
-  private observer: IntersectionObserver | null = null;
+  private readonly categoryScrollGap = 8;
+  onStoreScroll(): void {
+    this.updateActiveCategoryFromScroll();
+  }
   private statusRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private statusRefreshSubscription?: Subscription;
+  private statusGeneration = 0;
   private storePath = '';
+  private routeSubscription?: Subscription;
+  private loadSubscription?: Subscription;
+  private catalogSubscription?: Subscription;
 
   private readonly storeCategories = computed(() => {
     const storeId = this.store()?.id;
@@ -135,13 +144,6 @@ export class StorePageComponent implements OnInit, OnDestroy {
     return fullName ? fullName.split(/\s+/)[0] : '';
   });
 
-  readonly footerItems = computed<FooterNavItem[]>(() => [
-    { id: 'cardapio', icon: 'storefront-outline', label: 'Cardapio', active: true },
-    { id: 'pedidos', icon: 'receipt-outline', label: 'Pedidos', disabled: true },
-    { id: 'carrinho', icon: 'bag-check-outline', label: 'Carrinho' },
-    { id: 'conta', icon: 'person-circle-outline', label: 'Conta', disabled: true },
-  ]);
-
   private readonly cartQuantityMap = computed(() => {
     const map = new Map<string, number>();
     for (const item of this.cart.items()) {
@@ -152,39 +154,51 @@ export class StorePageComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    const storePath = this.route.snapshot.paramMap.get('storePath');
-    if (!storePath) {
-      this.loadError.set(true);
-      this.loading.set(false);
-      return;
-    }
-    this.storePath = storePath;
-
     if (!this.auth.customerProfile()) {
       this.auth.restoreCustomerSession().subscribe({ error: () => undefined });
     }
 
-    this.storeService.getStoreByPath(storePath).pipe(
-      switchMap((store) => {
+    this.routeSubscription = this.route.paramMap
+      .pipe(
+        map((params) => params.get('storePath')),
+        distinctUntilChanged(),
+      )
+      .subscribe((storePath) => {
+        this.storePath = storePath ?? '';
+        this.loadStore();
+      });
+  }
+
+  private loadStore(): void {
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = undefined;
+    this.catalogSubscription?.unsubscribe();
+    this.catalogSubscription = undefined;
+    this.clearStatusRefreshTimer();
+    this.statusRefreshSubscription?.unsubscribe();
+    this.statusRefreshSubscription = undefined;
+    this.statusGeneration++;
+
+    this.store.set(null);
+    this.categories.set([]);
+    this.products.set([]);
+    this.activeCategoryId.set(this.TODOS_ID);
+    this.loadError.set(false);
+    this.catalogError.set(false);
+
+    if (!this.storePath) {
+      this.loadError.set(true);
+      this.loading.set(false);
+      return;
+    }
+
+    this.loading.set(true);
+    this.loadSubscription = this.storeService.getStoreByPath(this.storePath).subscribe({
+      next: (store) => {
         this.store.set(store);
         this.scheduleStatusRefresh(store);
         this.cart.setStore(store.id, store.name, store.logoUrl);
-        return forkJoin({
-          cats: this.catalogService.getCategories(store.id),
-          prods: this.catalogService.getProducts(store.id),
-        });
-      }),
-    ).subscribe({
-      next: ({ cats, prods }) => {
-        this.categories.set(cats);
-        this.products.set(prods);
-        const saved = this.filterState.restore();
-        const tabIds = new Set(this.categoryTabs().map((tab) => tab.id));
-        this.activeCategoryId.set(saved.activeCategoryId && tabIds.has(saved.activeCategoryId)
-          ? saved.activeCategoryId
-          : (this.categoryTabs()[0]?.id ?? this.TODOS_ID));
-        this.loading.set(false);
-        setTimeout(() => this.setupScrollObserver(), 300);
+        this.loadCatalog(store.id);
       },
       error: () => {
         this.loadError.set(true);
@@ -193,55 +207,110 @@ export class StorePageComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadCatalog(storeId: string): void {
+    this.catalogSubscription?.unsubscribe();
+    this.catalogError.set(false);
+
+    this.catalogSubscription = forkJoin({
+      cats: this.catalogService.getCategories(storeId),
+      prods: this.catalogService.getProducts(storeId),
+    }).subscribe({
+      next: ({ cats, prods }) => {
+        this.categories.set(cats);
+        this.products.set(prods);
+        this.restoreActiveCategory();
+        this.loading.set(false);
+      },
+      error: () => {
+        this.catalogError.set(true);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private restoreActiveCategory(): void {
+    const saved = this.filterState.restore();
+    const tabIds = new Set(this.categoryTabs().map((tab) => tab.id));
+    this.activeCategoryId.set(saved.activeCategoryId && tabIds.has(saved.activeCategoryId)
+      ? saved.activeCategoryId
+      : (this.categoryTabs()[0]?.id ?? this.TODOS_ID));
+  }
+
   ngOnDestroy(): void {
     this.filterState.save({
       activeCategoryId: this.activeCategoryId(),
       searchTerm: '',
     });
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
     this.clearStatusRefreshTimer();
+    this.statusRefreshSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
+    this.loadSubscription?.unsubscribe();
+    this.catalogSubscription?.unsubscribe();
   }
 
-  private setupScrollObserver(): void {
-    if (this.observer) this.observer.disconnect();
-    const options: IntersectionObserverInit = { rootMargin: '-100px 0px -70% 0px', threshold: 0 };
-    this.observer = new IntersectionObserver((entries) => {
-      if (this.isScrollingToCategory) return;
-      for (const entry of entries) {
-        if (entry.isIntersecting && entry.target.id) {
-          const catId = entry.target.id.replace('cat-', '');
-          this.activeCategoryId.set(catId === 'top' ? this.TODOS_ID : catId);
-        }
-      }
-    }, options);
-    const topSentinel = document.getElementById('cat-top');
-    if (topSentinel) this.observer.observe(topSentinel);
+  private updateActiveCategoryFromScroll(): void {
+    const scrollContainer = this.getScrollContainer();
+    const containerTop = scrollContainer.getBoundingClientRect().top;
+    const activationLine = containerTop + this.getCategoryScrollOffset();
+    let activeId = this.TODOS_ID;
+
     for (const sectionData of this.productSections()) {
       const section = document.getElementById(`cat-${sectionData.id}`);
-      if (section) this.observer.observe(section);
+      const title = section?.querySelector<HTMLElement>('h2') ?? section;
+      if (!title || title.getBoundingClientRect().top > activationLine) break;
+      activeId = sectionData.id;
     }
+
+    this.activeCategoryId.set(activeId);
   }
 
   scrollToCategory(categoryId: string): void {
     this.activeCategoryId.set(categoryId);
-    this.isScrollingToCategory = true;
-    const targetId = categoryId === this.TODOS_ID ? 'cat-top' : `cat-${categoryId}`;
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => { this.isScrollingToCategory = false; }, 800);
-    } else {
-      this.isScrollingToCategory = false;
-    }
+    const el = categoryId === this.TODOS_ID
+      ? document.getElementById('cat-top')
+      : this.findCategorySection(categoryId);
+    if (!el) return;
+
+    requestAnimationFrame(() => {
+      const scrollContainer = this.getScrollContainer();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const top = Math.max(
+        0,
+        el.getBoundingClientRect().top - containerRect.top + scrollContainer.scrollTop - this.getCategoryScrollOffset(),
+      );
+      scrollContainer.scrollTop = top;
+      scrollContainer.scrollTo({ top, behavior: 'smooth' });
+    });
+  }
+
+  private getCategoryScrollOffset(): number {
+    const categoryBar = document.getElementById('store-categories');
+    return (categoryBar?.getBoundingClientRect().height ?? 0) + this.categoryScrollGap;
+  }
+
+  private getScrollContainer(): HTMLElement {
+    return this.scrollContent?.nativeElement ?? document.getElementById('store-content') ?? document.documentElement;
+  }
+
+  private findCategorySection(categoryId: string): HTMLElement | null {
+    const directSection = this.categorySections?.toArray()
+      .find((section) => section.nativeElement.id === `cat-${categoryId}`)?.nativeElement;
+    return directSection ?? document.getElementById(`cat-${categoryId}`);
   }
 
   retryLoad(): void {
-    this.loadError.set(false);
+    this.clearStatusRefreshTimer();
+    this.loadStore();
+  }
+
+  retryCatalog(): void {
+    const storeId = this.store()?.id;
+    if (!storeId) {
+      this.retryLoad();
+      return;
+    }
     this.loading.set(true);
-    this.ngOnInit();
+    this.loadCatalog(storeId);
   }
 
   private scheduleStatusRefresh(store: StorePublicDetails): void {
@@ -251,20 +320,26 @@ export class StorePageComponent implements OnInit, OnDestroy {
     const changeAt = new Date(store.nextStatusChangeAt).getTime();
     if (Number.isNaN(changeAt)) return;
 
-    const delay = Math.min(Math.max(changeAt - Date.now() + 1000, 1000), 2_147_483_647);
+    const delay = Math.min(Math.max(changeAt - Date.now() + 1000, 1000), 30_000);
     this.statusRefreshTimer = setTimeout(() => this.refreshStoreStatus(), delay);
   }
 
   private refreshStoreStatus(): void {
     if (!this.storePath) return;
 
-    this.storeService.getStoreByPath(this.storePath).subscribe({
+    const generation = this.statusGeneration;
+    const storePath = this.storePath;
+
+    this.statusRefreshSubscription?.unsubscribe();
+    this.statusRefreshSubscription = this.storeService.getStoreByPath(storePath).subscribe({
       next: (store) => {
+        if (generation !== this.statusGeneration || storePath !== this.storePath) return;
         this.store.set(store);
         this.cart.setStore(store.id, store.name, store.logoUrl);
         this.scheduleStatusRefresh(store);
       },
       error: () => {
+        if (generation !== this.statusGeneration || storePath !== this.storePath) return;
         this.statusRefreshTimer = setTimeout(() => this.refreshStoreStatus(), 30_000);
       },
     });
@@ -304,11 +379,6 @@ export class StorePageComponent implements OnInit, OnDestroy {
     this.activeCategoryId.set(this.TODOS_ID);
   }
 
-  onFooterSelect(id: string): void {
-    if (id === 'carrinho') this.openCart();
-    if (id === 'cardapio') this.scrollToCategory(this.TODOS_ID);
-  }
-
   goToProduct(product: Product): void {
     const store = this.store();
     if (!store?.isOpenNow) {
@@ -318,11 +388,6 @@ export class StorePageComponent implements OnInit, OnDestroy {
 
     this.filterState.save({ activeCategoryId: this.activeCategoryId(), searchTerm: '' });
     this.router.navigate(['/', store.slug, 'produto', product.id], { state: { product } });
-  }
-
-  openCart(): void {
-    this.filterState.save({ activeCategoryId: this.activeCategoryId(), searchTerm: '' });
-    this.router.navigate(['/', this.store()!.slug, 'carrinho']);
   }
 
 }

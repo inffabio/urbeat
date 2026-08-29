@@ -19,4 +19,6 @@ public sealed class OrderItemResponseDto
     public string? ChoiceOptionName { get; init; }
 
     public string? AdditionalNames { get; init; }
+
+    public IReadOnlyCollection<OrderItemOptionPriceDto> OptionPrices { get; init; } = [];
 }

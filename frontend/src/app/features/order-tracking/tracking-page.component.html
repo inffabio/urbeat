@@ -1,12 +1,36 @@
 <ion-content [fullscreen]="true">
-  @if (order(); as o) {
-    <header class="success-header safe-top">
-      <div class="success-check" aria-hidden="true">
-        <ion-icon name="checkmark-circle"></ion-icon>
+  @if (invalidOrder() || unavailable()) {
+    <section class="invalid-order screen-padding safe-top">
+      <div class="card invalid-card">
+        <ion-icon name="alert-circle-outline" class="invalid-icon" aria-hidden="true"></ion-icon>
+        <h1>Pedido indisponível</h1>
+        <p>{{ unavailable() ? 'Não foi possível encontrar este pedido. Ele pode ter sido removido.' : 'Este pedido pertence a outra loja ou não está mais disponível.' }}</p>
+        <button type="button" class="primary-btn" (click)="goToMenu()">
+          <ion-icon name="storefront-outline" aria-hidden="true"></ion-icon>
+          Voltar ao cardápio
+        </button>
       </div>
-      <h1>Pedido enviado!</h1>
-      <p>Seu pedido foi recebido com sucesso<br />e já está sendo preparado.</p>
-    </header>
+    </section>
+  }
+
+  @if (order(); as o) {
+    @if (cancelled()) {
+      <header class="cancelled-header safe-top">
+        <div class="cancelled-check" aria-hidden="true">
+          <ion-icon name="close-circle"></ion-icon>
+        </div>
+        <h1>Pedido cancelado</h1>
+        <p>Este pedido foi cancelado<br />e não será mais preparado.</p>
+      </header>
+    } @else {
+      <header class="success-header safe-top">
+        <div class="success-check" aria-hidden="true">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </div>
+        <h1>Pedido enviado!</h1>
+        <p>Seu pedido foi recebido com sucesso<br />e já está sendo preparado.</p>
+      </header>
+    }
 
     <section class="screen-padding">
       <div class="card order-summary-card">
@@ -23,8 +47,8 @@
         <div class="divider"></div>
         <div class="between eta-row">
           <span class="row eta-label">
-            <ion-icon name="time-outline" class="inline-icon" aria-hidden="true"></ion-icon>
-            Previsão de entrega
+            <ion-icon [name]="etaIcon()" class="inline-icon" aria-hidden="true"></ion-icon>
+            {{ etaLabel() }}
           </span>
           <strong class="brand">{{ etaText() }}</strong>
         </div>
@@ -32,28 +56,93 @@
 
       <div class="card tracking-card">
         <h2>Acompanhe seu pedido</h2>
-        <div class="track-line" role="list" aria-label="Status do pedido">
-          @for (step of steps(); track step.status) {
-            <div
-              class="track-step"
-              role="listitem"
-              [class.active]="step.state === 'current'"
-              [class.done]="step.state === 'past'"
-              [attr.aria-current]="step.state === 'current' ? 'step' : null"
-            >
-              <div class="dot-step"></div>
-              <span class="step-label">{{ step.label }}</span>
-              @if (step.time) {
-                <span class="muted step-time">{{ step.time }}</span>
+        <div class="status-bar-scroll" role="region" aria-label="Acompanhamento do pedido" tabindex="0">
+          <ol class="status-bar" role="list" aria-label="Status do pedido">
+            @for (step of steps(); track step.status) {
+              <li
+                class="status-step"
+                role="listitem"
+                [class.active]="step.state === 'current'"
+                [class.done]="step.state === 'past'"
+                [attr.aria-current]="step.state === 'current' ? 'step' : null"
+              >
+                <span class="status-dot" aria-hidden="true">
+                  @if (step.state === 'past') {
+                    <ion-icon name="checkmark"></ion-icon>
+                  }
+                </span>
+                <span class="status-label">{{ step.label }}</span>
+                @if (step.time) {
+                  <span class="status-time">{{ step.time }}</span>
+                }
+              </li>
+            }
+          </ol>
+        </div>
+        @if (cancelled()) {
+          <div class="info-box cancelled-box" role="status">
+            <span class="notice-icon" aria-hidden="true">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </span>
+            <span>Este pedido foi cancelado. Se precisar de ajuda, fale com a loja.</span>
+          </div>
+        } @else {
+          <div class="info-box">
+            <span class="notice-icon" aria-hidden="true">
+              <ion-icon name="information-circle-outline"></ion-icon>
+            </span>
+            <span>Vamos te avisar por aqui quando seu pedido mudar de status.</span>
+          </div>
+        }
+      </div>
+
+      <div class="card items-card">
+        <h2>Itens do pedido</h2>
+        <ul class="order-items" role="list">
+          @for (item of o.items; track $index) {
+            <li class="order-item" role="listitem">
+              <div class="item-row">
+                <span class="item-qty" aria-hidden="true">{{ item.quantity }}x</span>
+                <div class="item-main">
+                  <span class="item-name">{{ item.productName }}</span>
+                  @if (item.variationName) {
+                    <span class="item-meta">{{ item.variationName }}</span>
+                  }
+                  @if (item.weightGrams) {
+                    <span class="item-meta">{{ item.weightGrams }}g</span>
+                  }
+                </div>
+                <span class="item-price">{{ item.totalPrice | brl }}</span>
+              </div>
+              @for (option of itemOptionEntries(item); track $index) {
+                <div class="item-option">
+                  <span class="option-name">{{ option.name }}</span>
+                  @if (option.price !== undefined) {
+                    <span class="option-price">{{ option.price | brl }}</span>
+                  }
+                </div>
               }
+            </li>
+          }
+        </ul>
+
+        <div class="divider"></div>
+
+        <div class="totals">
+          <div class="total-row subtotal">
+            <span>Subtotal</span>
+            <span>{{ o.subtotal | brl }}</span>
+          </div>
+          @if (!isPickup()) {
+            <div class="total-row freight">
+              <span>Frete</span>
+              <span>{{ o.deliveryFee | brl }}</span>
             </div>
           }
-        </div>
-        <div class="info-box">
-          <span class="notice-icon" aria-hidden="true">
-            <ion-icon name="information-circle-outline"></ion-icon>
-          </span>
-          <span>Vamos te avisar por aqui quando seu pedido estiver a caminho.</span>
+          <div class="total-row grand">
+            <span>Total</span>
+            <strong>{{ o.total | brl }}</strong>
+          </div>
         </div>
       </div>
 

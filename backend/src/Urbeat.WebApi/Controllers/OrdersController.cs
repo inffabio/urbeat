@@ -336,6 +336,7 @@ public sealed class OrdersController : ControllerBase
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CompleteForSellerBoard([FromRoute] Guid orderId, CancellationToken cancellationToken)
     {
         var sellerUserId = GetCurrentUserId();
@@ -358,6 +359,11 @@ public sealed class OrdersController : ControllerBase
         if (result.Forbidden)
         {
             return Forbid();
+        }
+
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = "Order can only be completed once delivered." });
         }
 
         return Ok(result.Order);

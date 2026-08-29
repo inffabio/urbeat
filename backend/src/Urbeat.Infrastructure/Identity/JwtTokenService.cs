@@ -18,7 +18,7 @@ public sealed class JwtTokenService : IJwtTokenService
         _jwtOptions = jwtOptions.Value;
     }
 
-    public AuthTokenResponseDto GenerateToken(string email, Guid userId, IReadOnlyCollection<string> roles)
+    public AuthTokenPairDto GenerateToken(string email, Guid userId, IReadOnlyCollection<string> roles)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
@@ -40,7 +40,7 @@ public sealed class JwtTokenService : IJwtTokenService
             expires: expiresAtUtc,
             signingCredentials: creds);
 
-        return new AuthTokenResponseDto
+        return new AuthTokenPairDto
         {
             AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
             ExpiresAtUtc = expiresAtUtc,

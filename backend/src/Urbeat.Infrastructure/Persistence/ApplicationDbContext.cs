@@ -90,8 +90,8 @@ public sealed class ApplicationDbContext
         builder.Entity<RefreshToken>(entity =>
         {
             entity.HasKey(x => x.Id);
-            entity.HasIndex(x => x.Token).IsUnique();
-            entity.Property(x => x.Token).HasMaxLength(200);
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            entity.Property(x => x.TokenHash).HasMaxLength(64);
         });
 
         builder.Entity<AuditLog>(entity =>
@@ -111,9 +111,6 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.PhoneNumber).HasMaxLength(20);
             entity.Property(x => x.Document).HasMaxLength(14);
             entity.Property(x => x.PixKey).HasMaxLength(50);
-            entity.Property(x => x.InstagramUrl).HasMaxLength(500);
-            entity.Property(x => x.FacebookUrl).HasMaxLength(500);
-            entity.Property(x => x.TikTokUrl).HasMaxLength(500);
             entity.Property(x => x.WebsiteUrl).HasMaxLength(500);
             entity.Property(x => x.Description).HasMaxLength(300);
             
@@ -185,8 +182,6 @@ public sealed class ApplicationDbContext
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Neighborhood).HasMaxLength(80);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
-            entity.Property(x => x.MinimumOrderValue).HasPrecision(10, 2);
-            entity.Property(x => x.FreeShippingThreshold).HasPrecision(10, 2);
             entity.Property(x => x.Notes).HasMaxLength(100);
             entity.HasOne<Store>()
                 .WithMany(x => x.DeliveryAreas)
@@ -272,6 +267,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Subtotal).HasPrecision(10, 2);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.Total).HasPrecision(10, 2);
+            entity.Property(x => x.SellerCompletedAtUtc).IsConcurrencyToken();
         });
 
         builder.Entity<OrderReview>(entity =>
@@ -290,6 +286,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.ProductName).HasMaxLength(120);
             entity.Property(x => x.UnitPrice).HasPrecision(10, 2);
             entity.Property(x => x.TotalPrice).HasPrecision(10, 2);
+            entity.Property(x => x.OptionPricesJson).HasColumnType("text");
             entity.HasOne<Order>()
                 .WithMany()
                 .HasForeignKey(x => x.OrderId)
@@ -315,6 +312,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.GatewayCheckoutUrl).HasMaxLength(500);
             entity.Property(x => x.ExternalReference).HasMaxLength(100);
             entity.Property(x => x.Amount).HasPrecision(10, 2);
+            entity.Property(x => x.Attempt).HasDefaultValue(1);
             entity.Property(x => x.RawPayload).HasColumnType("text");
             entity.HasOne<Order>()
                 .WithOne()
@@ -383,6 +381,8 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.GatewayStatus).HasMaxLength(50);
             entity.Property(x => x.Amount).HasPrecision(10, 2);
             entity.Property(x => x.RawPayload).HasColumnType("text");
+            entity.Property(x => x.BillingPeriodStartUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.BillingPeriodEndUtc).HasColumnType("timestamp with time zone");
         });
 
         builder.Entity<SubscriptionWebhookEvent>(entity =>
@@ -568,7 +568,6 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Boundary).HasMaxLength(50);
             entity.Property(x => x.AdminLevel).HasMaxLength(10);
             entity.Property(x => x.Source).HasMaxLength(50);
-            entity.HasIndex(x => new { x.Neighborhood, x.City }).IsUnique();
             entity.HasIndex(x => new { x.CityId, x.NormalizedName }).IsUnique().HasFilter("\"CityId\" IS NOT NULL");
             entity.HasOne(x => x.CityEntity)
                 .WithMany()

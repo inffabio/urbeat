@@ -65,11 +65,16 @@ public sealed class ConfirmCustomerVerificationResponseDto
 
     public DateTime? ExpiresAtUtc { get; init; }
 
+    public Guid? CustomerAddressId { get; init; }
+}
+
+public sealed class CustomerSessionResultDto
+{
+    public ConfirmCustomerVerificationResponseDto Response { get; init; } = new();
+
     public string? RefreshToken { get; init; }
 
     public DateTime? RefreshTokenExpiresAtUtc { get; init; }
-
-    public Guid? CustomerAddressId { get; init; }
 }
 
 public sealed class ResendCustomerVerificationRequestDto

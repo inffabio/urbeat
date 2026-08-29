@@ -1,33 +1,141 @@
-import { ComponentFixture, TestBed, NO_ERRORS_SCHEMA } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FooterNavComponent, FooterNavItem } from './footer-nav.component';
 
 describe('FooterNavComponent', () => {
   let fixture: ComponentFixture<FooterNavComponent>;
 
-  const items: FooterNavItem[] = [
-    { id: 'menu', icon: 'storefront-outline', label: 'Cardapio', active: true },
-    { id: 'orders', icon: 'receipt-outline', label: 'Pedidos', disabled: true },
-    { id: 'cart', icon: 'bag-check-outline', label: 'Carrinho' },
-    { id: 'account', icon: 'person-circle-outline', label: 'Conta', disabled: true },
-  ];
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FooterNavComponent],
-      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FooterNavComponent);
-    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho', badge: 2 } as FooterNavItem,
+    ]);
     fixture.detectChanges();
   });
 
-  it('renders inside a bottom safe zone so the full menu can scroll above browser chrome', () => {
-    const safeZone: HTMLElement | null = fixture.nativeElement.querySelector('.footer-nav-safe-zone');
-    const footer: HTMLElement | null = safeZone?.querySelector('footer.footer-nav') ?? null;
+  it('shows the current cart quantity as a badge', () => {
+    expect(fixture.nativeElement.querySelector('.footer-nav-badge')?.textContent.trim()).toBe('2');
+    expect(fixture.nativeElement.querySelector('ion-icon')?.classList).toContain('cart-has-items');
+    expect(fixture.nativeElement.querySelector('.footer-nav-badge')?.classList).toContain('footer-nav-badge-over-icon');
+  });
 
-    expect(safeZone).not.toBeNull();
-    expect(footer).not.toBeNull();
+  it('keeps a two-digit quantity inside a wide badge', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho', badge: 10 } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.footer-nav-badge') as HTMLElement;
+    expect(badge.textContent?.trim()).toBe('10');
+    expect(badge.classList).toContain('footer-nav-badge-wide');
+  });
+
+  it('keeps the cart before unavailable orders and account items', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'menu', icon: 'storefront-outline', label: 'Cardapio', active: true },
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho', badge: 1 },
+      { id: 'orders', icon: 'receipt-outline', label: 'Pedidos', disabled: true },
+      { id: 'account', icon: 'person-outline', label: 'Conta', disabled: true },
+    ] as FooterNavItem[]);
+    fixture.detectChanges();
+
+    const items = Array.from(fixture.nativeElement.querySelectorAll('.footer-nav button')) as HTMLElement[];
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['Cardapio', '1Carrinho', 'Pedidos', 'Conta']);
+    expect(items[2].classList).toContain('disabled');
+    expect(items[3].classList).toContain('disabled');
+  });
+
+  it('renders actionable items as native buttons so Enter and Space activate them', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho', badge: 1 } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.footer-nav button') as HTMLButtonElement;
+    expect(button.tagName).toBe('BUTTON');
+    expect(button.getAttribute('type')).toBe('button');
+    expect(button.getAttribute('role')).toBeNull();
+  });
+
+  it('emits select when an item button is clicked', () => {
+    const select = jest.spyOn(fixture.componentInstance.select, 'emit');
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho' } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.footer-nav button') as HTMLButtonElement;
+    button.click();
+
+    expect(select).toHaveBeenCalledWith('cart');
+  });
+
+  it('does not expose navigation while the sheet is open', () => {
+    const select = jest.spyOn(fixture.componentInstance.select, 'emit');
+    fixture.componentRef.setInput('inert', true);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.footer-nav button') as HTMLElement;
+    expect(button.getAttribute('tabindex')).toBe('-1');
+    expect(button.getAttribute('aria-hidden')).toBe('true');
+    button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    button.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+
+    expect(select).not.toHaveBeenCalled();
+  });
+
+  it('exposes the account menu control relationship and expanded state', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'conta', icon: 'person-circle-outline', label: 'Conta', ariaExpanded: true, ariaControls: 'account-menu' } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('.footer-nav button') as HTMLElement;
+    expect(link.getAttribute('aria-expanded')).toBe('true');
+    expect(link.getAttribute('aria-controls')).toBe('account-menu');
+    expect(link.getAttribute('aria-haspopup')).toBe('menu');
+    expect(link.getAttribute('data-footer-id')).toBe('conta');
+  });
+
+  it('omits menu aria attributes when the item is not a menu trigger', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho' } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('.footer-nav button') as HTMLElement;
+    expect(link.hasAttribute('aria-expanded')).toBe(false);
+    expect(link.hasAttribute('aria-controls')).toBe(false);
+    expect(link.hasAttribute('aria-haspopup')).toBe(false);
+  });
+
+  it('renders an enabled Pedidos item in red with its active order count', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'pedidos', icon: 'receipt-outline', label: 'Pedidos', badge: 2, badgeLabel: 'pedidos' } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.footer-nav button') as HTMLElement;
+    const icon = button.querySelector('ion-icon');
+    const badge = button.querySelector('.footer-nav-badge') as HTMLElement;
+
+    expect(button.classList).not.toContain('disabled');
+    expect(icon?.classList).toContain('cart-has-items');
+    expect(badge.textContent?.trim()).toBe('2');
+    expect(badge.getAttribute('aria-label')).toBe('2 pedidos');
+  });
+
+  it('defaults the badge label to itens for cart items', () => {
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho', badge: 2 } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.footer-nav-badge') as HTMLElement;
+    expect(badge.getAttribute('aria-label')).toBe('2 itens');
   });
 });

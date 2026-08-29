@@ -2,6 +2,11 @@ import { OrderStatus } from '../enums/order-status.enum';
 import { FulfillmentType } from '../enums/fulfillment-type.enum';
 import { PaymentMethod } from '../enums/payment-method.enum';
 
+export interface OrderItemOptionPrice {
+  name: string;
+  price: number;
+}
+
 export interface OrderItem {
   productName: string;
   quantity: number;
@@ -12,6 +17,7 @@ export interface OrderItem {
   weightGrams?: number;
   choiceOptionName?: string;
   additionalNames?: string;
+  optionPrices?: OrderItemOptionPrice[];
 }
 
 export interface OrderHistoryEntry {
@@ -63,6 +69,8 @@ export interface OrderSummary {
   addressSummary?: string;
   itemsSummary?: string;
   status: OrderStatus;
+  subtotal?: number;
+  deliveryFee?: number;
   total: number;
   createdAtUtc: string;
   deliveryConfirmedAtUtc?: string;

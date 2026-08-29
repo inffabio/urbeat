@@ -1,14 +1,18 @@
-﻿using Urbeat.Application.DTOs;
+﻿using System.Collections.Concurrent;
+using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Payments;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
 public sealed class PaymentService : IPaymentService
 {
+    private static readonly ConcurrentDictionary<Guid, OrderStartLock> OrderStartLocks = new();
+
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IOrderPaymentStrategyFactory _strategyFactory;
@@ -28,6 +32,129 @@ public sealed class PaymentService : IPaymentService
         CreateOrderPaymentRequestDto request,
         string? ipAddress,
         CancellationToken cancellationToken = default)
+    {
+        // Process-local fast path avoids database round-trips for the common single-instance case.
+        // The PostgreSQL advisory lock below is the cross-process/replica source of truth that
+        // guarantees a single gateway call per order.
+        var orderLock = AcquireOrderStartLock(request.OrderId);
+        var lockAcquired = false;
+        try
+        {
+            await orderLock.Semaphore.WaitAsync(cancellationToken);
+            lockAcquired = true;
+
+            if (!_dbContext.Database.IsRelational())
+            {
+                return await CreateOrderPaymentCoreAsync(customerUserId, request, ipAddress, cancellationToken);
+            }
+
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await AcquireOrderAdvisoryLockAsync(request.OrderId, cancellationToken);
+
+            try
+            {
+                var result = await CreateOrderPaymentCoreAsync(customerUserId, request, ipAddress, cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return result;
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                // A concurrent request (possibly from another process) persisted the payment for this
+                // order first. The failed INSERT left the transaction aborted, so it must be rolled
+                // back and disposed before the winner can be read on the same connection — otherwise
+                // Npgsql reports "current transaction is aborted". The gateway is not called again.
+                await transaction.RollbackAsync(cancellationToken);
+                await transaction.DisposeAsync();
+                DetachStagedPayment();
+
+                var winner = await QueryWinnerPaymentAsync(request.OrderId, cancellationToken);
+                return new CreateOrderPaymentResultDto { Payment = ToResponse(winner) };
+            }
+        }
+        finally
+        {
+            ReleaseOrderStartLock(request.OrderId, orderLock, lockAcquired);
+        }
+    }
+
+    private static OrderStartLock AcquireOrderStartLock(Guid orderId)
+    {
+        while (true)
+        {
+            var entry = OrderStartLocks.GetOrAdd(orderId, static _ => new OrderStartLock());
+            lock (entry)
+            {
+                if (OrderStartLocks.TryGetValue(orderId, out var registered) && ReferenceEquals(registered, entry))
+                {
+                    entry.Users++;
+                    return entry;
+                }
+            }
+        }
+    }
+
+    private static void ReleaseOrderStartLock(Guid orderId, OrderStartLock entry, bool lockAcquired)
+    {
+        if (lockAcquired)
+        {
+            entry.Semaphore.Release();
+        }
+
+        lock (entry)
+        {
+            if (--entry.Users == 0)
+            {
+                var removed = ((ICollection<KeyValuePair<Guid, OrderStartLock>>)OrderStartLocks)
+                    .Remove(new KeyValuePair<Guid, OrderStartLock>(orderId, entry));
+                if (removed)
+                {
+                    entry.Semaphore.Dispose();
+                }
+            }
+        }
+    }
+
+    private sealed class OrderStartLock
+    {
+        public readonly SemaphoreSlim Semaphore = new(1, 1);
+
+        public int Users;
+    }
+
+    private async Task<Payment> QueryWinnerPaymentAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Payments
+            .AsNoTracking()
+            .SingleAsync(x => x.OrderId == orderId, cancellationToken);
+    }
+
+    private async Task AcquireOrderAdvisoryLockAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        // pg_advisory_xact_lock is transaction-scoped and released automatically at commit/rollback.
+        // Two 32-bit keys derived from the order id form a 64-bit lock key, serializing payment
+        // creation for the same order across concurrent requests and replicas. It is only valid on
+        // PostgreSQL, so other relational providers (e.g. SQLite used in tests) skip it.
+        if (_dbContext.Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            return;
+        }
+
+        var bytes = orderId.ToByteArray();
+        var key1 = BitConverter.ToInt32(bytes, 0);
+        var key2 = BitConverter.ToInt32(bytes, 4);
+
+        await _dbContext.Database.ExecuteSqlRawAsync(
+            "SELECT pg_advisory_xact_lock({0}, {1})",
+            cancellationToken,
+            key1,
+            key2);
+    }
+
+    private async Task<CreateOrderPaymentResultDto> CreateOrderPaymentCoreAsync(
+        Guid customerUserId,
+        CreateOrderPaymentRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken)
     {
         var order = await _dbContext.Orders
             .SingleOrDefaultAsync(x => x.Id == request.OrderId && x.CustomerUserId == customerUserId, cancellationToken);
@@ -91,10 +218,7 @@ public sealed class PaymentService : IPaymentService
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new CreateOrderPaymentResultDto
-        {
-            Payment = payment
-        };
+        return new CreateOrderPaymentResultDto { Payment = payment };
     }
 
     public async Task<OrderPaymentResponseDto?> GetOrderPaymentAsync(
@@ -173,5 +297,33 @@ public sealed class PaymentService : IPaymentService
                 Notes = x.Notes
             })
             .ToListAsync(cancellationToken);
+    }
+
+    private void DetachStagedPayment()
+    {
+        foreach (var entry in _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToArray())
+        {
+            entry.State = EntityState.Detached;
+        }
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException exception) =>
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+
+    private static OrderPaymentResponseDto ToResponse(Payment payment)
+    {
+        return new OrderPaymentResponseDto
+        {
+            PaymentId = payment.Id,
+            OrderId = payment.OrderId,
+            Gateway = payment.Gateway,
+            GatewayTransactionId = payment.GatewayTransactionId,
+            GatewayCheckoutUrl = payment.GatewayCheckoutUrl,
+            Method = payment.Method,
+            Status = payment.Status,
+            Amount = payment.Amount,
+            CreatedAtUtc = payment.CreatedAtUtc,
+            UpdatedAtUtc = payment.UpdatedAtUtc
+        };
     }
 }

@@ -22,4 +22,7 @@ public sealed class OrderItem : BaseEntity
     public string? ChoiceOptionName { get; set; }
 
     public string? AdditionalNames { get; set; }
+
+    /// <summary>Snapshot JSON das opções selecionadas com preço incremental (opção de escolha, adicionais e grupos).</summary>
+    public string? OptionPricesJson { get; set; }
 }

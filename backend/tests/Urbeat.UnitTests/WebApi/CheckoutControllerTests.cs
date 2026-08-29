@@ -74,14 +74,17 @@ public sealed class CheckoutControllerTests
         var otpService = new Mock<ICustomerOtpService>();
         otpService
             .Setup(x => x.ConfirmAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConfirmCustomerVerificationResponseDto
+            .ReturnsAsync(new CustomerSessionResultDto
             {
-                Succeeded = true,
-                AccessToken = "access-token",
-                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+                Response = new ConfirmCustomerVerificationResponseDto
+                {
+                    Succeeded = true,
+                    AccessToken = "access-token",
+                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+                    CustomerAddressId = addressId
+                },
                 RefreshToken = "refresh-token",
-                RefreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7),
-                CustomerAddressId = addressId
+                RefreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7)
             });
 
         var httpContext = new DefaultHttpContext();
@@ -130,14 +133,17 @@ public sealed class CheckoutControllerTests
         var otpService = new Mock<ICustomerOtpService>();
         otpService
             .Setup(x => x.CreateCustomerSessionAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConfirmCustomerVerificationResponseDto
+            .ReturnsAsync(new CustomerSessionResultDto
             {
-                Succeeded = true,
-                AccessToken = "access-token",
-                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+                Response = new ConfirmCustomerVerificationResponseDto
+                {
+                    Succeeded = true,
+                    AccessToken = "access-token",
+                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+                    CustomerAddressId = addressId
+                },
                 RefreshToken = "refresh-token",
-                RefreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7),
-                CustomerAddressId = addressId
+                RefreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7)
             });
 
         var httpContext = new DefaultHttpContext();

@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { SmsVerificationPageComponent } from './sms-verification-page.component';
 import { AuthService } from '../../core/services/auth.service';
@@ -36,9 +36,7 @@ describe('SmsVerificationPageComponent', () => {
       confirmCustomerVerification: jest.fn().mockReturnValue(of({
         succeeded: true,
         accessToken: 'access-token',
-        refreshToken: 'refresh-token',
         expiresAtUtc: '2026-07-28T22:45:00.000Z',
-        refreshTokenExpiresAtUtc: '2026-08-04T22:30:00.000Z',
         customerAddressId: 'addr1',
       })),
       resendCustomerVerification: jest.fn().mockReturnValue(of({
@@ -109,5 +107,21 @@ describe('SmsVerificationPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('.verification-error')).nativeElement.textContent).toContain('Código inválido');
+  });
+
+  it('cancels the confirmation subscription on destroy', () => {
+    let unsubscribed = false;
+    checkoutServiceMock.confirmCustomerVerification.mockReturnValue(
+      new Observable(() => () => {
+        unsubscribed = true;
+      }),
+    );
+
+    const fixture = TestBed.createComponent(SmsVerificationPageComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.onPaste({ preventDefault: jest.fn(), clipboardData: { getData: () => '1234' } } as any);
+    fixture.destroy();
+
+    expect(unsubscribed).toBe(true);
   });
 });

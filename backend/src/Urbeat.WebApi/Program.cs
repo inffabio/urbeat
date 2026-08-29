@@ -28,7 +28,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddInfrastructureJobs(builder.Configuration, builder.Environment);
-builder.Services.AddWebApi(builder.Environment);
+builder.Services.AddWebApi(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
@@ -36,10 +36,22 @@ using (var scope = app.Services.CreateScope())
 {
     var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
+    // The SignalR Redis backplane decision is logged without the connection string, so operators can
+    // observe whether the backplane is active (or silently disabled by a missing explicit flag)
+    // without ever exposing the Redis secret. Actual connection failures are logged by the Redis
+    // client at runtime.
+    var signalRRedisBackplaneEnabled = SignalRRedisBackplane.ShouldEnable(builder.Configuration, builder.Environment);
+    startupLogger.LogInformation(
+        "SignalR Redis backplane {BackplaneState}.",
+        signalRRedisBackplaneEnabled ? "enabled" : "disabled");
+
     try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await dbContext.Database.MigrateAsync();
+
+        var billingPlanSeeder = scope.ServiceProvider.GetRequiredService<BillingPlanSeeder>();
+        await billingPlanSeeder.SeedAsync();
 
         var cuisineSeeder = scope.ServiceProvider.GetRequiredService<CuisineTypeSeeder>();
         await cuisineSeeder.SeedAsync();
@@ -56,6 +68,9 @@ using (var scope = app.Services.CreateScope())
 
         var landingPageSeeder = scope.ServiceProvider.GetRequiredService<LandingPageSeeder>();
         await landingPageSeeder.SeedAsync();
+
+        var demoSubscriptionChargeSeeder = scope.ServiceProvider.GetRequiredService<DemoSubscriptionChargeSeeder>();
+        await demoSubscriptionChargeSeeder.SeedAsync();
     }
     catch (Exception exception)
     {

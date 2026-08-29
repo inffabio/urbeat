@@ -1,4 +1,7 @@
 ﻿using Urbeat.WebApi.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -9,9 +12,21 @@ public static class WebApiServiceCollectionExtensions
 {
     public static IServiceCollection AddWebApi(
         this IServiceCollection services,
+        IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        services.AddSignalR();
+        var signalR = services.AddSignalR();
+
+        if (SignalRRedisBackplane.ShouldEnable(configuration, environment))
+        {
+            // Uses the same Redis connection string as the cache services. The value is read from
+            // configuration and passed directly to the backplane — it is never logged or printed.
+            // Connection failures are surfaced through the standard Redis client logging without
+            // exposing the connection string (or its embedded password) in the log output.
+            signalR.AddStackExchangeRedis(
+                configuration[SignalRRedisBackplane.ConnectionStringKey]!,
+                options => options.Configuration.AbortOnConnectFail = false);
+        }
 
         services.AddControllers(options =>
         {

@@ -74,8 +74,8 @@ public sealed class CustomerOtpServiceTests
             Code = "000000"
         }, CancellationToken.None);
 
-        result.Succeeded.Should().BeFalse();
-        result.ErrorCode.Should().Be("INVALID_CODE");
+        result.Response.Succeeded.Should().BeFalse();
+        result.Response.ErrorCode.Should().Be("INVALID_CODE");
         (await db.CustomerPhoneVerifications.SingleAsync()).Attempts.Should().Be(1);
     }
 
@@ -104,10 +104,10 @@ public sealed class CustomerOtpServiceTests
             Code = sender.Code
         }, CancellationToken.None);
 
-        result.Succeeded.Should().BeTrue();
-        result.AccessToken.Should().Be("access-token");
+        result.Response.Succeeded.Should().BeTrue();
+        result.Response.AccessToken.Should().Be("access-token");
         result.RefreshToken.Should().Be("refresh-token");
-        result.CustomerAddressId.Should().NotBeNull();
+        result.Response.CustomerAddressId.Should().NotBeNull();
         (await db.CustomerAddresses.CountAsync()).Should().Be(1);
         (await db.CustomerPhoneVerifications.SingleAsync()).ConfirmedAtUtc.Should().NotBeNull();
     }
@@ -177,7 +177,7 @@ public sealed class CustomerOtpServiceTests
 
         var tokenService = new Mock<IJwtTokenService>();
         tokenService.Setup(x => x.GenerateToken(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<string>>()))
-            .Returns(new AuthTokenResponseDto
+            .Returns(new AuthTokenPairDto
             {
                 AccessToken = "access-token",
                 RefreshToken = "refresh-token",

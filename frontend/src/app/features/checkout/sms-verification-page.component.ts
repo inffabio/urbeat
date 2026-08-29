@@ -3,6 +3,7 @@ import { Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren, comp
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { CheckoutService } from '../../core/services/checkout.service';
@@ -22,6 +23,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private timerId: ReturnType<typeof setInterval> | null = null;
+  private readonly subscriptions = new Subscription();
 
   @ViewChildren('digitInput') private readonly digitInputs?: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -52,6 +54,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.timerId) clearInterval(this.timerId);
+    this.subscriptions.unsubscribe();
   }
 
   onBack(): void {
@@ -93,7 +96,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
 
     this.resending.set(true);
     this.error.set('');
-    this.checkout.resendCustomerVerification({ verificationId }).subscribe({
+    this.subscriptions.add(this.checkout.resendCustomerVerification({ verificationId }).subscribe({
       next: (response) => {
         this.checkout.verificationExpiresAtUtc.set(response.expiresAtUtc ?? null);
         this.checkout.verificationResendAvailableAtUtc.set(response.resendAvailableAtUtc ?? null);
@@ -106,7 +109,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
         this.error.set(err?.error?.error ?? 'Não foi possível reenviar o código. Tente novamente.');
         this.resending.set(false);
       },
-    });
+    }));
   }
 
   private confirmWhenComplete(): void {
@@ -115,9 +118,9 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
     if (!verificationId || code.length !== this.codeLength || this.submitting()) return;
 
     this.submitting.set(true);
-    this.checkout.confirmCustomerVerification({ verificationId, code }).subscribe({
+    this.subscriptions.add(this.checkout.confirmCustomerVerification({ verificationId, code }).subscribe({
       next: (response) => {
-        if (!response.succeeded || !response.accessToken || !response.refreshToken) {
+        if (!response.succeeded || !response.accessToken) {
           this.error.set(response.error ?? 'Código inválido. Confira os números e tente novamente.');
           this.submitting.set(false);
           return;
@@ -125,9 +128,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
 
         this.auth.saveToken({
           accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
           expiresAtUtc: response.expiresAtUtc ?? '',
-          refreshTokenExpiresAtUtc: response.refreshTokenExpiresAtUtc ?? '',
         });
         this.checkout.customerAddressId.set(response.customerAddressId ?? null);
         this.submitting.set(false);
@@ -137,7 +138,7 @@ export class SmsVerificationPageComponent implements OnInit, OnDestroy {
         this.error.set(err?.error?.error ?? err?.error?.errorCode ?? 'Código inválido. Confira os números e tente novamente.');
         this.submitting.set(false);
       },
-    });
+    }));
   }
 
   private updateCountdown(): void {

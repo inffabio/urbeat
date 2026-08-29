@@ -622,9 +622,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("\"CityId\" IS NOT NULL");
 
-                    b.HasIndex("Neighborhood", "City")
-                        .IsUnique();
-
                     b.ToTable("DeliveryNeighborhoods");
                 });
 
@@ -820,6 +817,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("SellerCompletedAtUtc")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
@@ -869,6 +867,9 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OptionPricesJson")
                         .HasColumnType("text");
 
                     b.Property<Guid>("OrderId")
@@ -1018,6 +1019,11 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
+
+                    b.Property<int>("Attempt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -1773,10 +1779,10 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("RevokedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -1786,7 +1792,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Token")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
                     b.ToTable("RefreshTokens");
@@ -1864,6 +1870,12 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<decimal?>("Amount")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime?>("BillingPeriodEndUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("BillingPeriodStartUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("BillingStatus")
                         .HasColumnType("integer");
@@ -1979,10 +1991,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasMaxLength(14)
                         .HasColumnType("character varying(14)");
 
-                    b.Property<string>("FacebookUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<int?>("FinalMinute")
                         .HasColumnType("integer");
 
@@ -1995,10 +2003,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("InitialMinute")
                         .HasColumnType("integer");
-
-                    b.Property<string>("InstagramUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsOpen")
                         .HasColumnType("boolean");
@@ -2047,10 +2051,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("SupportsPickup")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("TikTokUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("TotalReviews")
                         .HasColumnType("integer");
@@ -2322,16 +2322,8 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
-                    b.Property<decimal?>("FreeShippingThreshold")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
-
-                    b.Property<decimal>("MinimumOrderValue")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
 
                     b.Property<string>("Neighborhood")
                         .IsRequired()

@@ -1,15 +1,14 @@
-import { Component, OnDestroy, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { Subscription } from 'rxjs';
 
 import { OrderService } from '../../core/services/order.service';
-import { CartService } from '../../core/services/cart.service';
-import { SignalRService } from '../../core/services/signalr.service';
+import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { formatSaoPauloTime } from '../../core/utils/sao-paulo-date.helper';
-import { OrderDetails } from '../../shared/models/order.model';
+import { OrderDetails, OrderItem } from '../../shared/models/order.model';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
@@ -23,13 +22,6 @@ interface TimelineStep {
   state: 'past' | 'current' | 'future';
 }
 
-export interface OrderStatusUpdateEvent {
-  orderId: string;
-  orderCode: string;
-  status: OrderStatus;
-  changedAtUtc: string;
-}
-
 @Component({
   selector: 'app-tracking-page',
   standalone: true,
@@ -38,22 +30,41 @@ export interface OrderStatusUpdateEvent {
   styleUrl: './tracking-page.component.scss',
 })
 export class TrackingPageComponent implements OnInit, OnDestroy {
-  private static readonly POLL_INTERVAL_MS = 30_000;
-
   private readonly orders = inject(OrderService);
-  private readonly cart = inject(CartService);
-  private readonly signalR = inject(SignalRService);
+  private readonly tracking = inject(CustomerOrderTrackingService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly storeContext = inject(StoreContextService);
 
-  readonly order = signal<OrderDetails | null>(null);
-  readonly loading = signal(true);
   readonly confirmLoading = signal(false);
-  private currentOrderId: string | null = null;
-  private pollingTimer: ReturnType<typeof setInterval> | null = null;
-  private trackingActive = true;
-  private orderStatusListener?: (data: OrderStatusUpdateEvent) => void;
+  private readonly currentOrderId = signal<string | null>(null);
+  private routeParamSub?: Subscription;
+
+  readonly order = computed<OrderDetails | null>(() => {
+    const id = this.currentOrderId();
+    if (!id) return null;
+    const found = this.tracking.trackedOrders().find((o) => o.id === id) ?? null;
+    if (!found) return null;
+    if (found.storeId !== this.storeContext.storeId()) return null;
+    return found;
+  });
+
+  readonly invalidOrder = computed(() => {
+    const id = this.currentOrderId();
+    if (!id) return false;
+    const found = this.tracking.trackedOrders().find((o) => o.id === id);
+    return !!found && found.storeId !== this.storeContext.storeId();
+  });
+
+  readonly unavailable = computed(() => {
+    const id = this.currentOrderId();
+    if (!id) return false;
+    return this.tracking.isOrderUnavailable(id);
+  });
+
+  readonly cancelled = computed(() => this.order()?.status === OrderStatus.Cancelled);
+
+  readonly loading = computed(() => this.order() === null && !this.invalidOrder() && !this.unavailable());
 
   readonly FulfillmentType = FulfillmentType;
   readonly PaymentMethod = PaymentMethod;
@@ -69,9 +80,16 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
     return o ? `Pedido #${o.code}` : '';
   });
 
+  readonly isPickup = computed(() => this.order()?.fulfillmentType === FulfillmentType.PickUp);
+
+  readonly etaLabel = computed(() => (this.isPickup() ? 'Retirada no local' : 'Previsão de entrega'));
+
+  readonly etaIcon = computed(() => (this.isPickup() ? 'storefront-outline' : 'time-outline'));
+
   readonly etaText = computed(() => {
     const o = this.order();
     if (!o) return '';
+    if (this.isPickup()) return 'A loja avisará quando estiver pronto';
     const start = new Date(new Date(o.createdAtUtc).getTime() + 30 * 60_000);
     const end = new Date(new Date(o.createdAtUtc).getTime() + 60 * 60_000);
     const fmt = (d: Date) => formatSaoPauloTime(d);
@@ -80,25 +98,40 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
 
   readonly steps = computed<TimelineStep[]>(() => {
     const o = this.order();
+    const isPickup = o?.fulfillmentType === FulfillmentType.PickUp;
+    const cancelled = o?.status === OrderStatus.Cancelled;
     const defs: { status: OrderStatus; label: string }[] = [
-      { status: OrderStatus.Received, label: 'Pedido recebido' },
-      { status: OrderStatus.Preparing, label: 'Preparando seu pedido' },
-      { status: OrderStatus.OnDelivery, label: 'Saiu para entrega' },
+      { status: OrderStatus.Received, label: 'Recebido' },
+      { status: OrderStatus.Preparing, label: 'Preparando' },
+      { status: OrderStatus.Ready, label: 'Pronto' },
+      ...(isPickup ? [] : [{ status: OrderStatus.OnDelivery, label: 'Saiu para entregar' }]),
       { status: OrderStatus.Delivered, label: 'Entregue' },
     ];
-    if (!o) return defs.map((d) => ({ ...d, state: 'future' }));
+    if (!o) return defs.map((d) => ({ ...d, state: 'future' as const }));
     return defs.map((d) => {
       const history = o.history.find((h) => h.newStatus === d.status);
-      const time = history
+      const time = history && !cancelled
         ? formatSaoPauloTime(history.createdAtUtc)
         : undefined;
       let state: 'past' | 'current' | 'future';
-      if (o.status > d.status) state = 'past';
+      if (cancelled) state = 'future';
+      else if (o.status > d.status) state = 'past';
       else if (o.status === d.status) state = 'current';
       else state = 'future';
       return { ...d, time, state };
     });
   });
+
+  itemOptionEntries(item: OrderItem): { name: string; price?: number }[] {
+    if (item.optionPrices && item.optionPrices.length > 0) {
+      return item.optionPrices.map((option) => ({ name: option.name, price: option.price }));
+    }
+
+    const entries: { name: string; price?: number }[] = [];
+    if (item.choiceOptionName) entries.push({ name: item.choiceOptionName });
+    if (item.additionalNames) entries.push({ name: item.additionalNames });
+    return entries;
+  }
 
   readonly paymentLabel = computed(() => {
     const o = this.order();
@@ -121,91 +154,31 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    const orderId = this.route.snapshot.paramMap.get('orderId');
-    if (!orderId) return;
-    this.currentOrderId = orderId;
+    this.routeParamSub = this.route.paramMap.subscribe((params) => {
+      const orderId = params.get('orderId');
+      this.currentOrderId.set(orderId);
+      if (!orderId) return;
 
-    this.load(orderId);
-    this.setupSignalR();
+      // The store shell owns the shared service lifecycle. This page only
+      // tracks the order of interest; it never starts or stops the hub.
+      this.tracking.trackOrder(orderId);
+    });
   }
 
   ngOnDestroy(): void {
-    this.trackingActive = false;
-    this.clearPolling();
-    if (this.orderStatusListener) {
-      this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
-      this.orderStatusListener = undefined;
-    }
-    this.signalR.stopCustomerHub();
-  }
-
-  private setupSignalR(): void {
-    this.signalR.startCustomerHub().then(() => {
-      if (!this.trackingActive || !this.currentOrderId) return;
-      this.orderStatusListener = (data: OrderStatusUpdateEvent) => {
-        if (data && data.orderId === this.currentOrderId) {
-          this.load(this.currentOrderId!, true);
-        }
-      };
-      this.signalR.onCustomerEvent('OrderStatusUpdated', this.orderStatusListener);
-    }).catch(() => {
-      console.warn('SignalR customer hub failed to start, falling back to polling.');
-    });
-  }
-
-  private load(orderId: string, silent = false): void {
-    if (!silent) this.loading.set(true);
-    this.orders.getOrder(orderId).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.loading.set(false);
-        this.syncTrackingState(o);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.clearPolling();
-      },
-    });
-  }
-
-  private syncTrackingState(o: OrderDetails): void {
-    const terminal = o.status === OrderStatus.Delivered || o.status === OrderStatus.Cancelled;
-    const confirmationPending = o.status === OrderStatus.Delivered
-      && o.fulfillmentType === FulfillmentType.Delivery
-      && !o.deliveryConfirmedAtUtc;
-
-    if (terminal && !confirmationPending) {
-      this.trackingActive = false;
-      this.clearPolling();
-      if (this.orderStatusListener) {
-        this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
-        this.orderStatusListener = undefined;
-      }
-      return;
-    }
-
-    if (!this.pollingTimer) {
-      this.pollingTimer = setInterval(() => {
-        if (this.currentOrderId) this.load(this.currentOrderId, true);
-      }, TrackingPageComponent.POLL_INTERVAL_MS);
-    }
-  }
-
-  private clearPolling(): void {
-    if (this.pollingTimer) {
-      clearInterval(this.pollingTimer);
-      this.pollingTimer = null;
-    }
+    this.routeParamSub?.unsubscribe();
+    this.currentOrderId.set(null);
   }
 
   confirmDelivery(): void {
     const o = this.order();
-    if (!o || !this.currentOrderId || this.confirmLoading()) return;
+    const orderId = this.currentOrderId();
+    if (!o || !orderId || this.confirmLoading()) return;
     this.confirmLoading.set(true);
     this.orders.confirmDelivery(o.id).subscribe({
       next: () => {
         this.confirmLoading.set(false);
-        this.load(this.currentOrderId!, true);
+        if (this.currentOrderId() === orderId) this.tracking.refresh(orderId);
       },
       error: () => this.confirmLoading.set(false),
     });
@@ -217,8 +190,8 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   }
 
   refresh(): void {
-    const orderId = this.route.snapshot.paramMap.get('orderId');
-    if (orderId) this.load(orderId);
+    const orderId = this.currentOrderId();
+    if (orderId) this.tracking.refresh(orderId);
   }
 
   openHelp(): void {

@@ -43,13 +43,13 @@ describe('AuthService', () => {
   describe('loginSeller', () => {
     it('should call login API and save token on success', () => {
       const loginReq = { email: 'test@test.com', password: 'password123' };
-      const mockResponse = { accessToken: 'new-token', refreshToken: 'refresh-token' };
+      const mockResponse = { accessToken: 'new-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
 
       service.loginSeller(loginReq).subscribe(res => {
         expect(res.accessToken).toBe('new-token');
         expect(service.getToken()).toBe('new-token');
         expect(localStorage.getItem('urbeat_token')).toBe('new-token');
-        expect(localStorage.getItem('urbeat_refresh')).toBe('refresh-token');
+        expect(localStorage.getItem('urbeat_refresh')).toBeNull();
       });
 
       const req = httpMock.expectOne('/api/auth/login/seller');
@@ -62,7 +62,7 @@ describe('AuthService', () => {
   describe('loginAdmin', () => {
     it('should call admin login API and save token on success', () => {
       const loginReq = { email: 'admin@test.com', password: 'admin123' };
-      const mockResponse = { accessToken: 'admin-token', refreshToken: 'admin-refresh' };
+      const mockResponse = { accessToken: 'admin-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
 
       service.loginAdmin(loginReq).subscribe(res => {
         expect(res.accessToken).toBe('admin-token');
@@ -77,28 +77,53 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('should clear token from localStorage and state', () => {
-      localStorage.setItem('urbeat_token', 'old-token');
-      localStorage.setItem('urbeat_refresh', 'old-refresh');
-      
-      service.getToken(); 
+      service.saveToken({ accessToken: 'old-token', expiresAtUtc: '' });
 
       service.logout();
 
       expect(service.getToken()).toBeNull();
       expect(localStorage.getItem('urbeat_token')).toBeNull();
       expect(localStorage.getItem('urbeat_refresh')).toBeNull();
+
+      const req = httpMock.expectOne('/api/auth/logout');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(null, { status: 204, statusText: 'No Content' });
+    });
+
+    it('clears local state even when the logout endpoint fails', () => {
+      service.saveToken({ accessToken: 'old-token', expiresAtUtc: '' });
+
+      service.logout();
+
+      expect(service.getToken()).toBeNull();
+      expect(localStorage.getItem('urbeat_token')).toBeNull();
+
+      const req = httpMock.expectOne('/api/auth/logout');
+      req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    });
+
+    it('does not send the access token as part of the logout request body', () => {
+      service.saveToken({ accessToken: 'secret-token', expiresAtUtc: '' });
+
+      service.logout();
+
+      const req = httpMock.expectOne('/api/auth/logout');
+      expect(req.request.body).toEqual({});
+      expect(JSON.stringify(req.request.body)).not.toContain('secret-token');
+      req.flush(null, { status: 204, statusText: 'No Content' });
     });
   });
 
   describe('refreshToken', () => {
     it('should call refresh API with credentials and save new tokens', () => {
-      const mockResponse = { accessToken: 'refreshed-token', refreshToken: 'refreshed-refresh' };
+      const mockResponse = { accessToken: 'refreshed-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
 
       service.refreshToken().subscribe(res => {
         expect(res.accessToken).toBe('refreshed-token');
         expect(service.getToken()).toBe('refreshed-token');
         expect(localStorage.getItem('urbeat_token')).toBe('refreshed-token');
-        expect(localStorage.getItem('urbeat_refresh')).toBe('refreshed-refresh');
+        expect(localStorage.getItem('urbeat_refresh')).toBeNull();
       });
 
       const req = httpMock.expectOne('/api/auth/refresh');
@@ -122,7 +147,7 @@ describe('AuthService', () => {
 
   describe('restoreCustomerSession', () => {
     it('should refresh from the secure cookie and load the current customer profile', () => {
-      const mockToken = { accessToken: 'customer-token', refreshToken: 'rotated-refresh' };
+      const mockToken = { accessToken: 'customer-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
 
       (service as any).restoreCustomerSession().subscribe((profile: any) => {
         expect(profile.fullName).toBe('Maria Oliveira');
@@ -150,6 +175,24 @@ describe('AuthService', () => {
         primaryAddressId: 'addr1',
       });
     });
+  });
+
+  it('updates the customer profile and refreshes the profile signal', () => {
+    const request = {
+      fullName: 'Maria Atualizada',
+      email: 'maria.nova@email.com',
+      phoneNumber: '22988887777',
+    };
+
+    service.updateCustomerProfile(request).subscribe((profile) => {
+      expect(profile.fullName).toBe('Maria Atualizada');
+      expect(service.customerProfile()).toEqual(profile);
+    });
+
+    const req = httpMock.expectOne('/api/customer/me');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(request);
+    req.flush({ ...request, primaryAddressId: 'address-1' });
   });
 
   describe('registerSeller', () => {

@@ -7,6 +7,8 @@ public sealed class MercadoPagoCheckoutCreateRequest
     public required string PayerEmail { get; init; }
 
     public required IReadOnlyCollection<MercadoPagoCheckoutItem> Items { get; init; }
+
+    public string? IdempotencyKey { get; init; }
 }
 
 public sealed class MercadoPagoCheckoutItem

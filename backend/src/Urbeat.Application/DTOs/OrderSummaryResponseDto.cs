@@ -24,6 +24,10 @@ public sealed class OrderSummaryResponseDto
 
     public OrderStatus Status { get; init; }
 
+    public decimal Subtotal { get; init; }
+
+    public decimal DeliveryFee { get; init; }
+
     public decimal Total { get; init; }
 
     public DateTime CreatedAtUtc { get; init; }

@@ -95,6 +95,12 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
         _httpClient.BaseAddress = new Uri(_options.BaseUrl);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
+        if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
+            _httpClient.DefaultRequestHeaders.Remove("X-Idempotency-Key");
+            _httpClient.DefaultRequestHeaders.Add("X-Idempotency-Key", request.IdempotencyKey);
+        }
+
         var response = await _httpClient.PostAsJsonAsync("/checkout/preferences", new
         {
             external_reference = request.ExternalReference,

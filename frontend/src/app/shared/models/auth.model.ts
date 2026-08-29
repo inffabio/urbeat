@@ -19,8 +19,6 @@ export interface LoginRequest {
 export interface AuthTokenResponse {
   accessToken: string;
   expiresAtUtc: string;
-  refreshToken: string;
-  refreshTokenExpiresAtUtc: string;
 }
 
 export interface CustomerProfileResponse {
@@ -28,6 +26,12 @@ export interface CustomerProfileResponse {
   email: string;
   phoneNumber?: string | null;
   primaryAddressId?: string | null;
+}
+
+export interface UpdateCustomerProfileRequest {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
 }
 
 export interface CustomerCheckoutInfo {

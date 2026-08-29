@@ -3,6 +3,7 @@ using System.Text;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Security;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -116,7 +117,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
         };
     }
 
-    public async Task<ConfirmCustomerVerificationResponseDto> CreateCustomerSessionAsync(StartCustomerVerificationRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<CustomerSessionResultDto> CreateCustomerSessionAsync(StartCustomerVerificationRequestDto request, CancellationToken cancellationToken = default)
     {
         var storeExists = await _dbContext.Stores.AnyAsync(x => x.Id == request.StoreId, cancellationToken);
         if (!storeExists)
@@ -162,24 +163,27 @@ public sealed class CustomerOtpService : ICustomerOtpService
         _dbContext.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
-            Token = token.RefreshToken,
+            TokenHash = RefreshTokenHasher.Hash(token.RefreshToken),
             ExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ConfirmCustomerVerificationResponseDto
+        return new CustomerSessionResultDto
         {
-            Succeeded = true,
-            AccessToken = token.AccessToken,
-            ExpiresAtUtc = token.ExpiresAtUtc,
+            Response = new ConfirmCustomerVerificationResponseDto
+            {
+                Succeeded = true,
+                AccessToken = token.AccessToken,
+                ExpiresAtUtc = token.ExpiresAtUtc,
+                CustomerAddressId = address.Id
+            },
             RefreshToken = token.RefreshToken,
-            RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc,
-            CustomerAddressId = address.Id
+            RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         };
     }
 
-    public async Task<ConfirmCustomerVerificationResponseDto> ConfirmAsync(ConfirmCustomerVerificationRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<CustomerSessionResultDto> ConfirmAsync(ConfirmCustomerVerificationRequestDto request, CancellationToken cancellationToken = default)
     {
         var verification = await _dbContext.CustomerPhoneVerifications.SingleOrDefaultAsync(x => x.Id == request.VerificationId, cancellationToken);
         if (verification is null)
@@ -230,20 +234,23 @@ public sealed class CustomerOtpService : ICustomerOtpService
         _dbContext.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
-            Token = token.RefreshToken,
+            TokenHash = RefreshTokenHasher.Hash(token.RefreshToken),
             ExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ConfirmCustomerVerificationResponseDto
+        return new CustomerSessionResultDto
         {
-            Succeeded = true,
-            AccessToken = token.AccessToken,
-            ExpiresAtUtc = token.ExpiresAtUtc,
+            Response = new ConfirmCustomerVerificationResponseDto
+            {
+                Succeeded = true,
+                AccessToken = token.AccessToken,
+                ExpiresAtUtc = token.ExpiresAtUtc,
+                CustomerAddressId = address?.Id
+            },
             RefreshToken = token.RefreshToken,
-            RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc,
-            CustomerAddressId = address?.Id
+            RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         };
     }
 
@@ -393,11 +400,14 @@ public sealed class CustomerOtpService : ICustomerOtpService
         claim.ClaimValue = normalizedFullName;
     }
 
-    private static ConfirmCustomerVerificationResponseDto Failure(string code, string error) => new()
+    private static CustomerSessionResultDto Failure(string code, string error) => new()
     {
-        Succeeded = false,
-        ErrorCode = code,
-        Error = error
+        Response = new ConfirmCustomerVerificationResponseDto
+        {
+            Succeeded = false,
+            ErrorCode = code,
+            Error = error
+        }
     };
 
     private static string GenerateCode()
