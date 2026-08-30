@@ -48,6 +48,8 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
         body.GetProperty("succeeded").GetBoolean().Should().BeTrue();
         body.GetProperty("alreadyConfirmed").GetBoolean().Should().BeFalse();
 
+        await _factory.DispatchOutboxAsync();
+
         var resent = _factory.EmailService.FindLastByRecipient(email);
         resent.Should().NotBeNull("a new confirmation e-mail must be issued on resend");
         resent!.HtmlBody.Should().Contain("/c/");
@@ -70,6 +72,7 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
         registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Extract token from the initial email and confirm.
+        await _factory.DispatchOutboxAsync();
         var initial = _factory.EmailService.FindLastByRecipient(email)!;
         var code = ExtractConfirmLink(initial.HtmlBody);
         var confirmResponse = await client.PostAsync($"/api/auth/email/confirm/{code}", null);
@@ -140,6 +143,7 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        await _factory.DispatchOutboxAsync();
         _factory.EmailService.FindLastByRecipient(email).Should().NotBeNull();
     }
 

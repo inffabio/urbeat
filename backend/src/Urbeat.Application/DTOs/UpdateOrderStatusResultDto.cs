@@ -8,5 +8,7 @@ public sealed class UpdateOrderStatusResultDto
 
     public bool InvalidTransition { get; init; }
 
+    public bool ConcurrentUpdate { get; init; }
+
     public OrderDetailsResponseDto? Order { get; init; }
 }

@@ -1,7 +1,8 @@
-﻿using System.Text;
+using System.Text;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Email;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +37,24 @@ public sealed class EmailConfirmationServiceTests
         ConfirmPath = "/confirm-email"
     };
 
+    private static (Mock<IOutboxWriter> Writer, Func<OutboundMessageRequestedEvent?> GetCaptured) CreateCapturingWriter()
+    {
+        OutboundMessageRequestedEvent? captured = null;
+        var writer = new Mock<IOutboxWriter>();
+        writer.Setup(x => x.EnqueueAsync(
+                OutboxEventTypes.OutboundMessageRequested,
+                It.IsAny<Guid>(),
+                It.IsAny<OutboundMessageRequestedEvent>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<long>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, Guid, OutboundMessageRequestedEvent, DateTime, long, string?, CancellationToken>(
+                (_, _, evt, _, _, _, _) => captured = evt)
+            .Returns(Task.CompletedTask);
+        return (writer, () => captured);
+    }
+
     [Fact]
     public async Task SendConfirmationEmailAsync_ShouldDoNothing_WhenUserNotFound()
     {
@@ -43,21 +62,21 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.FindByIdAsync(It.IsAny<string>()))
             .ReturnsAsync((IdentityUser<Guid>?)null);
 
-        var emailServiceMock = new Mock<IEmailService>();
+        var (writer, _) = CreateCapturingWriter();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         await sut.SendConfirmationEmailAsync(Guid.NewGuid());
 
-        emailServiceMock.Verify(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+        writer.Verify(x => x.EnqueueAsync(
+                It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<DateTime>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
         db.AuditLogs.Should().BeEmpty();
     }
@@ -77,26 +96,26 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.FindByIdAsync(user.Id.ToString()))
             .ReturnsAsync(user);
 
-        var emailServiceMock = new Mock<IEmailService>();
+        var (writer, _) = CreateCapturingWriter();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         await sut.SendConfirmationEmailAsync(user.Id);
 
-        emailServiceMock.Verify(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+        writer.Verify(x => x.EnqueueAsync(
+                It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<DateTime>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task SendConfirmationEmailAsync_ShouldSendCustomerTemplate_WhenUserHasCustomerRole()
+    public async Task SendConfirmationEmailAsync_ShouldEnqueueCustomerTemplate_WhenUserHasCustomerRole()
     {
         var user = new IdentityUser<Guid>
         {
@@ -111,46 +130,36 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("raw-token-123");
         userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Customer" });
 
-        string? capturedSubject = null;
-        string? capturedHtml = null;
-        string? capturedTo = null;
-
-        var emailServiceMock = new Mock<IEmailService>();
-        emailServiceMock.Setup(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback<string, string, string, string, string?, CancellationToken>((to, _, subject, html, _, _) =>
-            {
-                capturedTo = to;
-                capturedSubject = subject;
-                capturedHtml = html;
-            })
-            .Returns(Task.CompletedTask);
-
+        var (writer, captured) = CreateCapturingWriter();
         using var db = CreateDbContext();
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         await sut.SendConfirmationEmailAsync(user.Id);
 
-        capturedTo.Should().Be(user.Email);
-        capturedSubject.Should().Contain("Confirme", "the customer subject must invite confirmation");
-        capturedSubject.Should().NotContain("Loja");
-        var expectedEncoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("raw-token-123"));
-        // capturedHtml.Should().Contain($"userId={user.Id}");
-        // capturedHtml.Should().Contain($"token={expectedEncoded}");
-        // capturedHtml.Should().Contain("https://app.urbeat.local/confirm-email?");
+        var evt = captured();
+        evt.Should().NotBeNull();
+        evt!.Channel.Should().Be("Email");
+        evt.Template.Should().Be("CustomerConfirmation");
+        evt.CorrelationId.Should().NotBeNull();
+        evt.UserId.Should().Be(user.Id);
+        evt.DeliveryKey.Should().StartWith("email-confirm:");
+        // No short code or token may be persisted in the durable payload; content is rendered at send time.
+        evt.Recipient.Should().BeNullOrEmpty();
+        evt.Subject.Should().BeNullOrEmpty();
+        evt.Body.Should().BeNullOrEmpty();
 
         db.AuditLogs.Should().HaveCount(1);
         db.AuditLogs.Single().Event.Should().Be("EmailConfirmationSent");
     }
 
     [Fact]
-    public async Task SendConfirmationEmailAsync_ShouldSendSellerTemplate_WhenUserHasSellerRole()
+    public async Task SendConfirmationEmailAsync_ShouldEnqueueSellerTemplate_WhenUserHasSellerRole()
     {
         var user = new IdentityUser<Guid>
         {
@@ -165,61 +174,23 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("seller-token");
         userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Seller" });
 
-        string? capturedSubject = null;
-        var emailServiceMock = new Mock<IEmailService>();
-        emailServiceMock.Setup(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback<string, string, string, string, string?, CancellationToken>((_, _, subject, _, _, _) => capturedSubject = subject)
-            .Returns(Task.CompletedTask);
-
+        var (writer, captured) = CreateCapturingWriter();
         using var db = CreateDbContext();
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         await sut.SendConfirmationEmailAsync(user.Id);
 
-        capturedSubject.Should().Contain("Loja", "the seller subject must reference Loja");
-    }
-
-    [Fact]
-    public async Task SendConfirmationEmailAsync_ShouldStillAudit_WhenEmailDeliveryFails()
-    {
-        var user = new IdentityUser<Guid>
-        {
-            Id = Guid.NewGuid(),
-            Email = "failed@urbeat.local",
-            UserName = "failed@urbeat.local",
-            EmailConfirmed = false,
-        };
-
-        var userManagerMock = CreateUserManagerMock();
-        userManagerMock.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
-        userManagerMock.Setup(m => m.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("tok");
-        userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Customer" });
-
-        var emailServiceMock = new Mock<IEmailService>();
-        emailServiceMock.Setup(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("smtp down"));
-
-        using var db = CreateDbContext();
-        var sut = new EmailConfirmationService(
-            userManagerMock.Object,
-            emailServiceMock.Object,
-            Options.Create(DefaultOptions()),
-            db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
-
-        await sut.SendConfirmationEmailAsync(user.Id);
-
-        db.AuditLogs.Should().HaveCount(1);
-        db.AuditLogs.Single().Event.Should().Be("EmailConfirmationSendFailed");
+        var evt = captured();
+        evt.Should().NotBeNull();
+        evt!.Template.Should().Be("SellerConfirmation");
+        evt.CorrelationId.Should().NotBeNull();
+        evt.Body.Should().BeNullOrEmpty();
     }
 
     [Fact]
@@ -228,15 +199,15 @@ public sealed class EmailConfirmationServiceTests
         var userManagerMock = CreateUserManagerMock();
         userManagerMock.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync((IdentityUser<Guid>?)null);
 
-        var emailServiceMock = new Mock<IEmailService>();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ConfirmAsync(new ConfirmEmailRequestDto
         {
@@ -261,15 +232,15 @@ public sealed class EmailConfirmationServiceTests
         var userManagerMock = CreateUserManagerMock();
         userManagerMock.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
 
-        var emailServiceMock = new Mock<IEmailService>();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ConfirmAsync(new ConfirmEmailRequestDto
         {
@@ -295,20 +266,19 @@ public sealed class EmailConfirmationServiceTests
         var userManagerMock = CreateUserManagerMock();
         userManagerMock.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
 
-        var emailServiceMock = new Mock<IEmailService>();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ConfirmAsync(new ConfirmEmailRequestDto
         {
             UserId = user.Id,
-            // characters that are invalid for Base64Url
             Token = "!!!not-base64!!!"
         });
 
@@ -332,15 +302,15 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.ConfirmEmailAsync(user, It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "InvalidToken", Description = "Invalid token." }));
 
-        var emailServiceMock = new Mock<IEmailService>();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("expired-token"));
         var result = await sut.ConfirmAsync(new ConfirmEmailRequestDto
@@ -369,15 +339,15 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.ConfirmEmailAsync(user, "valid-token"))
             .ReturnsAsync(IdentityResult.Success);
 
-        var emailServiceMock = new Mock<IEmailService>();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("valid-token"));
         var result = await sut.ConfirmAsync(new ConfirmEmailRequestDto
@@ -398,23 +368,23 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.FindByEmailAsync(It.IsAny<string>()))
             .ReturnsAsync((IdentityUser<Guid>?)null);
 
-        var emailServiceMock = new Mock<IEmailService>();
+        var (writer, _) = CreateCapturingWriter();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ResendAsync(new ResendEmailConfirmationRequestDto { Email = "ghost@urbeat.local" });
 
         result.Succeeded.Should().BeTrue();
         result.AlreadyConfirmed.Should().BeFalse();
-        emailServiceMock.Verify(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+        writer.Verify(x => x.EnqueueAsync(
+                It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<DateTime>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -431,23 +401,23 @@ public sealed class EmailConfirmationServiceTests
         var userManagerMock = CreateUserManagerMock();
         userManagerMock.Setup(m => m.FindByEmailAsync("confirmed@urbeat.local")).ReturnsAsync(user);
 
-        var emailServiceMock = new Mock<IEmailService>();
+        var (writer, _) = CreateCapturingWriter();
         using var db = CreateDbContext();
 
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ResendAsync(new ResendEmailConfirmationRequestDto { Email = "CONFIRMED@urbeat.local" });
 
         result.Succeeded.Should().BeTrue();
         result.AlreadyConfirmed.Should().BeTrue();
-        emailServiceMock.Verify(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+        writer.Verify(x => x.EnqueueAsync(
+                It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<DateTime>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -468,29 +438,72 @@ public sealed class EmailConfirmationServiceTests
         userManagerMock.Setup(m => m.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("resend-token");
         userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Customer" });
 
-        var emailServiceMock = new Mock<IEmailService>();
-        emailServiceMock.Setup(s => s.SendAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
+        var (writer, captured) = CreateCapturingWriter();
         using var db = CreateDbContext();
         var sut = new EmailConfirmationService(
             userManagerMock.Object,
-            emailServiceMock.Object,
             Options.Create(DefaultOptions()),
             db,
-            new Mock<IEmailTokenCache>().Object, NullLogger<EmailConfirmationService>.Instance);
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
 
         var result = await sut.ResendAsync(new ResendEmailConfirmationRequestDto { Email = "Pending@Urbeat.Local" });
 
         result.Succeeded.Should().BeTrue();
         result.AlreadyConfirmed.Should().BeFalse();
-        emailServiceMock.Verify(s => s.SendAsync(
-                user.Email!, It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
-            Times.Once);
+        var evt = captured();
+        evt.Should().NotBeNull();
+        evt!.UserId.Should().Be(user.Id);
         db.AuditLogs.Should().Contain(log => log.Event == "EmailConfirmationResent");
         db.AuditLogs.Should().Contain(log => log.Event == "EmailConfirmationSent");
+    }
+
+    [Fact]
+    public async Task ResendAsync_ShouldUseDistinctDeliveryKey_PerRequest()
+    {
+        var user = new IdentityUser<Guid>
+        {
+            Id = Guid.NewGuid(),
+            Email = "resend-key@urbeat.local",
+            UserName = "resend-key@urbeat.local",
+            EmailConfirmed = false,
+        };
+
+        var userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(m => m.FindByEmailAsync("resend-key@urbeat.local")).ReturnsAsync(user);
+        userManagerMock.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
+        userManagerMock.Setup(m => m.GenerateEmailConfirmationTokenAsync(user)).ReturnsAsync("resend-token");
+        userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Customer" });
+
+        var capturedKeys = new List<string>();
+        var writer = new Mock<IOutboxWriter>();
+        writer.Setup(x => x.EnqueueAsync(
+                OutboxEventTypes.OutboundMessageRequested,
+                It.IsAny<Guid>(),
+                It.IsAny<OutboundMessageRequestedEvent>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<long>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, Guid, OutboundMessageRequestedEvent, DateTime, long, string?, CancellationToken>(
+                (_, _, evt, _, _, _, _) => capturedKeys.Add(evt.DeliveryKey))
+            .Returns(Task.CompletedTask);
+
+        using var db = CreateDbContext();
+        var sut = new EmailConfirmationService(
+            userManagerMock.Object,
+            Options.Create(DefaultOptions()),
+            db,
+            new Mock<IEmailTokenCache>().Object,
+            writer.Object,
+            NullLogger<EmailConfirmationService>.Instance);
+
+        await sut.SendConfirmationEmailAsync(user.Id);
+        await sut.ResendAsync(new ResendEmailConfirmationRequestDto { Email = user.Email });
+
+        capturedKeys.Should().HaveCount(2);
+        capturedKeys.Distinct().Should().HaveCount(2, "each confirmation request must have a unique delivery key so resend is not deduplicated");
+        capturedKeys.Should().OnlyContain(x => x.StartsWith("email-confirm:", StringComparison.Ordinal));
     }
 }

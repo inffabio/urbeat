@@ -12,6 +12,8 @@ using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Persistence.ReadRepositories;
 using Urbeat.Infrastructure.Persistence.Repositories;
 using Urbeat.Infrastructure.Persistence.UnitOfWork;
+using Urbeat.Infrastructure.Outbox;
+using Urbeat.Infrastructure.Outbox.Handlers;
 using Urbeat.Infrastructure.Services;
 using Urbeat.Infrastructure.Security;
 using Urbeat.Infrastructure.Services.Email;
@@ -209,6 +211,21 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IProductReadRepository, ProductReadRepository>();
         services.AddScoped<ILandingPageContentService, LandingPageContentService>();
         services.AddScoped<IPrinterConfigService, PrinterConfigService>();
+        services.AddScoped<IOutboxWriter, OutboxWriter>();
+        services.AddSingleton<IOutboxWorkerLiveness, OutboxWorkerLiveness>();
+        services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
+        services.AddScoped<IOutboxDeliveryTracker, OutboxDeliveryTracker>();
+        services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
+        services.AddScoped<IOutboxEventHandler, OrderSignalRHandler>();
+        services.AddScoped<IOutboxEventHandler, NotificationHandler>();
+        services.AddScoped<IOutboxEventHandler, EmailHandler>();
+        services.AddScoped<IOutboxEventHandler, PrintHandler>();
+
+        var outboxOptions = configuration.GetSection(OutboxOptions.SectionName).Get<OutboxOptions>() ?? new OutboxOptions();
+        if (outboxOptions.WorkerEnabled)
+        {
+            services.AddHostedService<OutboxWorker>();
+        }
         
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
         services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
@@ -223,6 +240,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<DemoDataSeeder>();
         services.AddScoped<SystemParameterSeeder>();
         services.AddScoped<LandingPageSeeder>();
+        services.AddScoped<BillingPlanSeeder>();
+        services.AddScoped<DemoSubscriptionChargeSeeder>();
 
         return services;
     }

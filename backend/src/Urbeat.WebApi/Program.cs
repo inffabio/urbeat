@@ -45,36 +45,45 @@ using (var scope = app.Services.CreateScope())
         "SignalR Redis backplane {BackplaneState}.",
         signalRRedisBackplaneEnabled ? "enabled" : "disabled");
 
-    try
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    // Applying migrations is mandatory for a relational data store: a database that cannot be
+    // migrated must abort startup rather than continue against a stale or missing schema. This is
+    // deliberately outside the seeder try/catch below so a migration failure fails startup. The
+    // non-relational provider (InMemory in the test harness) skips migrations entirely and the
+    // test harness seeds its own reference data.
+    if (dbContext.Database.IsRelational())
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await dbContext.Database.MigrateAsync();
 
-        var billingPlanSeeder = scope.ServiceProvider.GetRequiredService<BillingPlanSeeder>();
-        await billingPlanSeeder.SeedAsync();
+        try
+        {
+            var billingPlanSeeder = scope.ServiceProvider.GetRequiredService<BillingPlanSeeder>();
+            await billingPlanSeeder.SeedAsync();
 
-        var cuisineSeeder = scope.ServiceProvider.GetRequiredService<CuisineTypeSeeder>();
-        await cuisineSeeder.SeedAsync();
+            var cuisineSeeder = scope.ServiceProvider.GetRequiredService<CuisineTypeSeeder>();
+            await cuisineSeeder.SeedAsync();
 
-        var adminSeeder = scope.ServiceProvider.GetRequiredService<AdminUserSeeder>();
-        await adminSeeder.SeedAsync();
+            var adminSeeder = scope.ServiceProvider.GetRequiredService<AdminUserSeeder>();
+            await adminSeeder.SeedAsync();
 
-        // DemoDataSeeder disabled — use only when needed for development
-        // var demoSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
-        // await demoSeeder.SeedAsync();
+            // DemoDataSeeder disabled — use only when needed for development
+            // var demoSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
+            // await demoSeeder.SeedAsync();
 
-        var systemParamSeeder = scope.ServiceProvider.GetRequiredService<SystemParameterSeeder>();
-        await systemParamSeeder.SeedAsync();
+            var systemParamSeeder = scope.ServiceProvider.GetRequiredService<SystemParameterSeeder>();
+            await systemParamSeeder.SeedAsync();
 
-        var landingPageSeeder = scope.ServiceProvider.GetRequiredService<LandingPageSeeder>();
-        await landingPageSeeder.SeedAsync();
+            var landingPageSeeder = scope.ServiceProvider.GetRequiredService<LandingPageSeeder>();
+            await landingPageSeeder.SeedAsync();
 
-        var demoSubscriptionChargeSeeder = scope.ServiceProvider.GetRequiredService<DemoSubscriptionChargeSeeder>();
-        await demoSubscriptionChargeSeeder.SeedAsync();
-    }
-    catch (Exception exception)
-    {
-        startupLogger.LogWarning(exception, "Admin seeding skipped because the data store is unavailable.");
+            var demoSubscriptionChargeSeeder = scope.ServiceProvider.GetRequiredService<DemoSubscriptionChargeSeeder>();
+            await demoSubscriptionChargeSeeder.SeedAsync();
+        }
+        catch (Exception exception)
+        {
+            startupLogger.LogWarning(exception, "Seeding skipped because the data store is unavailable.");
+        }
     }
 }
 

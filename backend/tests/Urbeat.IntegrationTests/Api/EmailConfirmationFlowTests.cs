@@ -42,6 +42,8 @@ public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmation
         payload.GetProperty("emailConfirmationPending").GetBoolean().Should().BeTrue();
         payload.GetProperty("userId").GetGuid().Should().NotBe(Guid.Empty);
 
+        await _factory.DispatchOutboxAsync();
+
         var sent = _factory.EmailService.FindLastByRecipient(email);
         sent.Should().NotBeNull("a confirmation e-mail must be sent when a new customer registers");
         sent!.Subject.Should().Contain("Confirme");
@@ -65,9 +67,11 @@ public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmation
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
+        await _factory.DispatchOutboxAsync();
+
         var sent = _factory.EmailService.FindLastByRecipient(email);
         sent.Should().NotBeNull();
-        sent!.Subject.Should().Contain("Loja", "the seller template references the store activation");
+        sent!.Subject.Should().ContainEquivalentOf("loja", "the seller template references the store activation");
     }
 
     [Fact]
@@ -115,6 +119,8 @@ public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmation
         });
         registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
+        await _factory.DispatchOutboxAsync();
+
         var sentEmail = _factory.EmailService.FindLastByRecipient(email);
         sentEmail.Should().NotBeNull();
         var code = ExtractConfirmLink(sentEmail!.HtmlBody);
@@ -151,6 +157,8 @@ public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmation
             Email = email,
             Password = password
         });
+
+        await _factory.DispatchOutboxAsync();
 
         var code = ExtractConfirmLink(_factory.EmailService.FindLastByRecipient(email)!.HtmlBody);
 

@@ -70,31 +70,36 @@ public sealed class NotificationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldNotThrow_WhenCustomerHubIsNull()
+    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldReturnTrue_WhenCustomerHubIsNull()
     {
         var sut = new NotificationService(_db);
 
-        await sut.Invoking(x => x.NotifyCustomerOrderStatusUpdatedAsync(
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                "URB-123456",
-                OrderStatus.Preparing,
-                DateTime.UtcNow))
-            .Should().NotThrowAsync();
+        var delivered = await sut.NotifyCustomerOrderStatusUpdatedAsync(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "URB-123456",
+            OrderStatus.Preparing,
+            DateTime.UtcNow);
+
+        // No hub context means no live channel; durable notifications remain the fallback, so this
+        // is not treated as a delivery failure.
+        delivered.Should().BeTrue();
     }
 
     [Fact]
-    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldNotThrow_WhenHubSendFails()
+    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldReturnFalse_WhenHubSendFails()
     {
         var sut = new NotificationService(_db, customerHub: new ThrowingCustomerHubContext());
 
-        await sut.Invoking(x => x.NotifyCustomerOrderStatusUpdatedAsync(
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                "URB-123456",
-                OrderStatus.Preparing,
-                DateTime.UtcNow))
-            .Should().NotThrowAsync();
+        var delivered = await sut.NotifyCustomerOrderStatusUpdatedAsync(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "URB-123456",
+            OrderStatus.Preparing,
+            DateTime.UtcNow);
+
+        // A real SignalR send failure must surface (false) so the outbox handler can retry.
+        delivered.Should().BeFalse();
     }
 
     private static object? ReadPayloadProperty(object payload, string name)

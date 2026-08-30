@@ -1,4 +1,5 @@
 ﻿using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,10 @@ public sealed class ApplicationDbContext
     public DbSet<PrinterPreset> PrinterPresets => Set<PrinterPreset>();
 
     public DbSet<StorePrinterConfig> StorePrinterConfigs => Set<StorePrinterConfig>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public DbSet<OutboxDelivery> OutboxDeliveries => Set<OutboxDelivery>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -268,6 +273,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.Total).HasPrecision(10, 2);
             entity.Property(x => x.SellerCompletedAtUtc).IsConcurrencyToken();
+            entity.Property(x => x.StatusVersion).IsConcurrencyToken();
         });
 
         builder.Entity<OrderReview>(entity =>
@@ -314,6 +320,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Amount).HasPrecision(10, 2);
             entity.Property(x => x.Attempt).HasDefaultValue(1);
             entity.Property(x => x.RawPayload).HasColumnType("text");
+            entity.Property(x => x.ConcurrencyStamp).IsConcurrencyToken().HasDefaultValue(Guid.Empty);
             entity.HasOne<Order>()
                 .WithOne()
                 .HasForeignKey<Payment>(x => x.OrderId)
@@ -677,6 +684,18 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.FooterText).HasMaxLength(200);
         });
 
+        builder.ApplyConfiguration(new OutboxMessageConfiguration());
+
+        builder.Entity<OutboxDelivery>(entity =>
+        {
+            entity.ToTable("OutboxDeliveries");
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.DeliveryKey).IsUnique();
+            entity.HasIndex(x => x.OutboxMessageId);
+            entity.Property(x => x.DeliveryKey).HasMaxLength(300).IsRequired();
+            entity.Property(x => x.HandlerType).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.ProviderMessageId).HasMaxLength(200);
+        });
     }
 }
 

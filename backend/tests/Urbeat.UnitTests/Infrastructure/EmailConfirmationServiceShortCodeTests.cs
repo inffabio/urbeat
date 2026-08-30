@@ -18,7 +18,7 @@ namespace Urbeat.UnitTests.Infrastructure;
 public class EmailConfirmationServiceShortCodeTests
 {
     private readonly Mock<UserManager<IdentityUser<Guid>>> _userManagerMock;
-    private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IOutboxWriter> _outboxWriterMock;
     private readonly Mock<IEmailTokenCache> _emailTokenCacheMock;
     private readonly Mock<ILogger<EmailConfirmationService>> _loggerMock;
     private readonly IOptions<EmailConfirmationOptions> _options;
@@ -36,7 +36,7 @@ public class EmailConfirmationServiceShortCodeTests
             new IdentityErrorDescriber(),
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<IdentityUser<Guid>>>>().Object);
-        _emailServiceMock = new Mock<IEmailService>();
+        _outboxWriterMock = new Mock<IOutboxWriter>();
         _emailTokenCacheMock = new Mock<IEmailTokenCache>();
         _loggerMock = new Mock<ILogger<EmailConfirmationService>>();
         
@@ -51,7 +51,7 @@ public class EmailConfirmationServiceShortCodeTests
         _emailTokenCacheMock.Setup(c => c.GetMappingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((EmailTokenData?)null);
 
-        var service = new EmailConfirmationService(_userManagerMock.Object, _emailServiceMock.Object, _options, new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options), _emailTokenCacheMock.Object, _loggerMock.Object);
+        var service = new EmailConfirmationService(_userManagerMock.Object, _options, new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options), _emailTokenCacheMock.Object, _outboxWriterMock.Object, _loggerMock.Object);
 
         // Act
         var result = await service.ConfirmByShortCodeAsync("invalidCode");
@@ -77,7 +77,7 @@ public class EmailConfirmationServiceShortCodeTests
         _userManagerMock.Setup(u => u.ConfirmEmailAsync(user, It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        var service = new EmailConfirmationService(_userManagerMock.Object, _emailServiceMock.Object, _options, new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options), _emailTokenCacheMock.Object, _loggerMock.Object);
+        var service = new EmailConfirmationService(_userManagerMock.Object, _options, new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options), _emailTokenCacheMock.Object, _outboxWriterMock.Object, _loggerMock.Object);
 
         // Act
         var result = await service.ConfirmByShortCodeAsync("validCode");

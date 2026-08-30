@@ -9,16 +9,17 @@ public sealed class FakeEmailService : IEmailService
 
     public IReadOnlyCollection<SentEmail> Messages => _messages.ToArray();
 
-    public Task SendAsync(
+    public Task<string?> SendAsync(
         string toAddress,
         string toName,
         string subject,
         string htmlBody,
         string? textBody = null,
+        string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
         _messages.Enqueue(new SentEmail(toAddress, toName, subject, htmlBody, textBody));
-        return Task.CompletedTask;
+        return Task.FromResult<string?>(idempotencyKey);
     }
 
     public SentEmail? FindLastByRecipient(string toAddress)

@@ -34,6 +34,13 @@ public sealed class Order : BaseEntity
 
     public OrderStatus Status { get; set; }
 
+    /// <summary>
+    /// Monotonic version of the order's lifecycle, advanced on every emitted status transition
+    /// (creation is 1). Used as the per-order sequence in outbox events so a later status event is
+    /// never delivered before an earlier one.
+    /// </summary>
+    public int StatusVersion { get; set; }
+
     public decimal Subtotal { get; set; }
 
     public decimal DeliveryFee { get; set; }

@@ -37,7 +37,8 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
             {
                 ["AsaasWebhook:Token"] = "test-asaas-token",
                 ["EmailConfirmation:FrontendBaseUrl"] = "https://app.urbeat.test",
-                ["EmailConfirmation:ConfirmPath"] = "/confirm-email"
+                ["EmailConfirmation:ConfirmPath"] = "/confirm-email",
+                ["Outbox:WorkerEnabled"] = "false"
             });
         });
 
@@ -62,6 +63,19 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
 
             services.AddHostedService<TestDataSeeder>();
         });
+    }
+
+    public async Task DispatchOutboxAsync(CancellationToken cancellationToken = default)
+    {
+        while (true)
+        {
+            using var scope = Services.CreateScope();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IOutboxDispatcher>();
+            if (await dispatcher.DispatchBatchAsync(cancellationToken) == 0)
+            {
+                break;
+            }
+        }
     }
 
     private sealed class SynchronousBackgroundJobClient : IBackgroundJobClient

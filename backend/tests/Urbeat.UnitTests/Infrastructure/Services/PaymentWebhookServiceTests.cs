@@ -7,7 +7,9 @@ using Urbeat.Infrastructure.Persistence.UnitOfWork;
 using Urbeat.Infrastructure.Services;
 using Urbeat.Infrastructure.Services.Payments;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Update;
 using Moq;
+using Npgsql;
 
 namespace Urbeat.UnitTests.Infrastructure.Services;
 
@@ -26,7 +28,7 @@ public sealed class PaymentWebhookServiceTests : IDisposable
         _db = new ApplicationDbContext(options);
         _adapterMock = new Mock<IMercadoPagoCheckoutAdapter>();
         _notificationMock = new Mock<INotificationService>();
-        _sut = new PaymentWebhookService(_db, new EfUnitOfWork(_db), _adapterMock.Object, _notificationMock.Object);
+        _sut = new PaymentWebhookService(_db, new EfUnitOfWork(_db), _adapterMock.Object, _notificationMock.Object, Mock.Of<IOutboxWriter>());
     }
 
     public void Dispose()
@@ -133,6 +135,66 @@ public sealed class PaymentWebhookServiceTests : IDisposable
         second.Ignored.Should().BeTrue();
 
         (await _db.PaymentWebhookEvents.CountAsync(x => x.Gateway == PaymentGateway.MercadoPago && x.EventKey == "txn-dup:Paid")).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ConcurrentDuplicateWebhook_ShouldBeIgnored_WhenUniqueConstraintRace()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        await SeedPaymentAsync(order, "txn-race", PaymentStatus.Pending);
+        SetupAdapter("txn-race", "approved");
+
+        // Simulates the any/insert race: the unique constraint on (Gateway, EventKey) rejects the
+        // losing request's save. The service must treat that as an idempotent duplicate, not fail.
+        var uow = new Mock<IEfUnitOfWork>();
+        uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException(
+                "save failed",
+                new PostgresException(
+                    "duplicate key value violates unique constraint \"IX_PaymentWebhookEvents_Gateway_EventKey\"",
+                    "ERROR",
+                    "ERROR",
+                    PostgresErrorCodes.UniqueViolation)));
+        var sut = new PaymentWebhookService(_db, uow.Object, _adapterMock.Object, _notificationMock.Object, Mock.Of<IOutboxWriter>());
+
+        var result = await sut.ProcessMercadoPagoWebhookAsync(Payload("txn-race"), null);
+
+        result.Ignored.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ConcurrentDifferentStateWebhook_ShouldBeIgnored_AndPreserveStateMachine()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-race-diff", PaymentStatus.Pending);
+        SetupAdapter("txn-race-diff", "approved");
+
+        // A concurrent webhook already transitioned the same payment; the losing request's save
+        // raises an optimistic-concurrency exception. The service must not corrupt the state machine.
+        var uow = new Mock<IEfUnitOfWork>();
+        var calls = 0;
+        uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns((CancellationToken ct) =>
+            {
+                calls++;
+                if (calls == 1)
+                {
+                    throw new DbUpdateConcurrencyException("concurrent update", new List<IUpdateEntry>());
+                }
+                return _db.SaveChangesAsync(ct);
+            });
+
+        var sut = new PaymentWebhookService(_db, uow.Object, _adapterMock.Object, _notificationMock.Object, Mock.Of<IOutboxWriter>());
+
+        var result = await sut.ProcessMercadoPagoWebhookAsync(Payload("txn-race-diff"), null);
+
+        result.Ignored.Should().BeTrue();
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        (await _db.PaymentStatusHistories.CountAsync(x => x.PaymentId == payment.Id)).Should().Be(0);
+        (await _db.PaymentWebhookEvents.AnyAsync(x => x.EventKey == "txn-race-diff:Paid")).Should().BeTrue();
     }
 
     [Fact]

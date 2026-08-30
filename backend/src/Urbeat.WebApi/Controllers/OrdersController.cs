@@ -290,6 +290,11 @@ public sealed class OrdersController : ControllerBase
             return BadRequest(new { error = "Invalid order status transition." });
         }
 
+        if (result.ConcurrentUpdate)
+        {
+            return Conflict(new { error = "The order status changed concurrently; reload and retry." });
+        }
+
         return Ok(result.Order);
     }
 

@@ -18,23 +18,29 @@ public sealed class SmtpEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendAsync(
+    public async Task<string?> SendAsync(
         string toAddress,
         string toName,
         string subject,
         string htmlBody,
         string? textBody = null,
+        string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
         if (_options.LogOnly || string.IsNullOrWhiteSpace(_options.Smtp.Host))
         {
             _logger.LogInformation(
-                "{EventType} | Email skipped (LogOnly or no SMTP host) | To={To} | Subject={Subject} | Body={Body}",
-                "EMAIL_LOG_ONLY", toAddress, subject, htmlBody);
-            return;
+                "{EventType} | Email skipped (LogOnly or no SMTP host) | To={To} | Subject={Subject}",
+                "EMAIL_LOG_ONLY", toAddress, subject);
+            return null;
         }
 
         var message = new MimeMessage();
+        // SMTP offers no server-side idempotency; the client-generated Message-Id is the best
+        // available correlation identifier for diagnostics and provider-side dedup at the MTA.
+        message.MessageId = string.IsNullOrWhiteSpace(idempotencyKey)
+            ? $"{Guid.CreateVersion7()}@urbeat"
+            : $"{idempotencyKey}@urbeat";
         message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
         message.To.Add(new MailboxAddress(toName, toAddress));
         message.Subject = subject;
@@ -67,6 +73,8 @@ public sealed class SmtpEmailService : IEmailService
             _logger.LogInformation(
                 "{EventType} | Email sent | To={To} | Subject={Subject}",
                 "EMAIL_SENT", toAddress, subject);
+
+            return message.MessageId;
         }
         catch (Exception ex)
         {

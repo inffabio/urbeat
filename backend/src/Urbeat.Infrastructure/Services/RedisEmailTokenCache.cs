@@ -11,6 +11,7 @@ public sealed class RedisEmailTokenCache : IEmailTokenCache, IDisposable
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     public const int CodeLength = 25;
     private static readonly string CodePrefix = "emailtoken:code:";
+    private static readonly string RequestPrefix = "emailtoken:request:";
 
     private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _db;
@@ -46,6 +47,21 @@ public sealed class RedisEmailTokenCache : IEmailTokenCache, IDisposable
         var val = await _db.StringGetAsync(new RedisKey(CodePrefix + code));
         if (!val.HasValue) return null;
         return JsonSerializer.Deserialize<EmailTokenData>(val.ToString());
+    }
+
+    public async Task SetConfirmationRequestAsync(EmailConfirmationRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var json = JsonSerializer.Serialize(request);
+        var key = new RedisKey(RequestPrefix + request.CorrelationId.ToString("N"));
+        await _db.StringSetAsync(key, json, TimeSpan.FromHours(48));
+    }
+
+    public async Task<EmailConfirmationRequest?> GetConfirmationRequestAsync(Guid correlationId, CancellationToken ct = default)
+    {
+        var val = await _db.StringGetAsync(new RedisKey(RequestPrefix + correlationId.ToString("N")));
+        if (!val.HasValue) return null;
+        return JsonSerializer.Deserialize<EmailConfirmationRequest>(val.ToString());
     }
 
     public void Dispose()

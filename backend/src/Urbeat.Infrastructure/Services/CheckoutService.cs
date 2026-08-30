@@ -1,5 +1,6 @@
 ﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,7 @@ public sealed class CheckoutService : ICheckoutService
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly INotificationService _notificationService;
+    private readonly IOutboxWriter _outboxWriter;
     private readonly UserManager<IdentityUser<Guid>> _userManager;
     private readonly IPricingService _pricingService;
 
@@ -23,12 +25,14 @@ public sealed class CheckoutService : ICheckoutService
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
         INotificationService notificationService,
+        IOutboxWriter outboxWriter,
         UserManager<IdentityUser<Guid>> userManager,
         IPricingService pricingService)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _notificationService = notificationService;
+        _outboxWriter = outboxWriter;
         _userManager = userManager;
         _pricingService = pricingService;
     }
@@ -251,6 +255,7 @@ public sealed class CheckoutService : ICheckoutService
         }
 
         order.Code = await GenerateOrderCodeAsync(cancellationToken);
+        order.StatusVersion = 1;
 
         Serilog.Log.Information("{EventType} | Order created | OrderId={OrderId} | Code={Code} | CustomerUserId={CustomerUserId} | StoreId={StoreId} | Total={Total} | PaymentMethod={PaymentMethod} | FulfillmentType={FulfillmentType} | IP={IpAddress}",
             "ORDER_CREATED", order.Id, order.Code, customerUserId, store.Id, summary.Total, request.PaymentMethod, request.FulfillmentType, ipAddress);
@@ -328,6 +333,25 @@ public sealed class CheckoutService : ICheckoutService
                 $"Seu pedido {order.Code} foi recebido pela loja.",
                 cancellationToken);
         }
+
+        await _outboxWriter.EnqueueAsync(
+            OutboxEventTypes.OrderCreated,
+            order.Id,
+            new OrderCreatedEvent
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId,
+                CustomerUserId = order.CustomerUserId,
+                SellerUserId = store.OwnerUserId,
+                Code = order.Code,
+                Status = order.Status,
+                OccurredAtUtc = DateTime.UtcNow,
+                Sequence = order.StatusVersion
+            },
+            DateTime.UtcNow,
+            sequence: order.StatusVersion,
+            aggregateType: nameof(Order),
+            cancellationToken);
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -1,7 +1,11 @@
-﻿using FluentAssertions;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Outbox;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Persistence.UnitOfWork;
 using Urbeat.Infrastructure.Services;
@@ -13,6 +17,12 @@ namespace Urbeat.UnitTests.Infrastructure.Services;
 
 public sealed class OrderServiceTests : IDisposable
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     private readonly ApplicationDbContext _db;
     private readonly OrderService _sut;
     private readonly string _dbName;
@@ -28,7 +38,8 @@ public sealed class OrderServiceTests : IDisposable
         _sut = new OrderService(
             _db,
             new EfUnitOfWork(_db),
-            Mock.Of<INotificationService>());
+            Mock.Of<INotificationService>(),
+            Mock.Of<IOutboxWriter>());
     }
 
     private (ApplicationDbContext Db, OrderService Service) CreateServiceWithFreshContext()
@@ -40,8 +51,18 @@ public sealed class OrderServiceTests : IDisposable
         var service = new OrderService(
             db,
             new EfUnitOfWork(db),
-            Mock.Of<INotificationService>());
+            Mock.Of<INotificationService>(),
+            Mock.Of<IOutboxWriter>());
         return (db, service);
+    }
+
+    private static OrderService CreateService(ApplicationDbContext db)
+    {
+        return new OrderService(
+            db,
+            new EfUnitOfWork(db),
+            Mock.Of<INotificationService>(),
+            new OutboxWriter(db));
     }
 
     public void Dispose()
@@ -609,7 +630,7 @@ public sealed class OrderServiceTests : IDisposable
         uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>());
+        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>(), Mock.Of<IOutboxWriter>());
 
         var result = await sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
 
@@ -645,7 +666,7 @@ public sealed class OrderServiceTests : IDisposable
         uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateException("Simulated audit insert failure."));
 
-        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>());
+        var sut = new OrderService(_db, uow.Object, Mock.Of<INotificationService>(), Mock.Of<IOutboxWriter>());
 
         Func<Task> act = () => sut.CompleteForSellerBoardAsync(sellerUserId, order.Id, "127.0.0.1");
 
@@ -658,7 +679,7 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateStatusAsync_ShouldEmitOrderStatusUpdatedEvent_AfterValidTransition()
+    public async Task UpdateStatusAsync_ShouldEnqueueOrderStatusChangedEvent_AfterValidTransition()
     {
         var sellerUserId = Guid.NewGuid();
         var customerUserId = Guid.NewGuid();
@@ -676,21 +697,7 @@ public sealed class OrderServiceTests : IDisposable
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
-        var notificationService = new Mock<INotificationService>();
-        DateTime capturedChangedAtUtc = default;
-        notificationService
-            .Setup(x => x.NotifyCustomerOrderStatusUpdatedAsync(
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<OrderStatus>(),
-                It.IsAny<DateTime>(),
-                It.IsAny<CancellationToken>()))
-            .Callback<Guid, Guid, string, OrderStatus, DateTime, CancellationToken>(
-                (_, _, _, _, changedAtUtc, _) => capturedChangedAtUtc = changedAtUtc)
-            .Returns(Task.CompletedTask);
-
-        var sut = new OrderService(_db, new EfUnitOfWork(_db), notificationService.Object);
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), Mock.Of<INotificationService>(), new OutboxWriter(_db));
 
         var before = DateTime.UtcNow;
         var result = await sut.UpdateStatusAsync(
@@ -702,21 +709,79 @@ public sealed class OrderServiceTests : IDisposable
 
         result.InvalidTransition.Should().BeFalse();
         result.Order.Should().NotBeNull();
-        notificationService.Verify(
-            x => x.NotifyCustomerOrderStatusUpdatedAsync(
-                customerUserId,
-                order.Id,
-                "URB-123456",
-                OrderStatus.Preparing,
-                It.IsAny<DateTime>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
-        capturedChangedAtUtc.Should().BeOnOrAfter(before);
-        capturedChangedAtUtc.Should().BeOnOrBefore(after);
+
+        var message = _db.OutboxMessages.Single(x => x.Type == OutboxEventTypes.OrderStatusChanged);
+        message.AggregateId.Should().Be(order.Id);
+        var payload = JsonSerializer.Deserialize<OrderStatusChangedEvent>(message.Payload, JsonOptions);
+        payload!.PreviousStatus.Should().Be(OrderStatus.Received);
+        payload.NewStatus.Should().Be(OrderStatus.Preparing);
+        payload.Source.Should().Be("Seller");
+        payload.CustomerUserId.Should().Be(customerUserId);
+        payload.ChangedAtUtc.Should().BeOnOrAfter(before);
+        payload.ChangedAtUtc.Should().BeOnOrBefore(after);
+        payload.Sequence.Should().Be(1);
+        message.Sequence.Should().Be(1);
     }
 
     [Fact]
-    public async Task UpdateStatusAsync_ShouldNotEmitOrderStatusUpdatedEvent_OnInvalidTransition()
+    public async Task UpdateStatusAsync_ShouldReportConcurrentUpdate_WhenTwoMutationsRace()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-123456",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Received,
+            Total = 42.5m,
+            StatusVersion = 1
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        DbContextOptions<ApplicationDbContext> Options() =>
+            new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(_dbName).Options;
+
+        using var dbA = new ApplicationDbContext(Options());
+        using var dbB = new ApplicationDbContext(Options());
+        var serviceA = CreateService(dbA);
+        var serviceB = CreateService(dbB);
+
+        // Both contexts snapshot the same order (StatusVersion = 1) before either mutates it, so
+        // the second save races on the concurrency token.
+        await dbA.Orders.SingleAsync(x => x.Id == order.Id);
+        await dbB.Orders.SingleAsync(x => x.Id == order.Id);
+
+        var first = await serviceA.UpdateStatusAsync(
+            sellerUserId, order.Id, new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing }, null);
+
+        var second = await serviceB.UpdateStatusAsync(
+            sellerUserId, order.Id, new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Cancelled }, null);
+
+        first.ConcurrentUpdate.Should().BeFalse();
+        first.Order.Should().NotBeNull();
+
+        second.ConcurrentUpdate.Should().BeTrue();
+        second.Order.Should().BeNull();
+
+        // Only the winning mutation advanced the monotonic sequence. The losing write was rejected
+        // on the StatusVersion concurrency token, so it can never emit the same sequence as the
+        // winner. (The outbox/history inserts from the losing request are an InMemory-provider
+        // artifact: it does not roll back already-applied inserts on a concurrency failure the way
+        // PostgreSQL's transaction does; transactional atomicity is covered by the commit/rollback
+        // tests in OrderOutboxIntegrationTests.)
+        using var verify = new ApplicationDbContext(Options());
+        var persisted = await verify.Orders.SingleAsync();
+        persisted.Status.Should().Be(OrderStatus.Preparing);
+        persisted.StatusVersion.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldNotEnqueueOrderStatusChangedEvent_OnInvalidTransition()
     {
         var sellerUserId = Guid.NewGuid();
         var customerUserId = Guid.NewGuid();
@@ -734,8 +799,7 @@ public sealed class OrderServiceTests : IDisposable
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
-        var notificationService = new Mock<INotificationService>();
-        var sut = new OrderService(_db, new EfUnitOfWork(_db), notificationService.Object);
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), Mock.Of<INotificationService>(), new OutboxWriter(_db));
 
         var result = await sut.UpdateStatusAsync(
             sellerUserId,
@@ -745,15 +809,7 @@ public sealed class OrderServiceTests : IDisposable
 
         result.InvalidTransition.Should().BeTrue();
         result.Order.Should().BeNull();
-        notificationService.Verify(
-            x => x.NotifyCustomerOrderStatusUpdatedAsync(
-                It.IsAny<Guid>(),
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<OrderStatus>(),
-                It.IsAny<DateTime>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
+        _db.OutboxMessages.Should().BeEmpty();
     }
 
     [Fact]

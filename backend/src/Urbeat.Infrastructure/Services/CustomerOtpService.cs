@@ -106,6 +106,9 @@ public sealed class CustomerOtpService : ICustomerOtpService
         _dbContext.CustomerPhoneVerifications.Add(verification);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        // OTP delivery stays synchronous rather than going through the transactional outbox: the
+        // code is an ephemeral secret (1-minute lifetime, never persisted in plaintext) and must not
+        // be written to the durable outbox payload, which only stores non-secret contracts.
         await _messageSender.SendOtpAsync(senderPhone, phone, code, cancellationToken);
 
         return new StartCustomerVerificationResponseDto
@@ -277,6 +280,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
         verification.MarkAsUpdated();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        // OTP delivery remains synchronous (see StartAsync) for the same secret-lifetime reasons.
         await _messageSender.SendOtpAsync(DigitsOnly(store.PhoneNumber), verification.PhoneNumber, code, cancellationToken);
 
         return new ResendCustomerVerificationResponseDto

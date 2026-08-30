@@ -80,6 +80,8 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
         });
         transitionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        await _factory.DispatchOutboxAsync();
+
         var message = recording.Messages
             .Where(x => x.Method == "OrderStatusUpdated")
             .Should().ContainSingle().Subject;

@@ -1,9 +1,11 @@
 ﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Payments;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -13,17 +15,20 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IMercadoPagoCheckoutAdapter _mercadoPagoCheckoutAdapter;
     private readonly INotificationService _notificationService;
+    private readonly IOutboxWriter _outboxWriter;
 
     public PaymentWebhookService(
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
         IMercadoPagoCheckoutAdapter mercadoPagoCheckoutAdapter,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IOutboxWriter outboxWriter)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _mercadoPagoCheckoutAdapter = mercadoPagoCheckoutAdapter;
         _notificationService = notificationService;
+        _outboxWriter = outboxWriter;
     }
 
     public async Task<ProcessWebhookResultDto> ProcessMercadoPagoWebhookAsync(
@@ -64,6 +69,35 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
             return new ProcessWebhookResultDto { Ignored = true };
         }
 
+        try
+        {
+            return await ProcessWebhookCoreAsync(
+                rawPayload,
+                ipAddress,
+                payment,
+                gatewayDetails,
+                mappedPaymentStatus,
+                eventKey,
+                cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsDuplicatePaymentWebhookEvent(exception))
+        {
+            // A concurrent webhook persisted the same (Gateway, EventKey) first. The unique
+            // constraint is the real guard; treat the losing request as an idempotent duplicate
+            // instead of failing.
+            return new ProcessWebhookResultDto { Ignored = true };
+        }
+    }
+
+    private async Task<ProcessWebhookResultDto> ProcessWebhookCoreAsync(
+        string rawPayload,
+        string? ipAddress,
+        Payment? payment,
+        MercadoPagoPaymentDetails gatewayDetails,
+        PaymentStatus mappedPaymentStatus,
+        string eventKey,
+        CancellationToken cancellationToken)
+    {
         await _dbContext.PaymentWebhookEvents.AddAsync(new PaymentWebhookEvent
         {
             Gateway = PaymentGateway.MercadoPago,
@@ -103,6 +137,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         {
             payment.Status = mappedPaymentStatus;
             payment.RawPayload = gatewayDetails.RawPayload;
+            payment.ConcurrencyStamp = Guid.CreateVersion7();
             payment.MarkAsUpdated();
 
             await _dbContext.PaymentStatusHistories.AddAsync(new PaymentStatusHistory
@@ -128,6 +163,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
                 {
                     var previous = order.Status;
                     order.Status = targetOrderStatus.Value;
+                    order.StatusVersion += 1;
                     order.MarkAsUpdated();
 
                     await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
@@ -154,6 +190,27 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
                         targetOrderStatus.Value,
                         $"Seu pedido {order.Code} foi atualizado para {targetOrderStatus.Value}.",
                         cancellationToken);
+
+                    await _outboxWriter.EnqueueAsync(
+                        OutboxEventTypes.OrderStatusChanged,
+                        order.Id,
+                        new OrderStatusChangedEvent
+                        {
+                            OrderId = order.Id,
+                            StoreId = order.StoreId,
+                            CustomerUserId = order.CustomerUserId,
+                            SellerUserId = storeOwnerUserId,
+                            Code = order.Code,
+                            PreviousStatus = previous,
+                            NewStatus = targetOrderStatus.Value,
+                            ChangedAtUtc = DateTime.UtcNow,
+                            Source = "Webhook",
+                            Sequence = order.StatusVersion
+                        },
+                        DateTime.UtcNow,
+                        sequence: order.StatusVersion,
+                        aggregateType: nameof(Order),
+                        cancellationToken);
                 }
             }
         }
@@ -170,12 +227,91 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
             IpAddress = ipAddress
         }, cancellationToken);
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Two webhooks with different statuses raced on the same payment. The winning request
+            // already committed the transition and its history; this losing write must not overwrite
+            // it. Re-read the committed state, record only the idempotency event key, and report the
+            // webhook as ignored so the state machine and history stay consistent.
+            return await ReconcileConcurrentWebhookAsync(
+                rawPayload,
+                ipAddress,
+                payment,
+                gatewayDetails,
+                mappedPaymentStatus,
+                eventKey,
+                cancellationToken);
+        }
 
         return new ProcessWebhookResultDto
         {
             Processed = true
         };
+    }
+
+    private async Task<ProcessWebhookResultDto> ReconcileConcurrentWebhookAsync(
+        string rawPayload,
+        string? ipAddress,
+        Payment payment,
+        MercadoPagoPaymentDetails gatewayDetails,
+        PaymentStatus mappedPaymentStatus,
+        string eventKey,
+        CancellationToken cancellationToken)
+    {
+        // Discard the stale tracked entities so the committed state can be re-read instead of
+        // retrying the losing write.
+        foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+        {
+            entry.State = EntityState.Detached;
+        }
+
+        var currentPayment = await _dbContext.Payments
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == payment.Id, cancellationToken);
+
+        await _dbContext.PaymentWebhookEvents.AddAsync(new PaymentWebhookEvent
+        {
+            Gateway = PaymentGateway.MercadoPago,
+            EventKey = eventKey,
+            GatewayTransactionId = gatewayDetails.TransactionId,
+            Payload = rawPayload
+        }, cancellationToken);
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            Event = "MercadoPagoWebhookConcurrentConflict",
+            Entity = nameof(Payment),
+            EntityId = payment.Id,
+            Description = $"Webhook for transaction {gatewayDetails.TransactionId} lost a concurrent transition " +
+                          $"to {mappedPaymentStatus}; payment is now {currentPayment?.Status}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsDuplicatePaymentWebhookEvent(exception))
+        {
+            // Another request already recorded this event key; still an idempotent conflict.
+        }
+
+        return new ProcessWebhookResultDto { Ignored = true };
+    }
+
+    private static bool IsDuplicatePaymentWebhookEvent(DbUpdateException exception)
+    {
+        // PostgreSQL raises SQLSTATE 23505 when a racing request persists the same
+        // (Gateway, EventKey). Only the PaymentWebhookEvents constraint maps to an idempotent
+        // duplicate; any other DbUpdateException is left to propagate.
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation
+        } pg && pg.MessageText.Contains("PaymentWebhookEvents", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

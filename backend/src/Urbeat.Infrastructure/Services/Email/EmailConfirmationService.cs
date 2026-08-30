@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -15,25 +16,25 @@ public sealed class EmailConfirmationService : IEmailConfirmationService
     private const string CustomerRole = "Customer";
 
     private readonly UserManager<IdentityUser<Guid>> _userManager;
-    private readonly IEmailService _emailService;
     private readonly EmailConfirmationOptions _options;
     private readonly ApplicationDbContext _dbContext;
     private readonly IEmailTokenCache _emailTokenCache;
+    private readonly IOutboxWriter _outboxWriter;
     private readonly ILogger<EmailConfirmationService> _logger;
 
     public EmailConfirmationService(
         UserManager<IdentityUser<Guid>> userManager,
-        IEmailService emailService,
         IOptions<EmailConfirmationOptions> options,
         ApplicationDbContext dbContext,
         IEmailTokenCache emailTokenCache,
+        IOutboxWriter outboxWriter,
         ILogger<EmailConfirmationService> logger)
     {
         _userManager = userManager;
-        _emailService = emailService;
         _options = options.Value;
         _dbContext = dbContext;
         _emailTokenCache = emailTokenCache;
+        _outboxWriter = outboxWriter;
         _logger = logger;
     }
 
@@ -56,36 +57,42 @@ public sealed class EmailConfirmationService : IEmailConfirmationService
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(rawToken));
 
         var shortCode = RedisEmailTokenCache.GenerateCode();
+        var correlationId = Guid.CreateVersion7();
+
+        // The short-code mapping powers the confirm-by-short-code endpoint. The request mapping lets
+        // the outbox e-mail handler render the content at send time without the short code or token
+        // ever touching the durable outbox payload.
         await _emailTokenCache.SetMappingAsync(shortCode, user.Id, encodedToken, cancellationToken);
-        var confirmUrl = BuildConfirmUrl(shortCode);
+        await _emailTokenCache.SetConfirmationRequestAsync(new EmailConfirmationRequest
+        {
+            CorrelationId = correlationId,
+            UserId = user.Id,
+            ShortCode = shortCode,
+            Token = encodedToken
+        }, cancellationToken);
 
         var roles = await _userManager.GetRolesAsync(user);
         var isCustomer = roles.Contains(CustomerRole, StringComparer.OrdinalIgnoreCase);
 
-        var (subject, html) = isCustomer
-            ? EmailTemplates.BuildCustomerConfirmation(confirmUrl)
-            : EmailTemplates.BuildSellerConfirmation(confirmUrl);
+        await _outboxWriter.EnqueueAsync(
+            OutboxEventTypes.OutboundMessageRequested,
+            user.Id,
+            new OutboundMessageRequestedEvent
+            {
+                Channel = "Email",
+                // Unique per request/token so a resend produces a fresh delivery key instead of being
+                // deduplicated against a previous confirmation e-mail.
+                DeliveryKey = $"email-confirm:{correlationId:N}",
+                Template = isCustomer ? "CustomerConfirmation" : "SellerConfirmation",
+                CorrelationId = correlationId,
+                UserId = user.Id
+            },
+            DateTime.UtcNow,
+            aggregateType: nameof(IdentityUser<Guid>),
+            cancellationToken: cancellationToken);
 
-        try
-        {
-            await _emailService.SendAsync(
-                toAddress: user.Email ?? string.Empty,
-                toName: user.UserName ?? user.Email ?? string.Empty,
-                subject: subject,
-                htmlBody: html,
-                cancellationToken: cancellationToken);
-
-            await WriteAuditLogAsync(user.Id, "EmailConfirmationSent",
-                $"Confirmation e-mail sent to {user.Email}.", cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{EventType} | Failed to send confirmation email | UserId={UserId}",
-                "EMAIL_CONFIRM_SEND_FAILED", user.Id);
-            await WriteAuditLogAsync(user.Id, "EmailConfirmationSendFailed",
-                $"Failed to send confirmation e-mail to {user.Email}: {ex.Message}",
-                cancellationToken);
-        }
+        await WriteAuditLogAsync(user.Id, "EmailConfirmationSent",
+            $"Confirmation e-mail handed to the outbox for {user.Email}.", cancellationToken);
     }
 
     public async Task<EmailConfirmationResultDto> ConfirmByShortCodeAsync(string shortCode, CancellationToken cancellationToken = default)

@@ -53,7 +53,7 @@ public sealed class InfobipSmsVerificationMessageSender : ICustomerVerificationM
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Infobip SMS failed | Status={StatusCode} | Body={Body}", (int)response.StatusCode, body);
+            _logger.LogWarning("Infobip SMS failed | Status={StatusCode} | ResponseLength={ResponseLength}", (int)response.StatusCode, body?.Length ?? 0);
             throw new InvalidOperationException("Não foi possível enviar o SMS de verificação.");
         }
     }

@@ -25,19 +25,35 @@ public interface INotificationService
         string? message,
         CancellationToken cancellationToken = default);
 
-    Task NotifyCustomerOrderStatusUpdatedAsync(
-        Guid customerUserId,
-        Guid orderId,
-        string orderCode,
-        Domain.Entities.OrderStatus status,
-        DateTime changedAtUtc,
-        CancellationToken cancellationToken = default);
-
     Task NotifySellerSubscriptionStatusAsync(
         Guid sellerUserId,
         Guid subscriptionReferenceId,
         Domain.Entities.NotificationType notificationType,
         string message,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pushes a live SignalR notification. Returns <c>false</c> only when a real delivery was
+    /// attempted and failed; callers (outbox handlers) use that signal to schedule a retry instead
+    /// of silently dropping the live event. A missing hub context returns <c>true</c> because there
+    /// is no delivery channel to fail (durable notifications remain the fallback).
+    /// </summary>
+    Task<bool> PushSellerNotificationAsync(
+        Guid sellerUserId,
+        Domain.Entities.Notification notification,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> PushCustomerNotificationAsync(
+        Guid customerUserId,
+        Domain.Entities.Notification notification,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> NotifyCustomerOrderStatusUpdatedAsync(
+        Guid customerUserId,
+        Guid orderId,
+        string orderCode,
+        Domain.Entities.OrderStatus status,
+        DateTime changedAtUtc,
         CancellationToken cancellationToken = default);
 
     Task<bool> MarkAsReadAsync(Guid notificationId, Guid recipientUserId, CancellationToken cancellationToken = default);

@@ -1,5 +1,6 @@
 ﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
@@ -14,15 +15,18 @@ public sealed class OrderService : IOrderService
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly INotificationService _notificationService;
+    private readonly IOutboxWriter _outboxWriter;
 
     public OrderService(
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IOutboxWriter outboxWriter)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _notificationService = notificationService;
+        _outboxWriter = outboxWriter;
     }
 
     public async Task<IReadOnlyCollection<OrderSummaryResponseDto>> ListCustomerOrdersAsync(Guid customerUserId, CancellationToken cancellationToken = default)
@@ -561,6 +565,7 @@ public sealed class OrderService : IOrderService
         var previousStatus = order.Status;
         var changedAtUtc = DateTime.UtcNow;
         order.Status = request.NewStatus;
+        order.StatusVersion += 1;
         order.MarkAsUpdated();
 
         await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
@@ -592,15 +597,47 @@ public sealed class OrderService : IOrderService
             $"Seu pedido {order.Code} foi atualizado para {request.NewStatus}.",
             cancellationToken);
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
-
-        await _notificationService.NotifyCustomerOrderStatusUpdatedAsync(
-            order.CustomerUserId,
+        await _outboxWriter.EnqueueAsync(
+            OutboxEventTypes.OrderStatusChanged,
             order.Id,
-            order.Code,
-            request.NewStatus,
+            new OrderStatusChangedEvent
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId,
+                CustomerUserId = order.CustomerUserId,
+                SellerUserId = sellerUserId,
+                Code = order.Code,
+                PreviousStatus = previousStatus,
+                NewStatus = request.NewStatus,
+                ChangedAtUtc = changedAtUtc,
+                Source = "Seller",
+                Sequence = order.StatusVersion
+            },
             changedAtUtc,
+            sequence: order.StatusVersion,
+            aggregateType: nameof(Order),
             cancellationToken);
+
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A concurrent mutation of the same order already advanced the status and its
+            // StatusVersion. Discard this losing write so the winning transition, its history, and
+            // the enqueued outbox sequence remain authoritative; the caller must re-read the order.
+            foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+            {
+                entry.State = EntityState.Detached;
+            }
+
+            Serilog.Log.Warning(
+                "Order status update lost a concurrent transition | OrderId={OrderId} | NewStatus={NewStatus}",
+                order.Id, request.NewStatus);
+
+            return new UpdateOrderStatusResultDto { ConcurrentUpdate = true };
+        }
 
         var details = await LoadDetailsAsync(order, cancellationToken);
         return new UpdateOrderStatusResultDto

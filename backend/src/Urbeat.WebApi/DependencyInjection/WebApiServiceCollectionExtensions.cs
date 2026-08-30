@@ -1,4 +1,6 @@
-﻿using Urbeat.WebApi.Infrastructure;
+﻿using Urbeat.Infrastructure.Outbox;
+using Urbeat.WebApi.Health;
+using Urbeat.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +35,8 @@ public static class WebApiServiceCollectionExtensions
             options.ModelBinderProviders.Insert(0, new ShortGuidModelBinderProvider());
         });
 
-        services.AddHealthChecks();
+        services.AddHealthChecks()
+            .AddCheck<OutboxHealthCheck>(OutboxHealthCheck.Name, tags: new[] { "outbox" });
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
@@ -66,6 +69,7 @@ public static class WebApiServiceCollectionExtensions
             {
                 metrics
                     .AddMeter("Urbeat.WebApi")
+                    .AddMeter(OutboxMetrics.MeterName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();

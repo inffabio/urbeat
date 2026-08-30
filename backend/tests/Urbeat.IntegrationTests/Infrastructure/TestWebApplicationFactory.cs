@@ -24,7 +24,8 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["AsaasWebhook:Token"] = "test-asaas-token"
+                ["AsaasWebhook:Token"] = "test-asaas-token",
+                ["Outbox:WorkerEnabled"] = "false"
             });
         });
 
@@ -53,5 +54,21 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             // so the built-in seeders never run. Seed reference data here.
             services.AddHostedService<TestDataSeeder>();
         });
+    }
+
+    public async Task DispatchOutboxAsync(CancellationToken cancellationToken = default)
+    {
+        // Drain until no message is claimable, mirroring the worker's polling loop. This matters for
+        // per-order sequencing: a later event only becomes claimable once the earlier event has
+        // reached a terminal state, which may take more than one dispatch pass.
+        while (true)
+        {
+            using var scope = Services.CreateScope();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IOutboxDispatcher>();
+            if (await dispatcher.DispatchBatchAsync(cancellationToken) == 0)
+            {
+                break;
+            }
+        }
     }
 }

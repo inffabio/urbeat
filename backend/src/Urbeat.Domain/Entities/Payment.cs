@@ -20,5 +20,13 @@ public sealed class Payment : BaseEntity
 
     public int Attempt { get; set; } = 1;
 
+    /// <summary>
+    /// Optimistic concurrency token used to serialize concurrent webhooks that target the same
+    /// payment with different statuses. A losing write raises
+    /// <see cref="Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException"/>, preserving the
+    /// state machine and history written by the winning request.
+    /// </summary>
+    public Guid ConcurrencyStamp { get; set; }
+
     public string? RawPayload { get; set; }
 }
