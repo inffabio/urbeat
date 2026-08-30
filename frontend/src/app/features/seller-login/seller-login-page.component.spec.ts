@@ -1,4 +1,4 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -40,7 +40,7 @@ describe('SellerLoginPageComponent', () => {
   });
 
   it('should navigate to /app/dashboard when store exists and can publish', () => {
-    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', refreshToken: 'refresh' }));
+    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', expiresAtUtc: '' }));
     storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-1' }));
     storeServiceMock.getStorePublishSummary.mockReturnValue(of({ canPublish: true }));
     component.loginForm.setValue({ email: 'seller@urbeat.com.br', password: '12345678' });
@@ -51,7 +51,7 @@ describe('SellerLoginPageComponent', () => {
   });
 
   it('should navigate to /configurar-loja when store exists but wizard is incomplete', () => {
-    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', refreshToken: 'refresh' }));
+    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', expiresAtUtc: '' }));
     storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-1' }));
     storeServiceMock.getStorePublishSummary.mockReturnValue(of({ canPublish: false }));
     component.loginForm.setValue({ email: 'seller@urbeat.com.br', password: '12345678' });
@@ -62,7 +62,7 @@ describe('SellerLoginPageComponent', () => {
   });
 
   it('should navigate to /configurar-loja when seller has no store yet', () => {
-    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', refreshToken: 'refresh' }));
+    authServiceMock.loginSeller.mockReturnValue(of({ accessToken: 'token', expiresAtUtc: '' }));
     storeServiceMock.getMyStore.mockReturnValue(of(null));
     component.loginForm.setValue({ email: 'seller@urbeat.com.br', password: '12345678' });
 

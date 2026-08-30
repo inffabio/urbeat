@@ -1,0 +1,41 @@
+<div class="media-upload" [class.is-banner]="kind() === 'banner'">
+  <input
+    #fileInput
+    type="file"
+    [accept]="acceptedMimeTypes"
+    [disabled]="disabled()"
+    (change)="onFileSelected($event)"
+    hidden
+  />
+
+  <button
+    type="button"
+    class="upload-box"
+    [class.is-logo]="kind() === 'logo'"
+    [class.has-preview]="effectivePreviewUrl()"
+    [disabled]="disabled()"
+    (click)="fileInput.click()"
+    [attr.aria-label]="effectivePreviewUrl() ? 'Alterar imagem' : emptyTitle()"
+  >
+    @if (effectivePreviewUrl(); as preview) {
+      <img [src]="preview" [alt]="altText()" class="upload-preview" />
+    } @else {
+      <ion-icon name="cloud-upload-outline" class="upload-icon" aria-hidden="true"></ion-icon>
+      <strong class="upload-title">{{ emptyTitle() }}</strong>
+      <span class="upload-hint">Clique para selecionar um arquivo</span>
+       <span class="upload-formats">Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.</span>
+      <span class="upload-formats">Até {{ maxSizeLabel() }}.</span>
+    }
+  </button>
+
+  @if (effectivePreviewUrl()) {
+    <button type="button" class="remove-button" [disabled]="disabled()" (click)="removeFile()">
+      <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+      Remover imagem
+    </button>
+  }
+
+  @if (errorMessage(); as error) {
+    <p class="upload-error" role="alert">{{ error }}</p>
+  }
+</div>

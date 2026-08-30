@@ -23,7 +23,10 @@ describe('CartPageComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
-    storeServiceMock = { getStoreById: jest.fn().mockReturnValue(of(null)) };
+    storeServiceMock = {
+      getStoreById: jest.fn().mockReturnValue(of({ id: 's1', name: 'Loja', slug: 'loja', logoUrl: '', isOpenNow: true, supportsDelivery: true, supportsPickup: true })),
+      getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', name: 'Loja', slug: 'loja', logoUrl: '' })),
+    };
     checkoutServiceMock = {
       fulfillmentType: signal(FulfillmentType.Delivery),
       customerAddressId: signal(null),
@@ -61,6 +64,49 @@ describe('CartPageComponent', () => {
 
     expect(fixture.debugElement.query(By.css('.cart-item-placeholder'))).not.toBeNull();
     expect(fixture.debugElement.query(By.css('.cart-product-card img'))).toBeNull();
+  });
+
+  it('should use registered add and remove icons for quantity controls', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.qty-minus ion-icon')).componentInstance.name).toBe('remove');
+    expect(fixture.debugElement.query(By.css('.qty-plus ion-icon')).componentInstance.name).toBe('add');
+  });
+
+  it('should render the checkout action as the shared fixed action bar', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.continue-large'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.link-orange'))).toBeNull();
+  });
+
+  it('should keep the cart content out of fullscreen mode so the header is not clipped', () => {
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const content = fixture.debugElement.query(By.css('.cart-content')).nativeElement as HTMLElement;
+
+    expect(content.hasAttribute('fullscreen')).toBe(false);
+  });
+
+  it('should restore the store context from the route when persisted items have no store id', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    routeParentParamGetMock.mockReturnValue('loja');
+    storeServiceMock.getStoreById.mockReturnValue(of({ id: 's1' } as any));
+    storeServiceMock.getStoreByPath = jest.fn().mockReturnValue(of({ id: 's1', name: 'Loja', slug: 'loja', logoUrl: '' }));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    expect(storeServiceMock.getStoreByPath).toHaveBeenCalledWith('loja');
+    expect(cart.storeId()).toBe('s1');
   });
 
   it('should mark the clear-cart confirmation as a modal dialog', () => {
@@ -128,6 +174,23 @@ describe('CartPageComponent', () => {
     expect(fixture.componentInstance.belowMinimum()).toBe(true);
   });
 
+  it('should keep an uncovered neighborhood silent in the cart for the payment modal', () => {
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    storeServiceMock.getStoreById.mockReturnValue(of({ id: 's1', isOpenNow: true, supportsDelivery: true, supportsPickup: true } as any));
+    checkoutServiceMock.preview.mockReturnValue(throwError(() => ({
+      status: 400,
+      error: { error: 'Ainda nao entregamos no seu bairro.' },
+    })));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.checkoutPreviewError()).toBe(false);
+    expect(fixture.debugElement.query(By.css('.error-banner'))).toBeNull();
+    expect(fixture.componentInstance.deliveryFeePending()).toBe(true);
+  });
+
   it('should navigate to checkout cadastro using the parent store route', () => {
     routerMock.url = '/carrinho';
     cart.setStore('s1', 'Loja', '');
@@ -153,5 +216,26 @@ describe('CartPageComponent', () => {
     fixture.componentInstance.continueCheckout();
 
     expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+  });
+
+  it('should calculate delivery fee with the returning customer address before checkout', () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.customerProfile.mockReturnValue({ primaryAddressId: 'addr1' });
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    checkoutServiceMock.preview.mockReturnValue(of({ deliveryFee: 8, minimumOrderValue: 15, freeShippingApplied: false }));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    expect(checkoutServiceMock.preview).toHaveBeenCalledWith(expect.objectContaining({ customerAddressId: 'addr1' }));
+    expect(fixture.componentInstance.deliveryFee()).toBe(8);
+    expect(fixture.componentInstance.deliveryFeePending()).toBe(false);
+    fixture.detectChanges();
+
+    const summaryText = (fixture.debugElement.query(By.css('.summary-card')).nativeElement.textContent as string)
+      .replace(/\u00a0/g, ' ');
+    expect(summaryText).toContain('R$ 8,00');
+    expect(summaryText).toContain('R$ 28,00');
   });
 });

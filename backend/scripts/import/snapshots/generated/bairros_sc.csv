@@ -1,0 +1,1681 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+SC,4200051,Abdon Batista,Centro,centro,,,dne,True
+SC,4200101,Abelardo Luz,Centro,centro,,,dne,True
+SC,4200200,Agrolândia,Centro,centro,,,dne,True
+SC,4200309,Agronômica,Centro,centro,,,dne,True
+SC,4200408,Água Doce,Centro,centro,,,dne,True
+SC,4200408,Água Doce,Distrito de Herciliópolis,distrito de herciliopolis,,,dne,True
+SC,4200408,Água Doce,Herciliópolis,herciliopolis,,,dne,True
+SC,4200507,Águas de Chapecó,Centro,centro,,,dne,True
+SC,4200556,Águas Frias,Centro,centro,,,dne,True
+SC,4200606,Águas Mornas,Área Rural,area rural,,,dne,True
+SC,4200606,Águas Mornas,Centro,centro,,,dne,True
+SC,4200606,Águas Mornas,Fazenda da Ressurreição,fazenda da ressurreicao,,,dne,True
+SC,4200606,Águas Mornas,Fazenda do Sacramento,fazenda do sacramento,,,dne,True
+SC,4200606,Águas Mornas,Santa Cruz da Figueira,santa cruz da figueira,,,dne,True
+SC,4200606,Águas Mornas,Vargem Grande,vargem grande,,,dne,True
+SC,4200606,Águas Mornas,Vila Nova,vila nova,,,dne,True
+SC,4200705,Alfredo Wagner,Arnópolis,arnopolis,,,dne,True
+SC,4200705,Alfredo Wagner,Catuíra,catuira,,,dne,True
+SC,4200705,Alfredo Wagner,Centro,centro,,,dne,True
+SC,4200705,Alfredo Wagner,São Leonardo,sao leonardo,,,dne,True
+SC,4200754,Alto Bela Vista,Centro,centro,,,dne,True
+SC,4200804,Anchieta,Centro,centro,,,dne,True
+SC,4200903,Angelina,Barra Clara,barra clara,,,dne,True
+SC,4200903,Angelina,Centro,centro,,,dne,True
+SC,4200903,Angelina,Distrito de Garcia,distrito de garcia,,,dne,True
+SC,4200903,Angelina,Garcia,garcia,,,dne,True
+SC,4201000,Anita Garibaldi,Centro,centro,,,dne,True
+SC,4201000,Anita Garibaldi,Lagoa da Estiva,lagoa da estiva,,,dne,True
+SC,4201109,Anitápolis,Centro,centro,,,dne,True
+SC,4201208,Antônio Carlos,Área Rural de Antônio Carlos,area rural de antonio carlos,,,dne,True
+SC,4201208,Antônio Carlos,Canudos,canudos,,,dne,True
+SC,4201208,Antônio Carlos,Centro,centro,,,dne,True
+SC,4201208,Antônio Carlos,Egito,egito,,,dne,True
+SC,4201208,Antônio Carlos,Guiomar,guiomar,,,dne,True
+SC,4201208,Antônio Carlos,Guiomar de Baixo,guiomar de baixo,,,dne,True
+SC,4201208,Antônio Carlos,Louro,louro,,,dne,True
+SC,4201208,Antônio Carlos,Rachadel,rachadel,,,dne,True
+SC,4201208,Antônio Carlos,Santa Barbara,santa barbara,,,dne,True
+SC,4201208,Antônio Carlos,Santa Maria,santa maria,,,dne,True
+SC,4201208,Antônio Carlos,Usina,usina,,,dne,True
+SC,4201208,Antônio Carlos,Vila Doze de Outubro,vila doze de outubro,,,dne,True
+SC,4201257,Apiúna,Centro,centro,,,dne,True
+SC,4201273,Arabutã,Centro,centro,,,dne,True
+SC,4201273,Arabutã,Nova Estrela,nova estrela,,,dne,True
+SC,4201307,Araquari,Centro,centro,,,dne,True
+SC,4201307,Araquari,Distrito de Itapocu,distrito de itapocu,,,dne,True
+SC,4201307,Araquari,Itapocu,itapocu,,,dne,True
+SC,4201307,Araquari,Itinga,itinga,,,dne,True
+SC,4201406,Araranguá,Alto Feliz,alto feliz,,,dne,True
+SC,4201406,Araranguá,Arapongas,arapongas,,,dne,True
+SC,4201406,Araranguá,Área Rural de Araranguá,area rural de ararangua,,,dne,True
+SC,4201406,Araranguá,Balneário de Ilhas (Hercílio Luz),balneario de ilhas hercilio luz,,,dne,True
+SC,4201406,Araranguá,Barranca,barranca,,,dne,True
+SC,4201406,Araranguá,Caverazinho,caverazinho,,,dne,True
+SC,4201406,Araranguá,Centro,centro,,,dne,True
+SC,4201406,Araranguá,Centro Cívico,centro civico,,,dne,True
+SC,4201406,Araranguá,Cidade Alta,cidade alta,,,dne,True
+SC,4201406,Araranguá,Coloninha,coloninha,,,dne,True
+SC,4201406,Araranguá,Hercílio Luz (Hercílio Luz),hercilio luz hercilio luz,,,dne,True
+SC,4201406,Araranguá,Industrial,industrial,,,dne,True
+SC,4201406,Araranguá,Jardim Cibeli,jardim cibeli,,,dne,True
+SC,4201406,Araranguá,Jardim das Avenidas,jardim das avenidas,,,dne,True
+SC,4201406,Araranguá,Lagoa da Serra,lagoa da serra,,,dne,True
+SC,4201406,Araranguá,Lagoão,lagoao,,,dne,True
+SC,4201406,Araranguá,Mato Alto,mato alto,,,dne,True
+SC,4201406,Araranguá,Morro Agudo (Hercílio Luz),morro agudo hercilio luz,,,dne,True
+SC,4201406,Araranguá,Morro dos Conventos,morro dos conventos,,,dne,True
+SC,4201406,Araranguá,Nova Divinéia,nova divineia,,,dne,True
+SC,4201406,Araranguá,Operária,operaria,,,dne,True
+SC,4201406,Araranguá,Polícia Rodoviária,policia rodoviaria,,,dne,True
+SC,4201406,Araranguá,Sanga da Areia,sanga da areia,,,dne,True
+SC,4201406,Araranguá,Sanga da Toca,sanga da toca,,,dne,True
+SC,4201406,Araranguá,Sanga da Toca 1ª,sanga da toca 1a,,,dne,True
+SC,4201406,Araranguá,Santa Bárbara,santa barbara,,,dne,True
+SC,4201406,Araranguá,Santa Catarina,santa catarina,,,dne,True
+SC,4201406,Araranguá,Santa Rosa de Lima,santa rosa de lima,,,dne,True
+SC,4201406,Araranguá,Urussanguinha,urussanguinha,,,dne,True
+SC,4201406,Araranguá,Vila São José,vila sao jose,,,dne,True
+SC,4201505,Armazém,Centro,centro,,,dne,True
+SC,4201604,Arroio Trinta,Centro,centro,,,dne,True
+SC,4201653,Arvoredo,Centro,centro,,,dne,True
+SC,4201703,Ascurra,Centro,centro,,,dne,True
+SC,4201802,Atalanta,Centro,centro,,,dne,True
+SC,4201901,Aurora,Centro,centro,,,dne,True
+SC,4201950,Balneário Arroio do Silva,Centro,centro,,,dne,True
+SC,4202008,Balneário Camboriú,Área Rural de Balneário Camboriú,area rural de balneario camboriu,,,dne,True
+SC,4202008,Balneário Camboriú,Ariribá,aririba,,,dne,True
+SC,4202008,Balneário Camboriú,Barra,barra,,,dne,True
+SC,4202008,Balneário Camboriú,Centro,centro,,,dne,True
+SC,4202008,Balneário Camboriú,Estados,estados,,,dne,True
+SC,4202008,Balneário Camboriú,Jardim Iate Clube,jardim iate clube,,,dne,True
+SC,4202008,Balneário Camboriú,Municípios,municipios,,,dne,True
+SC,4202008,Balneário Camboriú,Nações,nacoes,,,dne,True
+SC,4202008,Balneário Camboriú,Nova Esperança,nova esperanca,,,dne,True
+SC,4202008,Balneário Camboriú,Pioneiros,pioneiros,,,dne,True
+SC,4202008,Balneário Camboriú,Praia das Laranjeiras,praia das laranjeiras,,,dne,True
+SC,4202008,Balneário Camboriú,Praia das Taquaras,praia das taquaras,,,dne,True
+SC,4202008,Balneário Camboriú,Praia do Estaleirinho,praia do estaleirinho,,,dne,True
+SC,4202008,Balneário Camboriú,Praia do Estaleiro,praia do estaleiro,,,dne,True
+SC,4202008,Balneário Camboriú,Praia dos Amores,praia dos amores,,,dne,True
+SC,4202008,Balneário Camboriú,São Judas Tadeu,sao judas tadeu,,,dne,True
+SC,4202008,Balneário Camboriú,Várzea do Ranchinho,varzea do ranchinho,,,dne,True
+SC,4202008,Balneário Camboriú,Vila Real,vila real,,,dne,True
+SC,4202057,Balneário Barra do Sul,Centro,centro,,,dne,True
+SC,4202073,Balneário Gaivota,Centro,centro,,,dne,True
+SC,4202081,Bandeirante,Centro,centro,,,dne,True
+SC,4202099,Barra Bonita,Centro,centro,,,dne,True
+SC,4202107,Barra Velha,Centro,centro,,,dne,True
+SC,4202131,Bela Vista do Toldo,Centro,centro,,,dne,True
+SC,4202156,Belmonte,Centro,centro,,,dne,True
+SC,4202206,Benedito Novo,Barra São João,barra sao joao,,,dne,True
+SC,4202206,Benedito Novo,Centro,centro,,,dne,True
+SC,4202206,Benedito Novo,Distrito de Santa Maria,distrito de santa maria,,,dne,True
+SC,4202206,Benedito Novo,Santa Maria,santa maria,,,dne,True
+SC,4202305,Biguaçu,Área Rural de Biguaçu,area rural de biguacu,,,dne,True
+SC,4202305,Biguaçu,Areias de Cima (Guaporanga),areias de cima guaporanga,,,dne,True
+SC,4202305,Biguaçu,Beira Rio,beira rio,,,dne,True
+SC,4202305,Biguaçu,Boa Vista,boa vista,,,dne,True
+SC,4202305,Biguaçu,Bom Viver,bom viver,,,dne,True
+SC,4202305,Biguaçu,Cachoeiras (Guaporanga),cachoeiras guaporanga,,,dne,True
+SC,4202305,Biguaçu,Centro,centro,,,dne,True
+SC,4202305,Biguaçu,Encruzilhada,encruzilhada,,,dne,True
+SC,4202305,Biguaçu,Estiva (Guaporanga),estiva guaporanga,,,dne,True
+SC,4202305,Biguaçu,Fundos,fundos,,,dne,True
+SC,4202305,Biguaçu,Jardim Janaína,jardim janaina,,,dne,True
+SC,4202305,Biguaçu,Mar das Pedras,mar das pedras,,,dne,True
+SC,4202305,Biguaçu,Morro da Bina,morro da bina,,,dne,True
+SC,4202305,Biguaçu,Prado,prado,,,dne,True
+SC,4202305,Biguaçu,Prado de Baixo,prado de baixo,,,dne,True
+SC,4202305,Biguaçu,Praia João Rosa,praia joao rosa,,,dne,True
+SC,4202305,Biguaçu,Rio Caveiras,rio caveiras,,,dne,True
+SC,4202305,Biguaçu,São Miguel (Guaporanga),sao miguel guaporanga,,,dne,True
+SC,4202305,Biguaçu,Saudade,saudade,,,dne,True
+SC,4202305,Biguaçu,Saveiro,saveiro,,,dne,True
+SC,4202305,Biguaçu,Sorocaba do Sul,sorocaba do sul,,,dne,True
+SC,4202305,Biguaçu,Terra Indígena M'Biguaçu,terra indigena m biguacu,,,dne,True
+SC,4202305,Biguaçu,Tijuquinhas (Guaporanga),tijuquinhas guaporanga,,,dne,True
+SC,4202305,Biguaçu,Universitário,universitario,,,dne,True
+SC,4202305,Biguaçu,Vendaval,vendaval,,,dne,True
+SC,4202404,Blumenau,Água Verde,agua verde,,,dne,True
+SC,4202404,Blumenau,Área Rural de Blumenau,area rural de blumenau,,,dne,True
+SC,4202404,Blumenau,Badenfurt,badenfurt,,,dne,True
+SC,4202404,Blumenau,Boa Vista,boa vista,,,dne,True
+SC,4202404,Blumenau,Bom Retiro,bom retiro,,,dne,True
+SC,4202404,Blumenau,Centro,centro,,,dne,True
+SC,4202404,Blumenau,Do Salto,do salto,,,dne,True
+SC,4202404,Blumenau,Escola Agrícola,escola agricola,,,dne,True
+SC,4202404,Blumenau,Fidélis,fidelis,,,dne,True
+SC,4202404,Blumenau,Fortaleza,fortaleza,,,dne,True
+SC,4202404,Blumenau,Fortaleza Alta,fortaleza alta,,,dne,True
+SC,4202404,Blumenau,Garcia,garcia,,,dne,True
+SC,4202404,Blumenau,Glória,gloria,,,dne,True
+SC,4202404,Blumenau,Itoupava Central,itoupava central,,,dne,True
+SC,4202404,Blumenau,Itoupava Norte,itoupava norte,,,dne,True
+SC,4202404,Blumenau,Itoupava Seca,itoupava seca,,,dne,True
+SC,4202404,Blumenau,Itoupavazinha,itoupavazinha,,,dne,True
+SC,4202404,Blumenau,Jardim Blumenau,jardim blumenau,,,dne,True
+SC,4202404,Blumenau,Nova Esperança,nova esperanca,,,dne,True
+SC,4202404,Blumenau,Passo Manso,passo manso,,,dne,True
+SC,4202404,Blumenau,Ponta Aguda,ponta aguda,,,dne,True
+SC,4202404,Blumenau,Progresso,progresso,,,dne,True
+SC,4202404,Blumenau,Ribeirão Fresco,ribeirao fresco,,,dne,True
+SC,4202404,Blumenau,Salto do Norte,salto do norte,,,dne,True
+SC,4202404,Blumenau,Salto Weissbach,salto weissbach,,,dne,True
+SC,4202404,Blumenau,Testo Salto,testo salto,,,dne,True
+SC,4202404,Blumenau,Tribess,tribess,,,dne,True
+SC,4202404,Blumenau,Valparaiso,valparaiso,,,dne,True
+SC,4202404,Blumenau,Velha,velha,,,dne,True
+SC,4202404,Blumenau,Velha Central,velha central,,,dne,True
+SC,4202404,Blumenau,Velha Grande,velha grande,,,dne,True
+SC,4202404,Blumenau,Victor Konder,victor konder,,,dne,True
+SC,4202404,Blumenau,Vila Formosa,vila formosa,,,dne,True
+SC,4202404,Blumenau,Vila Itoupava,vila itoupava,,,dne,True
+SC,4202404,Blumenau,Vila Nova,vila nova,,,dne,True
+SC,4202404,Blumenau,Vorstadt,vorstadt,,,dne,True
+SC,4202438,Bocaina do Sul,Centro,centro,,,dne,True
+SC,4202453,Bombinhas,Centro,centro,,,dne,True
+SC,4202503,Bom Jardim da Serra,Centro,centro,,,dne,True
+SC,4202537,Bom Jesus,Centro,centro,,,dne,True
+SC,4202578,Bom Jesus do Oeste,Centro,centro,,,dne,True
+SC,4202602,Bom Retiro,Canoas,canoas,,,dne,True
+SC,4202602,Bom Retiro,Centro,centro,,,dne,True
+SC,4202602,Bom Retiro,Distrito de Canoas,distrito de canoas,,,dne,True
+SC,4202701,Botuverá,Centro,centro,,,dne,True
+SC,4202800,Braço do Norte,Baixo Pinheiral,baixo pinheiral,,,dne,True
+SC,4202800,Braço do Norte,Centro,centro,,,dne,True
+SC,4202859,Braço do Trombudo,DISTRITO SEDE,distrito sede,,,dne,True
+SC,4202875,Brunópolis,Centro,centro,,,dne,True
+SC,4202875,Brunópolis,Marombas,marombas,,,dne,True
+SC,4202909,Brusque,Águas Claras,aguas claras,,,dne,True
+SC,4202909,Brusque,Área Rural de Brusque,area rural de brusque,,,dne,True
+SC,4202909,Brusque,Azambuja,azambuja,,,dne,True
+SC,4202909,Brusque,Bateas,bateas,,,dne,True
+SC,4202909,Brusque,Cedrinho,cedrinho,,,dne,True
+SC,4202909,Brusque,Cedro Grande,cedro grande,,,dne,True
+SC,4202909,Brusque,Centro I,centro i,,,dne,True
+SC,4202909,Brusque,Centro II,centro ii,,,dne,True
+SC,4202909,Brusque,Cerâmica Reis,ceramica reis,,,dne,True
+SC,4202909,Brusque,Dom Joaquim,dom joaquim,,,dne,True
+SC,4202909,Brusque,Guarani,guarani,,,dne,True
+SC,4202909,Brusque,Jardim Maluche,jardim maluche,,,dne,True
+SC,4202909,Brusque,Limeira Alta,limeira alta,,,dne,True
+SC,4202909,Brusque,Limeira Baixa,limeira baixa,,,dne,True
+SC,4202909,Brusque,Limoeiro,limoeiro,,,dne,True
+SC,4202909,Brusque,Nova Brasília,nova brasilia,,,dne,True
+SC,4202909,Brusque,Paquetá,paqueta,,,dne,True
+SC,4202909,Brusque,Planalto,planalto,,,dne,True
+SC,4202909,Brusque,Poço Fundo,poco fundo,,,dne,True
+SC,4202909,Brusque,Ponta Russa,ponta russa,,,dne,True
+SC,4202909,Brusque,Primeiro de Maio,primeiro de maio,,,dne,True
+SC,4202909,Brusque,Rio Branco,rio branco,,,dne,True
+SC,4202909,Brusque,Santa Luzia,santa luzia,,,dne,True
+SC,4202909,Brusque,Santa Rita,santa rita,,,dne,True
+SC,4202909,Brusque,Santa Terezinha,santa terezinha,,,dne,True
+SC,4202909,Brusque,São João,sao joao,,,dne,True
+SC,4202909,Brusque,São Luiz,sao luiz,,,dne,True
+SC,4202909,Brusque,São Pedro,sao pedro,,,dne,True
+SC,4202909,Brusque,Souza Cruz,souza cruz,,,dne,True
+SC,4202909,Brusque,Steffen,steffen,,,dne,True
+SC,4202909,Brusque,Tomaz Coelho,tomaz coelho,,,dne,True
+SC,4202909,Brusque,Volta Grande,volta grande,,,dne,True
+SC,4202909,Brusque,Zantão,zantao,,,dne,True
+SC,4203006,Caçador,Aeroporto,aeroporto,,,dne,True
+SC,4203006,Caçador,Alto Bonito,alto bonito,,,dne,True
+SC,4203006,Caçador,Área Rural de Caçador,area rural de cacador,,,dne,True
+SC,4203006,Caçador,Bello,bello,,,dne,True
+SC,4203006,Caçador,Berger,berger,,,dne,True
+SC,4203006,Caçador,Bom Jesus,bom jesus,,,dne,True
+SC,4203006,Caçador,Bom Sucesso,bom sucesso,,,dne,True
+SC,4203006,Caçador,Centro,centro,,,dne,True
+SC,4203006,Caçador,Champagnat,champagnat,,,dne,True
+SC,4203006,Caçador,Der,der,,,dne,True
+SC,4203006,Caçador,Figueroa,figueroa,,,dne,True
+SC,4203006,Caçador,Gioppo,gioppo,,,dne,True
+SC,4203006,Caçador,Industrial,industrial,,,dne,True
+SC,4203006,Caçador,Kurtz,kurtz,,,dne,True
+SC,4203006,Caçador,Martello,martello,,,dne,True
+SC,4203006,Caçador,Municípios,municipios,,,dne,True
+SC,4203006,Caçador,Nossa Senhora Salete,nossa senhora salete,,,dne,True
+SC,4203006,Caçador,Paraíso,paraiso,,,dne,True
+SC,4203006,Caçador,Rancho Fundo,rancho fundo,,,dne,True
+SC,4203006,Caçador,Reunidas,reunidas,,,dne,True
+SC,4203006,Caçador,Santa Catarina,santa catarina,,,dne,True
+SC,4203006,Caçador,São Cristóvão,sao cristovao,,,dne,True
+SC,4203006,Caçador,Sorgatto,sorgatto,,,dne,True
+SC,4203006,Caçador,Taquara Verde,taquara verde,,,dne,True
+SC,4203105,Caibi,Centro,centro,,,dne,True
+SC,4203154,Calmon,Centro,centro,,,dne,True
+SC,4203204,Camboriú,Área Rural de Camboriú,area rural de camboriu,,,dne,True
+SC,4203204,Camboriú,Areias,areias,,,dne,True
+SC,4203204,Camboriú,Cedro,cedro,,,dne,True
+SC,4203204,Camboriú,Centro,centro,,,dne,True
+SC,4203204,Camboriú,Conde Vila Verde,conde vila verde,,,dne,True
+SC,4203204,Camboriú,Lídia Duarte,lidia duarte,,,dne,True
+SC,4203204,Camboriú,Monte Alegre,monte alegre,,,dne,True
+SC,4203204,Camboriú,Rio Pequeno,rio pequeno,,,dne,True
+SC,4203204,Camboriú,Santa Regina,santa regina,,,dne,True
+SC,4203204,Camboriú,São Francisco de Assis,sao francisco de assis,,,dne,True
+SC,4203204,Camboriú,Tabuleiro,tabuleiro,,,dne,True
+SC,4203204,Camboriú,Várzea do Ranchinho,varzea do ranchinho,,,dne,True
+SC,4203253,Capão Alto,Centro,centro,,,dne,True
+SC,4203303,Campo Alegre,Bateias de Baixo,bateias de baixo,,,dne,True
+SC,4203303,Campo Alegre,Centro,centro,,,dne,True
+SC,4203303,Campo Alegre,Distrito de Bateias de Baixo,distrito de bateias de baixo,,,dne,True
+SC,4203303,Campo Alegre,Fragosos,fragosos,,,dne,True
+SC,4203303,Campo Alegre,Povoado de Fragosos,povoado de fragosos,,,dne,True
+SC,4203402,Campo Belo do Sul,Centro,centro,,,dne,True
+SC,4203501,Campo Erê,Centro,centro,,,dne,True
+SC,4203600,Campos Novos,Bela Vista,bela vista,,,dne,True
+SC,4203600,Campos Novos,Centro,centro,,,dne,True
+SC,4203600,Campos Novos,Dal Pai,dal pai,,,dne,True
+SC,4203600,Campos Novos,Distrito de Bela Vista,distrito de bela vista,,,dne,True
+SC,4203600,Campos Novos,Encruzilhada,encruzilhada,,,dne,True
+SC,4203600,Campos Novos,Espinilho,espinilho,,,dne,True
+SC,4203600,Campos Novos,Guarani,guarani,,,dne,True
+SC,4203600,Campos Novos,Ibicuí,ibicui,,,dne,True
+SC,4203600,Campos Novos,Leão,leao,,,dne,True
+SC,4203600,Campos Novos,Leão (Distrito),leao distrito,,,dne,True
+SC,4203709,Canelinha,Centro,centro,,,dne,True
+SC,4203808,Canoinhas,Água Verde,agua verde,,,dne,True
+SC,4203808,Canoinhas,Alto da Tijuca,alto da tijuca,,,dne,True
+SC,4203808,Canoinhas,Alto das Palmeiras,alto das palmeiras,,,dne,True
+SC,4203808,Canoinhas,Área Rural de Canoinhas,area rural de canoinhas,,,dne,True
+SC,4203808,Canoinhas,Boa Vista,boa vista,,,dne,True
+SC,4203808,Canoinhas,Campo da Água Verde,campo da agua verde,,,dne,True
+SC,4203808,Canoinhas,Centro,centro,,,dne,True
+SC,4203808,Canoinhas,Felipe Schmidt,felipe schmidt,,,dne,True
+SC,4203808,Canoinhas,Industrial 1,industrial 1,,,dne,True
+SC,4203808,Canoinhas,Industrial 2,industrial 2,,,dne,True
+SC,4203808,Canoinhas,Jardim Esperança,jardim esperanca,,,dne,True
+SC,4203808,Canoinhas,Marcílio Dias,marcilio dias,,,dne,True
+SC,4203808,Canoinhas,Paula Pereira,paula pereira,,,dne,True
+SC,4203808,Canoinhas,Piedade,piedade,,,dne,True
+SC,4203808,Canoinhas,Pinheiros,pinheiros,,,dne,True
+SC,4203808,Canoinhas,Sossego,sossego,,,dne,True
+SC,4203808,Canoinhas,Tricolin,tricolin,,,dne,True
+SC,4203907,Capinzal,Alto Alegre,alto alegre,,,dne,True
+SC,4203907,Capinzal,Centro,centro,,,dne,True
+SC,4203956,Capivari de Baixo,Centro,centro,,,dne,True
+SC,4204004,Catanduvas,Centro,centro,,,dne,True
+SC,4204103,Caxambu do Sul,Centro,centro,,,dne,True
+SC,4204152,Celso Ramos,Centro,centro,,,dne,True
+SC,4204178,Cerro Negro,Centro,centro,,,dne,True
+SC,4204194,Chapadão do Lageado,Centro,centro,,,dne,True
+SC,4204202,Chapecó,Água Santa,agua santa,,,dne,True
+SC,4204202,Chapecó,Alto da Serra,alto da serra,,,dne,True
+SC,4204202,Chapecó,Alvorada,alvorada,,,dne,True
+SC,4204202,Chapecó,Araras,araras,,,dne,True
+SC,4204202,Chapecó,Área Rural de Chapecó,area rural de chapeco,,,dne,True
+SC,4204202,Chapecó,Bela Vista,bela vista,,,dne,True
+SC,4204202,Chapecó,Belvedere,belvedere,,,dne,True
+SC,4204202,Chapecó,Boa Vista,boa vista,,,dne,True
+SC,4204202,Chapecó,Bom Pastor,bom pastor,,,dne,True
+SC,4204202,Chapecó,Bom Retiro,bom retiro,,,dne,True
+SC,4204202,Chapecó,Campestre,campestre,,,dne,True
+SC,4204202,Chapecó,Centro,centro,,,dne,True
+SC,4204202,Chapecó,Centro (Marechal Bormann),centro marechal bormann,,,dne,True
+SC,4204202,Chapecó,Comunidade Palmital dos Fundos,comunidade palmital dos fundos,,,dne,True
+SC,4204202,Chapecó,Cristo Rei,cristo rei,,,dne,True
+SC,4204202,Chapecó,Desbravador,desbravador,,,dne,True
+SC,4204202,Chapecó,Dom Gerônimo,dom geronimo,,,dne,True
+SC,4204202,Chapecó,Dom Pascoal,dom pascoal,,,dne,True
+SC,4204202,Chapecó,Efapi,efapi,,,dne,True
+SC,4204202,Chapecó,Eldorado,eldorado,,,dne,True
+SC,4204202,Chapecó,Engenho Braun,engenho braun,,,dne,True
+SC,4204202,Chapecó,Esplanada,esplanada,,,dne,True
+SC,4204202,Chapecó,Figueira,figueira,,,dne,True
+SC,4204202,Chapecó,Fronteira Sul,fronteira sul,,,dne,True
+SC,4204202,Chapecó,Goio-En,goio en,,,dne,True
+SC,4204202,Chapecó,Industrial,industrial,,,dne,True
+SC,4204202,Chapecó,Jardim América,jardim america,,,dne,True
+SC,4204202,Chapecó,Jardim Europa,jardim europa,,,dne,True
+SC,4204202,Chapecó,Jardim Itália,jardim italia,,,dne,True
+SC,4204202,Chapecó,Jardins,jardins,,,dne,True
+SC,4204202,Chapecó,Jardins do Vale,jardins do vale,,,dne,True
+SC,4204202,Chapecó,Lajeado,lajeado,,,dne,True
+SC,4204202,Chapecó,Líder,lider,,,dne,True
+SC,4204202,Chapecó,Maria Goretti,maria goretti,,,dne,True
+SC,4204202,Chapecó,Monte Belo,monte belo,,,dne,True
+SC,4204202,Chapecó,Palmital,palmital,,,dne,True
+SC,4204202,Chapecó,Paraíso,paraiso,,,dne,True
+SC,4204202,Chapecó,Parque das Palmeiras,parque das palmeiras,,,dne,True
+SC,4204202,Chapecó,Passo dos Fortes,passo dos fortes,,,dne,True
+SC,4204202,Chapecó,Pinheirinho,pinheirinho,,,dne,True
+SC,4204202,Chapecó,Presidente Médici,presidente medici,,,dne,True
+SC,4204202,Chapecó,Progresso,progresso,,,dne,True
+SC,4204202,Chapecó,Quedas do Palmital,quedas do palmital,,,dne,True
+SC,4204202,Chapecó,SAIC,saic,,,dne,True
+SC,4204202,Chapecó,Santa Maria,santa maria,,,dne,True
+SC,4204202,Chapecó,Santa Paulina,santa paulina,,,dne,True
+SC,4204202,Chapecó,Santo Antônio,santo antonio,,,dne,True
+SC,4204202,Chapecó,Santos Dumont,santos dumont,,,dne,True
+SC,4204202,Chapecó,São Cristóvão,sao cristovao,,,dne,True
+SC,4204202,Chapecó,São Lucas,sao lucas,,,dne,True
+SC,4204202,Chapecó,São Pedro,sao pedro,,,dne,True
+SC,4204202,Chapecó,Seminário,seminario,,,dne,True
+SC,4204202,Chapecó,Trevo,trevo,,,dne,True
+SC,4204202,Chapecó,Universitário,universitario,,,dne,True
+SC,4204202,Chapecó,Vederti,vederti,,,dne,True
+SC,4204202,Chapecó,Vila Real,vila real,,,dne,True
+SC,4204202,Chapecó,Vila Rica,vila rica,,,dne,True
+SC,4204251,Cocal do Sul,Centro,centro,,,dne,True
+SC,4204301,Concórdia,Aliança,alianca,,,dne,True
+SC,4204301,Concórdia,Área Rural de Concórdia,area rural de concordia,,,dne,True
+SC,4204301,Concórdia,Arvoredo,arvoredo,,,dne,True
+SC,4204301,Concórdia,Catarina Fontana,catarina fontana,,,dne,True
+SC,4204301,Concórdia,Centro,centro,,,dne,True
+SC,4204301,Concórdia,Cinquentenário,cinquentenario,,,dne,True
+SC,4204301,Concórdia,Colibri,colibri,,,dne,True
+SC,4204301,Concórdia,Colinas,colinas,,,dne,True
+SC,4204301,Concórdia,Cristal,cristal,,,dne,True
+SC,4204301,Concórdia,Engenho Velho,engenho velho,,,dne,True
+SC,4204301,Concórdia,Estados,estados,,,dne,True
+SC,4204301,Concórdia,Flamengo,flamengo,,,dne,True
+SC,4204301,Concórdia,Floresta,floresta,,,dne,True
+SC,4204301,Concórdia,Fragosos,fragosos,,,dne,True
+SC,4204301,Concórdia,Gruta,gruta,,,dne,True
+SC,4204301,Concórdia,Guilherme Reich,guilherme reich,,,dne,True
+SC,4204301,Concórdia,Imigrantes,imigrantes,,,dne,True
+SC,4204301,Concórdia,Imperial,imperial,,,dne,True
+SC,4204301,Concórdia,Industrial,industrial,,,dne,True
+SC,4204301,Concórdia,Industriários,industriarios,,,dne,True
+SC,4204301,Concórdia,Itaíba,itaiba,,,dne,True
+SC,4204301,Concórdia,Jardim,jardim,,,dne,True
+SC,4204301,Concórdia,Jardim Sul,jardim sul,,,dne,True
+SC,4204301,Concórdia,Liberdade,liberdade,,,dne,True
+SC,4204301,Concórdia,Nações,nacoes,,,dne,True
+SC,4204301,Concórdia,Natureza,natureza,,,dne,True
+SC,4204301,Concórdia,Nazaré,nazare,,,dne,True
+SC,4204301,Concórdia,Nossa Senhora da Salete,nossa senhora da salete,,,dne,True
+SC,4204301,Concórdia,Nova Brasília,nova brasilia,,,dne,True
+SC,4204301,Concórdia,Parque de Exposições,parque de exposicoes,,,dne,True
+SC,4204301,Concórdia,Petrópolis,petropolis,,,dne,True
+SC,4204301,Concórdia,Planalto,planalto,,,dne,True
+SC,4204301,Concórdia,Poente do Sol,poente do sol,,,dne,True
+SC,4204301,Concórdia,Presidente Kennedy,presidente kennedy,,,dne,True
+SC,4204301,Concórdia,Primavera,primavera,,,dne,True
+SC,4204301,Concórdia,Santa Cruz,santa cruz,,,dne,True
+SC,4204301,Concórdia,Santa Rita,santa rita,,,dne,True
+SC,4204301,Concórdia,Santa Terezinha,santa terezinha,,,dne,True
+SC,4204301,Concórdia,Santo Antônio,santo antonio,,,dne,True
+SC,4204301,Concórdia,São Cristóvão,sao cristovao,,,dne,True
+SC,4204301,Concórdia,São José,sao jose,,,dne,True
+SC,4204301,Concórdia,São Miguel,sao miguel,,,dne,True
+SC,4204301,Concórdia,São Paulo,sao paulo,,,dne,True
+SC,4204301,Concórdia,Sintrial,sintrial,,,dne,True
+SC,4204301,Concórdia,Sunti,sunti,,,dne,True
+SC,4204301,Concórdia,Tamanduá,tamandua,,,dne,True
+SC,4204301,Concórdia,Vila Jacob Biezus,vila jacob biezus,,,dne,True
+SC,4204301,Concórdia,Vista Alegre,vista alegre,,,dne,True
+SC,4204350,Cordilheira Alta,Centro,centro,,,dne,True
+SC,4204400,Coronel Freitas,Centro,centro,,,dne,True
+SC,4204459,Coronel Martins,Centro,centro,,,dne,True
+SC,4204509,Corupá,Ano Bom,ano bom,,,dne,True
+SC,4204509,Corupá,Área Rural de Corupá,area rural de corupa,,,dne,True
+SC,4204509,Corupá,Bomplandt,bomplandt,,,dne,True
+SC,4204509,Corupá,Caminho Pequeno,caminho pequeno,,,dne,True
+SC,4204509,Corupá,Centro,centro,,,dne,True
+SC,4204509,Corupá,Itapocu,itapocu,,,dne,True
+SC,4204509,Corupá,Izabel,izabel,,,dne,True
+SC,4204509,Corupá,João Tozini,joao tozini,,,dne,True
+SC,4204509,Corupá,Pedra de Amolar,pedra de amolar,,,dne,True
+SC,4204509,Corupá,Poço D'anta,poco d anta,,,dne,True
+SC,4204509,Corupá,Rio Novo,rio novo,,,dne,True
+SC,4204509,Corupá,Seminário,seminario,,,dne,True
+SC,4204509,Corupá,XV de Novembro,xv de novembro,,,dne,True
+SC,4204558,Correia Pinto,Centro,centro,,,dne,True
+SC,4204608,Criciúma,Ana Maria,ana maria,,,dne,True
+SC,4204608,Criciúma,Archimedes Naspolini,archimedes naspolini,,,dne,True
+SC,4204608,Criciúma,Área Rural de Criciúma,area rural de criciuma,,,dne,True
+SC,4204608,Criciúma,Argentina,argentina,,,dne,True
+SC,4204608,Criciúma,Boa Vista,boa vista,,,dne,True
+SC,4204608,Criciúma,Bosque do Repouso,bosque do repouso,,,dne,True
+SC,4204608,Criciúma,Brasília,brasilia,,,dne,True
+SC,4204608,Criciúma,Buenos Aires,buenos aires,,,dne,True
+SC,4204608,Criciúma,Capão Bonito,capao bonito,,,dne,True
+SC,4204608,Criciúma,Ceará,ceara,,,dne,True
+SC,4204608,Criciúma,Centro,centro,,,dne,True
+SC,4204608,Criciúma,Cidade Mineira Nova,cidade mineira nova,,,dne,True
+SC,4204608,Criciúma,Cidade Mineira Velha,cidade mineira velha,,,dne,True
+SC,4204608,Criciúma,Colonial,colonial,,,dne,True
+SC,4204608,Criciúma,Coloninha Zilli,coloninha zilli,,,dne,True
+SC,4204608,Criciúma,Comerciário,comerciario,,,dne,True
+SC,4204608,Criciúma,Cristo Redentor,cristo redentor,,,dne,True
+SC,4204608,Criciúma,Cruzeiro do Sul,cruzeiro do sul,,,dne,True
+SC,4204608,Criciúma,Dagostin,dagostin,,,dne,True
+SC,4204608,Criciúma,Demboski,demboski,,,dne,True
+SC,4204608,Criciúma,Distrito Industrial,distrito industrial,,,dne,True
+SC,4204608,Criciúma,dos Imigrantes,dos imigrantes,,,dne,True
+SC,4204608,Criciúma,Estaçãozinha,estacaozinha,,,dne,True
+SC,4204608,Criciúma,Fábio Silva,fabio silva,,,dne,True
+SC,4204608,Criciúma,Imperatriz,imperatriz,,,dne,True
+SC,4204608,Criciúma,Jardim Angélica,jardim angelica,,,dne,True
+SC,4204608,Criciúma,Jardim das Paineiras,jardim das paineiras,,,dne,True
+SC,4204608,Criciúma,Jardim Maristela,jardim maristela,,,dne,True
+SC,4204608,Criciúma,Jardim Montevidéu,jardim montevideu,,,dne,True
+SC,4204608,Criciúma,Laranjinha,laranjinha,,,dne,True
+SC,4204608,Criciúma,Liberdade,liberdade,,,dne,True
+SC,4204608,Criciúma,Linha Anta,linha anta,,,dne,True
+SC,4204608,Criciúma,Linha Batista,linha batista,,,dne,True
+SC,4204608,Criciúma,Linha Cabral,linha cabral,,,dne,True
+SC,4204608,Criciúma,Lote Seis,lote seis,,,dne,True
+SC,4204608,Criciúma,Mãe Luzia,mae luzia,,,dne,True
+SC,4204608,Criciúma,Maria Céu,maria ceu,,,dne,True
+SC,4204608,Criciúma,Metropol,metropol,,,dne,True
+SC,4204608,Criciúma,Michel,michel,,,dne,True
+SC,4204608,Criciúma,Milanese,milanese,,,dne,True
+SC,4204608,Criciúma,Mina Brasil,mina brasil,,,dne,True
+SC,4204608,Criciúma,Mina do Mato,mina do mato,,,dne,True
+SC,4204608,Criciúma,Mina do Toco,mina do toco,,,dne,True
+SC,4204608,Criciúma,Mina União,mina uniao,,,dne,True
+SC,4204608,Criciúma,Monte Castelo,monte castelo,,,dne,True
+SC,4204608,Criciúma,Morro Albino,morro albino,,,dne,True
+SC,4204608,Criciúma,Morro Estevão,morro estevao,,,dne,True
+SC,4204608,Criciúma,Nossa Senhora da Salete,nossa senhora da salete,,,dne,True
+SC,4204608,Criciúma,Nossa Senhora do Carmo,nossa senhora do carmo,,,dne,True
+SC,4204608,Criciúma,Operária Nova,operaria nova,,,dne,True
+SC,4204608,Criciúma,Paraíso,paraiso,,,dne,True
+SC,4204608,Criciúma,Pedro Zanivan,pedro zanivan,,,dne,True
+SC,4204608,Criciúma,Pinheirinho,pinheirinho,,,dne,True
+SC,4204608,Criciúma,Pio Corrêa,pio correa,,,dne,True
+SC,4204608,Criciúma,Poço Um,poco um,,,dne,True
+SC,4204608,Criciúma,Primeira Linha,primeira linha,,,dne,True
+SC,4204608,Criciúma,Primeira Linha Pontilhão,primeira linha pontilhao,,,dne,True
+SC,4204608,Criciúma,Progresso,progresso,,,dne,True
+SC,4204608,Criciúma,Próspera,prospera,,,dne,True
+SC,4204608,Criciúma,Quarta Linha,quarta linha,,,dne,True
+SC,4204608,Criciúma,Recanto Verde,recanto verde,,,dne,True
+SC,4204608,Criciúma,Renascer,renascer,,,dne,True
+SC,4204608,Criciúma,Rio Maina,rio maina,,,dne,True
+SC,4204608,Criciúma,Sangão,sangao,,,dne,True
+SC,4204608,Criciúma,Santa Augusta,santa augusta,,,dne,True
+SC,4204608,Criciúma,Santa Bárbara,santa barbara,,,dne,True
+SC,4204608,Criciúma,Santa Catarina,santa catarina,,,dne,True
+SC,4204608,Criciúma,Santa Luzia,santa luzia,,,dne,True
+SC,4204608,Criciúma,Santo Antônio,santo antonio,,,dne,True
+SC,4204608,Criciúma,São Cristóvão,sao cristovao,,,dne,True
+SC,4204608,Criciúma,São Defende,sao defende,,,dne,True
+SC,4204608,Criciúma,São Domingos,sao domingos,,,dne,True
+SC,4204608,Criciúma,São Francisco,sao francisco,,,dne,True
+SC,4204608,Criciúma,São João,sao joao,,,dne,True
+SC,4204608,Criciúma,São Luiz,sao luiz,,,dne,True
+SC,4204608,Criciúma,São Marcos,sao marcos,,,dne,True
+SC,4204608,Criciúma,São Roque,sao roque,,,dne,True
+SC,4204608,Criciúma,São Sebastião,sao sebastiao,,,dne,True
+SC,4204608,Criciúma,São Simão,sao simao,,,dne,True
+SC,4204608,Criciúma,Tereza Cristina,tereza cristina,,,dne,True
+SC,4204608,Criciúma,Universitário,universitario,,,dne,True
+SC,4204608,Criciúma,Vera Cruz,vera cruz,,,dne,True
+SC,4204608,Criciúma,Verdinho,verdinho,,,dne,True
+SC,4204608,Criciúma,Vila Floresta,vila floresta,,,dne,True
+SC,4204608,Criciúma,Vila Floresta II,vila floresta ii,,,dne,True
+SC,4204608,Criciúma,Vila Francesa,vila francesa,,,dne,True
+SC,4204608,Criciúma,Vila Isabel,vila isabel,,,dne,True
+SC,4204608,Criciúma,Vila Macarini,vila macarini,,,dne,True
+SC,4204608,Criciúma,Vila Manaus,vila manaus,,,dne,True
+SC,4204608,Criciúma,Vila Maria,vila maria,,,dne,True
+SC,4204608,Criciúma,Vila Miguel,vila miguel,,,dne,True
+SC,4204608,Criciúma,Vila Nova Esperança,vila nova esperanca,,,dne,True
+SC,4204608,Criciúma,Vila Rica,vila rica,,,dne,True
+SC,4204608,Criciúma,Vila São José,vila sao jose,,,dne,True
+SC,4204608,Criciúma,Vila Selinger,vila selinger,,,dne,True
+SC,4204608,Criciúma,Vila Visconde,vila visconde,,,dne,True
+SC,4204608,Criciúma,Vila Zuleima,vila zuleima,,,dne,True
+SC,4204608,Criciúma,Wosocris,wosocris,,,dne,True
+SC,4204707,Cunha Porã,Centro,centro,,,dne,True
+SC,4204756,Cunhataí,Centro,centro,,,dne,True
+SC,4204806,Curitibanos,Centro,centro,,,dne,True
+SC,4204806,Curitibanos,Marombas Bossardi,marombas bossardi,,,dne,True
+SC,4204806,Curitibanos,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+SC,4204806,Curitibanos,Santa Cruz do Pery,santa cruz do pery,,,dne,True
+SC,4204905,Descanso,Cento,cento,,,dne,True
+SC,4204905,Descanso,Centro,centro,,,dne,True
+SC,4204905,Descanso,Itajubá,itajuba,,,dne,True
+SC,4205001,Dionísio Cerqueira,Centro,centro,,,dne,True
+SC,4205001,Dionísio Cerqueira,Idamar,idamar,,,dne,True
+SC,4205001,Dionísio Cerqueira,Jorge Lacerda,jorge lacerda,,,dne,True
+SC,4205001,Dionísio Cerqueira,São Pedro Tobias,sao pedro tobias,,,dne,True
+SC,4205100,Dona Emma,Centro,centro,,,dne,True
+SC,4205159,Doutor Pedrinho,Centro,centro,,,dne,True
+SC,4205175,Entre Rios,Centro,centro,,,dne,True
+SC,4205191,Ermo,Centro,centro,,,dne,True
+SC,4205209,Erval Velho,Barra Fria,barra fria,,,dne,True
+SC,4205209,Erval Velho,Centro,centro,,,dne,True
+SC,4205308,Faxinal dos Guedes,Barra Grande,barra grande,,,dne,True
+SC,4205308,Faxinal dos Guedes,Centro,centro,,,dne,True
+SC,4205357,Flor do Sertão,Centro,centro,,,dne,True
+SC,4205407,Florianópolis,Abraão,abraao,,,dne,True
+SC,4205407,Florianópolis,Agronômica,agronomica,,,dne,True
+SC,4205407,Florianópolis,Área Rural de Florianópolis,area rural de florianopolis,,,dne,True
+SC,4205407,Florianópolis,Armação,armacao,,,dne,True
+SC,4205407,Florianópolis,Balneário,balneario,,,dne,True
+SC,4205407,Florianópolis,Barra da Lagoa,barra da lagoa,,,dne,True
+SC,4205407,Florianópolis,Bom Abrigo,bom abrigo,,,dne,True
+SC,4205407,Florianópolis,Cachoeira do Bom Jesus,cachoeira do bom jesus,,,dne,True
+SC,4205407,Florianópolis,Cacupé,cacupe,,,dne,True
+SC,4205407,Florianópolis,Campeche,campeche,,,dne,True
+SC,4205407,Florianópolis,Canasvieiras,canasvieiras,,,dne,True
+SC,4205407,Florianópolis,Canto,canto,,,dne,True
+SC,4205407,Florianópolis,Capoeiras,capoeiras,,,dne,True
+SC,4205407,Florianópolis,Carianos,carianos,,,dne,True
+SC,4205407,Florianópolis,Carvoeira,carvoeira,,,dne,True
+SC,4205407,Florianópolis,Centro,centro,,,dne,True
+SC,4205407,Florianópolis,Coloninha,coloninha,,,dne,True
+SC,4205407,Florianópolis,Coqueiros,coqueiros,,,dne,True
+SC,4205407,Florianópolis,Córrego Grande,corrego grande,,,dne,True
+SC,4205407,Florianópolis,Costeira do Pirajubaé,costeira do pirajubae,,,dne,True
+SC,4205407,Florianópolis,Daniela,daniela,,,dne,True
+SC,4205407,Florianópolis,Estreito,estreito,,,dne,True
+SC,4205407,Florianópolis,Ingleses,ingleses,,,dne,True
+SC,4205407,Florianópolis,Itacorubi,itacorubi,,,dne,True
+SC,4205407,Florianópolis,Itaguaçu,itaguacu,,,dne,True
+SC,4205407,Florianópolis,Jardim Atlântico,jardim atlantico,,,dne,True
+SC,4205407,Florianópolis,João Paulo,joao paulo,,,dne,True
+SC,4205407,Florianópolis,José Mendes,jose mendes,,,dne,True
+SC,4205407,Florianópolis,Jurerê,jurere,,,dne,True
+SC,4205407,Florianópolis,Jurerê Internacional,jurere internacional,,,dne,True
+SC,4205407,Florianópolis,Lagoa da Conceição,lagoa da conceicao,,,dne,True
+SC,4205407,Florianópolis,Monte Cristo,monte cristo,,,dne,True
+SC,4205407,Florianópolis,Monte Verde,monte verde,,,dne,True
+SC,4205407,Florianópolis,Morro das Pedras,morro das pedras,,,dne,True
+SC,4205407,Florianópolis,Pantanal,pantanal,,,dne,True
+SC,4205407,Florianópolis,Pântano do Sul,pantano do sul,,,dne,True
+SC,4205407,Florianópolis,Ponta das Canas,ponta das canas,,,dne,True
+SC,4205407,Florianópolis,Praia Brava,praia brava,,,dne,True
+SC,4205407,Florianópolis,Ratones,ratones,,,dne,True
+SC,4205407,Florianópolis,Ribeirão da Ilha,ribeirao da ilha,,,dne,True
+SC,4205407,Florianópolis,Rio Tavares,rio tavares,,,dne,True
+SC,4205407,Florianópolis,Rio Vermelho,rio vermelho,,,dne,True
+SC,4205407,Florianópolis,Saco dos Limões,saco dos limoes,,,dne,True
+SC,4205407,Florianópolis,Saco Grande,saco grande,,,dne,True
+SC,4205407,Florianópolis,Sambaqui,sambaqui,,,dne,True
+SC,4205407,Florianópolis,Santa Mônica,santa monica,,,dne,True
+SC,4205407,Florianópolis,Santo Antônio de Lisboa,santo antonio de lisboa,,,dne,True
+SC,4205407,Florianópolis,Tapera,tapera,,,dne,True
+SC,4205407,Florianópolis,Tapera da Base,tapera da base,,,dne,True
+SC,4205407,Florianópolis,Trindade,trindade,,,dne,True
+SC,4205407,Florianópolis,Vargem do Bom Jesus,vargem do bom jesus,,,dne,True
+SC,4205407,Florianópolis,Vargem Grande,vargem grande,,,dne,True
+SC,4205407,Florianópolis,Vargem Pequena,vargem pequena,,,dne,True
+SC,4205431,Formosa do Sul,Centro,centro,,,dne,True
+SC,4205456,Forquilhinha,Centro,centro,,,dne,True
+SC,4205506,Fraiburgo,Área Rural de Fraiburgo,area rural de fraiburgo,,,dne,True
+SC,4205506,Fraiburgo,Bela Vista,bela vista,,,dne,True
+SC,4205506,Fraiburgo,Butiá Verde,butia verde,,,dne,True
+SC,4205506,Fraiburgo,Centro,centro,,,dne,True
+SC,4205506,Fraiburgo,Colina do Sol,colina do sol,,,dne,True
+SC,4205506,Fraiburgo,Das Nações,das nacoes,,,dne,True
+SC,4205506,Fraiburgo,Dez de Novembro,dez de novembro,,,dne,True
+SC,4205506,Fraiburgo,Fischer,fischer,,,dne,True
+SC,4205506,Fraiburgo,Jardim América,jardim america,,,dne,True
+SC,4205506,Fraiburgo,Jardim das Araucárias,jardim das araucarias,,,dne,True
+SC,4205506,Fraiburgo,Jardim das Hortências,jardim das hortencias,,,dne,True
+SC,4205506,Fraiburgo,Liberata,liberata,,,dne,True
+SC,4205506,Fraiburgo,Macieira,macieira,,,dne,True
+SC,4205506,Fraiburgo,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+SC,4205506,Fraiburgo,Nossa Senhora da Salete,nossa senhora da salete,,,dne,True
+SC,4205506,Fraiburgo,Papuã,papua,,,dne,True
+SC,4205506,Fraiburgo,Portal,portal,,,dne,True
+SC,4205506,Fraiburgo,Roland Mayer,roland mayer,,,dne,True
+SC,4205506,Fraiburgo,Santa Mônica,santa monica,,,dne,True
+SC,4205506,Fraiburgo,Santa Sara,santa sara,,,dne,True
+SC,4205506,Fraiburgo,Santo Antônio,santo antonio,,,dne,True
+SC,4205506,Fraiburgo,São Cristovão,sao cristovao,,,dne,True
+SC,4205506,Fraiburgo,São José,sao jose,,,dne,True
+SC,4205506,Fraiburgo,São Miguel,sao miguel,,,dne,True
+SC,4205506,Fraiburgo,São Roque,sao roque,,,dne,True
+SC,4205506,Fraiburgo,São Sebastião,sao sebastiao,,,dne,True
+SC,4205555,Frei Rogério,Centro,centro,,,dne,True
+SC,4205555,Frei Rogério,Núcleo Triticula,nucleo triticula,,,dne,True
+SC,4205605,Galvão,Centro,centro,,,dne,True
+SC,4205704,Garopaba,Campo D'una,campo d una,,,dne,True
+SC,4205704,Garopaba,Centro,centro,,,dne,True
+SC,4205803,Garuva,Centro,centro,,,dne,True
+SC,4205902,Gaspar,Alto Gasparinho,alto gasparinho,,,dne,True
+SC,4205902,Gaspar,Área Rural de Gaspar,area rural de gaspar,,,dne,True
+SC,4205902,Gaspar,Arraial D'Ouro,arraial d ouro,,,dne,True
+SC,4205902,Gaspar,Barracão,barracao,,,dne,True
+SC,4205902,Gaspar,Bateias,bateias,,,dne,True
+SC,4205902,Gaspar,Bela Vista,bela vista,,,dne,True
+SC,4205902,Gaspar,Belchior Alto,belchior alto,,,dne,True
+SC,4205902,Gaspar,Belchior Baixo,belchior baixo,,,dne,True
+SC,4205902,Gaspar,Belchior Central,belchior central,,,dne,True
+SC,4205902,Gaspar,Centro,centro,,,dne,True
+SC,4205902,Gaspar,Coloninha,coloninha,,,dne,True
+SC,4205902,Gaspar,Figueira,figueira,,,dne,True
+SC,4205902,Gaspar,Gaspar Alto,gaspar alto,,,dne,True
+SC,4205902,Gaspar,Gaspar Grande,gaspar grande,,,dne,True
+SC,4205902,Gaspar,Gaspar Mirim,gaspar mirim,,,dne,True
+SC,4205902,Gaspar,Gasparinho,gasparinho,,,dne,True
+SC,4205902,Gaspar,Lagoa,lagoa,,,dne,True
+SC,4205902,Gaspar,Macucos,macucos,,,dne,True
+SC,4205902,Gaspar,Margem Esquerda,margem esquerda,,,dne,True
+SC,4205902,Gaspar,Poço Grande,poco grande,,,dne,True
+SC,4205902,Gaspar,Santa Terezinha,santa terezinha,,,dne,True
+SC,4205902,Gaspar,Sete de Setembro,sete de setembro,,,dne,True
+SC,4206009,Governador Celso Ramos,Área Rural de Governador Celso Ramos,area rural de governador celso ramos,,,dne,True
+SC,4206009,Governador Celso Ramos,Areias de Baixo,areias de baixo,,,dne,True
+SC,4206009,Governador Celso Ramos,Areias de Cima,areias de cima,,,dne,True
+SC,4206009,Governador Celso Ramos,Areias do Meio,areias do meio,,,dne,True
+SC,4206009,Governador Celso Ramos,Armação da Piedade,armacao da piedade,,,dne,True
+SC,4206009,Governador Celso Ramos,Caieira do Norte,caieira do norte,,,dne,True
+SC,4206009,Governador Celso Ramos,Calheiros,calheiros,,,dne,True
+SC,4206009,Governador Celso Ramos,Camboa,camboa,,,dne,True
+SC,4206009,Governador Celso Ramos,Canto dos Ganchos,canto dos ganchos,,,dne,True
+SC,4206009,Governador Celso Ramos,Conjunto Central de Montanhas,conjunto central de montanhas,,,dne,True
+SC,4206009,Governador Celso Ramos,Costeira da Armação,costeira da armacao,,,dne,True
+SC,4206009,Governador Celso Ramos,Dona Lucinda,dona lucinda,,,dne,True
+SC,4206009,Governador Celso Ramos,Fazenda da Armação,fazenda da armacao,,,dne,True
+SC,4206009,Governador Celso Ramos,Ganchos de Fora,ganchos de fora,,,dne,True
+SC,4206009,Governador Celso Ramos,Ganchos do Meio,ganchos do meio,,,dne,True
+SC,4206009,Governador Celso Ramos,Jordão,jordao,,,dne,True
+SC,4206009,Governador Celso Ramos,Palmas,palmas,,,dne,True
+SC,4206009,Governador Celso Ramos,Parque Industrial Norte,parque industrial norte,,,dne,True
+SC,4206009,Governador Celso Ramos,Parque Industrial Sul,parque industrial sul,,,dne,True
+SC,4206009,Governador Celso Ramos,Praia do Antenor,praia do antenor,,,dne,True
+SC,4206009,Governador Celso Ramos,Praia Grande,praia grande,,,dne,True
+SC,4206108,Grão-Pará,Aiurê,aiure,,,dne,True
+SC,4206108,Grão-Pará,Centro,centro,,,dne,True
+SC,4206108,Grão-Pará,Invernada,invernada,,,dne,True
+SC,4206207,Gravatal,Centro,centro,,,dne,True
+SC,4206306,Guabiruba,Centro,centro,,,dne,True
+SC,4206405,Guaraciaba,Centro,centro,,,dne,True
+SC,4206405,Guaraciaba,Ouro Verde,ouro verde,,,dne,True
+SC,4206504,Guaramirim,Amizade,amizade,,,dne,True
+SC,4206504,Guaramirim,Área Rural,area rural,,,dne,True
+SC,4206504,Guaramirim,Avaí,avai,,,dne,True
+SC,4206504,Guaramirim,Bananal do Sul,bananal do sul,,,dne,True
+SC,4206504,Guaramirim,Barro Branco,barro branco,,,dne,True
+SC,4206504,Guaramirim,Beira Rio,beira rio,,,dne,True
+SC,4206504,Guaramirim,Bruderthal I,bruderthal i,,,dne,True
+SC,4206504,Guaramirim,Caixa D Água,caixa d agua,,,dne,True
+SC,4206504,Guaramirim,Centro,centro,,,dne,True
+SC,4206504,Guaramirim,Corticeira,corticeira,,,dne,True
+SC,4206504,Guaramirim,Corticeirinha,corticeirinha,,,dne,True
+SC,4206504,Guaramirim,Escolinha,escolinha,,,dne,True
+SC,4206504,Guaramirim,Figueirinha,figueirinha,,,dne,True
+SC,4206504,Guaramirim,Guamiranga,guamiranga,,,dne,True
+SC,4206504,Guaramirim,Ilha da Figueira,ilha da figueira,,,dne,True
+SC,4206504,Guaramirim,Imigrantes,imigrantes,,,dne,True
+SC,4206504,Guaramirim,Jacu-Açu,jacu acu,,,dne,True
+SC,4206504,Guaramirim,Nova Esperança,nova esperanca,,,dne,True
+SC,4206504,Guaramirim,Poço Grande,poco grande,,,dne,True
+SC,4206504,Guaramirim,Quati,quati,,,dne,True
+SC,4206504,Guaramirim,Recanto Feliz,recanto feliz,,,dne,True
+SC,4206504,Guaramirim,Rio Branco,rio branco,,,dne,True
+SC,4206504,Guaramirim,Vila Amizade,vila amizade,,,dne,True
+SC,4206603,Guarujá do Sul,Centro,centro,,,dne,True
+SC,4206652,Guatambú,Centro,centro,,,dne,True
+SC,4206652,Guatambú,Fazenda Zandavalli,fazenda zandavalli,,,dne,True
+SC,4206702,Herval d'Oeste,Centro,centro,,,dne,True
+SC,4206751,Ibiam,Centro,centro,,,dne,True
+SC,4206801,Ibicaré,Centro,centro,,,dne,True
+SC,4206900,Ibirama,Centro,centro,,,dne,True
+SC,4206900,Ibirama,Dalbérgia,dalbergia,,,dne,True
+SC,4206900,Ibirama,Distrito de Dalbérgia,distrito de dalbergia,,,dne,True
+SC,4207007,Içara,Alto Alegre,alto alegre,,,dne,True
+SC,4207007,Içara,Área Rural de Içara,area rural de icara,,,dne,True
+SC,4207007,Içara,Aurora,aurora,,,dne,True
+SC,4207007,Içara,Barracão,barracao,,,dne,True
+SC,4207007,Içara,Boa Vista,boa vista,,,dne,True
+SC,4207007,Içara,Campo Mãe Luzia,campo mae luzia,,,dne,True
+SC,4207007,Içara,Centro,centro,,,dne,True
+SC,4207007,Içara,Coqueiros,coqueiros,,,dne,True
+SC,4207007,Içara,Cristo Rei,cristo rei,,,dne,True
+SC,4207007,Içara,Demboski,demboski,,,dne,True
+SC,4207007,Içara,Esperança,esperanca,,,dne,True
+SC,4207007,Içara,Espigão,espigao,,,dne,True
+SC,4207007,Içara,Esplanada,esplanada,,,dne,True
+SC,4207007,Içara,Jaqueline,jaqueline,,,dne,True
+SC,4207007,Içara,Jardim Elizabete,jardim elizabete,,,dne,True
+SC,4207007,Içara,Jardim Silvana,jardim silvana,,,dne,True
+SC,4207007,Içara,Jussara,jussara,,,dne,True
+SC,4207007,Içara,Linha Anta,linha anta,,,dne,True
+SC,4207007,Içara,Linha Pasqualini,linha pasqualini,,,dne,True
+SC,4207007,Içara,Linha Zilli,linha zilli,,,dne,True
+SC,4207007,Içara,Liri,liri,,,dne,True
+SC,4207007,Içara,Lombas,lombas,,,dne,True
+SC,4207007,Içara,Marili,marili,,,dne,True
+SC,4207007,Içara,Morro Bonito,morro bonito,,,dne,True
+SC,4207007,Içara,Nossa Senhora de Fátima,nossa senhora de fatima,,,dne,True
+SC,4207007,Içara,Novo Caravágio,novo caravagio,,,dne,True
+SC,4207007,Içara,Poço Oito,poco oito,,,dne,True
+SC,4207007,Içara,Poço Três,poco tres,,,dne,True
+SC,4207007,Içara,Ponta do Mato,ponta do mato,,,dne,True
+SC,4207007,Içara,Presidente Vargas,presidente vargas,,,dne,True
+SC,4207007,Içara,Primeiro de Maio,primeiro de maio,,,dne,True
+SC,4207007,Içara,Raichaski,raichaski,,,dne,True
+SC,4207007,Içara,Rio Acima,rio acima,,,dne,True
+SC,4207007,Içara,Rio dos Anjos,rio dos anjos,,,dne,True
+SC,4207007,Içara,Ronco D'Água,ronco d agua,,,dne,True
+SC,4207007,Içara,Sanga Funda,sanga funda,,,dne,True
+SC,4207007,Içara,Santa Cruz,santa cruz,,,dne,True
+SC,4207007,Içara,São Rafael,sao rafael,,,dne,True
+SC,4207007,Içara,Tereza Cristina,tereza cristina,,,dne,True
+SC,4207007,Içara,Vila Alvorada,vila alvorada,,,dne,True
+SC,4207007,Içara,Vila Nova,vila nova,,,dne,True
+SC,4207007,Içara,Vila São José,vila sao jose,,,dne,True
+SC,4207007,Içara,Vila São Pedro,vila sao pedro,,,dne,True
+SC,4207106,Ilhota,Alto Baú,alto bau,,,dne,True
+SC,4207106,Ilhota,Área Rural de Ilhota,area rural de ilhota,,,dne,True
+SC,4207106,Ilhota,Barra de Luiz Alves,barra de luiz alves,,,dne,True
+SC,4207106,Ilhota,Barranco Alto,barranco alto,,,dne,True
+SC,4207106,Ilhota,Baú Baixo,bau baixo,,,dne,True
+SC,4207106,Ilhota,Baú Central,bau central,,,dne,True
+SC,4207106,Ilhota,Baú Seco,bau seco,,,dne,True
+SC,4207106,Ilhota,Boa Vista,boa vista,,,dne,True
+SC,4207106,Ilhota,Braço do Baú,braco do bau,,,dne,True
+SC,4207106,Ilhota,Centro,centro,,,dne,True
+SC,4207106,Ilhota,Ilhotinha,ilhotinha,,,dne,True
+SC,4207106,Ilhota,Minas,minas,,,dne,True
+SC,4207106,Ilhota,Missões,missoes,,,dne,True
+SC,4207106,Ilhota,Pedra de Amolar,pedra de amolar,,,dne,True
+SC,4207106,Ilhota,Pocinho,pocinho,,,dne,True
+SC,4207106,Ilhota,São João,sao joao,,,dne,True
+SC,4207205,Imaruí,Centro,centro,,,dne,True
+SC,4207205,Imaruí,Distrito Rio D'Una,distrito rio d una,,,dne,True
+SC,4207205,Imaruí,Rio D'Una,rio d una,,,dne,True
+SC,4207304,Imbituba,Alto Arroio,alto arroio,,,dne,True
+SC,4207304,Imbituba,Araçatuba,aracatuba,,,dne,True
+SC,4207304,Imbituba,Centro,centro,,,dne,True
+SC,4207304,Imbituba,GUAIÚBA,guaiuba,,,dne,True
+SC,4207304,Imbituba,Ibiraquera,ibiraquera,,,dne,True
+SC,4207304,Imbituba,Mirim,mirim,,,dne,True
+SC,4207304,Imbituba,Povoado de Nova Brasília,povoado de nova brasilia,,,dne,True
+SC,4207304,Imbituba,Roca Grande,roca grande,,,dne,True
+SC,4207304,Imbituba,Vila Nova,vila nova,,,dne,True
+SC,4207403,Imbuia,Centro,centro,,,dne,True
+SC,4207502,Indaial,Arapongas,arapongas,,,dne,True
+SC,4207502,Indaial,Área Rural de Indaial,area rural de indaial,,,dne,True
+SC,4207502,Indaial,Benedito,benedito,,,dne,True
+SC,4207502,Indaial,Carijós,carijos,,,dne,True
+SC,4207502,Indaial,Centro,centro,,,dne,True
+SC,4207502,Indaial,Encano,encano,,,dne,True
+SC,4207502,Indaial,Encano do Norte,encano do norte,,,dne,True
+SC,4207502,Indaial,Estados,estados,,,dne,True
+SC,4207502,Indaial,Estrada das Areias,estrada das areias,,,dne,True
+SC,4207502,Indaial,Estradinha,estradinha,,,dne,True
+SC,4207502,Indaial,João Paulo II,joao paulo ii,,,dne,True
+SC,4207502,Indaial,Mulde,mulde,,,dne,True
+SC,4207502,Indaial,Nações,nacoes,,,dne,True
+SC,4207502,Indaial,Polaquia,polaquia,,,dne,True
+SC,4207502,Indaial,Ribeirão das Pedras,ribeirao das pedras,,,dne,True
+SC,4207502,Indaial,Rio Morto,rio morto,,,dne,True
+SC,4207502,Indaial,Sol,sol,,,dne,True
+SC,4207502,Indaial,Tapajós,tapajos,,,dne,True
+SC,4207502,Indaial,Warnow,warnow,,,dne,True
+SC,4207577,Iomerê,Centro,centro,,,dne,True
+SC,4207601,Ipira,Centro,centro,,,dne,True
+SC,4207650,Iporã do Oeste,Centro,centro,,,dne,True
+SC,4207684,Ipuaçu,Centro,centro,,,dne,True
+SC,4207700,Ipumirim,Centro,centro,,,dne,True
+SC,4207759,Iraceminha,Centro,centro,,,dne,True
+SC,4207759,Iraceminha,Distrito de São José do Laranjal,distrito de sao jose do laranjal,,,dne,True
+SC,4207759,Iraceminha,São José do Laranjal,sao jose do laranjal,,,dne,True
+SC,4207809,Irani,Centro,centro,,,dne,True
+SC,4207858,Irati,Centro,centro,,,dne,True
+SC,4207908,Irineópolis,Centro,centro,,,dne,True
+SC,4207908,Irineópolis,Poço Preto,poco preto,,,dne,True
+SC,4208005,Itá,Centro,centro,,,dne,True
+SC,4208104,Itaiópolis,Centro,centro,,,dne,True
+SC,4208104,Itaiópolis,Distrito de Iraputã,distrito de iraputa,,,dne,True
+SC,4208104,Itaiópolis,Distrito de Itaió,distrito de itaio,,,dne,True
+SC,4208104,Itaiópolis,Distrito de Moema,distrito de moema,,,dne,True
+SC,4208104,Itaiópolis,Distrito Iraputã,distrito iraputa,,,dne,True
+SC,4208104,Itaiópolis,Iraputã,iraputa,,,dne,True
+SC,4208104,Itaiópolis,Itaió,itaio,,,dne,True
+SC,4208104,Itaiópolis,Rio da Anta,rio da anta,,,dne,True
+SC,4208203,Itajaí,Área Rural de Itajaí,area rural de itajai,,,dne,True
+SC,4208203,Itajaí,Arraial dos Cunhas,arraial dos cunhas,,,dne,True
+SC,4208203,Itajaí,Baia,baia,,,dne,True
+SC,4208203,Itajaí,Barra do Rio,barra do rio,,,dne,True
+SC,4208203,Itajaí,Brilhante I,brilhante i,,,dne,True
+SC,4208203,Itajaí,Brilhante II,brilhante ii,,,dne,True
+SC,4208203,Itajaí,Cabeçudas,cabecudas,,,dne,True
+SC,4208203,Itajaí,Campeche,campeche,,,dne,True
+SC,4208203,Itajaí,Canhanduba,canhanduba,,,dne,True
+SC,4208203,Itajaí,Carvalho,carvalho,,,dne,True
+SC,4208203,Itajaí,Centro,centro,,,dne,True
+SC,4208203,Itajaí,Cidade Nova,cidade nova,,,dne,True
+SC,4208203,Itajaí,Cordeiros,cordeiros,,,dne,True
+SC,4208203,Itajaí,Dom Bosco,dom bosco,,,dne,True
+SC,4208203,Itajaí,Espinheiros,espinheiros,,,dne,True
+SC,4208203,Itajaí,Fazenda,fazenda,,,dne,True
+SC,4208203,Itajaí,Fazendinha,fazendinha,,,dne,True
+SC,4208203,Itajaí,Itaipava,itaipava,,,dne,True
+SC,4208203,Itajaí,Limoeiro,limoeiro,,,dne,True
+SC,4208203,Itajaí,Marui,marui,,,dne,True
+SC,4208203,Itajaí,Murta,murta,,,dne,True
+SC,4208203,Itajaí,Paciência,paciencia,,,dne,True
+SC,4208203,Itajaí,Praia Brava de Itajaí,praia brava de itajai,,,dne,True
+SC,4208203,Itajaí,Quilometro 12,quilometro 12,,,dne,True
+SC,4208203,Itajaí,Ressacada,ressacada,,,dne,True
+SC,4208203,Itajaí,Rio do Meio,rio do meio,,,dne,True
+SC,4208203,Itajaí,Rio Novo (Colônia Japonesa),rio novo colonia japonesa,,,dne,True
+SC,4208203,Itajaí,Salseiros,salseiros,,,dne,True
+SC,4208203,Itajaí,Santa Regina,santa regina,,,dne,True
+SC,4208203,Itajaí,São João,sao joao,,,dne,True
+SC,4208203,Itajaí,São Judas,sao judas,,,dne,True
+SC,4208203,Itajaí,São Roque,sao roque,,,dne,True
+SC,4208203,Itajaí,São Vicente,sao vicente,,,dne,True
+SC,4208203,Itajaí,Vila Operária,vila operaria,,,dne,True
+SC,4208302,Itapema,Centro,centro,,,dne,True
+SC,4208302,Itapema,Morretes,morretes,,,dne,True
+SC,4208401,Itapiranga,Centro,centro,,,dne,True
+SC,4208450,Itapoá,1° de Julho,1 de julho,,,dne,True
+SC,4208450,Itapoá,Água Branca,agua branca,,,dne,True
+SC,4208450,Itapoá,Área Rural de Itapoá,area rural de itapoa,,,dne,True
+SC,4208450,Itapoá,Bamerindus,bamerindus,,,dne,True
+SC,4208450,Itapoá,Barra do Saí,barra do sai,,,dne,True
+SC,4208450,Itapoá,Braço do Norte,braco do norte,,,dne,True
+SC,4208450,Itapoá,Cambijú,cambiju,,,dne,True
+SC,4208450,Itapoá,Centro,centro,,,dne,True
+SC,4208450,Itapoá,Continental,continental,,,dne,True
+SC,4208450,Itapoá,Entre-Rios,entre rios,,,dne,True
+SC,4208450,Itapoá,Figueira do Pontal,figueira do pontal,,,dne,True
+SC,4208450,Itapoá,Itapema do Norte,itapema do norte,,,dne,True
+SC,4208450,Itapoá,Jaguaruna,jaguaruna,,,dne,True
+SC,4208450,Itapoá,Maresia,maresia,,,dne,True
+SC,4208450,Itapoá,Paese,paese,,,dne,True
+SC,4208450,Itapoá,Pontal do Norte,pontal do norte,,,dne,True
+SC,4208450,Itapoá,Rainha,rainha,,,dne,True
+SC,4208450,Itapoá,Saí Guaçu,sai guacu,,,dne,True
+SC,4208450,Itapoá,Saí Mirim,sai mirim,,,dne,True
+SC,4208450,Itapoá,Samambaial,samambaial,,,dne,True
+SC,4208450,Itapoá,São José,sao jose,,,dne,True
+SC,4208450,Itapoá,Vila Guilherme,vila guilherme,,,dne,True
+SC,4208500,Ituporanga,Centro,centro,,,dne,True
+SC,4208500,Ituporanga,Rio Bonito,rio bonito,,,dne,True
+SC,4208500,Ituporanga,Rio dos Bugres,rio dos bugres,,,dne,True
+SC,4208609,Jaborá,Centro,centro,,,dne,True
+SC,4208708,Jacinto Machado,Centro,centro,,,dne,True
+SC,4208807,Jaguaruna,Camacho,camacho,,,dne,True
+SC,4208807,Jaguaruna,Campo Bom,campo bom,,,dne,True
+SC,4208807,Jaguaruna,Centro,centro,,,dne,True
+SC,4208807,Jaguaruna,Olho D'Água,olho d agua,,,dne,True
+SC,4208906,Jaraguá do Sul,Água Verde,agua verde,,,dne,True
+SC,4208906,Jaraguá do Sul,Águas Claras,aguas claras,,,dne,True
+SC,4208906,Jaraguá do Sul,Amizade,amizade,,,dne,True
+SC,4208906,Jaraguá do Sul,Área Rural de Jaraguá do Sul,area rural de jaragua do sul,,,dne,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Cerro,barra do rio cerro,,,dne,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Molha,barra do rio molha,,,dne,True
+SC,4208906,Jaraguá do Sul,Boa Vista,boa vista,,,dne,True
+SC,4208906,Jaraguá do Sul,Braço do Ribeirão Cavalo,braco do ribeirao cavalo,,,dne,True
+SC,4208906,Jaraguá do Sul,Centenário,centenario,,,dne,True
+SC,4208906,Jaraguá do Sul,Centro,centro,,,dne,True
+SC,4208906,Jaraguá do Sul,Chico de Paulo,chico de paulo,,,dne,True
+SC,4208906,Jaraguá do Sul,Czerniewicz,czerniewicz,,,dne,True
+SC,4208906,Jaraguá do Sul,Estrada Nova,estrada nova,,,dne,True
+SC,4208906,Jaraguá do Sul,Ilha da Figueira,ilha da figueira,,,dne,True
+SC,4208906,Jaraguá do Sul,Jaraguá 84,jaragua 84,,,dne,True
+SC,4208906,Jaraguá do Sul,Jaraguá 99,jaragua 99,,,dne,True
+SC,4208906,Jaraguá do Sul,Jaraguá Esquerdo,jaragua esquerdo,,,dne,True
+SC,4208906,Jaraguá do Sul,João Pessoa,joao pessoa,,,dne,True
+SC,4208906,Jaraguá do Sul,Nereu Ramos,nereu ramos,,,dne,True
+SC,4208906,Jaraguá do Sul,Nova Brasília,nova brasilia,,,dne,True
+SC,4208906,Jaraguá do Sul,Núcleo Urbano Isolado Residencial Duquesa de Chartres,nucleo urbano isolado residencial duquesa de chartres,,,dne,True
+SC,4208906,Jaraguá do Sul,Parque Malwee,parque malwee,,,dne,True
+SC,4208906,Jaraguá do Sul,Rau,rau,,,dne,True
+SC,4208906,Jaraguá do Sul,Ribeirão Cavalo,ribeirao cavalo,,,dne,True
+SC,4208906,Jaraguá do Sul,Rio Cerro I,rio cerro i,,,dne,True
+SC,4208906,Jaraguá do Sul,Rio Cerro II,rio cerro ii,,,dne,True
+SC,4208906,Jaraguá do Sul,Rio da Luz,rio da luz,,,dne,True
+SC,4208906,Jaraguá do Sul,Rio Molha,rio molha,,,dne,True
+SC,4208906,Jaraguá do Sul,Santa Luzia,santa luzia,,,dne,True
+SC,4208906,Jaraguá do Sul,Santo Antônio,santo antonio,,,dne,True
+SC,4208906,Jaraguá do Sul,São Luís,sao luis,,,dne,True
+SC,4208906,Jaraguá do Sul,Tifa Martins,tifa martins,,,dne,True
+SC,4208906,Jaraguá do Sul,Tifa Monos,tifa monos,,,dne,True
+SC,4208906,Jaraguá do Sul,Três Rios do Norte,tres rios do norte,,,dne,True
+SC,4208906,Jaraguá do Sul,Três Rios do Sul,tres rios do sul,,,dne,True
+SC,4208906,Jaraguá do Sul,Vieira,vieira,,,dne,True
+SC,4208906,Jaraguá do Sul,Vila Baependi,vila baependi,,,dne,True
+SC,4208906,Jaraguá do Sul,Vila Lalau,vila lalau,,,dne,True
+SC,4208906,Jaraguá do Sul,Vila Lenzi,vila lenzi,,,dne,True
+SC,4208906,Jaraguá do Sul,Vila Nova,vila nova,,,dne,True
+SC,4208955,Jardinópolis,Centro,centro,,,dne,True
+SC,4209003,Joaçaba,Centro,centro,,,dne,True
+SC,4209003,Joaçaba,Distrito de Nova Petrópolis,distrito de nova petropolis,,,dne,True
+SC,4209003,Joaçaba,Frei Bruno,frei bruno,,,dne,True
+SC,4209003,Joaçaba,Nova Petrópolis,nova petropolis,,,dne,True
+SC,4209003,Joaçaba,Santa Helena,santa helena,,,dne,True
+SC,4209102,Joinville,Adhemar Garcia,adhemar garcia,,,dne,True
+SC,4209102,Joinville,América,america,,,dne,True
+SC,4209102,Joinville,Anita Garibaldi,anita garibaldi,,,dne,True
+SC,4209102,Joinville,Área Rural de Joinville,area rural de joinville,,,dne,True
+SC,4209102,Joinville,Atiradores,atiradores,,,dne,True
+SC,4209102,Joinville,Aventureiro,aventureiro,,,dne,True
+SC,4209102,Joinville,Boa Vista,boa vista,,,dne,True
+SC,4209102,Joinville,Boehmerwald,boehmerwald,,,dne,True
+SC,4209102,Joinville,Bom Retiro,bom retiro,,,dne,True
+SC,4209102,Joinville,Bucarein,bucarein,,,dne,True
+SC,4209102,Joinville,Centro,centro,,,dne,True
+SC,4209102,Joinville,Comasa,comasa,,,dne,True
+SC,4209102,Joinville,Costa e Silva,costa e silva,,,dne,True
+SC,4209102,Joinville,Dona Francisca (Pirabeiraba),dona francisca pirabeiraba,,,dne,True
+SC,4209102,Joinville,Espinheiros,espinheiros,,,dne,True
+SC,4209102,Joinville,Fátima,fatima,,,dne,True
+SC,4209102,Joinville,Floresta,floresta,,,dne,True
+SC,4209102,Joinville,Glória,gloria,,,dne,True
+SC,4209102,Joinville,Guanabara,guanabara,,,dne,True
+SC,4209102,Joinville,Iririú,iririu,,,dne,True
+SC,4209102,Joinville,Itaum,itaum,,,dne,True
+SC,4209102,Joinville,Itinga,itinga,,,dne,True
+SC,4209102,Joinville,Jardim Iririú,jardim iririu,,,dne,True
+SC,4209102,Joinville,Jardim Paraíso,jardim paraiso,,,dne,True
+SC,4209102,Joinville,Jardim Sofia,jardim sofia,,,dne,True
+SC,4209102,Joinville,Jarivatuba,jarivatuba,,,dne,True
+SC,4209102,Joinville,João Costa,joao costa,,,dne,True
+SC,4209102,Joinville,Marinas,marinas,,,dne,True
+SC,4209102,Joinville,Morro do Meio,morro do meio,,,dne,True
+SC,4209102,Joinville,Nova Brasília,nova brasilia,,,dne,True
+SC,4209102,Joinville,Paranaguamirim,paranaguamirim,,,dne,True
+SC,4209102,Joinville,Parque Guarani,parque guarani,,,dne,True
+SC,4209102,Joinville,Petrópolis,petropolis,,,dne,True
+SC,4209102,Joinville,Pirabeiraba (Pirabeiraba),pirabeiraba pirabeiraba,,,dne,True
+SC,4209102,Joinville,Profipo,profipo,,,dne,True
+SC,4209102,Joinville,Rio Bonito (Pirabeiraba),rio bonito pirabeiraba,,,dne,True
+SC,4209102,Joinville,Saguaçu,saguacu,,,dne,True
+SC,4209102,Joinville,Santa Catarina,santa catarina,,,dne,True
+SC,4209102,Joinville,Santo Antônio,santo antonio,,,dne,True
+SC,4209102,Joinville,São Marcos,sao marcos,,,dne,True
+SC,4209102,Joinville,Ulysses Guimarães,ulysses guimaraes,,,dne,True
+SC,4209102,Joinville,Vale Verde,vale verde,,,dne,True
+SC,4209102,Joinville,Vila Cubatão,vila cubatao,,,dne,True
+SC,4209102,Joinville,Vila Nova,vila nova,,,dne,True
+SC,4209102,Joinville,Zona Industrial Norte,zona industrial norte,,,dne,True
+SC,4209102,Joinville,Zona Industrial Tupy,zona industrial tupy,,,dne,True
+SC,4209151,José Boiteux,Centro,centro,,,dne,True
+SC,4209177,Jupiá,Centro,centro,,,dne,True
+SC,4209201,Lacerdópolis,Centro,centro,,,dne,True
+SC,4209300,Lages,Araucária,araucaria,,,dne,True
+SC,4209300,Lages,Área Industrial,area industrial,,,dne,True
+SC,4209300,Lages,Área Rural de Lages,area rural de lages,,,dne,True
+SC,4209300,Lages,Bates,bates,,,dne,True
+SC,4209300,Lages,Beatriz,beatriz,,,dne,True
+SC,4209300,Lages,Bela Vista,bela vista,,,dne,True
+SC,4209300,Lages,Bom Jesus,bom jesus,,,dne,True
+SC,4209300,Lages,Boqueirão,boqueirao,,,dne,True
+SC,4209300,Lages,Brusque,brusque,,,dne,True
+SC,4209300,Lages,Caça e Tiro,caca e tiro,,,dne,True
+SC,4209300,Lages,Caravágio,caravagio,,,dne,True
+SC,4209300,Lages,Caroba,caroba,,,dne,True
+SC,4209300,Lages,CDL,cdl,,,dne,True
+SC,4209300,Lages,Centenário,centenario,,,dne,True
+SC,4209300,Lages,Centro,centro,,,dne,True
+SC,4209300,Lages,Chapada,chapada,,,dne,True
+SC,4209300,Lages,Cidade Alta,cidade alta,,,dne,True
+SC,4209300,Lages,Conta Dinheiro,conta dinheiro,,,dne,True
+SC,4209300,Lages,Copacabana,copacabana,,,dne,True
+SC,4209300,Lages,Coral,coral,,,dne,True
+SC,4209300,Lages,Cruz de Malta,cruz de malta,,,dne,True
+SC,4209300,Lages,Dom Daniel,dom daniel,,,dne,True
+SC,4209300,Lages,Ferrovia,ferrovia,,,dne,True
+SC,4209300,Lages,Frei Rogério,frei rogerio,,,dne,True
+SC,4209300,Lages,Gethal,gethal,,,dne,True
+SC,4209300,Lages,Guadalupe,guadalupe,,,dne,True
+SC,4209300,Lages,Guarujá,guaruja,,,dne,True
+SC,4209300,Lages,Habitação,habitacao,,,dne,True
+SC,4209300,Lages,Índios,indios,,,dne,True
+SC,4209300,Lages,Ipiranga,ipiranga,,,dne,True
+SC,4209300,Lages,Jardim Celina,jardim celina,,,dne,True
+SC,4209300,Lages,Jardim das Camélias,jardim das camelias,,,dne,True
+SC,4209300,Lages,Jardim Panorâmico,jardim panoramico,,,dne,True
+SC,4209300,Lages,Maria Luiza,maria luiza,,,dne,True
+SC,4209300,Lages,Morro do Posto,morro do posto,,,dne,True
+SC,4209300,Lages,Morro Grande,morro grande,,,dne,True
+SC,4209300,Lages,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+SC,4209300,Lages,Passo Fundo,passo fundo,,,dne,True
+SC,4209300,Lages,Penha,penha,,,dne,True
+SC,4209300,Lages,Petrópolis,petropolis,,,dne,True
+SC,4209300,Lages,Pinheiro Seco,pinheiro seco,,,dne,True
+SC,4209300,Lages,Pisani,pisani,,,dne,True
+SC,4209300,Lages,Ponte Grande,ponte grande,,,dne,True
+SC,4209300,Lages,Popular,popular,,,dne,True
+SC,4209300,Lages,Promorar,promorar,,,dne,True
+SC,4209300,Lages,Restinga Seca,restinga seca,,,dne,True
+SC,4209300,Lages,Sagrado Coração de Jesus,sagrado coracao de jesus,,,dne,True
+SC,4209300,Lages,Santa Cândida,santa candida,,,dne,True
+SC,4209300,Lages,Santa Catarina,santa catarina,,,dne,True
+SC,4209300,Lages,Santa Clara,santa clara,,,dne,True
+SC,4209300,Lages,Santa Helena,santa helena,,,dne,True
+SC,4209300,Lages,Santa Maria,santa maria,,,dne,True
+SC,4209300,Lages,Santa Mônica,santa monica,,,dne,True
+SC,4209300,Lages,Santa Rita,santa rita,,,dne,True
+SC,4209300,Lages,Santa Terezinha do Salto,santa terezinha do salto,,,dne,True
+SC,4209300,Lages,Santo Antônio,santo antonio,,,dne,True
+SC,4209300,Lages,São Cristóvão,sao cristovao,,,dne,True
+SC,4209300,Lages,São Francisco,sao francisco,,,dne,True
+SC,4209300,Lages,São Luiz,sao luiz,,,dne,True
+SC,4209300,Lages,São Miguel,sao miguel,,,dne,True
+SC,4209300,Lages,São Paulo,sao paulo,,,dne,True
+SC,4209300,Lages,São Pedro,sao pedro,,,dne,True
+SC,4209300,Lages,São Sebastião,sao sebastiao,,,dne,True
+SC,4209300,Lages,Triângulo,triangulo,,,dne,True
+SC,4209300,Lages,Tributo,tributo,,,dne,True
+SC,4209300,Lages,Universitário,universitario,,,dne,True
+SC,4209300,Lages,Várzea,varzea,,,dne,True
+SC,4209300,Lages,Vila Comboni,vila comboni,,,dne,True
+SC,4209300,Lages,Vila Maria,vila maria,,,dne,True
+SC,4209300,Lages,Vila Mariza,vila mariza,,,dne,True
+SC,4209300,Lages,Vila Nova,vila nova,,,dne,True
+SC,4209300,Lages,Vista Alegre,vista alegre,,,dne,True
+SC,4209409,Laguna,Canto da Lagoa,canto da lagoa,,,dne,True
+SC,4209409,Laguna,Centro,centro,,,dne,True
+SC,4209409,Laguna,Povoado de Passagem da Barra,povoado de passagem da barra,,,dne,True
+SC,4209409,Laguna,Ribeirão Pequeno,ribeirao pequeno,,,dne,True
+SC,4209458,Lajeado Grande,Centro,centro,,,dne,True
+SC,4209508,Laurentino,Centro,centro,,,dne,True
+SC,4209607,Lauro Müller,Barro Branco,barro branco,,,dne,True
+SC,4209607,Lauro Müller,Centro,centro,,,dne,True
+SC,4209607,Lauro Müller,Guatá,guata,,,dne,True
+SC,4209607,Lauro Müller,Povoado de Itanema,povoado de itanema,,,dne,True
+SC,4209706,Lebon Régis,Centro,centro,,,dne,True
+SC,4209706,Lebon Régis,São Sebastião do Sul,sao sebastiao do sul,,,dne,True
+SC,4209805,Leoberto Leal,Centro,centro,,,dne,True
+SC,4209854,Lindóia do Sul,Centro,centro,,,dne,True
+SC,4209904,Lontras,Centro,centro,,,dne,True
+SC,4210001,Luiz Alves,Área Rural,area rural,,,dne,True
+SC,4210001,Luiz Alves,Baixo Canoas,baixo canoas,,,dne,True
+SC,4210001,Luiz Alves,Baixo Máximo,baixo maximo,,,dne,True
+SC,4210001,Luiz Alves,Boa Vista,boa vista,,,dne,True
+SC,4210001,Luiz Alves,Braço Belga,braco belga,,,dne,True
+SC,4210001,Luiz Alves,Braço da Onça,braco da onca,,,dne,True
+SC,4210001,Luiz Alves,Braço Elza,braco elza,,,dne,True
+SC,4210001,Luiz Alves,Centro,centro,,,dne,True
+SC,4210001,Luiz Alves,Dom Bosco,dom bosco,,,dne,True
+SC,4210001,Luiz Alves,Ribeirão do Bugre,ribeirao do bugre,,,dne,True
+SC,4210001,Luiz Alves,Ribeirão do Padre,ribeirao do padre,,,dne,True
+SC,4210001,Luiz Alves,Rio do Peixe,rio do peixe,,,dne,True
+SC,4210001,Luiz Alves,Serafim,serafim,,,dne,True
+SC,4210001,Luiz Alves,Vila do Salto,vila do salto,,,dne,True
+SC,4210001,Luiz Alves,Vila Nova,vila nova,,,dne,True
+SC,4210035,Luzerna,Centro,centro,,,dne,True
+SC,4210050,Macieira,Centro,centro,,,dne,True
+SC,4210100,Mafra,Área Rural de Mafra,area rural de mafra,,,dne,True
+SC,4210100,Mafra,Bela Vista do Sul,bela vista do sul,,,dne,True
+SC,4210100,Mafra,Campo da Lança,campo da lanca,,,dne,True
+SC,4210100,Mafra,Centro I Baixada,centro i baixada,,,dne,True
+SC,4210100,Mafra,Centro II Alto de Mafra,centro ii alto de mafra,,,dne,True
+SC,4210100,Mafra,Distrito de Bela Vista do Sul,distrito de bela vista do sul,,,dne,True
+SC,4210100,Mafra,do Autódromo,do autodromo,,,dne,True
+SC,4210100,Mafra,Espigão do Bugre,espigao do bugre,,,dne,True
+SC,4210100,Mafra,Faxinal,faxinal,,,dne,True
+SC,4210100,Mafra,Jardim América,jardim america,,,dne,True
+SC,4210100,Mafra,Jardim do Moinho,jardim do moinho,,,dne,True
+SC,4210100,Mafra,Restinga,restinga,,,dne,True
+SC,4210100,Mafra,Rio Preto do Sul,rio preto do sul,,,dne,True
+SC,4210100,Mafra,Vila Argentina,vila argentina,,,dne,True
+SC,4210100,Mafra,Vila Buenos Aires,vila buenos aires,,,dne,True
+SC,4210100,Mafra,Vila das Flores,vila das flores,,,dne,True
+SC,4210100,Mafra,Vila Ferroviária,vila ferroviaria,,,dne,True
+SC,4210100,Mafra,Vila Formosa,vila formosa,,,dne,True
+SC,4210100,Mafra,Vila Ivete,vila ivete,,,dne,True
+SC,4210100,Mafra,Vila Nova,vila nova,,,dne,True
+SC,4210100,Mafra,Vila Psheidt,vila psheidt,,,dne,True
+SC,4210209,Major Gercino,Boiteuxburgo,boiteuxburgo,,,dne,True
+SC,4210209,Major Gercino,Centro,centro,,,dne,True
+SC,4210209,Major Gercino,Distrito de Boiteuxburgo,distrito de boiteuxburgo,,,dne,True
+SC,4210209,Major Gercino,Distrito de Pinheiral,distrito de pinheiral,,,dne,True
+SC,4210209,Major Gercino,Pinheiral,pinheiral,,,dne,True
+SC,4210308,Major Vieira,Centro,centro,,,dne,True
+SC,4210407,Maracajá,Vila Beatriz,vila beatriz,,,dne,True
+SC,4210506,Maravilha,Centro,centro,,,dne,True
+SC,4210555,Marema,Centro,centro,,,dne,True
+SC,4210605,Massaranduba,Área Rural de Massaranduba,area rural de massaranduba,,,dne,True
+SC,4210605,Massaranduba,Benjamin Constant,benjamin constant,,,dne,True
+SC,4210605,Massaranduba,Braço do Norte,braco do norte,,,dne,True
+SC,4210605,Massaranduba,Butuca,butuca,,,dne,True
+SC,4210605,Massaranduba,Campinha,campinha,,,dne,True
+SC,4210605,Massaranduba,Centro,centro,,,dne,True
+SC,4210605,Massaranduba,Guarani-Mirim,guarani mirim,,,dne,True
+SC,4210605,Massaranduba,Industrial Zeferino Kuklinski,industrial zeferino kuklinski,,,dne,True
+SC,4210605,Massaranduba,Patrimônio,patrimonio,,,dne,True
+SC,4210605,Massaranduba,Patrimônio II,patrimonio ii,,,dne,True
+SC,4210704,Matos Costa,Centro,centro,,,dne,True
+SC,4210803,Meleiro,Centro,centro,,,dne,True
+SC,4210803,Meleiro,Sapiranga,sapiranga,,,dne,True
+SC,4210852,Mirim Doce,Centro,centro,,,dne,True
+SC,4210902,Modelo,Centro,centro,,,dne,True
+SC,4211009,Mondaí,Centro,centro,,,dne,True
+SC,4211058,Monte Carlo,Por do Sol,por do sol,,,dne,True
+SC,4211108,Monte Castelo,Centro,centro,,,dne,True
+SC,4211108,Monte Castelo,Distrito de Residência Fuck,distrito de residencia fuck,,,dne,True
+SC,4211108,Monte Castelo,Residência Fuck,residencia fuck,,,dne,True
+SC,4211207,Morro da Fumaça,Centro,centro,,,dne,True
+SC,4211207,Morro da Fumaça,Distrito Estação Cocal,distrito estacao cocal,,,dne,True
+SC,4211207,Morro da Fumaça,Estação Cocal,estacao cocal,,,dne,True
+SC,4211256,Morro Grande,Centro,centro,,,dne,True
+SC,4211306,Navegantes,Área Rural de Navegantes,area rural de navegantes,,,dne,True
+SC,4211306,Navegantes,Centro,centro,,,dne,True
+SC,4211306,Navegantes,Escalvados,escalvados,,,dne,True
+SC,4211306,Navegantes,Gravatá,gravata,,,dne,True
+SC,4211306,Navegantes,Machados,machados,,,dne,True
+SC,4211306,Navegantes,Meia Praia,meia praia,,,dne,True
+SC,4211306,Navegantes,Nossa Senhora das Graças,nossa senhora das gracas,,,dne,True
+SC,4211306,Navegantes,Pedreiras,pedreiras,,,dne,True
+SC,4211306,Navegantes,São Domingos,sao domingos,,,dne,True
+SC,4211306,Navegantes,São Paulo,sao paulo,,,dne,True
+SC,4211306,Navegantes,São Pedro,sao pedro,,,dne,True
+SC,4211306,Navegantes,Volta Grande,volta grande,,,dne,True
+SC,4211405,Nova Erechim,Centro,centro,,,dne,True
+SC,4211454,Nova Itaberaba,Centro,centro,,,dne,True
+SC,4211504,Nova Trento,Aguti,aguti,,,dne,True
+SC,4211504,Nova Trento,Centro,centro,,,dne,True
+SC,4211504,Nova Trento,Claraíba,claraiba,,,dne,True
+SC,4211504,Nova Trento,Distrito de Claraiba,distrito de claraiba,,,dne,True
+SC,4211603,Nova Veneza,Centro,centro,,,dne,True
+SC,4211603,Nova Veneza,Nossa Senhora de Caravaggio,nossa senhora de caravaggio,,,dne,True
+SC,4211603,Nova Veneza,São Bento Baixo,sao bento baixo,,,dne,True
+SC,4211652,Novo Horizonte,Centro,centro,,,dne,True
+SC,4211702,Orleans,Barracão,barracao,,,dne,True
+SC,4211702,Orleans,Brusque do Sul,brusque do sul,,,dne,True
+SC,4211702,Orleans,Centro,centro,,,dne,True
+SC,4211702,Orleans,Pindotiba,pindotiba,,,dne,True
+SC,4211702,Orleans,Rio das Furnas,rio das furnas,,,dne,True
+SC,4211702,Orleans,Rio Pinheiros,rio pinheiros,,,dne,True
+SC,4211751,Otacílio Costa,Pinheiros,pinheiros,,,dne,True
+SC,4211801,Ouro,Centro,centro,,,dne,True
+SC,4211801,Ouro,Distrito de Santa Lúcia,distrito de santa lucia,,,dne,True
+SC,4211801,Ouro,Santa Lúcia,santa lucia,,,dne,True
+SC,4211850,Ouro Verde,Centro,centro,,,dne,True
+SC,4211876,Paial,Centro,centro,,,dne,True
+SC,4211892,Painel,Centro,centro,,,dne,True
+SC,4211900,Palhoça,Albardão,albardao,,,dne,True
+SC,4211900,Palhoça,Alto Aririú,alto aririu,,,dne,True
+SC,4211900,Palhoça,Área Rural de Palhoça,area rural de palhoca,,,dne,True
+SC,4211900,Palhoça,Aririú,aririu,,,dne,True
+SC,4211900,Palhoça,Aririú da Formiga,aririu da formiga,,,dne,True
+SC,4211900,Palhoça,Balneário Ponta do Papagaio,balneario ponta do papagaio,,,dne,True
+SC,4211900,Palhoça,Barra do Aririú,barra do aririu,,,dne,True
+SC,4211900,Palhoça,Bela Vista,bela vista,,,dne,True
+SC,4211900,Palhoça,Brejarú,brejaru,,,dne,True
+SC,4211900,Palhoça,Caminho Novo,caminho novo,,,dne,True
+SC,4211900,Palhoça,Centro,centro,,,dne,True
+SC,4211900,Palhoça,Enseada do Brito (Ens Brito),enseada do brito ens brito,,,dne,True
+SC,4211900,Palhoça,Furadinho,furadinho,,,dne,True
+SC,4211900,Palhoça,Guarda do Cubatão,guarda do cubatao,,,dne,True
+SC,4211900,Palhoça,Guarda do Embaú,guarda do embau,,,dne,True
+SC,4211900,Palhoça,Jardim Eldorado,jardim eldorado,,,dne,True
+SC,4211900,Palhoça,Madri,madri,,,dne,True
+SC,4211900,Palhoça,Massiambu Pequeno,massiambu pequeno,,,dne,True
+SC,4211900,Palhoça,Morretes,morretes,,,dne,True
+SC,4211900,Palhoça,Nova Palhoça,nova palhoca,,,dne,True
+SC,4211900,Palhoça,Pachecos,pachecos,,,dne,True
+SC,4211900,Palhoça,Pagani,pagani,,,dne,True
+SC,4211900,Palhoça,Passa Vinte,passa vinte,,,dne,True
+SC,4211900,Palhoça,Passagem do Massiambú,passagem do massiambu,,,dne,True
+SC,4211900,Palhoça,Pedra Branca,pedra branca,,,dne,True
+SC,4211900,Palhoça,Pinheira,pinheira,,,dne,True
+SC,4211900,Palhoça,Ponte do Imaruim,ponte do imaruim,,,dne,True
+SC,4211900,Palhoça,Praia de Fora,praia de fora,,,dne,True
+SC,4211900,Palhoça,Praia do Pontal,praia do pontal,,,dne,True
+SC,4211900,Palhoça,Praia do Sonho,praia do sonho,,,dne,True
+SC,4211900,Palhoça,Rio Grande,rio grande,,,dne,True
+SC,4211900,Palhoça,São Sebastião,sao sebastiao,,,dne,True
+SC,4211900,Palhoça,Três Barras,tres barras,,,dne,True
+SC,4212007,Palma Sola,Centro,centro,,,dne,True
+SC,4212056,Palmeira,Centro,centro,,,dne,True
+SC,4212106,Palmitos,Centro,centro,,,dne,True
+SC,4212106,Palmitos,Santa Lúcia,santa lucia,,,dne,True
+SC,4212106,Palmitos,Sede Oldemburg,sede oldemburg,,,dne,True
+SC,4212205,Papanduva,Centro,centro,,,dne,True
+SC,4212205,Papanduva,Nova Cultura,nova cultura,,,dne,True
+SC,4212239,Paraíso,Centro,centro,,,dne,True
+SC,4212239,Paraíso,Grápia,grapia,,,dne,True
+SC,4212254,Passo de Torres,Centro,centro,,,dne,True
+SC,4212270,Passos Maia,Centro,centro,,,dne,True
+SC,4212304,Paulo Lopes,Centro,centro,,,dne,True
+SC,4212304,Paulo Lopes,Penha,penha,,,dne,True
+SC,4212403,Pedras Grandes,Azambuja,azambuja,,,dne,True
+SC,4212403,Pedras Grandes,Azambuja (Distrito),azambuja distrito,,,dne,True
+SC,4212403,Pedras Grandes,Centro,centro,,,dne,True
+SC,4212502,Penha,Centro,centro,,,dne,True
+SC,4212601,Peritiba,Centro,centro,,,dne,True
+SC,4212650,Pescaria Brava,Barreiros,barreiros,,,dne,True
+SC,4212650,Pescaria Brava,Centro,centro,,,dne,True
+SC,4212650,Pescaria Brava,Estiva,estiva,,,dne,True
+SC,4212650,Pescaria Brava,Laranjeiras,laranjeiras,,,dne,True
+SC,4212650,Pescaria Brava,Pescaria Brava,pescaria brava,,,dne,True
+SC,4212650,Pescaria Brava,Ponta das Laranjeiras,ponta das laranjeiras,,,dne,True
+SC,4212650,Pescaria Brava,Santiago,santiago,,,dne,True
+SC,4212700,Petrolândia,Centro,centro,,,dne,True
+SC,4212700,Petrolândia,Rio Antinha,rio antinha,,,dne,True
+SC,4212809,Balneário Piçarras,Centro,centro,,,dne,True
+SC,4212809,Balneário Piçarras,Nossa Senhora da Conceição,nossa senhora da conceicao,,,dne,True
+SC,4212908,Pinhalzinho,Centro,centro,,,dne,True
+SC,4213005,Pinheiro Preto,Centro,centro,,,dne,True
+SC,4213104,Piratuba,Centro,centro,,,dne,True
+SC,4213104,Piratuba,Uruguai,uruguai,,,dne,True
+SC,4213153,Planalto Alegre,Centro,centro,,,dne,True
+SC,4213203,Pomerode,Área Rural de Pomerode,area rural de pomerode,,,dne,True
+SC,4213203,Pomerode,Centro,centro,,,dne,True
+SC,4213203,Pomerode,Pomerode Fundos,pomerode fundos,,,dne,True
+SC,4213203,Pomerode,Rega,rega,,,dne,True
+SC,4213203,Pomerode,Ribeirão Areia,ribeirao areia,,,dne,True
+SC,4213203,Pomerode,Ribeirão Clara,ribeirao clara,,,dne,True
+SC,4213203,Pomerode,Ribeirão Herdt,ribeirao herdt,,,dne,True
+SC,4213203,Pomerode,Ribeirão Luebke,ribeirao luebke,,,dne,True
+SC,4213203,Pomerode,Ribeirão Souto,ribeirao souto,,,dne,True
+SC,4213203,Pomerode,Testo Alto,testo alto,,,dne,True
+SC,4213203,Pomerode,Testo Central,testo central,,,dne,True
+SC,4213203,Pomerode,Testo Central Alto,testo central alto,,,dne,True
+SC,4213203,Pomerode,Testo Rega,testo rega,,,dne,True
+SC,4213203,Pomerode,Vale do Selke Grande,vale do selke grande,,,dne,True
+SC,4213203,Pomerode,Vale do Selke Pequeno,vale do selke pequeno,,,dne,True
+SC,4213203,Pomerode,Wunderwald,wunderwald,,,dne,True
+SC,4213302,Ponte Alta,Centro,centro,,,dne,True
+SC,4213351,Ponte Alta do Norte,Centro,centro,,,dne,True
+SC,4213401,Ponte Serrada,Baia Alta,baia alta,,,dne,True
+SC,4213401,Ponte Serrada,Centro,centro,,,dne,True
+SC,4213500,Porto Belo,Alto Perequê,alto pereque,,,dne,True
+SC,4213500,Porto Belo,Araçá,araca,,,dne,True
+SC,4213500,Porto Belo,Área Rural de Porto Belo,area rural de porto belo,,,dne,True
+SC,4213500,Porto Belo,Balneário Perequê,balneario pereque,,,dne,True
+SC,4213500,Porto Belo,Centro,centro,,,dne,True
+SC,4213500,Porto Belo,Enseada Encantada,enseada encantada,,,dne,True
+SC,4213500,Porto Belo,Jardim Dourado,jardim dourado,,,dne,True
+SC,4213500,Porto Belo,Santa Luzia,santa luzia,,,dne,True
+SC,4213500,Porto Belo,Sertão de Santa Luzia,sertao de santa luzia,,,dne,True
+SC,4213500,Porto Belo,Valongo,valongo,,,dne,True
+SC,4213500,Porto Belo,Vila Nova,vila nova,,,dne,True
+SC,4213609,Porto União,Centro,centro,,,dne,True
+SC,4213609,Porto União,Distrito de São Miguel da Serra,distrito de sao miguel da serra,,,dne,True
+SC,4213609,Porto União,Santa Cruz do Timbó,santa cruz do timbo,,,dne,True
+SC,4213609,Porto União,São Miguel da Serra,sao miguel da serra,,,dne,True
+SC,4213708,Pouso Redondo,Aterrado Torto,aterrado torto,,,dne,True
+SC,4213708,Pouso Redondo,Centro,centro,,,dne,True
+SC,4213708,Pouso Redondo,Distrito de Aterrado Torto,distrito de aterrado torto,,,dne,True
+SC,4213708,Pouso Redondo,Progresso,progresso,,,dne,True
+SC,4213807,Praia Grande,Cachoeira de Fátima,cachoeira de fatima,,,dne,True
+SC,4213807,Praia Grande,Centro,centro,,,dne,True
+SC,4213906,Presidente Castello Branco,Centro,centro,,,dne,True
+SC,4214003,Presidente Getúlio,Centro,centro,,,dne,True
+SC,4214003,Presidente Getúlio,Distrito Mirador,distrito mirador,,,dne,True
+SC,4214003,Presidente Getúlio,Mirador,mirador,,,dne,True
+SC,4214102,Presidente Nereu,Centro,centro,,,dne,True
+SC,4214151,Princesa,Centro,centro,,,dne,True
+SC,4214201,Quilombo,Centro,centro,,,dne,True
+SC,4214300,Rancho Queimado,Centro,centro,,,dne,True
+SC,4214300,Rancho Queimado,Distrito de Taquaras,distrito de taquaras,,,dne,True
+SC,4214300,Rancho Queimado,Taquaras,taquaras,,,dne,True
+SC,4214409,Rio das Antas,Centro,centro,,,dne,True
+SC,4214409,Rio das Antas,Ipoméia,ipomeia,,,dne,True
+SC,4214508,Rio do Campo,Centro,centro,,,dne,True
+SC,4214607,Rio do Oeste,Centro,centro,,,dne,True
+SC,4214706,Rio dos Cedros,Cedro Alto,cedro alto,,,dne,True
+SC,4214706,Rio dos Cedros,Divinéia,divineia,,,dne,True
+SC,4214805,Rio do Sul,Albertina,albertina,,,dne,True
+SC,4214805,Rio do Sul,Área Rural de Rio do Sul,area rural de rio do sul,,,dne,True
+SC,4214805,Rio do Sul,Barra do Trombudo,barra do trombudo,,,dne,True
+SC,4214805,Rio do Sul,Barra Itoupava,barra itoupava,,,dne,True
+SC,4214805,Rio do Sul,Barragem,barragem,,,dne,True
+SC,4214805,Rio do Sul,Bela Aliança,bela alianca,,,dne,True
+SC,4214805,Rio do Sul,Boa Vista,boa vista,,,dne,True
+SC,4214805,Rio do Sul,Bremer,bremer,,,dne,True
+SC,4214805,Rio do Sul,Budag,budag,,,dne,True
+SC,4214805,Rio do Sul,Canoas,canoas,,,dne,True
+SC,4214805,Rio do Sul,Canta Galo,canta galo,,,dne,True
+SC,4214805,Rio do Sul,Centro,centro,,,dne,True
+SC,4214805,Rio do Sul,Eugênio Schneider,eugenio schneider,,,dne,True
+SC,4214805,Rio do Sul,Fundo Canoas,fundo canoas,,,dne,True
+SC,4214805,Rio do Sul,Jardim América,jardim america,,,dne,True
+SC,4214805,Rio do Sul,Laranjeiras,laranjeiras,,,dne,True
+SC,4214805,Rio do Sul,Navegantes,navegantes,,,dne,True
+SC,4214805,Rio do Sul,Pamplona,pamplona,,,dne,True
+SC,4214805,Rio do Sul,Progresso,progresso,,,dne,True
+SC,4214805,Rio do Sul,Rainha,rainha,,,dne,True
+SC,4214805,Rio do Sul,Santa Rita,santa rita,,,dne,True
+SC,4214805,Rio do Sul,Santana,santana,,,dne,True
+SC,4214805,Rio do Sul,Sumaré,sumare,,,dne,True
+SC,4214805,Rio do Sul,Taboão,taboao,,,dne,True
+SC,4214805,Rio do Sul,Valada Itoupava,valada itoupava,,,dne,True
+SC,4214805,Rio do Sul,Valada São Paulo,valada sao paulo,,,dne,True
+SC,4214904,Rio Fortuna,Centro,centro,,,dne,True
+SC,4215000,Rio Negrinho,Águas Claras,aguas claras,,,dne,True
+SC,4215000,Rio Negrinho,Alegre,alegre,,,dne,True
+SC,4215000,Rio Negrinho,Área Rural de Rio Negrinho,area rural de rio negrinho,,,dne,True
+SC,4215000,Rio Negrinho,Barro Preto,barro preto,,,dne,True
+SC,4215000,Rio Negrinho,Bela Vista,bela vista,,,dne,True
+SC,4215000,Rio Negrinho,Campo Lençol,campo lencol,,,dne,True
+SC,4215000,Rio Negrinho,Centro,centro,,,dne,True
+SC,4215000,Rio Negrinho,Ceramarte,ceramarte,,,dne,True
+SC,4215000,Rio Negrinho,Cruzeiro,cruzeiro,,,dne,True
+SC,4215000,Rio Negrinho,Distrito (Vila de Volta Grande),distrito vila de volta grande,,,dne,True
+SC,4215000,Rio Negrinho,Industrial Norte,industrial norte,,,dne,True
+SC,4215000,Rio Negrinho,Industrial Sul,industrial sul,,,dne,True
+SC,4215000,Rio Negrinho,Jardim Hantschel,jardim hantschel,,,dne,True
+SC,4215000,Rio Negrinho,Pinheirinho,pinheirinho,,,dne,True
+SC,4215000,Rio Negrinho,Quitandinha,quitandinha,,,dne,True
+SC,4215000,Rio Negrinho,São Pedro,sao pedro,,,dne,True
+SC,4215000,Rio Negrinho,São Rafael,sao rafael,,,dne,True
+SC,4215000,Rio Negrinho,Vila Nova,vila nova,,,dne,True
+SC,4215000,Rio Negrinho,Vista Alegre,vista alegre,,,dne,True
+SC,4215059,Rio Rufino,Centro,centro,,,dne,True
+SC,4215075,Riqueza,Centro,centro,,,dne,True
+SC,4215109,Rodeio,Centro,centro,,,dne,True
+SC,4215208,Romelândia,Centro,centro,,,dne,True
+SC,4215307,Salete,Centro,centro,,,dne,True
+SC,4215356,Saltinho,Centro,centro,,,dne,True
+SC,4215406,Salto Veloso,Centro,centro,,,dne,True
+SC,4215455,Sangão,Centro,centro,,,dne,True
+SC,4215455,Sangão,Distrito de Morro Grande,distrito de morro grande,,,dne,True
+SC,4215505,Santa Cecília,Centro,centro,,,dne,True
+SC,4215554,Santa Helena,Centro,centro,,,dne,True
+SC,4215604,Santa Rosa de Lima,Centro,centro,,,dne,True
+SC,4215653,Santa Rosa do Sul,Centro,centro,,,dne,True
+SC,4215653,Santa Rosa do Sul,Vila São Cristovão,vila sao cristovao,,,dne,True
+SC,4215679,Santa Terezinha,Centro,centro,,,dne,True
+SC,4215679,Santa Terezinha,Craveiro,craveiro,,,dne,True
+SC,4215679,Santa Terezinha,Rio da Anta,rio da anta,,,dne,True
+SC,4215687,Santa Terezinha do Progresso,Centro,centro,,,dne,True
+SC,4215695,Santiago do Sul,Centro,centro,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Alto da Varginha,alto da varginha,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Área Rural,area rural,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Braço São João,braco sao joao,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Caldas da Imperatriz,caldas da imperatriz,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Calemba,calemba,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Canto da Amizade,canto da amizade,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Centro,centro,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Fabrício,fabricio,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Fazenda Bom Jesus,fazenda bom jesus,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Fazenda do Sacramento,fazenda do sacramento,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Morro dos Ventura,morro dos ventura,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Morro Queimado,morro queimado,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Nossa Senhora de Lourdes,nossa senhora de lourdes,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Pagará,pagara,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Pagará (Colônia Santa Luzia),pagara colonia santa luzia,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Poço Fundo,poco fundo,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Santana,santana,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Santo Anjo,santo anjo,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,São Francisco de Assis,sao francisco de assis,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,São João,sao joao,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Sítio de Dentro,sitio de dentro,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Sul do Rio,sul do rio,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Taquara,taquara,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem do Braço,vargem do braco,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem dos Pinheiros,vargem dos pinheiros,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem Grande,vargem grande,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Varginha,varginha,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Vila Becker,vila becker,,,dne,True
+SC,4215703,Santo Amaro da Imperatriz,Vila Santana,vila santana,,,dne,True
+SC,4215752,São Bernardino,Centro,centro,,,dne,True
+SC,4215802,São Bento do Sul,25 de Julho,25 de julho,,,dne,True
+SC,4215802,São Bento do Sul,Alpino,alpino,,,dne,True
+SC,4215802,São Bento do Sul,Área Rural de São Bento do Sul,area rural de sao bento do sul,,,dne,True
+SC,4215802,São Bento do Sul,Bela Aliança,bela alianca,,,dne,True
+SC,4215802,São Bento do Sul,Boehmerwald,boehmerwald,,,dne,True
+SC,4215802,São Bento do Sul,Brasília,brasilia,,,dne,True
+SC,4215802,São Bento do Sul,Centenário,centenario,,,dne,True
+SC,4215802,São Bento do Sul,Centro,centro,,,dne,True
+SC,4215802,São Bento do Sul,Colonial,colonial,,,dne,True
+SC,4215802,São Bento do Sul,Cruzeiro,cruzeiro,,,dne,True
+SC,4215802,São Bento do Sul,Dona Francisca,dona francisca,,,dne,True
+SC,4215802,São Bento do Sul,Industrial Sudoeste,industrial sudoeste,,,dne,True
+SC,4215802,São Bento do Sul,Lençol,lencol,,,dne,True
+SC,4215802,São Bento do Sul,Mato Preto,mato preto,,,dne,True
+SC,4215802,São Bento do Sul,Oxford,oxford,,,dne,True
+SC,4215802,São Bento do Sul,Progresso,progresso,,,dne,True
+SC,4215802,São Bento do Sul,Rio Negro,rio negro,,,dne,True
+SC,4215802,São Bento do Sul,Rio Vermelho Estação,rio vermelho estacao,,,dne,True
+SC,4215802,São Bento do Sul,Rio Vermelho Povoado,rio vermelho povoado,,,dne,True
+SC,4215802,São Bento do Sul,Schramm,schramm,,,dne,True
+SC,4215802,São Bento do Sul,Serra Alta,serra alta,,,dne,True
+SC,4215901,São Bonifácio,Centro,centro,,,dne,True
+SC,4216008,São Carlos,Centro,centro,,,dne,True
+SC,4216057,São Cristóvão do Sul,Centro,centro,,,dne,True
+SC,4216107,São Domingos,Centro,centro,,,dne,True
+SC,4216107,São Domingos,Maratá,marata,,,dne,True
+SC,4216107,São Domingos,Vila Milani,vila milani,,,dne,True
+SC,4216206,São Francisco do Sul,Água Branca,agua branca,,,dne,True
+SC,4216206,São Francisco do Sul,Área Rural de São Francisco do Sul,area rural de sao francisco do sul,,,dne,True
+SC,4216206,São Francisco do Sul,Centro,centro,,,dne,True
+SC,4216206,São Francisco do Sul,Enseada,enseada,,,dne,True
+SC,4216206,São Francisco do Sul,Iperoba,iperoba,,,dne,True
+SC,4216206,São Francisco do Sul,Laranjeiras,laranjeiras,,,dne,True
+SC,4216206,São Francisco do Sul,Morro Grande,morro grande,,,dne,True
+SC,4216206,São Francisco do Sul,Paulas,paulas,,,dne,True
+SC,4216206,São Francisco do Sul,Praia Grande,praia grande,,,dne,True
+SC,4216206,São Francisco do Sul,Reta,reta,,,dne,True
+SC,4216206,São Francisco do Sul,Rocio Grande,rocio grande,,,dne,True
+SC,4216206,São Francisco do Sul,Rocio Pequeno,rocio pequeno,,,dne,True
+SC,4216206,São Francisco do Sul,Sai,sai,,,dne,True
+SC,4216206,São Francisco do Sul,São José do Acaraí,sao jose do acarai,,,dne,True
+SC,4216206,São Francisco do Sul,Ubatuba,ubatuba,,,dne,True
+SC,4216206,São Francisco do Sul,Vila da Glória,vila da gloria,,,dne,True
+SC,4216255,São João do Oeste,Centro,centro,,,dne,True
+SC,4216305,São João Batista,Centro,centro,,,dne,True
+SC,4216305,São João Batista,Distrito de Tigipió,distrito de tigipio,,,dne,True
+SC,4216305,São João Batista,Tijipió,tijipio,,,dne,True
+SC,4216354,São João do Itaperiú,Centro,centro,,,dne,True
+SC,4216404,São João do Sul,Centro,centro,,,dne,True
+SC,4216404,São João do Sul,Distrito de Vila Conceição,distrito de vila conceicao,,,dne,True
+SC,4216404,São João do Sul,Vila Conceição,vila conceicao,,,dne,True
+SC,4216503,São Joaquim,Centro,centro,,,dne,True
+SC,4216503,São Joaquim,Pericó,perico,,,dne,True
+SC,4216503,São Joaquim,Santa Izabel,santa izabel,,,dne,True
+SC,4216503,São Joaquim,São Sebastião do Arvoredo,sao sebastiao do arvoredo,,,dne,True
+SC,4216602,São José,Alto Forquilhas,alto forquilhas,,,dne,True
+SC,4216602,São José,Área Rural de São José,area rural de sao jose,,,dne,True
+SC,4216602,São José,Areias,areias,,,dne,True
+SC,4216602,São José,Barreiros,barreiros,,,dne,True
+SC,4216602,São José,Bela Vista,bela vista,,,dne,True
+SC,4216602,São José,Bosque das Mansões,bosque das mansoes,,,dne,True
+SC,4216602,São José,Campinas,campinas,,,dne,True
+SC,4216602,São José,Centro,centro,,,dne,True
+SC,4216602,São José,Colônia Santana,colonia santana,,,dne,True
+SC,4216602,São José,Distrito Industrial,distrito industrial,,,dne,True
+SC,4216602,São José,Fazenda Santo Antônio,fazenda santo antonio,,,dne,True
+SC,4216602,São José,Flor de Nápolis,flor de napolis,,,dne,True
+SC,4216602,São José,Forquilhas Leste,forquilhas leste,,,dne,True
+SC,4216602,São José,Forquilhas Oeste,forquilhas oeste,,,dne,True
+SC,4216602,São José,Forquilhinha,forquilhinha,,,dne,True
+SC,4216602,São José,Ipiranga,ipiranga,,,dne,True
+SC,4216602,São José,Jardim Cidade de Florianópolis,jardim cidade de florianopolis,,,dne,True
+SC,4216602,São José,Jardim Santiago,jardim santiago,,,dne,True
+SC,4216602,São José,Kobrasol,kobrasol,,,dne,True
+SC,4216602,São José,Nossa Senhora do Rosário,nossa senhora do rosario,,,dne,True
+SC,4216602,São José,Pedregal,pedregal,,,dne,True
+SC,4216602,São José,Picadas do Sul,picadas do sul,,,dne,True
+SC,4216602,São José,Ponta de Baixo,ponta de baixo,,,dne,True
+SC,4216602,São José,Potecas,potecas,,,dne,True
+SC,4216602,São José,Praia Comprida,praia comprida,,,dne,True
+SC,4216602,São José,Real Parque,real parque,,,dne,True
+SC,4216602,São José,Roçado,rocado,,,dne,True
+SC,4216602,São José,São Luiz,sao luiz,,,dne,True
+SC,4216602,São José,Serraria,serraria,,,dne,True
+SC,4216602,São José,Sertão do Maruim,sertao do maruim,,,dne,True
+SC,4216701,São José do Cedro,Centro,centro,,,dne,True
+SC,4216701,São José do Cedro,Mariflor,mariflor,,,dne,True
+SC,4216701,São José do Cedro,Padre Reus,padre reus,,,dne,True
+SC,4216800,São José do Cerrito,Centro,centro,,,dne,True
+SC,4216909,São Lourenço do Oeste,Centro,centro,,,dne,True
+SC,4216909,São Lourenço do Oeste,Distrito de Presidente Juscelino,distrito de presidente juscelino,,,dne,True
+SC,4216909,São Lourenço do Oeste,Distrito de São Roque,distrito de sao roque,,,dne,True
+SC,4216909,São Lourenço do Oeste,Frederico Wastner,frederico wastner,,,dne,True
+SC,4216909,São Lourenço do Oeste,Presidente Juscelino,presidente juscelino,,,dne,True
+SC,4216909,São Lourenço do Oeste,São Roque,sao roque,,,dne,True
+SC,4217006,São Ludgero,Centro,centro,,,dne,True
+SC,4217105,São Martinho,Centro,centro,,,dne,True
+SC,4217105,São Martinho,Distrito de Vargem do Cedro,distrito de vargem do cedro,,,dne,True
+SC,4217105,São Martinho,Vargem do Cedro,vargem do cedro,,,dne,True
+SC,4217154,São Miguel da Boa Vista,Centro,centro,,,dne,True
+SC,4217204,São Miguel do Oeste,Centro,centro,,,dne,True
+SC,4217204,São Miguel do Oeste,Prata,prata,,,dne,True
+SC,4217253,São Pedro de Alcântara,Centro,centro,,,dne,True
+SC,4217253,São Pedro de Alcântara,Santa Teresa,santa teresa,,,dne,True
+SC,4217303,Saudades,Centro,centro,,,dne,True
+SC,4217402,Schroeder,Área Rural,area rural,,,dne,True
+SC,4217402,Schroeder,Bracinho,bracinho,,,dne,True
+SC,4217402,Schroeder,Braço do Sul,braco do sul,,,dne,True
+SC,4217402,Schroeder,Centro,centro,,,dne,True
+SC,4217402,Schroeder,Centro Leste,centro leste,,,dne,True
+SC,4217402,Schroeder,Centro Norte,centro norte,,,dne,True
+SC,4217402,Schroeder,Centro Sul,centro sul,,,dne,True
+SC,4217402,Schroeder,Itoupava-Açu,itoupava acu,,,dne,True
+SC,4217402,Schroeder,Localidade Duas Mamas,localidade duas mamas,,,dne,True
+SC,4217402,Schroeder,Localidade Rancho Bom Braço do Sul,localidade rancho bom braco do sul,,,dne,True
+SC,4217402,Schroeder,Localidade Rio Hern,localidade rio hern,,,dne,True
+SC,4217402,Schroeder,Localidades Corredeiras do Bracinho,localidades corredeiras do bracinho,,,dne,True
+SC,4217402,Schroeder,Rancho Bom,rancho bom,,,dne,True
+SC,4217402,Schroeder,Rio Hern,rio hern,,,dne,True
+SC,4217402,Schroeder,Schroeder I,schroeder i,,,dne,True
+SC,4217402,Schroeder,Sossego,sossego,,,dne,True
+SC,4217402,Schroeder,Tomaselli,tomaselli,,,dne,True
+SC,4217501,Seara,Caraíba,caraiba,,,dne,True
+SC,4217501,Seara,Centro,centro,,,dne,True
+SC,4217501,Seara,Nova Teutônia,nova teutonia,,,dne,True
+SC,4217550,Serra Alta,Centro,centro,,,dne,True
+SC,4217600,Siderópolis,Centro,centro,,,dne,True
+SC,4217600,Siderópolis,Vila São Jorge,vila sao jorge,,,dne,True
+SC,4217709,Sombrio,Centro,centro,,,dne,True
+SC,4217709,Sombrio,Nova Guarita,nova guarita,,,dne,True
+SC,4217758,Sul Brasil,Centro,centro,,,dne,True
+SC,4217808,Taió,Centro,centro,,,dne,True
+SC,4217808,Taió,Distrito de Passo Manso,distrito de passo manso,,,dne,True
+SC,4217808,Taió,Passo Manso,passo manso,,,dne,True
+SC,4217907,Tangará,Centro,centro,,,dne,True
+SC,4217907,Tangará,Irakitan,irakitan,,,dne,True
+SC,4217907,Tangará,Marari,marari,,,dne,True
+SC,4217956,Tigrinhos,Centro,centro,,,dne,True
+SC,4218004,Tijucas,Área Rural de Tijucas,area rural de tijucas,,,dne,True
+SC,4218004,Tijucas,Areias,areias,,,dne,True
+SC,4218004,Tijucas,Centro,centro,,,dne,True
+SC,4218004,Tijucas,Joáia,joaia,,,dne,True
+SC,4218004,Tijucas,Nova Descoberta,nova descoberta,,,dne,True
+SC,4218004,Tijucas,Pernambuco,pernambuco,,,dne,True
+SC,4218004,Tijucas,Praça,praca,,,dne,True
+SC,4218004,Tijucas,Santa Luzia,santa luzia,,,dne,True
+SC,4218004,Tijucas,Sul do Rio,sul do rio,,,dne,True
+SC,4218004,Tijucas,Universitário,universitario,,,dne,True
+SC,4218004,Tijucas,XV de Novembro,xv de novembro,,,dne,True
+SC,4218103,Timbé do Sul,Centro,centro,,,dne,True
+SC,4218202,Timbó,Araponguinhas,araponguinhas,,,dne,True
+SC,4218202,Timbó,Area Rural de Timbo,area rural de timbo,,,dne,True
+SC,4218202,Timbó,Capitais,capitais,,,dne,True
+SC,4218202,Timbó,Centro,centro,,,dne,True
+SC,4218202,Timbó,Dona Clara,dona clara,,,dne,True
+SC,4218202,Timbó,Estados,estados,,,dne,True
+SC,4218202,Timbó,Fritz Lorenz,fritz lorenz,,,dne,True
+SC,4218202,Timbó,Imigrantes,imigrantes,,,dne,True
+SC,4218202,Timbó,Nações,nacoes,,,dne,True
+SC,4218202,Timbó,Padre Martinho Stein,padre martinho stein,,,dne,True
+SC,4218202,Timbó,Pomeranos,pomeranos,,,dne,True
+SC,4218202,Timbó,Quintino,quintino,,,dne,True
+SC,4218202,Timbó,São Roque,sao roque,,,dne,True
+SC,4218202,Timbó,Tiroleses,tiroleses,,,dne,True
+SC,4218202,Timbó,Vila Germer,vila germer,,,dne,True
+SC,4218251,Timbó Grande,Centro,centro,,,dne,True
+SC,4218301,Três Barras,Centro,centro,,,dne,True
+SC,4218301,Três Barras,São Cristóvão,sao cristovao,,,dne,True
+SC,4218350,Treviso,Centro,centro,,,dne,True
+SC,4218400,Treze de Maio,Centro,centro,,,dne,True
+SC,4218400,Treze de Maio,São Gabriel,sao gabriel,,,dne,True
+SC,4218509,Treze Tílias,Centro,centro,,,dne,True
+SC,4218608,Trombudo Central,Centro,centro,,,dne,True
+SC,4218707,Tubarão,Aeroporto,aeroporto,,,dne,True
+SC,4218707,Tubarão,Área Rural de Tubarão,area rural de tubarao,,,dne,True
+SC,4218707,Tubarão,Bom Pastor,bom pastor,,,dne,True
+SC,4218707,Tubarão,Campestre,campestre,,,dne,True
+SC,4218707,Tubarão,Caruru,caruru,,,dne,True
+SC,4218707,Tubarão,Centro,centro,,,dne,True
+SC,4218707,Tubarão,Congonhas,congonhas,,,dne,True
+SC,4218707,Tubarão,Cruzeiro,cruzeiro,,,dne,True
+SC,4218707,Tubarão,Dehon,dehon,,,dne,True
+SC,4218707,Tubarão,Fábio Silva,fabio silva,,,dne,True
+SC,4218707,Tubarão,Guarda Margem Direita,guarda margem direita,,,dne,True
+SC,4218707,Tubarão,Guarda Margem Esquerda,guarda margem esquerda,,,dne,True
+SC,4218707,Tubarão,Humaitá,humaita,,,dne,True
+SC,4218707,Tubarão,Humaitá de Cima,humaita de cima,,,dne,True
+SC,4218707,Tubarão,Kilômetro 60,kilometro 60,,,dne,True
+SC,4218707,Tubarão,Kilômetro 63,kilometro 63,,,dne,True
+SC,4218707,Tubarão,Madre,madre,,,dne,True
+SC,4218707,Tubarão,Monte Castelo,monte castelo,,,dne,True
+SC,4218707,Tubarão,Morrotes,morrotes,,,dne,True
+SC,4218707,Tubarão,Nova Tubarão,nova tubarao,,,dne,True
+SC,4218707,Tubarão,Oficinas,oficinas,,,dne,True
+SC,4218707,Tubarão,Passagem,passagem,,,dne,True
+SC,4218707,Tubarão,Passo do Gado,passo do gado,,,dne,True
+SC,4218707,Tubarão,Praia Redonda,praia redonda,,,dne,True
+SC,4218707,Tubarão,Recife,recife,,,dne,True
+SC,4218707,Tubarão,Revoredo,revoredo,,,dne,True
+SC,4218707,Tubarão,Rio do Pouso,rio do pouso,,,dne,True
+SC,4218707,Tubarão,Santa Luzia,santa luzia,,,dne,True
+SC,4218707,Tubarão,Santo Antônio de Pádua,santo antonio de padua,,,dne,True
+SC,4218707,Tubarão,São Bernardo,sao bernardo,,,dne,True
+SC,4218707,Tubarão,São Clemente,sao clemente,,,dne,True
+SC,4218707,Tubarão,São Cristóvão,sao cristovao,,,dne,True
+SC,4218707,Tubarão,São João (Margem Direita),sao joao margem direita,,,dne,True
+SC,4218707,Tubarão,São João (Margem Esquerda),sao joao margem esquerda,,,dne,True
+SC,4218707,Tubarão,São Martinho,sao martinho,,,dne,True
+SC,4218707,Tubarão,Sertão dos Correias,sertao dos correias,,,dne,True
+SC,4218707,Tubarão,Vila Esperança,vila esperanca,,,dne,True
+SC,4218707,Tubarão,Vila Moema,vila moema,,,dne,True
+SC,4218756,Tunápolis,Centro,centro,,,dne,True
+SC,4218806,Turvo,Centro,centro,,,dne,True
+SC,4218806,Turvo,Distrito de Morro Chato,distrito de morro chato,,,dne,True
+SC,4218806,Turvo,Morro Chato,morro chato,,,dne,True
+SC,4218855,União do Oeste,Centro,centro,,,dne,True
+SC,4218905,Urubici,Águas Brancas,aguas brancas,,,dne,True
+SC,4218905,Urubici,Centro,centro,,,dne,True
+SC,4218905,Urubici,Distrito de Águas Brancas,distrito de aguas brancas,,,dne,True
+SC,4218905,Urubici,Santa Terezinha,santa terezinha,,,dne,True
+SC,4218954,Urupema,Centro,centro,,,dne,True
+SC,4219002,Urussanga,Centro,centro,,,dne,True
+SC,4219002,Urussanga,Povoado de Santana,povoado de santana,,,dne,True
+SC,4219002,Urussanga,Povoado Rio América,povoado rio america,,,dne,True
+SC,4219101,Vargeão,Centro,centro,,,dne,True
+SC,4219150,Vargem,Centro,centro,,,dne,True
+SC,4219176,Vargem Bonita,Centro,centro,,,dne,True
+SC,4219176,Vargem Bonita,Vila Campina da Alegria,vila campina da alegria,,,dne,True
+SC,4219200,Vidal Ramos,Centro,centro,,,dne,True
+SC,4219309,Videira,Aeroporto,aeroporto,,,dne,True
+SC,4219309,Videira,Água Verde,agua verde,,,dne,True
+SC,4219309,Videira,Alvorada,alvorada,,,dne,True
+SC,4219309,Videira,Amarante,amarante,,,dne,True
+SC,4219309,Videira,Anta Gorda,anta gorda,,,dne,True
+SC,4219309,Videira,Área Rural de Videira,area rural de videira,,,dne,True
+SC,4219309,Videira,Bom Sucesso,bom sucesso,,,dne,True
+SC,4219309,Videira,Campina Bela,campina bela,,,dne,True
+SC,4219309,Videira,Campo Experimental,campo experimental,,,dne,True
+SC,4219309,Videira,Carboni,carboni,,,dne,True
+SC,4219309,Videira,Carelli,carelli,,,dne,True
+SC,4219309,Videira,Centro,centro,,,dne,True
+SC,4219309,Videira,Cetrevi,cetrevi,,,dne,True
+SC,4219309,Videira,Cibrazém,cibrazem,,,dne,True
+SC,4219309,Videira,Cidade Alta,cidade alta,,,dne,True
+SC,4219309,Videira,Dois Pinheiros,dois pinheiros,,,dne,True
+SC,4219309,Videira,Farroupilha,farroupilha,,,dne,True
+SC,4219309,Videira,Floresta,floresta,,,dne,True
+SC,4219309,Videira,Lourdes,lourdes,,,dne,True
+SC,4219309,Videira,Marafon,marafon,,,dne,True
+SC,4219309,Videira,Matriz,matriz,,,dne,True
+SC,4219309,Videira,Morada do Sol,morada do sol,,,dne,True
+SC,4219309,Videira,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+SC,4219309,Videira,Oficina,oficina,,,dne,True
+SC,4219309,Videira,Panazzolo,panazzolo,,,dne,True
+SC,4219309,Videira,Portal das Videiras,portal das videiras,,,dne,True
+SC,4219309,Videira,Rio das Pedras,rio das pedras,,,dne,True
+SC,4219309,Videira,Santa Gema,santa gema,,,dne,True
+SC,4219309,Videira,Santa Lucia,santa lucia,,,dne,True
+SC,4219309,Videira,Santa Tereza,santa tereza,,,dne,True
+SC,4219309,Videira,Santos Dumont,santos dumont,,,dne,True
+SC,4219309,Videira,São Cristovão,sao cristovao,,,dne,True
+SC,4219309,Videira,São Francisco,sao francisco,,,dne,True
+SC,4219309,Videira,Sesi,sesi,,,dne,True
+SC,4219309,Videira,Universitário,universitario,,,dne,True
+SC,4219309,Videira,Vila de Carli,vila de carli,,,dne,True
+SC,4219309,Videira,Vila Verde,vila verde,,,dne,True
+SC,4219358,Vitor Meireles,Barra da Prata,barra da prata,,,dne,True
+SC,4219358,Vitor Meireles,Centro,centro,,,dne,True
+SC,4219358,Vitor Meireles,Lagoas,lagoas,,,dne,True
+SC,4219408,Witmarsum,Centro,centro,,,dne,True
+SC,4219507,Xanxerê,Cambuinzal,cambuinzal,,,dne,True
+SC,4219507,Xanxerê,Centro,centro,,,dne,True
+SC,4219606,Xavantina,Centro,centro,,,dne,True
+SC,4219606,Xavantina,Linha das Palmeiras,linha das palmeiras,,,dne,True
+SC,4219705,Xaxim,Centro,centro,,,dne,True
+SC,4219853,Zortéa,Imigrantes,imigrantes,,,dne,True
+SC,4220000,Balneário Rincão,Centro,centro,,,dne,True

@@ -51,10 +51,14 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
         }
 
         var existing = await _dbContext.SellerSubscriptions
-            .AsNoTracking()
             .SingleOrDefaultAsync(x => x.StoreId == request.StoreId, cancellationToken);
 
-        if (existing is not null)
+        // A assinatura "Básico" criada automaticamente na criação da loja não
+        // possui identificadores de gateway e pode ser promovida para um plano
+        // contratado. Assinaturas já contratadas (com gateway) permanecem bloqueadas.
+        var isLocalDefault = existing is not null && string.IsNullOrWhiteSpace(existing.GatewaySubscriptionId);
+
+        if (existing is not null && !isLocalDefault)
         {
             return new ContractSellerSubscriptionResultDto { AlreadyContracted = true };
         }
@@ -80,21 +84,30 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
         }, cancellationToken);
 
         var now = DateTime.UtcNow;
-        var subscription = new SellerSubscription
+        var subscription = existing ?? new SellerSubscription
         {
             StoreId = store.Id,
-            SellerUserId = sellerUserId,
-            PlanId = plan.Id,
-            PlanName = plan.Name,
-            PlanAmount = plan.Amount,
-            Status = SellerSubscriptionBillingStatus.Active,
-            StartDateUtc = now,
-            NextBillingDateUtc = asaasContract.NextDueDateUtc,
-            GatewayCustomerId = asaasContract.GatewayCustomerId,
-            GatewaySubscriptionId = asaasContract.GatewaySubscriptionId
+            SellerUserId = sellerUserId
         };
 
-        await _dbContext.SellerSubscriptions.AddAsync(subscription, cancellationToken);
+        subscription.PlanId = plan.Id;
+        subscription.PlanName = plan.Name;
+        subscription.PlanAmount = plan.Amount;
+        subscription.Status = SellerSubscriptionBillingStatus.Active;
+        subscription.StartDateUtc = now;
+        subscription.EndDateUtc = null;
+        subscription.NextBillingDateUtc = asaasContract.NextDueDateUtc;
+        subscription.GatewayCustomerId = asaasContract.GatewayCustomerId;
+        subscription.GatewaySubscriptionId = asaasContract.GatewaySubscriptionId;
+
+        if (existing is null)
+        {
+            await _dbContext.SellerSubscriptions.AddAsync(subscription, cancellationToken);
+        }
+        else
+        {
+            subscription.MarkAsUpdated();
+        }
 
         var subscriptionStatus = await _dbContext.SellerSubscriptionStatuses
             .SingleOrDefaultAsync(x => x.SellerUserId == sellerUserId, cancellationToken);
@@ -227,12 +240,15 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
             .AsNoTracking()
             .Where(x => x.SellerUserId == sellerUserId)
             .OrderByDescending(x => x.DueDateUtc)
+            .ThenByDescending(x => x.CreatedAtUtc)
             .Select(x => new SellerSubscriptionChargeHistoryItemDto
             {
                 GatewayChargeId = x.GatewayChargeId,
                 GatewayStatus = x.GatewayStatus,
                 BillingStatus = x.BillingStatus,
                 DueDateUtc = x.DueDateUtc,
+                BillingPeriodStartUtc = x.BillingPeriodStartUtc,
+                BillingPeriodEndUtc = x.BillingPeriodEndUtc,
                 PaidAtUtc = x.PaidAtUtc,
                 Amount = x.Amount,
                 ExternalReference = x.ExternalReference

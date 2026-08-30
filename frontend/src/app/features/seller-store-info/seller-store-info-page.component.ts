@@ -37,4 +37,15 @@ export class SellerStoreInfoPageComponent extends StoreConfigPageComponent {
         return 'Dados publicos da loja';
     }
   });
+
+  protected override resolveAtendimentoDefaults(
+    delivery: boolean | undefined,
+    pickup: boolean | undefined,
+  ): { delivery: boolean; pickup: boolean } {
+    const resolved = super.resolveAtendimentoDefaults(delivery, pickup);
+    if (!resolved.delivery && !resolved.pickup) {
+      return { delivery: true, pickup: false };
+    }
+    return resolved;
+  }
 }

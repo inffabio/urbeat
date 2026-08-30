@@ -181,11 +181,6 @@ export class SellerCategoriesPageComponent implements OnInit {
 
   deleteCategory(category: ProductCategory): void {
     const storeId = this.storeId();
-    const associatedProducts = this.itemCount(category);
-    if (associatedProducts > 0) {
-      this.toast.showError(`Não é possível excluir "${category.name}" porque ela possui ${associatedProducts} produto(s) associado(s).`);
-      return;
-    }
     if (!storeId || !window.confirm(`Deseja realmente excluir a categoria "${category.name}"?`)) return;
 
     this.stores.deleteStoreCategory(storeId, category.id).subscribe({

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { SubscriptionService } from '../../core/services/subscription.service';
+import { formatSaoPauloDate } from '../../core/utils/sao-paulo-date.helper';
 import { SellerSubscriptionBillingStatus } from '../../shared/models/subscription.model';
 import { SellerSubscriptionPageComponent } from './seller-subscription-page.component';
 
@@ -31,7 +32,7 @@ describe('SellerSubscriptionPageComponent', () => {
       regularizationMessage: '',
     }));
     subscriptionServiceMock.listMyCharges.mockReturnValue(of([
-      { gatewayChargeId: 'charge1', gatewayStatus: 'paid', billingStatus: SellerSubscriptionBillingStatus.Active, dueDateUtc: '2026-07-10T00:00:00Z', paidAtUtc: '2026-07-09T12:00:00Z', amount: 49.9 },
+      { gatewayChargeId: 'charge1', gatewayStatus: 'paid', billingStatus: SellerSubscriptionBillingStatus.Active, dueDateUtc: '2026-07-10T00:00:00Z', billingPeriodStartUtc: '2026-07-10T00:00:00Z', billingPeriodEndUtc: '2026-08-10T00:00:00Z', paidAtUtc: '2026-07-09T12:00:00Z', amount: 49.9 },
     ]));
 
     const fixture = TestBed.createComponent(SellerSubscriptionPageComponent);
@@ -43,7 +44,66 @@ describe('SellerSubscriptionPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Plano Pro');
     expect(fixture.nativeElement.textContent).toContain('está em dia, obrigado');
     expect(fixture.nativeElement.textContent).toContain('R$');
-    expect(fixture.nativeElement.textContent).toContain('charge1');
+    expect(fixture.nativeElement.textContent).toContain('Pago em');
+  });
+
+  it('renders the billing period using persisted start and end dates', () => {
+    subscriptionServiceMock.getMySubscription.mockReturnValue(of({
+      hasSubscription: true,
+      planName: 'Plano Pro',
+      billingStatus: SellerSubscriptionBillingStatus.Active,
+      storeBlocked: false,
+      regularizationMessage: '',
+    }));
+    subscriptionServiceMock.listMyCharges.mockReturnValue(of([
+      { gatewayChargeId: 'charge1', gatewayStatus: 'paid', billingStatus: SellerSubscriptionBillingStatus.Active, dueDateUtc: '2026-08-10T00:00:00Z', billingPeriodStartUtc: '2026-08-10T00:00:00Z', billingPeriodEndUtc: '2026-09-10T00:00:00Z', amount: 49.9 },
+    ]));
+
+    const fixture = TestBed.createComponent(SellerSubscriptionPageComponent);
+    fixture.detectChanges();
+
+    const expected = `${formatSaoPauloDate('2026-08-10T00:00:00Z')} - ${formatSaoPauloDate('2026-09-10T00:00:00Z')}`;
+    expect(fixture.nativeElement.textContent).toContain(expected);
+  });
+
+  it('renders the period fallback for legacy charges without a period', () => {
+    subscriptionServiceMock.getMySubscription.mockReturnValue(of({
+      hasSubscription: true,
+      planName: 'Plano Pro',
+      billingStatus: SellerSubscriptionBillingStatus.Active,
+      storeBlocked: false,
+      regularizationMessage: '',
+    }));
+    subscriptionServiceMock.listMyCharges.mockReturnValue(of([
+      { gatewayChargeId: 'charge1', gatewayStatus: 'paid', billingStatus: SellerSubscriptionBillingStatus.Active, dueDateUtc: '2026-08-10T00:00:00Z', amount: 49.9 },
+    ]));
+
+    const fixture = TestBed.createComponent(SellerSubscriptionPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Sem período');
+  });
+
+  it('renders a disabled non-actionable Pagar button for overdue charges', () => {
+    subscriptionServiceMock.getMySubscription.mockReturnValue(of({
+      hasSubscription: true,
+      planName: 'Plano Pro',
+      billingStatus: SellerSubscriptionBillingStatus.Overdue,
+      storeBlocked: false,
+      regularizationMessage: '',
+    }));
+    subscriptionServiceMock.listMyCharges.mockReturnValue(of([
+      { gatewayChargeId: 'charge1', gatewayStatus: 'overdue', billingStatus: SellerSubscriptionBillingStatus.Overdue, dueDateUtc: '2026-08-10T00:00:00Z', billingPeriodStartUtc: '2026-08-10T00:00:00Z', billingPeriodEndUtc: '2026-09-10T00:00:00Z', amount: 49.9 },
+    ]));
+
+    const fixture = TestBed.createComponent(SellerSubscriptionPageComponent);
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.btn-pagar');
+    expect(button).not.toBeNull();
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    expect(button.textContent).toContain('Pagar');
   });
 
   it('renders regularization message when store is blocked', () => {

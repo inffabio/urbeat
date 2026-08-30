@@ -1,4 +1,4 @@
-<ion-content color="light">
+<ion-content color="light" class="wizard-content">
 <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
 
 <main class="publish-main">
@@ -81,8 +81,8 @@
           @for (day of allDays(); track day.dayOfWeek) {
             <div class="hour-col">
               <p class="field-label">{{ day.name }}</p>
-              @if (day.opensAt && day.closesAt) {
-                <p class="field-value">{{ day.opensAt }} - {{ day.closesAt }}</p>
+              @if (day.ranges.length) {
+                <p class="field-value">{{ day.ranges.join(' / ') }}</p>
               } @else {
                 <p class="field-value text-muted">Fechado</p>
               }
@@ -306,17 +306,8 @@
                   <img [src]="summary()?.storeDetails?.bannerUrl || summary()?.storeDetails?.logoUrl" alt="Banner" />
                 } @else {
                   <div class="skeleton skeleton-banner"></div>
-    }
-
-    <app-wizard-footer
-      backLabel="Voltar para Produtos"
-      [nextLabel]="publishing() ? 'Publicando...' : 'Publicar minha loja'"
-      [isSaving]="publishing()"
-      [nextDisabled]="!allConfirmed() || publishing()"
-      (back)="goTo('configurar-loja/produtos')"
-      (next)="publishStore()">
-    </app-wizard-footer>
-  </div>
+                }
+              </div>
 
               <div class="preview-store-header">
                 <div class="store-logo-wrap">
@@ -383,6 +374,15 @@
     }
   </div>
 </main>
+
+<app-wizard-footer
+  backLabel="Voltar para Produtos"
+  [isSaving]="publishing()"
+  (back)="goTo('configurar-loja/produtos')"
+  [showSave]="false"
+  [showNext]="false"
+  [showStatus]="false">
+</app-wizard-footer>
 
 @if (showConfetti()) {
   <div class="publish-success-overlay">

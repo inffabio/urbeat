@@ -62,6 +62,7 @@ public sealed class PricingService : IPricingService
         }
 
         string? choiceName = null;
+        var optionPrices = new List<OrderItemOptionPriceDto>();
         if (item.ChoiceOptionId is Guid choiceId)
         {
             var choice = product.ChoiceOptions.FirstOrDefault(x => x.Id == choiceId && x.IsActive);
@@ -69,17 +70,19 @@ public sealed class PricingService : IPricingService
                 return ItemPricingResultDto.Invalid($"Opção inválida para \"{product.Name}\".");
             choiceName = choice.Name;
             addTotal += choice.Price;
+            optionPrices.Add(new OrderItemOptionPriceDto { Name = choice.Name, Price = choice.Price });
         }
 
         if (item.AdditionalIds is not null)
         {
-            foreach (var additionalId in item.AdditionalIds)
+            foreach (var additionalId in item.AdditionalIds.Distinct())
             {
                 var additional = product.Additionals.FirstOrDefault(x => x.Id == additionalId && x.IsActive);
                 if (additional is null)
                     return ItemPricingResultDto.Invalid($"Adicional inválido para \"{product.Name}\".");
                 extras.Add(additional.Name);
                 addTotal += additional.Price;
+                optionPrices.Add(new OrderItemOptionPriceDto { Name = additional.Name, Price = additional.Price });
             }
         }
 
@@ -88,12 +91,14 @@ public sealed class PricingService : IPricingService
         {
             var selectedIds = item.OptionGroups?
                 .FirstOrDefault(g => g.GroupId == group.Id)?
-                .ItemIds ?? Array.Empty<Guid>();
+                .ItemIds?
+                .Distinct()
+                .ToArray() ?? Array.Empty<Guid>();
 
-            if (selectedIds.Count < group.MinChoices)
+            if (selectedIds.Length < group.MinChoices)
                 return ItemPricingResultDto.Invalid($"Grupo \"{group.Name}\": selecione ao menos {group.MinChoices} opção(ões).");
 
-            if (selectedIds.Count > group.MaxChoices)
+            if (selectedIds.Length > group.MaxChoices)
                 return ItemPricingResultDto.Invalid($"Grupo \"{group.Name}\": selecione no máximo {group.MaxChoices} opção(ões).");
 
             foreach (var selectedId in selectedIds)
@@ -103,6 +108,7 @@ public sealed class PricingService : IPricingService
                     return ItemPricingResultDto.Invalid($"Grupo \"{group.Name}\": item selecionado inválido.");
                 extras.Add(optionItem.Name);
                 addTotal += optionItem.Price;
+                optionPrices.Add(new OrderItemOptionPriceDto { Name = optionItem.Name, Price = optionItem.Price });
             }
         }
 
@@ -116,6 +122,7 @@ public sealed class PricingService : IPricingService
             WeightGrams = weightGrams,
             WeightLabel = weightLabel,
             ExtraNames = extras,
+            OptionPrices = optionPrices,
         };
     }
 

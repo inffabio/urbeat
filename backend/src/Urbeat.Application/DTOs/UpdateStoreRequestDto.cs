@@ -12,12 +12,6 @@ public sealed class UpdateStoreRequestDto
 
     public string? PixKey { get; init; }
 
-    public string? InstagramUrl { get; init; }
-
-    public string? FacebookUrl { get; init; }
-
-    public string? TikTokUrl { get; init; }
-
     public string? WebsiteUrl { get; init; }
 
     public string Description { get; init; } = string.Empty;

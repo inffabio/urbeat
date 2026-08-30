@@ -76,7 +76,7 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Periodo</th>
+                <th>Período</th>
                 <th>Vencimento</th>
                 <th>Valor</th>
                 <th class="text-end">Status</th>
@@ -85,14 +85,14 @@
             <tbody>
               @for (charge of charges(); track charge.gatewayChargeId) {
                 <tr>
-                  <td data-label="Periodo">{{ charge.externalReference || charge.gatewayChargeId }}</td>
+                  <td data-label="Período">{{ formatPeriod(charge) }}</td>
                   <td data-label="Vencimento">{{ formatDate(charge.dueDateUtc) }}</td>
                   <td data-label="Valor">{{ formatCurrency(charge.amount) }}</td>
                   <td class="text-end" data-label="Status">
                     @if (charge.paidAtUtc) {
                       <span class="seller-status-badge is-success">Pago em {{ formatDate(charge.paidAtUtc) }}</span>
                     } @else if (charge.billingStatus === BillingStatus.Overdue || charge.billingStatus === BillingStatus.DueSoon) {
-                      <button class="btn-pagar" type="button">Pagar</button>
+                      <button class="btn-pagar" type="button" disabled aria-disabled="true" title="Pagamento disponível em breve" aria-label="Pagar (opção disponível em breve)">Pagar</button>
                     } @else {
                       <span class="seller-status-badge is-info">{{ statusLabel(charge.billingStatus) }}</span>
                     }

@@ -10,7 +10,7 @@ describe('SellerHoursPageComponent', () => {
   const storeServiceMock = {
     getMyStore: jest.fn().mockReturnValue(of({ id: 'store-123', businessHours: [] })),
     getStoreBusinessHours: jest.fn().mockReturnValue(of({ items: [{ dayOfWeek: 1, isOpen: true, shifts: [{ startTime: '08:00', endTime: '12:00' }] }] })),
-    upsertBusinessHours: jest.fn(),
+    upsertStoreBusinessHours: jest.fn(),
   };
 
   const toastServiceMock = {
@@ -61,6 +61,44 @@ describe('SellerHoursPageComponent', () => {
 
     expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00');
     expect(component.hasChanges()).toBe(false);
+  });
+
+  it('shows shifts in ascending opening-time order after loading', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '18:00', endTime: '22:00' },
+          { startTime: '08:00', endTime: '12:00' },
+        ],
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.schedule().segunda.shifts.map(shift => shift.startTime))
+      .toEqual(['08:00', '18:00']);
+  });
+
+  it('re-enables saving after a new edit following a successful save', async () => {
+    storeServiceMock.upsertStoreBusinessHours.mockReturnValue(of({ items: [] }));
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component.updateTime('segunda', 0, 'startTime', '09:00');
+    await component.saveDraft();
+    expect(component.hasChanges()).toBe(false);
+    expect(component.isSaving()).toBe(false);
+
+    component.updateTime('segunda', 0, 'startTime', '10:00');
+    expect(component.hasChanges()).toBe(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.btn-primary-app').disabled).toBe(false);
   });
 
   it('segunda-feira aberta com dois turnos exibe dois .shift-group, .remove-shift em cada turno, botão copiar como último filho de .settings-row, e dias de Segunda a Domingo', async () => {

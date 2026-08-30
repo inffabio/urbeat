@@ -24,7 +24,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
     {
         if (!_dbContext.Database.IsRelational())
         {
-            return await _dbContext.Stores
+            var store = await _dbContext.Stores
                 .AsNoTracking()
                 .Where(x => x.OwnerUserId == ownerUserId)
                 .Select(x => new StoreResponseDto
@@ -36,9 +36,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
                      PhoneNumber = x.PhoneNumber,
                      Document = x.Document,
                      PixKey = x.PixKey,
-                     InstagramUrl = x.InstagramUrl,
-                     FacebookUrl = x.FacebookUrl,
-                     TikTokUrl = x.TikTokUrl,
                      WebsiteUrl = x.WebsiteUrl,
                     Description = x.Description,
                     CuisineType = x.CuisineType != null ? x.CuisineType.Name : string.Empty,
@@ -59,18 +56,30 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     TotalReviews = x.TotalReviews,
                     FreeShippingThreshold = x.FreeShippingThreshold,
                     FreeShippingToday = x.FreeShippingToday,
-                    DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
+                     DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
                     {
                          Id = a.Id,
                          Neighborhood = a.Neighborhood,
                          DeliveryFee = a.DeliveryFee,
-                         MinimumOrderValue = a.MinimumOrderValue,
-                         FreeShippingThreshold = a.FreeShippingThreshold,
                          IsActive = a.IsActive,
                          Notes = a.Notes
                     }).ToList()
                 })
                 .SingleOrDefaultAsync(cancellationToken);
+
+            if (store is not null)
+            {
+                var hours = await _dbContext.StoreBusinessHours
+                    .AsNoTracking()
+                    .Include(x => x.Shifts)
+                    .Where(x => x.StoreId == store.Id)
+                    .ToListAsync(cancellationToken);
+                var openingHours = StoreOpeningHoursCalculator.Calculate(store.IsOpen, hours, DateTimeOffset.UtcNow);
+                store.IsOpenNow = openingHours.IsOpenNow;
+                store.NextStatusChangeAt = openingHours.NextStatusChangeAtUtc;
+            }
+
+            return store;
         }
 
         return await _dapperUnitOfWork.ExecuteAsync(async (connection, ct) =>
@@ -85,9 +94,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "PhoneNumber",
                     "Document",
                     "PixKey",
-                    "InstagramUrl",
-                    "FacebookUrl",
-                    "TikTokUrl",
                     "WebsiteUrl",
                     "Description",
                     (SELECT "Name" FROM "CuisineTypes" WHERE "Id" = "Stores"."CuisineTypeId") AS "CuisineType",
@@ -118,13 +124,18 @@ public sealed class StoreReadRepository : IStoreReadRepository
               if (store is not null)
               {
                   const string areasSql = """
-                      SELECT "Id", "Neighborhood", "DeliveryFee", "MinimumOrderValue", "FreeShippingThreshold", "IsActive", "Notes" FROM "StoreDeliveryAreas" WHERE "StoreId" = @StoreId
+                      SELECT "Id", "Neighborhood", "DeliveryFee", "IsActive", "Notes" FROM "StoreDeliveryAreas" WHERE "StoreId" = @StoreId
                   """;
-                  var areas = await connection.QueryAsync<StoreDeliveryAreaDto>(
-                      new CommandDefinition(areasSql, new { StoreId = store.Id }, cancellationToken: ct));
-                  store.DeliveryAreas = areas.ToList();
-                  
-              }
+                   var areas = await connection.QueryAsync<StoreDeliveryAreaDto>(
+                       new CommandDefinition(areasSql, new { StoreId = store.Id }, cancellationToken: ct));
+                   store.DeliveryAreas = areas.ToList();
+
+                   var hours = await LoadBusinessHoursAsync(connection, store.Id, ct);
+                   var openingHours = StoreOpeningHoursCalculator.Calculate(store.IsOpen, hours, DateTimeOffset.UtcNow);
+                   store.IsOpenNow = openingHours.IsOpenNow;
+                   store.NextStatusChangeAt = openingHours.NextStatusChangeAtUtc;
+
+               }
 
               return store;
           }, cancellationToken);
@@ -161,13 +172,11 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     AverageRating = x.AverageRating,
                     TotalReviews = x.TotalReviews,
                     FreeShippingThreshold = x.FreeShippingThreshold,
-                    DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
+                     DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
                     {
                          Id = a.Id,
                          Neighborhood = a.Neighborhood,
                          DeliveryFee = a.DeliveryFee,
-                         MinimumOrderValue = a.MinimumOrderValue,
-                         FreeShippingThreshold = a.FreeShippingThreshold,
                          IsActive = a.IsActive,
                          Notes = a.Notes
                     }).ToList()

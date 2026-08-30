@@ -1,0 +1,1766 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+PE,2600054,Abreu e Lima,Alto da Bela Vista,alto da bela vista,-8.08683872,-34.96607208,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Alto São Miguel,alto sao miguel,-7.9016636,-34.9054381,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Área Rural de Abreu e Lima,area rural de abreu e lima,-7.9054787,-34.9049499,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Boa Esperança,boa esperanca,-7.9015019,-34.9013318,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Caetés I,caetes i,-7.91860294,-34.92926025,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Caetés II,caetes ii,-7.92035961,-34.91046143,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Caetés III,caetes iii,-7.91034269,-34.91452789,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Centro,centro,-7.9090767,-34.9076136,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Chã de Cruz,cha de cruz,,,dne,True
+PE,2600054,Abreu e Lima,Desterro,desterro,-7.89144564,-34.91806412,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Distrito Industrial,distrito industrial,-7.92320776,-34.90127563,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Jardim Caetés,jardim caetes,-7.9036599,-34.9022651,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Matinha,matinha,-7.89822388,-34.902771,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Planalto,planalto,-7.910270700000001,-34.9136677,brasil_aberto_first_street,True
+PE,2600054,Abreu e Lima,Timbó,timbo,-7.90649128,-34.90676498,brasil_aberto_first_street,True
+PE,2600104,Afogados da Ingazeira,Área Rural de Afogados da Ingazeira,area rural de afogados da ingazeira,-7.749432,-37.639217,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Borges,borges,-7.745564,-37.630768,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Brotas,brotas,-7.752661,-37.624376,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Campinhos,campinhos,-7.770648,-37.638601,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Centro,centro,-7.747263,-37.63736,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Costa,costa,-8.076991,-34.909195,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Manoela Valadares,manoela valadares,-7.755372,-37.628455,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Padre Pedro Pereira,padre pedro pereira,-8.215646,-35.568635,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Planalto,planalto,-7.746822,-37.646649,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,São Braz,sao braz,-7.756309,-37.637179,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,São Cristovão,sao cristovao,-7.757405,-37.652802,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,São Francisco,sao francisco,-7.750353,-37.646129,mapbox_geocoding,True
+PE,2600104,Afogados da Ingazeira,Sobreira,sobreira,-7.75821,-37.650089,mapbox_geocoding,True
+PE,2600203,Afrânio,Arizona,arizona,,,dne,True
+PE,2600203,Afrânio,Cachoeira do Roberto,cachoeira do roberto,,,dne,True
+PE,2600203,Afrânio,Centro,centro,-8.5162541,-41.005237,brasil_aberto_first_street,True
+PE,2600203,Afrânio,Poção de Afrânio,pocao de afranio,,,dne,True
+PE,2600302,Agrestina,Barra do Chata,barra do chata,,,dne,True
+PE,2600302,Agrestina,Barra do Jardim,barra do jardim,,,dne,True
+PE,2600302,Agrestina,Centro,centro,-8.457613799999999,-35.9479829,brasil_aberto_first_street,True
+PE,2600302,Agrestina,Pé-de-Serra dos Mendes,pe de serra dos mendes,,,dne,True
+PE,2600302,Agrestina,Povoado Pe de Serra dos Mendes,povoado pe de serra dos mendes,,,brasil_aberto,True
+PE,2600401,Água Preta,Centro,centro,-8.7021639,-35.5252478,brasil_aberto_first_street,True
+PE,2600401,Água Preta,Distrito Santa Terezinha,distrito santa terezinha,,,brasil_aberto,True
+PE,2600401,Água Preta,Povoado Campo Frio,povoado campo frio,,,brasil_aberto,True
+PE,2600401,Água Preta,Santa Terezinha,santa terezinha,,,dne,True
+PE,2600500,Águas Belas,Centro,centro,-9.111779,-37.1219732,brasil_aberto_first_street,True
+PE,2600500,Águas Belas,Curral Novo,curral novo,-9.0240473,-37.0532867,brasil_aberto_first_street,True
+PE,2600500,Águas Belas,Distrito Curral Novo,distrito curral novo,,,brasil_aberto,True
+PE,2600500,Águas Belas,Povoado de Garcia,povoado de garcia,,,brasil_aberto,True
+PE,2600609,Alagoinha,Alverne,alverne,,,dne,True
+PE,2600609,Alagoinha,Centro,centro,-8.46759987,-36.77611542,brasil_aberto_first_street,True
+PE,2600609,Alagoinha,Distrito de Perpétuo Socorro,distrito de perpetuo socorro,-8.5392902,-36.7209124,brasil_aberto_first_street,True
+PE,2600609,Alagoinha,Perpétuo Socorro,perpetuo socorro,,,dne,True
+PE,2600708,Aliança,Centro,centro,-7.6039633,-35.2291925,brasil_aberto_first_street,True
+PE,2600708,Aliança,Cohab,cohab,-7.413243899999999,-35.110169,brasil_aberto_first_street,True
+PE,2600708,Aliança,Distrito Macuje,distrito macuje,-7.4960695,-35.1262214,brasil_aberto_first_street,True
+PE,2600708,Aliança,Macujé,macuje,,,dne,True
+PE,2600708,Aliança,Povoado Chã de Esconso,povoado cha de esconso,-7.6150593,-35.1509742,brasil_aberto_first_street,True
+PE,2600708,Aliança,Povoado de Caueira,povoado de caueira,-7.5976411,-35.2308917,brasil_aberto_first_street,True
+PE,2600708,Aliança,Tupaoca,tupaoca,-7.609477699999999,-35.2301954,brasil_aberto_first_street,True
+PE,2600708,Aliança,Upatininga,upatininga,-7.666496,-35.172586,brasil_aberto_first_street,True
+PE,2600708,Aliança,Vila da COHAB,vila da cohab,,,brasil_aberto,True
+PE,2600807,Altinho,Centro,centro,-8.4896478,-36.0601591,brasil_aberto_first_street,True
+PE,2600807,Altinho,Ituguaçu,ituguacu,-8.488021999999999,-36.0597471,brasil_aberto_first_street,True
+PE,2600906,Amaraji,Centro,centro,-8.378843200000002,-35.4520164,brasil_aberto_first_street,True
+PE,2601003,Angelim,Açude,acude,-8.89229,-36.280924,mapbox_geocoding,True
+PE,2601003,Angelim,Área Rural de Angelim,area rural de angelim,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2601003,Angelim,Baixada,baixada,-8.888453,-36.281937,mapbox_geocoding,True
+PE,2601003,Angelim,Bela Vista,bela vista,-8.888269,-36.286069,mapbox_geocoding,True
+PE,2601003,Angelim,Centro,centro,-8.889733,-36.284979,mapbox_geocoding,True
+PE,2601003,Angelim,Loteamento São Miguel,loteamento sao miguel,-8.888269,-36.286069,mapbox_geocoding,True
+PE,2601003,Angelim,Nova Aliança,nova alianca,-8.014393,-34.880559,mapbox_geocoding,True
+PE,2601003,Angelim,Quatro Bocas,quatro bocas,-8.935318,-36.29529,mapbox_geocoding,True
+PE,2601003,Angelim,São Luiz,sao luiz,-8.890922,-36.292256,mapbox_geocoding,True
+PE,2601052,Araçoiaba,Centro,centro,-7.792989,-35.0847708,brasil_aberto_first_street,True
+PE,2601052,Araçoiaba,Vila Canaã,vila canaa,-7.584733,-35.106401,mapbox_geocoding,True
+PE,2601102,Araripina,Alto Alegre,alto alegre,-7.577113,-40.500546,mapbox_geocoding,True
+PE,2601102,Araripina,Alto da Boa Vista,alto da boa vista,-7.557962,-40.490216,mapbox_geocoding,True
+PE,2601102,Araripina,Alto do Adelino,alto do adelino,-7.569539,-40.487081,mapbox_geocoding,True
+PE,2601102,Araripina,Aplausos,aplausos,-7.576159,-40.512589,mapbox_geocoding,True
+PE,2601102,Araripina,Área Rural de Araripina,area rural de araripina,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2601102,Araripina,Batista,batista,-7.571643,-40.514398,mapbox_geocoding,True
+PE,2601102,Araripina,Boca da Mata,boca da mata,-7.572297,-40.49654,mapbox_geocoding,True
+PE,2601102,Araripina,Bom Jardim do Araripe,bom jardim do araripe,,,dne,True
+PE,2601102,Araripina,Bomba,bomba,-7.584561,-40.502917,mapbox_geocoding,True
+PE,2601102,Araripina,Cachoeira,cachoeira,-7.572297,-40.49654,mapbox_geocoding,True
+PE,2601102,Araripina,Canastra,canastra,-7.582266,-40.53444,mapbox_geocoding,True
+PE,2601102,Araripina,Cavalete I,cavalete i,-7.586857,-40.505957,mapbox_geocoding,True
+PE,2601102,Araripina,Cavalete II,cavalete ii,-7.584561,-40.502917,mapbox_geocoding,True
+PE,2601102,Araripina,Centro,centro,-7.575543,-40.500395,mapbox_geocoding,True
+PE,2601102,Araripina,Conceição,conceicao,-7.582266,-40.53444,mapbox_geocoding,True
+PE,2601102,Araripina,Distrito de Gergelim,distrito de gergelim,-7.808875,-40.488291,mapbox_geocoding,True
+PE,2601102,Araripina,Distrito de Nascente,distrito de nascente,,,brasil_aberto,True
+PE,2601102,Araripina,Distrito Gergelim,distrito gergelim,-7.808875,-40.488291,mapbox_geocoding,True
+PE,2601102,Araripina,Distrito Lagoa do Barro,distrito lagoa do barro,,,brasil_aberto,True
+PE,2601102,Araripina,Espedito Arraes,espedito arraes,-7.572297,-40.49654,mapbox_geocoding,True
+PE,2601102,Araripina,Gergelim,gergelim,,,dne,True
+PE,2601102,Araripina,Jardim Florípes,jardim floripes,-7.576159,-40.512589,mapbox_geocoding,True
+PE,2601102,Araripina,José Martins,jose martins,-7.573114,-40.49255,mapbox_geocoding,True
+PE,2601102,Araripina,Lagoa do Barro,lagoa do barro,,,dne,True
+PE,2601102,Araripina,Morais,morais,-7.646354,-40.415294,mapbox_geocoding,True
+PE,2601102,Araripina,Nascente,nascente,-8.018849,-34.988487,mapbox_geocoding,True
+PE,2601102,Araripina,Nova Roma,nova roma,-7.56938,-40.500013,mapbox_geocoding,True
+PE,2601102,Araripina,Povoado Bom Jardim do Araripe,povoado bom jardim do araripe,-7.632375,-34.812539,mapbox_geocoding,True
+PE,2601102,Araripina,Povoado Gergelim,povoado gergelim,,,brasil_aberto,True
+PE,2601102,Araripina,Povoado Lagoa do Barro,povoado lagoa do barro,-7.762328,-40.36418,mapbox_geocoding,True
+PE,2601102,Araripina,Rancharia,rancharia,,,dne,True
+PE,2601102,Araripina,Santa Bárbara,santa barbara,-7.584946,-40.49478,mapbox_geocoding,True
+PE,2601102,Araripina,Santa Isabel,santa isabel,-7.584418,-40.499771,mapbox_geocoding,True
+PE,2601102,Araripina,Santa Maria,santa maria,-7.874507,-40.475277,mapbox_geocoding,True
+PE,2601102,Araripina,Santa Rita,santa rita,-7.583655,-40.497594,mapbox_geocoding,True
+PE,2601102,Araripina,São Pedro,sao pedro,-7.572297,-40.49654,mapbox_geocoding,True
+PE,2601102,Araripina,Saúna,sauna,-7.584561,-40.502917,mapbox_geocoding,True
+PE,2601102,Araripina,Serrânia,serrania,,,dne,True
+PE,2601102,Araripina,Universitário,universitario,-7.571607,-40.514657,mapbox_geocoding,True
+PE,2601102,Araripina,Vila Serrânia,vila serrania,-7.885095,-40.476024,mapbox_geocoding,True
+PE,2601201,Arcoverde,Área Rural de Arcoverde,area rural de arcoverde,-8.4176445,-37.0585205,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Boa Esperança,boa esperanca,-8.436077,-37.0641595,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Boa Vista,boa vista,-8.4188583,-37.0404321,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Caraíbas,caraibas,,,dne,True
+PE,2601201,Arcoverde,Cardeal,cardeal,-8.4155467,-37.0516839,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Centro,centro,-8.42082691,-37.05768204,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Cidade Jardim,cidade jardim,-8.4176445,-37.0585205,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Coliseu,coliseu,-8.42708,-37.0704,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Coronel Siqueira Campos,coronel siqueira campos,-8.4299825,-37.0616081,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Pôr do Sol,por do sol,-8.420012,-37.0643,mapbox_geocoding,True
+PE,2601201,Arcoverde,Riacho do Meio,riacho do meio,,,dne,True
+PE,2601201,Arcoverde,Santa Luzia,santa luzia,-8.41813183,-37.03286743,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Santos Dumont,santos dumont,-8.4061023,-37.0738681,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,São Cristóvão,sao cristovao,-8.4061023,-37.0738681,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,São Geraldo,sao geraldo,-8.41542721,-37.04396439,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,São Miguel,sao miguel,-8.425432599999999,-37.06085240000001,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Sucupira,sucupira,-8.18019295,-34.92131424,brasil_aberto_first_street,True
+PE,2601201,Arcoverde,Tamboril,tamboril,-8.4113003,-37.079158,brasil_aberto_first_street,True
+PE,2601300,Barra de Guabiraba,Centro,centro,-8.419986699999999,-35.6617971,brasil_aberto_first_street,True
+PE,2601409,Barreiros,Carima,carima,,,dne,True
+PE,2601409,Barreiros,Centro,centro,-8.8129989,-35.1980469,brasil_aberto_first_street,True
+PE,2601409,Barreiros,Vila Carimã,vila carima,,,brasil_aberto,True
+PE,2601508,Belém de Maria,Batateira,batateira,,,dne,True
+PE,2601508,Belém de Maria,Centro,centro,-8.6246925,-35.8409453,brasil_aberto_first_street,True
+PE,2601508,Belém de Maria,Distrito de Batateira,distrito de batateira,-8.561419,-35.828724,mapbox_geocoding,True
+PE,2601508,Belém de Maria,Distrito de Batateiras,distrito de batateiras,,,brasil_aberto,True
+PE,2601607,Belém do São Francisco,Centro,centro,-8.7559334,-38.9648542,brasil_aberto_first_street,True
+PE,2601607,Belém do São Francisco,Distrito de Ibó,distrito de ibo,-8.6213386,-39.2407735,brasil_aberto_first_street,True
+PE,2601607,Belém do São Francisco,Distrito de Riacho Pequeno,distrito de riacho pequeno,-8.4389831,-39.0332999,brasil_aberto_first_street,True
+PE,2601607,Belém do São Francisco,Ibó,ibo,,,dne,True
+PE,2601607,Belém do São Francisco,Riacho Pequeno,riacho pequeno,,,dne,True
+PE,2601706,Belo Jardim,Água Fria,agua fria,,,dne,True
+PE,2601706,Belo Jardim,Alto Limpo,alto limpo,-8.3479737,-36.4428969,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Área Rural de Belo Jardim,area rural de belo jardim,-8.3338176,-36.41849,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Ayrton Maciel,ayrton maciel,-8.32922173,-36.41528702,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Boa Vista,boa vista,-8.33733559,-36.4137764,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Bom Conselho,bom conselho,-8.3349149,-36.4275742,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Centro,centro,-8.33615589,-36.42179871,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,COHAB-I,cohab i,-8.3410437,-36.4091639,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,COHAB-ll,cohab ll,-8.348334099999999,-36.4195248,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Distrito de Agua Fria,distrito de agua fria,-8.3877358,-36.4609964,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Distrito Serra do Vento,distrito serra do vento,-8.230838799999999,-36.3604846,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Distrito Xucuru,distrito xucuru,-8.20934868,-36.46300888,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Edson Mororó Moura,edson mororo moura,-8.3383095,-36.4193637,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Euno Andrade da Silva,euno andrade da silva,-8.3359363,-36.424018,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Floresta,floresta,-8.3480115,-36.4080919,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Frei Damião,frei damiao,-8.3338176,-36.41849,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Gameleira,gameleira,-8.3259973,-36.4209109,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,José Maciel,jose maciel,-7.89608,-35.154062,mapbox_geocoding,True
+PE,2601706,Belo Jardim,Morada Nobre,morada nobre,-8.3237611,-36.4136331,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+PE,2601706,Belo Jardim,Pontilhão,pontilhao,,,brasil_aberto,True
+PE,2601706,Belo Jardim,Raiz,raiz,,,dne,True
+PE,2601706,Belo Jardim,Santa Luzia,santa luzia,,,dne,True
+PE,2601706,Belo Jardim,Santo Antônio,santo antonio,-8.342317399999999,-36.4377407,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,São Pedro,sao pedro,-8.3283239,-36.4202,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,São Sebastião,sao sebastiao,-8.3364879,-36.4127592,brasil_aberto_first_street,True
+PE,2601706,Belo Jardim,Serra do Vento,serra do vento,,,dne,True
+PE,2601706,Belo Jardim,Taboquinha,taboquinha,,,dne,True
+PE,2601706,Belo Jardim,Vila Nova,vila nova,,,dne,True
+PE,2601706,Belo Jardim,Xucuru,xucuru,,,dne,True
+PE,2601805,Betânia,Centro,centro,-8.2755748,-38.0334582,brasil_aberto_first_street,True
+PE,2601805,Betânia,São Caetano do Navio,sao caetano do navio,-8.1860951,-37.9837569,brasil_aberto_first_street,True
+PE,2601904,Bezerros,Área Rural de Bezerros,area rural de bezerros,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2601904,Bezerros,Areias,areias,-8.121031,-35.749609,mapbox_geocoding,True
+PE,2601904,Bezerros,Boas Novas,boas novas,,,dne,True
+PE,2601904,Bezerros,Cajazeiras,cajazeiras,-8.144177,-35.724134,mapbox_geocoding,True
+PE,2601904,Bezerros,Centro,centro,-8.236599,-35.751633,mapbox_geocoding,True
+PE,2601904,Bezerros,Cruzeiro,cruzeiro,-8.512915,-39.312183,mapbox_geocoding,True
+PE,2601904,Bezerros,Distrito de Boas Novas,distrito de boas novas,-8.3743567,-35.8728416,brasil_aberto_first_street,True
+PE,2601904,Bezerros,Distrito de Sapucarana,distrito de sapucarana,-8.336051,-35.812864,mapbox_geocoding,True
+PE,2601904,Bezerros,Distrito Sapucarana,distrito sapucarana,,,brasil_aberto,True
+PE,2601904,Bezerros,Encruzilhada de São João,encruzilhada de sao joao,-8.300391,-35.843097,mapbox_geocoding,True
+PE,2601904,Bezerros,Francisco de Moraes Araújo,francisco de moraes araujo,-8.246753,-35.747712,mapbox_geocoding,True
+PE,2601904,Bezerros,Gameleira,gameleira,-8.228715,-35.761075,mapbox_geocoding,True
+PE,2601904,Bezerros,Irmã Júlia,irma julia,-8.242687,-35.752268,mapbox_geocoding,True
+PE,2601904,Bezerros,Mororó,mororo,-8.225008,-35.753263,mapbox_geocoding,True
+PE,2601904,Bezerros,Nossa Senhora Aparecida,nossa senhora aparecida,-7.831318,-35.275399,mapbox_geocoding,True
+PE,2601904,Bezerros,Povoado de Areias,povoado de areias,,,brasil_aberto,True
+PE,2601904,Bezerros,Povoado de Cajazeiras,povoado de cajazeiras,,,brasil_aberto,True
+PE,2601904,Bezerros,Povoado Encruzilhada de São João,povoado encruzilhada de sao joao,,,brasil_aberto,True
+PE,2601904,Bezerros,Povoado Vila Serra Negra,povoado vila serra negra,,,brasil_aberto,True
+PE,2601904,Bezerros,Queimadas D'Àntas,queimadas d antas,-8.237883,-35.759345,mapbox_geocoding,True
+PE,2601904,Bezerros,Residencial Bezerros,residencial bezerros,-8.217606,-35.739598,mapbox_geocoding,True
+PE,2601904,Bezerros,Residencial Campestre,residencial campestre,-8.164337,-35.006331,mapbox_geocoding,True
+PE,2601904,Bezerros,Retiro,retiro,-8.674482,-35.713436,mapbox_geocoding,True
+PE,2601904,Bezerros,Rosário,rosario,-8.237291,-35.759273,mapbox_geocoding,True
+PE,2601904,Bezerros,Santo Amaro,santo amaro,-8.243259,-35.762736,mapbox_geocoding,True
+PE,2601904,Bezerros,Santo Antônio,santo antonio,-8.231486,-35.759309,mapbox_geocoding,True
+PE,2601904,Bezerros,São José,sao jose,-8.230528,-35.754515,mapbox_geocoding,True
+PE,2601904,Bezerros,São Pedro,sao pedro,-8.23625,-35.745399,mapbox_geocoding,True
+PE,2601904,Bezerros,São Rafael,sao rafael,-7.872569,-34.909322,mapbox_geocoding,True
+PE,2601904,Bezerros,São Sebastião,sao sebastiao,-8.238251,-35.748219,mapbox_geocoding,True
+PE,2601904,Bezerros,Sapucarana,sapucarana,,,dne,True
+PE,2601904,Bezerros,Serra Negra,serra negra,,,dne,True
+PE,2601904,Bezerros,Sítio dos Remédios,sitio dos remedios,-7.947128,-34.828976,mapbox_geocoding,True
+PE,2601904,Bezerros,Vila Serra Negra,vila serra negra,-8.012741,-34.965674,mapbox_geocoding,True
+PE,2602001,Bodocó,Centro,centro,-7.7791804,-39.9398914,brasil_aberto_first_street,True
+PE,2602001,Bodocó,Clarana,clarana,,,dne,True
+PE,2602001,Bodocó,Cocau,cocau,,,dne,True
+PE,2602001,Bodocó,Distrito Clarana,distrito clarana,,,brasil_aberto,True
+PE,2602001,Bodocó,Distrito Feitoria,distrito feitoria,,,brasil_aberto,True
+PE,2602001,Bodocó,Feitoria,feitoria,,,dne,True
+PE,2602100,Bom Conselho,Barra do Brejo,barra do brejo,,,dne,True
+PE,2602100,Bom Conselho,Cachoeira do Pinto,cachoeira do pinto,,,dne,True
+PE,2602100,Bom Conselho,Caldeirões,caldeiroes,,,dne,True
+PE,2602100,Bom Conselho,Centro,centro,-9.1713495,-36.6811358,brasil_aberto_first_street,True
+PE,2602100,Bom Conselho,Igreja Nova,igreja nova,,,dne,True
+PE,2602100,Bom Conselho,Lagoa de São José,lagoa de sao jose,,,dne,True
+PE,2602100,Bom Conselho,Logradouro dos Leões,logradouro dos leoes,,,dne,True
+PE,2602100,Bom Conselho,Povoado Igreja Nova,povoado igreja nova,,,brasil_aberto,True
+PE,2602100,Bom Conselho,Rainha Isabel,rainha isabel,,,dne,True
+PE,2602209,Bom Jardim,Bizarra,bizarra,,,dne,True
+PE,2602209,Bom Jardim,Centro,centro,-7.7980476,-35.5857134,brasil_aberto_first_street,True
+PE,2602209,Bom Jardim,Distrito de Bizarra,distrito de bizarra,-7.7615259,-35.4844292,brasil_aberto_first_street,True
+PE,2602209,Bom Jardim,Distrito de Encruzilhada,distrito de encruzilhada,-7.792810800000001,-35.5892475,brasil_aberto_first_street,True
+PE,2602209,Bom Jardim,Distrito Tamboatá,distrito tamboata,-7.779579,-35.6718741,brasil_aberto_first_street,True
+PE,2602209,Bom Jardim,Distrito Umari,distrito umari,-7.8287445,-35.6515379,brasil_aberto_first_street,True
+PE,2602209,Bom Jardim,Encruzilhada,encruzilhada,,,brasil_aberto,True
+PE,2602209,Bom Jardim,Povoado Umari,povoado umari,,,brasil_aberto,True
+PE,2602209,Bom Jardim,Tamboatá,tamboata,,,dne,True
+PE,2602308,Bonito,Agrovila (Distrito de Alto Bonito),agrovila distrito de alto bonito,-8.473279,-35.729282,mapbox_geocoding,True
+PE,2602308,Bonito,Alto Alegre (Distrito de Alto Bonito),alto alegre distrito de alto bonito,-7.727326,-35.330315,mapbox_geocoding,True
+PE,2602308,Bonito,Araticum,araticum,-8.231619,-35.761818,mapbox_geocoding,True
+PE,2602308,Bonito,Bandinha,bandinha,-8.476805,-35.72517,mapbox_geocoding,True
+PE,2602308,Bonito,Bem-te-vi,bem te vi,,,dne,True
+PE,2602308,Bonito,Bentivi,bentivi,,,brasil_aberto,True
+PE,2602308,Bonito,Boa Vista,boa vista,-8.468048,-35.730841,mapbox_geocoding,True
+PE,2602308,Bonito,Cachoeira,cachoeira,-8.474716,-35.729532,mapbox_geocoding,True
+PE,2602308,Bonito,Camaratuba,camaratuba,-8.485012,-35.752624,mapbox_geocoding,True
+PE,2602308,Bonito,Capema,capema,-8.471363,-35.731455,mapbox_geocoding,True
+PE,2602308,Bonito,Centro,centro,-8.469804,-35.738817,mapbox_geocoding,True
+PE,2602308,Bonito,Centro (Distrito Alto do Bonito),centro distrito alto do bonito,-8.52238274,-35.55060577,brasil_aberto_first_street,True
+PE,2602308,Bonito,Distrito Alto do Bonito,distrito alto do bonito,,,brasil_aberto,True
+PE,2602308,Bonito,Distrito Ben-te-vi,distrito ben te vi,,,brasil_aberto,True
+PE,2602308,Bonito,Frei Damião,frei damiao,-7.942797,-34.896508,mapbox_geocoding,True
+PE,2602308,Bonito,Gregório Bezerra (Distrito de Alto do Bonito),gregorio bezerra distrito de alto do bonito,-8.470499,-35.738922,mapbox_geocoding,True
+PE,2602308,Bonito,Iuiteporã,iuitepora,,,dne,True
+PE,2602308,Bonito,Juca,juca,-8.469303,-35.733037,mapbox_geocoding,True
+PE,2602308,Bonito,Matriz,matriz,-8.471041,-35.725862,mapbox_geocoding,True
+PE,2602308,Bonito,Nossa Senhora de Fátima,nossa senhora de fatima,-9.373276,-40.541026,mapbox_geocoding,True
+PE,2602308,Bonito,Padre Cícero (Distrito de Alto Bonito),padre cicero distrito de alto bonito,-8.473279,-35.729282,mapbox_geocoding,True
+PE,2602308,Bonito,Salgado,salgado,-8.468859,-35.729105,mapbox_geocoding,True
+PE,2602308,Bonito,São Cristovão (Distrito de Alto Bonito),sao cristovao distrito de alto bonito,-22.748028,-43.30855,mapbox_geocoding,True
+PE,2602308,Bonito,Sapucaia,sapucaia,-8.540862,-35.759414,mapbox_geocoding,True
+PE,2602308,Bonito,Veloso,veloso,-7.948377,-35.393326,mapbox_geocoding,True
+PE,2602308,Bonito,Vila da Cohab,vila da cohab,-8.469804,-35.738817,mapbox_geocoding,True
+PE,2602407,Brejão,Centro,centro,-8.892787,-36.4814584,brasil_aberto_first_street,True
+PE,2602506,Brejinho,Centro,centro,-7.3500637,-37.2847217,brasil_aberto_first_street,True
+PE,2602605,Brejo da Madre de Deus,Barra de Farias,barra de farias,,,brasil_aberto,True
+PE,2602605,Brejo da Madre de Deus,Barra do Farias,barra do farias,-8.132440299999999,-36.3043014,brasil_aberto_first_street,True
+PE,2602605,Brejo da Madre de Deus,Caldeirão,caldeirao,,,dne,True
+PE,2602605,Brejo da Madre de Deus,Cavalo Ruço de Deus,cavalo ruco de deus,,,dne,True
+PE,2602605,Brejo da Madre de Deus,Cavalo Russo,cavalo russo,,,brasil_aberto,True
+PE,2602605,Brejo da Madre de Deus,Centro,centro,-8.1436657,-36.3744888,brasil_aberto_first_street,True
+PE,2602605,Brejo da Madre de Deus,Distrito de Fazenda Nova,distrito de fazenda nova,-8.1695155,-36.1926183,brasil_aberto_first_street,True
+PE,2602605,Brejo da Madre de Deus,Distrito São Domingos,distrito sao domingos,-8.0213789,-36.2785675,brasil_aberto_first_street,True
+PE,2602605,Brejo da Madre de Deus,Fazenda Nova,fazenda nova,,,dne,True
+PE,2602605,Brejo da Madre de Deus,Mandaçaia,mandacaia,-7.998329,-35.28878,mapbox_geocoding,True
+PE,2602605,Brejo da Madre de Deus,São Domingos,sao domingos,,,dne,True
+PE,2602704,Buenos Aires,Centro,centro,-7.7241496,-35.326789,brasil_aberto_first_street,True
+PE,2602803,Buíque,Área Rural de Buiquí,area rural de buiqui,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2602803,Buíque,Bela Vista,bela vista,-8.62309,-37.160026,mapbox_geocoding,True
+PE,2602803,Buíque,Bosque dos Eucaliptos,bosque dos eucaliptos,-7.662039,-35.323744,mapbox_geocoding,True
+PE,2602803,Buíque,Carneiro,carneiro,,,dne,True
+PE,2602803,Buíque,Catimbau,catimbau,-8.41420269,-37.06631088,brasil_aberto_first_street,True
+PE,2602803,Buíque,Centro,centro,-8.626694,-37.16217,mapbox_geocoding,True
+PE,2602803,Buíque,Frei Damião,frei damiao,-8.620478,-37.155788,mapbox_geocoding,True
+PE,2602803,Buíque,Graciliano Ramos,graciliano ramos,-8.627994,-37.153369,mapbox_geocoding,True
+PE,2602803,Buíque,Guanumbi,guanumbi,,,dne,True
+PE,2602803,Buíque,Jardim do Vale,jardim do vale,-8.624932,-37.158315,mapbox_geocoding,True
+PE,2602803,Buíque,Jardim Ipanema,jardim ipanema,-7.523159,-39.569888,mapbox_geocoding,True
+PE,2602803,Buíque,Nossa Senhora Aparecida,nossa senhora aparecida,-3.463115,-39.411288,mapbox_geocoding,True
+PE,2602803,Buíque,Nossa Senhora das Graças,nossa senhora das gracas,-8.620478,-37.155788,mapbox_geocoding,True
+PE,2602803,Buíque,Santa Tereza,santa tereza,-17.336709,-53.226368,mapbox_geocoding,True
+PE,2602803,Buíque,São Benedito,sao benedito,-8.630756,-37.15062,mapbox_geocoding,True
+PE,2602803,Buíque,São José,sao jose,-8.623087,-37.149335,mapbox_geocoding,True
+PE,2602803,Buíque,Solar do Vale,solar do vale,-8.618714,-37.155355,mapbox_geocoding,True
+PE,2602803,Buíque,Vila do Carneiro,vila do carneiro,-8.538235,-37.120972,mapbox_geocoding,True
+PE,2602803,Buíque,Vila Guanamby,vila guanamby,-8.6491816,-37.0292355,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Área Rural do Cabo de Santo Agostinho,area rural do cabo de santo agostinho,-8.2869133,-35.0372522,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Bela Vista,bela vista,-8.2988538,-35.0623084,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Centro,centro,-8.28957653,-35.03839111,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Charnequinha,charnequinha,-8.29549694,-35.04275131,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,COHAB,cohab,-8.294092,-35.0285158,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Cruzeiro,cruzeiro,-8.28999805,-35.03505325,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Destilaria,destilaria,-8.20204926,-35.53689957,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Distrito Industrial Diper,distrito industrial diper,-8.288488,-35.033356,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Distrito Industrial Santo Estevão,distrito industrial santo estevao,-19.7449379,-40.37586594,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Enseada dos Corais,enseada dos corais,-8.288488,-35.033356,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Gaibú,gaibu,-8.342351,-34.949338,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Garapu,garapu,-8.28439713,-35.02025223,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Itapuama,itapuama,-8.293008,-34.954645,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Juçaral,jucaral,,,dne,True
+PE,2602902,Cabo de Santo Agostinho,Malaquias,malaquias,-8.2930593,-35.0352896,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Mauriti,mauriti,-8.2949791,-35.03322601,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Nossa Senhora do Rosário,nossa senhora do rosario,-8.31528091,-35.02015686,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Paiva,paiva,-8.28592491,-35.03129959,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Pirapama,pirapama,-8.213018,-35.224117,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Ponte dos Carvalhos,ponte dos carvalhos,-8.236818399999999,-34.9848947,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Pontezinha,pontezinha,-8.22441387,-34.96535492,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Santo Agostinho,santo agostinho,,,dne,True
+PE,2602902,Cabo de Santo Agostinho,Santo Inácio,santo inacio,-8.28189087,-35.02339554,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,São Francisco,sao francisco,-8.299851799999999,-35.0371061,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Suape,suape,-8.353985,-34.954445,mapbox_geocoding,True
+PE,2602902,Cabo de Santo Agostinho,Torrinha,torrinha,-8.28814125,-35.03433609,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Vila Claudete,vila claudete,-8.2890547,-35.0142022,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Vila Doutor Manoel Clementino,vila doutor manoel clementino,-8.2796137,-35.0277242,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Vila Nova,vila nova,-8.241556,-35.036601,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Vila Teatrólogo Barreto Júnior,vila teatrologo barreto junior,-8.2987678,-35.0581797,brasil_aberto_first_street,True
+PE,2602902,Cabo de Santo Agostinho,Zona Industrial de Suape,zona industrial de suape,-8.325188,-35.006146,mapbox_geocoding,True
+PE,2603009,Cabrobó,Centro,centro,-8.5138123,-39.3106847,brasil_aberto_first_street,True
+PE,2603108,Cachoeirinha,Cabanas,cabanas,,,dne,True
+PE,2603108,Cachoeirinha,Centro,centro,-8.4871572,-36.2359042,brasil_aberto_first_street,True
+PE,2603108,Cachoeirinha,Distrito de Cabanas,distrito de cabanas,,,brasil_aberto,True
+PE,2603207,Caetés,Centro,centro,-8.77366543,-36.62278748,brasil_aberto_first_street,True
+PE,2603306,Calçado,Centro,centro,-8.7413555,-36.3368406,brasil_aberto_first_street,True
+PE,2603405,Calumbi,Centro,centro,-7.939561599999999,-38.1518635,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Alberto Maia,alberto maia,-8.018844999999999,-35.006294,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Aldeia de Baixo,aldeia de baixo,-8.013085,-34.972937,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Aldeia dos Camarás,aldeia dos camaras,-7.940442300000001,-35.0057667,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Alto da Boa Vista,alto da boa vista,-8.0216465,-34.98091125,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Alto Santo Antônio,alto santo antonio,-8.0245994,-34.986734,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Área Rural de Camaragibe,area rural de camaragibe,-8.0232973,-34.9944969,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Areeiro,areeiro,-8.03010845,-34.99197006,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Bairro dos Estados,bairro dos estados,-8.0247837,-34.9783341,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Bairro Novo do Carmelo,bairro novo do carmelo,-8.023098000000001,-34.9758179,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Borralho,borralho,-7.9873986,-34.9941875,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Celeiro das Alegrias Futuras,celeiro das alegrias futuras,-8.01593018,-34.99551392,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Céu Azul,ceu azul,-8.00274754,-34.99382782,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Estação Nova,estacao nova,-8.0194051,-35.0004352,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Jardim Primavera,jardim primavera,-8.00892639,-34.96661377,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,João Paulo II,joao paulo ii,-8.00954056,-35.00278091,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Nazaré,nazare,-8.01814938,-34.96556854,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Oitenta,oitenta,-8.0220333,-34.9686491,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Santa Mônica,santa monica,-8.0281344,-34.99906989999999,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Santa Tereza,santa tereza,-8.0039623,-34.9964883,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Santana,santana,-8.01669121,-35.00847244,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,São João e São Paulo,sao joao e sao paulo,-8.0049949,-35.0135766,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,São Paulo,sao paulo,-8.0111454,-34.9732261,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,São Pedro,sao pedro,-8.0151759,-35.0019581,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Tabatinga,tabatinga,-8.02196884,-34.92224884,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Timbí,timbi,-8.03010845,-34.99197006,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Vale das Pedreiras,vale das pedreiras,-8.0117131,-34.9712435,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Vera Cruz,vera cruz,-7.958832,-35.0118982,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Viana,viana,-8.0304617,-34.9938321,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Vila da Fábrica,vila da fabrica,-7.999142399999999,-34.9802392,brasil_aberto_first_street,True
+PE,2603454,Camaragibe,Vila da Inabi,vila da inabi,-8.0178957,-34.96937561,brasil_aberto_first_street,True
+PE,2603504,Camocim de São Félix,Centro,centro,-8.3616406,-35.7635601,brasil_aberto_first_street,True
+PE,2603603,Camutanga,Centro,centro,-7.94599152,-36.20940018,brasil_aberto_first_street,True
+PE,2603702,Canhotinho,Centro,centro,-8.88181305,-36.19060898,brasil_aberto_first_street,True
+PE,2603702,Canhotinho,Distrito de Olho D'Água de Dentro,distrito de olho d agua de dentro,-8.8205317,-36.229737,brasil_aberto_first_street,True
+PE,2603702,Canhotinho,Distrito de Paquevira,distrito de paquevira,-8.8920633,-36.1021944,brasil_aberto_first_street,True
+PE,2603702,Canhotinho,Distrito Olho D´Agua de Dentro,distrito olho d agua de dentro,,,brasil_aberto,True
+PE,2603702,Canhotinho,Olho D'Água de Dentro,olho d agua de dentro,,,dne,True
+PE,2603702,Canhotinho,Paquevira,paquevira,,,dne,True
+PE,2603801,Capoeiras,Centro,centro,-8.73441315,-36.62674713,brasil_aberto_first_street,True
+PE,2603900,Carnaíba,Centro,centro,-7.804318,-37.7926449,brasil_aberto_first_street,True
+PE,2603900,Carnaíba,Distrito de Ibitiranga,distrito de ibitiranga,-7.806106,-37.79403509999999,brasil_aberto_first_street,True
+PE,2603900,Carnaíba,Ibitiranga,ibitiranga,,,dne,True
+PE,2603926,Carnaubeira da Penha,Centro,centro,-8.3223844,-38.7431895,brasil_aberto_first_street,True
+PE,2604007,Carpina,Área Rural de Carpina,area rural de carpina,-7.8435039,-35.2502744,brasil_aberto_first_street,True
+PE,2604007,Carpina,Bairro Novo,bairro novo,-7.844731899999998,-35.24345539999999,brasil_aberto_first_street,True
+PE,2604007,Carpina,Cajá,caja,-7.84150648,-35.26041031,brasil_aberto_first_street,True
+PE,2604007,Carpina,Caramuru,caramuru,,,dne,True
+PE,2604007,Carpina,Caraúba Torta,carauba torta,,,dne,True
+PE,2604007,Carpina,Centro,centro,-7.84720564,-35.25538635,brasil_aberto_first_street,True
+PE,2604007,Carpina,Madre Rosa,madre rosa,-7.8336006,-35.2512949,brasil_aberto_first_street,True
+PE,2604007,Carpina,Santa Cruz,santa cruz,-7.844625100000001,-35.2437653,brasil_aberto_first_street,True
+PE,2604007,Carpina,Santa Terezinha,santa terezinha,-7.8457756,-35.242019,brasil_aberto_first_street,True
+PE,2604007,Carpina,Santo Antônio,santo antonio,-7.84798956,-35.26825333,brasil_aberto_first_street,True
+PE,2604007,Carpina,São José,sao jose,-7.8416878,-35.2584197,brasil_aberto_first_street,True
+PE,2604007,Carpina,São Sebastião,sao sebastiao,-7.84784889,-35.25008774,brasil_aberto_first_street,True
+PE,2604007,Carpina,Senzala,senzala,-7.84043074,-35.26131439,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Agamenom Magalhães,agamenom magalhaes,,,brasil_aberto,True
+PE,2604106,Caruaru,Agamenon Magalhães,agamenon magalhaes,-8.2972839,-35.984921,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Alto do Moura,alto do moura,-8.294917,-36.030689,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Andorinha,andorinha,-8.262175,-35.99219,mapbox_geocoding,True
+PE,2604106,Caruaru,Área Rural de Caruaru,area rural de caruaru,-8.2822979,-35.9715362,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Boa Vista,boa vista,-8.274436,-35.9949379,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Cachoeira Seca,cachoeira seca,,,dne,True
+PE,2604106,Caruaru,Caiuca,caiuca,-8.28136539,-35.98884583,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Carapotos,carapotos,,,dne,True
+PE,2604106,Caruaru,Cedro,cedro,-8.281046,-35.9472062,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Centenário,centenario,-8.27840042,-35.97579575,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Cidade Alta,cidade alta,-8.3067044,-35.973818,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Cidade Jardim,cidade jardim,-8.2775514,-35.9522862,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Deputado José Antônio Liberato,deputado jose antonio liberato,-8.28569221,-35.94107819,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Distrito Industrial,distrito industrial,-8.2919901,-36.0102222,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Divinópolis,divinopolis,-8.27477551,-35.97925568,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Gonçalves Ferreira,goncalves ferreira,,,dne,True
+PE,2604106,Caruaru,Indianópolis,indianopolis,-8.29095554,-35.96599579,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Itaúna,itauna,,,dne,True
+PE,2604106,Caruaru,Jacaré Grande,jacare grande,,,dne,True
+PE,2604106,Caruaru,Jacarezinho,jacarezinho,,,dne,True
+PE,2604106,Caruaru,Jardim Boa Vista,jardim boa vista,-8.268047,-35.99103,mapbox_geocoding,True
+PE,2604106,Caruaru,Jardim Panorama,jardim panorama,-8.269493299999999,-35.9890946,brasil_aberto_first_street,True
+PE,2604106,Caruaru,João Mota,joao mota,-8.28258228,-35.98355865,brasil_aberto_first_street,True
+PE,2604106,Caruaru,José Carlos de Oliveira,jose carlos de oliveira,-8.2714915,-36.0055258,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Juá,jua,,,dne,True
+PE,2604106,Caruaru,Kennedy,kennedy,-8.28434467,-36.00074005,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Laje,laje,,,dne,True
+PE,2604106,Caruaru,Lajedo do Cedro,lajedo do cedro,,,dne,True
+PE,2604106,Caruaru,Luiz Gonzaga,luiz gonzaga,-8.2488115,-35.9649755,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Malhada Barreiras Queimadas,malhada barreiras queimadas,,,dne,True
+PE,2604106,Caruaru,Malhada de Pedra,malhada de pedra,,,dne,True
+PE,2604106,Caruaru,Manoel Bezerra Lopes,manoel bezerra lopes,-8.27615452,-35.97295761,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Maria Auxiliadora,maria auxiliadora,-8.273777,-35.99286,mapbox_geocoding,True
+PE,2604106,Caruaru,Maurício de Nassau,mauricio de nassau,-8.27992153,-35.96589661,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Morro do Bom Jesus,morro do bom jesus,-8.2863353,-35.979192,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Murici,murici,,,dne,True
+PE,2604106,Caruaru,Nina Liberato,nina liberato,-8.279385,-36.009584,mapbox_geocoding,True
+PE,2604106,Caruaru,Nossa Senhora das Dores,nossa senhora das dores,-8.2862195,-35.9750964,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Nossa Senhora das Graças,nossa senhora das gracas,-8.2935969,-36.0481453,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Nova Caruaru,nova caruaru,-8.2550101,-35.9808733,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Palmatória,palmatoria,,,dne,True
+PE,2604106,Caruaru,Patos,patos,,,dne,True
+PE,2604106,Caruaru,Pau-Santo,pau santo,,,dne,True
+PE,2604106,Caruaru,Pelada,pelada,,,dne,True
+PE,2604106,Caruaru,Petrópolis,petropolis,-8.2937074,-35.9759706,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Pinheirópolis,pinheiropolis,-8.2935314,-35.9819582,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Rafael,rafael,,,dne,True
+PE,2604106,Caruaru,Rendeiras,rendeiras,-8.282172,-35.953373,mapbox_geocoding,True
+PE,2604106,Caruaru,Riachão,riachao,-8.2820684,-35.9619899,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Salgado,salgado,-8.28198433,-35.95986557,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Santa Rosa,santa rosa,-8.295681,-35.96339035,brasil_aberto_first_street,True
+PE,2604106,Caruaru,São Francisco,sao francisco,-8.2923203,-35.9791059,brasil_aberto_first_street,True
+PE,2604106,Caruaru,São João da Escócia,sao joao da escocia,-8.27203274,-35.95211411,brasil_aberto_first_street,True
+PE,2604106,Caruaru,São José,sao jose,-8.277023,-35.936447,mapbox_geocoding,True
+PE,2604106,Caruaru,Serras do Vale,serras do vale,-8.2565017,-35.9291567,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Serrote dos Bois de Cima,serrote dos bois de cima,,,dne,True
+PE,2604106,Caruaru,Severino Afonso,severino afonso,-8.271891,-35.983821,mapbox_geocoding,True
+PE,2604106,Caruaru,Terra Vermelha,terra vermelha,,,dne,True
+PE,2604106,Caruaru,Universitário,universitario,-8.28258,-35.97143,mapbox_geocoding,True
+PE,2604106,Caruaru,Vassoural,vassoural,-8.2932435,-35.9687386,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Verde,verde,-8.2822979,-35.9715362,brasil_aberto_first_street,True
+PE,2604106,Caruaru,Xicuru,xicuru,,,dne,True
+PE,2604106,Caruaru,Xique-Xique,xique xique,,,dne,True
+PE,2604155,Casinhas,Catolé,catole,,,dne,True
+PE,2604155,Casinhas,Centro,centro,-7.7452538,-35.7235277,brasil_aberto_first_street,True
+PE,2604155,Casinhas,Diogo,diogo,-7.744447,-35.7243918,brasil_aberto_first_street,True
+PE,2604155,Casinhas,Junco,junco,,,dne,True
+PE,2604155,Casinhas,Lagoa da Pedra,lagoa da pedra,,,dne,True
+PE,2604155,Casinhas,Oratório,oratorio,-7.725771200000001,-35.7405874,brasil_aberto_first_street,True
+PE,2604155,Casinhas,Povoado Junco,povoado junco,-4.18601847,-40.94280624,brasil_aberto_first_street,True
+PE,2604155,Casinhas,Povoado Lagoa de Pedra,povoado lagoa de pedra,-8.08374977,-38.5653801,brasil_aberto_first_street,True
+PE,2604155,Casinhas,Vila Nova,vila nova,-7.744447,-35.7243918,brasil_aberto_first_street,True
+PE,2604205,Catende,Centro,centro,-8.6693876,-35.7199271,brasil_aberto_first_street,True
+PE,2604205,Catende,Distrito de Laje Grande,distrito de laje grande,-8.5975734,-35.7671313,brasil_aberto_first_street,True
+PE,2604205,Catende,Laje Grande,laje grande,,,dne,True
+PE,2604205,Catende,Povoado Roçadinho,povoado rocadinho,-8.6585831,-35.7424223,brasil_aberto_first_street,True
+PE,2604205,Catende,Usina Roçadinho,usina rocadinho,,,dne,True
+PE,2604304,Cedro,Área Rural da Cidade do Cedro,area rural da cidade do cedro,-7.720855,-39.23631,mapbox_geocoding,True
+PE,2604304,Cedro,Cedrolândia,cedrolandia,-7.730682,-39.211309,mapbox_geocoding,True
+PE,2604304,Cedro,Centro,centro,-7.730682,-39.211309,mapbox_geocoding,True
+PE,2604304,Cedro,Conjunto Habitacional Francisco Leandro,conjunto habitacional francisco leandro,-7.722072,-39.231531,mapbox_geocoding,True
+PE,2604304,Cedro,Conjunto Habitacional Josemar Pereira Sidrim,conjunto habitacional josemar pereira sidrim,-8.042188,-34.887909,mapbox_geocoding,True
+PE,2604304,Cedro,Loteamento Bela Vista,loteamento bela vista,-7.726907,-39.239237,mapbox_geocoding,True
+PE,2604304,Cedro,Loteamento Flor do Sertão,loteamento flor do sertao,-7.726907,-39.239237,mapbox_geocoding,True
+PE,2604304,Cedro,Loteamento Nossa Senhora do Perpetou Socorro,loteamento nossa senhora do perpetou socorro,-18.869379,-48.265812,mapbox_geocoding,True
+PE,2604304,Cedro,Loteamento Solaris,loteamento solaris,-7.722422,-39.234245,mapbox_geocoding,True
+PE,2604304,Cedro,São Francisco,sao francisco,-7.730682,-39.211309,mapbox_geocoding,True
+PE,2604304,Cedro,Vila Santa Terezinha,vila santa terezinha,-7.730682,-39.211309,mapbox_geocoding,True
+PE,2604304,Cedro,Vila Zacarias,vila zacarias,-7.727661,-39.24144,mapbox_geocoding,True
+PE,2604403,Chã de Alegria,Centro,centro,-7.997958,-35.213287,mapbox_geocoding,True
+PE,2604502,Chã Grande,Centro,centro,-8.239198,-35.4627671,brasil_aberto_first_street,True
+PE,2604502,Chã Grande,Povoado Santa Luzia,povoado santa luzia,,,brasil_aberto,True
+PE,2604601,Condado,Centro,centro,-7.5871554,-35.1037665,brasil_aberto_first_street,True
+PE,2604700,Correntes,Centro,centro,-9.130504199999999,-36.3271908,brasil_aberto_first_street,True
+PE,2604700,Correntes,Pau Amarelo,pau amarelo,,,dne,True
+PE,2604700,Correntes,Poço Comprido,poco comprido,-9.0410038,-36.3967759,brasil_aberto_first_street,True
+PE,2604809,Cortês,Centro,centro,-8.47438717,-35.54309845,brasil_aberto_first_street,True
+PE,2604809,Cortês,Povoado Usina Pedrosa,povoado usina pedrosa,,,brasil_aberto,True
+PE,2604908,Cumaru,Ameixas,ameixas,,,dne,True
+PE,2604908,Cumaru,Centro,centro,-8.007555,-35.7001477,brasil_aberto_first_street,True
+PE,2604908,Cumaru,Distrito de Ameixas,distrito de ameixas,-8.10389423,-35.77462387,brasil_aberto_first_street,True
+PE,2605004,Cupira,Antônio Bispo,antonio bispo,-8.597834,-35.954305,mapbox_geocoding,True
+PE,2605004,Cupira,Área Rural de Cupira,area rural de cupira,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2605004,Cupira,Beira Rio,beira rio,-8.608171,-35.949848,mapbox_geocoding,True
+PE,2605004,Cupira,Boa Vista,boa vista,-8.600792,-35.956138,mapbox_geocoding,True
+PE,2605004,Cupira,Caixa D'Água,caixa d agua,-8.616033,-35.955898,mapbox_geocoding,True
+PE,2605004,Cupira,Centro,centro,-8.614522,-35.963336,mapbox_geocoding,True
+PE,2605004,Cupira,Elizeu de Souza Cruz,elizeu de souza cruz,-8.614137,-35.954188,mapbox_geocoding,True
+PE,2605004,Cupira,Filadélfia,filadelfia,-8.597456,-35.949367,mapbox_geocoding,True
+PE,2605004,Cupira,Heloisa,heloisa,-8.651746,-35.905752,mapbox_geocoding,True
+PE,2605004,Cupira,Jardim Independência,jardim independencia,-8.614522,-35.963336,mapbox_geocoding,True
+PE,2605004,Cupira,João Batista,joao batista,-8.514847,-36.447161,mapbox_geocoding,True
+PE,2605004,Cupira,Joaquim Paulo,joaquim paulo,-8.611124,-35.95171,mapbox_geocoding,True
+PE,2605004,Cupira,José Elias,jose elias,-8.614522,-35.963336,mapbox_geocoding,True
+PE,2605004,Cupira,Juarez Lopes,juarez lopes,-8.59745,-35.956592,mapbox_geocoding,True
+PE,2605004,Cupira,Laje de São José,laje de sao jose,,,dne,True
+PE,2605004,Cupira,Liberdade,liberdade,-8.608171,-35.949848,mapbox_geocoding,True
+PE,2605004,Cupira,Luiz Carlos Mousinho,luiz carlos mousinho,-8.611124,-35.95171,mapbox_geocoding,True
+PE,2605004,Cupira,Maria Josefa,maria josefa,-8.610852,-35.947354,mapbox_geocoding,True
+PE,2605004,Cupira,Maria Luiza,maria luiza,-8.617127,-35.951716,mapbox_geocoding,True
+PE,2605004,Cupira,Miguel Pereira Neto,miguel pereira neto,-8.008372,-34.933164,mapbox_geocoding,True
+PE,2605004,Cupira,Moacir Soares,moacir soares,-8.618208,-35.948645,mapbox_geocoding,True
+PE,2605004,Cupira,Morada Nobre,morada nobre,-7.963151,-34.846523,mapbox_geocoding,True
+PE,2605004,Cupira,Nova Cupira,nova cupira,-8.598772,-35.949756,mapbox_geocoding,True
+PE,2605004,Cupira,Nova Esperança,nova esperanca,-8.598689,-35.953926,mapbox_geocoding,True
+PE,2605004,Cupira,Nova Morada,nova morada,-19.951753,-44.196842,mapbox_geocoding,True
+PE,2605004,Cupira,Novo Horizonte,novo horizonte,-7.923675,-34.904226,mapbox_geocoding,True
+PE,2605004,Cupira,Paraiso,paraiso,-8.605615,-35.887483,mapbox_geocoding,True
+PE,2605004,Cupira,Portal da Fé,portal da fe,-8.17373,-35.001127,mapbox_geocoding,True
+PE,2605004,Cupira,Santa Clara,santa clara,-8.611124,-35.95171,mapbox_geocoding,True
+PE,2605004,Cupira,Santa Elisa,santa elisa,-8.618208,-35.948645,mapbox_geocoding,True
+PE,2605004,Cupira,Santa Helena,santa helena,-8.60136,-35.950044,mapbox_geocoding,True
+PE,2605004,Cupira,Santa Terezinha,santa terezinha,-8.613849,-35.946812,mapbox_geocoding,True
+PE,2605004,Cupira,Santo Antônio,santo antonio,-8.611124,-35.95171,mapbox_geocoding,True
+PE,2605004,Cupira,São João,sao joao,-8.606535,-35.946807,mapbox_geocoding,True
+PE,2605004,Cupira,São José,sao jose,-8.614522,-35.963336,mapbox_geocoding,True
+PE,2605103,Custódia,Centro,centro,-8.0881651,-37.6473552,brasil_aberto_first_street,True
+PE,2605103,Custódia,Distrito Quitimbu,distrito quitimbu,,,brasil_aberto,True
+PE,2605103,Custódia,Maravilha,maravilha,,,dne,True
+PE,2605103,Custódia,Quitimbu,quitimbu,,,dne,True
+PE,2605152,Dormentes,Centro,centro,-8.4480865,-40.7674003,brasil_aberto_first_street,True
+PE,2605152,Dormentes,Distrito de Caatinga Grande,distrito de caatinga grande,-8.608877099999999,-40.676506,brasil_aberto_first_street,True
+PE,2605152,Dormentes,Distrito de Lagoa de Fora,distrito de lagoa de fora,-8.5483204,-40.48374219999999,brasil_aberto_first_street,True
+PE,2605152,Dormentes,Distrito de Lagoas,distrito de lagoas,-8.445699,-40.7664086,brasil_aberto_first_street,True
+PE,2605152,Dormentes,Distrito de Monte Orebe,distrito de monte orebe,-8.3367537,-40.7959536,brasil_aberto_first_street,True
+PE,2605202,Escada,Alvorada,alvorada,-8.379312,-35.248444,mapbox_geocoding,True
+PE,2605202,Escada,Área Rural de Escada,area rural de escada,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2605202,Escada,Atalaia,atalaia,-8.363723,-35.236687,mapbox_geocoding,True
+PE,2605202,Escada,Bela Vista,bela vista,-8.358086,-35.240277,mapbox_geocoding,True
+PE,2605202,Escada,Boa Esperança,boa esperanca,-8.364129,-35.243095,mapbox_geocoding,True
+PE,2605202,Escada,Centro,centro,-8.362392,-35.234362,mapbox_geocoding,True
+PE,2605202,Escada,Cidade Centro,cidade centro,-8.360387,-35.230684,mapbox_geocoding,True
+PE,2605202,Escada,Distrito Industrial,distrito industrial,-8.363212,-35.217796,mapbox_geocoding,True
+PE,2605202,Escada,Frexeiras,frexeiras,-8.38469219,-35.32292938,brasil_aberto_first_street,True
+PE,2605202,Escada,Jaguaribe,jaguaribe,-8.372274,-35.240119,mapbox_geocoding,True
+PE,2605202,Escada,Mangueira,mangueira,-8.363212,-35.217796,mapbox_geocoding,True
+PE,2605202,Escada,Maracujá,maracuja,-8.368531,-35.235652,mapbox_geocoding,True
+PE,2605202,Escada,Nova Cidade,nova cidade,-8.363212,-35.217796,mapbox_geocoding,True
+PE,2605202,Escada,Nova Descoberta,nova descoberta,-8.360833,-35.235852,mapbox_geocoding,True
+PE,2605202,Escada,Nova Escada,nova escada,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2605202,Escada,Povo de Deus,povo de deus,-8.364129,-35.243095,mapbox_geocoding,True
+PE,2605202,Escada,Riacho do Navio,riacho do navio,-8.357839,-35.223305,mapbox_geocoding,True
+PE,2605202,Escada,Santo Antônio,santo antonio,-8.363723,-35.236687,mapbox_geocoding,True
+PE,2605202,Escada,São Francisco,sao francisco,-8.374838,-35.234347,mapbox_geocoding,True
+PE,2605202,Escada,São Sebastião,sao sebastiao,-7.994169,-38.289812,mapbox_geocoding,True
+PE,2605202,Escada,Vila Operária,vila operaria,-8.363584,-35.229352,mapbox_geocoding,True
+PE,2605202,Escada,Viradouro,viradouro,-8.355133,-35.236291,mapbox_geocoding,True
+PE,2605301,Exu,Centro,centro,-7.5125009,-39.7226797,brasil_aberto_first_street,True
+PE,2605301,Exu,Tabocas,tabocas,,,dne,True
+PE,2605301,Exu,Timorante,timorante,,,dne,True
+PE,2605301,Exu,Viração,viracao,,,dne,True
+PE,2605301,Exu,Zé Gomes,ze gomes,,,dne,True
+PE,2605400,Feira Nova,Centro,centro,-7.9499472,-35.3872906,brasil_aberto_first_street,True
+PE,2605459,Fernando de Noronha,Área Rural de Fernando de Noronha,area rural de fernando de noronha,-3.844061,-32.410713,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Basinha,basinha,-3.844061,-32.410713,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Boldró,boldro,-3.844568,-32.40698,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Conceição,conceicao,-3.842043,-32.416594,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Coréia/Quixaba,coreia quixaba,-3.856295,-32.43196,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,DPV,dpv,-3.844568,-32.40698,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Floresta Nova,floresta nova,-3.84787,-32.411553,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Floresta Velha,floresta velha,-3.844568,-32.40698,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Porto,porto,-3.834212,-32.399495,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Sueste,sueste,-3.859645,-32.422825,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Três Paus,tres paus,-3.852505,-32.423349,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Vacaria,vacaria,-3.840733,-32.414745,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Vila do Trinta,vila do trinta,-3.847412,-32.404811,mapbox_geocoding,True
+PE,2605459,Fernando de Noronha,Vila dos Remédios,vila dos remedios,-3.83984,-32.410094,mapbox_geocoding,True
+PE,2605509,Ferreiros,Centro,centro,-7.4483153,-35.2436145,brasil_aberto_first_street,True
+PE,2605608,Flores,Centro,centro,-8.5109122,-35.3746603,brasil_aberto_first_street,True
+PE,2605608,Flores,Distrito de Fatíma,distrito de fatima,-7.950964,-37.785446,brasil_aberto_first_street,True
+PE,2605608,Flores,Distrito Sítio dos Nunes,distrito sitio dos nunes,-8.04825592,-37.83598709,brasil_aberto_first_street,True
+PE,2605608,Flores,Povoado de Fátima,povoado de fatima,,,brasil_aberto,True
+PE,2605608,Flores,Sítio dos Nunes,sitio dos nunes,,,dne,True
+PE,2605608,Flores,Vila Sitio dos Nunes,vila sitio dos nunes,,,brasil_aberto,True
+PE,2605707,Floresta,Airi,airi,-8.539906,-38.192874,mapbox_geocoding,True
+PE,2605707,Floresta,Alto da Ermida,alto da ermida,-8.068871,-34.918387,mapbox_geocoding,True
+PE,2605707,Floresta,Área Rural de Floresta,area rural de floresta,-8.600064,-38.571114,mapbox_geocoding,True
+PE,2605707,Floresta,Bela Floresta,bela floresta,-8.592118,-38.568828,mapbox_geocoding,True
+PE,2605707,Floresta,Bela Vista,bela vista,-8.604882,-38.589754,mapbox_geocoding,True
+PE,2605707,Floresta,Caetano I,caetano i,-8.411902,-38.475392,mapbox_geocoding,True
+PE,2605707,Floresta,Caetano II,caetano ii,-8.596964,-38.587772,mapbox_geocoding,True
+PE,2605707,Floresta,Caraibeiras,caraibeiras,-8.597255,-38.584931,mapbox_geocoding,True
+PE,2605707,Floresta,Carqueja,carqueja,-8.072933,-34.892102,mapbox_geocoding,True
+PE,2605707,Floresta,Centro,centro,-8.598306,-38.572823,mapbox_geocoding,True
+PE,2605707,Floresta,COHAB,cohab,-8.597255,-38.584931,mapbox_geocoding,True
+PE,2605707,Floresta,Matadouro,matadouro,-8.094658,-34.945658,mapbox_geocoding,True
+PE,2605707,Floresta,Morada Nobre,morada nobre,-8.592052,-38.586939,mapbox_geocoding,True
+PE,2605707,Floresta,Né Maniçoba - AABB,ne manicoba aabb,-8.592052,-38.586939,mapbox_geocoding,True
+PE,2605707,Floresta,Parque das Acácias,parque das acacias,-8.603002,-38.584525,mapbox_geocoding,True
+PE,2605707,Floresta,Pedras de Josina,pedras de josina,-8.411902,-38.475392,mapbox_geocoding,True
+PE,2605707,Floresta,Povoado de Carqueja,povoado de carqueja,,,brasil_aberto,True
+PE,2605707,Floresta,Santa Rosa,santa rosa,-8.591496,-38.579585,mapbox_geocoding,True
+PE,2605707,Floresta,São Francisco de Assis - DNER,sao francisco de assis dner,-8.60616,-38.585827,mapbox_geocoding,True
+PE,2605707,Floresta,Sítio dos Nunes,sitio dos nunes,,,brasil_aberto,True
+PE,2605707,Floresta,Três Marias,tres marias,-8.596964,-38.587772,mapbox_geocoding,True
+PE,2605806,Frei Miguelinho,Centro,centro,,,brasil_aberto,True
+PE,2605806,Frei Miguelinho,Distrito de Lagoa de João Carlos,distrito de lagoa de joao carlos,-7.8771826,-35.86094840000001,brasil_aberto_first_street,True
+PE,2605806,Frei Miguelinho,Povoado Lagoa de João Carlos,povoado lagoa de joao carlos,,,brasil_aberto,True
+PE,2605806,Frei Miguelinho,Setor 81,setor 81,-7.9410026,-35.9209498,brasil_aberto_first_street,True
+PE,2605905,Gameleira,Centro,centro,-8.58331871,-35.38764191,brasil_aberto_first_street,True
+PE,2605905,Gameleira,Cuiambuca,cuiambuca,,,dne,True
+PE,2605905,Gameleira,José da Costa,jose da costa,,,dne,True
+PE,2606002,Garanhuns,Aloísio Souto Pinto,aloisio souto pinto,-8.90463,-36.4986153,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Área Rural de Garanhuns,area rural de garanhuns,-8.9202657,-36.5013414,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Boa Vista,boa vista,-8.9028841,-36.4940179,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Dom Hélder Câmara,dom helder camara,-8.866619,-36.483049,mapbox_geocoding,True
+PE,2606002,Garanhuns,Dom Irineu Roque Scherer,dom irineu roque scherer,-8.89043,-36.49399,mapbox_geocoding,True
+PE,2606002,Garanhuns,Dom Thiago Postma,dom thiago postma,-8.880841,-36.489852,mapbox_geocoding,True
+PE,2606002,Garanhuns,Francisco Simão dos Santos Figueira,francisco simao dos santos figueira,-8.914898,-36.480266,mapbox_geocoding,True
+PE,2606002,Garanhuns,Heliópolis,heliopolis,-8.8860302,-36.47771835,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Iratama,iratama,,,dne,True
+PE,2606002,Garanhuns,José Maria Dourado,jose maria dourado,-8.8751284,-36.4752267,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Magano,magano,-8.88424492,-36.50570297,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Miracica,miracica,,,dne,True
+PE,2606002,Garanhuns,Novo Heliópolis,novo heliopolis,-8.871721,-36.461138,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,Santo Antônio,santo antonio,-8.8908798,-36.4964777,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,São José,sao jose,-8.89012718,-36.4960289,brasil_aberto_first_street,True
+PE,2606002,Garanhuns,São Pedro,sao pedro,,,dne,True
+PE,2606002,Garanhuns,Severiano de Moraes Filho,severiano de moraes filho,-8.8758877,-36.4704947,brasil_aberto_first_street,True
+PE,2606101,Glória do Goitá,Apoti,apoti,,,dne,True
+PE,2606101,Glória do Goitá,Centro,centro,-8.0018511,-35.29279100000001,brasil_aberto_first_street,True
+PE,2606101,Glória do Goitá,Distrito de Apoti,distrito de apoti,-8.04996681,-35.3837204,brasil_aberto_first_street,True
+PE,2606200,Goiana,Área Rural de Goiana,area rural de goiana,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2606200,Goiana,Atapus,atapus,,,dne,True
+PE,2606200,Goiana,Atapuz,atapuz,-7.635222,-34.823757,mapbox_geocoding,True
+PE,2606200,Goiana,Barro Vermelho,barro vermelho,-7.5663,-34.994363,mapbox_geocoding,True
+PE,2606200,Goiana,Bela Vista,bela vista,-7.563332,-35.018261,mapbox_geocoding,True
+PE,2606200,Goiana,Boa Vista,boa vista,-7.560023,-35.013805,mapbox_geocoding,True
+PE,2606200,Goiana,Bom Jesus,bom jesus,-7.565338,-34.993402,mapbox_geocoding,True
+PE,2606200,Goiana,Bom Tempo,bom tempo,-7.556895,-34.990724,mapbox_geocoding,True
+PE,2606200,Goiana,Carne de Vaca,carne de vaca,-7.63141,-34.810938,mapbox_geocoding,True
+PE,2606200,Goiana,Centro,centro,-7.560545,-35.002521,mapbox_geocoding,True
+PE,2606200,Goiana,Cidade Nova,cidade nova,-7.5635,-34.997194,mapbox_geocoding,True
+PE,2606200,Goiana,Curtume,curtume,-7.559594,-34.993753,mapbox_geocoding,True
+PE,2606200,Goiana,Distrito Industrial,distrito industrial,-7.958322,-34.848066,mapbox_geocoding,True
+PE,2606200,Goiana,Flexeiras,flexeiras,-7.5663,-34.994363,mapbox_geocoding,True
+PE,2606200,Goiana,Gambá,gamba,-7.8799685,-35.4542675,brasil_aberto_first_street,True
+PE,2606200,Goiana,Impoeira,impoeira,-7.55556,-34.997429,mapbox_geocoding,True
+PE,2606200,Goiana,Matadouro,matadouro,-8.079969,-34.919755,mapbox_geocoding,True
+PE,2606200,Goiana,Multirão,multirao,-7.5663,-34.994363,mapbox_geocoding,True
+PE,2606200,Goiana,Northville,northville,-7.663054,-34.827903,mapbox_geocoding,True
+PE,2606200,Goiana,Nova Goiana,nova goiana,-7.56831,-35.018095,mapbox_geocoding,True
+PE,2606200,Goiana,Novo Horizonte,novo horizonte,-8.079969,-34.919755,mapbox_geocoding,True
+PE,2606200,Goiana,Núcleo Industrial,nucleo industrial,-8.459867,-35.943384,mapbox_geocoding,True
+PE,2606200,Goiana,Paraiso,paraiso,-7.558772,-35.00809,mapbox_geocoding,True
+PE,2606200,Goiana,Ponta de Pedras,ponta de pedras,-7.6308493,-34.8119557,brasil_aberto_first_street,True
+PE,2606200,Goiana,Pontas de Pedra,pontas de pedra,,,dne,True
+PE,2606200,Goiana,Portal Goiana,portal goiana,-7.5663,-34.994363,mapbox_geocoding,True
+PE,2606200,Goiana,Portelinha,portelinha,-7.570318,-35.014599,mapbox_geocoding,True
+PE,2606200,Goiana,Povoado de Carne de Vaca,povoado de carne de vaca,,,brasil_aberto,True
+PE,2606200,Goiana,Povoado Tejucupapo,povoado tejucupapo,-7.876999,-35.45467,mapbox_geocoding,True
+PE,2606200,Goiana,São Lorenço,sao lorenco,,,dne,True
+PE,2606200,Goiana,Sítio dos Bragas,sitio dos bragas,-7.567204,-35.010385,mapbox_geocoding,True
+PE,2606200,Goiana,Subestação,subestacao,-7.565423,-35.007409,mapbox_geocoding,True
+PE,2606200,Goiana,Tanquinho,tanquinho,-7.558772,-35.00809,mapbox_geocoding,True
+PE,2606200,Goiana,Tejucopapo,tejucopapo,,,brasil_aberto,True
+PE,2606200,Goiana,Tejucupapo,tejucupapo,,,dne,True
+PE,2606200,Goiana,Vila Castelo Branco,vila castelo branco,-7.558772,-35.00809,mapbox_geocoding,True
+PE,2606200,Goiana,Vila Nova Goiana,vila nova goiana,,,brasil_aberto,True
+PE,2606200,Goiana,Vista Plena,vista plena,-7.958322,-34.848066,mapbox_geocoding,True
+PE,2606200,Goiana,Zona Residencial 02,zona residencial 02,,,brasil_aberto,True
+PE,2606309,Granito,Centro,centro,-7.716984699999999,-39.614714,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Alpes Suiços,alpes suicos,-8.1911838,-35.5683405,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Área Rural de Gravatá,area rural de gravata,-8.204659,-35.5706307,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Bairro Novo,bairro novo,-8.2109233,-35.56731,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Boa Vista,boa vista,-8.20639515,-35.56693268,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Campos do Jordão,campos do jordao,-22.7408457,-45.59439099999999,brasil_aberto_first_street,True
+PE,2606408,Gravatá,COHAB-ll,cohab ll,-8.204659,-35.5706307,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Cruzeiro,cruzeiro,-8.20862579,-35.57126999,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Distrito de Mandacaru,distrito de mandacaru,-8.269967,-35.635032,mapbox_geocoding,True
+PE,2606408,Gravatá,Ebenezer,ebenezer,-8.1866434,-35.5081025,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Gravatá Centro,gravata centro,-8.20384502,-35.56772995,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Mandacaru,mandacaru,,,dne,True
+PE,2606408,Gravatá,Nossa Senhora Aparecida,nossa senhora aparecida,-8.204659,-35.5706394,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Nossa Senhora das Graças,nossa senhora das gracas,-8.203297899999999,-35.5565842,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Ponto Alto,ponto alto,-8.203421,-35.568165,mapbox_geocoding,True
+PE,2606408,Gravatá,Porta Florada,porta florada,-8.200702699999999,-35.5453542,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Povoado Uruçu-mirim,povoado urucu mirim,-8.343724,-35.612312,mapbox_geocoding,True
+PE,2606408,Gravatá,Prado,prado,-8.2042017,-35.56441879,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Santa Luzia,santa luzia,-8.1997314,-35.5758401,brasil_aberto_first_street,True
+PE,2606408,Gravatá,Santana,santana,-8.204659,-35.5706307,brasil_aberto_first_street,True
+PE,2606408,Gravatá,São José,sao jose,-3.84807,-32.412687,mapbox_geocoding,True
+PE,2606408,Gravatá,São Severino,sao severino,,,dne,True
+PE,2606408,Gravatá,Uruçu-mirim,urucu mirim,,,dne,True
+PE,2606507,Iati,Centro,centro,-9.0435752,-36.8488038,brasil_aberto_first_street,True
+PE,2606507,Iati,Santa Rosa,santa rosa,,,dne,True
+PE,2606606,Ibimirim,Agrovila - I,agrovila i,-8.877214,-36.194765,mapbox_geocoding,True
+PE,2606606,Ibimirim,Alto Floresta,alto floresta,-8.534183,-37.695105,mapbox_geocoding,True
+PE,2606606,Ibimirim,Área Rural de Ibimirim,area rural de ibimirim,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2606606,Ibimirim,Areia Branca,areia branca,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2606606,Ibimirim,Areia Preta,areia preta,-3.84807,-32.412687,mapbox_geocoding,True
+PE,2606606,Ibimirim,Boa Vista,boa vista,-8.421277,-37.606969,mapbox_geocoding,True
+PE,2606606,Ibimirim,Cançalancozinho,cancalancozinho,-8.542897,-37.695097,mapbox_geocoding,True
+PE,2606606,Ibimirim,Centro,centro,-8.339601,-36.828938,mapbox_geocoding,True
+PE,2606606,Ibimirim,Cohab Nova,cohab nova,-8.538125,-37.698147,mapbox_geocoding,True
+PE,2606606,Ibimirim,Lajes,lajes,-8.536407,-37.699469,mapbox_geocoding,True
+PE,2606606,Ibimirim,Loteamento Leopoldo Fagundes,loteamento leopoldo fagundes,-8.543928,-37.692273,mapbox_geocoding,True
+PE,2606606,Ibimirim,Moxotó,moxoto,-7.626215,-34.81439,mapbox_geocoding,True
+PE,2606606,Ibimirim,Novo Horizonte,novo horizonte,-8.538125,-37.698147,mapbox_geocoding,True
+PE,2606606,Ibimirim,Padre Cícero,padre cicero,-8.546692,-37.700979,mapbox_geocoding,True
+PE,2606606,Ibimirim,Vila da Caixa,vila da caixa,-7.968777,-35.021206,mapbox_geocoding,True
+PE,2606705,Ibirajuba,Centro,centro,-3.73927379,-38.49872971,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Agamenon Magalhães,agamenon magalhaes,-7.83760691,-34.91614151,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Alto do Céu,alto do ceu,-7.806896,-34.932297,mapbox_geocoding,True
+PE,2606804,Igarassu,Ana de Albuquerque,ana de albuquerque,-7.8249183,-34.915645,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Área Rural de Igarassu,area rural de igarassu,-7.842699699999999,-34.9074381,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Bela Vista,bela vista,-7.8120841,-34.9231601,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Bonfim,bonfim,-7.87814188,-34.91032791,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Campina de Feira,campina de feira,-7.82331514,-34.91285324,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Centro,centro,-7.83321047,-34.90551376,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Cruz do Rebouças,cruz do reboucas,-7.86984158,-34.90547943,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Cuieiras,cuieiras,,,dne,True
+PE,2606804,Igarassu,Distrito de Três Ladeiras,distrito de tres ladeiras,-7.760133799999999,-35.0323196,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Distrito Industrial,distrito industrial,-7.842699699999999,-34.9074381,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Distrito Nova Cruz,distrito nova cruz,-7.8491564,-34.8456139,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Encanto Igarassu,encanto igarassu,-7.8552462,-34.9085841,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Inhamã,inhama,-7.8803732,-34.9049767,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Jabacó,jabaco,-7.8617201,-34.9103172,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Jardim Boa Sorte,jardim boa sorte,-7.82414675,-34.92760468,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Monjope,monjope,-7.86942625,-34.91237259,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Nova Cruz,nova cruz,,,dne,True
+PE,2606804,Igarassu,Pancó,panco,-7.82414675,-34.92760468,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Posto de Monta,posto de monta,-7.8427814,-34.9074792,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Rubina,rubina,-7.87775421,-34.90925217,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Santa Luzia,santa luzia,-7.964651,-34.846165,mapbox_geocoding,True
+PE,2606804,Igarassu,Santa Rita,santa rita,-7.86117172,-34.90707016,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Santo Antônio,santo antonio,-8.02267551,-34.98733139,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Saramandaia,saramandaia,-7.83937359,-34.90679932,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Sítio dos Marcos,sitio dos marcos,-7.8140207,-34.9104184,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Tabatinga,tabatinga,-7.80949688,-34.91246414,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Três Ladeiras,tres ladeiras,,,dne,True
+PE,2606804,Igarassu,Triunfo,triunfo,-7.87475538,-34.9032402,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Umbura,umbura,-7.866299600000001,-34.8967693,brasil_aberto_first_street,True
+PE,2606804,Igarassu,Vila Rural,vila rural,-7.80832386,-34.92395401,brasil_aberto_first_street,True
+PE,2606903,Iguaracy,Centro,centro,-7.8352796,-37.5154328,brasil_aberto_first_street,True
+PE,2606903,Iguaracy,Irajaí,irajai,-7.9168714,-37.4869304,brasil_aberto_first_street,True
+PE,2606903,Iguaracy,Jabitacá,jabitaca,-7.8324511,-37.37525,brasil_aberto_first_street,True
+PE,2607000,Inajá,Centro,centro,-8.89964485,-37.82235336,brasil_aberto_first_street,True
+PE,2607109,Ingazeira,Centro,centro,-7.676444500000001,-37.4592122,brasil_aberto_first_street,True
+PE,2607208,Ipojuca,Alto da Caixa D'Água,alto da caixa d agua,-8.516809,-35.12156,mapbox_geocoding,True
+PE,2607208,Ipojuca,Alto da Palmeira,alto da palmeira,-7.933633,-35.387124,mapbox_geocoding,True
+PE,2607208,Ipojuca,Antônio Dourado Neto,antonio dourado neto,-8.396453,-35.059538,mapbox_geocoding,True
+PE,2607208,Ipojuca,Área de Expansão Urbana,area de expansao urbana,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Área Rural de Ipojuca,area rural de ipojuca,-8.4001702,-35.0635577,brasil_aberto_first_street,True
+PE,2607208,Ipojuca,Bela Vista,bela vista,-8.464669,-35.358963,mapbox_geocoding,True
+PE,2607208,Ipojuca,Califórnia,california,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Camela,camela,,,dne,True
+PE,2607208,Ipojuca,Camela Centro,camela centro,-8.51304,-35.123268,mapbox_geocoding,True
+PE,2607208,Ipojuca,Canoas,canoas,-7.897401,-35.181989,mapbox_geocoding,True
+PE,2607208,Ipojuca,Centro,centro,-8.399275,-35.063912,mapbox_geocoding,True
+PE,2607208,Ipojuca,Cupe,cupe,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Distrito de Camela,distrito de camela,,,brasil_aberto,True
+PE,2607208,Ipojuca,Distrito Industrial de Camela,distrito industrial de camela,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Distrito Industrial de Ipojuca - Suape,distrito industrial de ipojuca suape,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Distrito Nossa Senhora do Ó,distrito nossa senhora do o,-8.439373,-35.008086,mapbox_geocoding,True
+PE,2607208,Ipojuca,Enseada de Serrambi,enseada de serrambi,-8.417318,-34.975712,mapbox_geocoding,True
+PE,2607208,Ipojuca,Enseadinha,enseadinha,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Jagatá,jagata,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Loteamento Santo Cristo,loteamento santo cristo,-8.401776,-35.063778,mapbox_geocoding,True
+PE,2607208,Ipojuca,Maracaipe,maracaipe,-8.444128,-35.02098,mapbox_geocoding,True
+PE,2607208,Ipojuca,Merepe,merepe,-8.44478,-35.02082,mapbox_geocoding,True
+PE,2607208,Ipojuca,Muro Alto,muro alto,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Nossa Senhora do Ó,nossa senhora do o,,,dne,True
+PE,2607208,Ipojuca,Nossa Senhora do Ó Centro,nossa senhora do o centro,-8.443353,-35.01223,mapbox_geocoding,True
+PE,2607208,Ipojuca,Nova Camela,nova camela,-8.003986,-34.86709,mapbox_geocoding,True
+PE,2607208,Ipojuca,Ponta de Serrambi,ponta de serrambi,-8.555746,-35.014067,mapbox_geocoding,True
+PE,2607208,Ipojuca,Porto Coqueiral,porto coqueiral,-8.51737,-35.019144,mapbox_geocoding,True
+PE,2607208,Ipojuca,Porto de Galinhas,porto de galinhas,,,brasil_aberto,True
+PE,2607208,Ipojuca,Porto Summer,porto summer,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Rurópolis de Camela,ruropolis de camela,-8.519503,-35.121694,mapbox_geocoding,True
+PE,2607208,Ipojuca,Rurópolis de Ipojuca,ruropolis de ipojuca,-8.414731,-35.072904,mapbox_geocoding,True
+PE,2607208,Ipojuca,Salgado,salgado,-8.467373,-36.454962,mapbox_geocoding,True
+PE,2607208,Ipojuca,Salinas,salinas,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Santo Antônio,santo antonio,-8.615954,-35.111448,mapbox_geocoding,True
+PE,2607208,Ipojuca,São Miguel,sao miguel,-8.396359,-35.062772,mapbox_geocoding,True
+PE,2607208,Ipojuca,Sítio Canoas,sitio canoas,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2607208,Ipojuca,Suape,suape,,,brasil_aberto,True
+PE,2607208,Ipojuca,Toquinho,toquinho,-8.594035,-35.04645,mapbox_geocoding,True
+PE,2607208,Ipojuca,Vila de Porto de Galinhas,vila de porto de galinhas,-3.771782,-38.499218,mapbox_geocoding,True
+PE,2607208,Ipojuca,Zona de Atividades Industriais e Logísticas (ZAIL),zona de atividades industriais e logisticas zail,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Zona de Equilíbrio Ambiental (ZEA),zona de equilibrio ambiental zea,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Zona de Interesse Turístico (ZIT),zona de interesse turistico zit,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Zona de Requalificação Urbana (ZRU),zona de requalificacao urbana zru,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607208,Ipojuca,Zona de Sustentabilidade da Orla (ZSO),zona de sustentabilidade da orla zso,-8.399655,-35.061314,mapbox_geocoding,True
+PE,2607307,Ipubi,Centro,centro,-8.04385757,-34.88211441,brasil_aberto_first_street,True
+PE,2607307,Ipubi,Distrito de Serra Branca,distrito de serra branca,-7.5661251,-40.2329562,brasil_aberto_first_street,True
+PE,2607307,Ipubi,Distrito Serrolândia,distrito serrolandia,-7.4932652,-40.2724495,brasil_aberto_first_street,True
+PE,2607307,Ipubi,Serra Branca,serra branca,,,dne,True
+PE,2607307,Ipubi,Serrolândia,serrolandia,,,dne,True
+PE,2607406,Itacuruba,Área Rural de Itacuruba,area rural de itacuruba,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2607406,Itacuruba,Centro,centro,-8.72648,-38.687126,mapbox_geocoding,True
+PE,2607505,Itaíba,Centro,centro,-8.9447625,-37.4221432,brasil_aberto_first_street,True
+PE,2607505,Itaíba,Girau,girau,,,brasil_aberto,True
+PE,2607505,Itaíba,Jirau,jirau,,,dne,True
+PE,2607505,Itaíba,Negra,negra,,,brasil_aberto,True
+PE,2607505,Itaíba,Negras,negras,,,dne,True
+PE,2607505,Itaíba,Povoado de Jirau,povoado de jirau,-8.663546,-36.320682,mapbox_geocoding,True
+PE,2607505,Itaíba,Povoado de Negras,povoado de negras,-8.988633,-37.487378,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Alto da Felicidade,alto da felicidade,-7.758344,-34.845751,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Área Rural de Itamaracá,area rural de itamaraca,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Baixa Verde,baixa verde,-7.75405,-34.825681,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Bela Vista,bela vista,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Biquinha,biquinha,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Bom Jesus,bom jesus,-7.767494,-34.838058,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Engenho Amparo,engenho amparo,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Engenho Macaxeira,engenho macaxeira,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Engenho São João,engenho sao joao,-7.769206,-34.831829,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Enseada dos Golfinhos,enseada dos golfinhos,-7.750164,-34.823873,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Forno da Cal,forno da cal,-7.750164,-34.823873,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Forte Orange,forte orange,-7.810033,-34.840264,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Jaguaribe,jaguaribe,-7.750164,-34.823873,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Nova Descoberta,nova descoberta,-7.743244,-34.829695,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Pilar,pilar,-7.749301,-34.82911,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Poço do Cobre,poco do cobre,-7.806176,-34.840674,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Pontal da Ilha,pontal da ilha,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Quatro Cantos,quatro cantos,-7.745232,-34.823917,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Rio Âmbar,rio ambar,-7.763183,-34.832376,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Salinas,salinas,-7.797576,-34.838988,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,São Paulo,sao paulo,-7.750164,-34.823873,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Socorro,socorro,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Sossego,sossego,-7.750164,-34.823873,mapbox_geocoding,True
+PE,2607604,Ilha de Itamaracá,Vila Velha,vila velha,-7.745279,-34.824,mapbox_geocoding,True
+PE,2607653,Itambé,Carice,carice,,,dne,True
+PE,2607653,Itambé,Centro,centro,-8.06825542,-34.87841797,brasil_aberto_first_street,True
+PE,2607653,Itambé,Dsitrito de Ibiranga,dsitrito de ibiranga,,,brasil_aberto,True
+PE,2607653,Itambé,Ibiranga,ibiranga,,,dne,True
+PE,2607703,Itapetim,Centro,centro,-7.3815611,-37.1891013,brasil_aberto_first_street,True
+PE,2607703,Itapetim,São Vicente,sao vicente,-7.445575000000001,-37.0614998,brasil_aberto_first_street,True
+PE,2607752,Itapissuma,Centro,centro,-7.773446499999999,-34.8929546,brasil_aberto_first_street,True
+PE,2607752,Itapissuma,Mangabeira,mangabeira,-7.79545,-34.910769,mapbox_geocoding,True
+PE,2607752,Itapissuma,Povoado de Botafogo,povoado de botafogo,-7.748578,-34.934807,mapbox_geocoding,True
+PE,2607802,Itaquitinga,Centro,centro,-7.6661598,-35.1008388,brasil_aberto_first_street,True
+PE,2607802,Itaquitinga,Chá de Sapé,cha de sape,,,brasil_aberto,True
+PE,2607901,Jaboatão dos Guararapes,Área Rural de Jaboatão dos Guararapes,area rural de jaboatao dos guararapes,-8.1632675,-34.9250303,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Barra de Jangada,barra de jangada,-8.2139645,-34.940756,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Bulhões,bulhoes,-8.1111073,-35.0269761,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Cajueiro Seco,cajueiro seco,-8.17265224,-34.93526459,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Candeias,candeias,-8.19981194,-34.93004227,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Cavaleiro,cavaleiro,-8.08669,-34.977273,mapbox_geocoding,True
+PE,2607901,Jaboatão dos Guararapes,Centro,centro,-8.1148491,-35.0153262,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Comportas,comportas,-8.18749428,-34.96674347,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Curado,curado,-8.07339859,-34.99455643,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Dois Carneiros,dois carneiros,-8.11926079,-34.99304199,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Engenho Velho,engenho velho,-8.10867977,-35.00389481,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Floriano,floriano,-8.08686,-34.988026,mapbox_geocoding,True
+PE,2607901,Jaboatão dos Guararapes,Guararapes,guararapes,-8.15988731,-34.92817688,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Jardim Jordão,jardim jordao,-8.14317417,-34.91761398,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Manassu,manassu,-8.09135246,-35.0466156,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Marcos Freire,marcos freire,-8.13252735,-34.97301865,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Muribeca,muribeca,-8.00508022,-34.93363571,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Muribequinha,muribequinha,-8.16531086,-34.99973679,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Piedade,piedade,-8.1840261,-34.9204518,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Prazeres,prazeres,-8.2097642,-34.953878,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Santana,santana,-8.0893641,-34.976145,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Santo Aleixo,santo aleixo,-8.10584927,-35.01373672,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Socorro,socorro,-8.10168552,-34.98350525,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Sucupira,sucupira,-8.1015327,-34.9786201,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Vargem Fria,vargem fria,-7.55648327,-34.86146545,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Vila Rica,vila rica,-8.12413883,-35.0292511,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Vista Alegre,vista alegre,-8.1107627,-35.0206573,brasil_aberto_first_street,True
+PE,2607901,Jaboatão dos Guararapes,Zumbi do Pacheco,zumbi do pacheco,-8.1217272,-34.9640543,brasil_aberto_first_street,True
+PE,2607950,Jaqueira,Centro,centro,-8.7296376,-35.7957475,brasil_aberto_first_street,True
+PE,2608008,Jataúba,Centro,centro,-7.9880591,-36.4971281,brasil_aberto_first_street,True
+PE,2608008,Jataúba,Distrito de Jacú,distrito de jacu,-8.069939,-36.561766,mapbox_geocoding,True
+PE,2608008,Jataúba,Distrito de Jundiá,distrito de jundia,,,brasil_aberto,True
+PE,2608008,Jataúba,Distrito Jundiá,distrito jundia,-7.988947,-36.582981,mapbox_geocoding,True
+PE,2608008,Jataúba,Distrito Passagem do Tó,distrito passagem do to,-8.0989404,-36.5039767,brasil_aberto_first_street,True
+PE,2608008,Jataúba,Distrito Riacho do Meio,distrito riacho do meio,,,brasil_aberto,True
+PE,2608008,Jataúba,Distrito Vila Jacu,distrito vila jacu,,,brasil_aberto,True
+PE,2608008,Jataúba,Jacú,jacu,,,dne,True
+PE,2608008,Jataúba,Jundiá,jundia,,,dne,True
+PE,2608008,Jataúba,Passagem do Tó,passagem do to,,,dne,True
+PE,2608008,Jataúba,Riacho do Meio,riacho do meio,-8.030746,-36.570122,mapbox_geocoding,True
+PE,2608008,Jataúba,Riacho do Meio (Jataúba),riacho do meio jatauba,,,dne,True
+PE,2608008,Jataúba,Vila Jundia,vila jundia,,,brasil_aberto,True
+PE,2608057,Jatobá,Centro,centro,-9.18503571,-38.26924896,brasil_aberto_first_street,True
+PE,2608057,Jatobá,Volta do Moxotó,volta do moxoto,,,dne,True
+PE,2608107,João Alfredo,Centro,centro,-7.8672372,-35.58692,brasil_aberto_first_street,True
+PE,2608206,Joaquim Nabuco,Centro,centro,-8.1167152,-35.2931549,brasil_aberto_first_street,True
+PE,2608255,Jucati,Centro,centro,-8.707349800000001,-36.4889329,brasil_aberto_first_street,True
+PE,2608255,Jucati,Neves,neves,-19.7664446,-44.0871942,brasil_aberto_first_street,True
+PE,2608305,Jupi,Centro,centro,-8.71240997,-36.41445541,brasil_aberto_first_street,True
+PE,2608404,Jurema,Centro,centro,-8.7192058,-36.1364552,brasil_aberto_first_street,True
+PE,2608404,Jurema,Santo Antônio das Queimadas,santo antonio das queimadas,,,dne,True
+PE,2608404,Jurema,Sto Antonio das Queimadas,sto antonio das queimadas,-8.7187686,-36.1360701,brasil_aberto_first_street,True
+PE,2608453,Lagoa do Carro,Centro,centro,-7.842344300000001,-35.3116483,brasil_aberto_first_street,True
+PE,2608503,Lagoa de Itaenga,Centro,centro,-7.9339238,-35.2930988,brasil_aberto_first_street,True
+PE,2608602,Lagoa do Ouro,Campo Alegre,campo alegre,,,dne,True
+PE,2608602,Lagoa do Ouro,Centro,centro,-9.1251354,-36.4595134,brasil_aberto_first_street,True
+PE,2608602,Lagoa do Ouro,Igapó,igapo,-9.20232868,-36.4754982,brasil_aberto_first_street,True
+PE,2608602,Lagoa do Ouro,Povoado Campo Alegre,povoado campo alegre,-9.1227967,-36.4567798,brasil_aberto_first_street,True
+PE,2608701,Lagoa dos Gatos,Centro,centro,-8.6552008,-35.9023758,brasil_aberto_first_street,True
+PE,2608701,Lagoa dos Gatos,Entroncamento,entroncamento,,,dne,True
+PE,2608701,Lagoa dos Gatos,Igarapeassu,igarapeassu,,,dne,True
+PE,2608701,Lagoa dos Gatos,Lagoa do Souza,lagoa do souza,,,dne,True
+PE,2608750,Lagoa Grande,Centro,centro,-9.079192,-40.123526,mapbox_geocoding,True
+PE,2608750,Lagoa Grande,Jutaí,jutai,,,dne,True
+PE,2608750,Lagoa Grande,Vermelhos,vermelhos,,,dne,True
+PE,2608800,Lajedo,Centro,centro,-8.65459538,-36.31655121,brasil_aberto_first_street,True
+PE,2608909,Limoeiro,Área Rural de Limoeiro,area rural de limoeiro,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2608909,Limoeiro,Centro,centro,-7.878502,-35.455596,mapbox_geocoding,True
+PE,2608909,Limoeiro,Doutor Severino Pinheiro,doutor severino pinheiro,-7.87649,-35.449741,mapbox_geocoding,True
+PE,2608909,Limoeiro,Gameleira,gameleira,-7.857585,-35.387716,mapbox_geocoding,True
+PE,2608909,Limoeiro,Gameleira (Limoeiro),gameleira limoeiro,,,dne,True
+PE,2608909,Limoeiro,João Ernesto,joao ernesto,-7.867959,-35.439129,mapbox_geocoding,True
+PE,2608909,Limoeiro,José Fernandes Salsa,jose fernandes salsa,-7.882731,-35.454681,mapbox_geocoding,True
+PE,2608909,Limoeiro,Juá,jua,-7.603034,-37.307734,mapbox_geocoding,True
+PE,2608909,Limoeiro,Mendes,mendes,,,dne,True
+PE,2608909,Limoeiro,Otácio de Lemos,otacio de lemos,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2608909,Limoeiro,Pirauira,pirauira,-7.883799,-35.459938,mapbox_geocoding,True
+PE,2608909,Limoeiro,Ponto Certo,ponto certo,-7.869499,-35.441045,mapbox_geocoding,True
+PE,2608909,Limoeiro,Povoado de Gameleira,povoado de gameleira,,,brasil_aberto,True
+PE,2608909,Limoeiro,Povoado de Lagoa Comprida,povoado de lagoa comprida,,,brasil_aberto,True
+PE,2608909,Limoeiro,Povoado de Mendes,povoado de mendes,,,brasil_aberto,True
+PE,2608909,Limoeiro,Povoado de Ribeiro do Mel,povoado de ribeiro do mel,,,brasil_aberto,True
+PE,2608909,Limoeiro,Redentor,redentor,-7.877132,-35.454389,mapbox_geocoding,True
+PE,2608909,Limoeiro,Santa Luzia,santa luzia,-7.868107,-35.444397,mapbox_geocoding,True
+PE,2608909,Limoeiro,Santa Terezinha,santa terezinha,-7.885721,-35.453509,mapbox_geocoding,True
+PE,2608909,Limoeiro,Santo Antônio,santo antonio,-7.895406,-35.478744,mapbox_geocoding,True
+PE,2608909,Limoeiro,São Sebastião,sao sebastiao,-7.869499,-35.441045,mapbox_geocoding,True
+PE,2608909,Limoeiro,Urucuba,urucuba,-7.82902,-34.915347,mapbox_geocoding,True
+PE,2608909,Limoeiro,Vila Mendes,vila mendes,-7.74339,-35.228628,mapbox_geocoding,True
+PE,2609006,Macaparana,Centro,centro,-7.55290365,-35.44915771,brasil_aberto_first_street,True
+PE,2609105,Machados,Cohab,cohab,-7.686231500000001,-35.5140444,brasil_aberto_first_street,True
+PE,2609154,Manari,Centro,centro,-8.9622425,-37.6256932,brasil_aberto_first_street,True
+PE,2609204,Maraial,Centro,centro,-8.78419971,-35.81198883,brasil_aberto_first_street,True
+PE,2609204,Maraial,Distrito de Sertãozinho de Baixo,distrito de sertaozinho de baixo,-8.8910711,-35.7439788,brasil_aberto_first_street,True
+PE,2609204,Maraial,Sertãozinho de Baixo,sertaozinho de baixo,,,dne,True
+PE,2609303,Mirandiba,Centro,centro,-8.1191014,-38.7282988,brasil_aberto_first_street,True
+PE,2609303,Mirandiba,Distrito de Tupanaci,distrito de tupanaci,-8.2704733,-38.5579434,brasil_aberto_first_street,True
+PE,2609303,Mirandiba,Tupanaci,tupanaci,,,dne,True
+PE,2609303,Mirandiba,Vila Cachoeirinha,vila cachoeirinha,,,brasil_aberto,True
+PE,2609402,Moreno,Alto da Conquista (Bonança),alto da conquista bonanca,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2609402,Moreno,Alto da Liberdade,alto da liberdade,-7.99935,-34.974488,mapbox_geocoding,True
+PE,2609402,Moreno,Alto da Maternidade,alto da maternidade,-8.118673,-35.099627,mapbox_geocoding,True
+PE,2609402,Moreno,Alto das Estrelas,alto das estrelas,-8.54992,-40.481886,mapbox_geocoding,True
+PE,2609402,Moreno,Alto de Santo Antônio,alto de santo antonio,-8.069229,-34.999392,mapbox_geocoding,True
+PE,2609402,Moreno,Alto do Pau D'arco (Bonança),alto do pau d arco bonanca,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2609402,Moreno,Alto do Sol Nascente,alto do sol nascente,-8.112403,-34.948817,mapbox_geocoding,True
+PE,2609402,Moreno,Área Rural de Moreno,area rural de moreno,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2609402,Moreno,Bela Vista,bela vista,-8.118552,-35.095403,mapbox_geocoding,True
+PE,2609402,Moreno,Bonança I (Bonança),bonanca i bonanca,-7.802658,-35.229288,mapbox_geocoding,True
+PE,2609402,Moreno,Bonança II (Bonança),bonanca ii bonanca,-7.162311,-34.905476,mapbox_geocoding,True
+PE,2609402,Moreno,Centro,centro,-8.117806,-35.10206,mapbox_geocoding,True
+PE,2609402,Moreno,Cercado Grande,cercado grande,-8.616559,-37.157447,mapbox_geocoding,True
+PE,2609402,Moreno,Cidade de Deus (Bonança),cidade de deus bonanca,-7.997834,-34.938584,mapbox_geocoding,True
+PE,2609402,Moreno,Distrito Industrial,distrito industrial,-7.933499,-34.912351,mapbox_geocoding,True
+PE,2609402,Moreno,Galinha D'Água,galinha d agua,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2609402,Moreno,Jardim Massaranduba (Bonança),jardim massaranduba bonanca,-8.116163,-35.020188,mapbox_geocoding,True
+PE,2609402,Moreno,João Paulo II,joao paulo ii,-8.121619,-35.099101,mapbox_geocoding,True
+PE,2609402,Moreno,José da Bica,jose da bica,-8.126096,-35.089229,mapbox_geocoding,True
+PE,2609402,Moreno,Mangueira,mangueira,-8.107238,-35.091205,mapbox_geocoding,True
+PE,2609402,Moreno,Miguel Arraes,miguel arraes,-8.117699,-35.084909,mapbox_geocoding,True
+PE,2609402,Moreno,Monte Sinai (Bonança),monte sinai bonanca,-8.083049,-34.978947,mapbox_geocoding,True
+PE,2609402,Moreno,Nossa Senhora da Conceição,nossa senhora da conceicao,-7.891811,-34.83469,mapbox_geocoding,True
+PE,2609402,Moreno,Nossa Senhora das Graças,nossa senhora das gracas,-8.113958,-35.117389,mapbox_geocoding,True
+PE,2609402,Moreno,Nossa Senhora de Fátima,nossa senhora de fatima,-8.123274,-35.092601,mapbox_geocoding,True
+PE,2609402,Moreno,Novo Horizonte (Bonança),novo horizonte bonanca,-8.083049,-34.978947,mapbox_geocoding,True
+PE,2609402,Moreno,Olaria,olaria,-8.121901,-35.108861,mapbox_geocoding,True
+PE,2609402,Moreno,Parque dos Eucaliptos,parque dos eucaliptos,-8.113012,-35.104157,mapbox_geocoding,True
+PE,2609402,Moreno,Pedreiras,pedreiras,-7.93933,-35.39034,mapbox_geocoding,True
+PE,2609402,Moreno,Souza Leão,souza leao,-8.100509,-35.100087,mapbox_geocoding,True
+PE,2609402,Moreno,Tamboatá,tamboata,-8.135078,-35.093948,mapbox_geocoding,True
+PE,2609402,Moreno,Terra Nostra,terra nostra,-7.964651,-34.846165,mapbox_geocoding,True
+PE,2609402,Moreno,Várzea da Cruz (Bonança),varzea da cruz bonanca,-8.111839,-35.188395,mapbox_geocoding,True
+PE,2609402,Moreno,Vila Holandesa,vila holandesa,-8.108173,-35.090445,mapbox_geocoding,True
+PE,2609402,Moreno,Vila Liberdade,vila liberdade,-8.123495,-35.102556,mapbox_geocoding,True
+PE,2609402,Moreno,Xingu,xingu,-8.070131,-34.888563,mapbox_geocoding,True
+PE,2609501,Nazaré da Mata,Centro,centro,-8.05911446,-34.87104034,brasil_aberto_first_street,True
+PE,2609600,Olinda,Águas Compridas,aguas compridas,-7.9826749,-34.8986125,brasil_aberto_first_street,True
+PE,2609600,Olinda,Aguazinha,aguazinha,-7.99270296,-34.89884949,brasil_aberto_first_street,True
+PE,2609600,Olinda,Alto da Bondade,alto da bondade,-8.16089249,-34.92648697,brasil_aberto_first_street,True
+PE,2609600,Olinda,Alto da Conquista,alto da conquista,-7.98150158,-34.90242004,brasil_aberto_first_street,True
+PE,2609600,Olinda,Alto da Nação,alto da nacao,-7.980706199999999,-34.86343,brasil_aberto_first_street,True
+PE,2609600,Olinda,Alto Sol Nascente,alto sol nascente,-7.9778552,-34.9086765,brasil_aberto_first_street,True
+PE,2609600,Olinda,Amaro Branco,amaro branco,-8.0089899,-34.8470118,brasil_aberto_first_street,True
+PE,2609600,Olinda,Amparo,amparo,-8.0140287,-34.8528482,brasil_aberto_first_street,True
+PE,2609600,Olinda,Área Rural de Olinda,area rural de olinda,-7.9920228,-34.8422297,brasil_aberto_first_street,True
+PE,2609600,Olinda,Bairro Novo,bairro novo,-7.989951700000001,-34.8438731,brasil_aberto_first_street,True
+PE,2609600,Olinda,Bonsucesso,bonsucesso,-8.006738,-34.845146,brasil_aberto_first_street,True
+PE,2609600,Olinda,Bultrins,bultrins,-8.00179768,-34.85379791,brasil_aberto_first_street,True
+PE,2609600,Olinda,Caixa D'Água,caixa d agua,-7.99518299,-34.90534973,brasil_aberto_first_street,True
+PE,2609600,Olinda,Carmo,carmo,-8.013978100000001,-34.849701,brasil_aberto_first_street,True
+PE,2609600,Olinda,Casa Caiada,casa caiada,-7.9986385,-34.847779,brasil_aberto_first_street,True
+PE,2609600,Olinda,Fragoso,fragoso,-7.9727009,-34.8579046,brasil_aberto_first_street,True
+PE,2609600,Olinda,Guadalupe,guadalupe,-8.00714397,-34.85518265,brasil_aberto_first_street,True
+PE,2609600,Olinda,Jardim Atlântico,jardim atlantico,-7.97348642,-34.84301758,brasil_aberto_first_street,True
+PE,2609600,Olinda,Jardim Brasil,jardim brasil,-8.000398,-34.8723634,brasil_aberto_first_street,True
+PE,2609600,Olinda,Monte,monte,-8.0071641,-34.8553642,brasil_aberto_first_street,True
+PE,2609600,Olinda,Ouro Preto,ouro preto,-7.98993015,-34.86306763,brasil_aberto_first_street,True
+PE,2609600,Olinda,Passarinho,passarinho,-7.98653746,-34.91470337,brasil_aberto_first_street,True
+PE,2609600,Olinda,Peixinhos,peixinhos,-8.02043533,-34.87355042,brasil_aberto_first_street,True
+PE,2609600,Olinda,Rio Doce,rio doce,-7.967512299999998,-34.8468109,brasil_aberto_first_street,True
+PE,2609600,Olinda,Salgadinho,salgadinho,-8.026343599999999,-34.865395,brasil_aberto_first_street,True
+PE,2609600,Olinda,Santa Tereza,santa tereza,-8.02488995,-34.85777283,brasil_aberto_first_street,True
+PE,2609600,Olinda,São Benedito,sao benedito,-7.9972714,-34.8954097,brasil_aberto_first_street,True
+PE,2609600,Olinda,Sapucaia,sapucaia,-7.99847364,-34.89036942,brasil_aberto_first_street,True
+PE,2609600,Olinda,Sítio Novo,sitio novo,-8.0240294,-34.8730187,brasil_aberto_first_street,True
+PE,2609600,Olinda,Tabajara,tabajara,-7.9771781,-34.8641243,brasil_aberto_first_street,True
+PE,2609600,Olinda,Umuarama,umuarama,-8.02229214,-34.85367203,brasil_aberto_first_street,True
+PE,2609600,Olinda,Varadouro,varadouro,-8.01426888,-34.85765457,brasil_aberto_first_street,True
+PE,2609600,Olinda,Vila Popular,vila popular,-7.99931765,-34.85593033,brasil_aberto_first_street,True
+PE,2609709,Orobó,Centro,centro,-7.7449042,-35.603659,brasil_aberto_first_street,True
+PE,2609709,Orobó,Chã do Rocha,cha do rocha,,,dne,True
+PE,2609709,Orobó,Distrito de Chá do Rocha,distrito de cha do rocha,,,brasil_aberto,True
+PE,2609709,Orobó,Distrito de Umburetama,distrito de umburetama,,,brasil_aberto,True
+PE,2609709,Orobó,Matinada,matinada,,,dne,True
+PE,2609709,Orobó,Umburetama,umburetama,,,dne,True
+PE,2609808,Orocó,Centro,centro,-8.61820507,-39.60173416,brasil_aberto_first_street,True
+PE,2609907,Ouricuri,Barra de São Pedro,barra de sao pedro,,,dne,True
+PE,2609907,Ouricuri,Centro,centro,-7.88550043,-40.08177185,brasil_aberto_first_street,True
+PE,2609907,Ouricuri,Dsitrito de Barra de São Pedro,dsitrito de barra de sao pedro,,,brasil_aberto,True
+PE,2609907,Ouricuri,Povoado de Santa Rita,povoado de santa rita,,,brasil_aberto,True
+PE,2609907,Ouricuri,Santa Rita,santa rita,,,dne,True
+PE,2610004,Palmares,Centro,centro,-8.68393707,-35.58729553,brasil_aberto_first_street,True
+PE,2610004,Palmares,Povoado Serro Azul,povoado serro azul,-8.6813888,-35.596868,brasil_aberto_first_street,True
+PE,2610004,Palmares,Santo Antônio dos Palmares,santo antonio dos palmares,-8.6789725,-35.5838367,brasil_aberto_first_street,True
+PE,2610103,Palmeirina,Centro,centro,-9.002773999999999,-36.3271945,brasil_aberto_first_street,True
+PE,2610202,Panelas,Centro,centro,-8.66348743,-36.0072403,brasil_aberto_first_street,True
+PE,2610202,Panelas,Cruzes,cruzes,,,dne,True
+PE,2610202,Panelas,São José,sao jose,,,dne,True
+PE,2610202,Panelas,São Lázaro,sao lazaro,-8.7174281,-36.0642775,brasil_aberto_first_street,True
+PE,2610202,Panelas,Vila de Cruzes,vila de cruzes,-8.6564993,-36.1017765,brasil_aberto_first_street,True
+PE,2610301,Paranatama,Centro,centro,-8.9214325,-36.657547,brasil_aberto_first_street,True
+PE,2610400,Parnamirim,Centro,centro,-7.831987799999999,-34.9082128,brasil_aberto_first_street,True
+PE,2610400,Parnamirim,Icaiçara,icaicara,,,dne,True
+PE,2610400,Parnamirim,Veneza,veneza,,,dne,True
+PE,2610509,Passira,Bengalas,bengalas,,,dne,True
+PE,2610509,Passira,Centro,centro,-7.978387300000001,-35.58172200000001,brasil_aberto_first_street,True
+PE,2610509,Passira,Povoado Varzéa de Passira,povoado varzea de passira,,,brasil_aberto,True
+PE,2610509,Passira,Povoado Vertente Seca,povoado vertente seca,,,brasil_aberto,True
+PE,2610509,Passira,Várzea da Passira,varzea da passira,-7.9800193,-35.5809352,brasil_aberto_first_street,True
+PE,2610509,Passira,Zona Rural de Passira,zona rural de passira,-8.06348038,-34.8856163,brasil_aberto_first_street,True
+PE,2610608,Paudalho,Alto do Cruzeiro,alto do cruzeiro,-8.014121,-34.948475,mapbox_geocoding,True
+PE,2610608,Paudalho,Área Rural de Paudalho,area rural de paudalho,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2610608,Paudalho,Asa Branca,asa branca,-7.896765,-35.17647,mapbox_geocoding,True
+PE,2610608,Paudalho,Bairro Dois Irmãos,bairro dois irmaos,-7.903338,-35.185012,mapbox_geocoding,True
+PE,2610608,Paudalho,Belém,belem,-7.895146,-35.184354,mapbox_geocoding,True
+PE,2610608,Paudalho,Centro,centro,-7.557934,-34.999098,mapbox_geocoding,True
+PE,2610608,Paudalho,Chã Alegre,cha alegre,-7.975651,-35.073571,mapbox_geocoding,True
+PE,2610608,Paudalho,Chã de Conselho,cha de conselho,-7.843705,-35.129022,mapbox_geocoding,True
+PE,2610608,Paudalho,Chã de Cruz,cha de cruz,-8.281439,-35.954275,mapbox_geocoding,True
+PE,2610608,Paudalho,Chã de Pinheiro,cha de pinheiro,-7.905482,-35.177617,mapbox_geocoding,True
+PE,2610608,Paudalho,Desterro,desterro,-7.887482,-35.209282,mapbox_geocoding,True
+PE,2610608,Paudalho,Distrito Nova Guadalajara,distrito nova guadalajara,,,brasil_aberto,True
+PE,2610608,Paudalho,Guadalajara,guadalajara,-8.204184,-34.958582,mapbox_geocoding,True
+PE,2610608,Paudalho,Mussurepe,mussurepe,-9.279036,-40.532051,mapbox_geocoding,True
+PE,2610608,Paudalho,Primavera,primavera,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2610608,Paudalho,Rosarinho,rosarinho,-7.887768,-35.206371,mapbox_geocoding,True
+PE,2610608,Paudalho,Santa Mônica,santa monica,-8.017967,-34.906873,mapbox_geocoding,True
+PE,2610608,Paudalho,Santa Tereza,santa tereza,-7.557461,-34.997626,mapbox_geocoding,True
+PE,2610608,Paudalho,Tancredo Neves,tancredo neves,-7.947263,-34.88012,mapbox_geocoding,True
+PE,2610608,Paudalho,Vila Chã de Cruz,vila cha de cruz,,,brasil_aberto,True
+PE,2610707,Paulista,Área Rural de Paulista,area rural de paulista,-7.918519700000001,-34.8209503,brasil_aberto_first_street,True
+PE,2610707,Paulista,Artur Lundgren I,artur lundgren i,-7.93391657,-34.89073563,brasil_aberto_first_street,True
+PE,2610707,Paulista,Artur Lundgren II,artur lundgren ii,-7.9868118,-34.9211046,brasil_aberto_first_street,True
+PE,2610707,Paulista,Centro,centro,-7.945095,-34.885258,mapbox_geocoding,True
+PE,2610707,Paulista,Engenho Maranguape,engenho maranguape,-7.933577,-34.868473,mapbox_geocoding,True
+PE,2610707,Paulista,Fragoso,fragoso,-7.96597004,-34.86697769,brasil_aberto_first_street,True
+PE,2610707,Paulista,Jaguarana,jaguarana,-7.931202,-34.861847,mapbox_geocoding,True
+PE,2610707,Paulista,Jaguaribe,jaguaribe,-7.9338447,-34.8768495,brasil_aberto_first_street,True
+PE,2610707,Paulista,Janga,janga,-7.93673182,-34.82471848,brasil_aberto_first_street,True
+PE,2610707,Paulista,Jardim Maranguape,jardim maranguape,-8.08726406,-34.96907043,brasil_aberto_first_street,True
+PE,2610707,Paulista,Jardim Paulista,jardim paulista,-7.956928,-34.89675,brasil_aberto_first_street,True
+PE,2610707,Paulista,Jardim Velho,jardim velho,-7.94241,-34.892719,mapbox_geocoding,True
+PE,2610707,Paulista,Maranguape I,maranguape i,-7.9433187,-34.865559,brasil_aberto_first_street,True
+PE,2610707,Paulista,Maranguape II,maranguape ii,-7.9272213,-34.8516599,brasil_aberto_first_street,True
+PE,2610707,Paulista,Maria Farinha,maria farinha,-7.85201406,-34.84041977,brasil_aberto_first_street,True
+PE,2610707,Paulista,Mirueira,mirueira,-7.920278600000001,-34.8291346,brasil_aberto_first_street,True
+PE,2610707,Paulista,Nobre,nobre,-7.9420174,-34.8692852,brasil_aberto_first_street,True
+PE,2610707,Paulista,Nossa Senhora da Conceição,nossa senhora da conceicao,-7.8997168,-34.8393005,brasil_aberto_first_street,True
+PE,2610707,Paulista,Nossa Senhora do Ó,nossa senhora do o,-7.92738867,-34.82244873,brasil_aberto_first_street,True
+PE,2610707,Paulista,Paratibe,paratibe,-7.9344635,-34.89836502,brasil_aberto_first_street,True
+PE,2610707,Paulista,Pau Amarelo,pau amarelo,-7.90728617,-34.82476425,brasil_aberto_first_street,True
+PE,2610707,Paulista,Poty,poty,-7.9451251,-34.82472992,brasil_aberto_first_street,True
+PE,2610707,Paulista,Tabajara,tabajara,-7.96873951,-34.87412262,brasil_aberto_first_street,True
+PE,2610707,Paulista,Vila Torres Galvão,vila torres galvao,-7.909780700000001,-34.8978081,brasil_aberto_first_street,True
+PE,2610806,Pedra,Centro,centro,-8.50088787,-36.94713211,brasil_aberto_first_street,True
+PE,2610806,Pedra,Distrito Vila Santo Antonio,distrito vila santo antonio,,,brasil_aberto,True
+PE,2610806,Pedra,Japecanga,japecanga,,,dne,True
+PE,2610806,Pedra,Tara,tara,,,dne,True
+PE,2610806,Pedra,Tenebre,tenebre,,,dne,True
+PE,2610806,Pedra,Vila Horizonte Alegre,vila horizonte alegre,,,brasil_aberto,True
+PE,2610806,Pedra,Vila Poço do Boi,vila poco do boi,,,brasil_aberto,True
+PE,2610806,Pedra,Vila São Pedro do Cordeiro,vila sao pedro do cordeiro,,,brasil_aberto,True
+PE,2610905,Pesqueira,Centro,centro,-8.358556,-36.7003761,brasil_aberto_first_street,True
+PE,2610905,Pesqueira,Cimbres,cimbres,-8.3411906,-36.8278704,brasil_aberto_first_street,True
+PE,2610905,Pesqueira,Distrito de Mutuca,distrito de mutuca,-8.2805579,-36.5735495,brasil_aberto_first_street,True
+PE,2610905,Pesqueira,Distrito Salobro,distrito salobro,,,brasil_aberto,True
+PE,2610905,Pesqueira,Ipanema,ipanema,,,dne,True
+PE,2610905,Pesqueira,Mimoso,mimoso,-8.4009311,-36.898729,brasil_aberto_first_street,True
+PE,2610905,Pesqueira,Mutuca,mutuca,,,dne,True
+PE,2610905,Pesqueira,Papagaio,papagaio,,,dne,True
+PE,2610905,Pesqueira,Salobro,salobro,,,dne,True
+PE,2611002,Petrolândia,Centro,centro,-8.9816261,-38.2186764,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Alto do Cocar,alto do cocar,-9.373773,-40.531589,mapbox_geocoding,True
+PE,2611101,Petrolina,Antônio Cassimiro,antonio cassimiro,-9.371118,-40.5047664,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Área Rural de Petrolina,area rural de petrolina,-9.3994615,-40.50246610000001,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Areia Branca,areia branca,-9.3860094,-40.492957,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Atrás da Banca,atras da banca,-9.3974732,-40.506546,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Boa Esperança,boa esperanca,-9.347655,-40.46536,mapbox_geocoding,True
+PE,2611101,Petrolina,Caminho do Sol,caminho do sol,-9.3804464,-40.49935809999999,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Carneiro,carneiro,-9.3985428,-40.5088985,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Centro,centro,-9.40126705,-40.49428177,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Cidade Universitária,cidade universitaria,-9.3923749,-40.4730952,brasil_aberto_first_street,True
+PE,2611101,Petrolina,COHAB Massangano,cohab massangano,-9.39196014,-40.54143524,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Cohab São Francisco,cohab sao francisco,-9.3997239,-40.5475384,brasil_aberto_first_street,True
+PE,2611101,Petrolina,COHAB VI,cohab vi,,,brasil_aberto,True
+PE,2611101,Petrolina,Colônia Imperial,colonia imperial,-9.3735545,-40.5265208,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Cosme e Damião,cosme e damiao,-9.3759813,-40.5377094,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Cristália,cristalia,,,dne,True
+PE,2611101,Petrolina,Curral Queimado,curral queimado,,,dne,True
+PE,2611101,Petrolina,Distrito de Curral Queimado,distrito de curral queimado,-9.018699,-40.24545,mapbox_geocoding,True
+PE,2611101,Petrolina,Distrito de Rajada,distrito de rajada,-8.8120197,-40.8314374,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Distrito Industrial,distrito industrial,-9.3965155,-40.5325785,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Dom Avelar,dom avelar,-9.36114788,-40.48997498,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Dona Alexandrina,dona alexandrina,-9.3713919,-40.4879454,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Fernando Idalino,fernando idalino,-9.3800236,-40.5031617,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Gercino Coelho,gercino coelho,-9.3930777,-40.5103049,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Henrique Leite,henrique leite,-9.38697052,-40.46496201,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Izacolandia,izacolandia,,,dne,True
+PE,2611101,Petrolina,Jardim Amazonas,jardim amazonas,-9.3804026,-40.5328054,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Jardim Maravilha,jardim maravilha,-9.3836925,-40.517761,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Jardim Petrópolis,jardim petropolis,-8.66293,-35.08014,mapbox_geocoding,True
+PE,2611101,Petrolina,Jardim São Paulo,jardim sao paulo,-9.368087899999999,-40.5368745,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Jatobá,jatoba,-9.3929822,-40.4703165,brasil_aberto_first_street,True
+PE,2611101,Petrolina,João de Deus,joao de deus,-9.3588738,-40.5394171,brasil_aberto_first_street,True
+PE,2611101,Petrolina,José e Maria,jose e maria,-9.34774,-40.469183,mapbox_geocoding,True
+PE,2611101,Petrolina,km-2,km 2,-9.381148699999999,-40.5063545,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Km 25,km 25,,,dne,True
+PE,2611101,Petrolina,Lagoa,lagoa,,,dne,True
+PE,2611101,Petrolina,Loteamento Recife,loteamento recife,-9.36887264,-40.47625351,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Maria Auxiliadora,maria auxiliadora,-9.3863677,-40.4961044,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Massangano,massangano,,,dne,True
+PE,2611101,Petrolina,Nova Descoberta,nova descoberta,,,dne,True
+PE,2611101,Petrolina,Ns2 Núcleo de Serviços,ns2 nucleo de servicos,,,dne,True
+PE,2611101,Petrolina,Ouro Preto,ouro preto,-9.3819195,-40.5163208,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Palhinhas,palhinhas,-9.3913583,-40.5189259,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Pedra do Bode,pedra do bode,-9.40364456,-40.47455978,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Pedra Linda,pedra linda,-9.349439,-40.5189727,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Pedrinhas,pedrinhas,,,dne,True
+PE,2611101,Petrolina,Pedro Raimundo,pedro raimundo,-9.37700367,-40.52724457,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Portal da Cidade,portal da cidade,-9.37120056,-40.54298019,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Rajada,rajada,,,dne,True
+PE,2611101,Petrolina,Rio Claro,rio claro,-9.3936492,-40.5442482,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Rio Corrente,rio corrente,-9.3881493,-40.556548,brasil_aberto_first_street,True
+PE,2611101,Petrolina,São Gonçalo,sao goncalo,-9.3899807,-40.5496248,brasil_aberto_first_street,True
+PE,2611101,Petrolina,São José,sao jose,-9.3917941,-40.4859218,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Serrote do Urubu,serrote do urubu,,,dne,True
+PE,2611101,Petrolina,Terra do Sul,terra do sul,-9.355016,-40.5071633,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Topázio,topazio,-9.3360261,-40.4779088,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Uruás,uruas,,,dne,True
+PE,2611101,Petrolina,Vale Grande Rio,vale grande rio,-9.381671,-40.49743,mapbox_geocoding,True
+PE,2611101,Petrolina,Vila dos Ingás II,vila dos ingas ii,-23.5015049,-46.67092133,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Vila Eduardo,vila eduardo,-9.3832548,-40.4843069,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Vila Eulália,vila eulalia,-9.365879,-40.538474,mapbox_geocoding,True
+PE,2611101,Petrolina,Vila Mocó,vila moco,-9.38682556,-40.50893784,brasil_aberto_first_street,True
+PE,2611101,Petrolina,Vila Nossa Senhora Aparecida,vila nossa senhora aparecida,,,dne,True
+PE,2611101,Petrolina,Vila Nova - N5,vila nova n5,,,dne,True
+PE,2611200,Poção,Centro,centro,-8.1863916,-36.7035403,brasil_aberto_first_street,True
+PE,2611200,Poção,Distrito de Pão de Açucar de Poção,distrito de pao de acucar de pocao,-8.1862551,-36.7023447,brasil_aberto_first_street,True
+PE,2611200,Poção,Gravatá dos Gomes,gravata dos gomes,-8.256294,-36.633484,mapbox_geocoding,True
+PE,2611200,Poção,Pão de Açúcar do Poção,pao de acucar do pocao,,,dne,True
+PE,2611309,Pombos,Centro.,centro,-8.1440358,-35.39892469999999,brasil_aberto_first_street,True
+PE,2611309,Pombos,Dois Leões,dois leoes,-8.1413243,-35.3961702,brasil_aberto_first_street,True
+PE,2611309,Pombos,Nossa Senhora do Carmo,nossa senhora do carmo,-8.147829,-35.394081,mapbox_geocoding,True
+PE,2611408,Primavera,Centro,centro,-8.329646799999999,-35.3530297,brasil_aberto_first_street,True
+PE,2611507,Quipapá,Centro,centro,-9.400527,-40.50232315,brasil_aberto_first_street,True
+PE,2611507,Quipapá,Pau Ferro,pau ferro,,,dne,True
+PE,2611533,Quixaba,Centro,centro,-7.720405999999999,-37.850356,brasil_aberto_first_street,True
+PE,2611533,Quixaba,Distrito Lagoa da Cruz,distrito lagoa da cruz,-7.71105814,-37.91570663,brasil_aberto_first_street,True
+PE,2611606,Recife,Aflitos,aflitos,-8.0415611,-34.8981239,brasil_aberto_first_street,True
+PE,2611606,Recife,Afogados,afogados,-8.073608,-34.912963,mapbox_geocoding,True
+PE,2611606,Recife,Água Fria,agua fria,-8.01657772,-34.90429306,brasil_aberto_first_street,True
+PE,2611606,Recife,Alto do Mandu,alto do mandu,-8.02479076,-34.92795563,brasil_aberto_first_street,True
+PE,2611606,Recife,Alto José Bonifácio,alto jose bonifacio,-8.0153678,-34.9108551,brasil_aberto_first_street,True
+PE,2611606,Recife,Alto José do Pinho,alto jose do pinho,-8.0235,-34.903263,brasil_aberto_first_street,True
+PE,2611606,Recife,Alto Santa Terezinha,alto santa terezinha,-8.01251888,-34.90512848,brasil_aberto_first_street,True
+PE,2611606,Recife,Apipucos,apipucos,-8.0239708,-34.9499865,brasil_aberto_first_street,True
+PE,2611606,Recife,Área Rural de Recife,area rural de recife,-8.0175579,-34.9492827,brasil_aberto_first_street,True
+PE,2611606,Recife,Areias,areias,-8.09816265,-34.92496109,brasil_aberto_first_street,True
+PE,2611606,Recife,Arruda,arruda,-8.0216475,-34.8853198,brasil_aberto_first_street,True
+PE,2611606,Recife,Barro,barro,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2611606,Recife,Beberibe,beberibe,-8.0051017,-34.898151,brasil_aberto_first_street,True
+PE,2611606,Recife,Boa Viagem,boa viagem,-8.12951088,-34.91451263,brasil_aberto_first_street,True
+PE,2611606,Recife,Boa Vista,boa vista,-8.06442928,-34.8841095,brasil_aberto_first_street,True
+PE,2611606,Recife,Bomba do Hemetério,bomba do hemeterio,-8.02373981,-34.89745712,brasil_aberto_first_street,True
+PE,2611606,Recife,Bongi,bongi,-8.067464,-34.914772,mapbox_geocoding,True
+PE,2611606,Recife,Brasília Teimosa,brasilia teimosa,-8.08817196,-34.88114166,brasil_aberto_first_street,True
+PE,2611606,Recife,Brejo da Guabiraba,brejo da guabiraba,-7.9989663,-34.9281488,brasil_aberto_first_street,True
+PE,2611606,Recife,Brejo de Beberibe,brejo de beberibe,-7.98826504,-34.92954254,brasil_aberto_first_street,True
+PE,2611606,Recife,Cabanga,cabanga,-8.074193,-34.883551,mapbox_geocoding,True
+PE,2611606,Recife,Caçote,cacote,-8.1014686,-34.9340866,brasil_aberto_first_street,True
+PE,2611606,Recife,Cajueiro,cajueiro,-8.0121291,-34.8893769,brasil_aberto_first_street,True
+PE,2611606,Recife,Campina do Barreto,campina do barreto,-8.021519699999999,-34.88220980000001,brasil_aberto_first_street,True
+PE,2611606,Recife,Campo Grande,campo grande,-8.03655052,-34.88088608,brasil_aberto_first_street,True
+PE,2611606,Recife,Casa Amarela,casa amarela,-8.02196884,-34.92224884,brasil_aberto_first_street,True
+PE,2611606,Recife,Casa Forte,casa forte,-8.03580093,-34.91427231,brasil_aberto_first_street,True
+PE,2611606,Recife,Caxangá,caxanga,-8.0242767,-34.9588535,brasil_aberto_first_street,True
+PE,2611606,Recife,Cidade Universitária,cidade universitaria,-8.05325127,-34.95346069,brasil_aberto_first_street,True
+PE,2611606,Recife,Coelhos,coelhos,-8.06899357,-34.88964844,brasil_aberto_first_street,True
+PE,2611606,Recife,COHAB,cohab,-8.11135101,-34.94658661,brasil_aberto_first_street,True
+PE,2611606,Recife,Coqueiral,coqueiral,-8.0868388,-34.9660733,brasil_aberto_first_street,True
+PE,2611606,Recife,Cordeiro,cordeiro,-8.05738258,-34.92543411,brasil_aberto_first_street,True
+PE,2611606,Recife,Córrego do Jenipapo,corrego do jenipapo,-7.9989663,-34.9281488,brasil_aberto_first_street,True
+PE,2611606,Recife,Curado,curado,-8.0702111,-34.9386861,brasil_aberto_first_street,True
+PE,2611606,Recife,Derby,derby,-8.0505918,-34.9038198,brasil_aberto_first_street,True
+PE,2611606,Recife,Dois Irmãos,dois irmaos,-8.0239708,-34.9499865,brasil_aberto_first_street,True
+PE,2611606,Recife,Dois Unidos,dois unidos,-8.00205898,-34.91785812,brasil_aberto_first_street,True
+PE,2611606,Recife,Encruzilhada,encruzilhada,-8.02037716,-34.89448547,brasil_aberto_first_street,True
+PE,2611606,Recife,Engenho do Meio,engenho do meio,-8.0576603,-34.9457387,brasil_aberto_first_street,True
+PE,2611606,Recife,Espinheiro,espinheiro,-8.1329309,-34.9762495,brasil_aberto_first_street,True
+PE,2611606,Recife,Estância,estancia,-8.08571434,-34.93146515,brasil_aberto_first_street,True
+PE,2611606,Recife,Fundão,fundao,-8.01102543,-34.89077759,brasil_aberto_first_street,True
+PE,2611606,Recife,Graças,gracas,-8.0506525,-34.90386581,brasil_aberto_first_street,True
+PE,2611606,Recife,Guabiraba,guabiraba,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2611606,Recife,Hipódromo,hipodromo,-8.0288633,-34.8893988,brasil_aberto_first_street,True
+PE,2611606,Recife,Ibura,ibura,-8.11234474,-34.93779755,brasil_aberto_first_street,True
+PE,2611606,Recife,Ilha do Leite,ilha do leite,-8.0667429,-34.8956337,brasil_aberto_first_street,True
+PE,2611606,Recife,Ilha do Retiro,ilha do retiro,-8.064901899999999,-34.9051721,brasil_aberto_first_street,True
+PE,2611606,Recife,Ilha Joana Bezerra,ilha joana bezerra,-8.07700443,-34.90007782,brasil_aberto_first_street,True
+PE,2611606,Recife,Imbiribeira,imbiribeira,-8.1054473,-34.9157473,brasil_aberto_first_street,True
+PE,2611606,Recife,Ipsep,ipsep,-8.10641479,-34.92139053,brasil_aberto_first_street,True
+PE,2611606,Recife,Iputinga,iputinga,-8.02981758,-34.93814468,brasil_aberto_first_street,True
+PE,2611606,Recife,Jaqueira,jaqueira,-8.0415659,-34.89809799,brasil_aberto_first_street,True
+PE,2611606,Recife,Jardim São Paulo,jardim sao paulo,-8.080714799999999,-34.94749729999999,brasil_aberto_first_street,True
+PE,2611606,Recife,Jiquiá,jiquia,-8.085599,-34.921941,mapbox_geocoding,True
+PE,2611606,Recife,Jordão,jordao,-8.13705063,-34.93697357,brasil_aberto_first_street,True
+PE,2611606,Recife,Linha do Tiro,linha do tiro,-8.0123539,-34.90865326,brasil_aberto_first_street,True
+PE,2611606,Recife,Macaxeira,macaxeira,-7.9989663,-34.9281488,brasil_aberto_first_street,True
+PE,2611606,Recife,Madalena,madalena,-8.048757,-34.905937,mapbox_geocoding,True
+PE,2611606,Recife,Mangabeira,mangabeira,-8.02400017,-34.90294266,brasil_aberto_first_street,True
+PE,2611606,Recife,Mangueira,mangueira,-8.07564068,-34.92000961,brasil_aberto_first_street,True
+PE,2611606,Recife,Monteiro,monteiro,-8.1310572,-34.9406263,brasil_aberto_first_street,True
+PE,2611606,Recife,Morro da Conceição,morro da conceicao,-8.02118206,-34.91408539,brasil_aberto_first_street,True
+PE,2611606,Recife,Mustardinha,mustardinha,-8.069501,-34.919729,mapbox_geocoding,True
+PE,2611606,Recife,Nova Descoberta,nova descoberta,-7.9989663,-34.9281488,brasil_aberto_first_street,True
+PE,2611606,Recife,Paissandu,paissandu,-8.0636398,-34.8977177,brasil_aberto_first_street,True
+PE,2611606,Recife,Parnamirim,parnamirim,-8.0358682,-34.9131731,brasil_aberto_first_street,True
+PE,2611606,Recife,Passarinho,passarinho,-7.9869232,-34.9306808,brasil_aberto_first_street,True
+PE,2611606,Recife,Pau Ferro,pau ferro,-7.968517,-34.973461,mapbox_geocoding,True
+PE,2611606,Recife,Peixinhos,peixinhos,-8.01631832,-34.87535095,brasil_aberto_first_street,True
+PE,2611606,Recife,Pina,pina,-8.08992577,-34.88874435,brasil_aberto_first_street,True
+PE,2611606,Recife,Poço,poco,-8.03178406,-34.92562103,brasil_aberto_first_street,True
+PE,2611606,Recife,Ponto de Parada,ponto de parada,-8.02037716,-34.89448547,brasil_aberto_first_street,True
+PE,2611606,Recife,Porto da Madeira,porto da madeira,-8.0096049,-34.8905373,brasil_aberto_first_street,True
+PE,2611606,Recife,Prado,prado,-8.056319,-34.915444,mapbox_geocoding,True
+PE,2611606,Recife,Recife,recife,-8.0613046,-34.8706459,brasil_aberto_first_street,True
+PE,2611606,Recife,Rosarinho,rosarinho,-8.0364779,-34.8979112,brasil_aberto_first_street,True
+PE,2611606,Recife,San Martin,san martin,-8.15751839,-34.9305191,brasil_aberto_first_street,True
+PE,2611606,Recife,Sancho,sancho,-8.08259773,-34.96632004,brasil_aberto_first_street,True
+PE,2611606,Recife,Santana,santana,-8.03439999,-34.92121887,brasil_aberto_first_street,True
+PE,2611606,Recife,Santo Amaro,santo amaro,-8.04507732,-34.88829422,brasil_aberto_first_street,True
+PE,2611606,Recife,Santo Antônio,santo antonio,-7.899377,-35.178309,mapbox_geocoding,True
+PE,2611606,Recife,São José,sao jose,-8.0750742,-34.90169144,brasil_aberto_first_street,True
+PE,2611606,Recife,Sítio dos Pintos,sitio dos pintos,-8.0184772,-34.9548394,brasil_aberto_first_street,True
+PE,2611606,Recife,Soledade,soledade,-8.05760765,-34.88996124,brasil_aberto_first_street,True
+PE,2611606,Recife,Tamarineira,tamarineira,-8.0415659,-34.89809799,brasil_aberto_first_street,True
+PE,2611606,Recife,Tejipió,tejipio,-8.08893013,-34.96514511,brasil_aberto_first_street,True
+PE,2611606,Recife,Torre,torre,-8.04385281,-34.91339493,brasil_aberto_first_street,True
+PE,2611606,Recife,Torreão,torreao,-8.04747486,-34.89159775,brasil_aberto_first_street,True
+PE,2611606,Recife,Torrões,torroes,-8.06517,-34.9348395,brasil_aberto_first_street,True
+PE,2611606,Recife,Totó,toto,-8.0813023,-34.9706459,brasil_aberto_first_street,True
+PE,2611606,Recife,Várzea,varzea,-8.037285,-34.95057,mapbox_geocoding,True
+PE,2611606,Recife,Vasco da Gama,vasco da gama,-8.01355267,-34.91804504,brasil_aberto_first_street,True
+PE,2611606,Recife,Zumbi,zumbi,-8.05407524,-34.91865158,brasil_aberto_first_street,True
+PE,2611705,Riacho das Almas,Alto do Açude,alto do acude,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Alto Jiquiri,alto jiquiri,-8.13918,-35.856698,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Área Rural de Riacho das Almas,area rural de riacho das almas,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Boa Vista,boa vista,-8.132937,-35.854351,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Celestino Ferreira,celestino ferreira,-8.132593,-35.858464,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Centro,centro,-8.137401,-35.855399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,COHAB,cohab,-8.137401,-35.855399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Couro D'Antas,couro d antas,,,dne,True
+PE,2611705,Riacho das Almas,Cruzeiro,cruzeiro,-8.133504,-35.85399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Distrito Vila de Pinhões,distrito vila de pinhoes,,,brasil_aberto,True
+PE,2611705,Riacho das Almas,Gold Park,gold park,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Gold Park II,gold park ii,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,João Chico,joao chico,-8.134296,-35.861041,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,João Lula,joao lula,-8.137401,-35.855399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Loteamento Casa Nova,loteamento casa nova,-8.137401,-35.855399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Loteamento São Pedro,loteamento sao pedro,-8.131602,-35.861242,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Nossa Senhora das Graças,nossa senhora das gracas,-8.137401,-35.855399,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Nova Esperança,nova esperanca,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Povoado Rangel,povoado rangel,,,brasil_aberto,True
+PE,2611705,Riacho das Almas,Rangel,rangel,,,dne,True
+PE,2611705,Riacho das Almas,Salinas,salinas,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Santa Terezinha,santa terezinha,-8.137849,-35.861297,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Trapiá,trapia,,,dne,True
+PE,2611705,Riacho das Almas,Vila Couro D'Antas,vila couro d antas,-8.139178,-35.859303,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Vila Pinhões,vila pinhoes,-8.0326089,-35.8453437,brasil_aberto_first_street,True
+PE,2611705,Riacho das Almas,Vila Rangel,vila rangel,-8.098202,-35.876149,mapbox_geocoding,True
+PE,2611705,Riacho das Almas,Vila Trapiá,vila trapia,-8.015466199999999,-35.9074755,brasil_aberto_first_street,True
+PE,2611705,Riacho das Almas,Vila Vitorino,vila vitorino,-8.1538629,-35.9263396,brasil_aberto_first_street,True
+PE,2611804,Ribeirão,Alto da Cadeia,alto da cadeia,-8.510422,-35.376645,mapbox_geocoding,True
+PE,2611804,Ribeirão,Alto da Fé,alto da fe,-8.515211,-35.378722,mapbox_geocoding,True
+PE,2611804,Ribeirão,Área Rural de Ribeirão,area rural de ribeirao,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2611804,Ribeirão,Aripibu,aripibu,,,dne,True
+PE,2611804,Ribeirão,Bairro Novo,bairro novo,-8.511596,-35.378371,mapbox_geocoding,True
+PE,2611804,Ribeirão,Bela Vista I - II,bela vista i ii,-8.207346,-36.462461,mapbox_geocoding,True
+PE,2611804,Ribeirão,Canavial,canavial,-8.495472,-35.375029,mapbox_geocoding,True
+PE,2611804,Ribeirão,Centro,centro,-8.520919,-35.376255,mapbox_geocoding,True
+PE,2611804,Ribeirão,Cohab,cohab,-8.520593,-35.379456,mapbox_geocoding,True
+PE,2611804,Ribeirão,Eldorado,eldorado,-8.504532,-35.378881,mapbox_geocoding,True
+PE,2611804,Ribeirão,Getúlio Vargas,getulio vargas,-8.520919,-35.376255,mapbox_geocoding,True
+PE,2611804,Ribeirão,José Mariano,jose mariano,,,dne,True
+PE,2611804,Ribeirão,Loteamento Amaraji,loteamento amaraji,-8.505146,-35.383415,mapbox_geocoding,True
+PE,2611804,Ribeirão,Padre Cícero,padre cicero,-8.519598,-35.375456,mapbox_geocoding,True
+PE,2611804,Ribeirão,Vaticano,vaticano,-8.617409,-35.106929,mapbox_geocoding,True
+PE,2611804,Ribeirão,Vila Aripibu,vila aripibu,,,brasil_aberto,True
+PE,2611804,Ribeirão,Vila Bandeirante,vila bandeirante,-8.446626,-35.344006,mapbox_geocoding,True
+PE,2611804,Ribeirão,Vila Ferroviário,vila ferroviario,-8.069983,-34.888228,mapbox_geocoding,True
+PE,2611804,Ribeirão,Vila José Mariano,vila jose mariano,,,brasil_aberto,True
+PE,2611804,Ribeirão,Vila Rica,vila rica,-8.514402,-35.370723,mapbox_geocoding,True
+PE,2611903,Rio Formoso,Centro,centro,-8.660886999999999,-35.15242569999999,brasil_aberto_first_street,True
+PE,2611903,Rio Formoso,Cocau,cocau,,,dne,True
+PE,2611903,Rio Formoso,Diatrito de Cocaú,diatrito de cocau,,,brasil_aberto,True
+PE,2611903,Rio Formoso,Saué,saue,,,dne,True
+PE,2612000,Sairé,Centro,centro,-8.3291954,-35.7081767,brasil_aberto_first_street,True
+PE,2612000,Sairé,Povoado Insurreição,povoado insurreicao,-8.2138088,-35.6773101,brasil_aberto_first_street,True
+PE,2612109,Salgadinho,Centro,centro,-7.94138861,-35.63592148,brasil_aberto_first_street,True
+PE,2612208,Salgueiro,Centro,centro,-8.0731146,-39.120645,brasil_aberto_first_street,True
+PE,2612208,Salgueiro,Conceição das Crioulas,conceicao das crioulas,,,dne,True
+PE,2612208,Salgueiro,Distrito Conceição das Crioulas,distrito conceicao das crioulas,-8.3044386,-38.937045,brasil_aberto_first_street,True
+PE,2612208,Salgueiro,Distrito de Umãs,distrito de umas,-8.0723296,-39.126417,brasil_aberto_first_street,True
+PE,2612208,Salgueiro,Distrito Pau Ferro,distrito pau ferro,-8.113658,-38.965991,mapbox_geocoding,True
+PE,2612208,Salgueiro,Distrito Vasques,distrito vasques,-7.811125700000001,-39.0974777,brasil_aberto_first_street,True
+PE,2612208,Salgueiro,Nossa Senhora das Graças,nossa senhora das gracas,-8.301612,-35.96289,mapbox_geocoding,True
+PE,2612208,Salgueiro,Pau Ferro,pau ferro,,,brasil_aberto,True
+PE,2612208,Salgueiro,Pau Ferro em Salgado,pau ferro em salgado,,,dne,True
+PE,2612208,Salgueiro,Santo Antônio,santo antonio,,,brasil_aberto,True
+PE,2612208,Salgueiro,Umãs,umas,,,dne,True
+PE,2612208,Salgueiro,Vasques,vasques,,,dne,True
+PE,2612307,Saloá,Centro,centro,-8.97498703,-36.68862534,brasil_aberto_first_street,True
+PE,2612307,Saloá,Iateca,iateca,-9.012392,-36.759905,mapbox_geocoding,True
+PE,2612307,Saloá,Latecá,lateca,,,brasil_aberto,True
+PE,2612307,Saloá,Povoado Serrinha da Prata,povoado serrinha da prata,-9.0483166,-36.7813193,brasil_aberto_first_street,True
+PE,2612307,Saloá,Serrinha da Prata,serrinha da prata,,,dne,True
+PE,2612406,Sanharó,Área Rural de Sanharó,area rural de sanharo,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2612406,Sanharó,Centro,centro,-8.2501562,-36.5121535,brasil_aberto_first_street,True
+PE,2612406,Sanharó,Distrito de Mulungu,distrito de mulungu,,,brasil_aberto,True
+PE,2612406,Sanharó,Divisão,divisao,,,brasil_aberto,True
+PE,2612406,Sanharó,Doutor Tonico,doutor tonico,-8.236188,-35.747789,mapbox_geocoding,True
+PE,2612406,Sanharó,Esplendor,esplendor,-8.352569,-36.562166,mapbox_geocoding,True
+PE,2612406,Sanharó,Jenipapo,jenipapo,,,dne,True
+PE,2612406,Sanharó,João Soares,joao soares,-7.970195,-34.859964,mapbox_geocoding,True
+PE,2612406,Sanharó,Marajás,marajas,-8.241189,-35.75607,mapbox_geocoding,True
+PE,2612406,Sanharó,Mulungu,mulungu,,,dne,True
+PE,2612406,Sanharó,Nossa Senhora de Fátima,nossa senhora de fatima,-8.361463,-36.565136,mapbox_geocoding,True
+PE,2612406,Sanharó,Padre Heraldo Cordeiro de Barros,padre heraldo cordeiro de barros,-8.363794,-36.562643,mapbox_geocoding,True
+PE,2612406,Sanharó,Padre Noval,padre noval,-8.363597,-36.56664,mapbox_geocoding,True
+PE,2612406,Sanharó,Prefeito Paulo Foerster,prefeito paulo foerster,-8.273751,-36.009961,mapbox_geocoding,True
+PE,2612406,Sanharó,Professora Ceci Aquino Caraciolo,professora ceci aquino caraciolo,-8.361459,-36.551641,mapbox_geocoding,True
+PE,2612406,Sanharó,Santa Clara,santa clara,-8.355177,-36.559811,mapbox_geocoding,True
+PE,2612406,Sanharó,Serafim Nunes Correia,serafim nunes correia,-8.361459,-36.551641,mapbox_geocoding,True
+PE,2612406,Sanharó,Vice Prefeito Iraldemir Aquino de Freitas,vice prefeito iraldemir aquino de freitas,-8.363308,-36.559106,mapbox_geocoding,True
+PE,2612406,Sanharó,Zacarias Ramalho,zacarias ramalho,-8.324542,-36.392474,mapbox_geocoding,True
+PE,2612455,Santa Cruz,Centro,centro,-8.2388531,-40.3282287,brasil_aberto_first_street,True
+PE,2612455,Santa Cruz,Poço Dantas,poco dantas,,,brasil_aberto,True
+PE,2612471,Santa Cruz da Baixa Verde,Centro,centro,-7.820381599999999,-38.1514637,brasil_aberto_first_street,True
+PE,2612471,Santa Cruz da Baixa Verde,Distrito de Jatiuca,distrito de jatiuca,-7.8202053,-38.1517387,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Área Rural de Santa Cruz do Capibaribe,area rural de santa cruz do capibaribe,-7.950588699999999,-36.204105,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Bairro Capibaribe,bairro capibaribe,-7.950086,-36.215591,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,Bairro da Moda,bairro da moda,-7.955153,-36.205704,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,Bairro Novo,bairro novo,-7.9544848,-36.2030696,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Bela Vista,bela vista,-7.9353168,-36.2170115,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Centro,centro,-7.96015644,-36.20116043,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Cruz Alta,cruz alta,-7.956058499999999,-36.2184507,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Dona Dom,dona dom,-7.93926144,-36.2038269,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Gaudêncio Gomes Feitosa,gaudencio gomes feitosa,-7.954483,-36.214835,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,Malaquias Cardoso,malaquias cardoso,-7.955153,-36.205704,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,Malhada do Meio,malhada do meio,-7.920922999999998,-36.2336907,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Manhosa,manhosa,-7.955153,-36.205704,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,Nova Santa Cruz,nova santa cruz,-7.9489213,-36.2086593,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Oscarzão,oscarzao,-7.9551922,-36.181537,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Palestina,palestina,-7.9527282,-36.193425,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Pará,para,-7.842266599999999,-36.3717097,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Poço Fundo,poco fundo,-7.95514822,-36.34571457,brasil_aberto_first_street,True
+PE,2612505,Santa Cruz do Capibaribe,Santo Agostinho,santo agostinho,-7.93212,-36.19869,mapbox_geocoding,True
+PE,2612505,Santa Cruz do Capibaribe,São Cristovão,sao cristovao,-7.9571238,-36.2054775,brasil_aberto_first_street,True
+PE,2612554,Santa Filomena,Centro,centro,-8.1628207,-40.6147445,brasil_aberto_first_street,True
+PE,2612604,Santa Maria da Boa Vista,Agamenon Magalhães,agamenon magalhaes,-8.805963,-39.822822,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Agrovila,agrovila,-8.805963,-39.822822,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Àrea Rural de Santa Maria da Boa Vista,area rural de santa maria da boa vista,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Caraíba,caraiba,,,dne,True
+PE,2612604,Santa Maria da Boa Vista,Centro,centro,-8.805963,-39.822822,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Cohab,cohab,-8.803421,-39.824317,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,José Lustosa Cantarelle,jose lustosa cantarelle,-8.409762,-39.799379,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Jutaí,jutai,,,brasil_aberto,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Boa Vista,loteamento boa vista,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Coripós,loteamento coripos,-8.409762,-39.799379,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Esperança,loteamento esperanca,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Moço Gonzaga,loteamento moco gonzaga,-8.806167,-39.82266,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Recanto das Flores,loteamento recanto das flores,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Santa Maria I,loteamento santa maria i,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento Santa Maria II,loteamento santa maria ii,-8.805493,-39.822914,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Loteamento São José,loteamento sao jose,-8.806167,-39.82266,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Mandacaru,mandacaru,-8.805963,-39.822822,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Planalto,planalto,-8.409762,-39.799379,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Santa Luzia,santa luzia,-8.79646,-39.828042,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Senador Paulo Guerra,senador paulo guerra,-8.803421,-39.824317,mapbox_geocoding,True
+PE,2612604,Santa Maria da Boa Vista,Urimama,urimama,,,dne,True
+PE,2612604,Santa Maria da Boa Vista,Vitória dos Sem Teto,vitoria dos sem teto,-8.409762,-39.799379,mapbox_geocoding,True
+PE,2612703,Santa Maria do Cambucá,Caramuru,caramuru,,,dne,True
+PE,2612703,Santa Maria do Cambucá,Centro,centro,-7.8332723,-35.8811746,brasil_aberto_first_street,True
+PE,2612703,Santa Maria do Cambucá,Povoado Caramuru,povoado caramuru,-7.8067906,-35.9046721,brasil_aberto_first_street,True
+PE,2612802,Santa Terezinha,Centro,centro,-7.376488,-37.479026,mapbox_geocoding,True
+PE,2612901,São Benedito do Sul,Centro,centro,-8.8064647,-35.9283626,brasil_aberto_first_street,True
+PE,2612901,São Benedito do Sul,Igarapeba,igarapeba,-8.803891199999999,-35.8797052,brasil_aberto_first_street,True
+PE,2613008,São Bento do Una,Almas Benditas,almas benditas,-8.517342,-36.447024,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Alto Santiago,alto santiago,-8.514863,-36.444985,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Ana Maria Valença,ana maria valenca,-8.529386,-36.440657,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Área Rural de São Bento do Una,area rural de sao bento do una,-8.521072,-36.44503,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Boa Esperança,boa esperanca,-8.526365,-36.436703,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Boa Morada,boa morada,-8.514936,-36.435581,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Bom Jesus dos Pobres Aflitos,bom jesus dos pobres aflitos,-8.533678,-36.438064,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Centro,centro,-8.521338,-36.44812,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Cira Mota,cira mota,-8.524881,-36.44914,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Cosme Pereira,cosme pereira,-8.526365,-36.436703,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Délio Valença,delio valenca,-8.515671,-36.440965,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Delmario Braga,delmario braga,-8.518828,-36.431829,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Deus é Fiel,deus e fiel,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Doutor Lívio de Souza Valença,doutor livio de souza valenca,-8.518828,-36.431829,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Doutor Lourival Agra,doutor lourival agra,-8.514863,-36.444985,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Encanto do Una,encanto do una,-8.533678,-36.438064,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Espírito Santo,espirito santo,,,dne,True
+PE,2613008,São Bento do Una,Gabriela Residence,gabriela residence,-8.533678,-36.438064,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Gildo Valença,gildo valenca,-8.521008,-36.450682,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Jesus Nazareno,jesus nazareno,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,João Oliveira Campos,joao oliveira campos,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,João Paulo-ll,joao paulo ll,-8.604516,-36.377703,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Joaquim da Silva Costa,joaquim da silva costa,-8.515671,-36.440965,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Joaquim Gabriel Cadete,joaquim gabriel cadete,-8.515671,-36.440965,mapbox_geocoding,True
+PE,2613008,São Bento do Una,José Adailton Valença dos Santos,jose adailton valenca dos santos,-8.519814,-36.440395,mapbox_geocoding,True
+PE,2613008,São Bento do Una,José do Patrocínio Mota,jose do patrocinio mota,-8.518929,-36.434164,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Maria Aloisia Cordeiro,maria aloisia cordeiro,-8.524283,-36.446026,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Maria de Lourdes Braga de Farias,maria de lourdes braga de farias,-8.519028,-36.436786,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Maria José Almeida Cordeiro,maria jose almeida cordeiro,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Mário Cordeiro de Farias,mario cordeiro de farias,-8.522798,-36.45189,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Menino Jesus de Praga,menino jesus de praga,-8.529386,-36.440657,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Nossa Senhora Aparecida,nossa senhora aparecida,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Nossa Senhora de Fátima,nossa senhora de fatima,-8.521072,-36.44503,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Novo Horizonte,novo horizonte,-8.515671,-36.440965,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Odete Costa,odete costa,-8.525487,-36.429278,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Padre José Orlando Duarte,padre jose orlando duarte,-8.518354,-36.454,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Paulo Cordeiro de Farias,paulo cordeiro de farias,-8.526365,-36.436703,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Pedra,pedra,-8.511181,-36.438602,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Ricardo Ferreira,ricardo ferreira,-8.517837,-36.435777,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Rosas,rosas,-8.514863,-36.444985,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Rui Porfirio,rui porfirio,-8.515239,-36.445488,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Santa Cruz,santa cruz,-8.52237,-36.44404,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Santa Dulce dos Pobres,santa dulce dos pobres,-8.523849,-36.429355,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Santo Afonso,santo afonso,-8.52899,-36.449284,mapbox_geocoding,True
+PE,2613008,São Bento do Una,São Francisco de Assis,sao francisco de assis,-8.604516,-36.377703,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Seridó,serido,-8.534323,-36.441788,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Sete Irmãos,sete irmaos,-8.519814,-36.440395,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Sofia Vidal de Freitas,sofia vidal de freitas,-8.533678,-36.438064,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Terreiros,terreiros,-8.519814,-36.440395,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Torre,torre,-8.519814,-36.440395,mapbox_geocoding,True
+PE,2613008,São Bento do Una,Vila Adelma,vila adelma,-8.519739,-36.449628,mapbox_geocoding,True
+PE,2613107,São Caitano,Centro,centro,-8.32651234,-36.13825226,brasil_aberto_first_street,True
+PE,2613107,São Caitano,Distrito de Maniçoba,distrito de manicoba,-7.900566,-35.990728,mapbox_geocoding,True
+PE,2613107,São Caitano,Distrito deTapiraim,distrito detapiraim,-8.4158,-36.147353,mapbox_geocoding,True
+PE,2613107,São Caitano,Maniçoba,manicoba,,,dne,True
+PE,2613107,São Caitano,Povoado de Tapiraim,povoado de tapiraim,,,brasil_aberto,True
+PE,2613107,São Caitano,Tapiraim,tapiraim,,,dne,True
+PE,2613206,São João,Centro,centro,-8.87691498,-36.36620712,brasil_aberto_first_street,True
+PE,2613305,São Joaquim do Monte,Barra do Riachão,barra do riachao,-8.43292999,-35.8061409,brasil_aberto_first_street,True
+PE,2613305,São Joaquim do Monte,Centro,centro,-8.437258,-35.809242,brasil_aberto_first_street,True
+PE,2613305,São Joaquim do Monte,Monte Alegre,monte alegre,,,dne,True
+PE,2613305,São Joaquim do Monte,Povoado Barra do Riachão,povoado barra do riachao,-8.430793,-35.808056,mapbox_geocoding,True
+PE,2613305,São Joaquim do Monte,Povoado Monte Alegre,povoado monte alegre,,,brasil_aberto,True
+PE,2613305,São Joaquim do Monte,Povoado Santana de São Joaquim,povoado santana de sao joaquim,-8.430793,-35.808056,mapbox_geocoding,True
+PE,2613305,São Joaquim do Monte,Santana de São Joaquim,santana de sao joaquim,,,dne,True
+PE,2613404,São José da Coroa Grande,Centro,centro,-8.89998722,-35.14646149,brasil_aberto_first_street,True
+PE,2613503,São José do Belmonte,Bom Nome,bom nome,,,dne,True
+PE,2613503,São José do Belmonte,Centro,centro,-7.861772999999999,-38.7574687,brasil_aberto_first_street,True
+PE,2613503,São José do Belmonte,Distrito de Bom Nome,distrito de bom nome,,,brasil_aberto,True
+PE,2613602,São José do Egito,Bonfim,bonfim,,,dne,True
+PE,2613602,São José do Egito,Centro,centro,-7.11905336,-34.8254509,brasil_aberto_first_street,True
+PE,2613602,São José do Egito,Distrito Bonfim,distrito bonfim,,,brasil_aberto,True
+PE,2613602,São José do Egito,Distrito Riacho do Meio,distrito riacho do meio,,,brasil_aberto,True
+PE,2613602,São José do Egito,Riacho do Meio,riacho do meio,-7.53482485,-37.3742218,brasil_aberto_first_street,True
+PE,2613602,São José do Egito,Riacho do Meio (São José do Egito),riacho do meio sao jose do egito,,,dne,True
+PE,2613701,São Lourenço da Mata,Área Rural de São Lourenço da Mata,area rural de sao lourenco da mata,-7.994519899999998,-35.04216220000001,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Capibaribe,capibaribe,-7.99994993,-35.0265007,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Centro,centro,-7.9955941,-35.0339924,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Chã da Tábua,cha da tabua,-7.998254,-35.03984,mapbox_geocoding,True
+PE,2613701,São Lourenço da Mata,Matriz da Luz,matriz da luz,-8.0308457,-35.148879,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Muribara,muribara,-8.00381374,-35.04240799,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Nossa Senhora da Luz,nossa senhora da luz,,,dne,True
+PE,2613701,São Lourenço da Mata,Nova Tiúma,nova tiuma,-7.9938011,-35.034932,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Parque Capibaribe,parque capibaribe,-8.00585556,-35.03890228,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Penedo,penedo,-8.00082016,-35.03572845,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Pixete,pixete,-7.99648333,-35.04550171,brasil_aberto_first_street,True
+PE,2613701,São Lourenço da Mata,Tiúma,tiuma,-7.97889853,-35.07518005,brasil_aberto_first_street,True
+PE,2613800,São Vicente Férrer,Centro,centro,-7.590474599999999,-35.4898323,brasil_aberto_first_street,True
+PE,2613800,São Vicente Férrer,Siriji,siriji,,,dne,True
+PE,2613800,São Vicente Férrer,Vila Siriji,vila siriji,-7.653399,-35.469369,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,AABB,aabb,-7.9894678,-38.3022134,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Área Rural de Serra Talhada,area rural de serra talhada,-7.982044500000001,-38.2897492,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Bernardo Vieira,bernardo vieira,-7.854504,-38.558484,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Bom Jesus,bom jesus,-7.9778609,-38.3063638,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Bomba,bomba,-7.9789131,-38.2908818,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Cachoeira,cachoeira,-7.999941,-38.306875,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Cagep,cagep,-7.9782423,-38.2940242,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Caiçarinha da Penha,caicarinha da penha,,,dne,True
+PE,2613909,Serra Talhada,Distrito de Caiçarinha da Penha,distrito de caicarinha da penha,-8.032859,-38.122609,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Distrito de Logradouro,distrito de logradouro,-8.032859,-38.122609,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Distrito de Luanda,distrito de luanda,-7.772058,-38.343311,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Distrito de Santa Rita,distrito de santa rita,-7.993242,-38.298778,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Distrito Industrial Municipal Givaldo Andrada de Araújo,distrito industrial municipal givaldo andrada de araujo,-7.9984856,-38.305061,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Distrito Pajeú,distrito pajeu,-7.988553,-38.297455,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Distrito Varzinha,distrito varzinha,-8.03147,-38.122904,mapbox_geocoding,True
+PE,2613909,Serra Talhada,José Alves de Carvalho Nunes,jose alves de carvalho nunes,-7.991605199999999,-38.277898,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,José Rufino Alves,jose rufino alves,-8.006036,-38.305284,mapbox_geocoding,True
+PE,2613909,Serra Talhada,José Tomé de Souza Ramos,jose tome de souza ramos,-7.96144772,-38.29302597,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Logradouros,logradouros,,,dne,True
+PE,2613909,Serra Talhada,Luanda,luanda,,,dne,True
+PE,2613909,Serra Talhada,Nossa Senhora da Conceição,nossa senhora da conceicao,-7.9899989,-38.2806767,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Nossa Senhora da Penha,nossa senhora da penha,-7.9859342,-38.299861,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Nossa Senhora de Fátima,nossa senhora de fatima,-7.982044500000001,-38.2897492,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Pajeú,pajeu,,,dne,True
+PE,2613909,Serra Talhada,Santa Rita,santa rita,,,brasil_aberto,True
+PE,2613909,Serra Talhada,Santa Rita (Serra Talhada),santa rita serra talhada,,,dne,True
+PE,2613909,Serra Talhada,São Cristóvão,sao cristovao,-7.9838425,-38.2900004,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,São Sebastião,sao sebastiao,-7.248289,-39.330036,mapbox_geocoding,True
+PE,2613909,Serra Talhada,Tancredo Neves,tancredo neves,-7.9798772,-38.279258,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Tauapiranga,tauapiranga,,,dne,True
+PE,2613909,Serra Talhada,Várzea,varzea,-7.9877846,-38.2847683,brasil_aberto_first_street,True
+PE,2613909,Serra Talhada,Varzinha,varzinha,,,dne,True
+PE,2613909,Serra Talhada,Vila Bela,vila bela,-7.9949131,-38.32482147,brasil_aberto_first_street,True
+PE,2614006,Serrita,Centro,centro,-8.4178896,-37.06720352,brasil_aberto_first_street,True
+PE,2614006,Serrita,Centro1,centro1,,,brasil_aberto,True
+PE,2614006,Serrita,Distrito de Ipueira,distrito de ipueira,-8.05383015,-34.94129944,brasil_aberto_first_street,True
+PE,2614006,Serrita,Distrito de Ori,distrito de ori,-7.69272,-39.3624851,brasil_aberto_first_street,True
+PE,2614006,Serrita,Ipueira,ipueira,,,dne,True
+PE,2614006,Serrita,Ipuera,ipuera,,,brasil_aberto,True
+PE,2614006,Serrita,Ori,ori,,,dne,True
+PE,2614006,Serrita,Santa Rosa,santa rosa,,,dne,True
+PE,2614006,Serrita,São Francisco do Brígida,sao francisco do brigida,,,dne,True
+PE,2614006,Serrita,Zona Rural,zona rural,,,brasil_aberto,True
+PE,2614105,Sertânia,Albuquerque Né,albuquerque ne,-8.0019245,-37.4174388,brasil_aberto_first_street,True
+PE,2614105,Sertânia,Algodões,algodoes,,,dne,True
+PE,2614105,Sertânia,Caroalina,caroalina,-7.681115,-34.837689,mapbox_geocoding,True
+PE,2614105,Sertânia,Centro,centro,-8.075465399999999,-37.26612360000001,brasil_aberto_first_street,True
+PE,2614105,Sertânia,Cruzeiro do Nordeste,cruzeiro do nordeste,-8.362708,-37.271847,mapbox_geocoding,True
+PE,2614105,Sertânia,Distrito de Algodoes,distrito de algodoes,-8.139258,-37.4704284,brasil_aberto_first_street,True
+PE,2614105,Sertânia,Henrique Dias,henrique dias,-8.139258,-37.4704284,brasil_aberto_first_street,True
+PE,2614105,Sertânia,Moderna,moderna,-7.926473,-34.864547,mapbox_geocoding,True
+PE,2614105,Sertânia,Pernambuquinho,pernambuquinho,-7.926473,-34.864547,mapbox_geocoding,True
+PE,2614105,Sertânia,Povoado de Caroalina,povoado de caroalina,,,brasil_aberto,True
+PE,2614105,Sertânia,Povoado de Galeão,povoado de galeao,,,brasil_aberto,True
+PE,2614105,Sertânia,Povoado de Moderna,povoado de moderna,,,brasil_aberto,True
+PE,2614105,Sertânia,Povoado de Pernambuquinho,povoado de pernambuquinho,,,brasil_aberto,True
+PE,2614105,Sertânia,Povoado Waldemar Siqueira,povoado waldemar siqueira,,,brasil_aberto,True
+PE,2614105,Sertânia,Rio da Barra,rio da barra,-8.139258,-37.4704284,brasil_aberto_first_street,True
+PE,2614105,Sertânia,Umburanas,umburanas,,,dne,True
+PE,2614105,Sertânia,Valdemar Siqueira,valdemar siqueira,,,dne,True
+PE,2614105,Sertânia,Vila Ferro Velho,vila ferro velho,,,brasil_aberto,True
+PE,2614204,Sirinhaém,Barra de Sirinhaém,barra de sirinhaem,-8.6079254,-35.0502869,brasil_aberto_first_street,True
+PE,2614204,Sirinhaém,Barra do Sirinhaém,barra do sirinhaem,,,dne,True
+PE,2614204,Sirinhaém,Centro,centro,-8.591415,-35.1167569,brasil_aberto_first_street,True
+PE,2614204,Sirinhaém,Ibiratinga,ibiratinga,-8.52224731,-35.25945663,brasil_aberto_first_street,True
+PE,2614204,Sirinhaém,Povoado de Santo Amaro,povoado de santo amaro,,,brasil_aberto,True
+PE,2614204,Sirinhaém,Santo Amaro,santo amaro,-8.617981,-35.111735,mapbox_geocoding,True
+PE,2614204,Sirinhaém,Santo Amaro (Sirinhaém),santo amaro sirinhaem,,,dne,True
+PE,2614303,Moreilândia,Caririmirim,caririmirim,,,dne,True
+PE,2614303,Moreilândia,Centro,centro,-22.90289688,-43.17330551,brasil_aberto_first_street,True
+PE,2614402,Solidão,Centro,centro,-7.6004086,-37.6527845,brasil_aberto_first_street,True
+PE,2614501,Surubim,Centro,centro,-7.838859100000001,-35.7596067,brasil_aberto_first_street,True
+PE,2614501,Surubim,Chã do Marinheiro,cha do marinheiro,-7.8388162,-35.7598517,brasil_aberto_first_street,True
+PE,2614501,Surubim,Diogo,diogo,-7.831376,-35.755573,mapbox_geocoding,True
+PE,2614501,Surubim,Distrito de Mimoso,distrito de mimoso,-7.90019,-35.734008,mapbox_geocoding,True
+PE,2614501,Surubim,Jucá Ferrado,juca ferrado,-7.845268,-35.799252,mapbox_geocoding,True
+PE,2614501,Surubim,Lagoa da Vaca,lagoa da vaca,-7.918255,-34.843225,mapbox_geocoding,True
+PE,2614501,Surubim,Lério de Cima,lerio de cima,-7.824714,-35.8252006,brasil_aberto_first_street,True
+PE,2614501,Surubim,Mimoso,mimoso,,,brasil_aberto,True
+PE,2614501,Surubim,Mimoso (Surubim),mimoso surubim,,,dne,True
+PE,2614501,Surubim,Povoado Chá do Marinheiro,povoado cha do marinheiro,,,brasil_aberto,True
+PE,2614501,Surubim,Povoado de Juca Ferrado,povoado de juca ferrado,,,brasil_aberto,True
+PE,2614501,Surubim,Povoado Mimoso,povoado mimoso,,,brasil_aberto,True
+PE,2614600,Tabira,Ana Maria Conceição,ana maria conceicao,-7.577839,-37.535256,mapbox_geocoding,True
+PE,2614600,Tabira,Antônio Cristovão do Amaral,antonio cristovao do amaral,-7.581652,-37.534358,mapbox_geocoding,True
+PE,2614600,Tabira,Área Rural de Tabira,area rural de tabira,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2614600,Tabira,Borborema,borborema,-7.587861,-37.540077,mapbox_geocoding,True
+PE,2614600,Tabira,Brayner Colaço,brayner colaco,-7.598009,-37.537349,mapbox_geocoding,True
+PE,2614600,Tabira,Brejinho,brejinho,-7.581453,-37.477982,mapbox_geocoding,True
+PE,2614600,Tabira,Brejinho (Tabira),brejinho tabira,,,dne,True
+PE,2614600,Tabira,Centro,centro,-8.040994,-34.880336,mapbox_geocoding,True
+PE,2614600,Tabira,Conjunto Habitacional Iraci Pires Leite Padilha,conjunto habitacional iraci pires leite padilha,-7.581665,-37.531697,mapbox_geocoding,True
+PE,2614600,Tabira,Dercílio de Brito Galvão,dercilio de brito galvao,-7.586192,-37.53769,mapbox_geocoding,True
+PE,2614600,Tabira,Edite Rocha Maciel,edite rocha maciel,-7.588194,-37.536041,mapbox_geocoding,True
+PE,2614600,Tabira,Espirito Santo Velho,espirito santo velho,-7.60024,-37.541615,mapbox_geocoding,True
+PE,2614600,Tabira,Fátima,fatima,-7.579735,-37.537987,mapbox_geocoding,True
+PE,2614600,Tabira,Florentino Leite,florentino leite,-7.590517,-37.539246,mapbox_geocoding,True
+PE,2614600,Tabira,Francisco Pereira,francisco pereira,-8.116551,-35.014839,mapbox_geocoding,True
+PE,2614600,Tabira,Frei Adelmo,frei adelmo,-7.590517,-37.539246,mapbox_geocoding,True
+PE,2614600,Tabira,João Claudino de Siqueira,joao claudino de siqueira,-10.829619,-42.731299,mapbox_geocoding,True
+PE,2614600,Tabira,Juliana Dantas Pires,juliana dantas pires,-7.58831,-37.541861,mapbox_geocoding,True
+PE,2614600,Tabira,Jureminha,jureminha,-8.105545,-34.951505,mapbox_geocoding,True
+PE,2614600,Tabira,Missões,missoes,-7.588807,-37.536658,mapbox_geocoding,True
+PE,2614600,Tabira,Nossa Senhora dos Remédios,nossa senhora dos remedios,-8.105545,-34.951505,mapbox_geocoding,True
+PE,2614600,Tabira,Pocinhos,pocinhos,-7.590517,-37.539246,mapbox_geocoding,True
+PE,2614600,Tabira,Riacho do Gado,riacho do gado,-7.662039,-35.323744,mapbox_geocoding,True
+PE,2614600,Tabira,São Pedro,sao pedro,-7.537494,-37.373638,mapbox_geocoding,True
+PE,2614600,Tabira,Vereador Manoel Soares Sobrinho,vereador manoel soares sobrinho,-7.598009,-37.537349,mapbox_geocoding,True
+PE,2614600,Tabira,Vitorino Gomes,vitorino gomes,-7.591853,-37.547686,mapbox_geocoding,True
+PE,2614709,Tacaimbó,Centro,centro,-8.3163815,-36.2914024,brasil_aberto_first_street,True
+PE,2614709,Tacaimbó,Riacho Fechado,riacho fechado,,,dne,True
+PE,2614808,Tacaratu,Caraibeiras,caraibeiras,,,dne,True
+PE,2614808,Tacaratu,Centro,centro,-9.1059854,-38.1505239,brasil_aberto_first_street,True
+PE,2614808,Tacaratu,Distrito de Caraibeiras,distrito de caraibeiras,-9.1063594,-38.0751277,brasil_aberto_first_street,True
+PE,2614857,Tamandaré,Centro,centro,-8.7526462,-35.098477,brasil_aberto_first_street,True
+PE,2614857,Tamandaré,Usina Santo André,usina santo andre,-8.76721,-35.313493,mapbox_geocoding,True
+PE,2615003,Taquaritinga do Norte,Centro,centro,-7.90267515,-36.04492569,brasil_aberto_first_street,True
+PE,2615003,Taquaritinga do Norte,Distrito Pão de Açucar,distrito pao de acucar,-7.9573186,-36.1319649,brasil_aberto_first_street,True
+PE,2615003,Taquaritinga do Norte,Gravatá do Ibiapina,gravata do ibiapina,-7.8574982,-36.0909367,brasil_aberto_first_street,True
+PE,2615003,Taquaritinga do Norte,Pão de Açúcar,pao de acucar,,,dne,True
+PE,2615102,Terezinha,Centro,centro,-9.0560296,-36.6239685,brasil_aberto_first_street,True
+PE,2615201,Terra Nova,Centro,centro,-8.2307311,-39.3752028,brasil_aberto_first_street,True
+PE,2615300,Timbaúba,Araruna,araruna,-7.495177,-35.302308,mapbox_geocoding,True
+PE,2615300,Timbaúba,Área Rural de Timbauba,area rural de timbauba,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2615300,Timbaúba,Barro,barro,-7.514762,-35.32189,mapbox_geocoding,True
+PE,2615300,Timbaúba,Centro,centro,-7.514774,-35.313993,mapbox_geocoding,True
+PE,2615300,Timbaúba,Cezar Augusto,cezar augusto,-7.495177,-35.302308,mapbox_geocoding,True
+PE,2615300,Timbaúba,Cohab,cohab,-7.512052,-35.309673,mapbox_geocoding,True
+PE,2615300,Timbaúba,Coronel Maranhão,coronel maranhao,-7.506849,-35.326516,mapbox_geocoding,True
+PE,2615300,Timbaúba,Cruangi,cruangi,,,brasil_aberto,True
+PE,2615300,Timbaúba,Cruanji,cruanji,-7.509822,-35.3191188,brasil_aberto_first_street,True
+PE,2615300,Timbaúba,Cruzeiro,cruzeiro,-7.508649,-35.320935,mapbox_geocoding,True
+PE,2615300,Timbaúba,Independência,independencia,-7.511747,-35.31365,mapbox_geocoding,True
+PE,2615300,Timbaúba,Jardim Guarani,jardim guarani,-8.015195,-34.928874,mapbox_geocoding,True
+PE,2615300,Timbaúba,Livramento do Tiúma,livramento do tiuma,-7.517313,-35.380711,mapbox_geocoding,True
+PE,2615300,Timbaúba,Mocós,mocos,-7.517883,-35.31532,mapbox_geocoding,True
+PE,2615300,Timbaúba,Mocosinho,mocosinho,-7.517209,-35.310002,mapbox_geocoding,True
+PE,2615300,Timbaúba,Nova Vida,nova vida,-7.509593,-35.314782,mapbox_geocoding,True
+PE,2615300,Timbaúba,Santa Ana,santa ana,-7.51654,-35.325362,mapbox_geocoding,True
+PE,2615300,Timbaúba,Santa Terezinha,santa terezinha,-7.959993,-34.839966,mapbox_geocoding,True
+PE,2615300,Timbaúba,Sapucaia,sapucaia,-7.495227,-35.298885,mapbox_geocoding,True
+PE,2615300,Timbaúba,Timbaubinha,timbaubinha,-7.500917,-35.320145,mapbox_geocoding,True
+PE,2615300,Timbaúba,Três Cocos,tres cocos,-7.507478,-35.31828,mapbox_geocoding,True
+PE,2615409,Toritama,Área Rural de Toritama,area rural de toritama,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2615409,Toritama,Areal,areal,-8.81473,-35.198135,mapbox_geocoding,True
+PE,2615409,Toritama,Campo Alegre,campo alegre,-8.006634,-36.058292,mapbox_geocoding,True
+PE,2615409,Toritama,Centro,centro,-8.008256,-36.056655,mapbox_geocoding,True
+PE,2615409,Toritama,Colorado,colorado,-7.939735,-35.630707,mapbox_geocoding,True
+PE,2615409,Toritama,Coqueiral,coqueiral,-6.051157,-35.432287,mapbox_geocoding,True
+PE,2615409,Toritama,Deus é Fiel,deus e fiel,-8.006956,-36.066111,mapbox_geocoding,True
+PE,2615409,Toritama,Fazenda Velha,fazenda velha,-8.008883,-36.061606,mapbox_geocoding,True
+PE,2615409,Toritama,Independente,independente,-7.933106,-35.388536,mapbox_geocoding,True
+PE,2615409,Toritama,Izidio Tavares,izidio tavares,-7.844937,-35.76851,mapbox_geocoding,True
+PE,2615409,Toritama,Mauricio de Nassau,mauricio de nassau,-8.133033,-34.908203,mapbox_geocoding,True
+PE,2615409,Toritama,Moriá,moria,-8.006634,-36.058292,mapbox_geocoding,True
+PE,2615409,Toritama,Novo Coqueiral,novo coqueiral,-8.006634,-36.058292,mapbox_geocoding,True
+PE,2615409,Toritama,Oncinhas,oncinhas,-21.661607,-42.344681,mapbox_geocoding,True
+PE,2615409,Toritama,Parque das Feiras,parque das feiras,-8.00601,-36.061318,mapbox_geocoding,True
+PE,2615409,Toritama,Planalto,planalto,-7.914338,-34.843909,mapbox_geocoding,True
+PE,2615409,Toritama,Prefeito Celso Andrade,prefeito celso andrade,-7.565468,-35.010775,mapbox_geocoding,True
+PE,2615409,Toritama,Principe da Paz,principe da paz,-8.004062,-36.074578,mapbox_geocoding,True
+PE,2615409,Toritama,Santa Maria,santa maria,-8.124389,-35.336351,mapbox_geocoding,True
+PE,2615409,Toritama,São Benedito,sao benedito,-18.886449,-41.946808,mapbox_geocoding,True
+PE,2615409,Toritama,São João,sao joao,-7.959932,-34.863308,mapbox_geocoding,True
+PE,2615409,Toritama,Travessias,travessias,-7.99681,-36.058087,mapbox_geocoding,True
+PE,2615409,Toritama,Valentim,valentim,-8.006634,-36.058292,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Área Rural de Tracunhaém,area rural de tracunhaem,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Bairro Novo,bairro novo,-7.802597,-35.22881,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Beira Rio,beira rio,-8.067379,-34.887704,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Boa Vista,boa vista,-7.831602,-35.265759,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Centro,centro,-7.805079,-35.237231,mapbox_geocoding,True
+PE,2615508,Tracunhaém,COHAB,cohab,-7.727903,-35.33016,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Esperança/BR-408,esperanca br 408,-7.840618,-35.239683,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Liberdade,liberdade,-7.805458,-35.238785,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Nova Tracunhaém,nova tracunhaem,-7.840618,-35.239683,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Paulo Petribu,paulo petribu,-7.727903,-35.33016,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Pindorama,pindorama,-7.846312,-35.226983,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Renascer,renascer,-7.840618,-35.239683,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Sertãozinho,sertaozinho,-7.727903,-35.33016,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Teto do Povo,teto do povo,-7.805458,-35.238785,mapbox_geocoding,True
+PE,2615508,Tracunhaém,Vitória do Povo,vitoria do povo,-7.727903,-35.33016,mapbox_geocoding,True
+PE,2615607,Trindade,Bonita,bonita,,,brasil_aberto,True
+PE,2615607,Trindade,Centro,centro,-7.76527882,-40.26855087,brasil_aberto_first_street,True
+PE,2615607,Trindade,Juá,jua,,,brasil_aberto,True
+PE,2615607,Trindade,Povoado Fazenda Espirito Santo,povoado fazenda espirito santo,,,brasil_aberto,True
+PE,2615706,Triunfo,Canaã,canaa,-7.8923106,-38.0862015,brasil_aberto_first_street,True
+PE,2615706,Triunfo,Centro,centro,-7.838924599999999,-38.0997111,brasil_aberto_first_street,True
+PE,2615706,Triunfo,Iraguaçu,iraguacu,,,dne,True
+PE,2615706,Triunfo,Jatiúca,jatiuca,,,dne,True
+PE,2615706,Triunfo,Jericó,jerico,-7.78117,-38.024378,mapbox_geocoding,True
+PE,2615805,Tupanatinga,Centro,centro,-8.7536889,-37.3404433,brasil_aberto_first_street,True
+PE,2615904,Tuparetama,Centro,centro,-7.6015823,-37.3129368,brasil_aberto_first_street,True
+PE,2615904,Tuparetama,Santa Rita,santa rita,,,dne,True
+PE,2616001,Venturosa,Centro,centro,-8.577234,-36.8758,brasil_aberto_first_street,True
+PE,2616001,Venturosa,Grotão,grotao,,,dne,True
+PE,2616100,Verdejante,Centro,centro,-7.9275008,-38.9692524,brasil_aberto_first_street,True
+PE,2616100,Verdejante,Grossos,grossos,-8.008675,-38.916687,mapbox_geocoding,True
+PE,2616100,Verdejante,Malhadareia,malhadareia,-8.0120257,-38.9030401,brasil_aberto_first_street,True
+PE,2616100,Verdejante,Povoado de Grossos,povoado de grossos,,,brasil_aberto,True
+PE,2616100,Verdejante,Povoado de Malhadareia,povoado de malhadareia,,,brasil_aberto,True
+PE,2616100,Verdejante,Povoado Lagoa,povoado lagoa,-8.671166,-35.714118,mapbox_geocoding,True
+PE,2616183,Vertente do Lério,Centro,centro,-7.77393436,-35.85061646,brasil_aberto_first_street,True
+PE,2616183,Vertente do Lério,Tambor,tambor,-7.80265,-35.785277,mapbox_geocoding,True
+PE,2616209,Vertentes,Centro,centro,-7.9910896,-38.3017881,brasil_aberto_first_street,True
+PE,2616209,Vertentes,Livramento,livramento,,,dne,True
+PE,2616209,Vertentes,Povoado de Livramento,povoado de livramento,,,brasil_aberto,True
+PE,2616209,Vertentes,Povoado de Serra da Cachoeira,povoado de serra da cachoeira,,,brasil_aberto,True
+PE,2616209,Vertentes,São João do Ferraz,sao joao do ferraz,,,dne,True
+PE,2616209,Vertentes,Serra da Cachoeira,serra da cachoeira,,,dne,True
+PE,2616308,Vicência,Centro,centro,-7.988426099999999,-38.2968079,brasil_aberto_first_street,True
+PE,2616308,Vicência,Murepé,murepe,-7.653668,-35.321457,mapbox_geocoding,True
+PE,2616308,Vicência,Murupé,murupe,,,dne,True
+PE,2616308,Vicência,Povoado Borracha,povoado borracha,-23.340757,-49.376006,mapbox_geocoding,True
+PE,2616308,Vicência,Povoado de Angelicas,povoado de angelicas,-7.684682,-35.364687,mapbox_geocoding,True
+PE,2616308,Vicência,Povoado de Trigueiros,povoado de trigueiros,-7.609683500000001,-35.2803056,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Água Branca,agua branca,-8.103334100000001,-35.2821467,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Alto José Leal,alto jose leal,-8.1169042,-35.3031615,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Área Rural de Vitória do Santo Antão,area rural de vitoria do santo antao,-8.1169364,-35.2970883,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Bela Vista,bela vista,-8.11652565,-35.29992676,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Caiçara,caicara,-8.1073644,-35.2958607,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Cajá,caja,-8.11213493,-35.28391266,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Cajueiro,cajueiro,-8.1117584,-35.2893864,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Campinas,campinas,-8.118676,-35.296364,mapbox_geocoding,True
+PE,2616407,Vitória de Santo Antão,Conceição,conceicao,-8.1130724,-35.27404022,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Distrito de Pirituba,distrito de pirituba,-8.0700302,-35.24315,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Distrito Industrial (Prefeito José Augusto Ferrer de Morais),distrito industrial prefeito jose augusto ferrer de morais,-8.3313763,-37.3291883,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Flores,flores,-8.1030191,-35.2839961,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Jardim Ipiranga,jardim ipiranga,-8.13214016,-35.29391479,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Jardim São Pedro,jardim sao pedro,-8.1106112,-35.3095839,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Lídia Queiroz,lidia queiroz,-8.125155699999999,-35.283694,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Livramento,livramento,-8.12112141,-35.29959106,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Luiz Gonzaga,luiz gonzaga,-8.24762249,-35.96802521,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Mangueira,mangueira,-8.12422085,-35.29688263,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Maranhão,maranhao,-8.12059307,-35.28801346,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Mário Bezerra,mario bezerra,-8.02648544,-34.98729706,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Matriz,matriz,-8.11450768,-35.2918396,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Militina Alves de Lira,militina alves de lira,-8.1198258,-35.2794712,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Mocotó,mocoto,,,dne,True
+PE,2616407,Vitória de Santo Antão,Nossa Senhora do Amparo,nossa senhora do amparo,-8.1271068,-35.2883119,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Oiteiro,oiteiro,,,dne,True
+PE,2616407,Vitória de Santo Antão,Pirituba,pirituba,-8.1183833,-35.3121002,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Povoado Cidade de Deus,povoado cidade de deus,-8.11661053,-35.30630493,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Povoado Mocotó,povoado mocoto,-8.118676,-35.296364,mapbox_geocoding,True
+PE,2616407,Vitória de Santo Antão,Povoado Oiteiro,povoado oiteiro,-8.118676,-35.296364,mapbox_geocoding,True
+PE,2616407,Vitória de Santo Antão,Redenção,redencao,-8.117559,-35.2800761,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Santana,santana,-8.0972705,-35.2724716,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,São Vicente de Paulo,sao vicente de paulo,-8.1236408,-35.3086399,brasil_aberto_first_street,True
+PE,2616407,Vitória de Santo Antão,Universitário,universitario,-8.11923695,-35.28996277,brasil_aberto_first_street,True
+PE,2616506,Xexéu,Alaíde Gonçalves,alaide goncalves,-7.825592,-34.915331,mapbox_geocoding,True
+PE,2616506,Xexéu,Alice Gonçalves,alice goncalves,-7.791897,-34.912738,mapbox_geocoding,True
+PE,2616506,Xexéu,Alto da Boa Vista,alto da boa vista,-8.356365,-35.235777,mapbox_geocoding,True
+PE,2616506,Xexéu,Alto da Capela,alto da capela,-8.515185,-35.12208,mapbox_geocoding,True
+PE,2616506,Xexéu,Área Rural do Município de Xexéu,area rural do municipio de xexeu,-7.851279,-34.86897,mapbox_geocoding,True
+PE,2616506,Xexéu,Bairro Novo,bairro novo,-8.807311,-35.628741,mapbox_geocoding,True
+PE,2616506,Xexéu,Boa Vista,boa vista,-8.810065,-35.625572,mapbox_geocoding,True
+PE,2616506,Xexéu,Canaã,canaa,-8.807553,-35.63225,mapbox_geocoding,True
+PE,2616506,Xexéu,Centro,centro,-8.808319,-35.624422,mapbox_geocoding,True
+PE,2616506,Xexéu,Nova Xexéu,nova xexeu,-8.810629,-35.629567,mapbox_geocoding,True
+PE,2616506,Xexéu,Sete de Setembro,sete de setembro,-8.804137,-35.627078,mapbox_geocoding,True

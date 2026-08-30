@@ -2,7 +2,7 @@
 .SYNOPSIS
     Retrieves secrets from Oracle Vault and creates .env files on server
 .DESCRIPTION
-    Fetches all secrets from urbeat-vault and creates environment files
+    Fetches all secrets from the Urbeat OCI Vault and creates environment files
     on the remote server. Also creates the application directory structure.
 #>
 
@@ -91,7 +91,7 @@ $mainEnv = @"
 # ═══════════════════════════════════════════════════════════
 # URBEAT APPLICATION - ENVIRONMENT VARIABLES
 # Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-# Source: Oracle Vault (urbeat-vault)
+# Source: Oracle Vault (display name is matched case-insensitively)
 # ⚠️  DO NOT COMMIT THIS FILE TO VERSION CONTROL
 # ═══════════════════════════════════════════════════════════
 

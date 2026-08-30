@@ -24,7 +24,8 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
         <ion-icon name="arrow-back-outline"></ion-icon> {{ backLabel }}
       </button>
 
-      <div class="save-indicator">
+       @if (showStatus) {
+       <div class="save-indicator">
         @switch (saveStatus) {
           @case ('saving') {
             <ion-spinner name="crescent" class="save-spinner"></ion-spinner>
@@ -48,22 +49,25 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
             }
           }
         }
-      </div>
+       </div>
+       }
 
-      <div class="footer-actions">
-        @if (hasUnsavedChanges && !isSaving) {
+       <div class="footer-actions">
+         @if (showSave && hasUnsavedChanges && !isSaving) {
           <button class="btn-save" (click)="save.emit()" [disabled]="isSaving">
             Salvar
           </button>
         }
-        <button class="btn-next" (click)="next.emit()" [disabled]="nextDisabled || isSaving">
+         @if (showNext) {
+         <button class="btn-next" (click)="next.emit()" [disabled]="nextDisabled || isSaving">
           @if (isSaving) {
             <ion-spinner name="crescent" class="next-spinner"></ion-spinner>
             Salvando...
           } @else {
             {{ nextLabel }} <ion-icon name="arrow-forward-outline"></ion-icon>
           }
-        </button>
+         </button>
+         }
       </div>
     </div>
   `,
@@ -171,6 +175,9 @@ export class WizardFooterComponent {
   @Input() nextDisabled: boolean = false;
   @Input() hasUnsavedChanges: boolean = false;
   @Input() saveStatus: SaveStatus = 'idle';
+  @Input() showSave: boolean = true;
+  @Input() showNext: boolean = true;
+  @Input() showStatus: boolean = true;
   @Output() back = new EventEmitter<void>();
   @Output() next = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();

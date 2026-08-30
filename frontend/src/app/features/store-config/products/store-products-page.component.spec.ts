@@ -6,7 +6,9 @@ import { StoreService } from '../../../core/services/store.service';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('StoreProductsPageComponent — option groups', () => {
   let component: StoreProductsPageComponent;
@@ -56,6 +58,129 @@ describe('StoreProductsPageComponent — option groups', () => {
     const fixture = TestBed.createComponent(StoreProductsPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  describe('category deletion', () => {
+    it('deletes an empty category through the icon and modal click flow', () => {
+      const fixture = TestBed.createComponent(StoreProductsPageComponent);
+      const page = fixture.componentInstance;
+      page.storeId.set('store-1');
+      page.categories.set([
+        { id: 'cat-empty', name: 'Vazia', displayOrder: 1, isActive: true, isFeatured: false },
+      ]);
+      page.products.set([]);
+      storeServiceMock.deleteStoreCategory.mockReturnValue(of(undefined));
+      fixture.detectChanges();
+
+      (fixture.nativeElement.querySelector('.cat-delete-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      (fixture.nativeElement.querySelector('.btn-danger') as HTMLButtonElement).click();
+
+      expect(storeServiceMock.deleteStoreCategory).toHaveBeenCalledWith('store-1', 'cat-empty');
+    });
+
+    it('keeps the delete button clickable so blocked deletions can explain the rule', () => {
+      const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+
+      expect(template).toContain('(click)="confirmDeleteCategory()" [disabled]="isDeletingCategory()"');
+    });
+
+    it('calls the API and displays the backend rule when the category has products', () => {
+      component.storeId.set('store-1');
+      component.categories.set([
+        { id: 'cat-wrong', name: 'Errada', displayOrder: 1, isActive: true, isFeatured: false },
+      ]);
+      component.products.set([{ id: 'product-1', categoryId: 'cat-wrong', name: 'Produto', price: 10 } as any]);
+      storeServiceMock.deleteStoreCategory.mockReturnValue(throwError(() => ({ error: { detail: 'A categoria possui produtos associados.' } })));
+      component.openDeleteCategory(component.categories()[0]);
+
+      component.confirmDeleteCategory();
+
+      expect(storeServiceMock.deleteStoreCategory).toHaveBeenCalledWith('store-1', 'cat-wrong');
+      expect((component as any).categoryDialogError()).toBe('A categoria possui produtos associados.');
+    });
+
+    it('does not remove a category locally when the API rejects its deletion', () => {
+      component.storeId.set('store-1');
+      component.categories.set([
+        { id: 'cat-wrong', name: 'Errada', displayOrder: 1, isActive: true, isFeatured: false },
+        { id: 'cat-right', name: 'Correta', displayOrder: 2, isActive: true, isFeatured: false },
+      ]);
+      component.products.set([{ id: 'product-1', categoryId: 'cat-wrong', name: 'Produto', price: 10 } as any]);
+      storeServiceMock.deleteStoreCategory.mockReturnValue(of(undefined));
+
+      component.openDeleteCategory(component.categories()[0]);
+      storeServiceMock.deleteStoreCategory.mockReturnValue(throwError(() => ({ error: { detail: 'A categoria possui produtos associados.' } })));
+      component.openDeleteCategory(component.categories()[0]);
+      component.confirmDeleteCategory();
+
+      expect(component.categories()).toHaveLength(2);
+      expect((component as any).categoryDialogError()).toBe('A categoria possui produtos associados.');
+    });
+
+    it('opens only the edit modal after a delete modal state is still active', () => {
+      const category = { id: 'cat-1', name: 'Pizzas', displayOrder: 1, isActive: true, isFeatured: false };
+      component.categories.set([category]);
+      component.openDeleteCategory(category);
+      component.openEditCategory(category);
+
+      expect((component as any).categoryDialogMode()).toBe('edit');
+    });
+
+    it('opens only the delete modal after an edit modal state is still active', () => {
+      const category = { id: 'cat-1', name: 'Pizzas', displayOrder: 1, isActive: true, isFeatured: false };
+      component.categories.set([category]);
+      component.openEditCategory(category);
+      component.openDeleteCategory(category);
+
+      expect((component as any).categoryDialogMode()).toBe('delete');
+    });
+
+    it('uses one native dialog with a submit-driven edit form', () => {
+      const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+
+      expect(template).toContain('<dialog');
+      expect(template).toContain('(ngSubmit)="saveCategoryDialog()"');
+    });
+
+    it('provides an edit action in the product catalog that opens the product editor', () => {
+      const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+
+      expect(template).toContain('class="catalog-edit-btn"');
+      expect(template).toContain('selectProduct(product)');
+    });
+
+    it('expands the editor layout when a product is selected', () => {
+      const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+      const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+
+      expect(template).toContain('[class.editor-focused]="selectedId() !== null"');
+      expect(styles).toContain('.products-layout.editor-focused {\n  grid-template-columns: minmax(0, 1fr) minmax(400px, 440px);');
+    });
+
+    it('makes the expanded product preview span the full catalog width', () => {
+      const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+
+      expect(styles).toContain('.catalog-preview {\n  grid-column: 1 / -1;');
+    });
+
+    it('opens the native dialog in edit mode with the category name as draft', () => {
+      const category = { id: 'cat-1', name: 'Pizzas', displayOrder: 1, isActive: true, isFeatured: false };
+
+      component.openEditCategory(category);
+
+      expect((component as any).categoryDialogMode()).toBe('edit');
+      expect((component as any).categoryDialogDraft()).toBe('Pizzas');
+    });
+
+    it('closes the native dialog without calling an API', () => {
+      const category = { id: 'cat-1', name: 'Pizzas', displayOrder: 1, isActive: true, isFeatured: false };
+      component.openDeleteCategory(category);
+      component.closeCategoryDialog();
+
+      expect((component as any).categoryDialogMode()).toBe(null);
+      expect(storeServiceMock.deleteStoreCategory).not.toHaveBeenCalled();
+    });
   });
 
   describe('addOptionGroup', () => {
@@ -292,6 +417,54 @@ describe('StoreProductsPageComponent — option groups', () => {
 
     it('should return 0,00 for empty', () => {
       expect(component.maskMoney('')).toBe('0,00');
+    });
+  });
+
+  describe('catalog product row layout', () => {
+    const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+
+    it('shows the price above the product name', () => {
+      const priceIdx = template.indexOf('class="catalog-product-price"');
+      const nameIdx = template.indexOf('class="catalog-product-name"');
+      expect(priceIdx).toBeGreaterThan(-1);
+      expect(nameIdx).toBeGreaterThan(-1);
+      expect(priceIdx).toBeLessThan(nameIdx);
+    });
+
+    it('keeps the product image and the action buttons', () => {
+      expect(template).toContain('class="catalog-product-img"');
+      expect(template).toContain('class="catalog-edit-btn"');
+      expect(template).toContain('class="catalog-copy-btn"');
+      expect(template).toContain('class="catalog-toggle-btn"');
+      expect(template).toContain('class="catalog-delete-btn"');
+    });
+
+    it('stacks the info block vertically with padding-right to clear the actions', () => {
+      const infoIdx = styles.indexOf('.catalog-product-info');
+      const infoBlock = styles.slice(infoIdx, styles.indexOf('.catalog-product-price', infoIdx + 1));
+      expect(infoBlock).toContain('flex-direction: column;');
+      expect(infoBlock).toContain('padding-right: 8px;');
+    });
+
+    it('renders the name in a small full-width font that truncates with ellipsis', () => {
+      const nameIdx = styles.indexOf('.catalog-product-name');
+      const nameBlock = styles.slice(nameIdx, styles.indexOf('.catalog-product-category', nameIdx));
+      expect(nameBlock).toContain('font-size: 12px');
+      expect(nameBlock).toContain('max-width: 100%');
+      expect(nameBlock).toContain('text-overflow: ellipsis');
+    });
+
+    it('keeps the price value visually larger than the product name', () => {
+      const valueIdx = styles.indexOf('.catalog-product-price-value');
+      const valueBlock = styles.slice(valueIdx, styles.indexOf('.catalog-product-desc', valueIdx));
+      expect(valueBlock).toContain('font-size: 15px');
+    });
+
+    it('lays the price out on a single line', () => {
+      const priceIdx = styles.indexOf('.catalog-product-price');
+      const priceBlock = styles.slice(priceIdx, styles.indexOf('.catalog-product-price-label', priceIdx + 1));
+      expect(priceBlock).toContain('flex-direction: row;');
     });
   });
 

@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-height: 100vh;
   background: var(--app-bg);
 
   @media (min-width: 900px) {
@@ -13,10 +14,13 @@
 
 .cart-content {
   --background: transparent;
+  --offset-top: 0px !important;
+  --offset-bottom: 0px;
   --padding-top: 0;
   --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
+  min-height: 100vh;
 }
 
 /* ─── PAGE HEAD ─── */
@@ -24,12 +28,12 @@
   display: grid;
   grid-template-columns: 50px 1fr 50px;
   align-items: center;
-  padding: 14px 22px 22px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 16px;
 }
 
 .circle-btn {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, .96);
@@ -40,7 +44,7 @@
   cursor: pointer;
 
   ion-icon {
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1;
   }
 
@@ -60,7 +64,7 @@
   text-align: center;
 
   h1 {
-    font-size: 22px;
+    font-size: 19px;
     margin: 0;
     font-weight: 800;
     letter-spacing: -.04em;
@@ -69,7 +73,7 @@
 
   p {
     margin: 2px 0 0;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--app-muted-strong);
   }
 }
@@ -99,7 +103,7 @@
 
 /* ─── SCREEN PADDING ─── */
 .screen-padding {
-  padding: 0 22px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding: 0 18px calc(14px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ─── EMPTY ─── */
@@ -139,19 +143,19 @@
 .cart-product-card {
   position: relative;
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr) 104px;
-  gap: 14px;
+  grid-template-columns: 86px minmax(0, 1fr) 92px;
+  gap: 10px;
   align-items: center;
-  min-height: 138px;
+  min-height: 116px;
   background: var(--app-surface);
   border: 1px solid rgba(234, 223, 214, .86);
   border-radius: 22px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   overflow: hidden;
 
   img {
-    width: 104px;
-    height: 104px;
+    width: 86px;
+    height: 86px;
     object-fit: cover;
     border-radius: 18px;
     display: block;
@@ -159,8 +163,8 @@
 }
 
 .cart-item-placeholder {
-  width: 104px;
-  height: 104px;
+  width: 86px;
+  height: 86px;
   border-radius: 18px;
   display: grid;
   place-items: center;
@@ -168,7 +172,7 @@
   color: var(--app-brand);
 
   ion-icon {
-    font-size: 36px;
+    font-size: 30px;
   }
 }
 
@@ -178,7 +182,7 @@
 
   h3 {
     margin: 0 0 6px;
-    font-size: 17px;
+    font-size: 15px;
     line-height: 1.12;
     font-weight: 800;
     letter-spacing: -.035em;
@@ -188,7 +192,7 @@
   p {
     margin: 0 0 12px;
     color: var(--app-muted-strong);
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -208,7 +212,7 @@
 .cart-product-price {
   display: block;
   color: var(--app-ink);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: -.02em;
 }
@@ -243,11 +247,11 @@
   justify-self: end;
   align-self: end;
   display: grid;
-  grid-template-columns: 30px 36px 30px;
+  grid-template-columns: 28px 36px 28px;
   align-items: center;
   justify-items: center;
-  min-width: 104px;
-  height: 42px;
+  min-width: 92px;
+  height: 40px;
   border: 1px solid rgba(234, 223, 214, .9);
   border-radius: 16px;
   background: var(--app-surface);
@@ -283,7 +287,7 @@
   }
 
   strong {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: var(--app-ink);
   }
@@ -304,10 +308,10 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  margin: 24px 0 12px;
+  margin: 18px 0 10px;
 
   h2 {
-    font-size: 22px;
+    font-size: 19px;
     line-height: 1;
     margin: 0;
     font-weight: 800;
@@ -316,7 +320,7 @@
   p {
     margin: 4px 0 0;
     color: var(--app-muted-strong);
-    font-size: 14px;
+    font-size: 12px;
   }
 }
 
@@ -327,12 +331,12 @@
 }
 
 .receive-card {
-  min-height: 160px;
+  min-height: 138px;
   border: 1px solid var(--app-line);
   border-radius: 18px;
   background: var(--app-surface);
   position: relative;
-  padding: 16px 12px;
+  padding: 12px 10px;
   text-align: center;
   display: grid;
   place-items: center;
@@ -359,14 +363,14 @@
 
   h3 {
     margin: 4px 0 6px;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 800;
   }
 
   p {
     margin: 0;
     color: var(--app-text-secondary);
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
@@ -387,15 +391,15 @@
 }
 
 .illustration {
-  width: 66px;
-  height: 66px;
+  width: 56px;
+  height: 56px;
   border-radius: 24px;
   background: var(--app-brand-soft);
   color: var(--app-brand);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
+  font-size: 25px;
   margin: 2px auto 4px;
 
   .receive-card:not(.active) & {
@@ -406,7 +410,7 @@
 
 .time-pill {
   margin-top: 14px;
-  height: 32px;
+  height: 30px;
   border-radius: 999px;
   background: var(--app-brand-soft);
   color: var(--app-brand);
@@ -415,7 +419,7 @@
   justify-content: center;
   gap: 6px;
   font-weight: 800;
-  font-size: 12px;
+  font-size: 11px;
 
   ion-icon {
     font-size: 15px;
@@ -429,7 +433,7 @@
 
 /* ─── SUMMARY ─── */
 .summary-card {
-  padding: 18px;
+  padding: 14px;
   margin-top: 18px;
 }
 
@@ -521,14 +525,14 @@
   grid-template-columns: 66px 1fr 38px;
   align-items: center;
   width: 100%;
-  height: 60px;
+  height: 54px;
   padding: 0 16px;
   background: var(--app-brand);
   color: var(--app-surface);
   border: none;
   border-radius: 999px;
   font-family: var(--app-font);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   margin-top: 20px;

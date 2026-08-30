@@ -1,6 +1,82 @@
 <section class="orders-page">
-  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">Pedidos do dia</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><div class="segmented"><button class="active" type="button">Hoje</button><button type="button">Semana</button><button type="button">Mês</button></div>@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">{{ activePeriodTitle() }}</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><div class="segmented" role="group" aria-label="Filtrar pedidos por período">@for (period of periods; track period.value) {<button type="button" [class.active]="selectedPeriod() === period.value" [attr.aria-pressed]="selectedPeriod() === period.value" [attr.aria-label]="'Mostrar pedidos de ' + period.label.toLowerCase()" (click)="selectPeriod(period.value)">{{ period.label }}</button>}</div>@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
   <div class="notice"><i class="bi bi-check-circle"></i><span>Pedidos recebidos em tempo real.</span></div>
+
+  <ng-template #boardCard let-order let-items="items" let-action="action">
+    <article class="order-card" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
+      <div class="card-head">
+        <button type="button" class="ref-code" (click)="openOrderDetails(order.id, $event)" [attr.aria-label]="'Ver detalhes do pedido ' + order.code">#{{ order.code }}</button>
+        @if (isPickup(order)) { <span class="pickup-badge"><i class="bi bi-shop"></i> Retirada no balcão</span> }
+        <span class="card-time">{{ formatOrderTime(order.createdAtUtc) }}</span>
+      </div>
+
+      <div class="card-meta">
+        @if (order.customerName) { <div><strong>Cliente:</strong> {{ order.customerName }}</div> }
+        @if (order.customerPhoneNumber) { <div><strong>Contato:</strong> {{ order.customerPhoneNumber }}</div> }
+        @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }
+        <div><strong>Pagamento:</strong> {{ paymentLabel(order.paymentMethod) }}</div>
+      </div>
+
+      <div class="items-title">Itens do Pedido</div>
+      <div class="card-items">
+        @for (item of items; track $index) {
+          <div class="item-block">
+            <div class="item-row">
+              <span class="item-qty">{{ item.quantity }}x</span>
+              <span class="item-name">{{ item.productName }}</span>
+              <span class="item-total">{{ formatCurrency(item.totalPrice) }}</span>
+            </div>
+            @if (item.variationName) { <div class="item-option"><span class="option-name">{{ item.variationName }}</span></div> }
+            @for (option of itemOptionEntries(item); track $index) {
+              <div class="item-option">
+                <span class="option-name">{{ option.name }}</span>
+                @if (option.price !== undefined) { <span class="option-price">{{ formatCurrency(option.price) }}</span> }
+              </div>
+            }
+            @if (item.notes) { <div class="item-option item-notes">{{ item.notes }}</div> }
+          </div>
+        }
+        @if (items.length === 0 && isPrefetchingItems(order.id)) {
+          <div class="items-loading">Carregando itens...</div>
+        }
+        @if (items.length === 0 && hasItemsError(order.id)) {
+          <div class="items-error">
+            <span>Não foi possível carregar os itens.</span>
+            <button type="button" class="items-retry" (click)="retryItems(order.id)" [disabled]="isRetrying(order.id)">Tentar novamente</button>
+          </div>
+        }
+      </div>
+
+      <div class="card-footer">
+        <div class="card-divider"></div>
+        <div class="summary-line"><span>Subtotal</span><span>{{ formatCurrency(order.subtotal) }}</span></div>
+        @if (!isPickupType(order.fulfillmentType)) {
+          <div class="summary-line"><span>Taxa de entrega</span><span>{{ formatCurrency(order.deliveryFee) }}</span></div>
+        }
+        <div class="total-row">
+          <span>Total</span>
+          <span class="total-price">{{ formatCurrency(order.total) }}</span>
+        </div>
+        @if (action; as a) {
+          @if (a.kind === 'complete') {
+            <button type="button" class="board-action action-green"
+              (click)="completeOrder(order)"
+              [disabled]="completingOrderId() === order.id">
+              {{ completingOrderId() === order.id ? 'Concluindo...' : a.label }}
+            </button>
+          } @else {
+            <button type="button" class="board-action" [class]="a.css"
+              (click)="confirmAdvance(order, a.nextStatus, a.label)"
+              [disabled]="updatingOrderId() === order.id">
+              {{ updatingOrderId() === order.id ? '...' : a.label }}
+            </button>
+          }
+        } @else {
+          <span class="status-done-label">entregue</span>
+        }
+      </div>
+    </article>
+  </ng-template>
 
   @if (loading()) {
     <p class="muted">Carregando pedidos...</p>
@@ -15,35 +91,9 @@
       @if (newOrders().length === 0) {
         <p class="muted">Nenhum pedido novo no momento.</p>
       } @else {
-          <div class="new-orders-list">
-            @for (order of newOrders(); track order.id) {
-            <article class="order-card" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
-              <div class="card-meta">
-                <div><strong>Pedido número</strong> #{{ order.code }}</div>
-                @if (order.customerName) { <div><strong>Cliente:</strong> {{ order.customerName }}</div> }
-                @if (order.customerPhoneNumber) { <div><strong>Contato:</strong> {{ order.customerPhoneNumber }}</div> }
-                @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }
-                <div><strong>Pagamento:</strong> {{ paymentLabel(order.paymentMethod) }}</div>
-              </div>
-
-              <div class="items-title">Itens do Pedido</div>
-              @for (item of orderItems(order.id); track $index) {
-                <div class="item-row">
-                  <span>{{ item.quantity }}x</span>
-                  <span>{{ item.productName }}</span>
-                  <span>{{ formatCurrency(item.unitPrice) }}</span>
-                </div>
-              }
-              <div class="card-divider"></div>
-              <div class="total-row">
-                <span>Total</span>
-                <span class="total-price">{{ formatCurrency(order.total) }}</span>
-              </div>
-              <button type="button" class="accept-btn" (click)="confirmAdvance(order, OrderStatus.Preparing, 'Aceitar pedido')"
-                [disabled]="updatingOrderId() === order.id">
-                {{ updatingOrderId() === order.id ? 'Aceitando...' : 'Aceitar pedido' }}
-              </button>
-            </article>
+        <div class="new-orders-list">
+          @for (order of newOrders(); track order.id) {
+            <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
           }
         </div>
       }
@@ -51,73 +101,16 @@
 
     <section class="status-flow">
       <div class="status-grid">
-        <div class="status-col">
-          <h2 class="col-title">Novos Pedidos</h2>
-          <div class="status-stack">
-            @for (order of statusGroups().received; track order.id) {
-              <div class="status-card ref two-line" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
-                <span class="ref-code">#{{ order.code }}</span>
-                <span class="ref-client">{{ firstName(order.customerName) }}{{ order.customerPhoneNumber ? ' - ' + order.customerPhoneNumber : '' }}</span>
-              </div>
-            }
-          </div>
-        </div>
-        <div class="status-col">
-          <h2 class="col-title">Em preparação</h2>
-          <div class="status-stack">
-            @for (order of statusGroups().preparing; track order.id) {
-              <button type="button" class="status-card action-orange"
-                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
-                (click)="confirmAdvance(order, OrderStatus.Ready, 'Marcar como pronto')"
-                [disabled]="updatingOrderId() === order.id">
-                {{ updatingOrderId() === order.id ? '...' : 'Marcar como pronto' }}
-              </button>
-            }
-          </div>
-        </div>
-        <div class="status-col">
-          <h2 class="col-title">Pronto para retirada</h2>
-          <div class="status-stack">
-            @for (order of statusGroups().ready; track order.id) {
-              <button type="button" class="status-card action-blue"
-                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
-                (click)="confirmAdvance(order, OrderStatus.OnDelivery, 'Saiu para entrega')"
-                [disabled]="updatingOrderId() === order.id">
-                {{ updatingOrderId() === order.id ? '...' : 'Saiu para entrega' }}
-              </button>
-            }
-          </div>
-        </div>
-        <div class="status-col">
-          <h2 class="col-title">Em entrega</h2>
-          <div class="status-stack">
-            @for (order of statusGroups().onDelivery; track order.id) {
-              <button type="button" class="status-card action-purple"
-                [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
-                (click)="confirmAdvance(order, OrderStatus.Delivered, 'Marcar como entregue')"
-                [disabled]="updatingOrderId() === order.id">
-                {{ updatingOrderId() === order.id ? '...' : 'Marcar como entregue' }}
-              </button>
-            }
-          </div>
-        </div>
-        <div class="status-col">
-          <h2 class="col-title">Concluido</h2>
-          <div class="status-stack">
-            @for (order of statusGroups().delivered; track order.id) {
-              @if (canComplete(order)) {
-                <button type="button" class="status-card action-green"
-                  [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
-                  (click)="completeOrder(order)"
-                  [disabled]="completingOrderId() === order.id">
-                  {{ completingOrderId() === order.id ? 'Concluindo...' : 'Concluído' }}
-                </button>
-              } @else {
-                <div class="status-card action-green" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">#{{ order.code }} entregue</div>
+        @for (col of boardColumns(); track col.title) {
+          <div class="status-col">
+            <h2 class="col-title">{{ col.title }}</h2>
+            <div class="status-stack">
+              @for (order of col.orders; track order.id) {
+                <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
               }
-            }
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
   }
@@ -131,6 +124,80 @@
       <div class="confirm-actions">
         <button type="button" class="btn-cancel" (click)="dismissConfirm()">Cancelar</button>
         <button type="button" class="btn-confirm" (click)="executeAdvance()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (selectedOrder(); as selected) {
+  <div class="order-details-overlay" (click)="closeOrderDetails()">
+    <div
+      class="order-details-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-details-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+      (keydown.escape)="closeOrderDetails()"
+    >
+      <header class="details-header">
+        <h2 id="order-details-title" class="details-title">Pedido #{{ selected.code }}</h2>
+        <button type="button" class="details-close" (click)="closeOrderDetails()" aria-label="Fechar detalhes do pedido"><i class="bi bi-x-lg"></i></button>
+      </header>
+
+      <div class="details-body">
+        <div class="details-meta">
+          @if (selected.customerName) { <div><strong>Cliente:</strong> {{ selected.customerName }}</div> }
+          @if (selected.customerPhoneNumber) { <div><strong>Contato:</strong> {{ selected.customerPhoneNumber }}</div> }
+          @if (selected.address) { <div><strong>Endereço:</strong> {{ selected.address }}</div> }
+          @if (selected.fulfillmentType !== undefined && selected.fulfillmentType !== null) { <div><strong>Tipo de entrega:</strong> {{ fulfillmentLabel(selected.fulfillmentType) }}</div> }
+          @if (selected.status !== undefined && selected.status !== null) { <div><strong>Status:</strong> {{ statusLabel(selected.status) }}</div> }
+          @if (selected.createdAtUtc) { <div><strong>Data:</strong> {{ formatOrderDate(selected.createdAtUtc) }}</div> }
+          @if (selected.notes) { <div><strong>Notas do pedido:</strong> {{ selected.notes }}</div> }
+          <div><strong>Pagamento:</strong> {{ paymentLabel(selected.paymentMethod) }}</div>
+        </div>
+
+        @if (selectedOrderLoading()) {
+          <p class="muted">Carregando itens...</p>
+        } @else if (selectedOrderError()) {
+          <div class="details-error" role="alert">
+            <p>Não foi possível carregar os detalhes do pedido.</p>
+            <div class="details-error-actions">
+              <button type="button" class="btn-retry" (click)="retryOrderDetails()">Tentar novamente</button>
+              <button type="button" class="btn-close-details" (click)="closeOrderDetails()">Fechar</button>
+            </div>
+          </div>
+        } @else {
+          <div class="items-title">Itens do Pedido</div>
+          @for (item of selected.items; track $index) {
+            <div class="item-block">
+              <div class="item-row">
+                <span class="item-qty">{{ item.quantity }}x</span>
+                <span class="item-name">{{ item.productName }}</span>
+                <span class="item-total">{{ formatCurrency(item.totalPrice) }}</span>
+              </div>
+              @if (item.variationName) { <div class="item-option"><span class="option-name">Variação: {{ item.variationName }}</span></div> }
+              @for (option of itemOptionEntries(item); track $index) {
+                <div class="item-option">
+                  <span class="option-name">{{ option.name }}</span>
+                  @if (option.price !== undefined) { <span class="option-price">{{ formatCurrency(option.price) }}</span> }
+                </div>
+              }
+              @if (item.notes) { <div class="item-option item-notes">Notas: {{ item.notes }}</div> }
+            </div>
+          }
+
+          <div class="card-divider"></div>
+          <div class="summary-line"><span>Subtotal</span><span>{{ formatCurrency(selected.subtotal) }}</span></div>
+          @if (!isPickupType(selected.fulfillmentType)) {
+            <div class="summary-line"><span>Taxa de entrega</span><span>{{ formatCurrency(selected.deliveryFee) }}</span></div>
+          }
+          <div class="total-row">
+            <span>Total</span>
+            <span class="total-price">{{ formatCurrency(selected.total) }}</span>
+          </div>
+        }
       </div>
     </div>
   </div>

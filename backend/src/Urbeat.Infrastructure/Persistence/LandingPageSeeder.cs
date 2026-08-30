@@ -14,20 +14,29 @@ public sealed class LandingPageSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        var hasData = await _dbContext.LandingPageContents.AnyAsync(cancellationToken);
-        if (hasData)
+        var existingContents = await _dbContext.LandingPageContents.ToListAsync(cancellationToken);
+        if (existingContents.Count > 0)
         {
+            foreach (var content in existingContents)
+            {
+                content.Value = content.Value
+                    .Replace("UrBeat", "urbeat", StringComparison.Ordinal)
+                    .Replace("Urbeat", "urbeat", StringComparison.Ordinal)
+                    .Replace("URBEAT", "urbeat", StringComparison.Ordinal);
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return;
         }
 
         var defaultContents = new List<LandingPageContent>
         {
-            // Hero Section (landpage UrBeat Green)
+            // Hero Section (landpage urbeat Green)
             new() { Section = "Hero", Key = "Title", Value = "Nunca vendeu por delivery? Comece hoje com seu app próprio.", DisplayOrder = 1, IsActive = true, Description = "Título principal da seção Hero" },
-            new() { Section = "Hero", Key = "Subtitle", Value = "A UrBeat foi feita para quem está começando. Sem complicação, sem taxas por pedido, sem precisar saber de tecnologia. Você cadastra sua loja, divulga seu link e começa a receber pedidos organizados.", DisplayOrder = 2, IsActive = true, Description = "Subtítulo da seção Hero" },
+            new() { Section = "Hero", Key = "Subtitle", Value = "A urbeat foi feita para quem está começando. Sem complicação, sem taxas por pedido, sem precisar saber de tecnologia. Você cadastra sua loja, divulga seu link e começa a receber pedidos organizados.", DisplayOrder = 2, IsActive = true, Description = "Subtítulo da seção Hero" },
             new() { Section = "Hero", Key = "Badge", Value = "Chega de dividir seu lucro no delivery. Teste por 15 dias.", DisplayOrder = 3, IsActive = true, Description = "Badge do topo do Hero" },
 
-            // Features Section (6 cards da landpage UrBeat Green)
+            // Features Section (6 cards da landpage urbeat Green)
             new() { Section = "Features", Key = "AppBrand_Desc", Value = "Seus clientes usam seu app, com sua marca. Sem necessidade de você dividir seu lucro.", DisplayOrder = 1, IsActive = true, Description = "Card: App com sua marca" },
             new() { Section = "Features", Key = "WhatsappMenu_Desc", Value = "Link único que abre cardápio lindo e já manda pedido formatado no WhatsApp. Zero fricção.", DisplayOrder = 2, IsActive = true, Description = "Card: Cardápio inteligente pro WhatsApp" },
             new() { Section = "Features", Key = "OrdersPanel_Desc", Value = "Aceite, acompanhe e dispare entregas. Som de novo pedido, tudo organizado.", DisplayOrder = 3, IsActive = true, Description = "Card: Painel de pedidos em tempo real" },

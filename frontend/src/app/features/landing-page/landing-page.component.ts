@@ -6,11 +6,11 @@ import { Title, Meta } from '@angular/platform-browser';
 import { LandingPageService, LandingPageContent } from '../../core/services/landing-page.service';
 
 /*
-  ── DIRECTION CONTRACT (landpage UrBeat Green) ─────────────────────────────
+  ── DIRECTION CONTRACT (landpage urbeat Green) ─────────────────────────────
   THESIS: Vende o app próprio de delivery para lojistas iniciantes e recusa o
   layout genérico de marketplaces gigantes; toda conversão passa pelo
   "Criar meu cardápio" e pelo "Entrar".
-  OWN-WORLD: UrBeat Green — #6EAF4A sólido sobre branco/#F9FAFB, cartões
+  OWN-WORLD: urbeat Green — #6EAF4A sólido sobre branco/#F9FAFB, cartões
   escuros zinc-900, radius 24–40px, sombras verdes suaves, badges pill
   #E8F5E9 com texto #2E7D32, tipografia Plus Jakarta Sans (var(--app-font)).
   STORY: O lojista entende que monta um app próprio sem taxa, em 15 minutos e
@@ -68,7 +68,7 @@ export class LandingPageComponent implements OnInit {
 
   readonly pains = [
     { icon: 'whatsapp', tone: 'amber', title: 'Pedidos se perdem no WhatsApp', desc: 'Print confuso, cliente esperando, você anotando em papel. Um pedido errado e já perde cliente.' },
-    { icon: 'smartphone', tone: 'blue', title: 'Medo de tecnologia', desc: '"Achei que precisava de programador, mas a UrBeat é tão simples quanto postar no Instagram"', sub: '— Relato de cliente iniciante' },
+    { icon: 'smartphone', tone: 'blue', title: 'Medo de tecnologia', desc: '"Achei que precisava de programador, mas a urbeat é tão simples quanto postar no Instagram"', sub: '— Relato de cliente iniciante' },
     { icon: 'wallet', tone: 'rose', title: 'Sem controle do que vende', desc: 'Sem saber quem comprou, quanto lucrou, sem histórico. No fim do mês, cadê o lucro?' },
   ];
 
@@ -112,18 +112,18 @@ export class LandingPageComponent implements OnInit {
   }
 
   private setupSEO(): void {
-    this.title.setTitle('UrBeat — Cardápio digital para quem está começando');
+    this.title.setTitle('urbeat — Cardápio digital para quem está começando');
 
     const metaTags = [
       { name: 'description', content: 'Crie seu app de delivery próprio, sem taxa por pedido. Cardápio digital, pedidos no WhatsApp e impressão automática na cozinha. Teste 15 dias grátis.' },
       { name: 'keywords', content: 'delivery, cardápio digital, app para delivery, pedidos online, urbeat' },
       { property: 'og:type', content: 'website' },
       { property: 'og:url', content: 'https://urbeat.com.br/' },
-      { property: 'og:title', content: 'UrBeat — Nunca vendeu por delivery? Comece hoje com seu app próprio.' },
+      { property: 'og:title', content: 'urbeat — Nunca vendeu por delivery? Comece hoje com seu app próprio.' },
       { property: 'og:description', content: 'Sem taxa por pedido, sem complicação. Você cadastra sua loja, divulga seu link e começa a receber pedidos organizados.' },
       { property: 'og:image', content: 'https://urbeat.com.br/assets/images/empreendedora-urbeat.jpg' },
       { property: 'twitter:card', content: 'summary_large_image' },
-      { property: 'twitter:title', content: 'UrBeat — Cardápio digital para iniciantes' },
+      { property: 'twitter:title', content: 'urbeat — Cardápio digital para iniciantes' },
       { property: 'twitter:description', content: 'Seu delivery, seu lucro. Teste 15 dias grátis, sem cartão.' },
       { property: 'twitter:image', content: 'https://urbeat.com.br/assets/images/empreendedora-urbeat.jpg' }
     ];

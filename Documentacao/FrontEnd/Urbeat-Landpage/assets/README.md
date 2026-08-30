@@ -1,4 +1,4 @@
-# Recursos visuais da página UrBeat
+# Recursos visuais da página urbeat
 
 ## Imagens
 

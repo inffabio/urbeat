@@ -51,11 +51,11 @@ export class RecentOrdersListComponent {
       case PaymentMethod.PixOnline:
         return 'Pix';
       case PaymentMethod.CardOnline:
-        return 'Cartao online';
+        return 'Cartão online';
       case PaymentMethod.CashOnDelivery:
         return 'Dinheiro';
       case PaymentMethod.CardOnDelivery:
-        return 'Cartao ao receber';
+        return 'Cartão ao receber';
       default:
         return '-';
     }

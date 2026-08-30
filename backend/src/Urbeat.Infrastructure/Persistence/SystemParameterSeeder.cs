@@ -14,6 +14,21 @@ public sealed class SystemParameterSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        const string allowedImageExtensions = ".avif,.jpg,.jpeg,.png,.svg,.webp";
+        var existingUploadExtensions = await _dbContext.SystemParameters
+            .SingleOrDefaultAsync(x => x.Key == "Upload.AllowedExtensions", cancellationToken);
+
+        if (existingUploadExtensions is not null)
+        {
+            if (existingUploadExtensions.Value != allowedImageExtensions)
+            {
+                existingUploadExtensions.Value = allowedImageExtensions;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            return;
+        }
+
         if (await _dbContext.SystemParameters.AnyAsync(cancellationToken))
             return;
 
@@ -93,7 +108,7 @@ public sealed class SystemParameterSeeder
             new() { Key = "Http.ViaCepCircuitBreakerSeconds", Value = "20", Type = SystemParameterType.Int32, Group = "Http", Description = "Duração do circuit breaker ViaCep (s)" },
 
             // ── Upload ────────────────────────────────────────────────
-            new() { Key = "Upload.AllowedExtensions", Value = ".jpg,.jpeg,.png,.webp", Type = SystemParameterType.Json, Group = "Upload", Description = "Extensões de imagem permitidas" },
+            new() { Key = "Upload.AllowedExtensions", Value = allowedImageExtensions, Type = SystemParameterType.Json, Group = "Upload", Description = "Extensões de imagem permitidas" },
             new() { Key = "Upload.MaxFileSizeBytes", Value = "5242880", Type = SystemParameterType.Int32, Group = "Upload", Description = "Tamanho máximo de upload (5 MB)" },
             new() { Key = "Upload.UrlPathPattern", Value = "/uploads/{0}/{1}", Type = SystemParameterType.String, Group = "Upload", Description = "Padrão de URL de upload" },
 

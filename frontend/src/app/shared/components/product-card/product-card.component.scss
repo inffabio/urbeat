@@ -2,10 +2,10 @@
 
 .product-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 90px;
+  grid-template-columns: minmax(0, 1fr) 78px;
   align-items: stretch;
-  gap: 12px;
-  padding: 12px 0;
+  gap: 10px;
+  padding: 9px 0;
   background: var(--app-surface, #fff);
   border: 0;
   border-bottom: 1px solid var(--app-border-light, #eadfd6);
@@ -35,7 +35,7 @@
   padding-left: 2px;
 
   h3 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.25;
     margin: 0 0 4px;
@@ -48,7 +48,7 @@
   }
 
   p {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--app-text-secondary, #5a5a63);
     line-height: 1.35;
     margin: 0 0 6px;
@@ -60,7 +60,7 @@
   }
 
   .price {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--app-brand, #D54A51);
     letter-spacing: -0.02em;
@@ -77,16 +77,16 @@
 
 .product-media {
   position: relative;
-  width: 90px;
-  min-height: 82px;
+  width: 78px;
+  min-height: 72px;
   align-self: center;
 
   img,
   .image-placeholder {
-    width: 90px;
-    height: 82px;
+    width: 78px;
+    height: 72px;
     object-fit: cover;
-    border-radius: 14px;
+    border-radius: 12px;
     display: block;
     background: var(--app-hairline-warm, #f3efe9);
   }
@@ -104,8 +104,8 @@
   position: absolute;
   right: -4px;
   bottom: -4px;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1.5px solid var(--app-brand, #D54A51);
   background: var(--app-surface, #fff);
@@ -116,7 +116,7 @@
   transition: .15s;
   box-shadow: 0 4px 12px rgba(33, 20, 8, .12);
 
-  ion-icon { font-size: 19px; }
+  ion-icon { font-size: 17px; }
   &:hover { background: var(--app-brand-soft, #FDECEE); }
 }
 

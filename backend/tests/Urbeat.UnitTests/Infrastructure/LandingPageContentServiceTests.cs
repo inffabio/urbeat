@@ -160,4 +160,24 @@ public class LandingPageContentServiceTests
         // Assert
         result.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task LandingPageSeeder_ShouldNormalizeExistingBrandText()
+    {
+        _context.LandingPageContents.Add(new LandingPageContent
+        {
+            Section = "Hero",
+            Key = "Subtitle",
+            Value = "A UrBeat foi feita para quem está começando.",
+            IsActive = true,
+        });
+        await _context.SaveChangesAsync();
+
+        var seeder = new LandingPageSeeder(_context);
+
+        await seeder.SeedAsync(CancellationToken.None);
+
+        var content = await _context.LandingPageContents.SingleAsync();
+        content.Value.Should().Be("A urbeat foi feita para quem está começando.");
+    }
 }

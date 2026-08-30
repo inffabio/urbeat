@@ -1,0 +1,671 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+TO,1700251,Abreulândia,Setor Central,setor central,-9.624749,-49.157626,mapbox_geocoding,True
+TO,1700301,Aguiarnópolis,Setor Central,setor central,-6.560927,-47.477128,mapbox_geocoding,True
+TO,1700350,Aliança do Tocantins,Centro,centro,-11.306063,-48.938569,mapbox_geocoding,True
+TO,1700400,Almas,Centro,centro,-11.606457,-47.057381,mapbox_geocoding,True
+TO,1700707,Alvorada,Jorge Figueiras,jorge figueiras,-12.4788946,-49.1253648,cep_aberto,True
+TO,1700707,Alvorada,Setor Central,setor central,-12.482312,-49.122404,mapbox_geocoding,True
+TO,1701002,Ananás,Setor Central,setor central,-6.366766,-48.074092,mapbox_geocoding,True
+TO,1701051,Angico,Setor Central,setor central,-6.388848,-47.866596,mapbox_geocoding,True
+TO,1701101,Aparecida do Rio Negro,Setor Central,setor central,-9.950577,-47.973988,mapbox_geocoding,True
+TO,1701309,Aragominas,Setor Central,setor central,-12.224082,-47.291696,mapbox_geocoding,True
+TO,1701903,Araguacema,Setor Central,setor central,-8.808275,-49.556314,mapbox_geocoding,True
+TO,1702000,Araguaçu,Setor Central,setor central,-12.930868,-49.829899,mapbox_geocoding,True
+TO,1702109,Araguaína,Área Rural de Araguaína,area rural de araguaina,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Bairro da Cimba,bairro da cimba,-7.190562,-48.178986,mapbox_geocoding,True
+TO,1702109,Araguaína,Barra da Grota,barra da grota,-7.2031573,-48.3145088,cep_aberto,True
+TO,1702109,Araguaína,Barra do Grota,barra do grota,,,dne,True
+TO,1702109,Araguaína,Boa Sorte,boa sorte,-9.597352,-46.676612,mapbox_geocoding,True
+TO,1702109,Araguaína,Brasilândia,brasilandia,,,dne,True
+TO,1702109,Araguaína,Cocalândia,cocalandia,,,dne,True
+TO,1702109,Araguaína,Cocalinho,cocalinho,,,dne,True
+TO,1702109,Araguaína,Conjunto Residencial Patrocínio,conjunto residencial patrocinio,-7.1943549,-48.203086,cep_aberto,True
+TO,1702109,Araguaína,Conjunto Urbanístico,conjunto urbanistico,-7.184479,-48.221263,mapbox_geocoding,True
+TO,1702109,Araguaína,Correinha,correinha,,,dne,True
+TO,1702109,Araguaína,Daiara,daiara,-7.2766271,-48.2653656,cep_aberto,True
+TO,1702109,Araguaína,Dom Orione,dom orione,-7.215039,-48.182083,mapbox_geocoding,True
+TO,1702109,Araguaína,Eldorado,eldorado,-7.2025246,-48.2092177,cep_aberto,True
+TO,1702109,Araguaína,Escondido,escondido,,,dne,True
+TO,1702109,Araguaína,Ilha Barreira Branca,ilha barreira branca,,,dne,True
+TO,1702109,Araguaína,Jardim Beira Lago,jardim beira lago,-19.979208,-44.262997,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Bounganville,jardim bounganville,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Jardim Califórnia,jardim california,-10.336575,-48.315802,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim das Palmeiras,jardim das palmeiras,-7.187069,-48.2068006,cep_aberto,True
+TO,1702109,Araguaína,Jardim dos Ipês I,jardim dos ipes i,-8.851293,-48.498917,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim dos Ipês II,jardim dos ipes ii,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Jardim dos Ipês III,jardim dos ipes iii,-7.213151,-48.213839,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Esplanada,jardim esplanada,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Jardim Filadélfia,jardim filadelfia,-7.207252,-48.218279,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Flores,jardim flores,-7.2030612,-48.2209495,cep_aberto,True
+TO,1702109,Araguaína,Jardim Garavelo Sul,jardim garavelo sul,-7.190604,-48.208733,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Goiás,jardim goias,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Jardim Itália,jardim italia,-7.193026,-48.228835,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Mansões Palmeiras,jardim mansoes palmeiras,-7.187069,-48.2068006,cep_aberto,True
+TO,1702109,Araguaína,Jardim Paulista,jardim paulista,-7.218435,-48.201896,mapbox_geocoding,True
+TO,1702109,Araguaína,Jardim Pedra Alta,jardim pedra alta,-7.1880046,-48.2372628,cep_aberto,True
+TO,1702109,Araguaína,Jardim Santa Helena,jardim santa helena,-7.207237,-48.207912,mapbox_geocoding,True
+TO,1702109,Araguaína,JK,jk,-7.2024543,-48.2411897,cep_aberto,True
+TO,1702109,Araguaína,Jussara,jussara,,,dne,True
+TO,1702109,Araguaína,Loteamento Alaska,loteamento alaska,-7.198123,-48.217086,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Araguaína Sul,loteamento araguaina sul,-7.1806174,-48.1927574,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Barros,loteamento barros,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Boa Vista,loteamento boa vista,-7.1975549,-48.1998563,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Brejão 3ª Etapa,loteamento brejao 3a etapa,-7.186527,-48.172954,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Castelo Branco,loteamento castelo branco,-7.1880779,-48.2108007,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Céu Azul,loteamento ceu azul,-7.217792,-48.179498,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Cidade Jardim,loteamento cidade jardim,-7.154745,-48.208968,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Cidade Nova,loteamento cidade nova,-7.176506,-48.181364,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Costa Esmeralda,loteamento costa esmeralda,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Couto Magalhães,loteamento couto magalhaes,-7.154745,-48.208968,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Cruzeiro,loteamento cruzeiro,-7.1971874,-48.2258222,cep_aberto,True
+TO,1702109,Araguaína,Loteamento de Fátima,loteamento de fatima,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Dona Nélcia,loteamento dona nelcia,-7.2044238,-48.2063194,cep_aberto,True
+TO,1702109,Araguaína,Loteamento e Residencial Cazarotto,loteamento e residencial cazarotto,-7.20163,-48.179388,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Flamboyant,loteamento flamboyant,-7.1820029,-48.2076399,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Jardim América,loteamento jardim america,-7.212447,-48.170104,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Jardim Boa Sorte,loteamento jardim boa sorte,-7.1770138,-48.2047061,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Jardim do Lago,loteamento jardim do lago,-7.185548,-48.191361,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Jardins Mônaco,loteamento jardins monaco,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Jardins Siena,loteamento jardins siena,2.749492,-60.737226,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento José Ferreira,loteamento jose ferreira,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Lago Sul,loteamento lago sul,-7.1820029,-48.2076399,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Liberdade,loteamento liberdade,-7.181548,-48.220618,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Manoel Cardoso (Vila Cardoso),loteamento manoel cardoso vila cardoso,-7.1905487,-48.2227462,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Manoel Gomes da Cunha,loteamento manoel gomes da cunha,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Mansões do Lago,loteamento mansoes do lago,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Maracanã,loteamento maracana,-7.213075,-48.191114,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Martins Jorge,loteamento martins jorge,-7.1987566,-48.2205618,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Monte Sinai,loteamento monte sinai,-7.190604,-48.208733,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Morada dos Pássaros,loteamento morada dos passaros,-12.272377,-38.971732,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Nova Araguaína,loteamento nova araguaina,-7.2206198,-48.2446399,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Pampulha,loteamento pampulha,-7.213075,-48.191114,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Panorama,loteamento panorama,-7.1820029,-48.2076399,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Park Primavera,loteamento park primavera,-7.179902,-48.185925,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Parque do Lago,loteamento parque do lago,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Pedro Borges,loteamento pedro borges,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Planalto,loteamento planalto,-7.173181,-48.2165368,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Presidente Costa e Silva,loteamento presidente costa e silva,-7.209962,-48.191319,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Recanto do Lago,loteamento recanto do lago,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Santa Luzia,loteamento santa luzia,-7.187172,-48.178135,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Santa Mônica,loteamento santa monica,-7.2134758,-48.2103808,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Santos Dumont,loteamento santos dumont,-7.164066,-48.203627,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento São Francisco,loteamento sao francisco,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento São Luiz,loteamento sao luiz,-7.213198,-48.212335,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento São Miguel,loteamento sao miguel,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Loteamento São Pedro,loteamento sao pedro,-7.215039,-48.182083,mapbox_geocoding,True
+TO,1702109,Araguaína,Loteamento Vila Azul,loteamento vila azul,-7.217026,-48.2487567,cep_aberto,True
+TO,1702109,Araguaína,Loteamento Vila Ferreira,loteamento vila ferreira,-9.83832,-48.727107,mapbox_geocoding,True
+TO,1702109,Araguaína,Morada do Sol,morada do sol,-7.1972123,-48.1738332,cep_aberto,True
+TO,1702109,Araguaína,Morada do Sol 2,morada do sol 2,-7.21009,-48.18975,mapbox_geocoding,True
+TO,1702109,Araguaína,Morada do Sol 3,morada do sol 3,-7.1971824,-48.2049917,cep_aberto,True
+TO,1702109,Araguaína,Novo Horizonte,novo horizonte,,,dne,True
+TO,1702109,Araguaína,Parque Bom Viver,parque bom viver,-7.190604,-48.208733,mapbox_geocoding,True
+TO,1702109,Araguaína,Parque Sonhos Dourados,parque sonhos dourados,-7.1761193,-48.2304119,cep_aberto,True
+TO,1702109,Araguaína,Parque Vale Araguaia,parque vale araguaia,-7.297022,-48.294717,mapbox_geocoding,True
+TO,1702109,Araguaína,Pé da Serra,pe da serra,,,dne,True
+TO,1702109,Araguaína,Pedro Ludovico,pedro ludovico,,,dne,True
+TO,1702109,Araguaína,Peixe,peixe,,,dne,True
+TO,1702109,Araguaína,Pilões,piloes,,,dne,True
+TO,1702109,Araguaína,Pontes,pontes,,,dne,True
+TO,1702109,Araguaína,Porãozinho,poraozinho,,,dne,True
+TO,1702109,Araguaína,Porto Lemos,porto lemos,,,dne,True
+TO,1702109,Araguaína,Residencial Belchior,residencial belchior,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Residencial Camargo,residencial camargo,-16.320495,-48.949635,mapbox_geocoding,True
+TO,1702109,Araguaína,Residencial Itaipu,residencial itaipu,-7.2091157,-48.1901008,cep_aberto,True
+TO,1702109,Araguaína,Residencial Jardim Europa,residencial jardim europa,-11.019693,-47.952241,mapbox_geocoding,True
+TO,1702109,Araguaína,Residencial Lago Azul I,residencial lago azul i,-7.1754808,-48.1845594,cep_aberto,True
+TO,1702109,Araguaína,Residencial Lago Azul III,residencial lago azul iii,-7.210305,-48.189353,mapbox_geocoding,True
+TO,1702109,Araguaína,Residencial Topázio,residencial topazio,-7.1867771,-48.182796,cep_aberto,True
+TO,1702109,Araguaína,Santa Mônica,santa monica,-7.154745,-48.208968,mapbox_geocoding,True
+TO,1702109,Araguaína,Santa Terezinha,santa terezinha,-7.2028657,-48.2031929,cep_aberto,True
+TO,1702109,Araguaína,São João,sao joao,-7.212447,-48.170104,mapbox_geocoding,True
+TO,1702109,Araguaína,Senador,senador,-7.2006793,-48.2209112,cep_aberto,True
+TO,1702109,Araguaína,Setor Aeroviário,setor aeroviario,-7.196153,-48.228186,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Alto Bonito,setor alto bonito,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Setor Ana Maria,setor ana maria,-7.201997,-48.175639,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Anhangüera,setor anhanguera,-7.1917186,-48.218341,cep_aberto,True
+TO,1702109,Araguaína,Setor Bela Vista,setor bela vista,-7.210728,-48.181808,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Belo Horizonte,setor belo horizonte,-7.1819356,-48.2031549,cep_aberto,True
+TO,1702109,Araguaína,Setor Brasil,setor brasil,-7.179902,-48.185925,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Brejão,setor brejao,-7.206835,-48.195294,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Carajá,setor caraja,-7.2063746,-48.2017586,cep_aberto,True
+TO,1702109,Araguaína,Setor Central,setor central,-7.189829,-48.203179,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Coimbra,setor coimbra,-7.1971824,-48.2049917,cep_aberto,True
+TO,1702109,Araguaína,Setor de Telecomunicações,setor de telecomunicacoes,-7.181209,-48.230375,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor George Yunes,setor george yunes,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Setor Itatiaia,setor itatiaia,-7.203065,-48.225552,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Novo Horizonte,setor novo horizonte,-7.1927733,-48.204827,cep_aberto,True
+TO,1702109,Araguaína,Setor Oeste,setor oeste,-7.154745,-48.208968,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Palmas,setor palmas,-7.1892428,-48.2057802,cep_aberto,True
+TO,1702109,Araguaína,Setor Raizal,setor raizal,-7.187172,-48.178135,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Rodoviário,setor rodoviario,-7.174315,-48.2082344,cep_aberto,True
+TO,1702109,Araguaína,Setor Sul,setor sul,-7.207312,-48.192107,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Tereza Hilário,setor tereza hilario,-7.1971824,-48.2049917,cep_aberto,True
+TO,1702109,Araguaína,Setor Tiuba,setor tiuba,-7.21645,-48.193483,mapbox_geocoding,True
+TO,1702109,Araguaína,Setor Tocantins,setor tocantins,-7.1998474,-48.1969552,cep_aberto,True
+TO,1702109,Araguaína,Setor Universitário,setor universitario,-7.16392,-48.19174,mapbox_geocoding,True
+TO,1702109,Araguaína,Vênus,venus,,,dne,True
+TO,1702109,Araguaína,Vila Aliança,vila alianca,-7.201367,-48.2048888,cep_aberto,True
+TO,1702109,Araguaína,Vila Boa,vila boa,-7.178935,-48.209735,mapbox_geocoding,True
+TO,1702109,Araguaína,Vila Cearense,vila cearense,-7.2112364,-48.2433051,cep_aberto,True
+TO,1702109,Araguaína,Vila Couto Magalhães,vila couto magalhaes,-7.163671,-48.207579,mapbox_geocoding,True
+TO,1702109,Araguaína,Vila Goiás,vila goias,-7.1844865,-48.1837194,cep_aberto,True
+TO,1702109,Araguaína,Vila Norte,vila norte,-7.168499,-48.193175,mapbox_geocoding,True
+TO,1702109,Araguaína,Vila Nova,vila nova,-7.1818256,-48.224939,cep_aberto,True
+TO,1702109,Araguaína,Vila Ribeiro,vila ribeiro,-7.209936,-48.180615,mapbox_geocoding,True
+TO,1702109,Araguaína,Vila Rosário,vila rosario,-7.1861362,-48.2179942,cep_aberto,True
+TO,1702109,Araguaína,Vila Santiago,vila santiago,-7.164066,-48.203627,mapbox_geocoding,True
+TO,1702109,Araguaína,Vila União,vila uniao,-7.1927733,-48.204827,cep_aberto,True
+TO,1702158,Araguanã,Setor Central,setor central,-6.579856,-48.641664,mapbox_geocoding,True
+TO,1702208,Araguatins,Natal,natal,,,dne,True
+TO,1702208,Araguatins,Setor Central,setor central,-5.65754,-48.11635,mapbox_geocoding,True
+TO,1702307,Arapoema,Setor Central,setor central,-7.656201,-49.06698,mapbox_geocoding,True
+TO,1702406,Arraias,Cana Brava,cana brava,,,dne,True
+TO,1702406,Arraias,Centro,centro,-12.711857,-46.409789,mapbox_geocoding,True
+TO,1702406,Arraias,Setor Central,setor central,-12.932535,-46.93675,mapbox_geocoding,True
+TO,1702554,Augustinópolis,Setor Central,setor central,-5.467924,-47.887696,mapbox_geocoding,True
+TO,1702703,Aurora do Tocantins,Setor Central,setor central,-12.713378,-46.409039,mapbox_geocoding,True
+TO,1702901,Axixá do Tocantins,Setor Central,setor central,-5.615494,-47.771124,mapbox_geocoding,True
+TO,1703008,Babaçulândia,Setor Central,setor central,-7.203637,-47.758384,mapbox_geocoding,True
+TO,1703057,Bandeirantes do Tocantins,Setor Central,setor central,-7.759123,-48.577478,mapbox_geocoding,True
+TO,1703073,Barra do Ouro,Centro,centro,-7.850694,-47.54001,mapbox_geocoding,True
+TO,1703073,Barra do Ouro,Morro Grande,morro grande,,,dne,True
+TO,1703073,Barra do Ouro,Setor Central,setor central,-7.71355,-47.672758,mapbox_geocoding,True
+TO,1703107,Barrolândia,Setor Central,setor central,-9.840478,-48.724337,mapbox_geocoding,True
+TO,1703206,Bernardo Sayão,Setor Central,setor central,-7.881073,-48.893249,mapbox_geocoding,True
+TO,1703305,Bom Jesus do Tocantins,Setor Central,setor central,-8.967445,-48.161385,mapbox_geocoding,True
+TO,1703602,Brasilândia do Tocantins,Setor Central,setor central,-8.390549,-48.486794,mapbox_geocoding,True
+TO,1703701,Brejinho de Nazaré,Setor Central,setor central,-11.01531,-48.562061,mapbox_geocoding,True
+TO,1703800,Buriti do Tocantins,Setor Central,setor central,-5.311853,-48.224989,mapbox_geocoding,True
+TO,1703826,Cachoeirinha,Setor Central,setor central,-6.122643,-47.922839,mapbox_geocoding,True
+TO,1703842,Campos Lindos,Setor Central,setor central,-11.397246,-46.889036,mapbox_geocoding,True
+TO,1703867,Cariri do Tocantins,Setor Central,setor central,-11.891199,-49.161448,mapbox_geocoding,True
+TO,1703883,Carmolândia,Setor Central,setor central,-7.036097,-48.394943,mapbox_geocoding,True
+TO,1703891,Carrasco Bonito,Setor Central,setor central,-5.32084,-48.037878,mapbox_geocoding,True
+TO,1703909,Caseara,Aragaçuí,aragacui,,,dne,True
+TO,1703909,Caseara,Setor Central,setor central,-9.271153,-49.958263,mapbox_geocoding,True
+TO,1704105,Centenário,Setor Central,setor central,-8.956857,-47.335527,mapbox_geocoding,True
+TO,1704600,Chapada de Areia,Setor Central,setor central,-12.412104,-46.426865,mapbox_geocoding,True
+TO,1705102,Chapada da Natividade,Setor Central,setor central,-11.718124,-47.734244,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Aeroporto II,aeroporto ii,-8.058829,-48.493934,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,AICI Aeroporto,aici aeroporto,-8.058959,-48.492049,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Alvorada,alvorada,-8.051644,-48.47695,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Araguaia,araguaia,-8.057039,-48.47959,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Área Rural de Colinas,area rural de colinas,-8.057039,-48.47959,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Bela Vista,bela vista,-8.043251,-48.459278,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Boa Esperança,boa esperanca,-12.714857,-46.405968,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Campinas,campinas,-8.063106,-48.470377,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Centro,centro,-8.066279,-48.472418,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Doirado,doirado,-8.057039,-48.47959,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Estrela do Norte I,estrela do norte i,-8.076396,-48.468208,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Estrela do Norte II,estrela do norte ii,-8.065072,-48.471823,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Industrial,industrial,-8.061339,-48.469339,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Industrial Santo Antonio,industrial santo antonio,-8.067585,-48.469205,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Jardim America,jardim america,-8.078617,-48.471929,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Jardim Campo Clube,jardim campo clube,-8.057024,-48.484872,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Novo Horizonte,novo horizonte,-8.05269,-48.478349,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Novo Planalto,novo planalto,-8.057039,-48.47959,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Oeste,oeste,-8.051992,-48.491739,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Primavera,primavera,-8.076396,-48.468208,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Real,real,-8.052982,-48.473773,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Recanto do Bosque,recanto do bosque,-8.041259,-48.494472,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Residencial Santo Antonio,residencial santo antonio,-8.068054,-48.468576,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Rodoviário,rodoviario,-8.063106,-48.470377,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Santa Maria,santa maria,-2.704256,-44.831843,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Santa Rosa,santa rosa,-8.057039,-48.47959,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Santo Antonio,santo antonio,-8.040521,-48.465151,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,São Cristovão,sao cristovao,-8.052982,-48.473773,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Senador João Ribeiro,senador joao ribeiro,-8.058046,-48.493773,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Sol Nascente,sol nascente,-8.052982,-48.473773,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Sul,sul,-8.052982,-48.473773,mapbox_geocoding,True
+TO,1705508,Colinas do Tocantins,Vila São João,vila sao joao,-8.06622,-48.472377,mapbox_geocoding,True
+TO,1705557,Combinado,Setor Central,setor central,-6.382141,-35.144469,mapbox_geocoding,True
+TO,1705607,Conceição do Tocantins,Setor Central,setor central,-12.218717,-47.29394,mapbox_geocoding,True
+TO,1706001,Couto Magalhães,Setor Central,setor central,-8.285518,-49.244484,mapbox_geocoding,True
+TO,1706100,Cristalândia,Setor Central,setor central,-10.599306,-49.199082,mapbox_geocoding,True
+TO,1706258,Crixás do Tocantins,Setor Central,setor central,-11.105514,-48.919139,mapbox_geocoding,True
+TO,1706506,Darcinópolis,Setor Central,setor central,-6.710714,-47.752765,mapbox_geocoding,True
+TO,1707009,Dianópolis,Setor Central,setor central,-23.486959,-46.673243,mapbox_geocoding,True
+TO,1707108,Divinópolis do Tocantins,Setor Central,setor central,-9.805924,-49.210078,mapbox_geocoding,True
+TO,1707207,Dois Irmãos do Tocantins,Setor Central,setor central,-9.25774,-49.065196,mapbox_geocoding,True
+TO,1707306,Dueré,Setor Central,setor central,-11.344159,-49.269486,mapbox_geocoding,True
+TO,1707405,Esperantina,Setor Central,setor central,-5.366415,-48.538345,mapbox_geocoding,True
+TO,1707553,Fátima,Setor Central,setor central,-10.760699,-48.904263,mapbox_geocoding,True
+TO,1707652,Figueirópolis,Setor Central,setor central,-12.128357,-49.169518,mapbox_geocoding,True
+TO,1707702,Filadélfia,Bielândia,bielandia,,,dne,True
+TO,1707702,Filadélfia,Setor Central,setor central,-11.707264,-47.723537,mapbox_geocoding,True
+TO,1708205,Formoso do Araguaia,Setor Central,setor central,-11.804722,-49.530193,mapbox_geocoding,True
+TO,1708254,Tabocão,Setor Central,setor central,-12.80813,-46.547652,mapbox_geocoding,True
+TO,1708304,Goianorte,Setor Central,setor central,-8.772365,-48.933735,mapbox_geocoding,True
+TO,1709005,Goiatins,Cartucho,cartucho,,,dne,True
+TO,1709005,Goiatins,Centro,centro,-8.123402,-49.096824,mapbox_geocoding,True
+TO,1709005,Goiatins,Craolândia,craolandia,,,dne,True
+TO,1709005,Goiatins,Monte Lindo,monte lindo,,,dne,True
+TO,1709005,Goiatins,Setor Central,setor central,-7.7151826,-47.3256078,cep_aberto,True
+TO,1709302,Guaraí,Alto Bonito,alto bonito,-8.835549,-48.511856,mapbox_geocoding,True
+TO,1709302,Guaraí,Área Rural de Guaraí,area rural de guarai,-8.835549,-48.511856,mapbox_geocoding,True
+TO,1709302,Guaraí,Jardim Águas Claras,jardim aguas claras,-8.851201,-48.502173,mapbox_geocoding,True
+TO,1709302,Guaraí,Jardim Alto Alegre,jardim alto alegre,-8.830919,-48.504499,mapbox_geocoding,True
+TO,1709302,Guaraí,Jardim Brasília,jardim brasilia,-8.841099,-48.511259,mapbox_geocoding,True
+TO,1709302,Guaraí,Jardim Irany,jardim irany,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Loteamento Jardins,loteamento jardins,-8.851113,-48.52106,mapbox_geocoding,True
+TO,1709302,Guaraí,Loteamento Presidencial Lysan,loteamento presidencial lysan,-8.854165,-48.500025,mapbox_geocoding,True
+TO,1709302,Guaraí,Loteamento Residencial Floresta II,loteamento residencial floresta ii,-6.026849,-47.920882,mapbox_geocoding,True
+TO,1709302,Guaraí,Menino Jesus de Praga,menino jesus de praga,-8.824103,-48.508058,mapbox_geocoding,True
+TO,1709302,Guaraí,Mirandópolis,mirandopolis,,,dne,True
+TO,1709302,Guaraí,Parque das Palmeiras,parque das palmeiras,-8.833932,-48.514006,mapbox_geocoding,True
+TO,1709302,Guaraí,Parque Sol Nascente,parque sol nascente,-8.826877,-48.508384,mapbox_geocoding,True
+TO,1709302,Guaraí,Portal da Serra,portal da serra,-8.823976,-48.513139,mapbox_geocoding,True
+TO,1709302,Guaraí,Residencial Habitate II,residencial habitate ii,-6.559972,-47.480435,mapbox_geocoding,True
+TO,1709302,Guaraí,Residencial Jardim Floresta,residencial jardim floresta,-25.370017,-51.463274,mapbox_geocoding,True
+TO,1709302,Guaraí,Residencial Por do Sol I,residencial por do sol i,-8.84855,-48.520456,mapbox_geocoding,True
+TO,1709302,Guaraí,Residencial Por do Sol II,residencial por do sol ii,-8.84855,-48.520456,mapbox_geocoding,True
+TO,1709302,Guaraí,São Luiz,sao luiz,-8.853485,-48.499803,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Aeroporto,setor aeroporto,-8.849655,-48.502064,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Aeroporto II,setor aeroporto ii,-8.851706,-48.508374,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Alvorada,setor alvorada,-8.847022,-48.506018,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Bela Vista,setor bela vista,-8.739673,-47.242018,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Bueno,setor bueno,-8.848796,-48.517551,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Canaã,setor canaa,-8.840995,-48.501594,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Cristo Redentor,setor cristo redentor,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Dantas,setor dantas,-8.835294,-48.516075,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Guará,setor guara,-8.826877,-48.508384,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Guarazinho,setor guarazinho,-8.836475,-48.508518,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Leste,setor leste,-8.841099,-48.511259,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Mapa I,setor mapa i,-8.833932,-48.514006,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Mapa II,setor mapa ii,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Mapa III,setor mapa iii,-8.841099,-48.511259,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Norte I,setor norte i,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Norte II,setor norte ii,-8.833932,-48.514006,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Norte Rodoviário,setor norte rodoviario,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Park Esperança,setor park esperanca,-8.824103,-48.508058,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Pestana,setor pestana,-8.827758,-48.508794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Piassava,setor piassava,-8.851706,-48.508374,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Planalto,setor planalto,-8.841099,-48.511259,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Primavera,setor primavera,-8.835294,-48.516075,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Sul,setor sul,-8.834781,-48.514794,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Universitário,setor universitario,-9.053932,-48.520322,mapbox_geocoding,True
+TO,1709302,Guaraí,Setor Vettorazzi,setor vettorazzi,-12.089513,-46.480598,mapbox_geocoding,True
+TO,1709302,Guaraí,Vale do Amanhecer,vale do amanhecer,-9.000044,-48.15199,mapbox_geocoding,True
+TO,1709302,Guaraí,Vila Moraes,vila moraes,-8.826877,-48.508384,mapbox_geocoding,True
+TO,1709302,Guaraí,Vila Redenção,vila redencao,-8.827758,-48.508794,mapbox_geocoding,True
+TO,1709302,Guaraí,Vila Vilela,vila vilela,-8.836475,-48.508518,mapbox_geocoding,True
+TO,1709500,Gurupi,Alto da Boa Vista,alto da boa vista,-11.732987,-49.0960237,cep_aberto,True
+TO,1709500,Gurupi,Alto dos Buritis,alto dos buritis,-11.743979,-49.062693,mapbox_geocoding,True
+TO,1709500,Gurupi,Área Rural de Gurupi,area rural de gurupi,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Chácara Recreio Vale do Sol,chacara recreio vale do sol,-11.655648,-49.037807,mapbox_geocoding,True
+TO,1709500,Gurupi,Chácara Recreios Irmãos Ferreira,chacara recreios irmaos ferreira,-11.731697,-49.0907035,cep_aberto,True
+TO,1709500,Gurupi,Cidade Industrial,cidade industrial,-11.648571,-49.039288,mapbox_geocoding,True
+TO,1709500,Gurupi,Crixás,crixas,,,dne,True
+TO,1709500,Gurupi,Green Park,green park,-7.121542,-34.91742,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Boulivard,jardim boulivard,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Jardim da Luz,jardim da luz,-11.729973,-49.068867,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim das Bandeiras,jardim das bandeiras,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Jardim das Palmeiras,jardim das palmeiras,-11.715272,-49.049429,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Eldorado,jardim eldorado,-11.7288556,-49.0723613,cep_aberto,True
+TO,1709500,Gurupi,Jardim Flamboyant,jardim flamboyant,-11.728197,-49.047492,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Guanabara,jardim guanabara,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Jardim Medeiros,jardim medeiros,-11.715618,-49.089721,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Paulicéia,jardim pauliceia,-11.7209198,-49.0829911,cep_aberto,True
+TO,1709500,Gurupi,Jardim São Lucas,jardim sao lucas,-11.72341,-49.084475,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Sevilha,jardim sevilha,-11.7373129,-49.053209,cep_aberto,True
+TO,1709500,Gurupi,Jardim Tocantins,jardim tocantins,-11.768342,-49.065378,mapbox_geocoding,True
+TO,1709500,Gurupi,Jardim Tropical,jardim tropical,-11.7212201,-49.0833777,cep_aberto,True
+TO,1709500,Gurupi,Loteamento Águas Claras,loteamento aguas claras,-5.094334,-42.732492,mapbox_geocoding,True
+TO,1709500,Gurupi,Loteamento Campo Bello,loteamento campo bello,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Loteamento Fazenda Santo Antônio,loteamento fazenda santo antonio,-11.816108,-48.89851,mapbox_geocoding,True
+TO,1709500,Gurupi,Loteamento Parque Residencial Atalaia,loteamento parque residencial atalaia,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Loteamento Residencial João Lisboa da Cruz,loteamento residencial joao lisboa da cruz,-11.715618,-49.089721,mapbox_geocoding,True
+TO,1709500,Gurupi,Loteamento São Jorge,loteamento sao jorge,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Mansões do Cerrado,mansoes do cerrado,-6.105016,-47.909325,mapbox_geocoding,True
+TO,1709500,Gurupi,Muniz Santana,muniz santana,-11.7149866,-49.0752342,cep_aberto,True
+TO,1709500,Gurupi,Park Filó Moreira,park filo moreira,-11.748116,-49.061301,mapbox_geocoding,True
+TO,1709500,Gurupi,Parque Agroindustrial,parque agroindustrial,-11.6563818,-49.0464777,cep_aberto,True
+TO,1709500,Gurupi,Parque Primavera,parque primavera,-11.733241,-49.033502,mapbox_geocoding,True
+TO,1709500,Gurupi,Parque Residencial dos Cajueiros,parque residencial dos cajueiros,-11.7227345,-49.0638004,cep_aberto,True
+TO,1709500,Gurupi,Parque Residencial Nova Fronteira,parque residencial nova fronteira,-11.769992,-49.077126,mapbox_geocoding,True
+TO,1709500,Gurupi,Parque Residencial São José,parque residencial sao jose,-11.7133752,-49.0485235,cep_aberto,True
+TO,1709500,Gurupi,Parque Residencial São Paulo,parque residencial sao paulo,-11.731807,-49.061702,mapbox_geocoding,True
+TO,1709500,Gurupi,Parque Sol Nascente,parque sol nascente,-11.7392533,-49.0709616,cep_aberto,True
+TO,1709500,Gurupi,Residencial Daniela,residencial daniela,-11.729973,-49.068867,mapbox_geocoding,True
+TO,1709500,Gurupi,Residencial Jardim América,residencial jardim america,-11.7262132,-49.1098016,cep_aberto,True
+TO,1709500,Gurupi,Residencial Jardim dos Buritis,residencial jardim dos buritis,-11.719888,-49.094992,mapbox_geocoding,True
+TO,1709500,Gurupi,Residencial Jardim Nova América,residencial jardim nova america,-11.727803,-49.111006,mapbox_geocoding,True
+TO,1709500,Gurupi,Residencial Madrid,residencial madrid,-11.7357392,-49.0513446,cep_aberto,True
+TO,1709500,Gurupi,Residencial Park dos Buritis,residencial park dos buritis,-11.769992,-49.077126,mapbox_geocoding,True
+TO,1709500,Gurupi,Residencial Parque das Acácias,residencial parque das acacias,-11.7293637,-49.1123978,cep_aberto,True
+TO,1709500,Gurupi,Santa Rita de Cássia,santa rita de cassia,-11.757806,-49.071396,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Aeroporto,setor aeroporto,-11.7140251,-49.054763,cep_aberto,True
+TO,1709500,Gurupi,Setor Aeroporto II,setor aeroporto ii,-11.711933,-49.049466,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Bela Vista,setor bela vista,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Setor Canaã,setor canaa,-11.721989,-49.077059,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Casego,setor casego,-11.7338305,-49.0624905,cep_aberto,True
+TO,1709500,Gurupi,Setor Central,setor central,-11.727608,-49.071226,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Cruzeiro,setor cruzeiro,-11.7291757,-49.0497575,cep_aberto,True
+TO,1709500,Gurupi,Setor dos Funcionários,setor dos funcionarios,-11.733777,-49.062431,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Leste,setor leste,-11.7270992,-49.0531998,cep_aberto,True
+TO,1709500,Gurupi,Setor Morada do Sol,setor morada do sol,-11.740645,-49.069859,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Novo Horizonte,setor novo horizonte,-11.7356457,-49.0553322,cep_aberto,True
+TO,1709500,Gurupi,Setor Paulo de Tarso,setor paulo de tarso,-11.733241,-49.033502,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor Sul II,setor sul ii,-11.725606,-49.087564,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor União I,setor uniao i,-11.6911439,-49.0470893,cep_aberto,True
+TO,1709500,Gurupi,Setor União II,setor uniao ii,-11.732031,-49.063857,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor União III,setor uniao iii,-11.7547672,-49.0986677,cep_aberto,True
+TO,1709500,Gurupi,Setor União IV,setor uniao iv,-11.733777,-49.062431,mapbox_geocoding,True
+TO,1709500,Gurupi,Setor União V,setor uniao v,-11.7283752,-49.0686083,cep_aberto,True
+TO,1709500,Gurupi,Shangri-Lá,shangri la,-11.769992,-49.077126,mapbox_geocoding,True
+TO,1709500,Gurupi,Trevo Oeste,trevo oeste,-11.7215071,-49.0819226,cep_aberto,True
+TO,1709500,Gurupi,Vila Alagoana,vila alagoana,-11.721396,-49.083606,mapbox_geocoding,True
+TO,1709500,Gurupi,Vila Guaracy,vila guaracy,-11.7558276,-49.1002776,cep_aberto,True
+TO,1709500,Gurupi,Vila Independência,vila independencia,-11.715618,-49.089721,mapbox_geocoding,True
+TO,1709500,Gurupi,Vila Iris,vila iris,-11.7291757,-49.0497575,cep_aberto,True
+TO,1709500,Gurupi,Vila Paulista,vila paulista,-11.732031,-49.063857,mapbox_geocoding,True
+TO,1709500,Gurupi,Vila Pedroso,vila pedroso,-11.7155402,-49.0863634,cep_aberto,True
+TO,1709500,Gurupi,Vila São José,vila sao jose,-11.733949,-49.049519,mapbox_geocoding,True
+TO,1709500,Gurupi,Waldir Lins I,waldir lins i,-11.7367565,-49.0809009,cep_aberto,True
+TO,1709500,Gurupi,Waldir Lins II,waldir lins ii,-11.736695,-49.070844,mapbox_geocoding,True
+TO,1709807,Ipueiras,Setor Central,setor central,-11.242334,-48.443992,mapbox_geocoding,True
+TO,1710508,Itacajá,Setor Central,setor central,-8.394436,-47.771348,mapbox_geocoding,True
+TO,1710706,Itaguatins,Setor Central,setor central,-22.183864,-47.38901,mapbox_geocoding,True
+TO,1710904,Itapiratins,Setor Central,setor central,-8.386499,-48.106174,mapbox_geocoding,True
+TO,1711100,Itaporã do Tocantins,Setor Central,setor central,-8.572021,-48.689595,mapbox_geocoding,True
+TO,1711506,Jaú do Tocantins,Centro,centro,-12.652098,-48.592705,mapbox_geocoding,True
+TO,1711803,Juarina,Setor Central,setor central,-7.171646,-48.203507,mapbox_geocoding,True
+TO,1711902,Lagoa da Confusão,Setor Central,setor central,-10.79075,-49.622348,mapbox_geocoding,True
+TO,1711951,Lagoa do Tocantins,Setor Central,setor central,-10.296619,-47.561818,mapbox_geocoding,True
+TO,1712009,Lajeado,Setor Central,setor central,-9.753627,-48.355577,mapbox_geocoding,True
+TO,1712157,Lavandeira,Setor Central,setor central,-12.789593,-46.506549,mapbox_geocoding,True
+TO,1712405,Lizarda,Setor Central,setor central,-9.595464,-46.674667,mapbox_geocoding,True
+TO,1712454,Luzinópolis,Setor Central,setor central,-6.191822,-47.855278,mapbox_geocoding,True
+TO,1712504,Marianópolis do Tocantins,Setor Central,setor central,-9.796315,-49.655197,mapbox_geocoding,True
+TO,1712702,Mateiros,Setor Central,setor central,-10.168473,-46.660176,mapbox_geocoding,True
+TO,1712801,Maurilândia do Tocantins,Setor Central,setor central,-5.952301,-47.508953,mapbox_geocoding,True
+TO,1713205,Miracema do Tocantins,Setor Central,setor central,-9.56998,-48.392189,mapbox_geocoding,True
+TO,1713304,Miranorte,Setor Central,setor central,-9.531242,-48.591996,mapbox_geocoding,True
+TO,1713601,Monte do Carmo,Setor Central,setor central,-10.764039,-48.114043,mapbox_geocoding,True
+TO,1713700,Monte Santo do Tocantins,Setor Central,setor central,-10.004538,-48.994988,mapbox_geocoding,True
+TO,1713809,Palmeiras do Tocantins,Setor Central,setor central,-6.609691,-47.54838,mapbox_geocoding,True
+TO,1713957,Muricilândia,Setor Central,setor central,-7.141264,-48.606072,mapbox_geocoding,True
+TO,1714203,Natividade,Centro,centro,-11.569304,-47.164532,mapbox_geocoding,True
+TO,1714203,Natividade,Príncipe,principe,,,dne,True
+TO,1714203,Natividade,Setor Central,setor central,-11.707264,-47.723537,mapbox_geocoding,True
+TO,1714302,Nazaré,Setor Central,setor central,-6.377028,-47.658887,mapbox_geocoding,True
+TO,1714302,Nazaré,Tamboril,tamboril,,,dne,True
+TO,1714880,Nova Olinda,Setor Central,setor central,-7.63402,-48.422626,mapbox_geocoding,True
+TO,1715002,Nova Rosalândia,Setor Central,setor central,-10.56819,-48.911759,mapbox_geocoding,True
+TO,1715101,Novo Acordo,Setor Central,setor central,-6.710244,-47.747979,mapbox_geocoding,True
+TO,1715150,Novo Alegre,Setor Central,setor central,-12.916346,-46.574453,mapbox_geocoding,True
+TO,1715259,Novo Jardim,Setor Central,setor central,-6.382898,-37.340775,mapbox_geocoding,True
+TO,1715507,Oliveira de Fátima,Setor Central,setor central,-10.707955,-48.905948,mapbox_geocoding,True
+TO,1715705,Palmeirante,Setor Central,setor central,-7.857647,-47.924198,mapbox_geocoding,True
+TO,1715754,Palmeirópolis,Setor Central,setor central,-13.04014,-48.407319,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Aeroporto,aeroporto,-10.198937,-48.887029,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Alto Paraíso,alto paraiso,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Área Rural de Paraíso do Tocantins,area rural de paraiso do tocantins,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Bela Vista,bela vista,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Bueno,bueno,-10.268634,-48.888925,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Centro,centro,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Chacara Targus,chacara targus,-10.190892,-48.885576,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Chapadão,chapadao,-10.183921,-48.879841,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Interlagos,interlagos,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim America,jardim america,-10.198937,-48.887029,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim do Lago,jardim do lago,-10.165945,-48.888396,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim Itália,jardim italia,-10.155093,-48.881879,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim Limeira,jardim limeira,-10.155605,-48.888724,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim Paulista,jardim paulista,-10.171262,-48.89325,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardim Universitário,jardim universitario,-10.155605,-48.888724,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Jardins das Acácias,jardins das acacias,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Joaquim Gomes Cardoso,joaquim gomes cardoso,-10.179681,-48.897198,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Lago Sul,lago sul,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Marista,marista,-10.188218,-48.917215,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Milena 2,milena 2,-10.155093,-48.881879,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Milena I,milena i,-10.163764,-48.886397,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Neuton Moraes,neuton moraes,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Nova Esperança,nova esperanca,-10.19741,-48.893524,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Nova Fronteira,nova fronteira,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Novo Jardim Paulista,novo jardim paulista,-10.155605,-48.888724,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Oeste,oeste,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Ouro Verde,ouro verde,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Paraíso dos Ipês,paraiso dos ipes,-10.190892,-48.885576,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Parque Agroindustrial José Antônio de Deus,parque agroindustrial jose antonio de deus,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Parque dos Buritis,parque dos buritis,-10.162219,-48.874863,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Parque Industrial Álvaro Moreira Milhomem,parque industrial alvaro moreira milhomem,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,PIMEP,pimep,-10.200632,-48.895719,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Portal do Sul,portal do sul,-10.183921,-48.879841,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Pouso Alegre,pouso alegre,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Residencial Carlos Magno,residencial carlos magno,-10.193992,-48.885397,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Residencial Flamboyant,residencial flamboyant,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Santa Clara,santa clara,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Santa Luzia,santa luzia,,,dne,True
+TO,1716109,Paraíso do Tocantins,Santana,santana,-10.190892,-48.885576,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Serra Verde,serra verde,-10.173302,-48.885117,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Serrano,serrano,-10.166879,-48.873249,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Setor Sul,setor sul,-10.200306,-48.888301,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Terra Bela,terra bela,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Vale do Araguaia,vale do araguaia,-10.167972,-48.887932,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Vila Oeste,vila oeste,-10.19741,-48.893524,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Vila Popular,vila popular,-10.17852,-48.889265,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Vila Regina,vila regina,-10.196265,-48.892854,mapbox_geocoding,True
+TO,1716109,Paraíso do Tocantins,Vitória,vitoria,-10.190892,-48.885576,mapbox_geocoding,True
+TO,1716208,Paranã,Bom Jesus da Palma,bom jesus da palma,,,dne,True
+TO,1716208,Paranã,Campo Alegre,campo alegre,,,dne,True
+TO,1716208,Paranã,Setor Central,setor central,-12.615882,-47.881797,mapbox_geocoding,True
+TO,1716307,Pau D'Arco,Setor Central,setor central,-7.539665,-49.367934,mapbox_geocoding,True
+TO,1716505,Pedro Afonso,Anajanópolis,anajanopolis,,,dne,True
+TO,1716505,Pedro Afonso,Setor Central,setor central,-8.97245,-48.176874,mapbox_geocoding,True
+TO,1716604,Peixe,Setor Central,setor central,-12.030121,-48.537327,mapbox_geocoding,True
+TO,1716653,Pequizeiro,Setor Central,setor central,-8.5917,-48.933106,mapbox_geocoding,True
+TO,1716703,Colméia,Setor Central,setor central,-8.732742,-48.756595,mapbox_geocoding,True
+TO,1717008,Pindorama do Tocantins,Setor Central,setor central,-11.133677,-47.580623,mapbox_geocoding,True
+TO,1717206,Piraquê,Setor Central,setor central,-6.773941,-48.292305,mapbox_geocoding,True
+TO,1717503,Pium,Setor Central,setor central,-10.441126,-49.181749,mapbox_geocoding,True
+TO,1717800,Ponte Alta do Bom Jesus,Setor Central,setor central,-12.089145,-46.479445,mapbox_geocoding,True
+TO,1717909,Ponte Alta do Tocantins,Setor Central,setor central,-10.748963,-47.535114,mapbox_geocoding,True
+TO,1718006,Porto Alegre do Tocantins,Setor Central,setor central,-11.610518,-47.049503,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Acapulco (Luzimangues),acapulco luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Agroindustrial,agroindustrial,,,dne,True
+TO,1718204,Porto Nacional,Águas Lindas (Luzimangues),aguas lindas luzimangues,-12.712969,-46.411532,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Aldeia do Lago (Luzimangues),aldeia do lago luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Alto da Colina,alto da colina,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Alto do Porto,alto do porto,-10.421263,-48.281907,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Área Rural de Luzimangues,area rural de luzimangues,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Área Rural de Porto Nacional,area rural de porto nacional,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Bairro Imperial,bairro imperial,-10.691579,-48.410995,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Barcelona (Luzimangues),barcelona luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Beira Rio,beira rio,-10.689398,-48.392842,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Bela Vista (Luzimangues),bela vista luzimangues,-12.712969,-46.411532,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Boa Vista (Luzimangues),boa vista luzimangues,-12.712969,-46.411532,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Brigadeiro Eduardo Gomes,brigadeiro eduardo gomes,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Buena Vista (Luzimangues),buena vista luzimangues,-10.230321,-48.450411,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Campinas (Luzimangues),campinas luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Campo Belo (Luzimangues),campo belo luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Canadá (Luzimangues),canada luzimangues,-12.712999,-46.411506,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Centro,centro,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Condomínio Lake Side,condominio lake side,-10.228463,-48.433971,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Cruzeiro do Sul,cruzeiro do sul,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Distrito Multissetorial 13 de Julho,distrito multissetorial 13 de julho,-10.726617,-48.395301,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Escola Brasil,escola brasil,,,dne,True
+TO,1718204,Porto Nacional,Estação da Luz,estacao da luz,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Fabrício César Freire,fabricio cesar freire,-10.493252,-48.23485,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Flamboyant II (Luzimangues),flamboyant ii luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Flamboyant (Luzimangues),flamboyant luzimangues,-12.71525,-46.404476,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Flor do Cerrado (Luzimangues),flor do cerrado luzimangues,-12.71525,-46.404476,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Florença (Luzimangues),florenca luzimangues,-10.223356,-48.470505,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Flores (Luzimangues),flores luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Genebra (Luzimangues),genebra luzimangues,-12.712911,-46.411082,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Granville,granville,-10.722582,-48.392285,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Guanabara (Luzimangues),guanabara luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Haonat (Luzimangues),haonat luzimangues,-12.712945,-46.411264,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Irmâ Edila,irma edila,-10.688443,-48.408276,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Itália (Luzimangues),italia luzimangues,-10.223356,-48.470505,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Aeroporto,jardim aeroporto,-11.708535,-47.729192,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim America,jardim america,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Bougaville (Luzimangues),jardim bougaville luzimangues,-12.71525,-46.404476,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Brasilia,jardim brasilia,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim do Porto (Luzimangues),jardim do porto luzimangues,-12.712969,-46.411532,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim dos Ipês,jardim dos ipes,-10.421263,-48.281907,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Europa (Luzimangues),jardim europa luzimangues,-12.713608,-46.411363,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Guaxupé,jardim guaxupe,-10.686505,-48.405671,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Madri (Luzimangues),jardim madri luzimangues,-12.71525,-46.404476,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Milão 2 (Luzimangues),jardim milao 2 luzimangues,-10.193397,-48.45244,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Milão (Luzimangues),jardim milao luzimangues,-12.713608,-46.411363,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Municipal,jardim municipal,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Nova America,jardim nova america,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Planalto,jardim planalto,-10.715152,-48.384256,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Primavera (Luzimangues),jardim primavera luzimangues,-12.401925,-46.427562,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Querido,jardim querido,-10.706463,-48.40255,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardim Sofia (Luzimangues),jardim sofia luzimangues,-10.728627,-48.39517,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardins,jardins,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Jardins do Lago (Luzimangues),jardins do lago luzimangues,-12.712999,-46.411506,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Lago Azul (Luzimangues),lago azul luzimangues,-10.421492,-48.28078,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Laguna I (Luzimangues),laguna i luzimangues,-10.230321,-48.450411,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Laguna II (Luzimangues),laguna ii luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Laguna III (Luzimangues),laguna iii luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Loteamento São José,loteamento sao jose,-12.712337,-46.404857,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Luzimangues,luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Maranata (Luzimangues),maranata luzimangues,-10.36617,-48.313728,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Monaco (Luzimangues),monaco luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Montreal Park (Luzimangues),montreal park luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Morumbi (Luzimangues),morumbi luzimangues,-10.421492,-48.28078,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Náutico (Luzimangues),nautico luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Nova Capital,nova capital,-10.686505,-48.405671,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Nova Pinheiropolis,nova pinheiropolis,,,dne,True
+TO,1718204,Porto Nacional,Novo Horizonte,novo horizonte,-10.685839,-48.39886,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Novo Planalto,novo planalto,-10.724152,-48.397704,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Orla Oeste (Luzimangues),orla oeste luzimangues,-10.196541,-48.43843,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Orla Ville (Luzimangues),orla ville luzimangues,-10.17016,-48.444942,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Padre Luso,padre luso,-10.493252,-48.23485,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Palmares (Luzimangues),palmares luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Palmeiras,palmeiras,-10.688443,-48.408276,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Park dos Girassois (Luzimangues),park dos girassois luzimangues,-10.192373,-48.473319,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Parque do Trevo,parque do trevo,-10.697196,-48.389392,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Parque dos Buritis (Luzimangues),parque dos buritis luzimangues,-12.712945,-46.411264,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Parque Eldorado,parque eldorado,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Parque Liberdade,parque liberdade,-10.719267,-48.392901,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Parque Res Porto Real,parque res porto real,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Portal do Lago (Luzimangues),portal do lago luzimangues,-10.688803,-48.371073,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Porto Imperial,porto imperial,-10.719249,-48.413661,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Porto Real (Luzimangues),porto real luzimangues,-10.341481,-48.258336,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Porto Seguro (Luzimangues),porto seguro luzimangues,-10.341481,-48.258355,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Praia Bela,praia bela,-10.661187,-48.399963,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Residencial Camila (Luzimangues),residencial camila luzimangues,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Residencial Cristal,residencial cristal,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Residencial Porto Leman,residencial porto leman,-10.707511,-48.412453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Residencial Sydnei (Luzimangues),residencial sydnei luzimangues,-12.712999,-46.411506,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Riviera SQ-1 (Luzimangues),riviera sq 1 luzimangues,-10.421263,-48.281907,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Riviera SQ-2 (Luzimangues),riviera sq 2 luzimangues,-10.421263,-48.281907,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Riviera SQ-3 (Luzimangues),riviera sq 3 luzimangues,-10.421263,-48.281907,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Riviera SQ-4 (Luzimangues),riviera sq 4 luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Santa Helena,santa helena,-10.706463,-48.40255,mapbox_geocoding,True
+TO,1718204,Porto Nacional,São Francisco,sao francisco,-10.726617,-48.395301,mapbox_geocoding,True
+TO,1718204,Porto Nacional,São Vicente,sao vicente,-10.686505,-48.405671,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Seles (Luzimangues),seles luzimangues,-12.713029,-46.41175,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor Aeroporto,setor aeroporto,-10.706463,-48.40255,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor Consorcio,setor consorcio,-10.703653,-48.407017,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor das Mansões,setor das mansoes,-10.691376,-48.398015,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor Fama,setor fama,-10.719267,-48.392901,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor Nacional,setor nacional,-10.731312,-48.38593,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Setor Universitário,setor universitario,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Terra Vista (Luzimangues),terra vista luzimangues,-12.712945,-46.411264,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Tropical Palmas,tropical palmas,-10.686505,-48.405671,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Umuarama,umuarama,-10.697765,-48.407453,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Veneza (Luzimangues),veneza luzimangues,-12.712945,-46.411264,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Vila Bela (Luzimangues),vila bela luzimangues,-10.432017,-48.27655,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Vila Luzimangues (Luzimangues),vila luzimangues luzimangues,-10.338227,-48.258126,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Vila Nova,vila nova,-12.823842,-46.547911,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Vila Operária,vila operaria,-10.726617,-48.395301,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Village Morena SQ-1 (Luzimangues),village morena sq 1 luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Village Morena SQ-2 (Luzimangues),village morena sq 2 luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718204,Porto Nacional,Village Morena SQ-3 (Luzimangues),village morena sq 3 luzimangues,-10.420898,-48.27972,mapbox_geocoding,True
+TO,1718303,Praia Norte,Setor Central,setor central,-5.402284,-47.81192,mapbox_geocoding,True
+TO,1718402,Presidente Kennedy,Setor Central,setor central,-21.197095,-40.932469,mapbox_geocoding,True
+TO,1718402,Presidente Kennedy,Tupiratã,tupirata,,,dne,True
+TO,1718451,Pugmil,Setor Central,setor central,-10.426903,-48.895779,mapbox_geocoding,True
+TO,1718501,Recursolândia,Setor Central,setor central,-3.057934,-60.058572,mapbox_geocoding,True
+TO,1718550,Riachinho,Setor Central,setor central,-6.373393,-48.072099,mapbox_geocoding,True
+TO,1718659,Rio da Conceição,Setor Central,setor central,-11.400495,-46.885262,mapbox_geocoding,True
+TO,1718709,Rio dos Bois,Setor Central,setor central,-9.345145,-48.535855,mapbox_geocoding,True
+TO,1718758,Rio Sono,Setor Pioneiro,setor pioneiro,-9.346839,-47.8998,mapbox_geocoding,True
+TO,1718808,Sampaio,Setor Central,setor central,-5.351122,-47.877202,mapbox_geocoding,True
+TO,1718840,Sandolândia,Setor Central,setor central,-12.541398,-49.930692,mapbox_geocoding,True
+TO,1718865,Santa Fé do Araguaia,Setor Central,setor central,-7.150028,-48.691205,mapbox_geocoding,True
+TO,1718881,Santa Maria do Tocantins,Setor Central,setor central,-8.774446,-47.745086,mapbox_geocoding,True
+TO,1718899,Santa Rita do Tocantins,Setor Central,setor central,-10.865436,-48.906064,mapbox_geocoding,True
+TO,1718907,Santa Rosa do Tocantins,Setor Central,setor central,-11.449633,-48.118131,mapbox_geocoding,True
+TO,1719004,Santa Tereza do Tocantins,Setor Central,setor central,-10.281447,-47.810528,mapbox_geocoding,True
+TO,1720002,Santa Terezinha do Tocantins,Setor Central,setor central,-6.434868,-47.678538,mapbox_geocoding,True
+TO,1720101,São Bento do Tocantins,Setor Central,setor central,-6.032452,-47.928781,mapbox_geocoding,True
+TO,1720150,São Félix do Tocantins,Setor Central,setor central,-10.161026,-46.666864,mapbox_geocoding,True
+TO,1720200,São Miguel do Tocantins,Centro,centro,-5.555554,-47.575594,mapbox_geocoding,True
+TO,1720259,São Salvador do Tocantins,Setor Central,setor central,-12.75061,-48.239647,mapbox_geocoding,True
+TO,1720309,São Sebastião do Tocantins,Setor Central,setor central,-5.258226,-48.201255,mapbox_geocoding,True
+TO,1720499,São Valério,Apinajé,apinaje,,,dne,True
+TO,1720499,São Valério,Setor Central,setor central,-11.97488,-48.233521,mapbox_geocoding,True
+TO,1720655,Silvanópolis,Setor Central,setor central,-18.736385,-39.756572,mapbox_geocoding,True
+TO,1720804,Sítio Novo do Tocantins,Setor Central,setor central,-5.606498,-47.63956,mapbox_geocoding,True
+TO,1720853,Sucupira,Setor Central,setor central,-11.986798,-48.909049,mapbox_geocoding,True
+TO,1720903,Taguatinga,Setor Central,setor central,-12.400581,-46.438985,mapbox_geocoding,True
+TO,1720937,Taipas do Tocantins,Setor Central,setor central,-11.70972,-47.733299,mapbox_geocoding,True
+TO,1720978,Talismã,Setor Central,setor central,-12.79939,-49.093953,mapbox_geocoding,True
+TO,1721000,Palmas,Área Rural de Palmas,area rural de palmas,-10.249091,-48.3242858,cep_aberto,True
+TO,1721000,Palmas,Buritirana,buritirana,-10.2489,-47.887239,mapbox_geocoding,True
+TO,1721000,Palmas,Centro (Taquaralto),centro taquaralto,-10.3411337,-48.2920223,cep_aberto,True
+TO,1721000,Palmas,Conjunto Maria Rosa (Taquaralto),conjunto maria rosa taquaralto,-10.343312,-48.285261,mapbox_geocoding,True
+TO,1721000,Palmas,Distrito Industrial de Taquaralto,distrito industrial de taquaralto,-10.3145397,-48.2991087,cep_aberto,True
+TO,1721000,Palmas,Graciosa - Orla 14,graciosa orla 14,-10.249091,-48.3242858,cep_aberto,True
+TO,1721000,Palmas,Irmã Dulce,irma dulce,-10.167222,-48.312343,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Aeroporto,jardim aeroporto,-10.3365039,-48.3155523,cep_aberto,True
+TO,1721000,Palmas,Jardim Aureny I,jardim aureny i,-10.310295,-48.29807,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Aureny II,jardim aureny ii,-10.338289,-48.300218,cep_aberto,True
+TO,1721000,Palmas,Jardim Aureny III,jardim aureny iii,-10.310295,-48.29807,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Aureny IV,jardim aureny iv,-10.3102205,-48.305311,cep_aberto,True
+TO,1721000,Palmas,Jardim Bela Vista,jardim bela vista,-10.361654,-48.308279,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Janaína (Taquaralto),jardim janaina taquaralto,-10.3398601,-48.3001313,cep_aberto,True
+TO,1721000,Palmas,Jardim Paulista (Taquaralto),jardim paulista taquaralto,-10.364849,-48.303798,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Santa Bárbara,jardim santa barbara,-10.3477841,-48.3041002,cep_aberto,True
+TO,1721000,Palmas,Jardim Santa Helena,jardim santa helena,-10.336575,-48.315802,mapbox_geocoding,True
+TO,1721000,Palmas,Jardim Taquari (Taquaralto),jardim taquari taquaralto,-10.184914,-48.330196,mapbox_geocoding,True
+TO,1721000,Palmas,Lago Norte,lago norte,-10.2564541,-48.3178956,cep_aberto,True
+TO,1721000,Palmas,Loteamento Água Fria,loteamento agua fria,-10.172147,-48.308717,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Água Fria 4ª Etapa,loteamento agua fria 4a etapa,-26.485216,-51.989887,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Bertaville,loteamento bertaville,-10.2923017,-48.3181381,cep_aberto,True
+TO,1721000,Palmas,Loteamento Caribe,loteamento caribe,-10.184914,-48.330196,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Caribe Residence & Resort 2ª Etapa,loteamento caribe residence resort 2a etapa,-26.485216,-51.989887,mapbox_geocoding,True
+TO,1721000,Palmas,"Loteamento Córrego Jaú, 6ª Etapa",loteamento corrego jau 6a etapa,-10.249091,-48.251968,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Jardim Laila,loteamento jardim laila,-10.1869294,-48.3135776,cep_aberto,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 1,loteamento jardim vitoria 1,-10.318498,-48.154267,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 2,loteamento jardim vitoria 2,-10.167222,-48.312343,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Lago Sul (Taquaralto),loteamento lago sul taquaralto,-10.3398601,-48.3001313,cep_aberto,True
+TO,1721000,Palmas,Loteamento Nova Flamboyant,loteamento nova flamboyant,-10.167222,-48.312343,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Palmas Sul,loteamento palmas sul,-10.249091,-48.3242858,cep_aberto,True
+TO,1721000,Palmas,Loteamento Residencial Polinésia,loteamento residencial polinesia,-10.184914,-48.330196,mapbox_geocoding,True
+TO,1721000,Palmas,Loteamento Santa Fé Quarta Etapa,loteamento santa fe quarta etapa,-10.249091,-48.3242858,cep_aberto,True
+TO,1721000,Palmas,Loteamento Sonho Meu,loteamento sonho meu,-10.206391,-48.36115,mapbox_geocoding,True
+TO,1721000,Palmas,Lotemaneto Sucupira,lotemaneto sucupira,-10.3425071,-48.2879577,cep_aberto,True
+TO,1721000,Palmas,Plano Diretor Expansão Sul,plano diretor expansao sul,-6.118996,-47.921508,mapbox_geocoding,True
+TO,1721000,Palmas,Plano Diretor Norte,plano diretor norte,-10.1806992,-48.3398796,cep_aberto,True
+TO,1721000,Palmas,Plano Diretor Sul,plano diretor sul,-10.192099,-48.309719,mapbox_geocoding,True
+TO,1721000,Palmas,Recanto das Araras I,recanto das araras i,-10.3386744,-48.2647238,cep_aberto,True
+TO,1721000,Palmas,Recanto das Araras II,recanto das araras ii,-10.185163,-48.339558,mapbox_geocoding,True
+TO,1721000,Palmas,Residencial Ipê Amarelo,residencial ipe amarelo,-10.3439244,-48.3033183,cep_aberto,True
+TO,1721000,Palmas,Setor Bela Vista (Taquaralto),setor bela vista taquaralto,-10.345485,-48.294327,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Leste,setor leste,-10.243775,-48.320692,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Morada do Sol 2 (Taquaralto),setor morada do sol 2 taquaralto,-10.3360769,-48.2820609,cep_aberto,True
+TO,1721000,Palmas,Setor Morada do Sol 3 (Taquaralto),setor morada do sol 3 taquaralto,-10.337344,-48.284854,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Morada do Sol (Taquaralto),setor morada do sol taquaralto,-10.3360769,-48.2820609,cep_aberto,True
+TO,1721000,Palmas,Setor Santa Fé 2 (Taquaralto),setor santa fe 2 taquaralto,-10.338092,-48.281274,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Santa Fé 3 (Taquaralto),setor santa fe 3 taquaralto,-10.3358387,-48.3168964,cep_aberto,True
+TO,1721000,Palmas,Setor Santa Fé (Taquaralto),setor santa fe taquaralto,-10.368124,-48.303999,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Sol Nascente (Taquaralto),setor sol nascente taquaralto,-10.3522101,-48.2913557,cep_aberto,True
+TO,1721000,Palmas,Setor Sônia Regina (Taquaralto),setor sonia regina taquaralto,-10.304489,-48.308234,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Sul (Taquaralto),setor sul taquaralto,-10.345301,-48.2956275,cep_aberto,True
+TO,1721000,Palmas,Setor União Sul,setor uniao sul,-10.304489,-48.308234,mapbox_geocoding,True
+TO,1721000,Palmas,Setor Vale do Sol (Taquaralto),setor vale do sol taquaralto,-10.3339884,-48.2865638,cep_aberto,True
+TO,1721000,Palmas,Taquaruçu,taquarucu,,,dne,True
+TO,1721000,Palmas,Taquarussu,taquarussu,-10.336115,-48.299962,mapbox_geocoding,True
+TO,1721109,Tocantínia,Setor Central,setor central,-9.565984,-48.374465,mapbox_geocoding,True
+TO,1721208,Tocantinópolis,Setor Central,setor central,-6.325925,-47.418132,mapbox_geocoding,True
+TO,1721257,Tupirama,Setor Central,setor central,-8.974649,-48.191844,mapbox_geocoding,True
+TO,1721307,Tupiratins,Setor Central,setor central,-8.399461,-48.126722,mapbox_geocoding,True
+TO,1722081,Wanderlândia,Setor Central,setor central,-6.845921,-47.965921,mapbox_geocoding,True
+TO,1722107,Xambioá,Setor Central,setor central,-6.413953,-48.538336,mapbox_geocoding,True

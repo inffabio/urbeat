@@ -32,6 +32,7 @@ $commonParams = @{
 }
 
 $scriptRoot = $PSScriptRoot
+. (Join-Path $scriptRoot "oci-context.ps1")
 
 $banner = @"
 ╔═══════════════════════════════════════════════════════════╗

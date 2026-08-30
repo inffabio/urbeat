@@ -24,7 +24,7 @@ export class BrowserPrintAdapter extends PrinterAdapter {
   override async printTestPage(config: PrintingConfig): Promise<void> {
     const w = config.paperWidth === '58mm' ? '58mm' : '80mm';
     const html = this.wrapHtml(w, [
-      this.tag('h1', { align: 'center', size: '18px' }, 'URBEAT - TESTE'),
+      this.tag('h1', { align: 'center', size: '18px' }, 'urbeat - TESTE'),
       this.tag('div', { cls: 'line' }),
       this.tag('p', {}, `Impressora: ${this.esc(config.printerName)}`),
       this.tag('p', {}, formatSaoPauloDateTime(new Date())),

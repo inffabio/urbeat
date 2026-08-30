@@ -1,4 +1,4 @@
-<ion-content [fullscreen]="true" class="cart-content">
+<ion-content class="cart-content">
   <header class="page-head center">
     <button class="circle-btn" (click)="onBack()" aria-label="Voltar">
       <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
@@ -38,17 +38,6 @@
           <div>
             <strong>Não foi possível carregar os dados da loja</strong>
             <p>Verifique sua conexão e tente novamente.</p>
-          </div>
-          <button class="btn-retry" (click)="retryLoad()">Tentar novamente</button>
-        </div>
-      }
-
-      @if (!storeLoadError() && checkoutPreviewError()) {
-        <div class="error-banner" role="alert">
-          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-          <div>
-            <strong>Erro ao calcular o pedido</strong>
-            <p>Não foi possível verificar o valor do frete e o pedido mínimo. Tente novamente.</p>
           </div>
           <button class="btn-retry" (click)="retryLoad()">Tentar novamente</button>
         </div>
@@ -107,11 +96,11 @@
             </button>
             <div class="cart-qty-pill" aria-label="Quantidade de {{ item.productName }}">
               <button class="qty-minus" aria-label="Diminuir quantidade" (click)="dec(item.id!)">
-                <ion-icon name="remove-circle-outline"></ion-icon>
+                <ion-icon name="remove"></ion-icon>
               </button>
               <strong>{{ item.quantity }}</strong>
               <button class="qty-plus" aria-label="Aumentar quantidade" (click)="inc(item.id!)">
-                  <ion-icon name="add-circle-outline"></ion-icon>
+                  <ion-icon name="add"></ion-icon>
               </button>
             </div>
           </article>
@@ -169,7 +158,7 @@
             <span>Taxa de entrega</span>
             @if (freeShippingApplied()) {
               <span class="free-shipping">Grátis</span>
-            } @else if (!checkoutPreviewError() && deliveryFee() > 0) {
+             } @else if (!checkoutPreviewError() && !deliveryFeePending()) {
               <span>{{ deliveryFee() | brl }}</span>
             } @else {
               <span class="fee-pending">Calculado na próxima etapa</span>
@@ -220,19 +209,6 @@
         </div>
       }
 
-      <!-- Continuar -->
-      <button
-        type="button"
-        class="continue-large"
-        [disabled]="cart.isEmpty() || belowMinimum() || !storeOpen()"
-        (click)="continueCheckout()"
-      >
-        <span><ion-icon name="bag-outline" aria-hidden="true"></ion-icon></span>
-        <span>Continuar<small>Escolha endereço e pagamento</small></span>
-        <span><ion-icon name="chevron-forward" aria-hidden="true"></ion-icon></span>
-      </button>
-
-      <app-back-to-menu-link class="link-orange" (navigateBack)="goToMenu()" />
       }
       }
     </section>
@@ -251,3 +227,13 @@
     </div>
   }
 </ion-content>
+
+@if (!cart.isEmpty()) {
+  <app-sticky-action-bar
+    icon="bag-outline"
+    label="Continuar"
+    detail="Escolha endereço e pagamento"
+    [disabled]="belowMinimum() || !storeOpen()"
+    (action)="continueCheckout()"
+  />
+}

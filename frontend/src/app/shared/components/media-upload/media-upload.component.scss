@@ -1,0 +1,119 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.media-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.upload-box {
+  min-height: 172px;
+  width: 100%;
+  padding: 1.25rem;
+  border: 1.5px dashed var(--app-border-medium);
+  border-radius: 16px;
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.upload-box:hover:not(:disabled),
+.upload-box:focus-visible {
+  border-color: var(--app-brand);
+  background: var(--app-brand-soft);
+}
+
+.upload-box:focus-visible {
+  outline: 3px solid var(--app-brand-shadow);
+  outline-offset: 2px;
+}
+
+.upload-box:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.upload-box.has-preview {
+  padding: 0;
+  overflow: hidden;
+  border-style: solid;
+}
+
+.is-banner .upload-box {
+  min-height: 150px;
+}
+
+.is-logo .upload-preview {
+  width: 172px;
+  height: 172px;
+  min-height: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  color: var(--app-brand);
+}
+
+.upload-title {
+  font-size: 0.92rem;
+}
+
+.upload-hint,
+.upload-formats {
+  color: var(--app-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.upload-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  object-fit: contain;
+  background: var(--app-bg-warm);
+}
+
+.is-banner .upload-preview {
+  object-fit: cover;
+}
+
+.remove-button {
+  align-self: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--app-brand);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.upload-error {
+  margin: 0;
+  color: var(--app-danger, #b42318);
+  font-size: 0.78rem;
+  text-align: center;
+}

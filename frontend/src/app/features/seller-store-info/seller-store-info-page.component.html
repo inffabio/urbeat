@@ -29,6 +29,10 @@
             <label class="form-label-app" for="storeUrl">Link de acesso</label>
             <input id="storeUrl" class="form-control-app" type="text" [ngModel]="storeUrl()" (ngModelChange)="storeUrl.set($event)" name="storeUrl" />
           </div>
+          <div class="col-12">
+            <label class="form-label-app" for="websiteUrl">Site</label>
+            <input id="websiteUrl" class="form-control-app" type="url" [ngModel]="websiteUrl()" (ngModelChange)="websiteUrl.set($event)" name="websiteUrl" placeholder="https://www.sualoja.com.br" />
+          </div>
           <div class="col-md-6">
             <label class="form-label-app" for="whatsapp">WhatsApp</label>
             <input id="whatsapp" class="form-control-app" type="tel" [ngModel]="whatsapp()" (ngModelChange)="onWhatsappInput($event)" name="whatsapp" />
@@ -85,15 +89,36 @@
     </div>
 
     <div class="col-12 col-xl-5">
-      <div class="content-card info-card social-card">
-        <h2 class="h5 fw-bold mb-3">Redes sociais</h2>
-        <p class="section-copy">Opcional. Adicione os links públicos usados pela loja.</p>
-        <div class="social-form">
-          <label class="form-label-app" for="instagramUrl">Instagram</label><input id="instagramUrl" class="form-control-app" type="url" [ngModel]="instagramUrl()" (ngModelChange)="instagramUrl.set($event)" name="instagramUrl" placeholder="https://instagram.com/sualoja" />
-          <label class="form-label-app" for="facebookUrl">Facebook</label><input id="facebookUrl" class="form-control-app" type="url" [ngModel]="facebookUrl()" (ngModelChange)="facebookUrl.set($event)" name="facebookUrl" placeholder="https://facebook.com/sualoja" />
-          <label class="form-label-app" for="tikTokUrl">TikTok</label><input id="tikTokUrl" class="form-control-app" type="url" [ngModel]="tikTokUrl()" (ngModelChange)="tikTokUrl.set($event)" name="tikTokUrl" placeholder="https://tiktok.com/@sualoja" />
-          <label class="form-label-app" for="websiteUrl">Site</label><input id="websiteUrl" class="form-control-app" type="url" [ngModel]="websiteUrl()" (ngModelChange)="websiteUrl.set($event)" name="websiteUrl" placeholder="https://www.sualoja.com.br" />
-        </div>
+      <div class="content-card info-card service-type-card">
+        <h2 class="h5 fw-bold mb-3">Tipo de atendimento</h2>
+        <p class="section-copy">Escolha como os clientes podem receber seus pedidos.</p>
+        <fieldset class="service-type-fieldset">
+          <legend class="visually-hidden">Tipo de atendimento</legend>
+          <div class="service-type-options">
+            <button
+              type="button"
+              class="service-type-option"
+              role="checkbox"
+              [class.selected]="supportsDelivery()"
+              [attr.aria-checked]="supportsDelivery()"
+              aria-label="Atendimento por entrega"
+              (click)="toggleDelivery()">
+              <span class="checkbox-sq" [class.checked]="supportsDelivery()" aria-hidden="true"></span>
+              <span class="service-type-text">Entrega</span>
+            </button>
+            <button
+              type="button"
+              class="service-type-option"
+              role="checkbox"
+              [class.selected]="supportsPickup()"
+              [attr.aria-checked]="supportsPickup()"
+              aria-label="Atendimento por retirada"
+              (click)="togglePickup()">
+              <span class="checkbox-sq" [class.checked]="supportsPickup()" aria-hidden="true"></span>
+              <span class="service-type-text">Retirada</span>
+            </button>
+          </div>
+        </fieldset>
       </div>
 
       <div class="content-card info-card mt-3">

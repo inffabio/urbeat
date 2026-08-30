@@ -91,8 +91,15 @@
   transition: transform 0.15s ease;
 }
 
-.btn-pagar:hover {
+.btn-pagar:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.btn-pagar:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
 }
 
 @media (max-width: 767.98px) {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, ElementRef, ViewChild } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -58,12 +58,47 @@ export class SellerNeighborhoodsPageComponent extends StoreDeliveryPageComponent
     return this.filteredAreaIndices().slice(start, start + this.neighborhoodPageSize);
   });
 
+  @ViewChild('neighborhoodNameInput') private neighborhoodNameInput?: ElementRef<HTMLInputElement>;
+
+  readonly editorEntry = computed(() => {
+    const group = this.selectedAreaGroup();
+    if (!group) return [];
+    return [{ index: this.selectedAreaIndex() ?? -1, group }];
+  });
+
   setNeighborhoodPage(page: number): void {
     this.neighborhoodPage.set(Math.max(1, Math.min(page, this.neighborhoodPageCount())));
   }
 
+  setAreaSearchFilter(value: string): void {
+    this.areaSearchFilter.set(value);
+    this.neighborhoodPage.set(1);
+  }
+
+  setAreaStatusFilter(value: 'all' | 'active' | 'paused'): void {
+    this.areaStatusFilter.set(value);
+    this.neighborhoodPage.set(1);
+  }
+
   selectArea(index: number): void {
     this.activeRowIndex.set(index);
+    this.focusNeighborhoodName();
+  }
+
+  onRowKeydown(event: KeyboardEvent, index: number): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button')) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      this.selectArea(index);
+    }
+  }
+
+  private focusNeighborhoodName(): void {
+    setTimeout(() => this.neighborhoodNameInput?.nativeElement?.focus(), 0);
   }
 
   selectedAreaIndex(): number | null {
@@ -72,7 +107,7 @@ export class SellerNeighborhoodsPageComponent extends StoreDeliveryPageComponent
       return active;
     }
 
-    return this.areas.length > 0 ? 0 : null;
+    return null;
   }
 
   currentAreaIndex(): number {
@@ -100,27 +135,6 @@ export class SellerNeighborhoodsPageComponent extends StoreDeliveryPageComponent
 
   activeAreaCount(): number {
     return this.areas.controls.filter(area => area.value.isActive !== false).length;
-  }
-
-  averageMinimumOrder(): string {
-    return this.averageAreaMoney('minimumOrderValue');
-  }
-
-  averageFreeShipping(): string {
-    return this.averageAreaMoney('freeShippingThreshold');
-  }
-
-  private averageAreaMoney(field: 'minimumOrderValue' | 'freeShippingThreshold'): string {
-    const values = this.areas.controls
-      .map(area => Number.parseFloat(String(area.value[field] ?? '').replace(/\./g, '').replace(',', '.')))
-      .filter(value => Number.isFinite(value) && value > 0);
-    if (values.length === 0) return 'R$ 0,00';
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(values.reduce((sum, value) => sum + value, 0) / values.length);
-  }
-
-  formatMoneyAreaField(index: number, field: 'minimumOrderValue' | 'freeShippingThreshold'): void {
-    const control = this.areas.at(index)?.get(field);
-    if (control?.value) control.setValue(this.formatCurrencyString(control.value));
   }
 
   override async removeArea(index: number): Promise<void> {

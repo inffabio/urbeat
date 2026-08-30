@@ -25,6 +25,7 @@ export class SellerShellFacade {
   readonly store = signal<StoreResponse | null>(null);
   readonly notifications = signal<SellerNotification[]>([]);
   readonly unreadCount = signal(0);
+  readonly ordersCount = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly newOrderPulse = signal<SellerNotification | null>(null);
@@ -46,6 +47,7 @@ export class SellerShellFacade {
   private initialized = false;
   private initVersion = 0;
   private statusRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private sellerNotificationListener?: (notification: SellerNotification) => void;
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -67,9 +69,10 @@ export class SellerShellFacade {
       this.unreadCount.set(notifications.unreadCount);
       await this.signalR.startSellerHub();
       if (currentVersion !== this.initVersion) return;
-      this.signalR.onSellerEvent('ReceiveSellerNotification', (notification: SellerNotification) => {
+      this.sellerNotificationListener = (notification: SellerNotification) => {
         this.handleSellerNotification(notification);
-      });
+      };
+      this.signalR.onSellerEvent('ReceiveSellerNotification', this.sellerNotificationListener);
     } catch {
       if (currentVersion === this.initVersion) {
         this.error.set('Nao foi possivel carregar o painel do lojista.');
@@ -98,6 +101,10 @@ export class SellerShellFacade {
   }
 
   reset(): void {
+    if (this.sellerNotificationListener) {
+      this.signalR.removeSellerListener('ReceiveSellerNotification', this.sellerNotificationListener);
+      this.sellerNotificationListener = undefined;
+    }
     this.signalR.stopSellerHub();
     this.clearStatusRefreshTimer();
     this.initVersion++;
@@ -105,6 +112,7 @@ export class SellerShellFacade {
     this.store.set(null);
     this.notifications.set([]);
     this.unreadCount.set(0);
+    this.ordersCount.set(0);
     this.loading.set(false);
     this.error.set(null);
     this.newOrderPulse.set(null);

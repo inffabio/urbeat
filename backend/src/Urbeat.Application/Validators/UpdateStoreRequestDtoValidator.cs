@@ -26,9 +26,6 @@ public sealed class UpdateStoreRequestDtoValidator : AbstractValidator<UpdateSto
         RuleFor(x => x.PixKey)
             .MaximumLength(50);
 
-        RuleFor(x => x.InstagramUrl).MaximumLength(500);
-        RuleFor(x => x.FacebookUrl).MaximumLength(500);
-        RuleFor(x => x.TikTokUrl).MaximumLength(500);
         RuleFor(x => x.WebsiteUrl).MaximumLength(500);
 
         RuleFor(x => x.Description)

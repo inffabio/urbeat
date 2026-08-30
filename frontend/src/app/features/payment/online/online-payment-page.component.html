@@ -48,21 +48,13 @@
       </div>
     }
 
-    <footer class="page-footer">
-      <button
-        type="button"
-        class="btn-primary pay-btn"
-        [disabled]="loading()"
-        (click)="refreshPayment()"
-      >
-        @if (loading()) {
-          <span class="spinner-small" aria-hidden="true"></span>
-          Carregando...
-        } @else {
-          ATUALIZAR STATUS DO PIX
-        }
-      </button>
-      <app-back-to-menu-link [disabled]="loading()" (navigateBack)="goToMenu()" />
-    </footer>
   </section>
 </ion-content>
+
+<app-sticky-action-bar
+  icon="qr-code-outline"
+  [label]="loading() ? 'Carregando...' : 'Continuar'"
+  detail="Atualize o status do Pix"
+  [disabled]="loading()"
+  (action)="refreshPayment()"
+/>

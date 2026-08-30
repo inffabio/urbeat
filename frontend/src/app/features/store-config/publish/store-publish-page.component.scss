@@ -7,6 +7,10 @@
   gap: var(--space-6);
 }
 
+:host(.urbeat-onboarding) {
+  background: var(--app-wizard-bg);
+}
+
 .page-title {
   margin-bottom: var(--space-6);
 
@@ -67,11 +71,11 @@
     width: 100px;
 
     .logo-preview {
-      width: 80px; height: 80px; border-radius: var(--radius-sm);
+      width: 80px; height: 80px; border-radius: 50%;
       border: 1px solid var(--app-line); background: var(--app-bg-warm);
       display: flex; align-items: center; justify-content: center; overflow: hidden;
 
-      img { width: 100%; height: 100%; object-fit: contain; }
+      img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
       ion-icon { font-size: 32px; color: var(--app-text-muted); }
     }
   }
@@ -95,10 +99,13 @@
   text-align: center;
 
   .hour-col {
-    padding: var(--space-3) var(--space-1);
+    padding: var(--space-2) var(--space-1);
     border-radius: var(--radius-sm);
     background: var(--app-bg-warm);
     border: 1px solid var(--app-hairline-warm);
+
+    .field-label { font-size: 11px; }
+    .field-value { font-size: 13px; }
   }
 }
 
@@ -329,7 +336,7 @@
   overflow: hidden; background: var(--app-surface);
   box-shadow: var(--shadow-sm); flex-shrink: 0;
 
-  .store-logo-img { width: 100%; height: 100%; object-fit: contain; }
+   .store-logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 }
 
 .store-logo-placeholder-round {

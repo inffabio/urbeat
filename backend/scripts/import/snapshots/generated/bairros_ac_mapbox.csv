@@ -1,0 +1,209 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+AC,1200013,Acrelândia,Centro,centro,-10.0766449,-67.0557741,brasil_aberto_first_street,True
+AC,1200054,Assis Brasil,Centro,centro,-10.938799,-69.5662391,brasil_aberto_first_street,True
+AC,1200054,Assis Brasil,Terra Indígena Mamoadate,terra indigena mamoadate,,,dne,True
+AC,1200104,Brasiléia,Centro,centro,-11.0157243,-68.7501181,brasil_aberto_first_street,True
+AC,1200138,Bujari,Área Rural de Bujari,area rural de bujari,-9.831164,-67.95274,mapbox_geocoding,True
+AC,1200138,Bujari,Centro,centro,-9.827951,-67.950368,mapbox_geocoding,True
+AC,1200138,Bujari,Cerâmica,ceramica,-9.827159,-67.955192,mapbox_geocoding,True
+AC,1200138,Bujari,Ely Papainnaro,ely papainnaro,-9.832875,-67.950463,mapbox_geocoding,True
+AC,1200138,Bujari,Floresta,floresta,-9.831164,-67.95274,mapbox_geocoding,True
+AC,1200138,Bujari,Gama,gama,-9.831865,-67.93841,mapbox_geocoding,True
+AC,1200138,Bujari,João Doca,joao doca,-9.975861,-67.825732,mapbox_geocoding,True
+AC,1200138,Bujari,Judite,judite,-9.831193,-67.951828,mapbox_geocoding,True
+AC,1200138,Bujari,Loteamento Lins,loteamento lins,-9.839732,-67.947031,mapbox_geocoding,True
+AC,1200138,Bujari,Loteamento Recanto Gaúcho,loteamento recanto gaucho,-7.600935,-72.663147,mapbox_geocoding,True
+AC,1200138,Bujari,Quintais Florestais,quintais florestais,-9.939143,-67.805811,mapbox_geocoding,True
+AC,1200138,Bujari,Raimundo Leão,raimundo leao,-9.831865,-67.93841,mapbox_geocoding,True
+AC,1200138,Bujari,Raimundo Nonato,raimundo nonato,-9.68587,-68.284609,mapbox_geocoding,True
+AC,1200138,Bujari,Residencial Açaí,residencial acai,-9.996003,-67.791538,mapbox_geocoding,True
+AC,1200138,Bujari,Rui Lino,rui lino,-9.820604,-67.955595,mapbox_geocoding,True
+AC,1200138,Bujari,Segundo Distrito,segundo distrito,-9.834665,-67.963384,mapbox_geocoding,True
+AC,1200179,Capixaba,Área Rural de Capixaba,area rural de capixaba,-10.572051,-67.6752,mapbox_geocoding,True
+AC,1200179,Capixaba,Centro,centro,-10.5755868,-67.677846,brasil_aberto_first_street,True
+AC,1200179,Capixaba,Conquista,conquista,-10.577066,-67.679954,mapbox_geocoding,True
+AC,1200179,Capixaba,Edson Barbosa,edson barbosa,-10.571162,-67.678542,mapbox_geocoding,True
+AC,1200179,Capixaba,Edson Barbosa 2,edson barbosa 2,-24.96284,-53.401433,mapbox_geocoding,True
+AC,1200179,Capixaba,Hélio Tessinari,helio tessinari,-10.573837,-67.675389,mapbox_geocoding,True
+AC,1200179,Capixaba,Paraíso,paraiso,-10.573886,-67.672822,mapbox_geocoding,True
+AC,1200179,Capixaba,Quixadamorim,quixadamorim,-10.573837,-67.675389,mapbox_geocoding,True
+AC,1200203,Cruzeiro do Sul,Centro,centro,-7.635309899999999,-72.66666839999999,brasil_aberto_first_street,True
+AC,1200252,Epitaciolândia,Centro,centro,-11.0253173,-68.7454805,brasil_aberto_first_street,True
+AC,1200302,Feijó,Centro,centro,-8.1638974,-70.3539752,brasil_aberto_first_street,True
+AC,1200302,Feijó,Terra Indígena Alto Tarauacá,terra indigena alto tarauaca,,,dne,True
+AC,1200302,Feijó,Terra Indígena Kampa e Isolados do Rio Envira,terra indigena kampa e isolados do rio envira,,,dne,True
+AC,1200302,Feijó,Terra Indígena Kaxinawá do Rio Humaitá,terra indigena kaxinawa do rio humaita,,,dne,True
+AC,1200302,Feijó,Terra Indígena Kulina do Rio Envira,terra indigena kulina do rio envira,,,dne,True
+AC,1200302,Feijó,Terra Indígena Riozinho do Alto Envira,terra indigena riozinho do alto envira,,,dne,True
+AC,1200328,Jordão,Centro,centro,-9.1901084,-71.9505625,brasil_aberto_first_street,True
+AC,1200328,Jordão,Terra Indígena Alto Tarauacá,terra indigena alto tarauaca,,,dne,True
+AC,1200328,Jordão,Terra Indígena Igarapé Taboca do Alto Tarauacá,terra indigena igarape taboca do alto tarauaca,,,dne,True
+AC,1200336,Mâncio Lima,Centro,centro,-7.6113613,-72.90428469999999,brasil_aberto_first_street,True
+AC,1200344,Manoel Urbano,Centro,centro,-8.8369498,-69.2581703,brasil_aberto_first_street,True
+AC,1200351,Marechal Thaumaturgo,Centro,centro,-8.947882,-72.7893354,brasil_aberto_first_street,True
+AC,1200385,Plácido de Castro,Campinas,campinas,-10.0628287,-67.2991298,brasil_aberto_first_street,True
+AC,1200385,Plácido de Castro,Centro,centro,-10.3320082,-67.1865652,brasil_aberto_first_street,True
+AC,1200393,Porto Walter,Centro,centro,-8.267181,-72.742623,mapbox_geocoding,True
+AC,1200401,Rio Branco,7º BEC,7o bec,-9.9633299,-67.8429613,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Abraão Alab,abraao alab,-9.972254,-67.8246318,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Adalberto Aragão,adalberto aragao,-9.9588844,-67.7903216,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Aeroporto Velho,aeroporto velho,-9.9889992,-67.8223132,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Alto Alegre,alto alegre,-9.9255711,-67.8263182,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Amapá,amapa,-10.011924,-67.834896,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Área Rural de Rio Branco,area rural de rio branco,-9.9740249,-67.8098191,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Areal,areal,-10.0001638,-67.8004215,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Aviário,aviario,-9.9659182,-67.8054938,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Ayrton Senna,ayrton senna,-9.9977082,-67.8263812,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Bahia Nova,bahia nova,-9.9929828,-67.8300212,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Bahia Velha,bahia velha,-9.9888745,-67.83089749999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Baixa da Colina,baixa da colina,-9.9626662,-67.8008654,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Baixada da Cadeia Velha,baixada da cadeia velha,-9.9716301,-67.7927789,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Baixada da Habitasa,baixada da habitasa,-9.9726072,-67.800586,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Base,base,-9.9735918,-67.7973082,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Belo Jardim I,belo jardim i,-10.0114355,-67.7703739,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Belo Jardim II,belo jardim ii,-10.0010648,-67.77054,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Boa Esperança,boa esperanca,-9.9544462,-67.8235268,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Boa União,boa uniao,-9.995457,-67.82901919999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Boa Vista,boa vista,-10.0042572,-67.8412563,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Bosque,bosque,-9.962012,-67.8200495,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Cadeia Velha,cadeia velha,-9.9716301,-67.7927789,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Calafate,calafate,-9.9775976,-67.8849361,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Capoeira,capoeira,-9.9716607,-67.8065166,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Casa Nova,casa nova,-9.9616087,-67.7993199,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Centro,centro,-9.9733832,-67.8083662,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Cerâmica,ceramica,-9.9726072,-67.800586,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Chácara Ipê,chacara ipe,-9.9659339,-67.8734472,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Chico Mendes,chico mendes,-9.9434153,-67.8093846,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Cidade do Povo,cidade do povo,-10.0243585,-67.75202519999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Cidade Nova,cidade nova,-9.9785008,-67.8137776,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Comara,comara,-10.001692,-67.8164913,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Adalberto Sena,conjunto adalberto sena,-9.9317489,-67.822649,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Bela Vista,conjunto bela vista,-9.9753505,-67.8339229,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Castelo Branco,conjunto castelo branco,-9.9788133,-67.828433,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Esperança,conjunto esperanca,-9.971867,-67.8367232,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Guiomard Santos,conjunto guiomard santos,-9.9580695,-67.8077311,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Habitar Brasil,conjunto habitar brasil,-9.9737404,-67.8487158,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Jardim São Francisco,conjunto jardim sao francisco,-9.9640808,-67.7971301,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Jardim Universitário,conjunto jardim universitario,-9.9627911,-67.8754401,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Laélia Alcântara,conjunto laelia alcantara,-9.9866135,-67.8862895,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Manoel Julião,conjunto manoel juliao,-9.9561869,-67.8337744,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Mariana,conjunto mariana,-9.956278,-67.8500296,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Mascarenhas de Moraes,conjunto mascarenhas de moraes,-9.971611099999999,-67.82791689999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Oscar Passos,conjunto oscar passos,-9.9533164,-67.8009163,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Ouricurí,conjunto ouricuri,-9.9364977,-67.8015149,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Paulo César de Oliveira,conjunto paulo cesar de oliveira,-9.9595811,-67.8466625,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Rui Lino,conjunto rui lino,-9.9491766,-67.8533013,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Tucumã,conjunto tucuma,-9.9478638,-67.860669,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conjunto Universitário,conjunto universitario,-9.9468583,-67.8786454,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Conquista,conquista,-9.9485843,-67.8331177,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Defesa Civil,defesa civil,-9.9356611,-67.8366686,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Distrito Industrial,distrito industrial,-9.9423699,-67.87267659999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Doca Furtado,doca furtado,-9.9669755,-67.8340447,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Dom Giocondo,dom giocondo,-9.9705387,-67.8156997,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Eldorado,eldorado,-9.9385665,-67.795875,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Estação Experimental,estacao experimental,-9.9680755,-67.8293599,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Floresta Sul,floresta sul,-9.9892781,-67.8392001,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Geraldo Fleming,geraldo fleming,-15.242267,-58.11477,mapbox_geocoding,True
+AC,1200401,Rio Branco,Glória,gloria,-9.9919646,-67.8212691,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Habitasa,habitasa,-9.9726072,-67.800586,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Horto Florestal,horto florestal,-9.9462829,-67.8253327,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Ilson Ribeiro,ilson ribeiro,-9.9870095,-67.8896098,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Invasão da Seis de Agosto,invasao da seis de agosto,-9.975584,-67.82291,mapbox_geocoding,True
+AC,1200401,Rio Branco,Ipase,ipase,-9.9710973,-67.8099838,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Irineu Serra,irineu serra,-9.93202,-67.8546241,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Isaura Parente,isaura parente,-9.9619745,-67.8200729,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Ivete Vargas,ivete vargas,-9.9748648,-67.8237259,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim América,jardim america,-9.9521599,-67.8241643,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Brasil,jardim brasil,-9.9494496,-67.8488411,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim de Alah,jardim de alah,-9.9629782,-67.8536255,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Europa,jardim europa,-9.9684047,-67.8509447,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Manoel Julião,jardim manoel juliao,-9.9570028,-67.8224818,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Nazle,jardim nazle,-9.9689142,-67.8249802,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Primavera,jardim primavera,-9.9571844,-67.8544803,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jardim Tropical,jardim tropical,-9.943965,-67.8130495,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,João Eduardo I,joao eduardo i,-9.981492,-67.8350128,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,João Eduardo II,joao eduardo ii,-9.9842611,-67.8363729,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,João Paulo,joao paulo,-9.9756615,-67.8842365,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Jorge Lavocat,jorge lavocat,-9.9278456,-67.8422377,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,José Augusto,jose augusto,-9.9657061,-67.8107237,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,LBA Vila Betel ll,lba vila betel ll,-10.052445,-67.768088,mapbox_geocoding,True
+AC,1200401,Rio Branco,Loteamento dos Engenheiros,loteamento dos engenheiros,-9.9740249,-67.8098191,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Ipanema,loteamento ipanema,-9.9740249,-67.8098191,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Isaura Parente,loteamento isaura parente,-9.9586755,-67.8373965,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Jaguar,loteamento jaguar,-9.9308387,-67.805867,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Jardim São Francisco,loteamento jardim sao francisco,-9.9453004,-67.7889263,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Joafra,loteamento joafra,-9.983105,-67.740701,mapbox_geocoding,True
+AC,1200401,Rio Branco,Loteamento Novo Horizonte,loteamento novo horizonte,-9.9381326,-67.8311753,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Santa Helena,loteamento santa helena,-10.0147444,-67.7955516,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Santa Luzia,loteamento santa luzia,-9.9287359,-67.8131698,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Santo Afonso,loteamento santo afonso,-10.0181715,-67.7828555,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Loteamento Vila Maria,loteamento vila maria,-9.931230399999999,-67.87933389999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Mocinha Magalhães,mocinha magalhaes,-9.9413544,-67.8619541,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Montanhês,montanhes,-9.9213113,-67.8331303,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Morada do Sol,morada do sol,-9.942952,-67.798113,mapbox_geocoding,True
+AC,1200401,Rio Branco,Nova Esperança,nova esperanca,-9.9747322,-67.8405155,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Nova Estação,nova estacao,-9.9572576,-67.8271268,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Novo Horizonte,novo horizonte,-9.9792845,-67.8362168,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Palheiral,palheiral,-9.9463699,-67.8147529,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Papouco,papouco,-9.9737927,-67.8121174,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Parque das Palmeiras,parque das palmeiras,-9.9570821,-67.8405125,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Parque dos Sabiás,parque dos sabias,-10.000693,-67.787905,mapbox_geocoding,True
+AC,1200401,Rio Branco,Paz,paz,-9.9503401,-67.8459605,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Pedro Roseno,pedro roseno,-9.9657459,-67.8551892,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Pista,pista,-9.9889511,-67.8231161,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Placas,placas,-9.901904,-67.663326,mapbox_geocoding,True
+AC,1200401,Rio Branco,Plácido de Castro,placido de castro,-10.0001933,-67.8409268,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Portal da Amazônia,portal da amazonia,-9.9736637,-67.8697304,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Preventório,preventorio,-9.97646,-67.822306,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Quinze,quinze,-9.9853282,-67.81573039999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Raimundo Melo,raimundo melo,-9.9431382,-67.8190301,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Recanto dos Buritis,recanto dos buritis,-10.0058841,-67.7932525,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Residencial Araçá,residencial araca,-9.979054099999999,-67.8467023,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Residencial Iolanda,residencial iolanda,-9.9578465,-67.8373531,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Residencial Petrópolis,residencial petropolis,-9.9600831,-67.8459406,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Rosa Linda,rosa linda,-10.0212731,-67.7710434,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Santa Inês,santa ines,-10.0098828,-67.7743409,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Santa Quitéria,santa quiteria,-9.9493938,-67.8246899,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,São Francisco,sao francisco,-9.951511,-67.8047266,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Seis de Agosto,seis de agosto,-9.979696,-67.805747,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Sobral,sobral,-9.997469,-67.797391,mapbox_geocoding,True
+AC,1200401,Rio Branco,Tancredo Neves,tancredo neves,-9.9317277,-67.8323437,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Tangará,tangara,-9.9651357,-67.8396205,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Taquarí,taquari,-10.001692,-67.8164913,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Triângulo Novo,triangulo novo,-9.992486099999999,-67.8100753,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Triângulo Velho,triangulo velho,-9.9890736,-67.8099609,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Acre,vila acre,-10.048268,-67.7945691,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Aeroporto,vila aeroporto,-9.9740249,-67.8098191,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Albert Sampaio,vila albert sampaio,-9.9419866,-67.7977642,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Custódio Freire,vila custodio freire,-9.9170795,-67.8887038,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila da Amizade,vila da amizade,-10.0282328,-67.798715,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila do DNER,vila do dner,-9.986972,-67.8066748,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Ivonete,vila ivonete,-9.9497181,-67.8245438,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Liberdade,vila liberdade,-9.9354105,-67.81805849999999,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Nova,vila nova,-9.9410627,-67.826417,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Santa Cecília,vila santa cecilia,-10.0185503,-67.7174497,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vila Verde,vila verde,-9.9493881,-67.82420770000002,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vilage Tiradentes,vilage tiradentes,-9.9794308,-67.8554882,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vilage Wilde Maciel,vilage wilde maciel,-9.9513299,-67.8241953,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Vitória,vitoria,-9.9489053,-67.8025146,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Volta Seca,volta seca,-9.9804718,-67.8234944,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Waldemar Maciel,waldemar maciel,-9.9814238,-67.8712711,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Wanderley Dantas,wanderley dantas,-9.9366984,-67.8232321,brasil_aberto_first_street,True
+AC,1200401,Rio Branco,Xavier Maia,xavier maia,-9.9324103,-67.8177168,brasil_aberto_first_street,True
+AC,1200427,Rodrigues Alves,Centro,centro,-7.735627600000001,-72.6514181,brasil_aberto_first_street,True
+AC,1200435,Santa Rosa do Purus,Centro,centro,-9.4402099,-70.4888702,brasil_aberto_first_street,True
+AC,1200435,Santa Rosa do Purus,Terra Indígena Riozinho do Alto Envira,terra indigena riozinho do alto envira,,,dne,True
+AC,1200450,Senador Guiomard,Centro,centro,-10.1542814,-67.7380305,brasil_aberto_first_street,True
+AC,1200500,Sena Madureira,Centro,centro,-9.0680022,-68.6572002,brasil_aberto_first_street,True
+AC,1200500,Sena Madureira,Terra Indígena Mamoadate,terra indigena mamoadate,,,dne,True
+AC,1200609,Tarauacá,Centro,centro,-8.1582964,-70.7711312,brasil_aberto_first_street,True
+AC,1200708,Xapuri,Centro,centro,-10.6527656,-68.5046574,brasil_aberto_first_street,True
+AC,1200807,Porto Acre,Área Rural de Porto Acre,area rural de porto acre,-9.589175,-67.53309,mapbox_geocoding,True
+AC,1200807,Porto Acre,Centro,centro,-9.589175,-67.53309,mapbox_geocoding,True
+AC,1200807,Porto Acre,Coronel José Galdino,coronel jose galdino,-9.590356,-67.54215,mapbox_geocoding,True
+AC,1200807,Porto Acre,Livramento,livramento,-9.596305,-67.546683,mapbox_geocoding,True
+AC,1200807,Porto Acre,Nova Porto Acre,nova porto acre,-9.587735,-67.536858,mapbox_geocoding,True
+AC,1200807,Porto Acre,Ulisses Guimarães,ulisses guimaraes,-9.594279,-67.541458,mapbox_geocoding,True
+AC,1200807,Porto Acre,Vila Caquetá,vila caqueta,-9.781496,-67.367979,mapbox_geocoding,True
+AC,1200807,Porto Acre,Vila do Incra,vila do incra,-9.589175,-67.53309,mapbox_geocoding,True
+AC,1200807,Porto Acre,Vila do V,vila do v,-9.676624,-67.742807,mapbox_geocoding,True

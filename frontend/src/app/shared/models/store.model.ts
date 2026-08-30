@@ -76,9 +76,6 @@ export interface CreateStoreRequest {
   phoneNumber: string;
   document?: string;
   pixKey?: string;
-  instagramUrl?: string;
-  facebookUrl?: string;
-  tikTokUrl?: string;
   websiteUrl?: string;
   description?: string;
   cuisineType: string;
@@ -101,15 +98,14 @@ export interface StoreResponse {
   phoneNumber: string;
   document?: string;
   pixKey?: string;
-  instagramUrl?: string;
-  facebookUrl?: string;
-  tikTokUrl?: string;
   websiteUrl?: string;
   description: string;
   cuisineType: string;
   bannerUrl?: string;
   logoUrl?: string;
   isOpen: boolean;
+  isOpenNow?: boolean;
+  nextStatusChangeAt?: string;
   isSubscriptionBlocked: boolean;
   supportsDelivery: boolean;
   supportsPickup: boolean;
@@ -146,8 +142,6 @@ export interface StoreDeliveryArea {
   id?: string;
   neighborhood: string;
   deliveryFee: number;
-  minimumOrderValue?: number;
-  freeShippingThreshold?: number | null;
   isActive?: boolean;
   notes?: string;
 }
@@ -230,7 +224,7 @@ export interface StorePublishSummary {
     logoUrl: string | null;
     bannerUrl: string | null;
   };
-  businessHours: { dayOfWeek: number; opensAt: string; closesAt: string }[];
+  businessHours: BusinessHour[];
   deliveryFees: { baseFee: number; minimumOrderValue: number; estimatedTimeMin: string; freeShippingThreshold?: number | null };
   deliveryAreas: { name: string; deliveryFee: number }[];
   rules: {

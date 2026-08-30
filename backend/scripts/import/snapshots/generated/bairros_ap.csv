@@ -1,0 +1,111 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+AP,1600055,Serra do Navio,Centro,centro,,,dne,True
+AP,1600055,Serra do Navio,Vila Primária,vila primaria,0.9017109999999999,-52.0033808,brasil_aberto_first_street,True
+AP,1600105,Amapá,Centro,centro,0.0157011,-51.0637733,brasil_aberto_first_street,True
+AP,1600105,Amapá,Sucuriju,sucuriju,,,dne,True
+AP,1600154,Pedra Branca do Amapari,Centro,centro,0.7772999,-51.9529765,brasil_aberto_first_street,True
+AP,1600204,Calçoene,Centro,centro,2.4929117,-50.9483435,brasil_aberto_first_street,True
+AP,1600204,Calçoene,Cunani,cunani,,,dne,True
+AP,1600204,Calçoene,Lourenço,lourenco,2.3065278,-51.6363977,brasil_aberto_first_street,True
+AP,1600204,Calçoene,Vila Carnot,vila carnot,,,brasil_aberto,True
+AP,1600212,Cutias,Centro,centro,0.9710291,-50.8006691,brasil_aberto_first_street,True
+AP,1600238,Ferreira Gomes,Centro,centro,0.8561197,-51.1835277,brasil_aberto_first_street,True
+AP,1600238,Ferreira Gomes,Paredão,paredao,,,dne,True
+AP,1600253,Itaubal,Centro,centro,-19.919168,-43.9386558,brasil_aberto_first_street,True
+AP,1600279,Laranjal do Jari,Agreste,agreste,-0.8447296,-52.5240434,brasil_aberto_first_street,True
+AP,1600279,Laranjal do Jari,Boca do Jari,boca do jari,,,dne,True
+AP,1600303,Macapá,Abacate da Pedreira,abacate da pedreira,,,dne,True
+AP,1600303,Macapá,Alvorada,alvorada,0.034596,-51.099936,brasil_aberto_first_street,True
+AP,1600303,Macapá,Ambé,ambe,,,dne,True
+AP,1600303,Macapá,Araxá,araxa,0.0097852,-51.06100464,brasil_aberto_first_street,True
+AP,1600303,Macapá,Área Rural de Macapá,area rural de macapa,,,dne,True
+AP,1600303,Macapá,Ariri,ariri,,,dne,True
+AP,1600303,Macapá,Bailique,bailique,,,dne,True
+AP,1600303,Macapá,Beirol,beirol,0.0208128,-51.0632536,brasil_aberto_first_street,True
+AP,1600303,Macapá,Boné Azul,bone azul,0.0982588,-51.0631542,brasil_aberto_first_street,True
+AP,1600303,Macapá,Brasil Novo,brasil novo,0.0961725,-51.0872596,brasil_aberto_first_street,True
+AP,1600303,Macapá,Buritizal,buritizal,0.0213285,-51.0714936,brasil_aberto_first_street,True
+AP,1600303,Macapá,Cabralzinho,cabralzinho,0.0272361,-51.1107169,brasil_aberto_first_street,True
+AP,1600303,Macapá,Cantanzal,cantanzal,,,dne,True
+AP,1600303,Macapá,Carmo,carmo,,,dne,True
+AP,1600303,Macapá,Central,central,0.035908,-51.0502615,brasil_aberto_first_street,True
+AP,1600303,Macapá,Cidade Nova,cidade nova,0.0558723,-51.04316711,brasil_aberto_first_street,True
+AP,1600303,Macapá,Congós,congos,0.0085552,-51.0955337,brasil_aberto_first_street,True
+AP,1600303,Macapá,Corre Água,corre agua,,,dne,True
+AP,1600303,Macapá,Curiaú,curiau,,,dne,True
+AP,1600303,Macapá,Doutora Mércia,doutora mercia,,,dne,True
+AP,1600303,Macapá,Fazendinha,fazendinha,-0.0471668,-51.1158061,brasil_aberto_first_street,True
+AP,1600303,Macapá,Gaivota,gaivota,,,dne,True
+AP,1600303,Macapá,Goiabal,goiabal,0.0348484,-51.1226844,brasil_aberto_first_street,True
+AP,1600303,Macapá,Gurupora,gurupora,,,dne,True
+AP,1600303,Macapá,Igarapé das Armas,igarape das armas,,,dne,True
+AP,1600303,Macapá,Inajá,inaja,,,dne,True
+AP,1600303,Macapá,Infraero,infraero,0.070023,-51.0685664,brasil_aberto_first_street,True
+AP,1600303,Macapá,Jardim Equatorial,jardim equatorial,0.08223,-51.0741141,brasil_aberto_first_street,True
+AP,1600303,Macapá,Jardim Felicidade,jardim felicidade,0.0923228,-51.0604372,brasil_aberto_first_street,True
+AP,1600303,Macapá,Jardim Marco Zero,jardim marco zero,0.0006835,-51.077389,brasil_aberto_first_street,True
+AP,1600303,Macapá,Jesus de Nazaré,jesus de nazare,0.0497687,-51.0635834,brasil_aberto_first_street,True
+AP,1600303,Macapá,Julião Ramos,juliao ramos,0.0492772,-51.0563641,brasil_aberto_first_street,True
+AP,1600303,Macapá,Lagoa Azul,lagoa azul,0.0926345,-51.1072263,brasil_aberto_first_street,True
+AP,1600303,Macapá,Livramento do Pacuí,livramento do pacui,,,dne,True
+AP,1600303,Macapá,Loteamento Açaí,loteamento acai,,,brasil_aberto,True
+AP,1600303,Macapá,Marabaixo,marabaixo,0.0478694,-51.1105368,brasil_aberto_first_street,True
+AP,1600303,Macapá,Marabaixo 3,marabaixo 3,,,dne,True
+AP,1600303,Macapá,Muca,muca,0.0120562,-51.0710208,brasil_aberto_first_street,True
+AP,1600303,Macapá,Muruci (Fazendinha),muruci fazendinha,-0.0420473,-51.0932667,brasil_aberto_first_street,True
+AP,1600303,Macapá,Nova Esperança,nova esperanca,0.0286514,-51.0822193,brasil_aberto_first_street,True
+AP,1600303,Macapá,Novo Bosque,novo bosque,,,dne,True
+AP,1600303,Macapá,Novo Buritizal,novo buritizal,0.0212833,-51.0877102,brasil_aberto_first_street,True
+AP,1600303,Macapá,Novo Horizonte,novo horizonte,0.1016437,-51.0498424,brasil_aberto_first_street,True
+AP,1600303,Macapá,Pacoval,pacoval,0.0604012,-51.0504056,brasil_aberto_first_street,True
+AP,1600303,Macapá,Pantanal,pantanal,0.0683085,-51.0485196,brasil_aberto_first_street,True
+AP,1600303,Macapá,Pedrinhas,pedrinhas,-0.0075245,-51.0951718,brasil_aberto_first_street,True
+AP,1600303,Macapá,Perpétuo Socorro,perpetuo socorro,0.0495665,-51.0448151,brasil_aberto_first_street,True
+AP,1600303,Macapá,Renascer,renascer,0.0766242,-51.0471018,brasil_aberto_first_street,True
+AP,1600303,Macapá,Santa Inês,santa ines,0.0197442,-51.0587161,brasil_aberto_first_street,True
+AP,1600303,Macapá,Santa Luzia do Pacuí,santa luzia do pacui,,,dne,True
+AP,1600303,Macapá,Santa Maria,santa maria,,,dne,True
+AP,1600303,Macapá,Santa Rita,santa rita,0.0376968,-51.0755644,brasil_aberto_first_street,True
+AP,1600303,Macapá,São Joaquim do Pacuí,sao joaquim do pacui,,,dne,True
+AP,1600303,Macapá,São José,sao jose,0.0268351,-51.1478001,brasil_aberto_first_street,True
+AP,1600303,Macapá,São Lázaro,sao lazaro,0.0689858,-51.0554808,brasil_aberto_first_street,True
+AP,1600303,Macapá,São Sebastião do Livramento,sao sebastiao do livramento,,,dne,True
+AP,1600303,Macapá,São Tomé,sao tome,,,dne,True
+AP,1600303,Macapá,Trem,trem,0.0323973,-51.0655598,brasil_aberto_first_street,True
+AP,1600303,Macapá,Universidade,universidade,-0.0075801,-51.08908463,brasil_aberto_first_street,True
+AP,1600303,Macapá,Zerão,zerao,-0.0014352,-51.0937467,brasil_aberto_first_street,True
+AP,1600402,Mazagão,Mazagão,mazagao,-0.1187622,-51.28689575,brasil_aberto_first_street,True
+AP,1600402,Mazagão,Mazagão Velho,mazagao velho,,,dne,True
+AP,1600402,Mazagão,Vila Carvão,vila carvao,,,brasil_aberto,True
+AP,1600402,Mazagão,Vila de Mazagão Velho,vila de mazagao velho,,,brasil_aberto,True
+AP,1600501,Oiapoque,Centro,centro,3.8442665,-51.8349298,brasil_aberto_first_street,True
+AP,1600501,Oiapoque,Clevelândia do Norte,clevelandia do norte,,,dne,True
+AP,1600501,Oiapoque,Vila Velha,vila velha,,,dne,True
+AP,1600535,Porto Grande,Centro,centro,0.70898461,-51.41467667,brasil_aberto_first_street,True
+AP,1600550,Pracuúba,Centro,centro,1.7437127,-50.7856693,brasil_aberto_first_street,True
+AP,1600600,Santana,Acquaville,acquaville,,,dne,True
+AP,1600600,Santana,Central,central,-0.037102,-51.1736537,brasil_aberto_first_street,True
+AP,1600600,Santana,Comercial,comercial,-0.0572448,-51.1776977,brasil_aberto_first_street,True
+AP,1600600,Santana,Comunidade Igarapé Buritizal,comunidade igarape buritizal,,,dne,True
+AP,1600600,Santana,Daniel,daniel,-0.0566474,-51.1606907,brasil_aberto_first_street,True
+AP,1600600,Santana,Distrito Industrial,distrito industrial,-0.0241287,-51.1796572,brasil_aberto_first_street,True
+AP,1600600,Santana,Elesbão,elesbao,-0.0421081,-51.1868423,brasil_aberto_first_street,True
+AP,1600600,Santana,Equador,equador,,,dne,True
+AP,1600600,Santana,Fé em Deus,fe em deus,-0.051065,-51.178517,brasil_aberto_first_street,True
+AP,1600600,Santana,Fonte Nova,fonte nova,-0.0206011,-51.171489,brasil_aberto_first_street,True
+AP,1600600,Santana,Fortaleza,fortaleza,-0.0472443,-51.1435944,brasil_aberto_first_street,True
+AP,1600600,Santana,Hospitalidade,hospitalidade,-0.0482855,-51.1745665,brasil_aberto_first_street,True
+AP,1600600,Santana,Igarapé do Lago,igarape do lago,,,dne,True
+AP,1600600,Santana,Ilha de Santana,ilha de santana,-0.0676977,-51.1752331,brasil_aberto_first_street,True
+AP,1600600,Santana,Jardim de Deus,jardim de deus,,,dne,True
+AP,1600600,Santana,Jardim Floresta,jardim floresta,,,dne,True
+AP,1600600,Santana,Nova Brasília,nova brasilia,-0.0362156,-51.1637524,brasil_aberto_first_street,True
+AP,1600600,Santana,Novo Horizonte,novo horizonte,-0.0561849,-51.1633584,brasil_aberto_first_street,True
+AP,1600600,Santana,Paraíso,paraiso,-0.0283882,-51.1664437,brasil_aberto_first_street,True
+AP,1600600,Santana,Provedor,provedor,-0.0458218,-51.1508231,brasil_aberto_first_street,True
+AP,1600600,Santana,Provedor I,provedor i,-0.04192170000000001,-51.1576669,brasil_aberto_first_street,True
+AP,1600600,Santana,Remédios,remedios,-0.0439759,-51.1606514,brasil_aberto_first_street,True
+AP,1600600,Santana,Vila Amazonas,vila amazonas,-0.0537935,-51.1575929,brasil_aberto_first_street,True
+AP,1600709,Tartarugalzinho,Aporema,aporema,,,dne,True
+AP,1600709,Tartarugalzinho,Centro,centro,1.50127399,-50.91027069,brasil_aberto_first_street,True
+AP,1600808,Vitória do Jari,Centro,centro,-0.9311653999999999,-52.4194561,brasil_aberto_first_street,True

@@ -1,0 +1,480 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+AL,2700102,Água Branca,Centro,centro,-9.26320267,-37.93622971,brasil_aberto_first_street,True
+AL,2700201,Anadia,Centro,centro,-9.683845,-36.3041835,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Alazão,alazao,-9.7883658,-36.6344773,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Alto do Cruzeiro,alto do cruzeiro,-9.7493115,-36.6501539,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Área Rural de Arapiraca,area rural de arapiraca,-9.7555596,-36.6639697,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Baixa da Onça,baixa da onca,,,dne,True
+AL,2700300,Arapiraca,Baixa do Capim,baixa do capim,,,dne,True
+AL,2700300,Arapiraca,Baixa Grande,baixa grande,-9.7298318,-36.675692,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Baixão,baixao,-9.7484613,-36.6725095,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Bálsamo,balsamo,,,dne,True
+AL,2700300,Arapiraca,Bananeiras,bananeiras,,,dne,True
+AL,2700300,Arapiraca,Batingas,batingas,-9.7593953,-36.6571414,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Boa Vista,boa vista,-9.7805158,-36.635061,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Bom Jardim,bom jardim,,,dne,True
+AL,2700300,Arapiraca,Bom Sucesso,bom sucesso,-9.7208182,-36.6715739,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Brasília,brasilia,-9.75374794,-36.64778519,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Brasiliana,brasiliana,-9.735189199999999,-36.6642592,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Cacimbas,cacimbas,-9.7566255,-36.6651398,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Caititus,caititus,-9.7387641,-36.6552856,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Cajarana,cajarana,,,dne,True
+AL,2700300,Arapiraca,Canaã,canaa,,,dne,True
+AL,2700300,Arapiraca,Canafístula,canafistula,-9.7681419,-36.637916,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Cangandu,cangandu,,,dne,True
+AL,2700300,Arapiraca,Capiatã,capiata,-9.7399544,-36.6623168,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Carrasco,carrasco,,,dne,True
+AL,2700300,Arapiraca,Cavaco,cavaco,-9.7430716,-36.676839,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Centro,centro,-9.7514332,-36.6650689,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Centro (Baixa da Onça),centro baixa da onca,,,dne,True
+AL,2700300,Arapiraca,Deputado Nezinho,deputado nezinho,-9.7555596,-36.6639697,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Eldorado,eldorado,-9.7458804,-36.6695243,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Flexeiras,flexeiras,,,dne,True
+AL,2700300,Arapiraca,Guaribas,guaribas,-9.7794179,-36.6537671,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Itapoã,itapoa,-9.74710941,-36.64588928,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Jardim de Maria,jardim de maria,-9.7352062,-36.6547759,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Jardim Esperança,jardim esperanca,-9.72920609,-36.67776108,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Jardim Tropical,jardim tropical,-9.75897026,-36.6437149,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Jenipapo,jenipapo,,,dne,True
+AL,2700300,Arapiraca,João Paulo II,joao paulo ii,-9.772344,-36.6648738,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Lagoa do Rancho,lagoa do rancho,,,dne,True
+AL,2700300,Arapiraca,Laranjal,laranjal,,,dne,True
+AL,2700300,Arapiraca,Mangabeiras,mangabeiras,,,dne,True
+AL,2700300,Arapiraca,Manuel Teles,manuel teles,-9.756781,-36.6723494,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Massaranduba,massaranduba,,,dne,True
+AL,2700300,Arapiraca,Nova Esperança,nova esperanca,-9.769518,-36.6375024,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Novo Horizonte,novo horizonte,-9.74710941,-36.64588928,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Olho D'Água de Cima,olho d agua de cima,,,dne,True
+AL,2700300,Arapiraca,Olho D'Água dos Cazuzinhas,olho d agua dos cazuzinhas,-9.7687177,-36.673233,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Ouro Preto,ouro preto,-9.749924,-36.6637283,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Padre Antônio Lima Neto,padre antonio lima neto,-9.7647369,-36.6682266,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Pau D'Arco,pau d arco,,,dne,True
+AL,2700300,Arapiraca,Pau Ferro,pau ferro,,,dne,True
+AL,2700300,Arapiraca,Planalto,planalto,-9.7253116,-36.6604417,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Poção,pocao,,,dne,True
+AL,2700300,Arapiraca,Poço da Pedra,poco da pedra,,,dne,True
+AL,2700300,Arapiraca,Poço de Baixo,poco de baixo,,,dne,True
+AL,2700300,Arapiraca,Poço de Santana,poco de santana,,,dne,True
+AL,2700300,Arapiraca,Primavera,primavera,-9.7621996,-36.6610917,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Rio dos Bichos,rio dos bichos,,,dne,True
+AL,2700300,Arapiraca,Santa Edwiges,santa edwiges,-9.73688221,-36.66051865,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Santa Esmeralda,santa esmeralda,-9.74433899,-36.64168549,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,São Luiz,sao luiz,-9.7616407,-36.6401256,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,São Luiz II,sao luiz ii,-9.767785,-36.6535667,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Sapucaia,sapucaia,,,dne,True
+AL,2700300,Arapiraca,Senador Arnon de Melo,senador arnon de melo,-9.7330182,-36.6463958,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Senador Nilo Coelho,senador nilo coelho,-9.7235563,-36.6936337,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Senador Teotônio Vilela,senador teotonio vilela,-9.7451015,-36.6581921,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Taboquinha,taboquinha,,,dne,True
+AL,2700300,Arapiraca,Taquara,taquara,,,dne,True
+AL,2700300,Arapiraca,Varginha,varginha,,,dne,True
+AL,2700300,Arapiraca,Verdes Campos,verdes campos,-9.77924728,-36.65362167,brasil_aberto_first_street,True
+AL,2700300,Arapiraca,Vila Aparecida,vila aparecida,,,dne,True
+AL,2700300,Arapiraca,Vila Capim,vila capim,,,dne,True
+AL,2700300,Arapiraca,Vila Fernandes,vila fernandes,,,dne,True
+AL,2700300,Arapiraca,Vila São Francisco,vila sao francisco,,,dne,True
+AL,2700300,Arapiraca,Zélia Barbosa Rocha,zelia barbosa rocha,-9.7528542,-36.6724342,brasil_aberto_first_street,True
+AL,2700409,Atalaia,Centro,centro,-9.503844,-36.0209811,brasil_aberto_first_street,True
+AL,2700409,Atalaia,Ouricuri,ouricuri,,,dne,True
+AL,2700409,Atalaia,Sapucaia,sapucaia,,,dne,True
+AL,2700508,Barra de Santo Antônio,Centro,centro,-9.4025801,-35.5101561,brasil_aberto_first_street,True
+AL,2700607,Barra de São Miguel,Centro,centro,-9.8310146,-35.8868562,brasil_aberto_first_street,True
+AL,2700706,Batalha,Aguapé,aguape,,,dne,True
+AL,2700706,Batalha,Algaroba,algaroba,,,dne,True
+AL,2700706,Batalha,Alto do Meio,alto do meio,,,dne,True
+AL,2700706,Batalha,Área Rural de Batalha,area rural de batalha,,,dne,True
+AL,2700706,Batalha,Barreiras,barreiras,,,dne,True
+AL,2700706,Batalha,Bebedouro,bebedouro,,,dne,True
+AL,2700706,Batalha,Cajá dos Negros,caja dos negros,,,dne,True
+AL,2700706,Batalha,Capivara,capivara,,,dne,True
+AL,2700706,Batalha,Centro,centro,,,dne,True
+AL,2700706,Batalha,Dionel,dionel,,,dne,True
+AL,2700706,Batalha,Fornos,fornos,,,dne,True
+AL,2700706,Batalha,Galvão,galvao,,,dne,True
+AL,2700706,Batalha,Juazeirinho,juazeirinho,,,dne,True
+AL,2700706,Batalha,Mamoeiro,mamoeiro,,,dne,True
+AL,2700706,Batalha,Manteiga,manteiga,,,dne,True
+AL,2700706,Batalha,Nossa Senhora Aparecida,nossa senhora aparecida,,,dne,True
+AL,2700706,Batalha,Nossa Senhora de Fátima,nossa senhora de fatima,,,dne,True
+AL,2700706,Batalha,Nova Esperança,nova esperanca,,,dne,True
+AL,2700706,Batalha,Pau Ferro,pau ferro,,,dne,True
+AL,2700706,Batalha,Pilões,piloes,,,dne,True
+AL,2700706,Batalha,Piranhas,piranhas,,,dne,True
+AL,2700706,Batalha,Santa Luzia,santa luzia,,,dne,True
+AL,2700706,Batalha,São Francisco,sao francisco,,,dne,True
+AL,2700706,Batalha,São José,sao jose,,,dne,True
+AL,2700706,Batalha,São Pedro,sao pedro,,,dne,True
+AL,2700706,Batalha,Saúde de Baixo,saude de baixo,,,dne,True
+AL,2700706,Batalha,Saúde de Cima,saude de cima,,,dne,True
+AL,2700706,Batalha,Tanquinhos,tanquinhos,,,dne,True
+AL,2700706,Batalha,Timbaúba,timbauba,,,dne,True
+AL,2700805,Belém,Centro,centro,-9.571415,-36.491952,brasil_aberto_first_street,True
+AL,2700904,Belo Monte,Centro,centro,-9.828923099999999,-37.2794848,brasil_aberto_first_street,True
+AL,2701001,Boca da Mata,Centro,centro,-9.64209747,-36.21539688,brasil_aberto_first_street,True
+AL,2701001,Boca da Mata,Peri Peri,peri peri,,,brasil_aberto,True
+AL,2701100,Branquinha,Centro,centro,,,brasil_aberto,True
+AL,2701100,Branquinha,Urbano,urbano,-9.2445293,-36.0132688,brasil_aberto_first_street,True
+AL,2701209,Cacimbinhas,Centro,centro,-9.3994992,-36.9904045,brasil_aberto_first_street,True
+AL,2701308,Cajueiro,Centro,centro,-9.39019012,-36.15475845,brasil_aberto_first_street,True
+AL,2701357,Campestre,Centro,centro,-8.8527412,-35.5675458,brasil_aberto_first_street,True
+AL,2701407,Campo Alegre,Área Rural de Campo Alegre,area rural de campo alegre,,,dne,True
+AL,2701407,Campo Alegre,Bela Vista (Luziápolis),bela vista luziapolis,,,dne,True
+AL,2701407,Campo Alegre,Belo Horizonte,belo horizonte,,,dne,True
+AL,2701407,Campo Alegre,Boa Esperança (Luziápolis),boa esperanca luziapolis,,,dne,True
+AL,2701407,Campo Alegre,Centro,centro,,,dne,True
+AL,2701407,Campo Alegre,Centro (Chã da Imbira),centro cha da imbira,,,dne,True
+AL,2701407,Campo Alegre,Cruzeiro,cruzeiro,,,dne,True
+AL,2701407,Campo Alegre,Luziápolis,luziapolis,,,brasil_aberto,True
+AL,2701407,Campo Alegre,Novo Horizonte (Luziápolis),novo horizonte luziapolis,,,dne,True
+AL,2701407,Campo Alegre,Ozar da Cunha Lima,ozar da cunha lima,,,dne,True
+AL,2701407,Campo Alegre,Pimenteira,pimenteira,-9.7786829,-36.3622076,brasil_aberto_first_street,True
+AL,2701407,Campo Alegre,Santa Luzia (Luziápolis),santa luzia luziapolis,,,dne,True
+AL,2701407,Campo Alegre,São Francisco,sao francisco,,,dne,True
+AL,2701407,Campo Alegre,Sebastião de Oliveira,sebastiao de oliveira,,,dne,True
+AL,2701407,Campo Alegre,Zona Norte,zona norte,,,dne,True
+AL,2701506,Campo Grande,Centro,centro,-9.9560988,-36.7917255,brasil_aberto_first_street,True
+AL,2701605,Canapi,Centro,centro,-9.11717415,-37.60451126,brasil_aberto_first_street,True
+AL,2701704,Capela,Centro,centro,-9.41306019,-36.07603455,brasil_aberto_first_street,True
+AL,2701704,Capela,Santa Efigênia,santa efigenia,,,dne,True
+AL,2701803,Carneiros,Centro,centro,-9.73334599,-36.67293549,brasil_aberto_first_street,True
+AL,2701902,Chã Preta,Centro,centro,-9.2572022,-36.2974725,brasil_aberto_first_street,True
+AL,2702009,Coité do Nóia,Centro,centro,-9.75071049,-36.65764618,brasil_aberto_first_street,True
+AL,2702108,Colônia Leopoldina,Centro,centro,-9.6654966,-35.7362326,brasil_aberto_first_street,True
+AL,2702207,Coqueiro Seco,Centro,centro,-9.63537312,-35.79139328,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Barreiras,barreiras,,,dne,True
+AL,2702306,Coruripe,Bonsucesso,bonsucesso,-10.1249995,-36.1761498,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Botafogo,botafogo,,,dne,True
+AL,2702306,Coruripe,Centro,centro,-10.1277155,-36.17717349999999,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Colônia Pindorama,colonia pindorama,,,dne,True
+AL,2702306,Coruripe,Lagoa do Pau,lagoa do pau,,,dne,True
+AL,2702306,Coruripe,Miaí de Baixo,miai de baixo,,,dne,True
+AL,2702306,Coruripe,Miaí de Cima,miai de cima,,,dne,True
+AL,2702306,Coruripe,Pindorama,pindorama,,,dne,True
+AL,2702306,Coruripe,Pontal de Coruripe,pontal de coruripe,-10.155959,-36.1364908,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Povoado Botafogo,povoado botafogo,-10.1671784,-36.312171,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Poxim,poxim,-10.0541664,-36.0554122,brasil_aberto_first_street,True
+AL,2702306,Coruripe,Santa Terezinha,santa terezinha,,,dne,True
+AL,2702306,Coruripe,Usina Camaçari,usina camacari,,,dne,True
+AL,2702355,Craíbas,Centro,centro,-9.61851501,-36.76879501,brasil_aberto_first_street,True
+AL,2702405,Delmiro Gouveia,Centro,centro,-9.3859777,-37.9987714,brasil_aberto_first_street,True
+AL,2702405,Delmiro Gouveia,Lagoinha,lagoinha,-9.446432999999999,-38.0186948,brasil_aberto_first_street,True
+AL,2702504,Dois Riachos,Centro,centro,-9.3855624,-37.0895347,brasil_aberto_first_street,True
+AL,2702553,Estrela de Alagoas,Alto da Boa Vista,alto da boa vista,,,dne,True
+AL,2702553,Estrela de Alagoas,Área Rural de Estrela de Alagoas,area rural de estrela de alagoas,,,dne,True
+AL,2702553,Estrela de Alagoas,Centro,centro,,,dne,True
+AL,2702553,Estrela de Alagoas,Impueiras,impueiras,,,dne,True
+AL,2702553,Estrela de Alagoas,Lagoa do Canto,lagoa do canto,,,dne,True
+AL,2702553,Estrela de Alagoas,Prefeito Aldaberon Duarte,prefeito aldaberon duarte,,,dne,True
+AL,2702553,Estrela de Alagoas,Renascença,renascenca,,,dne,True
+AL,2702553,Estrela de Alagoas,Serra Bernardino,serra bernardino,,,dne,True
+AL,2702603,Feira Grande,Centro,centro,-9.66700077,-35.73683929,brasil_aberto_first_street,True
+AL,2702702,Feliz Deserto,Centro,centro,-10.2919477,-36.3059798,brasil_aberto_first_street,True
+AL,2702801,Flexeiras,Centro,centro,-9.2764012,-35.7241158,brasil_aberto_first_street,True
+AL,2702900,Girau do Ponciano,Progresso,progresso,-9.883524099999999,-36.8237154,brasil_aberto_first_street,True
+AL,2703007,Ibateguara,Canastra,canastra,,,dne,True
+AL,2703007,Ibateguara,Centro,centro,-23.93201065,-46.33223343,brasil_aberto_first_street,True
+AL,2703106,Igaci,Centro,centro,-9.533591099999999,-36.6298161,brasil_aberto_first_street,True
+AL,2703205,Igreja Nova,Centro,centro,-10.1274849,-36.6566244,brasil_aberto_first_street,True
+AL,2703304,Inhapi,Centro,centro,,,brasil_aberto,True
+AL,2703304,Inhapi,Monte Castelo,monte castelo,-9.2219454,-37.7496937,brasil_aberto_first_street,True
+AL,2703403,Jacaré dos Homens,Centro,centro,-9.63449287,-37.20335007,brasil_aberto_first_street,True
+AL,2703502,Jacuípe,Centro,centro,-8.841107899999999,-35.4561335,brasil_aberto_first_street,True
+AL,2703601,Japaratinga,Boqueirão,boqueirao,,,dne,True
+AL,2703601,Japaratinga,Centro,centro,-9.08794022,-35.25852966,brasil_aberto_first_street,True
+AL,2703700,Jaramataia,Centro,centro,-9.17147827,-37.35528564,brasil_aberto_first_street,True
+AL,2703759,Jequiá da Praia,Centro,centro,-10.0115262,-36.0234852,brasil_aberto_first_street,True
+AL,2703809,Joaquim Gomes,Centro,centro,-9.13707829,-35.7509346,brasil_aberto_first_street,True
+AL,2703908,Jundiá,Centro,centro,-8.9421301,-35.5541047,brasil_aberto_first_street,True
+AL,2704005,Junqueiro,Alto do Sol,alto do sol,,,dne,True
+AL,2704005,Junqueiro,Área Rural de Junqueiro,area rural de junqueiro,,,dne,True
+AL,2704005,Junqueiro,Área Rural de Retiro,area rural de retiro,,,dne,True
+AL,2704005,Junqueiro,Barro Vermelho,barro vermelho,,,dne,True
+AL,2704005,Junqueiro,Centro,centro,,,dne,True
+AL,2704005,Junqueiro,Centro (Retiro),centro retiro,,,dne,True
+AL,2704005,Junqueiro,Dom Henrique Soares,dom henrique soares,,,dne,True
+AL,2704005,Junqueiro,Gilberto Pereira,gilberto pereira,,,dne,True
+AL,2704005,Junqueiro,Ingá,inga,,,dne,True
+AL,2704005,Junqueiro,João José Pereira,joao jose pereira,,,dne,True
+AL,2704005,Junqueiro,Osvaldo Tavares Santos,osvaldo tavares santos,,,dne,True
+AL,2704005,Junqueiro,Retiro,retiro,,,dne,True
+AL,2704005,Junqueiro,Riachão,riachao,,,dne,True
+AL,2704104,Lagoa da Canoa,Centro,centro,-9.828619,-36.7348175,brasil_aberto_first_street,True
+AL,2704203,Limoeiro de Anadia,Alto da Pimenta,alto da pimenta,,,dne,True
+AL,2704203,Limoeiro de Anadia,Alto do Cruzeiro,alto do cruzeiro,,,dne,True
+AL,2704203,Limoeiro de Anadia,Andrequice,andrequice,,,dne,True
+AL,2704203,Limoeiro de Anadia,Área Rural de Limoeiro de Anadia,area rural de limoeiro de anadia,,,dne,True
+AL,2704203,Limoeiro de Anadia,Areia Branca,areia branca,,,dne,True
+AL,2704203,Limoeiro de Anadia,Baixa da Areia,baixa da areia,,,dne,True
+AL,2704203,Limoeiro de Anadia,Baixa Funda,baixa funda,,,dne,True
+AL,2704203,Limoeiro de Anadia,Baixa Seca,baixa seca,,,dne,True
+AL,2704203,Limoeiro de Anadia,Bomsucesso,bomsucesso,,,dne,True
+AL,2704203,Limoeiro de Anadia,Cacimbas,cacimbas,,,dne,True
+AL,2704203,Limoeiro de Anadia,Cadoz,cadoz,,,dne,True
+AL,2704203,Limoeiro de Anadia,Cafundó,cafundo,,,dne,True
+AL,2704203,Limoeiro de Anadia,Cajueiro,cajueiro,,,dne,True
+AL,2704203,Limoeiro de Anadia,Caldeirão,caldeirao,,,dne,True
+AL,2704203,Limoeiro de Anadia,Camadanta,camadanta,,,dne,True
+AL,2704203,Limoeiro de Anadia,Caraíbas,caraibas,,,dne,True
+AL,2704203,Limoeiro de Anadia,Centro,centro,,,dne,True
+AL,2704203,Limoeiro de Anadia,Centro (Pé Leve),centro pe leve,,,dne,True
+AL,2704203,Limoeiro de Anadia,Chã do Arame,cha do arame,,,dne,True
+AL,2704203,Limoeiro de Anadia,Chão do Miranda,chao do miranda,,,dne,True
+AL,2704203,Limoeiro de Anadia,Covos,covos,,,dne,True
+AL,2704203,Limoeiro de Anadia,Enchudia,enchudia,,,dne,True
+AL,2704203,Limoeiro de Anadia,Estivas,estivas,,,dne,True
+AL,2704203,Limoeiro de Anadia,Gameleira,gameleira,,,dne,True
+AL,2704203,Limoeiro de Anadia,Genipapo,genipapo,,,dne,True
+AL,2704203,Limoeiro de Anadia,Jacaré,jacare,,,dne,True
+AL,2704203,Limoeiro de Anadia,Jequiá de Sá,jequia de sa,,,dne,True
+AL,2704203,Limoeiro de Anadia,Mamoeiro,mamoeiro,,,dne,True
+AL,2704203,Limoeiro de Anadia,Miracema,miracema,,,dne,True
+AL,2704203,Limoeiro de Anadia,Mocambom,mocambom,,,dne,True
+AL,2704203,Limoeiro de Anadia,Nicácia,nicacia,,,dne,True
+AL,2704203,Limoeiro de Anadia,Oiti,oiti,,,dne,True
+AL,2704203,Limoeiro de Anadia,Olho D'Água da Pedra,olho d agua da pedra,,,dne,True
+AL,2704203,Limoeiro de Anadia,Papa Farinha,papa farinha,,,dne,True
+AL,2704203,Limoeiro de Anadia,Pau Ferro,pau ferro,,,dne,True
+AL,2704203,Limoeiro de Anadia,Pé Leve Velho,pe leve velho,,,dne,True
+AL,2704203,Limoeiro de Anadia,Periperi,periperi,,,dne,True
+AL,2704203,Limoeiro de Anadia,Poção,pocao,,,dne,True
+AL,2704203,Limoeiro de Anadia,Poço Comprido,poco comprido,,,dne,True
+AL,2704203,Limoeiro de Anadia,Poço da Volta,poco da volta,,,dne,True
+AL,2704203,Limoeiro de Anadia,Seu Soubera,seu soubera,,,dne,True
+AL,2704203,Limoeiro de Anadia,Tamanduá,tamandua,,,dne,True
+AL,2704203,Limoeiro de Anadia,Terra Nova,terra nova,,,dne,True
+AL,2704203,Limoeiro de Anadia,Timbó de Baixo,timbo de baixo,,,dne,True
+AL,2704203,Limoeiro de Anadia,Timbó de Cima,timbo de cima,,,dne,True
+AL,2704203,Limoeiro de Anadia,Tipi,tipi,,,dne,True
+AL,2704203,Limoeiro de Anadia,Urtiga,urtiga,,,dne,True
+AL,2704203,Limoeiro de Anadia,Vale dos Santuários,vale dos santuarios,,,dne,True
+AL,2704203,Limoeiro de Anadia,Varginha,varginha,,,dne,True
+AL,2704203,Limoeiro de Anadia,Vilão,vilao,,,dne,True
+AL,2704302,Maceió,Antares,antares,-9.5463676,-35.733241,brasil_aberto_first_street,True
+AL,2704302,Maceió,Área Rural de Maceió,area rural de maceio,-9.665825,-35.7413274,brasil_aberto_first_street,True
+AL,2704302,Maceió,Barro Duro,barro duro,-9.6234708,-35.7270322,brasil_aberto_first_street,True
+AL,2704302,Maceió,Bebedouro,bebedouro,-9.6258957,-35.7521093,brasil_aberto_first_street,True
+AL,2704302,Maceió,Benedito Bentes,benedito bentes,-9.55847645,-35.73795319,brasil_aberto_first_street,True
+AL,2704302,Maceió,Bom Parto,bom parto,-9.6542353,-35.7410296,brasil_aberto_first_street,True
+AL,2704302,Maceió,Canaã,canaa,-9.60406494,-35.73416901,brasil_aberto_first_street,True
+AL,2704302,Maceió,Centro,centro,-9.65484142,-35.74021912,brasil_aberto_first_street,True
+AL,2704302,Maceió,Chã da Jaqueira,cha da jaqueira,-9.61825943,-35.74641418,brasil_aberto_first_street,True
+AL,2704302,Maceió,Chã de Bebedouro,cha de bebedouro,-9.64024639,-35.71313858,brasil_aberto_first_street,True
+AL,2704302,Maceió,Cidade Universitária,cidade universitaria,-9.5355139,-35.7515791,brasil_aberto_first_street,True
+AL,2704302,Maceió,Clima Bom,clima bom,-9.57716179,-35.78490829,brasil_aberto_first_street,True
+AL,2704302,Maceió,Cruz das Almas,cruz das almas,-9.6330001,-35.7082399,brasil_aberto_first_street,True
+AL,2704302,Maceió,Farol,farol,-9.64848709,-35.73386002,brasil_aberto_first_street,True
+AL,2704302,Maceió,Feitosa,feitosa,-9.63785267,-35.72467422,brasil_aberto_first_street,True
+AL,2704302,Maceió,Fernão Velho,fernao velho,-9.5929031,-35.7781518,brasil_aberto_first_street,True
+AL,2704302,Maceió,Garça Torta,garca torta,-9.58329964,-35.65986252,brasil_aberto_first_street,True
+AL,2704302,Maceió,Gruta de Lourdes,gruta de lourdes,-9.61747074,-35.73059082,brasil_aberto_first_street,True
+AL,2704302,Maceió,Guaxuma,guaxuma,-9.5939634,-35.6743478,brasil_aberto_first_street,True
+AL,2704302,Maceió,Ipioca,ipioca,-9.5235079,-35.6071582,brasil_aberto_first_street,True
+AL,2704302,Maceió,Jacarecica,jacarecica,-9.63200378,-35.70037842,brasil_aberto_first_street,True
+AL,2704302,Maceió,Jacintinho,jacintinho,-9.65351295,-35.72449112,brasil_aberto_first_street,True
+AL,2704302,Maceió,Jaraguá,jaragua,-9.6690948,-35.725462,brasil_aberto_first_street,True
+AL,2704302,Maceió,Jardim Petrópolis,jardim petropolis,-9.6038656,-35.7562716,brasil_aberto_first_street,True
+AL,2704302,Maceió,Jatiúca,jatiuca,-9.645109,-35.7051537,brasil_aberto_first_street,True
+AL,2704302,Maceió,Levada,levada,-9.65709305,-35.74276352,brasil_aberto_first_street,True
+AL,2704302,Maceió,Mangabeiras,mangabeiras,-9.63200378,-35.70037842,brasil_aberto_first_street,True
+AL,2704302,Maceió,Mutange,mutange,-9.63882828,-35.74525833,brasil_aberto_first_street,True
+AL,2704302,Maceió,Ouro Preto,ouro preto,-9.60249901,-35.7287674,brasil_aberto_first_street,True
+AL,2704302,Maceió,Pajuçara,pajucara,-9.6682672,-35.71385,brasil_aberto_first_street,True
+AL,2704302,Maceió,Pescaria,pescaria,-9.54285622,-35.62232208,brasil_aberto_first_street,True
+AL,2704302,Maceió,Petrópolis,petropolis,-9.6111939,-35.7582805,brasil_aberto_first_street,True
+AL,2704302,Maceió,Pinheiro,pinheiro,-9.658512199999999,-35.7452768,brasil_aberto_first_street,True
+AL,2704302,Maceió,Pitanguinha,pitanguinha,-9.638318199999999,-35.7294092,brasil_aberto_first_street,True
+AL,2704302,Maceió,Poço,poco,-9.6572876,-35.72679138,brasil_aberto_first_street,True
+AL,2704302,Maceió,Ponta da Terra,ponta da terra,-9.6630106,-35.7190652,brasil_aberto_first_street,True
+AL,2704302,Maceió,Ponta Grossa,ponta grossa,-9.6593983,-35.7590667,brasil_aberto_first_street,True
+AL,2704302,Maceió,Ponta Verde,ponta verde,-9.6601221,-35.7044684,brasil_aberto_first_street,True
+AL,2704302,Maceió,Pontal da Barra,pontal da barra,-9.6920103,-35.7754135,brasil_aberto_first_street,True
+AL,2704302,Maceió,Prado,prado,-9.66794109,-35.75556183,brasil_aberto_first_street,True
+AL,2704302,Maceió,Riacho Doce,riacho doce,-9.57022285,-35.65723419,brasil_aberto_first_street,True
+AL,2704302,Maceió,Rio Novo,rio novo,-9.56799507,-35.78997421,brasil_aberto_first_street,True
+AL,2704302,Maceió,Santa Amélia,santa amelia,-9.588577299999999,-35.7768159,brasil_aberto_first_street,True
+AL,2704302,Maceió,Santa Lúcia,santa lucia,-9.5833085,-35.7539406,brasil_aberto_first_street,True
+AL,2704302,Maceió,Santo Amaro,santo amaro,-9.60881233,-35.74364471,brasil_aberto_first_street,True
+AL,2704302,Maceió,Santos Dumont,santos dumont,-9.556499299999999,-35.7845615,brasil_aberto_first_street,True
+AL,2704302,Maceió,São Jorge,sao jorge,-9.61973953,-35.70792389,brasil_aberto_first_street,True
+AL,2704302,Maceió,Serraria,serraria,-9.6050612,-35.7157249,brasil_aberto_first_street,True
+AL,2704302,Maceió,Tabuleiro do Martins,tabuleiro do martins,-9.571845,-35.7624466,brasil_aberto_first_street,True
+AL,2704302,Maceió,Trapiche da Barra,trapiche da barra,-9.6679777,-35.7576953,brasil_aberto_first_street,True
+AL,2704302,Maceió,Vergel do Lago,vergel do lago,-9.65602493,-35.75903702,brasil_aberto_first_street,True
+AL,2704401,Major Isidoro,Centro,centro,-9.76126671,-36.6584816,brasil_aberto_first_street,True
+AL,2704401,Major Isidoro,Riacho do Sertão,riacho do sertao,,,dne,True
+AL,2704500,Maragogi,Barra Grande,barra grande,-8.9848019,-35.1960493,brasil_aberto_first_street,True
+AL,2704500,Maragogi,Centro,centro,,,dne,True
+AL,2704500,Maragogi,Peroba,peroba,,,dne,True
+AL,2704500,Maragogi,Povoado São Bento,povoado sao bento,-9.0150069,-35.2226427,brasil_aberto_first_street,True
+AL,2704609,Maravilha,Centro,centro,-9.2316303,-37.3495019,brasil_aberto_first_street,True
+AL,2704708,Marechal Deodoro,Centro,centro,-9.7179026,-35.8954371,brasil_aberto_first_street,True
+AL,2704807,Maribondo,Centro,centro,-9.58110714,-36.30820847,brasil_aberto_first_street,True
+AL,2704906,Mar Vermelho,Centro,centro,-9.44685364,-36.38885498,brasil_aberto_first_street,True
+AL,2705002,Mata Grande,Bom Sucesso,bom sucesso,-9.1179475,-37.7255521,brasil_aberto_first_street,True
+AL,2705002,Mata Grande,Centro,centro,,,brasil_aberto,True
+AL,2705101,Matriz de Camaragibe,Centro,centro,-9.1552763,-35.53434372,brasil_aberto_first_street,True
+AL,2705200,Messias,Centro,centro,-9.3942595,-35.8395145,brasil_aberto_first_street,True
+AL,2705309,Minador do Negrão,Centro,centro,,,dne,True
+AL,2705408,Monteirópolis,Centro,centro,-9.604041,-37.2470678,brasil_aberto_first_street,True
+AL,2705507,Murici,Centro,centro,-9.3096345,-35.9423155,brasil_aberto_first_street,True
+AL,2705606,Novo Lino,Centro,centro,-8.941863300000001,-35.6654689,brasil_aberto_first_street,True
+AL,2705705,Olho d'Água das Flores,Centro,centro,-9.53521729,-37.29452133,brasil_aberto_first_street,True
+AL,2705804,Olho d'Água do Casado,Centro,centro,-9.1461212,-37.8328399,brasil_aberto_first_street,True
+AL,2705903,Olho d'Água Grande,Centro,centro,-10.0567518,-36.8148287,brasil_aberto_first_street,True
+AL,2706000,Olivença,Centro,centro,-9.51901245,-37.18959427,brasil_aberto_first_street,True
+AL,2706109,Ouro Branco,Centro,centro,-9.1622467,-37.35920334,brasil_aberto_first_street,True
+AL,2706208,Palestina,Centro,centro,-9.6718464,-37.3293225,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Alto do Cruzeiro,alto do cruzeiro,-9.40192223,-36.62973022,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Anum Novo,anum novo,,,dne,True
+AL,2706307,Palmeira dos Índios,Anum Velho,anum velho,,,dne,True
+AL,2706307,Palmeira dos Índios,Área Rural de Palmeira dos Índios,area rural de palmeira dos indios,-9.4120373,-36.6322917,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Barra do Bonifácio,barra do bonifacio,,,dne,True
+AL,2706307,Palmeira dos Índios,Boa Sorte,boa sorte,,,dne,True
+AL,2706307,Palmeira dos Índios,Boa Vista,boa vista,,,dne,True
+AL,2706307,Palmeira dos Índios,Bonifácio,bonifacio,,,dne,True
+AL,2706307,Palmeira dos Índios,Caldeirões de Cima,caldeiroes de cima,,,dne,True
+AL,2706307,Palmeira dos Índios,Canafístula,canafistula,-9.4015886,-36.7112525,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Centro,centro,-9.4087407,-36.631259,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Coruripe da Cal,coruripe da cal,,,dne,True
+AL,2706307,Palmeira dos Índios,Goití,goiti,-9.4042336,-36.6323871,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Graciliano Ramos,graciliano ramos,-9.4329694,-36.6286882,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Jardim Brasil,jardim brasil,-9.4137673,-36.6397636,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,José Maia Costa,jose maia costa,-9.4243884,-36.6205011,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Juca Sampaio,juca sampaio,-9.4211282,-36.6232936,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Lagoa da Areia,lagoa da areia,,,dne,True
+AL,2706307,Palmeira dos Índios,Lagoa Dantas,lagoa dantas,,,dne,True
+AL,2706307,Palmeira dos Índios,Lagoa do Caldeirão,lagoa do caldeirao,,,dne,True
+AL,2706307,Palmeira dos Índios,Lagoa do Canto,lagoa do canto,,,dne,True
+AL,2706307,Palmeira dos Índios,Lagoa do Exú,lagoa do exu,,,dne,True
+AL,2706307,Palmeira dos Índios,Lagoa do Rancho,lagoa do rancho,,,dne,True
+AL,2706307,Palmeira dos Índios,Lajes do Caldeirão,lajes do caldeirao,,,dne,True
+AL,2706307,Palmeira dos Índios,Moreira,moreira,,,dne,True
+AL,2706307,Palmeira dos Índios,Palmeira de Fora,palmeira de fora,-9.3993903,-36.660706,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Paraíso,paraiso,-9.4090168,-36.625393,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Riacho Fundo de Cima,riacho fundo de cima,,,dne,True
+AL,2706307,Palmeira dos Índios,Ribeira,ribeira,-9.4015264,-36.6237125,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Santo Antônio,santo antonio,,,dne,True
+AL,2706307,Palmeira dos Índios,São Cristóvão,sao cristovao,-9.4140999,-36.6389561,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,São Francisco,sao francisco,-9.4181287,-36.6246024,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,São Luiz,sao luiz,-9.4124347,-36.6276578,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Serra da Mandioca,serra da mandioca,,,dne,True
+AL,2706307,Palmeira dos Índios,Serra do São José,serra do sao jose,,,dne,True
+AL,2706307,Palmeira dos Índios,Sonho Verde,sonho verde,-9.4253931,-36.6384964,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Tenório Cavalcante,tenorio cavalcante,,,dne,True
+AL,2706307,Palmeira dos Índios,Vila Maria,vila maria,-9.4207332,-36.6384168,brasil_aberto_first_street,True
+AL,2706307,Palmeira dos Índios,Xucurus,xucurus,-9.41608715,-36.60653687,brasil_aberto_first_street,True
+AL,2706406,Pão de Açúcar,Alecrim,alecrim,,,brasil_aberto,True
+AL,2706406,Pão de Açúcar,Centro,centro,-9.749264700000001,-37.43294470000001,brasil_aberto_first_street,True
+AL,2706406,Pão de Açúcar,Limoeiro,limoeiro,,,dne,True
+AL,2706406,Pão de Açúcar,Vila Limoeiro,vila limoeiro,,,dne,True
+AL,2706422,Pariconha,Caraibeiras dos Teodósios,caraibeiras dos teodosios,,,dne,True
+AL,2706422,Pariconha,Centro,centro,-9.288265599999999,-38.0142985,brasil_aberto_first_street,True
+AL,2706448,Paripueira,Centro,centro,-9.4615429,-35.5434807,brasil_aberto_first_street,True
+AL,2706505,Passo de Camaragibe,Centro,centro,-9.75224209,-36.65921402,brasil_aberto_first_street,True
+AL,2706604,Paulo Jacinto,Centro,centro,-9.371556799999999,-36.3739303,brasil_aberto_first_street,True
+AL,2706703,Penedo,Centro,centro,-10.2911448,-36.5850932,brasil_aberto_first_street,True
+AL,2706802,Piaçabuçu,Centro,centro,-9.65227985,-35.73335266,brasil_aberto_first_street,True
+AL,2706901,Pilar,Centro,centro,-9.6079666,-35.9545544,brasil_aberto_first_street,True
+AL,2707008,Pindoba,Centro,centro,-9.6671126,-35.7367856,brasil_aberto_first_street,True
+AL,2707107,Piranhas,Área Rural de Piranhas,area rural de piranhas,,,dne,True
+AL,2707107,Piranhas,Canions do São Francisco,canions do sao francisco,,,dne,True
+AL,2707107,Piranhas,Cascavel,cascavel,,,dne,True
+AL,2707107,Piranhas,Centro,centro,,,brasil_aberto,True
+AL,2707107,Piranhas,Centro (Entremontes),centro entremontes,,,dne,True
+AL,2707107,Piranhas,Centro Histórico,centro historico,,,dne,True
+AL,2707107,Piranhas,Centro (Lagoa Nova),centro lagoa nova,,,dne,True
+AL,2707107,Piranhas,Centro (Piau),centro piau,,,dne,True
+AL,2707107,Piranhas,Entremontes,entremontes,,,brasil_aberto,True
+AL,2707107,Piranhas,Nossa Senhora da Saúde,nossa senhora da saude,,,dne,True
+AL,2707107,Piranhas,Nossa Senhora das Graças,nossa senhora das gracas,,,dne,True
+AL,2707107,Piranhas,São Francisco,sao francisco,,,dne,True
+AL,2707107,Piranhas,Vila Alagoas,vila alagoas,,,dne,True
+AL,2707107,Piranhas,Vila Sergipe,vila sergipe,,,dne,True
+AL,2707107,Piranhas,Xingó Vila Sergipe,xingo vila sergipe,,,brasil_aberto,True
+AL,2707206,Poço das Trincheiras,Centro,centro,-9.3034958,-37.2827637,brasil_aberto_first_street,True
+AL,2707305,Porto Calvo,Centro,centro,-9.054561,-35.3982626,brasil_aberto_first_street,True
+AL,2707404,Porto de Pedras,Centro,centro,-9.1597484,-35.2966996,brasil_aberto_first_street,True
+AL,2707404,Porto de Pedras,Tatuamunha,tatuamunha,,,dne,True
+AL,2707503,Porto Real do Colégio,Centro,centro,-10.1856111,-36.8372524,brasil_aberto_first_street,True
+AL,2707602,Quebrangulo,Centro,centro,-9.31955433,-36.47198486,brasil_aberto_first_street,True
+AL,2707701,Rio Largo,Centro,centro,-9.4872032,-35.8537045,brasil_aberto_first_street,True
+AL,2707701,Rio Largo,Taboleiro do Pinto,taboleiro do pinto,,,dne,True
+AL,2707800,Roteiro,Centro,centro,-9.8335001,-35.9788059,brasil_aberto_first_street,True
+AL,2707909,Santa Luzia do Norte,Centro,centro,,,dne,True
+AL,2708006,Santana do Ipanema,Centro,centro,,,brasil_aberto,True
+AL,2708006,Santana do Ipanema,Monumento,monumento,-9.37163639,-37.2409935,brasil_aberto_first_street,True
+AL,2708105,Santana do Mundaú,Centro,centro,-9.1701279,-36.2184694,brasil_aberto_first_street,True
+AL,2708105,Santana do Mundaú,Munguba,munguba,,,dne,True
+AL,2708204,São Brás,Centro,centro,-10.1264203,-36.8983873,brasil_aberto_first_street,True
+AL,2708303,São José da Laje,Centro,centro,-9.0084726,-36.0556804,brasil_aberto_first_street,True
+AL,2708402,São José da Tapera,Área Rural de São José da Tapera,area rural de sao jose da tapera,,,dne,True
+AL,2708402,São José da Tapera,Barreto Muniz,barreto muniz,,,dne,True
+AL,2708402,São José da Tapera,Centro,centro,,,dne,True
+AL,2708402,São José da Tapera,Craúna,crauna,,,dne,True
+AL,2708402,São José da Tapera,Dez,dez,,,dne,True
+AL,2708402,São José da Tapera,Guarani,guarani,,,dne,True
+AL,2708402,São José da Tapera,São Bento,sao bento,,,dne,True
+AL,2708402,São José da Tapera,São Vicente,sao vicente,,,dne,True
+AL,2708402,São José da Tapera,Xitroá,xitroa,,,dne,True
+AL,2708501,São Luís do Quitunde,Centro,centro,-9.3202834,-35.5603569,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Área Rural de São Miguel dos Campos,area rural de sao miguel dos campos,-9.7811212,-36.0994081,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Bela Vista,bela vista,-9.7847471,-36.0931933,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Canto da Saudade,canto da saudade,-9.7903343,-36.1021199,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Centro,centro,-9.7826309,-36.098501,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Coité,coite,-9.7845669,-36.0902522,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Fátima,fatima,-9.7811212,-36.0994081,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Geraldo Sampaio,geraldo sampaio,-9.7776752,-36.1042337,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Hélio Jatobá,helio jatoba,-9.799769500000002,-36.1051781,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Humberto Alves,humberto alves,-9.78474712,-36.09319305,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Lourdes,lourdes,-9.7903343,-36.1021199,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Paraíso,paraiso,-9.7775112,-36.1053148,brasil_aberto_first_street,True
+AL,2708600,São Miguel dos Campos,Rui Palmeira,rui palmeira,-9.7996641,-36.1124184,brasil_aberto_first_street,True
+AL,2708709,São Miguel dos Milagres,Centro,centro,-9.267934499999999,-35.3745331,brasil_aberto_first_street,True
+AL,2708808,São Sebastião,Cana Brava,cana brava,,,dne,True
+AL,2708808,São Sebastião,Centro,centro,-9.93266678,-36.55387878,brasil_aberto_first_street,True
+AL,2708808,São Sebastião,Povoado Canabrava,povoado canabrava,,,brasil_aberto,True
+AL,2708907,Satuba,Centro,centro,,,brasil_aberto,True
+AL,2708907,Satuba,Loteamento Fridolin Winteller,loteamento fridolin winteller,-9.749431999999999,-36.6663314,brasil_aberto_first_street,True
+AL,2708956,Senador Rui Palmeira,Centro,centro,-9.4665824,-37.4571703,brasil_aberto_first_street,True
+AL,2709004,Tanque d'Arca,Centro,centro,-9.587842,-36.4379466,brasil_aberto_first_street,True
+AL,2709103,Taquarana,Centro,centro,-9.64488411,-36.49715805,brasil_aberto_first_street,True
+AL,2709103,Taquarana,Lagoa Grande,lagoa grande,,,dne,True
+AL,2709152,Teotônio Vilela,Aboboreira,aboboreira,,,dne,True
+AL,2709152,Teotônio Vilela,Alecrim,alecrim,,,dne,True
+AL,2709152,Teotônio Vilela,Alto da Rosa,alto da rosa,,,dne,True
+AL,2709152,Teotônio Vilela,Área Rural de Teotônio Vilela,area rural de teotonio vilela,,,dne,True
+AL,2709152,Teotônio Vilela,Cavaçú,cavacu,,,dne,True
+AL,2709152,Teotônio Vilela,Centro,centro,,,dne,True
+AL,2709152,Teotônio Vilela,Centro (Água de Meninos),centro agua de meninos,,,dne,True
+AL,2709152,Teotônio Vilela,Centro (Alto do Garrote),centro alto do garrote,,,dne,True
+AL,2709152,Teotônio Vilela,Centro (Gulandim),centro gulandim,,,dne,True
+AL,2709152,Teotônio Vilela,Chã do Remígio,cha do remigio,,,dne,True
+AL,2709152,Teotônio Vilela,Deputado Benedito de Lira,deputado benedito de lira,,,dne,True
+AL,2709152,Teotônio Vilela,Distrito Água de Meninos,distrito agua de meninos,,,brasil_aberto,True
+AL,2709152,Teotônio Vilela,Distrito Gerais,distrito gerais,,,brasil_aberto,True
+AL,2709152,Teotônio Vilela,Distrito Gulandim,distrito gulandim,,,brasil_aberto,True
+AL,2709152,Teotônio Vilela,Distrito Imburi do Inácio,distrito imburi do inacio,,,brasil_aberto,True
+AL,2709152,Teotônio Vilela,Folha Larga,folha larga,,,dne,True
+AL,2709152,Teotônio Vilela,Gerais,gerais,,,dne,True
+AL,2709152,Teotônio Vilela,Gravatá,gravata,,,dne,True
+AL,2709152,Teotônio Vilela,Imburí do Inácio,imburi do inacio,,,dne,True
+AL,2709152,Teotônio Vilela,Imburí do Matão,imburi do matao,,,dne,True
+AL,2709152,Teotônio Vilela,Inhumas,inhumas,,,dne,True
+AL,2709152,Teotônio Vilela,João José Pereira,joao jose pereira,,,dne,True
+AL,2709152,Teotônio Vilela,Lagoa I,lagoa i,,,dne,True
+AL,2709152,Teotônio Vilela,Lagoa II,lagoa ii,,,dne,True
+AL,2709152,Teotônio Vilela,Matão do Roberto,matao do roberto,,,dne,True
+AL,2709152,Teotônio Vilela,Mutuns,mutuns,,,dne,True
+AL,2709152,Teotônio Vilela,Santa Maria,santa maria,,,dne,True
+AL,2709152,Teotônio Vilela,São Jorge,sao jorge,,,dne,True
+AL,2709152,Teotônio Vilela,São Miguel,sao miguel,,,dne,True
+AL,2709152,Teotônio Vilela,Sebastião Vilela dos Santos,sebastiao vilela dos santos,,,dne,True
+AL,2709152,Teotônio Vilela,Sucupira,sucupira,,,dne,True
+AL,2709152,Teotônio Vilela,Vereador José Quinca Vieira da Silva,vereador jose quinca vieira da silva,,,dne,True
+AL,2709202,Traipu,Centro,centro,-9.9715451,-37.0022089,brasil_aberto_first_street,True
+AL,2709301,União dos Palmares,Centro,centro,-9.15818405,-36.03304291,brasil_aberto_first_street,True
+AL,2709301,União dos Palmares,Distrito de Rocha Cavalcante,distrito de rocha cavalcante,-9.101652,-36.0749861,brasil_aberto_first_street,True
+AL,2709301,União dos Palmares,Distrito de Timbó,distrito de timbo,,,brasil_aberto,True
+AL,2709301,União dos Palmares,Rocha Cavalcante,rocha cavalcante,,,dne,True
+AL,2709400,Viçosa,Anel,anel,,,dne,True
+AL,2709400,Viçosa,Centro,centro,-9.371937899999999,-36.2459617,brasil_aberto_first_street,True

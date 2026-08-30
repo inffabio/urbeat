@@ -30,8 +30,6 @@ public sealed class NeighborhoodMapItemDto
 
     public decimal Rate { get; init; }
 
-    public decimal? MinimumOrderValue { get; init; }
-
     public int? EstimatedDeliveryTimeMinutes { get; init; }
 
     public bool Active { get; init; }

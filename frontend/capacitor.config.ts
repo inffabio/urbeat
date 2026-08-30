@@ -2,7 +2,7 @@
 
 const config: CapacitorConfig = {
   appId: 'com.urbeat.app',
-  appName: 'Urbeat',
+  appName: 'urbeat',
   webDir: 'dist/frontend/browser'
 };
 

@@ -82,11 +82,13 @@ describe('StoreConfigPageComponent', () => {
   it('keeps vertical scrolling and footer spacing scoped to wizard surfaces', () => {
     const globalStyles = readFileSync(resolve(__dirname, '../../../theme/global.scss'), 'utf8');
     const componentStyles = readFileSync(resolve(__dirname, 'store-config-page.component.scss'), 'utf8');
+    const template = readFileSync(resolve(__dirname, 'store-config-page.component.html'), 'utf8');
 
     expect(globalStyles).toContain('.app-shell:has(.urbeat-onboarding)');
     expect(globalStyles).toContain('ion-app:has(.urbeat-onboarding)');
     expect(globalStyles).toContain('overflow-y: auto;');
     expect(componentStyles).toContain('padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));');
+    expect(template).toContain('<ion-content class="store-config-content">');
     expect(globalStyles).not.toMatch(/\.seller-main\s*\{[^}]*overflow-y\s*:/s);
   });
 
@@ -161,35 +163,28 @@ describe('StoreConfigPageComponent', () => {
   });
 
   describe('image upload', () => {
-    it('should call compressImage and set logoFile when a valid file is selected', async () => {
-      const file = new File(['dummy content'], 'logo.png', { type: 'image/png' });
-      const event = { target: { files: [file] } } as unknown as Event;
+    it('keeps the selected logo format for upload', async () => {
+      const file = new File(['svg'], 'logo.svg', { type: 'image/svg+xml' });
 
-      // Mock the compressImage method to return the original file for testing
-      jest.spyOn(component as any, 'compressImage').mockResolvedValue(file);
-
-      await component.onLogoSelected(event);
+      await component.onLogoSelected(file);
 
       expect(component.logoFile()).toBe(file);
     });
 
-    it('should call compressImage and set bannerFile when a valid file is selected', async () => {
-      const file = new File(['dummy content'], 'banner.jpg', { type: 'image/jpeg' });
-      const event = { target: { files: [file] } } as unknown as Event;
+    it('keeps the selected banner format for upload', async () => {
+      const file = new File(['avif'], 'banner.avif', { type: 'image/avif' });
 
-      // Mock the compressImage method to return the original file for testing
-      jest.spyOn(component as any, 'compressImage').mockResolvedValue(file);
-
-      await component.onBannerSelected(event);
+      await component.onBannerSelected(file);
 
       expect(component.bannerFile()).toBe(file);
     });
 
-    it('should not crash if no file is selected', async () => {
-      const event = { target: { files: null } } as unknown as Event;
+    it('creates a preview for a selected file', async () => {
+      const file = new File(['image'], 'logo.png', { type: 'image/png' });
 
-      await expect(component.onLogoSelected(event)).resolves.not.toThrow();
-      await expect(component.onBannerSelected(event)).resolves.not.toThrow();
+      await component.onLogoSelected(file);
+
+      expect(component.logoPreview()).toMatch(/^data:/);
     });
   });
 

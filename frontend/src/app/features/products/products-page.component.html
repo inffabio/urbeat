@@ -66,7 +66,7 @@
             <input class="input" [(ngModel)]="productForm().name" placeholder="Ex: X-Burger Bacon" />
           </div>
           <div class="field span-4">
-            <label>Categoria *</label>
+            <label>Categoria</label>
             <select class="input select" [(ngModel)]="productForm().categoryId">
               <option value="" disabled>Selecione...</option>
               @for (cat of categories(); track cat.id) {

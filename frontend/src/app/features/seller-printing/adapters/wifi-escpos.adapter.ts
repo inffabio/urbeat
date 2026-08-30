@@ -63,7 +63,7 @@ export class WifiEscPosAdapter extends PrinterAdapter {
     lines.push(...this.logoHeader(config));
     lines.push(this.align('center'));
     lines.push(this.bold(true));
-    lines.push(this.text('URBEAT - TESTE'));
+    lines.push(this.text('urbeat - TESTE'));
     lines.push(this.bold(false));
     lines.push(this.align('left'));
     lines.push(this.br());

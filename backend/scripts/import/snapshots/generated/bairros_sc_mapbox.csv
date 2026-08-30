@@ -1,0 +1,1681 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+SC,4200051,Abdon Batista,Centro,centro,-27.610366,-51.023679,mapbox_geocoding,True
+SC,4200101,Abelardo Luz,Centro,centro,-26.568811,-52.329692,mapbox_geocoding,True
+SC,4200200,Agrolândia,Centro,centro,-27.410555,-49.824573,mapbox_geocoding,True
+SC,4200309,Agronômica,Centro,centro,-27.249061,-48.643213,mapbox_geocoding,True
+SC,4200408,Água Doce,Centro,centro,-26.998166,-51.553017,mapbox_geocoding,True
+SC,4200408,Água Doce,Distrito de Herciliópolis,distrito de herciliopolis,-26.8185923,-51.5101861,cep_aberto,True
+SC,4200408,Água Doce,Herciliópolis,herciliopolis,,,dne,True
+SC,4200507,Águas de Chapecó,Centro,centro,-27.072953,-52.987126,mapbox_geocoding,True
+SC,4200556,Águas Frias,Centro,centro,-26.882335,-52.859792,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Área Rural,area rural,-27.69921,-48.81717,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Centro,centro,-27.696092,-48.820967,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Fazenda da Ressurreição,fazenda da ressurreicao,-28.684015,-49.364789,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Fazenda do Sacramento,fazenda do sacramento,-27.689744,-48.839292,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Santa Cruz da Figueira,santa cruz da figueira,-27.7212,-48.893314,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Vargem Grande,vargem grande,-27.716702,-48.880213,mapbox_geocoding,True
+SC,4200606,Águas Mornas,Vila Nova,vila nova,-27.706968,-48.807779,mapbox_geocoding,True
+SC,4200705,Alfredo Wagner,Arnópolis,arnopolis,,,dne,True
+SC,4200705,Alfredo Wagner,Catuíra,catuira,,,dne,True
+SC,4200705,Alfredo Wagner,Centro,centro,-27.761633,-49.27539,mapbox_geocoding,True
+SC,4200705,Alfredo Wagner,São Leonardo,sao leonardo,,,dne,True
+SC,4200754,Alto Bela Vista,Centro,centro,-27.431897,-51.908664,mapbox_geocoding,True
+SC,4200804,Anchieta,Centro,centro,-26.536786,-53.330914,mapbox_geocoding,True
+SC,4200903,Angelina,Barra Clara,barra clara,,,dne,True
+SC,4200903,Angelina,Centro,centro,-27.5261541,-49.1185998,cep_aberto,True
+SC,4200903,Angelina,Distrito de Garcia,distrito de garcia,-27.498231,-48.99576,mapbox_geocoding,True
+SC,4200903,Angelina,Garcia,garcia,,,dne,True
+SC,4201000,Anita Garibaldi,Centro,centro,-27.684423,-51.131436,mapbox_geocoding,True
+SC,4201000,Anita Garibaldi,Lagoa da Estiva,lagoa da estiva,,,dne,True
+SC,4201109,Anitápolis,Centro,centro,-27.911887,-49.131283,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Área Rural de Antônio Carlos,area rural de antonio carlos,-27.517895,-48.768753,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Canudos,canudos,-27.521557,-48.751654,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Centro,centro,-27.517092,-48.759085,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Egito,egito,-27.529328,-48.871628,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Guiomar,guiomar,-27.51459,-48.776226,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Guiomar de Baixo,guiomar de baixo,-27.508083,-48.760519,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Louro,louro,-27.500353,-48.81688,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Rachadel,rachadel,-27.481334,-48.794734,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Santa Barbara,santa barbara,-27.500353,-48.81688,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Santa Maria,santa maria,-27.517811,-48.852327,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Usina,usina,-27.522669,-48.801007,mapbox_geocoding,True
+SC,4201208,Antônio Carlos,Vila Doze de Outubro,vila doze de outubro,-27.44921,-48.817715,mapbox_geocoding,True
+SC,4201257,Apiúna,Centro,centro,-27.02311,-49.372147,mapbox_geocoding,True
+SC,4201273,Arabutã,Centro,centro,-27.158859,-52.144008,mapbox_geocoding,True
+SC,4201273,Arabutã,Nova Estrela,nova estrela,-27.16,-52.1417976893,cep_aberto,True
+SC,4201307,Araquari,Centro,centro,-26.371954,-48.721466,mapbox_geocoding,True
+SC,4201307,Araquari,Distrito de Itapocu,distrito de itapocu,-26.5487518,-48.7147536,cep_aberto,True
+SC,4201307,Araquari,Itapocu,itapocu,,,dne,True
+SC,4201307,Araquari,Itinga,itinga,-26.409197,-48.797688,mapbox_geocoding,True
+SC,4201406,Araranguá,Alto Feliz,alto feliz,-28.9537347,-49.4958207,cep_aberto,True
+SC,4201406,Araranguá,Arapongas,arapongas,-28.943982,-49.44938,mapbox_geocoding,True
+SC,4201406,Araranguá,Área Rural de Araranguá,area rural de ararangua,-28.9497238,-49.5306654,cep_aberto,True
+SC,4201406,Araranguá,Balneário de Ilhas (Hercílio Luz),balneario de ilhas hercilio luz,-28.909905,-49.335491,mapbox_geocoding,True
+SC,4201406,Araranguá,Barranca,barranca,-28.9555483,-49.522249,cep_aberto,True
+SC,4201406,Araranguá,Caverazinho,caverazinho,-28.960716,-49.483599,mapbox_geocoding,True
+SC,4201406,Araranguá,Centro,centro,-28.9374977,-49.480762,cep_aberto,True
+SC,4201406,Araranguá,Centro Cívico,centro civico,-28.960117,-49.494376,mapbox_geocoding,True
+SC,4201406,Araranguá,Cidade Alta,cidade alta,-28.9436455,-49.5021123,cep_aberto,True
+SC,4201406,Araranguá,Coloninha,coloninha,-28.94698,-49.489384,mapbox_geocoding,True
+SC,4201406,Araranguá,Hercílio Luz (Hercílio Luz),hercilio luz hercilio luz,-28.909851,-49.3739082,cep_aberto,True
+SC,4201406,Araranguá,Industrial,industrial,-28.950811,-49.524146,mapbox_geocoding,True
+SC,4201406,Araranguá,Jardim Cibeli,jardim cibeli,-28.9455237,-49.5040653,cep_aberto,True
+SC,4201406,Araranguá,Jardim das Avenidas,jardim das avenidas,-28.942801,-49.476181,mapbox_geocoding,True
+SC,4201406,Araranguá,Lagoa da Serra,lagoa da serra,-28.9391907,-49.4970315,cep_aberto,True
+SC,4201406,Araranguá,Lagoão,lagoao,-28.960716,-49.483599,mapbox_geocoding,True
+SC,4201406,Araranguá,Mato Alto,mato alto,-28.952655,-49.5094902,cep_aberto,True
+SC,4201406,Araranguá,Morro Agudo (Hercílio Luz),morro agudo hercilio luz,-28.922706,-49.354109,mapbox_geocoding,True
+SC,4201406,Araranguá,Morro dos Conventos,morro dos conventos,-29.3963748,-51.9483637,cep_aberto,True
+SC,4201406,Araranguá,Nova Divinéia,nova divineia,-28.960716,-49.483599,mapbox_geocoding,True
+SC,4201406,Araranguá,Operária,operaria,-28.9531147,-49.5238,cep_aberto,True
+SC,4201406,Araranguá,Polícia Rodoviária,policia rodoviaria,-28.948425,-49.50644,mapbox_geocoding,True
+SC,4201406,Araranguá,Sanga da Areia,sanga da areia,-28.9969242,-49.5549515,cep_aberto,True
+SC,4201406,Araranguá,Sanga da Toca,sanga da toca,-28.957537,-49.546189,mapbox_geocoding,True
+SC,4201406,Araranguá,Sanga da Toca 1ª,sanga da toca 1a,-29.0153865,-49.5662917,cep_aberto,True
+SC,4201406,Araranguá,Santa Bárbara,santa barbara,-28.948425,-49.50644,mapbox_geocoding,True
+SC,4201406,Araranguá,Santa Catarina,santa catarina,-28.9850501,-49.5421589,cep_aberto,True
+SC,4201406,Araranguá,Santa Rosa de Lima,santa rosa de lima,-28.932237,-49.460109,mapbox_geocoding,True
+SC,4201406,Araranguá,Urussanguinha,urussanguinha,-28.9403918,-49.4794464,cep_aberto,True
+SC,4201406,Araranguá,Vila São José,vila sao jose,-28.925997,-49.47863,mapbox_geocoding,True
+SC,4201505,Armazém,Centro,centro,-28.260234,-49.015693,mapbox_geocoding,True
+SC,4201604,Arroio Trinta,Centro,centro,-26.931575,-51.335879,mapbox_geocoding,True
+SC,4201653,Arvoredo,Centro,centro,-27.074376,-52.458287,mapbox_geocoding,True
+SC,4201703,Ascurra,Centro,centro,-26.958507,-49.378397,mapbox_geocoding,True
+SC,4201802,Atalanta,Centro,centro,-27.419164,-49.781625,mapbox_geocoding,True
+SC,4201901,Aurora,Centro,centro,-27.316101,-49.636369,mapbox_geocoding,True
+SC,4201950,Balneário Arroio do Silva,Centro,centro,-28.996494,-49.429769,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Área Rural de Balneário Camboriú,area rural de balneario camboriu,-27.0015756,-48.637905,cep_aberto,True
+SC,4202008,Balneário Camboriú,Ariribá,aririba,-26.95848,-48.646191,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Barra,barra,-26.991,-48.625505876,cep_aberto,True
+SC,4202008,Balneário Camboriú,Centro,centro,-26.997356,-48.633135,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Estados,estados,-26.9944731,-48.6537669,cep_aberto,True
+SC,4202008,Balneário Camboriú,Jardim Iate Clube,jardim iate clube,-27.009507,-48.634747,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Municípios,municipios,-26.9776799973,-48.635,cep_aberto,True
+SC,4202008,Balneário Camboriú,Nações,nacoes,-26.976798,-48.639312,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Nova Esperança,nova esperanca,-27.0248708,-48.6156778,cep_aberto,True
+SC,4202008,Balneário Camboriú,Pioneiros,pioneiros,-26.976798,-48.639312,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Praia das Laranjeiras,praia das laranjeiras,-26.9979937,-48.5895646,cep_aberto,True
+SC,4202008,Balneário Camboriú,Praia das Taquaras,praia das taquaras,-27.005826,-48.656582,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Praia do Estaleirinho,praia do estaleirinho,-26.991,-48.6228798442,cep_aberto,True
+SC,4202008,Balneário Camboriú,Praia do Estaleiro,praia do estaleiro,-27.028891,-48.58363,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Praia dos Amores,praia dos amores,-26.9827199949,-48.635,cep_aberto,True
+SC,4202008,Balneário Camboriú,São Judas Tadeu,sao judas tadeu,-27.016747,-48.602367,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Várzea do Ranchinho,varzea do ranchinho,-26.982545,-48.673616,mapbox_geocoding,True
+SC,4202008,Balneário Camboriú,Vila Real,vila real,-27.0034200023,-48.648938179,cep_aberto,True
+SC,4202057,Balneário Barra do Sul,Centro,centro,-26.459486,-48.603224,mapbox_geocoding,True
+SC,4202073,Balneário Gaivota,Centro,centro,-28.665629,-49.33858,mapbox_geocoding,True
+SC,4202081,Bandeirante,Centro,centro,-26.768595,-53.639318,mapbox_geocoding,True
+SC,4202099,Barra Bonita,Centro,centro,-26.652205,-53.439453,mapbox_geocoding,True
+SC,4202107,Barra Velha,Centro,centro,-26.634982,-48.692919,mapbox_geocoding,True
+SC,4202131,Bela Vista do Toldo,Centro,centro,-26.2728917,-50.4654687,cep_aberto,True
+SC,4202156,Belmonte,Centro,centro,-26.842477,-53.579432,mapbox_geocoding,True
+SC,4202206,Benedito Novo,Barra São João,barra sao joao,-26.779901,-49.4253417,cep_aberto,True
+SC,4202206,Benedito Novo,Centro,centro,-26.782324,-49.362495,mapbox_geocoding,True
+SC,4202206,Benedito Novo,Distrito de Santa Maria,distrito de santa maria,-26.7345429,-49.4217992,cep_aberto,True
+SC,4202206,Benedito Novo,Santa Maria,santa maria,,,dne,True
+SC,4202305,Biguaçu,Área Rural de Biguaçu,area rural de biguacu,-27.49707,-48.656727,mapbox_geocoding,True
+SC,4202305,Biguaçu,Areias de Cima (Guaporanga),areias de cima guaporanga,-27.4552058,-48.6363148,cep_aberto,True
+SC,4202305,Biguaçu,Beira Rio,beira rio,-27.484933,-48.665096,mapbox_geocoding,True
+SC,4202305,Biguaçu,Boa Vista,boa vista,-27.49707,-48.656727,mapbox_geocoding,True
+SC,4202305,Biguaçu,Bom Viver,bom viver,-26.297064,-48.81897,mapbox_geocoding,True
+SC,4202305,Biguaçu,Cachoeiras (Guaporanga),cachoeiras guaporanga,-27.4552058,-48.6363148,cep_aberto,True
+SC,4202305,Biguaçu,Centro,centro,-27.500708,-48.64831,mapbox_geocoding,True
+SC,4202305,Biguaçu,Encruzilhada,encruzilhada,-27.516359,-48.6363747,cep_aberto,True
+SC,4202305,Biguaçu,Estiva (Guaporanga),estiva guaporanga,-27.595346,-48.619043,mapbox_geocoding,True
+SC,4202305,Biguaçu,Fundos,fundos,-27.5095269,-48.6553734,cep_aberto,True
+SC,4202305,Biguaçu,Jardim Janaína,jardim janaina,-27.49707,-48.656727,mapbox_geocoding,True
+SC,4202305,Biguaçu,Mar das Pedras,mar das pedras,-27.5199054,-48.6337828,cep_aberto,True
+SC,4202305,Biguaçu,Morro da Bina,morro da bina,-27.523414,-48.634421,mapbox_geocoding,True
+SC,4202305,Biguaçu,Prado,prado,-27.4853442,-48.6562493,cep_aberto,True
+SC,4202305,Biguaçu,Prado de Baixo,prado de baixo,-27.488788,-48.65112,mapbox_geocoding,True
+SC,4202305,Biguaçu,Praia João Rosa,praia joao rosa,-27.5035398,-48.6441752,cep_aberto,True
+SC,4202305,Biguaçu,Rio Caveiras,rio caveiras,-27.508206,-48.651657,mapbox_geocoding,True
+SC,4202305,Biguaçu,São Miguel (Guaporanga),sao miguel guaporanga,-27.4677846,-48.640045,cep_aberto,True
+SC,4202305,Biguaçu,Saudade,saudade,-27.477774,-48.663378,mapbox_geocoding,True
+SC,4202305,Biguaçu,Saveiro,saveiro,-27.49707,-48.656727,mapbox_geocoding,True
+SC,4202305,Biguaçu,Sorocaba do Sul,sorocaba do sul,-27.3704316,-48.7268272,cep_aberto,True
+SC,4202305,Biguaçu,Terra Indígena M'Biguaçu,terra indigena m biguacu,,,dne,True
+SC,4202305,Biguaçu,Tijuquinhas (Guaporanga),tijuquinhas guaporanga,-27.595346,-48.619043,mapbox_geocoding,True
+SC,4202305,Biguaçu,Universitário,universitario,-27.500214,-48.6575757,cep_aberto,True
+SC,4202305,Biguaçu,Vendaval,vendaval,-27.48756,-48.659659,mapbox_geocoding,True
+SC,4202404,Blumenau,Água Verde,agua verde,-26.9011799954,-49.0460145173,cep_aberto,True
+SC,4202404,Blumenau,Área Rural de Blumenau,area rural de blumenau,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Badenfurt,badenfurt,-26.942948,-49.13298,mapbox_geocoding,True
+SC,4202404,Blumenau,Boa Vista,boa vista,-26.9174699972,-49.067715928,cep_aberto,True
+SC,4202404,Blumenau,Bom Retiro,bom retiro,-26.921286,-49.065045,mapbox_geocoding,True
+SC,4202404,Blumenau,Centro,centro,-26.919,-49.0637793838,cep_aberto,True
+SC,4202404,Blumenau,Do Salto,do salto,-26.95318,-49.080223,mapbox_geocoding,True
+SC,4202404,Blumenau,Escola Agrícola,escola agricola,-26.903417,-49.101223,mapbox_geocoding,True
+SC,4202404,Blumenau,Fidélis,fidelis,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Fortaleza,fortaleza,-26.8927199956,-49.066,cep_aberto,True
+SC,4202404,Blumenau,Fortaleza Alta,fortaleza alta,-26.872775,-49.113605,mapbox_geocoding,True
+SC,4202404,Blumenau,Garcia,garcia,-26.935369,-49.056073,mapbox_geocoding,True
+SC,4202404,Blumenau,Glória,gloria,-26.970497,-49.057463,mapbox_geocoding,True
+SC,4202404,Blumenau,Itoupava Central,itoupava central,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Itoupava Norte,itoupava norte,-26.8957799966,-49.0920416867,cep_aberto,True
+SC,4202404,Blumenau,Itoupava Seca,itoupava seca,-26.906657,-49.073531,mapbox_geocoding,True
+SC,4202404,Blumenau,Itoupavazinha,itoupavazinha,-26.839813,-49.107819,mapbox_geocoding,True
+SC,4202404,Blumenau,Jardim Blumenau,jardim blumenau,-26.9193600042,-49.066,cep_aberto,True
+SC,4202404,Blumenau,Nova Esperança,nova esperanca,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Passo Manso,passo manso,-26.905299,-49.15437,mapbox_geocoding,True
+SC,4202404,Blumenau,Ponta Aguda,ponta aguda,-26.919,-49.0891145257,cep_aberto,True
+SC,4202404,Blumenau,Progresso,progresso,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Ribeirão Fresco,ribeirao fresco,-26.874466,-49.100999,mapbox_geocoding,True
+SC,4202404,Blumenau,Salto do Norte,salto do norte,-26.919,-49.0318833725,cep_aberto,True
+SC,4202404,Blumenau,Salto Weissbach,salto weissbach,-26.901117,-49.113163,mapbox_geocoding,True
+SC,4202404,Blumenau,Testo Salto,testo salto,-26.919977,-49.06441,mapbox_geocoding,True
+SC,4202404,Blumenau,Tribess,tribess,-26.882583,-49.055634,mapbox_geocoding,True
+SC,4202404,Blumenau,Valparaiso,valparaiso,-26.95822,-49.094489,mapbox_geocoding,True
+SC,4202404,Blumenau,Velha,velha,-26.919,-49.0528782174,cep_aberto,True
+SC,4202404,Blumenau,Velha Central,velha central,-26.931536,-49.147992,mapbox_geocoding,True
+SC,4202404,Blumenau,Velha Grande,velha grande,-26.953021,-49.128999,mapbox_geocoding,True
+SC,4202404,Blumenau,Victor Konder,victor konder,-26.9201700015,-49.0673121795,cep_aberto,True
+SC,4202404,Blumenau,Vila Formosa,vila formosa,-26.938777,-49.070463,mapbox_geocoding,True
+SC,4202404,Blumenau,Vila Itoupava,vila itoupava,-26.7240528,-49.0675428,cep_aberto,True
+SC,4202404,Blumenau,Vila Nova,vila nova,-26.817445,-49.101146,mapbox_geocoding,True
+SC,4202404,Blumenau,Vorstadt,vorstadt,-26.919,-49.0689271691,cep_aberto,True
+SC,4202438,Bocaina do Sul,Centro,centro,-27.743095,-49.94669,mapbox_geocoding,True
+SC,4202453,Bombinhas,Centro,centro,-27.153236,-48.510079,mapbox_geocoding,True
+SC,4202503,Bom Jardim da Serra,Centro,centro,-28.337758,-49.62417,mapbox_geocoding,True
+SC,4202537,Bom Jesus,Centro,centro,-26.733917,-52.389816,mapbox_geocoding,True
+SC,4202578,Bom Jesus do Oeste,Centro,centro,-26.69237,-53.096048,mapbox_geocoding,True
+SC,4202602,Bom Retiro,Canoas,canoas,,,dne,True
+SC,4202602,Bom Retiro,Centro,centro,-27.807341,-49.491133,mapbox_geocoding,True
+SC,4202602,Bom Retiro,Distrito de Canoas,distrito de canoas,-27.8058481,-49.7756754,cep_aberto,True
+SC,4202701,Botuverá,Centro,centro,-27.169367,-49.005168,mapbox_geocoding,True
+SC,4202800,Braço do Norte,Baixo Pinheiral,baixo pinheiral,-28.2303612,-49.1146432,cep_aberto,True
+SC,4202800,Braço do Norte,Centro,centro,-28.274594,-49.167877,mapbox_geocoding,True
+SC,4202859,Braço do Trombudo,DISTRITO SEDE,distrito sede,-27.3590749,-49.8826332,cep_aberto,True
+SC,4202875,Brunópolis,Centro,centro,-27.312618,-50.837856,mapbox_geocoding,True
+SC,4202875,Brunópolis,Marombas,marombas,-27.331114,-50.7664468,cep_aberto,True
+SC,4202909,Brusque,Águas Claras,aguas claras,-27.155599,-48.915038,mapbox_geocoding,True
+SC,4202909,Brusque,Área Rural de Brusque,area rural de brusque,-27.0982053,-48.9111422,cep_aberto,True
+SC,4202909,Brusque,Azambuja,azambuja,-27.128012,-48.915617,mapbox_geocoding,True
+SC,4202909,Brusque,Bateas,bateas,-27.082453,-48.908717,mapbox_geocoding,True
+SC,4202909,Brusque,Cedrinho,cedrinho,-27.1608909,-48.9379168,cep_aberto,True
+SC,4202909,Brusque,Cedro Grande,cedro grande,-27.204036,-48.960752,mapbox_geocoding,True
+SC,4202909,Brusque,Centro I,centro i,-27.0978199957,-48.9177977999,cep_aberto,True
+SC,4202909,Brusque,Centro II,centro ii,-27.101942,-48.918523,mapbox_geocoding,True
+SC,4202909,Brusque,Cerâmica Reis,ceramica reis,-27.103220003,-48.918,cep_aberto,True
+SC,4202909,Brusque,Dom Joaquim,dom joaquim,-27.169367,-49.005168,mapbox_geocoding,True
+SC,4202909,Brusque,Guarani,guarani,-27.098,-48.9191120777,cep_aberto,True
+SC,4202909,Brusque,Jardim Maluche,jardim maluche,-27.10362,-48.926568,mapbox_geocoding,True
+SC,4202909,Brusque,Limeira Alta,limeira alta,-27.1099114,-48.8145943,cep_aberto,True
+SC,4202909,Brusque,Limeira Baixa,limeira baixa,-27.067511,-48.87025,mapbox_geocoding,True
+SC,4202909,Brusque,Limoeiro,limoeiro,-27.098,-48.9231559841,cep_aberto,True
+SC,4202909,Brusque,Nova Brasília,nova brasilia,-27.040952,-48.866566,mapbox_geocoding,True
+SC,4202909,Brusque,Paquetá,paqueta,-27.1046600072,-48.9105187683,cep_aberto,True
+SC,4202909,Brusque,Planalto,planalto,-27.040952,-48.866566,mapbox_geocoding,True
+SC,4202909,Brusque,Poço Fundo,poco fundo,-27.098,-48.9306372091,cep_aberto,True
+SC,4202909,Brusque,Ponta Russa,ponta russa,-27.136318,-48.888576,mapbox_geocoding,True
+SC,4202909,Brusque,Primeiro de Maio,primeiro de maio,-27.1033100021,-48.9239647617,cep_aberto,True
+SC,4202909,Brusque,Rio Branco,rio branco,-27.122871,-48.942342,mapbox_geocoding,True
+SC,4202909,Brusque,Santa Luzia,santa luzia,-27.171239,-48.870935,mapbox_geocoding,True
+SC,4202909,Brusque,Santa Rita,santa rita,-27.040952,-48.866566,mapbox_geocoding,True
+SC,4202909,Brusque,Santa Terezinha,santa terezinha,-27.098,-48.9157758502,cep_aberto,True
+SC,4202909,Brusque,São João,sao joao,-27.104311,-48.845297,mapbox_geocoding,True
+SC,4202909,Brusque,São Luiz,sao luiz,-27.082453,-48.908717,mapbox_geocoding,True
+SC,4202909,Brusque,São Pedro,sao pedro,-27.0795462,-48.9229001,cep_aberto,True
+SC,4202909,Brusque,Souza Cruz,souza cruz,-27.106809,-48.922731,mapbox_geocoding,True
+SC,4202909,Brusque,Steffen,steffen,-27.1073600089,-48.9285141621,cep_aberto,True
+SC,4202909,Brusque,Tomaz Coelho,tomaz coelho,-26.662094,-49.256953,mapbox_geocoding,True
+SC,4202909,Brusque,Volta Grande,volta grande,-27.981554,-48.944087,mapbox_geocoding,True
+SC,4202909,Brusque,Zantão,zantao,-27.0854899898,-48.918,cep_aberto,True
+SC,4203006,Caçador,Aeroporto,aeroporto,-26.804492,-50.939132,mapbox_geocoding,True
+SC,4203006,Caçador,Alto Bonito,alto bonito,-26.7734432,-51.0126051,cep_aberto,True
+SC,4203006,Caçador,Área Rural de Caçador,area rural de cacador,-26.775795,-51.01423,mapbox_geocoding,True
+SC,4203006,Caçador,Bello,bello,-26.7793801,-51.004809,cep_aberto,True
+SC,4203006,Caçador,Berger,berger,-26.789881,-51.006101,mapbox_geocoding,True
+SC,4203006,Caçador,Bom Jesus,bom jesus,-26.7781421,-51.0304391,cep_aberto,True
+SC,4203006,Caçador,Bom Sucesso,bom sucesso,-26.799543,-50.988913,mapbox_geocoding,True
+SC,4203006,Caçador,Centro,centro,-26.7743976,-51.016213,cep_aberto,True
+SC,4203006,Caçador,Champagnat,champagnat,-26.779362,-51.035104,mapbox_geocoding,True
+SC,4203006,Caçador,Der,der,-26.7729592,-51.018228,cep_aberto,True
+SC,4203006,Caçador,Figueroa,figueroa,-26.794375,-51.0232367,cep_aberto,True
+SC,4203006,Caçador,Gioppo,gioppo,-26.786697,-50.9727,mapbox_geocoding,True
+SC,4203006,Caçador,Industrial,industrial,-26.7869513,-50.9743124,cep_aberto,True
+SC,4203006,Caçador,Kurtz,kurtz,-26.77093,-51.013682,mapbox_geocoding,True
+SC,4203006,Caçador,Martello,martello,-26.7983372,-50.9841711,cep_aberto,True
+SC,4203006,Caçador,Municípios,municipios,-26.779362,-51.035104,mapbox_geocoding,True
+SC,4203006,Caçador,Nossa Senhora Salete,nossa senhora salete,-26.7651377,-50.9967202,cep_aberto,True
+SC,4203006,Caçador,Paraíso,paraiso,-26.782226,-51.020937,mapbox_geocoding,True
+SC,4203006,Caçador,Rancho Fundo,rancho fundo,-26.7751548,-50.9824981,cep_aberto,True
+SC,4203006,Caçador,Reunidas,reunidas,-26.779362,-51.035104,mapbox_geocoding,True
+SC,4203006,Caçador,Santa Catarina,santa catarina,-26.7706626,-51.0125551,cep_aberto,True
+SC,4203006,Caçador,São Cristóvão,sao cristovao,-26.804492,-50.939132,mapbox_geocoding,True
+SC,4203006,Caçador,Sorgatto,sorgatto,-26.7868439,-51.0305803,cep_aberto,True
+SC,4203006,Caçador,Taquara Verde,taquara verde,-26.785249,-50.978,mapbox_geocoding,True
+SC,4203105,Caibi,Centro,centro,-27.075566,-53.251836,mapbox_geocoding,True
+SC,4203154,Calmon,Centro,centro,-26.60367,-51.1001989,cep_aberto,True
+SC,4203204,Camboriú,Área Rural de Camboriú,area rural de camboriu,-27.023157,-48.65179,mapbox_geocoding,True
+SC,4203204,Camboriú,Areias,areias,-27.0327183,-48.6657725,cep_aberto,True
+SC,4203204,Camboriú,Cedro,cedro,-27.047297,-48.653809,mapbox_geocoding,True
+SC,4203204,Camboriú,Centro,centro,-27.0171069,-48.6650312,cep_aberto,True
+SC,4203204,Camboriú,Conde Vila Verde,conde vila verde,-27.007102,-48.668536,mapbox_geocoding,True
+SC,4203204,Camboriú,Lídia Duarte,lidia duarte,-27.0401036,-48.6508621,cep_aberto,True
+SC,4203204,Camboriú,Monte Alegre,monte alegre,-26.993403,-48.66045,mapbox_geocoding,True
+SC,4203204,Camboriú,Rio Pequeno,rio pequeno,-27.0338098,-48.6415683,cep_aberto,True
+SC,4203204,Camboriú,Santa Regina,santa regina,-27.032696,-48.665998,mapbox_geocoding,True
+SC,4203204,Camboriú,São Francisco de Assis,sao francisco de assis,-27.031893,-48.633346,mapbox_geocoding,True
+SC,4203204,Camboriú,Tabuleiro,tabuleiro,-27.0022969,-48.6478522,cep_aberto,True
+SC,4203204,Camboriú,Várzea do Ranchinho,varzea do ranchinho,-26.993403,-48.66045,mapbox_geocoding,True
+SC,4203253,Capão Alto,Centro,centro,-27.938076,-50.509329,mapbox_geocoding,True
+SC,4203303,Campo Alegre,Bateias de Baixo,bateias de baixo,,,dne,True
+SC,4203303,Campo Alegre,Centro,centro,-26.230152,-49.395195,mapbox_geocoding,True
+SC,4203303,Campo Alegre,Distrito de Bateias de Baixo,distrito de bateias de baixo,-26.088362,-49.2616507,cep_aberto,True
+SC,4203303,Campo Alegre,Fragosos,fragosos,,,dne,True
+SC,4203303,Campo Alegre,Povoado de Fragosos,povoado de fragosos,-26.162247,-49.388252,mapbox_geocoding,True
+SC,4203402,Campo Belo do Sul,Centro,centro,-27.89727,-50.758589,mapbox_geocoding,True
+SC,4203501,Campo Erê,Centro,centro,-26.393282,-53.079034,mapbox_geocoding,True
+SC,4203600,Campos Novos,Bela Vista,bela vista,,,dne,True
+SC,4203600,Campos Novos,Centro,centro,-27.5303318,-51.1876247,cep_aberto,True
+SC,4203600,Campos Novos,Dal Pai,dal pai,,,dne,True
+SC,4203600,Campos Novos,Distrito de Bela Vista,distrito de bela vista,-27.401736,-51.222226,mapbox_geocoding,True
+SC,4203600,Campos Novos,Encruzilhada,encruzilhada,,,dne,True
+SC,4203600,Campos Novos,Espinilho,espinilho,,,dne,True
+SC,4203600,Campos Novos,Guarani,guarani,,,dne,True
+SC,4203600,Campos Novos,Ibicuí,ibicui,,,dne,True
+SC,4203600,Campos Novos,Leão,leao,,,dne,True
+SC,4203600,Campos Novos,Leão (Distrito),leao distrito,-27.3114034,-51.5636477,cep_aberto,True
+SC,4203709,Canelinha,Centro,centro,-27.244697,-48.638845,mapbox_geocoding,True
+SC,4203808,Canoinhas,Água Verde,agua verde,-26.1898735,-50.3756337,cep_aberto,True
+SC,4203808,Canoinhas,Alto da Tijuca,alto da tijuca,-26.154946,-50.397725,mapbox_geocoding,True
+SC,4203808,Canoinhas,Alto das Palmeiras,alto das palmeiras,-26.1891745,-50.4114267,cep_aberto,True
+SC,4203808,Canoinhas,Área Rural de Canoinhas,area rural de canoinhas,-26.175901,-50.39275,mapbox_geocoding,True
+SC,4203808,Canoinhas,Boa Vista,boa vista,-26.1913152,-50.3948523,cep_aberto,True
+SC,4203808,Canoinhas,Campo da Água Verde,campo da agua verde,-26.17983,-50.371222,mapbox_geocoding,True
+SC,4203808,Canoinhas,Centro,centro,-26.1825018,-50.392781,cep_aberto,True
+SC,4203808,Canoinhas,Felipe Schmidt,felipe schmidt,,,dne,True
+SC,4203808,Canoinhas,Industrial 1,industrial 1,-26.166738,-50.418285,mapbox_geocoding,True
+SC,4203808,Canoinhas,Industrial 2,industrial 2,-26.1829614,-50.3671563,cep_aberto,True
+SC,4203808,Canoinhas,Jardim Esperança,jardim esperanca,-26.166738,-50.418285,mapbox_geocoding,True
+SC,4203808,Canoinhas,Marcílio Dias,marcilio dias,-26.1358381,-50.3923223,cep_aberto,True
+SC,4203808,Canoinhas,Paula Pereira,paula pereira,,,dne,True
+SC,4203808,Canoinhas,Piedade,piedade,-26.195892,-50.415499,mapbox_geocoding,True
+SC,4203808,Canoinhas,Pinheiros,pinheiros,,,dne,True
+SC,4203808,Canoinhas,Sossego,sossego,-26.1710147,-50.4011817,cep_aberto,True
+SC,4203808,Canoinhas,Tricolin,tricolin,-26.181081,-50.403401,mapbox_geocoding,True
+SC,4203907,Capinzal,Alto Alegre,alto alegre,,,dne,True
+SC,4203907,Capinzal,Centro,centro,-27.339586,-51.607795,mapbox_geocoding,True
+SC,4203956,Capivari de Baixo,Centro,centro,-28.447868,-48.954418,mapbox_geocoding,True
+SC,4204004,Catanduvas,Centro,centro,-27.071366,-51.659947,mapbox_geocoding,True
+SC,4204103,Caxambu do Sul,Centro,centro,-27.161516,-52.880814,mapbox_geocoding,True
+SC,4204152,Celso Ramos,Centro,centro,-27.631671,-51.339885,mapbox_geocoding,True
+SC,4204178,Cerro Negro,Centro,centro,-27.7961906,-50.8751081,cep_aberto,True
+SC,4204194,Chapadão do Lageado,Centro,centro,-27.586774,-49.547457,mapbox_geocoding,True
+SC,4204202,Chapecó,Água Santa,agua santa,-27.055223,-52.645202,mapbox_geocoding,True
+SC,4204202,Chapecó,Alto da Serra,alto da serra,,,dne,True
+SC,4204202,Chapecó,Alvorada,alvorada,-27.079418,-52.644704,mapbox_geocoding,True
+SC,4204202,Chapecó,Araras,araras,-27.091616,-52.6159,mapbox_geocoding,True
+SC,4204202,Chapecó,Área Rural de Chapecó,area rural de chapeco,-27.1009343,-52.615699,cep_aberto,True
+SC,4204202,Chapecó,Bela Vista,bela vista,-27.087817,-52.621207,mapbox_geocoding,True
+SC,4204202,Chapecó,Belvedere,belvedere,-27.105180008,-52.6283117816,cep_aberto,True
+SC,4204202,Chapecó,Boa Vista,boa vista,-27.091616,-52.6159,mapbox_geocoding,True
+SC,4204202,Chapecó,Bom Pastor,bom pastor,-27.103285,-52.593113,mapbox_geocoding,True
+SC,4204202,Chapecó,Bom Retiro,bom retiro,-27.089459,-52.6185978,cep_aberto,True
+SC,4204202,Chapecó,Campestre,campestre,-27.142989,-52.615793,mapbox_geocoding,True
+SC,4204202,Chapecó,Centro,centro,-27.096,-52.619415346,cep_aberto,True
+SC,4204202,Chapecó,Centro (Marechal Bormann),centro marechal bormann,-27.190112,-52.651467,mapbox_geocoding,True
+SC,4204202,Chapecó,Comunidade Palmital dos Fundos,comunidade palmital dos fundos,-27.077589,-52.610021,mapbox_geocoding,True
+SC,4204202,Chapecó,Cristo Rei,cristo rei,-27.0805199963,-52.6006115164,cep_aberto,True
+SC,4204202,Chapecó,Desbravador,desbravador,-27.052228,-52.603176,mapbox_geocoding,True
+SC,4204202,Chapecó,Dom Gerônimo,dom geronimo,-27.03239,-52.633634,mapbox_geocoding,True
+SC,4204202,Chapecó,Dom Pascoal,dom pascoal,-27.117611,-52.612842,mapbox_geocoding,True
+SC,4204202,Chapecó,Efapi,efapi,-27.0824999959,-52.618,cep_aberto,True
+SC,4204202,Chapecó,Eldorado,eldorado,-27.03239,-52.633634,mapbox_geocoding,True
+SC,4204202,Chapecó,Engenho Braun,engenho braun,-27.1009521,-52.6475735,cep_aberto,True
+SC,4204202,Chapecó,Esplanada,esplanada,-27.109857,-52.592324,mapbox_geocoding,True
+SC,4204202,Chapecó,Figueira,figueira,,,dne,True
+SC,4204202,Chapecó,Fronteira Sul,fronteira sul,-27.1058099,-52.616632,cep_aberto,True
+SC,4204202,Chapecó,Goio-En,goio en,,,dne,True
+SC,4204202,Chapecó,Industrial,industrial,-27.15229,-52.618907,mapbox_geocoding,True
+SC,4204202,Chapecó,Jardim América,jardim america,-27.0929399972,-52.618,cep_aberto,True
+SC,4204202,Chapecó,Jardim Europa,jardim europa,-27.080744,-52.595986,mapbox_geocoding,True
+SC,4204202,Chapecó,Jardim Itália,jardim italia,-27.0938399996,-52.6204263,cep_aberto,True
+SC,4204202,Chapecó,Jardins,jardins,-27.079418,-52.644704,mapbox_geocoding,True
+SC,4204202,Chapecó,Jardins do Vale,jardins do vale,-27.109959,-52.582957,mapbox_geocoding,True
+SC,4204202,Chapecó,Lajeado,lajeado,-27.079418,-52.644704,mapbox_geocoding,True
+SC,4204202,Chapecó,Líder,lider,-27.0906899935,-52.618,cep_aberto,True
+SC,4204202,Chapecó,Maria Goretti,maria goretti,-27.101453,-52.606355,mapbox_geocoding,True
+SC,4204202,Chapecó,Monte Belo,monte belo,-27.1205893,-52.6008656,cep_aberto,True
+SC,4204202,Chapecó,Palmital,palmital,-27.117611,-52.612842,mapbox_geocoding,True
+SC,4204202,Chapecó,Paraíso,paraiso,-27.088152,-52.602001,mapbox_geocoding,True
+SC,4204202,Chapecó,Parque das Palmeiras,parque das palmeiras,-27.1059423,-52.6422223,cep_aberto,True
+SC,4204202,Chapecó,Passo dos Fortes,passo dos fortes,-27.087817,-52.621207,mapbox_geocoding,True
+SC,4204202,Chapecó,Pinheirinho,pinheirinho,-27.096,-52.6261887618,cep_aberto,True
+SC,4204202,Chapecó,Presidente Médici,presidente medici,-27.088375,-52.616797,mapbox_geocoding,True
+SC,4204202,Chapecó,Progresso,progresso,-27.141352,-52.583585,mapbox_geocoding,True
+SC,4204202,Chapecó,Quedas do Palmital,quedas do palmital,-27.0743999975,-52.618,cep_aberto,True
+SC,4204202,Chapecó,SAIC,saic,-27.111255,-52.631597,mapbox_geocoding,True
+SC,4204202,Chapecó,Santa Maria,santa maria,-27.0860099978,-52.6067783625,cep_aberto,True
+SC,4204202,Chapecó,Santa Paulina,santa paulina,-27.064852,-52.605976,mapbox_geocoding,True
+SC,4204202,Chapecó,Santo Antônio,santo antonio,-27.1109826,-52.6339593,cep_aberto,True
+SC,4204202,Chapecó,Santos Dumont,santos dumont,-27.134556,-52.646374,mapbox_geocoding,True
+SC,4204202,Chapecó,São Cristóvão,sao cristovao,-27.0985200063,-52.6151693102,cep_aberto,True
+SC,4204202,Chapecó,São Lucas,sao lucas,-27.105185,-52.582984,mapbox_geocoding,True
+SC,4204202,Chapecó,São Pedro,sao pedro,-27.103020005,-52.618,cep_aberto,True
+SC,4204202,Chapecó,Seminário,seminario,-27.138593,-52.603915,mapbox_geocoding,True
+SC,4204202,Chapecó,Trevo,trevo,-27.1122000049,-52.6361972514,cep_aberto,True
+SC,4204202,Chapecó,Universitário,universitario,-27.117611,-52.612842,mapbox_geocoding,True
+SC,4204202,Chapecó,Vederti,vederti,-27.1009343,-52.615699,cep_aberto,True
+SC,4204202,Chapecó,Vila Real,vila real,-27.064852,-52.605976,mapbox_geocoding,True
+SC,4204202,Chapecó,Vila Rica,vila rica,-27.1053600099,-52.618,cep_aberto,True
+SC,4204251,Cocal do Sul,Centro,centro,-28.602294,-49.325022,mapbox_geocoding,True
+SC,4204301,Concórdia,Aliança,alianca,-26.868868,-49.213681,mapbox_geocoding,True
+SC,4204301,Concórdia,Área Rural de Concórdia,area rural de concordia,-27.2245936,-52.0153552,cep_aberto,True
+SC,4204301,Concórdia,Arvoredo,arvoredo,-27.207469,-52.022866,mapbox_geocoding,True
+SC,4204301,Concórdia,Catarina Fontana,catarina fontana,-27.2431295,-52.0387176,cep_aberto,True
+SC,4204301,Concórdia,Centro,centro,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Cinquentenário,cinquentenario,-27.2274516,-52.0166099,cep_aberto,True
+SC,4204301,Concórdia,Colibri,colibri,-27.212078,-52.020364,mapbox_geocoding,True
+SC,4204301,Concórdia,Colinas,colinas,-27.2159778,-52.0269842,cep_aberto,True
+SC,4204301,Concórdia,Cristal,cristal,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Engenho Velho,engenho velho,,,dne,True
+SC,4204301,Concórdia,Estados,estados,-27.2174251,-52.0475602,cep_aberto,True
+SC,4204301,Concórdia,Flamengo,flamengo,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Floresta,floresta,-27.242619,-52.0222636,cep_aberto,True
+SC,4204301,Concórdia,Fragosos,fragosos,-27.200188,-52.086722,mapbox_geocoding,True
+SC,4204301,Concórdia,Gruta,gruta,-27.2349954,-52.0477496,cep_aberto,True
+SC,4204301,Concórdia,Guilherme Reich,guilherme reich,-27.261181,-52.01188,mapbox_geocoding,True
+SC,4204301,Concórdia,Imigrantes,imigrantes,-27.2335953,-52.0159994,cep_aberto,True
+SC,4204301,Concórdia,Imperial,imperial,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Industrial,industrial,-27.2385119,-51.954206,cep_aberto,True
+SC,4204301,Concórdia,Industriários,industriarios,-27.234198,-52.039875,mapbox_geocoding,True
+SC,4204301,Concórdia,Itaíba,itaiba,-27.2405039,-52.0417826,cep_aberto,True
+SC,4204301,Concórdia,Jardim,jardim,-27.218409,-52.025361,mapbox_geocoding,True
+SC,4204301,Concórdia,Jardim Sul,jardim sul,-27.2224386,-52.0279137,cep_aberto,True
+SC,4204301,Concórdia,Liberdade,liberdade,-27.249495,-52.020373,mapbox_geocoding,True
+SC,4204301,Concórdia,Nações,nacoes,-27.212078,-52.020364,mapbox_geocoding,True
+SC,4204301,Concórdia,Natureza,natureza,-27.2126307,-52.0625812,cep_aberto,True
+SC,4204301,Concórdia,Nazaré,nazare,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Nossa Senhora da Salete,nossa senhora da salete,-27.2221821,-52.0186725,cep_aberto,True
+SC,4204301,Concórdia,Nova Brasília,nova brasilia,-27.261181,-52.01188,mapbox_geocoding,True
+SC,4204301,Concórdia,Parque de Exposições,parque de exposicoes,-27.2259738,-52.0028495,cep_aberto,True
+SC,4204301,Concórdia,Petrópolis,petropolis,-27.230667,-52.051885,mapbox_geocoding,True
+SC,4204301,Concórdia,Planalto,planalto,,,dne,True
+SC,4204301,Concórdia,Poente do Sol,poente do sol,-26.8860246,-49.218566,cep_aberto,True
+SC,4204301,Concórdia,Presidente Kennedy,presidente kennedy,,,dne,True
+SC,4204301,Concórdia,Primavera,primavera,-27.207469,-52.022866,mapbox_geocoding,True
+SC,4204301,Concórdia,Santa Cruz,santa cruz,-27.2200583,-52.0383463,cep_aberto,True
+SC,4204301,Concórdia,Santa Rita,santa rita,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Santa Terezinha,santa terezinha,-27.2306294,-51.9748505,cep_aberto,True
+SC,4204301,Concórdia,Santo Antônio,santo antonio,-27.200188,-52.086722,mapbox_geocoding,True
+SC,4204301,Concórdia,São Cristóvão,sao cristovao,-27.2241627,-51.9653176,cep_aberto,True
+SC,4204301,Concórdia,São José,sao jose,-27.222323,-51.979025,mapbox_geocoding,True
+SC,4204301,Concórdia,São Miguel,sao miguel,-27.2354452,-52.0235091,cep_aberto,True
+SC,4204301,Concórdia,São Paulo,sao paulo,-27.207469,-52.022866,mapbox_geocoding,True
+SC,4204301,Concórdia,Sintrial,sintrial,-27.2358244,-52.0308557,cep_aberto,True
+SC,4204301,Concórdia,Sunti,sunti,-27.241701,-52.057691,mapbox_geocoding,True
+SC,4204301,Concórdia,Tamanduá,tamandua,,,dne,True
+SC,4204301,Concórdia,Vila Jacob Biezus,vila jacob biezus,-27.2385119,-51.954206,cep_aberto,True
+SC,4204301,Concórdia,Vista Alegre,vista alegre,-27.232094,-52.026215,mapbox_geocoding,True
+SC,4204350,Cordilheira Alta,Centro,centro,-26.985976,-52.601479,mapbox_geocoding,True
+SC,4204400,Coronel Freitas,Centro,centro,-26.912655,-52.70479,mapbox_geocoding,True
+SC,4204459,Coronel Martins,Centro,centro,-26.512745,-52.668704,mapbox_geocoding,True
+SC,4204509,Corupá,Ano Bom,ano bom,-26.42301,-49.236443,mapbox_geocoding,True
+SC,4204509,Corupá,Área Rural de Corupá,area rural de corupa,-26.426668,-49.242233,mapbox_geocoding,True
+SC,4204509,Corupá,Bomplandt,bomplandt,-26.416137,-49.246394,mapbox_geocoding,True
+SC,4204509,Corupá,Caminho Pequeno,caminho pequeno,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204509,Corupá,Centro,centro,-26.425242,-49.243888,mapbox_geocoding,True
+SC,4204509,Corupá,Itapocu,itapocu,-26.434387,-49.210113,mapbox_geocoding,True
+SC,4204509,Corupá,Izabel,izabel,-26.438151,-49.280226,mapbox_geocoding,True
+SC,4204509,Corupá,João Tozini,joao tozini,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204509,Corupá,Pedra de Amolar,pedra de amolar,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204509,Corupá,Poço D'anta,poco d anta,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204509,Corupá,Rio Novo,rio novo,-26.432581,-49.271144,mapbox_geocoding,True
+SC,4204509,Corupá,Seminário,seminario,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204509,Corupá,XV de Novembro,xv de novembro,-26.436701,-49.240214,mapbox_geocoding,True
+SC,4204558,Correia Pinto,Centro,centro,-27.587869,-50.360903,mapbox_geocoding,True
+SC,4204608,Criciúma,Ana Maria,ana maria,-28.7040982615,-49.3472174327,cep_aberto,True
+SC,4204608,Criciúma,Archimedes Naspolini,archimedes naspolini,-28.665992,-49.378202,mapbox_geocoding,True
+SC,4204608,Criciúma,Área Rural de Criciúma,area rural de criciuma,-28.6727702,-49.3733771,cep_aberto,True
+SC,4204608,Criciúma,Argentina,argentina,-28.657388,-49.30027,mapbox_geocoding,True
+SC,4204608,Criciúma,Boa Vista,boa vista,-28.6871090293,-49.4068023928,cep_aberto,True
+SC,4204608,Criciúma,Bosque do Repouso,bosque do repouso,-28.699453,-49.358572,mapbox_geocoding,True
+SC,4204608,Criciúma,Brasília,brasilia,-28.6772888004,-49.3412777911,cep_aberto,True
+SC,4204608,Criciúma,Buenos Aires,buenos aires,-28.662551,-49.316172,mapbox_geocoding,True
+SC,4204608,Criciúma,Capão Bonito,capao bonito,-28.7388086246,-49.4052537406,cep_aberto,True
+SC,4204608,Criciúma,Ceará,ceara,-28.685745,-49.35338,mapbox_geocoding,True
+SC,4204608,Criciúma,Centro,centro,-28.6794536696,-49.3717166138,cep_aberto,True
+SC,4204608,Criciúma,Cidade Mineira Nova,cidade mineira nova,-28.685781,-49.419872,mapbox_geocoding,True
+SC,4204608,Criciúma,Cidade Mineira Velha,cidade mineira velha,-28.6933729113,-49.4192956914,cep_aberto,True
+SC,4204608,Criciúma,Colonial,colonial,-28.646018,-49.442908,mapbox_geocoding,True
+SC,4204608,Criciúma,Coloninha Zilli,coloninha zilli,-28.658095,-49.395001,mapbox_geocoding,True
+SC,4204608,Criciúma,Comerciário,comerciario,-28.678,-49.3708206743,cep_aberto,True
+SC,4204608,Criciúma,Cristo Redentor,cristo redentor,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,Cruzeiro do Sul,cruzeiro do sul,-28.6711269495,-49.369770294,cep_aberto,True
+SC,4204608,Criciúma,Dagostin,dagostin,-28.742954,-49.372125,mapbox_geocoding,True
+SC,4204608,Criciúma,Demboski,demboski,-28.6755150085,-49.3167459114,cep_aberto,True
+SC,4204608,Criciúma,Distrito Industrial,distrito industrial,-28.681808,-49.424314,mapbox_geocoding,True
+SC,4204608,Criciúma,dos Imigrantes,dos imigrantes,-28.6762736111,-49.3170999612,cep_aberto,True
+SC,4204608,Criciúma,Estaçãozinha,estacaozinha,-28.655005,-49.422132,mapbox_geocoding,True
+SC,4204608,Criciúma,Fábio Silva,fabio silva,-28.7001562588,-49.3692918968,cep_aberto,True
+SC,4204608,Criciúma,Imperatriz,imperatriz,-28.694566,-49.419174,mapbox_geocoding,True
+SC,4204608,Criciúma,Jardim Angélica,jardim angelica,-28.7008892697,-49.4022150694,cep_aberto,True
+SC,4204608,Criciúma,Jardim das Paineiras,jardim das paineiras,-28.718487,-49.35323,mapbox_geocoding,True
+SC,4204608,Criciúma,Jardim Maristela,jardim maristela,-28.6870456019,-49.3433782005,cep_aberto,True
+SC,4204608,Criciúma,Jardim Montevidéu,jardim montevideu,-28.690432,-49.451218,mapbox_geocoding,True
+SC,4204608,Criciúma,Laranjinha,laranjinha,-28.6503580981,-49.40749968,cep_aberto,True
+SC,4204608,Criciúma,Liberdade,liberdade,-28.681808,-49.424314,mapbox_geocoding,True
+SC,4204608,Criciúma,Linha Anta,linha anta,-28.6720189,-49.2556796,cep_aberto,True
+SC,4204608,Criciúma,Linha Batista,linha batista,-28.657388,-49.30027,mapbox_geocoding,True
+SC,4204608,Criciúma,Linha Cabral,linha cabral,-28.6468255,-49.3164483,cep_aberto,True
+SC,4204608,Criciúma,Lote Seis,lote seis,-28.665992,-49.378202,mapbox_geocoding,True
+SC,4204608,Criciúma,Mãe Luzia,mae luzia,-28.7041237254,-49.4675061781,cep_aberto,True
+SC,4204608,Criciúma,Maria Céu,maria ceu,-28.675867,-49.402011,mapbox_geocoding,True
+SC,4204608,Criciúma,Metropol,metropol,-28.6468750632,-49.4294513646,cep_aberto,True
+SC,4204608,Criciúma,Michel,michel,-28.692262,-49.382843,mapbox_geocoding,True
+SC,4204608,Criciúma,Milanese,milanese,-28.6814200042,-49.3738981936,cep_aberto,True
+SC,4204608,Criciúma,Mina Brasil,mina brasil,-28.665992,-49.378202,mapbox_geocoding,True
+SC,4204608,Criciúma,Mina do Mato,mina do mato,-28.6613259,-49.3722339,cep_aberto,True
+SC,4204608,Criciúma,Mina do Toco,mina do toco,-28.646625,-49.39055,mapbox_geocoding,True
+SC,4204608,Criciúma,Mina União,mina uniao,-28.6864956,-49.4269972,cep_aberto,True
+SC,4204608,Criciúma,Monte Castelo,monte castelo,-28.667857,-49.408888,mapbox_geocoding,True
+SC,4204608,Criciúma,Morro Albino,morro albino,-28.802151,-49.366368,mapbox_geocoding,True
+SC,4204608,Criciúma,Morro Estevão,morro estevao,-28.7182573,-49.3479056,cep_aberto,True
+SC,4204608,Criciúma,Nossa Senhora da Salete,nossa senhora da salete,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,Nossa Senhora do Carmo,nossa senhora do carmo,-28.678,-49.3345059596,cep_aberto,True
+SC,4204608,Criciúma,Operária Nova,operaria nova,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,Paraíso,paraiso,-28.678,-49.3655888824,cep_aberto,True
+SC,4204608,Criciúma,Pedro Zanivan,pedro zanivan,-28.742954,-49.372125,mapbox_geocoding,True
+SC,4204608,Criciúma,Pinheirinho,pinheirinho,-28.678,-49.36579405,cep_aberto,True
+SC,4204608,Criciúma,Pio Corrêa,pio correa,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,Poço Um,poco um,-28.7109400057,-49.4075457208,cep_aberto,True
+SC,4204608,Criciúma,Primeira Linha,primeira linha,-28.71052,-49.370886,mapbox_geocoding,True
+SC,4204608,Criciúma,Primeira Linha Pontilhão,primeira linha pontilhao,-28.6898800055,-49.37,cep_aberto,True
+SC,4204608,Criciúma,Progresso,progresso,-28.690665,-49.424305,mapbox_geocoding,True
+SC,4204608,Criciúma,Próspera,prospera,-28.678,-49.3834385021,cep_aberto,True
+SC,4204608,Criciúma,Quarta Linha,quarta linha,-28.789822,-49.359961,mapbox_geocoding,True
+SC,4204608,Criciúma,Recanto Verde,recanto verde,-28.7046292877,-49.369034163,cep_aberto,True
+SC,4204608,Criciúma,Renascer,renascer,-28.709796,-49.360967,mapbox_geocoding,True
+SC,4204608,Criciúma,Rio Maina,rio maina,-28.6732953,-49.4237274,cep_aberto,True
+SC,4204608,Criciúma,Sangão,sangao,-28.761748,-49.408445,mapbox_geocoding,True
+SC,4204608,Criciúma,Santa Augusta,santa augusta,-28.678,-49.3750266196,cep_aberto,True
+SC,4204608,Criciúma,Santa Bárbara,santa barbara,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,Santa Catarina,santa catarina,-28.6860100092,-49.3608700207,cep_aberto,True
+SC,4204608,Criciúma,Santa Luzia,santa luzia,-28.694566,-49.419174,mapbox_geocoding,True
+SC,4204608,Criciúma,Santo Antônio,santo antonio,-28.6643199959,-49.37,cep_aberto,True
+SC,4204608,Criciúma,São Cristóvão,sao cristovao,-28.697395,-49.398901,mapbox_geocoding,True
+SC,4204608,Criciúma,São Defende,sao defende,-28.6991524,-49.4618542,cep_aberto,True
+SC,4204608,Criciúma,São Domingos,sao domingos,-28.802151,-49.366368,mapbox_geocoding,True
+SC,4204608,Criciúma,São Francisco,sao francisco,-28.6884929046,-49.4121857834,cep_aberto,True
+SC,4204608,Criciúma,São João,sao joao,-28.709796,-49.360967,mapbox_geocoding,True
+SC,4204608,Criciúma,São Luiz,sao luiz,-28.678,-49.3677431459,cep_aberto,True
+SC,4204608,Criciúma,São Marcos,sao marcos,-28.633632,-49.405956,mapbox_geocoding,True
+SC,4204608,Criciúma,São Roque,sao roque,-28.656399995,-49.3946201462,cep_aberto,True
+SC,4204608,Criciúma,São Sebastião,sao sebastiao,-28.702404,-49.441225,mapbox_geocoding,True
+SC,4204608,Criciúma,São Simão,sao simao,-28.6682799922,-49.37,cep_aberto,True
+SC,4204608,Criciúma,Tereza Cristina,tereza cristina,-28.692597,-49.404407,mapbox_geocoding,True
+SC,4204608,Criciúma,Universitário,universitario,-28.678,-49.3749240331,cep_aberto,True
+SC,4204608,Criciúma,Vera Cruz,vera cruz,-28.665992,-49.378202,mapbox_geocoding,True
+SC,4204608,Criciúma,Verdinho,verdinho,-28.812252,-49.403122,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Floresta,vila floresta,-28.6909600054,-49.37,cep_aberto,True
+SC,4204608,Criciúma,Vila Floresta II,vila floresta ii,-28.675867,-49.402011,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Francesa,vila francesa,-28.678,-49.4032371961,cep_aberto,True
+SC,4204608,Criciúma,Vila Isabel,vila isabel,-28.681808,-49.424314,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Macarini,vila macarini,-28.6626999921,-49.3874392752,cep_aberto,True
+SC,4204608,Criciúma,Vila Manaus,vila manaus,-28.694566,-49.419174,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Maria,vila maria,-28.8177384,-49.373831,cep_aberto,True
+SC,4204608,Criciúma,Vila Miguel,vila miguel,-28.648168,-49.422829,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Nova Esperança,vila nova esperanca,-28.678,-49.364255291,cep_aberto,True
+SC,4204608,Criciúma,Vila Rica,vila rica,-28.681691,-49.335447,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila São José,vila sao jose,-28.6633299944,-49.37,cep_aberto,True
+SC,4204608,Criciúma,Vila Selinger,vila selinger,-28.681691,-49.335447,mapbox_geocoding,True
+SC,4204608,Criciúma,Vila Visconde,vila visconde,-28.6925800028,-49.3533814019,cep_aberto,True
+SC,4204608,Criciúma,Vila Zuleima,vila zuleima,-28.675867,-49.402011,mapbox_geocoding,True
+SC,4204608,Criciúma,Wosocris,wosocris,-28.6675726431,-49.4334164598,cep_aberto,True
+SC,4204707,Cunha Porã,Centro,centro,-26.892214,-53.170423,mapbox_geocoding,True
+SC,4204756,Cunhataí,Centro,centro,-26.970475,-53.090362,mapbox_geocoding,True
+SC,4204806,Curitibanos,Centro,centro,-27.291904,-50.57782,mapbox_geocoding,True
+SC,4204806,Curitibanos,Marombas Bossardi,marombas bossardi,,,dne,True
+SC,4204806,Curitibanos,Nossa Senhora Aparecida,nossa senhora aparecida,-27.3017656,-50.5836331,cep_aberto,True
+SC,4204806,Curitibanos,Santa Cruz do Pery,santa cruz do pery,,,dne,True
+SC,4204905,Descanso,Cento,cento,-26.826425,-53.501023,mapbox_geocoding,True
+SC,4204905,Descanso,Centro,centro,-26.9005304,-53.5044049,cep_aberto,True
+SC,4204905,Descanso,Itajubá,itajuba,,,dne,True
+SC,4205001,Dionísio Cerqueira,Centro,centro,-26.256634,-53.636005,mapbox_geocoding,True
+SC,4205001,Dionísio Cerqueira,Idamar,idamar,,,dne,True
+SC,4205001,Dionísio Cerqueira,Jorge Lacerda,jorge lacerda,,,dne,True
+SC,4205001,Dionísio Cerqueira,São Pedro Tobias,sao pedro tobias,,,dne,True
+SC,4205100,Dona Emma,Centro,centro,-26.9848509,-49.7239414,cep_aberto,True
+SC,4205159,Doutor Pedrinho,Centro,centro,-26.358761,-52.839804,mapbox_geocoding,True
+SC,4205175,Entre Rios,Centro,centro,-26.724044,-52.563392,mapbox_geocoding,True
+SC,4205191,Ermo,Centro,centro,-28.984714,-49.641088,cep_aberto,True
+SC,4205209,Erval Velho,Barra Fria,barra fria,,,dne,True
+SC,4205209,Erval Velho,Centro,centro,-27.275908,-51.443368,mapbox_geocoding,True
+SC,4205308,Faxinal dos Guedes,Barra Grande,barra grande,,,dne,True
+SC,4205308,Faxinal dos Guedes,Centro,centro,-26.783447,-52.191353,mapbox_geocoding,True
+SC,4205357,Flor do Sertão,Centro,centro,-26.777997,-53.347222,mapbox_geocoding,True
+SC,4205407,Florianópolis,Abraão,abraao,-27.146795,-52.783213,mapbox_geocoding,True
+SC,4205407,Florianópolis,Agronômica,agronomica,-27.593669994,-48.5527575055,cep_aberto,True
+SC,4205407,Florianópolis,Área Rural de Florianópolis,area rural de florianopolis,-27.59679,-48.54975,mapbox_geocoding,True
+SC,4205407,Florianópolis,Armação,armacao,-27.597,-48.5148778368,cep_aberto,True
+SC,4205407,Florianópolis,Balneário,balneario,-27.597,-48.5117296638,cep_aberto,True
+SC,4205407,Florianópolis,Barra da Lagoa,barra da lagoa,-27.597,-48.5211741933,cep_aberto,True
+SC,4205407,Florianópolis,Bom Abrigo,bom abrigo,-27.611834,-48.596801,mapbox_geocoding,True
+SC,4205407,Florianópolis,Cachoeira do Bom Jesus,cachoeira do bom jesus,-27.585119997,-48.5355948659,cep_aberto,True
+SC,4205407,Florianópolis,Cacupé,cacupe,-27.53225,-48.524881,mapbox_geocoding,True
+SC,4205407,Florianópolis,Campeche,campeche,-27.597,-48.5803802037,cep_aberto,True
+SC,4205407,Florianópolis,Canasvieiras,canasvieiras,-27.432409,-48.464005,mapbox_geocoding,True
+SC,4205407,Florianópolis,Canto,canto,-27.6294000037,-48.5855594516,cep_aberto,True
+SC,4205407,Florianópolis,Capoeiras,capoeiras,-27.603932,-48.580939,mapbox_geocoding,True
+SC,4205407,Florianópolis,Carianos,carianos,-27.590519999,-48.5563118907,cep_aberto,True
+SC,4205407,Florianópolis,Carvoeira,carvoeira,-27.603767,-48.524939,mapbox_geocoding,True
+SC,4205407,Florianópolis,Centro,centro,-27.5972700059,-48.5486953313,cep_aberto,True
+SC,4205407,Florianópolis,Coloninha,coloninha,-27.58736,-48.590578,mapbox_geocoding,True
+SC,4205407,Florianópolis,Coqueiros,coqueiros,-27.6304800037,-48.549,cep_aberto,True
+SC,4205407,Florianópolis,Córrego Grande,corrego grande,-27.5877299911,-48.5594600742,cep_aberto,True
+SC,4205407,Florianópolis,Costeira do Pirajubaé,costeira do pirajubae,-27.639333,-48.521967,mapbox_geocoding,True
+SC,4205407,Florianópolis,Daniela,daniela,-27.6136500096,-48.5302124953,cep_aberto,True
+SC,4205407,Florianópolis,Estreito,estreito,-27.585559,-48.578232,mapbox_geocoding,True
+SC,4205407,Florianópolis,Ingleses,ingleses,-27.5763899897,-48.5257441176,cep_aberto,True
+SC,4205407,Florianópolis,Itacorubi,itacorubi,-27.591547,-48.497672,mapbox_geocoding,True
+SC,4205407,Florianópolis,Itaguaçu,itaguacu,-27.5622599899,-48.5881998634,cep_aberto,True
+SC,4205407,Florianópolis,Jardim Atlântico,jardim atlantico,-27.579308,-48.600593,mapbox_geocoding,True
+SC,4205407,Florianópolis,João Paulo,joao paulo,-27.5929499949,-48.5535699367,cep_aberto,True
+SC,4205407,Florianópolis,José Mendes,jose mendes,-26.892617,-51.067179,mapbox_geocoding,True
+SC,4205407,Florianópolis,Jurerê,jurere,-27.5792699939,-48.549,cep_aberto,True
+SC,4205407,Florianópolis,Jurerê Internacional,jurere internacional,-27.44016,-48.506242,mapbox_geocoding,True
+SC,4205407,Florianópolis,Lagoa da Conceição,lagoa da conceicao,-27.5715299952,-48.549,cep_aberto,True
+SC,4205407,Florianópolis,Monte Cristo,monte cristo,-27.594244,-48.6058,mapbox_geocoding,True
+SC,4205407,Florianópolis,Monte Verde,monte verde,-27.5922299917,-48.5543823725,cep_aberto,True
+SC,4205407,Florianópolis,Morro das Pedras,morro das pedras,-27.746229,-48.510215,mapbox_geocoding,True
+SC,4205407,Florianópolis,Pantanal,pantanal,-27.597,-48.5382352661,cep_aberto,True
+SC,4205407,Florianópolis,Pântano do Sul,pantano do sul,-27.782884,-48.524941,mapbox_geocoding,True
+SC,4205407,Florianópolis,Ponta das Canas,ponta das canas,-27.4054423,-48.4263194,cep_aberto,True
+SC,4205407,Florianópolis,Praia Brava,praia brava,-27.397926,-48.421831,mapbox_geocoding,True
+SC,4205407,Florianópolis,Ratones,ratones,-27.612750007,-48.5667719615,cep_aberto,True
+SC,4205407,Florianópolis,Ribeirão da Ilha,ribeirao da ilha,-27.767258,-48.526862,mapbox_geocoding,True
+SC,4205407,Florianópolis,Rio Tavares,rio tavares,-27.59679,-48.54975,mapbox_geocoding,True
+SC,4205407,Florianópolis,Rio Vermelho,rio vermelho,-27.48312,-48.411291,mapbox_geocoding,True
+SC,4205407,Florianópolis,Saco dos Limões,saco dos limoes,-27.5858399911,-48.5615927086,cep_aberto,True
+SC,4205407,Florianópolis,Saco Grande,saco grande,-27.59679,-48.54975,mapbox_geocoding,True
+SC,4205407,Florianópolis,Sambaqui,sambaqui,-27.6126600032,-48.5313295968,cep_aberto,True
+SC,4205407,Florianópolis,Santa Mônica,santa monica,-27.588249,-48.50938,mapbox_geocoding,True
+SC,4205407,Florianópolis,Santo Antônio de Lisboa,santo antonio de lisboa,-27.612210008,-48.549,cep_aberto,True
+SC,4205407,Florianópolis,Tapera,tapera,-27.681147,-48.569305,mapbox_geocoding,True
+SC,4205407,Florianópolis,Tapera da Base,tapera da base,-27.790955,-48.559315,mapbox_geocoding,True
+SC,4205407,Florianópolis,Trindade,trindade,-27.5895299916,-48.5574289932,cep_aberto,True
+SC,4205407,Florianópolis,Vargem do Bom Jesus,vargem do bom jesus,-27.446485,-48.426735,mapbox_geocoding,True
+SC,4205407,Florianópolis,Vargem Grande,vargem grande,-27.4479,-48.460048,mapbox_geocoding,True
+SC,4205407,Florianópolis,Vargem Pequena,vargem pequena,-27.5809799984,-48.5309233825,cep_aberto,True
+SC,4205431,Formosa do Sul,Centro,centro,-26.647129,-52.793349,mapbox_geocoding,True
+SC,4205456,Forquilhinha,Centro,centro,-28.741125,-49.476906,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Área Rural de Fraiburgo,area rural de fraiburgo,-27.023567,-50.92237,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Bela Vista,bela vista,-27.023003,-50.932898,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Butiá Verde,butia verde,-27.000559,-50.995198,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Centro,centro,-27.022891,-50.918293,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Colina do Sol,colina do sol,-27.167194,-51.490787,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Das Nações,das nacoes,-27.02522,-50.910318,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Dez de Novembro,dez de novembro,-27.020967,-50.92625,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Fischer,fischer,-27.035283,-50.900777,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Jardim América,jardim america,-27.021048,-50.917642,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Jardim das Araucárias,jardim das araucarias,-27.030299,-50.928207,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Jardim das Hortências,jardim das hortencias,-27.030299,-50.928207,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Liberata,liberata,-27.069601,-50.904646,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Macieira,macieira,-27.048173,-50.901328,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Nossa Senhora Aparecida,nossa senhora aparecida,-27.023567,-50.92237,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Nossa Senhora da Salete,nossa senhora da salete,-27.030299,-50.928207,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Papuã,papua,-27.020967,-50.92625,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Portal,portal,-27.038367,-50.914195,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Roland Mayer,roland mayer,-27.024162,-50.941723,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Santa Mônica,santa monica,-27.019153,-50.933775,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Santa Sara,santa sara,-27.030299,-50.928207,mapbox_geocoding,True
+SC,4205506,Fraiburgo,Santo Antônio,santo antonio,-27.02522,-50.910318,mapbox_geocoding,True
+SC,4205506,Fraiburgo,São Cristovão,sao cristovao,-27.167194,-51.490787,mapbox_geocoding,True
+SC,4205506,Fraiburgo,São José,sao jose,-27.023689,-50.915342,mapbox_geocoding,True
+SC,4205506,Fraiburgo,São Miguel,sao miguel,-27.053913,-50.939977,mapbox_geocoding,True
+SC,4205506,Fraiburgo,São Roque,sao roque,-27.048173,-50.901328,mapbox_geocoding,True
+SC,4205506,Fraiburgo,São Sebastião,sao sebastiao,-27.019153,-50.933775,mapbox_geocoding,True
+SC,4205555,Frei Rogério,Centro,centro,-27.172989,-50.806308,mapbox_geocoding,True
+SC,4205555,Frei Rogério,Núcleo Triticula,nucleo triticula,-27.1443132,-50.7501153,cep_aberto,True
+SC,4205605,Galvão,Centro,centro,-26.456714,-52.685124,mapbox_geocoding,True
+SC,4205704,Garopaba,Campo D'una,campo d una,-28.1076379,-48.6801759,cep_aberto,True
+SC,4205704,Garopaba,Centro,centro,-28.025419,-48.623486,mapbox_geocoding,True
+SC,4205803,Garuva,Centro,centro,-26.098371,-48.862328,mapbox_geocoding,True
+SC,4205902,Gaspar,Alto Gasparinho,alto gasparinho,-26.9738336,-48.9140732,cep_aberto,True
+SC,4205902,Gaspar,Área Rural de Gaspar,area rural de gaspar,-26.92876,-48.956238,mapbox_geocoding,True
+SC,4205902,Gaspar,Arraial D'Ouro,arraial d ouro,-26.8934527,-48.9127872,cep_aberto,True
+SC,4205902,Gaspar,Barracão,barracao,-26.99658,-48.888143,mapbox_geocoding,True
+SC,4205902,Gaspar,Bateias,bateias,-26.997493,-48.908546,mapbox_geocoding,True
+SC,4205902,Gaspar,Bela Vista,bela vista,-26.9003184,-49.006686,cep_aberto,True
+SC,4205902,Gaspar,Belchior Alto,belchior alto,-26.83758,-49.03274,mapbox_geocoding,True
+SC,4205902,Gaspar,Belchior Baixo,belchior baixo,-26.879385,-49.042553,mapbox_geocoding,True
+SC,4205902,Gaspar,Belchior Central,belchior central,-26.8625154,-49.0350891,cep_aberto,True
+SC,4205902,Gaspar,Centro,centro,-26.932061,-48.957712,mapbox_geocoding,True
+SC,4205902,Gaspar,Coloninha,coloninha,-26.9225292,-48.9724318,cep_aberto,True
+SC,4205902,Gaspar,Figueira,figueira,-26.918879,-48.985012,mapbox_geocoding,True
+SC,4205902,Gaspar,Gaspar Alto,gaspar alto,-26.9938521,-49.0360776,cep_aberto,True
+SC,4205902,Gaspar,Gaspar Grande,gaspar grande,-26.945705,-49.017588,mapbox_geocoding,True
+SC,4205902,Gaspar,Gaspar Mirim,gaspar mirim,-26.944185,-48.955203,mapbox_geocoding,True
+SC,4205902,Gaspar,Gasparinho,gasparinho,-26.9535634,-48.9673476,cep_aberto,True
+SC,4205902,Gaspar,Lagoa,lagoa,-26.899784,-48.928447,mapbox_geocoding,True
+SC,4205902,Gaspar,Macucos,macucos,-26.9418653,-48.8836991,cep_aberto,True
+SC,4205902,Gaspar,Margem Esquerda,margem esquerda,-26.9126845,-48.9582674,cep_aberto,True
+SC,4205902,Gaspar,Poço Grande,poco grande,-26.921252,-48.932963,mapbox_geocoding,True
+SC,4205902,Gaspar,Santa Terezinha,santa terezinha,-26.9409267,-48.9363083,cep_aberto,True
+SC,4205902,Gaspar,Sete de Setembro,sete de setembro,-26.921252,-48.932963,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Área Rural de Governador Celso Ramos,area rural de governador celso ramos,-27.314835,-48.554985,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Areias de Baixo,areias de baixo,-27.394855,-48.607903,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Areias de Cima,areias de cima,-27.398155,-48.630195,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Areias do Meio,areias do meio,-27.382584,-48.616953,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Armação da Piedade,armacao da piedade,-27.379386,-48.534057,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Caieira do Norte,caieira do norte,-27.424361,-48.572582,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Calheiros,calheiros,-27.314835,-48.554985,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Camboa,camboa,-27.364611,-48.544382,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Canto dos Ganchos,canto dos ganchos,-27.323077,-48.584792,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Conjunto Central de Montanhas,conjunto central de montanhas,-27.396477,-48.596327,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Costeira da Armação,costeira da armacao,-27.396477,-48.596327,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Dona Lucinda,dona lucinda,-27.323077,-48.584792,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Fazenda da Armação,fazenda da armacao,-27.396477,-48.596327,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Ganchos de Fora,ganchos de fora,-27.313722,-48.552692,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Ganchos do Meio,ganchos do meio,-27.313722,-48.552692,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Jordão,jordao,-27.323077,-48.584792,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Palmas,palmas,-27.326282,-48.542921,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Parque Industrial Norte,parque industrial norte,-27.398155,-48.630195,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Parque Industrial Sul,parque industrial sul,-27.391438,-48.623357,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Praia do Antenor,praia do antenor,-27.428694,-48.590749,mapbox_geocoding,True
+SC,4206009,Governador Celso Ramos,Praia Grande,praia grande,-27.365526,-48.538459,mapbox_geocoding,True
+SC,4206108,Grão-Pará,Aiurê,aiure,,,dne,True
+SC,4206108,Grão-Pará,Centro,centro,-28.6018371,-49.1514667,cep_aberto,True
+SC,4206108,Grão-Pará,Invernada,invernada,,,dne,True
+SC,4206207,Gravatal,Centro,centro,-28.332795,-49.03345,mapbox_geocoding,True
+SC,4206306,Guabiruba,Centro,centro,-27.085024,-48.972217,mapbox_geocoding,True
+SC,4206405,Guaraciaba,Centro,centro,-26.5319378,-53.6890333,cep_aberto,True
+SC,4206405,Guaraciaba,Ouro Verde,ouro verde,,,dne,True
+SC,4206504,Guaramirim,Amizade,amizade,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Área Rural,area rural,-26.475307,-48.998425,mapbox_geocoding,True
+SC,4206504,Guaramirim,Avaí,avai,-26.470363,-48.976216,mapbox_geocoding,True
+SC,4206504,Guaramirim,Bananal do Sul,bananal do sul,-26.49153,-48.933515,mapbox_geocoding,True
+SC,4206504,Guaramirim,Barro Branco,barro branco,-26.559128,-48.998156,mapbox_geocoding,True
+SC,4206504,Guaramirim,Beira Rio,beira rio,-26.483443,-48.995331,mapbox_geocoding,True
+SC,4206504,Guaramirim,Bruderthal I,bruderthal i,-26.505502,-49.01292,mapbox_geocoding,True
+SC,4206504,Guaramirim,Caixa D Água,caixa d agua,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Centro,centro,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Corticeira,corticeira,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Corticeirinha,corticeirinha,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Escolinha,escolinha,-26.465051,-48.946676,mapbox_geocoding,True
+SC,4206504,Guaramirim,Figueirinha,figueirinha,-26.486378,-49.006329,mapbox_geocoding,True
+SC,4206504,Guaramirim,Guamiranga,guamiranga,-26.467595,-48.946755,mapbox_geocoding,True
+SC,4206504,Guaramirim,Ilha da Figueira,ilha da figueira,-26.48701,-49.022487,mapbox_geocoding,True
+SC,4206504,Guaramirim,Imigrantes,imigrantes,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Jacu-Açu,jacu acu,-26.49101,-49.002853,mapbox_geocoding,True
+SC,4206504,Guaramirim,Nova Esperança,nova esperanca,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Poço Grande,poco grande,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Quati,quati,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Recanto Feliz,recanto feliz,-26.475423,-48.991465,mapbox_geocoding,True
+SC,4206504,Guaramirim,Rio Branco,rio branco,-26.506399,-49.008383,mapbox_geocoding,True
+SC,4206504,Guaramirim,Vila Amizade,vila amizade,-26.45726,-49.025457,mapbox_geocoding,True
+SC,4206603,Guarujá do Sul,Centro,centro,-26.387548,-53.526884,mapbox_geocoding,True
+SC,4206652,Guatambú,Centro,centro,-27.074457,-52.7629875,cep_aberto,True
+SC,4206652,Guatambú,Fazenda Zandavalli,fazenda zandavalli,,,dne,True
+SC,4206702,Herval d'Oeste,Centro,centro,-27.151296,-51.481063,mapbox_geocoding,True
+SC,4206751,Ibiam,Centro,centro,-26.96271,-49.62368,mapbox_geocoding,True
+SC,4206801,Ibicaré,Centro,centro,-27.089613,-51.367599,mapbox_geocoding,True
+SC,4206900,Ibirama,Centro,centro,-27.054162,-49.514741,mapbox_geocoding,True
+SC,4206900,Ibirama,Dalbérgia,dalbergia,,,dne,True
+SC,4206900,Ibirama,Distrito de Dalbérgia,distrito de dalbergia,-27.0486107,-49.5393652,cep_aberto,True
+SC,4207007,Içara,Alto Alegre,alto alegre,-28.717567,-49.18343,mapbox_geocoding,True
+SC,4207007,Içara,Área Rural de Içara,area rural de icara,-28.71497,-49.298553,mapbox_geocoding,True
+SC,4207007,Içara,Aurora,aurora,-28.760287,-49.304551,mapbox_geocoding,True
+SC,4207007,Içara,Barracão,barracao,-28.746395,-49.257853,mapbox_geocoding,True
+SC,4207007,Içara,Boa Vista,boa vista,-13.657425,-40.214717,mapbox_geocoding,True
+SC,4207007,Içara,Campo Mãe Luzia,campo mae luzia,-28.816145,-49.29749,mapbox_geocoding,True
+SC,4207007,Içara,Centro,centro,-28.719085,-49.302838,mapbox_geocoding,True
+SC,4207007,Içara,Coqueiros,coqueiros,-28.816145,-49.29749,mapbox_geocoding,True
+SC,4207007,Içara,Cristo Rei,cristo rei,-28.719085,-49.302838,mapbox_geocoding,True
+SC,4207007,Içara,Demboski,demboski,-28.689694,-49.275862,mapbox_geocoding,True
+SC,4207007,Içara,Esperança,esperanca,-28.709916,-49.290308,mapbox_geocoding,True
+SC,4207007,Içara,Espigão,espigao,-28.777042,-49.250572,mapbox_geocoding,True
+SC,4207007,Içara,Esplanada,esplanada,-7.787577,-35.08656,mapbox_geocoding,True
+SC,4207007,Içara,Jaqueline,jaqueline,-28.717447,-49.287677,mapbox_geocoding,True
+SC,4207007,Içara,Jardim Elizabete,jardim elizabete,-28.709916,-49.290308,mapbox_geocoding,True
+SC,4207007,Içara,Jardim Silvana,jardim silvana,-28.709916,-49.290308,mapbox_geocoding,True
+SC,4207007,Içara,Jussara,jussara,-28.772496,-49.268067,mapbox_geocoding,True
+SC,4207007,Içara,Linha Anta,linha anta,-28.700796,-49.230444,mapbox_geocoding,True
+SC,4207007,Içara,Linha Pasqualini,linha pasqualini,-28.71497,-49.298553,mapbox_geocoding,True
+SC,4207007,Içara,Linha Zilli,linha zilli,-28.722688,-49.288364,mapbox_geocoding,True
+SC,4207007,Içara,Liri,liri,-28.694492,-49.321208,mapbox_geocoding,True
+SC,4207007,Içara,Lombas,lombas,-28.763256,-49.267147,mapbox_geocoding,True
+SC,4207007,Içara,Marili,marili,-28.712008,-49.282684,mapbox_geocoding,True
+SC,4207007,Içara,Morro Bonito,morro bonito,-28.743908,-49.321408,mapbox_geocoding,True
+SC,4207007,Içara,Nossa Senhora de Fátima,nossa senhora de fatima,-28.772496,-49.268067,mapbox_geocoding,True
+SC,4207007,Içara,Novo Caravágio,novo caravagio,-28.700796,-49.230444,mapbox_geocoding,True
+SC,4207007,Içara,Poço Oito,poco oito,-28.795151,-49.29421,mapbox_geocoding,True
+SC,4207007,Içara,Poço Três,poco tres,-28.764814,-49.306025,mapbox_geocoding,True
+SC,4207007,Içara,Ponta do Mato,ponta do mato,-28.746395,-49.257853,mapbox_geocoding,True
+SC,4207007,Içara,Presidente Vargas,presidente vargas,-28.689996,-49.313213,mapbox_geocoding,True
+SC,4207007,Içara,Primeiro de Maio,primeiro de maio,-28.723281,-49.301469,mapbox_geocoding,True
+SC,4207007,Içara,Raichaski,raichaski,-28.712008,-49.282684,mapbox_geocoding,True
+SC,4207007,Içara,Rio Acima,rio acima,-28.725767,-49.192397,mapbox_geocoding,True
+SC,4207007,Içara,Rio dos Anjos,rio dos anjos,-28.795151,-49.29421,mapbox_geocoding,True
+SC,4207007,Içara,Ronco D'Água,ronco d agua,-28.700796,-49.230444,mapbox_geocoding,True
+SC,4207007,Içara,Sanga Funda,sanga funda,-28.780357,-49.2766,mapbox_geocoding,True
+SC,4207007,Içara,Santa Cruz,santa cruz,-28.704414,-49.246901,mapbox_geocoding,True
+SC,4207007,Içara,São Rafael,sao rafael,-28.754499,-49.335692,mapbox_geocoding,True
+SC,4207007,Içara,Tereza Cristina,tereza cristina,-28.709916,-49.290308,mapbox_geocoding,True
+SC,4207007,Içara,Vila Alvorada,vila alvorada,-28.763256,-49.267147,mapbox_geocoding,True
+SC,4207007,Içara,Vila Nova,vila nova,-19.672368,-43.96841,mapbox_geocoding,True
+SC,4207007,Içara,Vila São José,vila sao jose,-28.743908,-49.321408,mapbox_geocoding,True
+SC,4207007,Içara,Vila São Pedro,vila sao pedro,-28.725767,-49.192397,mapbox_geocoding,True
+SC,4207106,Ilhota,Alto Baú,alto bau,-26.825208,-48.979219,mapbox_geocoding,True
+SC,4207106,Ilhota,Área Rural de Ilhota,area rural de ilhota,-26.9013,-48.828587,mapbox_geocoding,True
+SC,4207106,Ilhota,Barra de Luiz Alves,barra de luiz alves,-26.889678,-48.805435,mapbox_geocoding,True
+SC,4207106,Ilhota,Barranco Alto,barranco alto,-26.839684,-48.781764,mapbox_geocoding,True
+SC,4207106,Ilhota,Baú Baixo,bau baixo,-26.839684,-48.781764,mapbox_geocoding,True
+SC,4207106,Ilhota,Baú Central,bau central,-26.848526,-48.868245,mapbox_geocoding,True
+SC,4207106,Ilhota,Baú Seco,bau seco,-26.781807,-48.932747,mapbox_geocoding,True
+SC,4207106,Ilhota,Boa Vista,boa vista,-26.932622,-48.793897,mapbox_geocoding,True
+SC,4207106,Ilhota,Braço do Baú,braco do bau,-26.82049,-48.881925,mapbox_geocoding,True
+SC,4207106,Ilhota,Centro,centro,-26.904232,-48.826622,mapbox_geocoding,True
+SC,4207106,Ilhota,Ilhotinha,ilhotinha,-26.911443,-48.814255,mapbox_geocoding,True
+SC,4207106,Ilhota,Minas,minas,-26.9013,-48.828587,mapbox_geocoding,True
+SC,4207106,Ilhota,Missões,missoes,-26.91703,-48.830033,mapbox_geocoding,True
+SC,4207106,Ilhota,Pedra de Amolar,pedra de amolar,-26.853812,-48.770288,mapbox_geocoding,True
+SC,4207106,Ilhota,Pocinho,pocinho,-26.890366,-48.833219,mapbox_geocoding,True
+SC,4207106,Ilhota,São João,sao joao,-26.818364,-48.622409,mapbox_geocoding,True
+SC,4207205,Imaruí,Centro,centro,-28.344884,-48.815238,mapbox_geocoding,True
+SC,4207205,Imaruí,Distrito Rio D'Una,distrito rio d una,-27.981554,-48.944087,mapbox_geocoding,True
+SC,4207205,Imaruí,Rio D'Una,rio d una,,,dne,True
+SC,4207304,Imbituba,Alto Arroio,alto arroio,-28.167915,-48.716656,cep_aberto,True
+SC,4207304,Imbituba,Araçatuba,aracatuba,-28.215038,-48.704672,mapbox_geocoding,True
+SC,4207304,Imbituba,Centro,centro,-28.241512,-48.671506,mapbox_geocoding,True
+SC,4207304,Imbituba,GUAIÚBA,guaiuba,-28.288699,-48.71365,mapbox_geocoding,True
+SC,4207304,Imbituba,Ibiraquera,ibiraquera,-28.167915,-48.716656,cep_aberto,True
+SC,4207304,Imbituba,Mirim,mirim,,,dne,True
+SC,4207304,Imbituba,Povoado de Nova Brasília,povoado de nova brasilia,-28.21608,-48.705435,mapbox_geocoding,True
+SC,4207304,Imbituba,Roca Grande,roca grande,-28.295262,-48.713448,mapbox_geocoding,True
+SC,4207304,Imbituba,Vila Nova,vila nova,,,dne,True
+SC,4207403,Imbuia,Centro,centro,-27.491144,-49.423286,mapbox_geocoding,True
+SC,4207502,Indaial,Arapongas,arapongas,-26.882415,-49.276868,mapbox_geocoding,True
+SC,4207502,Indaial,Área Rural de Indaial,area rural de indaial,-26.8997445,-49.2358981,cep_aberto,True
+SC,4207502,Indaial,Benedito,benedito,-26.870971,-49.247521,mapbox_geocoding,True
+SC,4207502,Indaial,Carijós,carijos,-26.8829225,-49.2257278,cep_aberto,True
+SC,4207502,Indaial,Centro,centro,-26.89416,-49.23322,mapbox_geocoding,True
+SC,4207502,Indaial,Encano,encano,-26.8902423,-49.1950231,cep_aberto,True
+SC,4207502,Indaial,Encano do Norte,encano do norte,-26.866219,-49.192828,mapbox_geocoding,True
+SC,4207502,Indaial,Estados,estados,-26.8972975,-49.2294011,cep_aberto,True
+SC,4207502,Indaial,Estrada das Areias,estrada das areias,-26.894974,-49.234264,mapbox_geocoding,True
+SC,4207502,Indaial,Estradinha,estradinha,-26.8976078,-49.2683324,cep_aberto,True
+SC,4207502,Indaial,João Paulo II,joao paulo ii,-26.889707,-49.263514,mapbox_geocoding,True
+SC,4207502,Indaial,Mulde,mulde,-26.8703457,-49.2279078,cep_aberto,True
+SC,4207502,Indaial,Nações,nacoes,-26.898749,-49.253624,mapbox_geocoding,True
+SC,4207502,Indaial,Polaquia,polaquia,-26.9225605,-49.212593,cep_aberto,True
+SC,4207502,Indaial,Ribeirão das Pedras,ribeirao das pedras,-26.914808,-49.256878,mapbox_geocoding,True
+SC,4207502,Indaial,Rio Morto,rio morto,-26.9031369,-49.2589726,cep_aberto,True
+SC,4207502,Indaial,Sol,sol,-26.891548,-49.225367,mapbox_geocoding,True
+SC,4207502,Indaial,Tapajós,tapajos,-26.9065281,-49.2420721,cep_aberto,True
+SC,4207502,Indaial,Warnow,warnow,-26.949926,-49.284102,mapbox_geocoding,True
+SC,4207577,Iomerê,Centro,centro,-27.00036,-51.239123,mapbox_geocoding,True
+SC,4207601,Ipira,Centro,centro,-27.40286,-51.778949,mapbox_geocoding,True
+SC,4207650,Iporã do Oeste,Centro,centro,-26.987529,-53.533376,mapbox_geocoding,True
+SC,4207684,Ipuaçu,Centro,centro,-26.634131,-52.454068,mapbox_geocoding,True
+SC,4207700,Ipumirim,Centro,centro,-27.078055,-52.136566,mapbox_geocoding,True
+SC,4207759,Iraceminha,Centro,centro,-27.573502,-48.539303,mapbox_geocoding,True
+SC,4207759,Iraceminha,Distrito de São José do Laranjal,distrito de sao jose do laranjal,-27.5724688,-48.619883,cep_aberto,True
+SC,4207759,Iraceminha,São José do Laranjal,sao jose do laranjal,,,dne,True
+SC,4207809,Irani,Centro,centro,-27.021759,-51.904776,mapbox_geocoding,True
+SC,4207858,Irati,Centro,centro,-26.657028,-52.894247,mapbox_geocoding,True
+SC,4207908,Irineópolis,Centro,centro,-26.239648,-50.799568,mapbox_geocoding,True
+SC,4207908,Irineópolis,Poço Preto,poco preto,,,dne,True
+SC,4208005,Itá,Centro,centro,-26.922,-49.061215,mapbox_geocoding,True
+SC,4208104,Itaiópolis,Centro,centro,-26.338014,-49.90732,mapbox_geocoding,True
+SC,4208104,Itaiópolis,Distrito de Iraputã,distrito de iraputa,-26.572807,-50.035245,mapbox_geocoding,True
+SC,4208104,Itaiópolis,Distrito de Itaió,distrito de itaio,-28.6018371,-49.1514667,cep_aberto,True
+SC,4208104,Itaiópolis,Distrito de Moema,distrito de moema,-26.452451,-50.010425,mapbox_geocoding,True
+SC,4208104,Itaiópolis,Distrito Iraputã,distrito iraputa,-26.452451,-50.010425,mapbox_geocoding,True
+SC,4208104,Itaiópolis,Iraputã,iraputa,,,dne,True
+SC,4208104,Itaiópolis,Itaió,itaio,,,dne,True
+SC,4208104,Itaiópolis,Rio da Anta,rio da anta,,,dne,True
+SC,4208203,Itajaí,Área Rural de Itajaí,area rural de itajai,-26.9105964,-48.6709514,cep_aberto,True
+SC,4208203,Itajaí,Arraial dos Cunhas,arraial dos cunhas,-26.973091,-48.789516,mapbox_geocoding,True
+SC,4208203,Itajaí,Baia,baia,-26.976968,-48.744369,mapbox_geocoding,True
+SC,4208203,Itajaí,Barra do Rio,barra do rio,-26.908,-48.6674500601,cep_aberto,True
+SC,4208203,Itajaí,Brilhante I,brilhante i,-26.973091,-48.789516,mapbox_geocoding,True
+SC,4208203,Itajaí,Brilhante II,brilhante ii,-27.015642,-48.803917,mapbox_geocoding,True
+SC,4208203,Itajaí,Cabeçudas,cabecudas,-26.9061999985,-48.65998146,cep_aberto,True
+SC,4208203,Itajaí,Campeche,campeche,-26.973091,-48.789516,mapbox_geocoding,True
+SC,4208203,Itajaí,Canhanduba,canhanduba,-26.924428,-48.677399,mapbox_geocoding,True
+SC,4208203,Itajaí,Carvalho,carvalho,-26.924428,-48.677399,mapbox_geocoding,True
+SC,4208203,Itajaí,Centro,centro,-26.9102577,-48.6534112,cep_aberto,True
+SC,4208203,Itajaí,Cidade Nova,cidade nova,-26.914067,-48.695563,mapbox_geocoding,True
+SC,4208203,Itajaí,Cordeiros,cordeiros,-26.9179000054,-48.6508980329,cep_aberto,True
+SC,4208203,Itajaí,Dom Bosco,dom bosco,-26.927433,-48.676264,mapbox_geocoding,True
+SC,4208203,Itajaí,Espinheiros,espinheiros,-26.8991799951,-48.6718908435,cep_aberto,True
+SC,4208203,Itajaí,Fazenda,fazenda,-26.920677,-48.648402,mapbox_geocoding,True
+SC,4208203,Itajaí,Fazendinha,fazendinha,-26.9132200072,-48.6678537693,cep_aberto,True
+SC,4208203,Itajaí,Itaipava,itaipava,-26.955055,-48.719319,mapbox_geocoding,True
+SC,4208203,Itajaí,Limoeiro,limoeiro,-26.8966599988,-48.6747167931,cep_aberto,True
+SC,4208203,Itajaí,Marui,marui,-26.912703,-48.679904,mapbox_geocoding,True
+SC,4208203,Itajaí,Murta,murta,-26.896299994,-48.6488794938,cep_aberto,True
+SC,4208203,Itajaí,Paciência,paciencia,-26.973687,-48.76708,mapbox_geocoding,True
+SC,4208203,Itajaí,Praia Brava de Itajaí,praia brava de itajai,-26.908,-48.6690648894,cep_aberto,True
+SC,4208203,Itajaí,Quilometro 12,quilometro 12,-26.966913,-48.760166,mapbox_geocoding,True
+SC,4208203,Itajaí,Ressacada,ressacada,-26.901069993,-48.662,cep_aberto,True
+SC,4208203,Itajaí,Rio do Meio,rio do meio,-26.988365,-48.716402,mapbox_geocoding,True
+SC,4208203,Itajaí,Rio Novo (Colônia Japonesa),rio novo colonia japonesa,-26.8957599987,-48.662,cep_aberto,True
+SC,4208203,Itajaí,Salseiros,salseiros,-26.885217,-48.714074,mapbox_geocoding,True
+SC,4208203,Itajaí,Santa Regina,santa regina,-26.8984599987,-48.6513017452,cep_aberto,True
+SC,4208203,Itajaí,São João,sao joao,-26.897328,-48.674525,mapbox_geocoding,True
+SC,4208203,Itajaí,São Judas,sao judas,-26.908,-48.658568475,cep_aberto,True
+SC,4208203,Itajaí,São Roque,sao roque,-26.929298,-48.705096,mapbox_geocoding,True
+SC,4208203,Itajaí,São Vicente,sao vicente,-26.9031399964,-48.6565499424,cep_aberto,True
+SC,4208203,Itajaí,Vila Operária,vila operaria,-26.910235,-48.672187,mapbox_geocoding,True
+SC,4208302,Itapema,Centro,centro,-27.1018319,-48.6153166,cep_aberto,True
+SC,4208302,Itapema,Morretes,morretes,-27.125158,-48.612945,mapbox_geocoding,True
+SC,4208401,Itapiranga,Centro,centro,-27.565105,-48.632589,mapbox_geocoding,True
+SC,4208450,Itapoá,1° de Julho,1 de julho,-26.156624,-48.623305,mapbox_geocoding,True
+SC,4208450,Itapoá,Água Branca,agua branca,-26.156351,-48.623293,mapbox_geocoding,True
+SC,4208450,Itapoá,Área Rural de Itapoá,area rural de itapoa,-26.117805,-48.617294,mapbox_geocoding,True
+SC,4208450,Itapoá,Bamerindus,bamerindus,-26.184305,-48.61358,mapbox_geocoding,True
+SC,4208450,Itapoá,Barra do Saí,barra do sai,-26.006707,-48.604745,mapbox_geocoding,True
+SC,4208450,Itapoá,Braço do Norte,braco do norte,-26.115133,-48.70879,mapbox_geocoding,True
+SC,4208450,Itapoá,Cambijú,cambiju,-26.007115,-48.60694,mapbox_geocoding,True
+SC,4208450,Itapoá,Centro,centro,-26.184305,-48.61358,mapbox_geocoding,True
+SC,4208450,Itapoá,Continental,continental,-26.184305,-48.61358,mapbox_geocoding,True
+SC,4208450,Itapoá,Entre-Rios,entre rios,-26.168678,-48.64118,mapbox_geocoding,True
+SC,4208450,Itapoá,Figueira do Pontal,figueira do pontal,-26.184194,-48.608454,mapbox_geocoding,True
+SC,4208450,Itapoá,Itapema do Norte,itapema do norte,-26.051335,-48.6124,mapbox_geocoding,True
+SC,4208450,Itapoá,Jaguaruna,jaguaruna,-26.156345,-48.623292,mapbox_geocoding,True
+SC,4208450,Itapoá,Maresia,maresia,-26.184305,-48.61358,mapbox_geocoding,True
+SC,4208450,Itapoá,Paese,paese,-26.074967,-48.603787,mapbox_geocoding,True
+SC,4208450,Itapoá,Pontal do Norte,pontal do norte,-26.183989,-48.607913,mapbox_geocoding,True
+SC,4208450,Itapoá,Rainha,rainha,-26.007115,-48.60694,mapbox_geocoding,True
+SC,4208450,Itapoá,Saí Guaçu,sai guacu,-25.983244,-48.668721,mapbox_geocoding,True
+SC,4208450,Itapoá,Saí Mirim,sai mirim,-26.157175,-48.623216,mapbox_geocoding,True
+SC,4208450,Itapoá,Samambaial,samambaial,-26.051335,-48.6124,mapbox_geocoding,True
+SC,4208450,Itapoá,São José,sao jose,-26.051335,-48.6124,mapbox_geocoding,True
+SC,4208450,Itapoá,Vila Guilherme,vila guilherme,-26.156076,-48.623245,mapbox_geocoding,True
+SC,4208500,Ituporanga,Centro,centro,-27.5496271,-49.4413966,cep_aberto,True
+SC,4208500,Ituporanga,Rio Bonito,rio bonito,,,dne,True
+SC,4208500,Ituporanga,Rio dos Bugres,rio dos bugres,,,dne,True
+SC,4208609,Jaborá,Centro,centro,-27.17382,-51.734977,mapbox_geocoding,True
+SC,4208708,Jacinto Machado,Centro,centro,-28.997224,-49.757956,mapbox_geocoding,True
+SC,4208807,Jaguaruna,Camacho,camacho,-28.615,-49.0257949551,cep_aberto,True
+SC,4208807,Jaguaruna,Campo Bom,campo bom,-28.72344,-49.069219,mapbox_geocoding,True
+SC,4208807,Jaguaruna,Centro,centro,-26.944165,-50.133887,mapbox_geocoding,True
+SC,4208807,Jaguaruna,Olho D'Água,olho d agua,-28.6151800022,-49.026,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Água Verde,agua verde,-26.476473,-49.105885,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Águas Claras,aguas claras,-26.486,-49.0891218376,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Amizade,amizade,-26.464613,-49.097599,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Área Rural de Jaraguá do Sul,area rural de jaragua do sul,-26.4055031,-49.1132177,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Cerro,barra do rio cerro,-26.510585,-49.129935,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Barra do Rio Molha,barra do rio molha,-26.4776299954,-49.0763515073,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Boa Vista,boa vista,-26.498457,-49.066349,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Braço do Ribeirão Cavalo,braco do ribeirao cavalo,-26.597495,-48.987243,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Centenário,centenario,-26.4951800021,-49.0567435114,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Centro,centro,-26.479278,-49.086816,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Chico de Paulo,chico de paulo,-26.4904100084,-49.071927145,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Czerniewicz,czerniewicz,-26.470418,-49.099956,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Estrada Nova,estrada nova,-26.4805999978,-49.067,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Ilha da Figueira,ilha da figueira,-26.582435,-48.991581,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Jaraguá 84,jaragua 84,-26.5005800056,-49.0507102801,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Jaraguá 99,jaragua 99,-26.508679,-49.145763,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Jaraguá Esquerdo,jaragua esquerdo,-26.486,-49.0646872625,cep_aberto,True
+SC,4208906,Jaraguá do Sul,João Pessoa,joao pessoa,-26.579824,-48.990707,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Nereu Ramos,nereu ramos,-26.5036400026,-49.0867085453,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Nova Brasília,nova brasilia,-26.491593,-49.088901,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Núcleo Urbano Isolado Residencial Duquesa de Chartres,nucleo urbano isolado residencial duquesa de chartres,-26.4176596,-49.1103842,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Parque Malwee,parque malwee,-26.610106,-49.142519,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Rau,rau,-26.4811399993,-49.067,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Ribeirão Cavalo,ribeirao cavalo,-26.465698,-49.183873,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Rio Cerro I,rio cerro i,-26.486,-49.0501069588,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Rio Cerro II,rio cerro ii,-26.597491,-48.987229,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Rio da Luz,rio da luz,-26.4699799976,-49.067,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Rio Molha,rio molha,-26.520383,-49.078729,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Santa Luzia,santa luzia,-26.597496,-48.987249,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Santo Antônio,santo antonio,-26.4751999947,-49.0790664604,cep_aberto,True
+SC,4208906,Jaraguá do Sul,São Luís,sao luis,-26.580331,-48.990952,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Tifa Martins,tifa martins,-26.4919895,-49.1298266,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Tifa Monos,tifa monos,-26.476473,-49.105885,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Três Rios do Norte,tres rios do norte,-26.4676399962,-49.0875129769,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Três Rios do Sul,tres rios do sul,-26.597531,-48.987394,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Vieira,vieira,-26.4953600053,-49.0774575999,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Baependi,vila baependi,-26.478083,-49.05165,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Vila Lalau,vila lalau,-26.486,-49.056743509,cep_aberto,True
+SC,4208906,Jaraguá do Sul,Vila Lenzi,vila lenzi,-26.597497,-48.98725,mapbox_geocoding,True
+SC,4208906,Jaraguá do Sul,Vila Nova,vila nova,-26.486,-49.0758487371,cep_aberto,True
+SC,4208955,Jardinópolis,Centro,centro,-26.720888,-52.85857,mapbox_geocoding,True
+SC,4209003,Joaçaba,Centro,centro,-27.1752971,-51.5043847,cep_aberto,True
+SC,4209003,Joaçaba,Distrito de Nova Petrópolis,distrito de nova petropolis,-27.110063,-51.601803,mapbox_geocoding,True
+SC,4209003,Joaçaba,Frei Bruno,frei bruno,-27.1506438,-51.4831628,cep_aberto,True
+SC,4209003,Joaçaba,Nova Petrópolis,nova petropolis,,,dne,True
+SC,4209003,Joaçaba,Santa Helena,santa helena,,,dne,True
+SC,4209102,Joinville,Adhemar Garcia,adhemar garcia,-26.320407,-48.805121,mapbox_geocoding,True
+SC,4209102,Joinville,América,america,-26.3011199952,-48.846,cep_aberto,True
+SC,4209102,Joinville,Anita Garibaldi,anita garibaldi,-26.317547,-48.845208,mapbox_geocoding,True
+SC,4209102,Joinville,Área Rural de Joinville,area rural de joinville,-26.280261,-48.970355,mapbox_geocoding,True
+SC,4209102,Joinville,Atiradores,atiradores,-26.3058000027,-48.846,cep_aberto,True
+SC,4209102,Joinville,Aventureiro,aventureiro,-26.246988,-48.802363,mapbox_geocoding,True
+SC,4209102,Joinville,Boa Vista,boa vista,-26.3001299908,-48.846,cep_aberto,True
+SC,4209102,Joinville,Boehmerwald,boehmerwald,-26.369196,-48.83242,mapbox_geocoding,True
+SC,4209102,Joinville,Bom Retiro,bom retiro,-26.304,-48.8668822445,cep_aberto,True
+SC,4209102,Joinville,Bucarein,bucarein,-26.306984,-48.839754,mapbox_geocoding,True
+SC,4209102,Joinville,Centro,centro,-26.3038199921,-48.846,cep_aberto,True
+SC,4209102,Joinville,Comasa,comasa,-26.277582,-48.795891,mapbox_geocoding,True
+SC,4209102,Joinville,Costa e Silva,costa e silva,-26.314068,-48.858366,mapbox_geocoding,True
+SC,4209102,Joinville,Dona Francisca (Pirabeiraba),dona francisca pirabeiraba,-26.2697099936,-48.8842506511,cep_aberto,True
+SC,4209102,Joinville,Espinheiros,espinheiros,-26.28145,-48.777386,mapbox_geocoding,True
+SC,4209102,Joinville,Fátima,fatima,-26.3169685,-48.8136803,cep_aberto,True
+SC,4209102,Joinville,Floresta,floresta,-26.333958,-48.851957,mapbox_geocoding,True
+SC,4209102,Joinville,Glória,gloria,-26.304,-48.8601557564,cep_aberto,True
+SC,4209102,Joinville,Guanabara,guanabara,-26.32435,-48.833816,mapbox_geocoding,True
+SC,4209102,Joinville,Iririú,iririu,-26.3271300108,-48.8718016275,cep_aberto,True
+SC,4209102,Joinville,Itaum,itaum,-26.336403,-48.82898,mapbox_geocoding,True
+SC,4209102,Joinville,Itinga,itinga,-26.3328000053,-48.813873469,cep_aberto,True
+SC,4209102,Joinville,Jardim Iririú,jardim iririu,-26.257236,-48.800468,mapbox_geocoding,True
+SC,4209102,Joinville,Jardim Paraíso,jardim paraiso,-26.2817699943,-48.8212023321,cep_aberto,True
+SC,4209102,Joinville,Jardim Sofia,jardim sofia,-26.241453,-48.860693,mapbox_geocoding,True
+SC,4209102,Joinville,Jarivatuba,jarivatuba,-26.3284800053,-48.8186924477,cep_aberto,True
+SC,4209102,Joinville,João Costa,joao costa,-26.354561,-48.81943,mapbox_geocoding,True
+SC,4209102,Joinville,Marinas,marinas,-26.195473,-48.822603,mapbox_geocoding,True
+SC,4209102,Joinville,Morro do Meio,morro do meio,-26.3157000071,-48.846,cep_aberto,True
+SC,4209102,Joinville,Nova Brasília,nova brasilia,-26.379715,-48.859329,mapbox_geocoding,True
+SC,4209102,Joinville,Paranaguamirim,paranaguamirim,-26.3340600072,-48.8795320686,cep_aberto,True
+SC,4209102,Joinville,Parque Guarani,parque guarani,-26.357579,-48.806256,mapbox_geocoding,True
+SC,4209102,Joinville,Petrópolis,petropolis,-26.3086800034,-48.846,cep_aberto,True
+SC,4209102,Joinville,Pirabeiraba (Pirabeiraba),pirabeiraba pirabeiraba,-26.232467,-48.847109,mapbox_geocoding,True
+SC,4209102,Joinville,Profipo,profipo,-26.3681955,-48.8372176,cep_aberto,True
+SC,4209102,Joinville,Rio Bonito (Pirabeiraba),rio bonito pirabeiraba,-26.174762,-48.916942,mapbox_geocoding,True
+SC,4209102,Joinville,Saguaçu,saguacu,-26.2866299904,-48.846,cep_aberto,True
+SC,4209102,Joinville,Santa Catarina,santa catarina,-26.380519,-48.723459,mapbox_geocoding,True
+SC,4209102,Joinville,Santo Antônio,santo antonio,-26.2888799962,-48.82913357,cep_aberto,True
+SC,4209102,Joinville,São Marcos,sao marcos,-26.311429,-48.876303,mapbox_geocoding,True
+SC,4209102,Joinville,Ulysses Guimarães,ulysses guimaraes,-26.3302800037,-48.8753154583,cep_aberto,True
+SC,4209102,Joinville,Vale Verde,vale verde,-26.195473,-48.822603,mapbox_geocoding,True
+SC,4209102,Joinville,Vila Cubatão,vila cubatao,-26.204687,-48.782192,mapbox_geocoding,True
+SC,4209102,Joinville,Vila Nova,vila nova,-26.2704299914,-48.8085525096,cep_aberto,True
+SC,4209102,Joinville,Zona Industrial Norte,zona industrial norte,-26.25018,-48.861773,mapbox_geocoding,True
+SC,4209102,Joinville,Zona Industrial Tupy,zona industrial tupy,-26.304,-48.8403778572,cep_aberto,True
+SC,4209151,José Boiteux,Centro,centro,-26.969269,-49.611952,mapbox_geocoding,True
+SC,4209177,Jupiá,Centro,centro,-26.399735,-52.726505,mapbox_geocoding,True
+SC,4209201,Lacerdópolis,Centro,centro,-27.264678,-51.555898,mapbox_geocoding,True
+SC,4209300,Lages,Araucária,araucaria,-27.8078099939,-50.3167400083,cep_aberto,True
+SC,4209300,Lages,Área Industrial,area industrial,-27.82271,-50.361425,mapbox_geocoding,True
+SC,4209300,Lages,Área Rural de Lages,area rural de lages,-27.8154629,-50.326356,cep_aberto,True
+SC,4209300,Lages,Bates,bates,-27.797742,-50.295346,mapbox_geocoding,True
+SC,4209300,Lages,Beatriz,beatriz,-27.8114999967,-50.326,cep_aberto,True
+SC,4209300,Lages,Bela Vista,bela vista,-27.82271,-50.361425,mapbox_geocoding,True
+SC,4209300,Lages,Bom Jesus,bom jesus,-27.8180700051,-50.326,cep_aberto,True
+SC,4209300,Lages,Boqueirão,boqueirao,-27.810953,-50.350806,mapbox_geocoding,True
+SC,4209300,Lages,Brusque,brusque,-27.816,-50.32376132,cep_aberto,True
+SC,4209300,Lages,Caça e Tiro,caca e tiro,-27.810815,-50.328688,mapbox_geocoding,True
+SC,4209300,Lages,Caravágio,caravagio,-27.8223900071,-50.3332248313,cep_aberto,True
+SC,4209300,Lages,Caroba,caroba,-27.80316,-50.377831,mapbox_geocoding,True
+SC,4209300,Lages,CDL,cdl,-27.8256300084,-50.3151118765,cep_aberto,True
+SC,4209300,Lages,Centenário,centenario,-27.822474,-50.320199,mapbox_geocoding,True
+SC,4209300,Lages,Centro,centro,-27.8150099991,-50.3248806602,cep_aberto,True
+SC,4209300,Lages,Chapada,chapada,-27.796683,-50.26251,mapbox_geocoding,True
+SC,4209300,Lages,Cidade Alta,cidade alta,-27.8273400033,-50.3388215211,cep_aberto,True
+SC,4209300,Lages,Conta Dinheiro,conta dinheiro,-27.796877,-50.306033,mapbox_geocoding,True
+SC,4209300,Lages,Copacabana,copacabana,-27.8183400042,-50.3233542854,cep_aberto,True
+SC,4209300,Lages,Coral,coral,-27.822474,-50.320199,mapbox_geocoding,True
+SC,4209300,Lages,Cruz de Malta,cruz de malta,-27.8245500098,-50.3163329719,cep_aberto,True
+SC,4209300,Lages,Dom Daniel,dom daniel,-27.78852,-50.299843,mapbox_geocoding,True
+SC,4209300,Lages,Ferrovia,ferrovia,-27.802229991,-50.3104310045,cep_aberto,True
+SC,4209300,Lages,Frei Rogério,frei rogerio,-27.803311,-50.319537,mapbox_geocoding,True
+SC,4209300,Lages,Gethal,gethal,-27.8051999902,-50.31378902,cep_aberto,True
+SC,4209300,Lages,Guadalupe,guadalupe,-27.810815,-50.328688,mapbox_geocoding,True
+SC,4209300,Lages,Guarujá,guaruja,-27.7907894,-50.287048,cep_aberto,True
+SC,4209300,Lages,Habitação,habitacao,-27.810815,-50.328688,mapbox_geocoding,True
+SC,4209300,Lages,Índios,indios,,,dne,True
+SC,4209300,Lages,Ipiranga,ipiranga,-27.812551,-50.345047,mapbox_geocoding,True
+SC,4209300,Lages,Jardim Celina,jardim celina,-27.816,-50.3146030929,cep_aberto,True
+SC,4209300,Lages,Jardim das Camélias,jardim das camelias,-27.77201,-50.321075,mapbox_geocoding,True
+SC,4209300,Lages,Jardim Panorâmico,jardim panoramico,-27.8036699932,-50.326,cep_aberto,True
+SC,4209300,Lages,Maria Luiza,maria luiza,-27.77201,-50.321075,mapbox_geocoding,True
+SC,4209300,Lages,Morro do Posto,morro do posto,-27.8210400008,-50.3203015469,cep_aberto,True
+SC,4209300,Lages,Morro Grande,morro grande,-27.832882,-50.33146,mapbox_geocoding,True
+SC,4209300,Lages,Nossa Senhora Aparecida,nossa senhora aparecida,-27.7903804,-50.3551483,cep_aberto,True
+SC,4209300,Lages,Passo Fundo,passo fundo,-27.79543,-50.31359,mapbox_geocoding,True
+SC,4209300,Lages,Penha,penha,-27.8323800059,-50.326,cep_aberto,True
+SC,4209300,Lages,Petrópolis,petropolis,-27.807487,-50.342096,mapbox_geocoding,True
+SC,4209300,Lages,Pinheiro Seco,pinheiro seco,-27.8239919,-50.2590088,cep_aberto,True
+SC,4209300,Lages,Pisani,pisani,-27.771783,-50.299063,mapbox_geocoding,True
+SC,4209300,Lages,Ponte Grande,ponte grande,-27.807923,-50.294906,mapbox_geocoding,True
+SC,4209300,Lages,Popular,popular,-27.8294100049,-50.3411619586,cep_aberto,True
+SC,4209300,Lages,Promorar,promorar,-21.41168,-41.817949,mapbox_geocoding,True
+SC,4209300,Lages,Restinga Seca,restinga seca,-27.8032199951,-50.311550348,cep_aberto,True
+SC,4209300,Lages,Sagrado Coração de Jesus,sagrado coracao de jesus,-27.810815,-50.328688,mapbox_geocoding,True
+SC,4209300,Lages,Santa Cândida,santa candida,-27.8114,-50.362378,cep_aberto,True
+SC,4209300,Lages,Santa Catarina,santa catarina,-27.839474,-50.358125,mapbox_geocoding,True
+SC,4209300,Lages,Santa Clara,santa clara,-27.8057399945,-50.326,cep_aberto,True
+SC,4209300,Lages,Santa Helena,santa helena,-27.824279,-50.347402,mapbox_geocoding,True
+SC,4209300,Lages,Santa Maria,santa maria,-27.7979146,-50.3006925,cep_aberto,True
+SC,4209300,Lages,Santa Mônica,santa monica,-27.797742,-50.295346,mapbox_geocoding,True
+SC,4209300,Lages,Santa Rita,santa rita,-27.817620003,-50.326,cep_aberto,True
+SC,4209300,Lages,Santa Terezinha do Salto,santa terezinha do salto,,,dne,True
+SC,4209300,Lages,Santo Antônio,santo antonio,-27.839474,-50.358125,mapbox_geocoding,True
+SC,4209300,Lages,São Cristóvão,sao cristovao,-27.818821,-50.318187,mapbox_geocoding,True
+SC,4209300,Lages,São Francisco,sao francisco,-27.8112299941,-50.3206068153,cep_aberto,True
+SC,4209300,Lages,São Luiz,sao luiz,-27.824799,-50.354346,mapbox_geocoding,True
+SC,4209300,Lages,São Miguel,sao miguel,-27.8033099928,-50.3116521034,cep_aberto,True
+SC,4209300,Lages,São Paulo,sao paulo,-27.817399,-50.372498,mapbox_geocoding,True
+SC,4209300,Lages,São Pedro,sao pedro,-27.8193300029,-50.326,cep_aberto,True
+SC,4209300,Lages,São Sebastião,sao sebastiao,-27.797742,-50.295346,mapbox_geocoding,True
+SC,4209300,Lages,Triângulo,triangulo,-27.8127599979,-50.326,cep_aberto,True
+SC,4209300,Lages,Tributo,tributo,-27.771591,-50.291779,mapbox_geocoding,True
+SC,4209300,Lages,Universitário,universitario,-27.818821,-50.318187,mapbox_geocoding,True
+SC,4209300,Lages,Várzea,varzea,-27.8329200046,-50.3068694769,cep_aberto,True
+SC,4209300,Lages,Vila Comboni,vila comboni,-27.801481,-50.328425,mapbox_geocoding,True
+SC,4209300,Lages,Vila Maria,vila maria,-27.8060099932,-50.326,cep_aberto,True
+SC,4209300,Lages,Vila Mariza,vila mariza,-27.792324,-50.285878,mapbox_geocoding,True
+SC,4209300,Lages,Vila Nova,vila nova,-27.816,-50.3235578029,cep_aberto,True
+SC,4209300,Lages,Vista Alegre,vista alegre,-27.797742,-50.295346,mapbox_geocoding,True
+SC,4209409,Laguna,Canto da Lagoa,canto da lagoa,-28.4851955,-48.7822944,cep_aberto,True
+SC,4209409,Laguna,Centro,centro,-28.485492,-48.78212,mapbox_geocoding,True
+SC,4209409,Laguna,Povoado de Passagem da Barra,povoado de passagem da barra,-28.682912,-49.396025,mapbox_geocoding,True
+SC,4209409,Laguna,Ribeirão Pequeno,ribeirao pequeno,-28.4865718,-48.8851998,cep_aberto,True
+SC,4209458,Lajeado Grande,Centro,centro,-26.85813,-52.565351,mapbox_geocoding,True
+SC,4209508,Laurentino,Centro,centro,-27.220154,-49.736139,mapbox_geocoding,True
+SC,4209607,Lauro Müller,Barro Branco,barro branco,-28.4145137,-49.4125155,cep_aberto,True
+SC,4209607,Lauro Müller,Centro,centro,-28.395267,-49.397145,mapbox_geocoding,True
+SC,4209607,Lauro Müller,Guatá,guata,-28.3813608,-49.4396591,cep_aberto,True
+SC,4209607,Lauro Müller,Povoado de Itanema,povoado de itanema,-28.431003,-49.385151,mapbox_geocoding,True
+SC,4209706,Lebon Régis,Centro,centro,-26.930592,-50.691963,mapbox_geocoding,True
+SC,4209706,Lebon Régis,São Sebastião do Sul,sao sebastiao do sul,,,dne,True
+SC,4209805,Leoberto Leal,Centro,centro,-27.510274,-49.286177,mapbox_geocoding,True
+SC,4209854,Lindóia do Sul,Centro,centro,-27.893816,-48.932086,mapbox_geocoding,True
+SC,4209904,Lontras,Centro,centro,-26.724951,-49.470267,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Área Rural,area rural,-26.712116,-48.90896,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Baixo Canoas,baixo canoas,-26.716024,-48.83914,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Baixo Máximo,baixo maximo,-26.730118,-48.850476,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Boa Vista,boa vista,-26.712116,-48.90896,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Braço Belga,braco belga,-26.72525,-48.878302,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Braço da Onça,braco da onca,-26.712116,-48.90896,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Braço Elza,braco elza,-26.687931,-48.896371,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Centro,centro,-26.730118,-48.850476,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Dom Bosco,dom bosco,-26.714999,-48.915559,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Ribeirão do Bugre,ribeirao do bugre,-26.712116,-48.90896,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Ribeirão do Padre,ribeirao do padre,-26.730118,-48.850476,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Rio do Peixe,rio do peixe,-26.730118,-48.850476,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Serafim,serafim,-26.733099,-48.942685,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Vila do Salto,vila do salto,-26.714999,-48.915559,mapbox_geocoding,True
+SC,4210001,Luiz Alves,Vila Nova,vila nova,-26.730118,-48.850476,mapbox_geocoding,True
+SC,4210035,Luzerna,Centro,centro,-27.132379,-51.469853,mapbox_geocoding,True
+SC,4210050,Macieira,Centro,centro,-26.855995,-51.376225,mapbox_geocoding,True
+SC,4210100,Mafra,Área Rural de Mafra,area rural de mafra,-26.1164276,-49.8091065,cep_aberto,True
+SC,4210100,Mafra,Bela Vista do Sul,bela vista do sul,,,dne,True
+SC,4210100,Mafra,Campo da Lança,campo da lanca,-26.140109,-49.812648,mapbox_geocoding,True
+SC,4210100,Mafra,Centro I Baixada,centro i baixada,-26.1132128,-49.7994489,cep_aberto,True
+SC,4210100,Mafra,Centro II Alto de Mafra,centro ii alto de mafra,-26.118159,-49.806988,mapbox_geocoding,True
+SC,4210100,Mafra,Distrito de Bela Vista do Sul,distrito de bela vista do sul,-26.1737613,-49.9760501,cep_aberto,True
+SC,4210100,Mafra,do Autódromo,do autodromo,-26.131195,-49.795464,mapbox_geocoding,True
+SC,4210100,Mafra,Espigão do Bugre,espigao do bugre,-26.1763897,-49.816928,cep_aberto,True
+SC,4210100,Mafra,Faxinal,faxinal,-26.140109,-49.812648,mapbox_geocoding,True
+SC,4210100,Mafra,Jardim América,jardim america,-26.1212451,-49.7841445,cep_aberto,True
+SC,4210100,Mafra,Jardim do Moinho,jardim do moinho,-26.131457,-49.810307,mapbox_geocoding,True
+SC,4210100,Mafra,Restinga,restinga,-26.1194227,-49.8265021,cep_aberto,True
+SC,4210100,Mafra,Rio Preto do Sul,rio preto do sul,,,dne,True
+SC,4210100,Mafra,Vila Argentina,vila argentina,-26.140109,-49.812648,mapbox_geocoding,True
+SC,4210100,Mafra,Vila Buenos Aires,vila buenos aires,-26.1164565,-49.7923302,cep_aberto,True
+SC,4210100,Mafra,Vila das Flores,vila das flores,-26.097096,-49.809752,mapbox_geocoding,True
+SC,4210100,Mafra,Vila Ferroviária,vila ferroviaria,-26.122471,-49.8001917,cep_aberto,True
+SC,4210100,Mafra,Vila Formosa,vila formosa,-26.131457,-49.810307,mapbox_geocoding,True
+SC,4210100,Mafra,Vila Ivete,vila ivete,-26.1078884,-49.8085613,cep_aberto,True
+SC,4210100,Mafra,Vila Nova,vila nova,-26.14365,-49.828559,mapbox_geocoding,True
+SC,4210100,Mafra,Vila Psheidt,vila psheidt,-26.192304,-49.805945,mapbox_geocoding,True
+SC,4210209,Major Gercino,Boiteuxburgo,boiteuxburgo,,,dne,True
+SC,4210209,Major Gercino,Centro,centro,-27.414681,-48.95077,mapbox_geocoding,True
+SC,4210209,Major Gercino,Distrito de Boiteuxburgo,distrito de boiteuxburgo,-27.4237315,-49.1908549,cep_aberto,True
+SC,4210209,Major Gercino,Distrito de Pinheiral,distrito de pinheiral,-27.667062,-49.094171,mapbox_geocoding,True
+SC,4210209,Major Gercino,Pinheiral,pinheiral,,,dne,True
+SC,4210308,Major Vieira,Centro,centro,-26.36272,-50.327174,mapbox_geocoding,True
+SC,4210407,Maracajá,Vila Beatriz,vila beatriz,-28.856592,-49.452358,mapbox_geocoding,True
+SC,4210506,Maravilha,Centro,centro,-26.765846,-53.181822,mapbox_geocoding,True
+SC,4210555,Marema,Centro,centro,-26.803116,-52.627503,mapbox_geocoding,True
+SC,4210605,Massaranduba,Área Rural de Massaranduba,area rural de massaranduba,-26.612112,-49.00866,mapbox_geocoding,True
+SC,4210605,Massaranduba,Benjamin Constant,benjamin constant,-26.573017,-48.870765,mapbox_geocoding,True
+SC,4210605,Massaranduba,Braço do Norte,braco do norte,-26.625072,-49.044837,mapbox_geocoding,True
+SC,4210605,Massaranduba,Butuca,butuca,-26.588573,-49.009389,mapbox_geocoding,True
+SC,4210605,Massaranduba,Campinha,campinha,-26.573017,-48.870765,mapbox_geocoding,True
+SC,4210605,Massaranduba,Centro,centro,-26.588573,-49.009389,mapbox_geocoding,True
+SC,4210605,Massaranduba,Guarani-Mirim,guarani mirim,-7.531267,-46.049398,mapbox_geocoding,True
+SC,4210605,Massaranduba,Industrial Zeferino Kuklinski,industrial zeferino kuklinski,-26.572794,-48.976513,mapbox_geocoding,True
+SC,4210605,Massaranduba,Patrimônio,patrimonio,-26.63937,-49.018155,mapbox_geocoding,True
+SC,4210605,Massaranduba,Patrimônio II,patrimonio ii,-26.590492,-48.85081,mapbox_geocoding,True
+SC,4210704,Matos Costa,Centro,centro,-26.471293,-51.152853,mapbox_geocoding,True
+SC,4210803,Meleiro,Centro,centro,-28.8982424,-49.5580474,cep_aberto,True
+SC,4210803,Meleiro,Sapiranga,sapiranga,,,dne,True
+SC,4210852,Mirim Doce,Centro,centro,-27.201064,-50.068313,mapbox_geocoding,True
+SC,4210902,Modelo,Centro,centro,-26.775236,-53.055783,mapbox_geocoding,True
+SC,4211009,Mondaí,Centro,centro,-27.102738,-53.399106,mapbox_geocoding,True
+SC,4211058,Monte Carlo,Por do Sol,por do sol,-27.221477,-50.979136,mapbox_geocoding,True
+SC,4211108,Monte Castelo,Centro,centro,-26.462023,-50.228851,mapbox_geocoding,True
+SC,4211108,Monte Castelo,Distrito de Residência Fuck,distrito de residencia fuck,-26.708769,-50.288302,mapbox_geocoding,True
+SC,4211108,Monte Castelo,Residência Fuck,residencia fuck,,,dne,True
+SC,4211207,Morro da Fumaça,Centro,centro,-28.653592,-49.209176,mapbox_geocoding,True
+SC,4211207,Morro da Fumaça,Distrito Estação Cocal,distrito estacao cocal,-28.602614,-49.249202,mapbox_geocoding,True
+SC,4211207,Morro da Fumaça,Estação Cocal,estacao cocal,,,dne,True
+SC,4211256,Morro Grande,Centro,centro,-28.6723186,-49.1090771,cep_aberto,True
+SC,4211306,Navegantes,Área Rural de Navegantes,area rural de navegantes,-26.898201,-48.652496,mapbox_geocoding,True
+SC,4211306,Navegantes,Centro,centro,-26.8965145,-48.6461781,cep_aberto,True
+SC,4211306,Navegantes,Escalvados,escalvados,-26.899605,-48.654004,mapbox_geocoding,True
+SC,4211306,Navegantes,Gravatá,gravata,-26.8355467,-48.6346108,cep_aberto,True
+SC,4211306,Navegantes,Machados,machados,-26.870116,-48.686664,mapbox_geocoding,True
+SC,4211306,Navegantes,Meia Praia,meia praia,-26.8477845,-48.6349633,cep_aberto,True
+SC,4211306,Navegantes,Nossa Senhora das Graças,nossa senhora das gracas,-26.870116,-48.686664,mapbox_geocoding,True
+SC,4211306,Navegantes,Pedreiras,pedreiras,-26.8390604,-48.653936,cep_aberto,True
+SC,4211306,Navegantes,São Domingos,sao domingos,-26.894085,-48.659656,mapbox_geocoding,True
+SC,4211306,Navegantes,São Paulo,sao paulo,-26.823791,-48.632316,mapbox_geocoding,True
+SC,4211306,Navegantes,São Pedro,sao pedro,-26.8772037,-48.6403693,cep_aberto,True
+SC,4211306,Navegantes,Volta Grande,volta grande,-26.858807,-48.694432,mapbox_geocoding,True
+SC,4211405,Nova Erechim,Centro,centro,-26.903938,-52.907622,mapbox_geocoding,True
+SC,4211454,Nova Itaberaba,Centro,centro,-26.943098,-52.81097,mapbox_geocoding,True
+SC,4211504,Nova Trento,Aguti,aguti,,,dne,True
+SC,4211504,Nova Trento,Centro,centro,-27.286113,-48.92853,mapbox_geocoding,True
+SC,4211504,Nova Trento,Claraíba,claraiba,,,dne,True
+SC,4211504,Nova Trento,Distrito de Claraiba,distrito de claraiba,-27.2142886,-48.8990856,cep_aberto,True
+SC,4211603,Nova Veneza,Centro,centro,-28.640219,-49.502516,mapbox_geocoding,True
+SC,4211603,Nova Veneza,Nossa Senhora de Caravaggio,nossa senhora de caravaggio,,,dne,True
+SC,4211603,Nova Veneza,São Bento Baixo,sao bento baixo,-28.709253,-49.5129961,cep_aberto,True
+SC,4211652,Novo Horizonte,Centro,centro,-26.445794,-52.833135,mapbox_geocoding,True
+SC,4211702,Orleans,Barracão,barracao,-28.3461634,-49.301279,cep_aberto,True
+SC,4211702,Orleans,Brusque do Sul,brusque do sul,-27.981554,-48.944087,mapbox_geocoding,True
+SC,4211702,Orleans,Centro,centro,-28.360021,-49.291413,mapbox_geocoding,True
+SC,4211702,Orleans,Pindotiba,pindotiba,-28.4155633,-49.2291891,cep_aberto,True
+SC,4211702,Orleans,Rio das Furnas,rio das furnas,,,dne,True
+SC,4211702,Orleans,Rio Pinheiros,rio pinheiros,-27.981554,-48.944087,mapbox_geocoding,True
+SC,4211751,Otacílio Costa,Pinheiros,pinheiros,-27.504452,-50.114363,mapbox_geocoding,True
+SC,4211801,Ouro,Centro,centro,-27.344824,-51.61922,mapbox_geocoding,True
+SC,4211801,Ouro,Distrito de Santa Lúcia,distrito de santa lucia,-27.213218,-51.6801601,cep_aberto,True
+SC,4211801,Ouro,Santa Lúcia,santa lucia,,,dne,True
+SC,4211850,Ouro Verde,Centro,centro,-26.691921,-52.309811,mapbox_geocoding,True
+SC,4211876,Paial,Centro,centro,-27.2555162,-52.4996599,cep_aberto,True
+SC,4211892,Painel,Centro,centro,-7.093469,-38.17209,mapbox_geocoding,True
+SC,4211900,Palhoça,Albardão,albardao,-26.347408,-48.780823,mapbox_geocoding,True
+SC,4211900,Palhoça,Alto Aririú,alto aririu,-27.679594312,-48.6934432884,cep_aberto,True
+SC,4211900,Palhoça,Área Rural de Palhoça,area rural de palhoca,-27.645874,-48.666313,mapbox_geocoding,True
+SC,4211900,Palhoça,Aririú,aririu,-27.677747,-48.692677,mapbox_geocoding,True
+SC,4211900,Palhoça,Aririú da Formiga,aririu da formiga,-27.645,-48.67409592,cep_aberto,True
+SC,4211900,Palhoça,Balneário Ponta do Papagaio,balneario ponta do papagaio,-27.845296,-48.589999,mapbox_geocoding,True
+SC,4211900,Palhoça,Barra do Aririú,barra do aririu,-27.674534,-48.660685,mapbox_geocoding,True
+SC,4211900,Palhoça,Bela Vista,bela vista,-27.65273,-48.689399,mapbox_geocoding,True
+SC,4211900,Palhoça,Brejarú,brejaru,-27.645,-48.6734863233,cep_aberto,True
+SC,4211900,Palhoça,Caminho Novo,caminho novo,-27.644754,-48.68861,mapbox_geocoding,True
+SC,4211900,Palhoça,Centro,centro,-27.6447299915,-48.6676951948,cep_aberto,True
+SC,4211900,Palhoça,Enseada do Brito (Ens Brito),enseada do brito ens brito,-27.766043,-48.636717,mapbox_geocoding,True
+SC,4211900,Palhoça,Furadinho,furadinho,-27.70914,-48.65462,mapbox_geocoding,True
+SC,4211900,Palhoça,Guarda do Cubatão,guarda do cubatao,-27.687842,-48.679495,mapbox_geocoding,True
+SC,4211900,Palhoça,Guarda do Embaú,guarda do embau,-27.6192599941,-48.6389428087,cep_aberto,True
+SC,4211900,Palhoça,Jardim Eldorado,jardim eldorado,-27.624815,-48.655255,mapbox_geocoding,True
+SC,4211900,Palhoça,Madri,madri,-27.6603000041,-48.6852717578,cep_aberto,True
+SC,4211900,Palhoça,Massiambu Pequeno,massiambu pequeno,-27.834697,-48.646493,mapbox_geocoding,True
+SC,4211900,Palhoça,Morretes,morretes,-27.893708,-48.622049,mapbox_geocoding,True
+SC,4211900,Palhoça,Nova Palhoça,nova palhoca,-27.6708294,-48.662786,cep_aberto,True
+SC,4211900,Palhoça,Pachecos,pachecos,-27.075575,-53.243318,mapbox_geocoding,True
+SC,4211900,Palhoça,Pagani,pagani,-27.7019953,-48.6840168,cep_aberto,True
+SC,4211900,Palhoça,Passa Vinte,passa vinte,-27.629178,-48.66036,mapbox_geocoding,True
+SC,4211900,Palhoça,Passagem do Massiambú,passagem do massiambu,-27.6244799948,-48.668,cep_aberto,True
+SC,4211900,Palhoça,Pedra Branca,pedra branca,-27.628892,-48.686008,mapbox_geocoding,True
+SC,4211900,Palhoça,Pinheira,pinheira,-27.6232199961,-48.668,cep_aberto,True
+SC,4211900,Palhoça,Ponte do Imaruim,ponte do imaruim,-27.636733,-48.657857,mapbox_geocoding,True
+SC,4211900,Palhoça,Praia de Fora,praia de fora,-27.6541800094,-48.6576369375,cep_aberto,True
+SC,4211900,Palhoça,Praia do Pontal,praia do pontal,-27.73985,-48.635268,mapbox_geocoding,True
+SC,4211900,Palhoça,Praia do Sonho,praia do sonho,-27.6241199955,-48.6444291318,cep_aberto,True
+SC,4211900,Palhoça,Rio Grande,rio grande,-27.663317,-48.660065,mapbox_geocoding,True
+SC,4211900,Palhoça,São Sebastião,sao sebastiao,-27.6368099951,-48.6772454733,cep_aberto,True
+SC,4211900,Palhoça,Três Barras,tres barras,-27.893797,-48.64849,mapbox_geocoding,True
+SC,4212007,Palma Sola,Centro,centro,-26.349247,-53.278288,mapbox_geocoding,True
+SC,4212056,Palmeira,Centro,centro,-27.579454,-50.159355,mapbox_geocoding,True
+SC,4212106,Palmitos,Centro,centro,-27.068095,-53.163505,mapbox_geocoding,True
+SC,4212106,Palmitos,Santa Lúcia,santa lucia,,,dne,True
+SC,4212106,Palmitos,Sede Oldemburg,sede oldemburg,,,dne,True
+SC,4212205,Papanduva,Centro,centro,-27.283275,-49.397822,mapbox_geocoding,True
+SC,4212205,Papanduva,Nova Cultura,nova cultura,,,dne,True
+SC,4212239,Paraíso,Centro,centro,-26.614,-53.671798664,cep_aberto,True
+SC,4212239,Paraíso,Grápia,grapia,,,dne,True
+SC,4212254,Passo de Torres,Centro,centro,-29.323234,-49.719368,mapbox_geocoding,True
+SC,4212270,Passos Maia,Centro,centro,-26.780023,-52.062575,mapbox_geocoding,True
+SC,4212304,Paulo Lopes,Centro,centro,-27.96246,-48.682383,mapbox_geocoding,True
+SC,4212304,Paulo Lopes,Penha,penha,-26.8224978,-48.6208017,cep_aberto,True
+SC,4212403,Pedras Grandes,Azambuja,azambuja,,,dne,True
+SC,4212403,Pedras Grandes,Azambuja (Distrito),azambuja distrito,-28.435556,-49.185265,mapbox_geocoding,True
+SC,4212403,Pedras Grandes,Centro,centro,-28.438583,-49.185745,mapbox_geocoding,True
+SC,4212502,Penha,Centro,centro,-26.777379,-48.636572,mapbox_geocoding,True
+SC,4212601,Peritiba,Centro,centro,-27.372254,-51.90442,mapbox_geocoding,True
+SC,4212650,Pescaria Brava,Barreiros,barreiros,-28.3966396,-48.8864262,cep_aberto,True
+SC,4212650,Pescaria Brava,Centro,centro,-28.379092,-48.879435,mapbox_geocoding,True
+SC,4212650,Pescaria Brava,Estiva,estiva,-28.423621,-48.926155,mapbox_geocoding,True
+SC,4212650,Pescaria Brava,Laranjeiras,laranjeiras,-28.4228807,-48.8462491,cep_aberto,True
+SC,4212650,Pescaria Brava,Pescaria Brava,pescaria brava,-28.379092,-48.879435,mapbox_geocoding,True
+SC,4212650,Pescaria Brava,Ponta das Laranjeiras,ponta das laranjeiras,-28.384726,-48.86617,mapbox_geocoding,True
+SC,4212650,Pescaria Brava,Santiago,santiago,-28.4111017,-48.894597,cep_aberto,True
+SC,4212700,Petrolândia,Centro,centro,-27.534675,-49.698829,mapbox_geocoding,True
+SC,4212700,Petrolândia,Rio Antinha,rio antinha,-27.532925,-49.699238,cep_aberto,True
+SC,4212809,Balneário Piçarras,Centro,centro,-26.770965,-48.667896,mapbox_geocoding,True
+SC,4212809,Balneário Piçarras,Nossa Senhora da Conceição,nossa senhora da conceicao,-26.7606962,-48.6871189,cep_aberto,True
+SC,4212908,Pinhalzinho,Centro,centro,-26.847245,-52.985783,mapbox_geocoding,True
+SC,4213005,Pinheiro Preto,Centro,centro,-27.044871,-51.229955,mapbox_geocoding,True
+SC,4213104,Piratuba,Centro,centro,-27.429071,-51.781586,mapbox_geocoding,True
+SC,4213104,Piratuba,Uruguai,uruguai,,,dne,True
+SC,4213153,Planalto Alegre,Centro,centro,-27.07034,-52.86433,mapbox_geocoding,True
+SC,4213203,Pomerode,Área Rural de Pomerode,area rural de pomerode,-26.737686,-49.17461,mapbox_geocoding,True
+SC,4213203,Pomerode,Centro,centro,-26.7424,-49.177271,mapbox_geocoding,True
+SC,4213203,Pomerode,Pomerode Fundos,pomerode fundos,-26.730426,-49.189013,mapbox_geocoding,True
+SC,4213203,Pomerode,Rega,rega,-26.661076,-49.140348,mapbox_geocoding,True
+SC,4213203,Pomerode,Ribeirão Areia,ribeirao areia,-26.720928,-49.179903,mapbox_geocoding,True
+SC,4213203,Pomerode,Ribeirão Clara,ribeirao clara,-26.7424,-49.177271,mapbox_geocoding,True
+SC,4213203,Pomerode,Ribeirão Herdt,ribeirao herdt,-26.771192,-49.179613,mapbox_geocoding,True
+SC,4213203,Pomerode,Ribeirão Luebke,ribeirao luebke,-26.829121,-49.170257,mapbox_geocoding,True
+SC,4213203,Pomerode,Ribeirão Souto,ribeirao souto,-26.801788,-49.189201,mapbox_geocoding,True
+SC,4213203,Pomerode,Testo Alto,testo alto,-26.67398,-49.186091,mapbox_geocoding,True
+SC,4213203,Pomerode,Testo Central,testo central,-26.796245,-49.165365,mapbox_geocoding,True
+SC,4213203,Pomerode,Testo Central Alto,testo central alto,-26.796245,-49.165365,mapbox_geocoding,True
+SC,4213203,Pomerode,Testo Rega,testo rega,-26.709833,-49.163499,mapbox_geocoding,True
+SC,4213203,Pomerode,Vale do Selke Grande,vale do selke grande,-26.788113,-49.13412,mapbox_geocoding,True
+SC,4213203,Pomerode,Vale do Selke Pequeno,vale do selke pequeno,-26.75815,-49.150151,mapbox_geocoding,True
+SC,4213203,Pomerode,Wunderwald,wunderwald,-26.73676,-49.143966,mapbox_geocoding,True
+SC,4213302,Ponte Alta,Centro,centro,-27.484137,-50.383036,mapbox_geocoding,True
+SC,4213351,Ponte Alta do Norte,Centro,centro,-27.159864,-50.46625,mapbox_geocoding,True
+SC,4213401,Ponte Serrada,Baia Alta,baia alta,,,dne,True
+SC,4213401,Ponte Serrada,Centro,centro,-26.872575,-52.017131,mapbox_geocoding,True
+SC,4213500,Porto Belo,Alto Perequê,alto pereque,-27.138539,-48.609877,mapbox_geocoding,True
+SC,4213500,Porto Belo,Araçá,araca,-27.125404,-48.52298,mapbox_geocoding,True
+SC,4213500,Porto Belo,Área Rural de Porto Belo,area rural de porto belo,-27.15115,-48.538827,mapbox_geocoding,True
+SC,4213500,Porto Belo,Balneário Perequê,balneario pereque,-27.147244,-48.585781,mapbox_geocoding,True
+SC,4213500,Porto Belo,Centro,centro,-27.157166,-48.556445,mapbox_geocoding,True
+SC,4213500,Porto Belo,Enseada Encantada,enseada encantada,-27.157166,-48.556445,mapbox_geocoding,True
+SC,4213500,Porto Belo,Jardim Dourado,jardim dourado,-27.156284,-48.591743,mapbox_geocoding,True
+SC,4213500,Porto Belo,Santa Luzia,santa luzia,-27.162281,-48.58141,mapbox_geocoding,True
+SC,4213500,Porto Belo,Sertão de Santa Luzia,sertao de santa luzia,-27.174145,-48.611627,mapbox_geocoding,True
+SC,4213500,Porto Belo,Valongo,valongo,-27.193027,-48.684386,mapbox_geocoding,True
+SC,4213500,Porto Belo,Vila Nova,vila nova,-27.161361,-48.563899,mapbox_geocoding,True
+SC,4213609,Porto União,Centro,centro,-26.2400449,-51.0866072,cep_aberto,True
+SC,4213609,Porto União,Distrito de São Miguel da Serra,distrito de sao miguel da serra,-26.754821,-53.164579,mapbox_geocoding,True
+SC,4213609,Porto União,Santa Cruz do Timbó,santa cruz do timbo,,,dne,True
+SC,4213609,Porto União,São Miguel da Serra,sao miguel da serra,,,dne,True
+SC,4213708,Pouso Redondo,Aterrado Torto,aterrado torto,,,dne,True
+SC,4213708,Pouso Redondo,Centro,centro,-27.2519348,-49.9328542,cep_aberto,True
+SC,4213708,Pouso Redondo,Distrito de Aterrado Torto,distrito de aterrado torto,-27.272169,-49.883661,mapbox_geocoding,True
+SC,4213708,Pouso Redondo,Progresso,progresso,-27.253746,-49.932992,mapbox_geocoding,True
+SC,4213807,Praia Grande,Cachoeira de Fátima,cachoeira de fatima,,,dne,True
+SC,4213807,Praia Grande,Centro,centro,-29.195545,-49.949128,mapbox_geocoding,True
+SC,4213906,Presidente Castello Branco,Centro,centro,-27.214231,-51.812584,mapbox_geocoding,True
+SC,4214003,Presidente Getúlio,Centro,centro,-27.046564,-49.620934,mapbox_geocoding,True
+SC,4214003,Presidente Getúlio,Distrito Mirador,distrito mirador,-27.067142,-49.708149,mapbox_geocoding,True
+SC,4214003,Presidente Getúlio,Mirador,mirador,,,dne,True
+SC,4214102,Presidente Nereu,Centro,centro,-28.133003,-49.106017,mapbox_geocoding,True
+SC,4214151,Princesa,Centro,centro,-26.353568,-52.860393,mapbox_geocoding,True
+SC,4214201,Quilombo,Centro,centro,-26.727674,-52.717663,mapbox_geocoding,True
+SC,4214300,Rancho Queimado,Centro,centro,-27.673395,-49.012338,mapbox_geocoding,True
+SC,4214300,Rancho Queimado,Distrito de Taquaras,distrito de taquaras,-27.6412622,-49.1095832,cep_aberto,True
+SC,4214300,Rancho Queimado,Taquaras,taquaras,,,dne,True
+SC,4214409,Rio das Antas,Centro,centro,-26.899231,-51.075648,mapbox_geocoding,True
+SC,4214409,Rio das Antas,Ipoméia,ipomeia,,,dne,True
+SC,4214508,Rio do Campo,Centro,centro,-26.94552,-50.139131,mapbox_geocoding,True
+SC,4214607,Rio do Oeste,Centro,centro,-27.193594,-49.796327,mapbox_geocoding,True
+SC,4214706,Rio dos Cedros,Cedro Alto,cedro alto,,,dne,True
+SC,4214706,Rio dos Cedros,Divinéia,divineia,-26.743473,-49.282713,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Albertina,albertina,-27.1900599959,-49.6160800869,cep_aberto,True
+SC,4214805,Rio do Sul,Área Rural de Rio do Sul,area rural de rio do sul,-27.216429,-49.642986,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Barra do Trombudo,barra do trombudo,-27.2302000049,-49.643,cep_aberto,True
+SC,4214805,Rio do Sul,Barra Itoupava,barra itoupava,-27.193861,-49.620353,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Barragem,barragem,-27.196539997,-49.6233666799,cep_aberto,True
+SC,4214805,Rio do Sul,Bela Aliança,bela alianca,-27.205147,-49.583459,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Boa Vista,boa vista,-27.2356000044,-49.643,cep_aberto,True
+SC,4214805,Rio do Sul,Bremer,bremer,-27.195402,-49.608859,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Budag,budag,-27.214,-49.6642525623,cep_aberto,True
+SC,4214805,Rio do Sul,Canoas,canoas,-27.219171,-49.652835,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Canta Galo,canta galo,-27.2040999974,-49.6541322959,cep_aberto,True
+SC,4214805,Rio do Sul,Centro,centro,-27.212373,-49.635892,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Eugênio Schneider,eugenio schneider,-27.2352400034,-49.6668838325,cep_aberto,True
+SC,4214805,Rio do Sul,Fundo Canoas,fundo canoas,-27.199362,-49.668502,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Jardim América,jardim america,-27.211299997,-49.6460360833,cep_aberto,True
+SC,4214805,Rio do Sul,Laranjeiras,laranjeiras,-27.232763,-49.638556,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Navegantes,navegantes,-27.2230000012,-49.6531202677,cep_aberto,True
+SC,4214805,Rio do Sul,Pamplona,pamplona,-27.17413,-49.588501,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Progresso,progresso,-27.2269600021,-49.643,cep_aberto,True
+SC,4214805,Rio do Sul,Rainha,rainha,-27.182684,-49.582642,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Santa Rita,santa rita,-27.2057199964,-49.643,cep_aberto,True
+SC,4214805,Rio do Sul,Santana,santana,-27.212373,-49.635892,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Sumaré,sumare,-27.214,-49.6656694025,cep_aberto,True
+SC,4214805,Rio do Sul,Taboão,taboao,-27.207546,-49.619199,mapbox_geocoding,True
+SC,4214805,Rio do Sul,Valada Itoupava,valada itoupava,-27.2044599946,-49.6537274884,cep_aberto,True
+SC,4214805,Rio do Sul,Valada São Paulo,valada sao paulo,-27.161642,-49.5973,mapbox_geocoding,True
+SC,4214904,Rio Fortuna,Centro,centro,-28.141261,-49.116134,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Águas Claras,aguas claras,-26.485216,-49.607396,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Alegre,alegre,-26.29985,-49.519168,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Área Rural de Rio Negrinho,area rural de rio negrinho,-26.25418,-49.518784,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Barro Preto,barro preto,-26.274538,-49.530207,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Bela Vista,bela vista,-26.245275,-49.520269,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Campo Lençol,campo lencol,-26.233768,-49.518088,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Centro,centro,-26.253107,-49.519102,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Ceramarte,ceramarte,-26.25418,-49.518784,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Cruzeiro,cruzeiro,-26.29985,-49.519168,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Distrito (Vila de Volta Grande),distrito vila de volta grande,-26.482238,-49.602847,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Industrial Norte,industrial norte,-26.233312,-49.498449,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Industrial Sul,industrial sul,-26.241363,-49.49005,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Jardim Hantschel,jardim hantschel,-26.249431,-49.534282,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Pinheirinho,pinheirinho,-26.241363,-49.49005,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Quitandinha,quitandinha,-26.26332,-49.541399,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,São Pedro,sao pedro,-26.259531,-49.562564,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,São Rafael,sao rafael,-26.297249,-49.561895,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Vila Nova,vila nova,-26.245275,-49.520269,mapbox_geocoding,True
+SC,4215000,Rio Negrinho,Vista Alegre,vista alegre,-26.25418,-49.518784,mapbox_geocoding,True
+SC,4215059,Rio Rufino,Centro,centro,-27.864786,-49.784158,mapbox_geocoding,True
+SC,4215075,Riqueza,Centro,centro,-27.071922,-53.324769,mapbox_geocoding,True
+SC,4215109,Rodeio,Centro,centro,-26.894799,-49.352028,mapbox_geocoding,True
+SC,4215208,Romelândia,Centro,centro,-26.677545,-53.319172,mapbox_geocoding,True
+SC,4215307,Salete,Centro,centro,-26.979452,-50.002982,mapbox_geocoding,True
+SC,4215356,Saltinho,Centro,centro,-26.6050209,-53.0572276,cep_aberto,True
+SC,4215406,Salto Veloso,Centro,centro,-26.905759,-51.405406,mapbox_geocoding,True
+SC,4215455,Sangão,Centro,centro,-28.638533,-49.127309,mapbox_geocoding,True
+SC,4215455,Sangão,Distrito de Morro Grande,distrito de morro grande,-28.6816812,-49.107403,cep_aberto,True
+SC,4215505,Santa Cecília,Centro,centro,-26.964894,-50.422102,mapbox_geocoding,True
+SC,4215554,Santa Helena,Centro,centro,-26.940016,-53.619223,mapbox_geocoding,True
+SC,4215604,Santa Rosa de Lima,Centro,centro,-28.038538,-49.123814,mapbox_geocoding,True
+SC,4215653,Santa Rosa do Sul,Centro,centro,-29.135524,-49.716198,mapbox_geocoding,True
+SC,4215653,Santa Rosa do Sul,Vila São Cristovão,vila sao cristovao,-29.1667349,-49.7482541,cep_aberto,True
+SC,4215679,Santa Terezinha,Centro,centro,-26.779716,-50.007794,mapbox_geocoding,True
+SC,4215679,Santa Terezinha,Craveiro,craveiro,-28.6319865,-49.1795459,cep_aberto,True
+SC,4215679,Santa Terezinha,Rio da Anta,rio da anta,-26.658852,-49.994388,mapbox_geocoding,True
+SC,4215687,Santa Terezinha do Progresso,Centro,centro,-26.6210604,-53.1984931,cep_aberto,True
+SC,4215695,Santiago do Sul,Centro,centro,-26.633934,-52.674993,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Alto da Varginha,alto da varginha,-27.638668,-48.805255,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Área Rural,area rural,-27.686743,-48.776943,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Braço São João,braco sao joao,-27.714408,-48.741225,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Caldas da Imperatriz,caldas da imperatriz,-27.70876,-48.806029,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Calemba,calemba,-27.671815,-48.749663,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Canto da Amizade,canto da amizade,-27.688104,-48.818314,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Centro,centro,-27.686391,-48.777398,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Fabrício,fabricio,-27.697271,-48.773344,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Fazenda Bom Jesus,fazenda bom jesus,-27.650998,-48.856466,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Fazenda do Sacramento,fazenda do sacramento,-27.677997,-48.84123,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Morro dos Ventura,morro dos ventura,-27.68864,-48.765322,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Morro Queimado,morro queimado,-27.693507,-48.765225,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Nossa Senhora de Lourdes,nossa senhora de lourdes,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Pagará,pagara,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Pagará (Colônia Santa Luzia),pagara colonia santa luzia,-27.696609,-48.719515,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Poço Fundo,poco fundo,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Santana,santana,-27.691953,-48.782279,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Santo Anjo,santo anjo,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,São Francisco de Assis,sao francisco de assis,-27.686743,-48.776943,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,São João,sao joao,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Sítio de Dentro,sitio de dentro,-27.668341,-48.776661,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Sul do Rio,sul do rio,-27.699528,-48.727286,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Taquara,taquara,-27.686743,-48.776943,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem do Braço,vargem do braco,-27.737578,-48.790694,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem dos Pinheiros,vargem dos pinheiros,-27.686743,-48.776943,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Vargem Grande,vargem grande,-27.714529,-48.857828,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Varginha,varginha,-27.673294,-48.775739,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Vila Becker,vila becker,-27.686743,-48.776943,mapbox_geocoding,True
+SC,4215703,Santo Amaro da Imperatriz,Vila Santana,vila santana,-27.707526,-48.748616,mapbox_geocoding,True
+SC,4215752,São Bernardino,Centro,centro,-26.47226,-52.96579,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,25 de Julho,25 de julho,-26.2581346,-49.384397,cep_aberto,True
+SC,4215802,São Bento do Sul,Alpino,alpino,-26.223993,-49.401219,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Área Rural de São Bento do Sul,area rural de sao bento do sul,-26.3360456861,-49.3773361201,cep_aberto,True
+SC,4215802,São Bento do Sul,Bela Aliança,bela alianca,-26.209049,-49.363688,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Boehmerwald,boehmerwald,-26.1898926,-49.2672675,cep_aberto,True
+SC,4215802,São Bento do Sul,Brasília,brasilia,-26.233368,-49.361152,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Centenário,centenario,-26.2440878,-49.3353013,cep_aberto,True
+SC,4215802,São Bento do Sul,Centro,centro,-26.244658,-49.387497,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Colonial,colonial,-26.2269843,-49.4182565,cep_aberto,True
+SC,4215802,São Bento do Sul,Cruzeiro,cruzeiro,-26.223993,-49.401219,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Dona Francisca,dona francisca,-26.2136255,-49.3780164,cep_aberto,True
+SC,4215802,São Bento do Sul,Industrial Sudoeste,industrial sudoeste,-26.271071,-49.434026,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Lençol,lencol,-26.2459027,-49.446092,cep_aberto,True
+SC,4215802,São Bento do Sul,Mato Preto,mato preto,-26.21444,-49.375614,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Oxford,oxford,-26.224124,-49.4044689,cep_aberto,True
+SC,4215802,São Bento do Sul,Progresso,progresso,-26.233368,-49.361152,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Rio Negro,rio negro,-26.2419223,-49.4001442,cep_aberto,True
+SC,4215802,São Bento do Sul,Rio Vermelho Estação,rio vermelho estacao,-26.247564,-49.381496,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Rio Vermelho Povoado,rio vermelho povoado,-26.2576696,-49.3157071,cep_aberto,True
+SC,4215802,São Bento do Sul,Schramm,schramm,-26.259618,-49.366408,mapbox_geocoding,True
+SC,4215802,São Bento do Sul,Serra Alta,serra alta,-26.2857644,-49.3889476,cep_aberto,True
+SC,4215901,São Bonifácio,Centro,centro,-27.894755,-48.930434,mapbox_geocoding,True
+SC,4216008,São Carlos,Centro,centro,-27.081483,-53.002578,mapbox_geocoding,True
+SC,4216057,São Cristóvão do Sul,Centro,centro,-27.269408,-50.443243,mapbox_geocoding,True
+SC,4216107,São Domingos,Centro,centro,-26.55687,-52.530515,mapbox_geocoding,True
+SC,4216107,São Domingos,Maratá,marata,,,dne,True
+SC,4216107,São Domingos,Vila Milani,vila milani,,,dne,True
+SC,4216206,São Francisco do Sul,Água Branca,agua branca,-26.251227,-48.638842,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Área Rural de São Francisco do Sul,area rural de sao francisco do sul,-26.249874,-48.629623,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Centro,centro,-26.251227,-48.638842,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Enseada,enseada,-26.226941,-48.508527,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Iperoba,iperoba,-26.223941,-48.518846,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Laranjeiras,laranjeiras,-26.277759,-48.658497,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Morro Grande,morro grande,-26.265978,-48.634174,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Paulas,paulas,-26.223941,-48.518846,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Praia Grande,praia grande,-26.234403,-48.502868,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Reta,reta,-26.223941,-48.518846,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Rocio Grande,rocio grande,-26.251227,-48.638842,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Rocio Pequeno,rocio pequeno,-26.24791,-48.634621,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Sai,sai,,,dne,True
+SC,4216206,São Francisco do Sul,São José do Acaraí,sao jose do acarai,-26.24791,-48.634621,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Ubatuba,ubatuba,-26.191016,-48.576587,mapbox_geocoding,True
+SC,4216206,São Francisco do Sul,Vila da Glória,vila da gloria,-26.246972,-48.698975,mapbox_geocoding,True
+SC,4216255,São João do Oeste,Centro,centro,-27.096669,-53.595367,mapbox_geocoding,True
+SC,4216305,São João Batista,Centro,centro,-27.277375,-48.854031,mapbox_geocoding,True
+SC,4216305,São João Batista,Distrito de Tigipió,distrito de tigipio,-27.3651726,-48.8931082,cep_aberto,True
+SC,4216305,São João Batista,Tijipió,tijipio,,,dne,True
+SC,4216354,São João do Itaperiú,Centro,centro,-26.615565,-48.766106,mapbox_geocoding,True
+SC,4216404,São João do Sul,Centro,centro,-29.223784,-49.808145,mapbox_geocoding,True
+SC,4216404,São João do Sul,Distrito de Vila Conceição,distrito de vila conceicao,-29.214322,-49.758752,mapbox_geocoding,True
+SC,4216404,São João do Sul,Vila Conceição,vila conceicao,,,dne,True
+SC,4216503,São Joaquim,Centro,centro,-28.292171,-49.933815,mapbox_geocoding,True
+SC,4216503,São Joaquim,Pericó,perico,,,dne,True
+SC,4216503,São Joaquim,Santa Izabel,santa izabel,,,dne,True
+SC,4216503,São Joaquim,São Sebastião do Arvoredo,sao sebastiao do arvoredo,,,dne,True
+SC,4216602,São José,Alto Forquilhas,alto forquilhas,-27.6016799966,-48.6129675317,cep_aberto,True
+SC,4216602,São José,Área Rural de São José,area rural de sao jose,-27.615065,-48.626534,mapbox_geocoding,True
+SC,4216602,São José,Areias,areias,-27.6223800051,-48.6363288036,cep_aberto,True
+SC,4216602,São José,Barreiros,barreiros,-27.579308,-48.600593,mapbox_geocoding,True
+SC,4216602,São José,Bela Vista,bela vista,-27.615,-48.6365319451,cep_aberto,True
+SC,4216602,São José,Bosque das Mansões,bosque das mansoes,-27.586356,-48.622069,mapbox_geocoding,True
+SC,4216602,São José,Campinas,campinas,-27.6148199966,-48.6277968547,cep_aberto,True
+SC,4216602,São José,Centro,centro,-27.613065,-48.627889,mapbox_geocoding,True
+SC,4216602,São José,Colônia Santana,colonia santana,-27.6279600081,-48.628,cep_aberto,True
+SC,4216602,São José,Distrito Industrial,distrito industrial,-27.595346,-48.619043,mapbox_geocoding,True
+SC,4216602,São José,Fazenda Santo Antônio,fazenda santo antonio,-27.6178800057,-48.624749731,cep_aberto,True
+SC,4216602,São José,Flor de Nápolis,flor de napolis,-27.603518,-48.646994,mapbox_geocoding,True
+SC,4216602,São José,Forquilhas Leste,forquilhas leste,-27.615,-48.6326722569,cep_aberto,True
+SC,4216602,São José,Forquilhas Oeste,forquilhas oeste,-27.552499,-48.700033,mapbox_geocoding,True
+SC,4216602,São José,Forquilhinha,forquilhinha,-27.615065,-48.626534,mapbox_geocoding,True
+SC,4216602,São José,Ipiranga,ipiranga,-27.6214800034,-48.6206869054,cep_aberto,True
+SC,4216602,São José,Jardim Cidade de Florianópolis,jardim cidade de florianopolis,-27.576454,-48.624556,mapbox_geocoding,True
+SC,4216602,São José,Jardim Santiago,jardim santiago,-27.6245400011,-48.6172335039,cep_aberto,True
+SC,4216602,São José,Kobrasol,kobrasol,-27.607501,-48.624603,mapbox_geocoding,True
+SC,4216602,São José,Nossa Senhora do Rosário,nossa senhora do rosario,-27.6097799979,-48.6338911032,cep_aberto,True
+SC,4216602,São José,Pedregal,pedregal,-27.572638,-48.642773,mapbox_geocoding,True
+SC,4216602,São José,Picadas do Sul,picadas do sul,-27.6113999961,-48.628,cep_aberto,True
+SC,4216602,São José,Ponta de Baixo,ponta de baixo,-27.634877,-48.630616,mapbox_geocoding,True
+SC,4216602,São José,Potecas,potecas,-27.6276000055,-48.642219905,cep_aberto,True
+SC,4216602,São José,Praia Comprida,praia comprida,-27.607501,-48.624603,mapbox_geocoding,True
+SC,4216602,São José,Real Parque,real parque,-27.5658015,-48.6336466,cep_aberto,True
+SC,4216602,São José,Roçado,rocado,-27.589716,-48.619458,mapbox_geocoding,True
+SC,4216602,São José,São Luiz,sao luiz,-27.615065,-48.626534,mapbox_geocoding,True
+SC,4216602,São José,Serraria,serraria,-27.6056399969,-48.6385633569,cep_aberto,True
+SC,4216602,São José,Sertão do Maruim,sertao do maruim,-27.599556,-48.669833,mapbox_geocoding,True
+SC,4216701,São José do Cedro,Centro,centro,-26.453897,-53.498326,mapbox_geocoding,True
+SC,4216701,São José do Cedro,Mariflor,mariflor,,,dne,True
+SC,4216701,São José do Cedro,Padre Reus,padre reus,-26.4863813,-53.6718626,cep_aberto,True
+SC,4216800,São José do Cerrito,Centro,centro,-27.66736,-50.578976,mapbox_geocoding,True
+SC,4216909,São Lourenço do Oeste,Centro,centro,-26.353911,-52.849849,mapbox_geocoding,True
+SC,4216909,São Lourenço do Oeste,Distrito de Presidente Juscelino,distrito de presidente juscelino,-26.4205201,-52.8996312,cep_aberto,True
+SC,4216909,São Lourenço do Oeste,Distrito de São Roque,distrito de sao roque,-26.503655,-52.816482,mapbox_geocoding,True
+SC,4216909,São Lourenço do Oeste,Frederico Wastner,frederico wastner,,,dne,True
+SC,4216909,São Lourenço do Oeste,Presidente Juscelino,presidente juscelino,,,dne,True
+SC,4216909,São Lourenço do Oeste,São Roque,sao roque,,,dne,True
+SC,4217006,São Ludgero,Centro,centro,-28.328732,-49.181639,mapbox_geocoding,True
+SC,4217105,São Martinho,Centro,centro,-28.166098,-48.978556,mapbox_geocoding,True
+SC,4217105,São Martinho,Distrito de Vargem do Cedro,distrito de vargem do cedro,-28.1129407,-48.9204876,cep_aberto,True
+SC,4217105,São Martinho,Vargem do Cedro,vargem do cedro,,,dne,True
+SC,4217154,São Miguel da Boa Vista,Centro,centro,-26.692431,-53.254713,mapbox_geocoding,True
+SC,4217204,São Miguel do Oeste,Centro,centro,-26.733441,-53.517496,mapbox_geocoding,True
+SC,4217204,São Miguel do Oeste,Prata,prata,,,dne,True
+SC,4217253,São Pedro de Alcântara,Centro,centro,-27.568099,-48.805433,mapbox_geocoding,True
+SC,4217253,São Pedro de Alcântara,Santa Teresa,santa teresa,-27.572387,-48.754289,cep_aberto,True
+SC,4217303,Saudades,Centro,centro,-26.927533,-53.000559,mapbox_geocoding,True
+SC,4217402,Schroeder,Área Rural,area rural,-26.410788,-49.076195,mapbox_geocoding,True
+SC,4217402,Schroeder,Bracinho,bracinho,-26.359394,-49.119958,mapbox_geocoding,True
+SC,4217402,Schroeder,Braço do Sul,braco do sul,-26.475037,-48.980665,mapbox_geocoding,True
+SC,4217402,Schroeder,Centro,centro,-28.569544,-49.343434,mapbox_geocoding,True
+SC,4217402,Schroeder,Centro Leste,centro leste,-26.400134,-49.064273,mapbox_geocoding,True
+SC,4217402,Schroeder,Centro Norte,centro norte,-28.569544,-49.343434,mapbox_geocoding,True
+SC,4217402,Schroeder,Centro Sul,centro sul,-26.413514,-49.063331,mapbox_geocoding,True
+SC,4217402,Schroeder,Itoupava-Açu,itoupava acu,-26.349865,-49.125922,mapbox_geocoding,True
+SC,4217402,Schroeder,Localidade Duas Mamas,localidade duas mamas,-26.379039,-49.019574,mapbox_geocoding,True
+SC,4217402,Schroeder,Localidade Rancho Bom Braço do Sul,localidade rancho bom braco do sul,-26.35811,-49.060671,mapbox_geocoding,True
+SC,4217402,Schroeder,Localidade Rio Hern,localidade rio hern,-26.418984,-49.049555,mapbox_geocoding,True
+SC,4217402,Schroeder,Localidades Corredeiras do Bracinho,localidades corredeiras do bracinho,-26.352032,-49.105626,mapbox_geocoding,True
+SC,4217402,Schroeder,Rancho Bom,rancho bom,-26.372497,-49.058984,mapbox_geocoding,True
+SC,4217402,Schroeder,Rio Hern,rio hern,-26.413514,-49.063331,mapbox_geocoding,True
+SC,4217402,Schroeder,Schroeder I,schroeder i,-26.475144,-48.980642,mapbox_geocoding,True
+SC,4217402,Schroeder,Sossego,sossego,-26.475037,-48.980665,mapbox_geocoding,True
+SC,4217402,Schroeder,Tomaselli,tomaselli,-26.380436,-49.059727,mapbox_geocoding,True
+SC,4217501,Seara,Caraíba,caraiba,,,dne,True
+SC,4217501,Seara,Centro,centro,-27.291658,-52.331234,mapbox_geocoding,True
+SC,4217501,Seara,Nova Teutônia,nova teutonia,,,dne,True
+SC,4217550,Serra Alta,Centro,centro,-26.727627,-53.043518,mapbox_geocoding,True
+SC,4217600,Siderópolis,Centro,centro,-28.595301,-49.426199,mapbox_geocoding,True
+SC,4217600,Siderópolis,Vila São Jorge,vila sao jorge,-28.6276155,-49.4089308,cep_aberto,True
+SC,4217709,Sombrio,Centro,centro,-29.11339,-49.636344,mapbox_geocoding,True
+SC,4217709,Sombrio,Nova Guarita,nova guarita,-29.0693451,-49.6259956,cep_aberto,True
+SC,4217758,Sul Brasil,Centro,centro,-26.740035,-52.967697,mapbox_geocoding,True
+SC,4217808,Taió,Centro,centro,-27.116853,-49.983072,mapbox_geocoding,True
+SC,4217808,Taió,Distrito de Passo Manso,distrito de passo manso,-27.0570379,-50.1418631,cep_aberto,True
+SC,4217808,Taió,Passo Manso,passo manso,,,dne,True
+SC,4217907,Tangará,Centro,centro,-27.647475,-48.716045,mapbox_geocoding,True
+SC,4217907,Tangará,Irakitan,irakitan,,,dne,True
+SC,4217907,Tangará,Marari,marari,,,dne,True
+SC,4217956,Tigrinhos,Centro,centro,-26.686251,-53.1569772,cep_aberto,True
+SC,4218004,Tijucas,Área Rural de Tijucas,area rural de tijucas,-27.241978,-48.636482,mapbox_geocoding,True
+SC,4218004,Tijucas,Areias,areias,-27.224982,-48.6561,mapbox_geocoding,True
+SC,4218004,Tijucas,Centro,centro,-27.236705,-48.634054,mapbox_geocoding,True
+SC,4218004,Tijucas,Joáia,joaia,-27.253169,-48.653031,mapbox_geocoding,True
+SC,4218004,Tijucas,Nova Descoberta,nova descoberta,-27.324296,-48.879211,mapbox_geocoding,True
+SC,4218004,Tijucas,Pernambuco,pernambuco,-27.255256,-48.631372,mapbox_geocoding,True
+SC,4218004,Tijucas,Praça,praca,-27.230819,-48.623794,mapbox_geocoding,True
+SC,4218004,Tijucas,Santa Luzia,santa luzia,-27.223033,-48.626731,mapbox_geocoding,True
+SC,4218004,Tijucas,Sul do Rio,sul do rio,-27.255256,-48.631372,mapbox_geocoding,True
+SC,4218004,Tijucas,Universitário,universitario,-27.24302,-48.648954,mapbox_geocoding,True
+SC,4218004,Tijucas,XV de Novembro,xv de novembro,-27.244811,-48.640589,mapbox_geocoding,True
+SC,4218103,Timbé do Sul,Centro,centro,-28.83341,-49.84667,mapbox_geocoding,True
+SC,4218202,Timbó,Araponguinhas,araponguinhas,-26.853003,-49.267968,mapbox_geocoding,True
+SC,4218202,Timbó,Area Rural de Timbo,area rural de timbo,-26.822882,-49.276257,mapbox_geocoding,True
+SC,4218202,Timbó,Capitais,capitais,-26.820003,-49.281648,mapbox_geocoding,True
+SC,4218202,Timbó,Centro,centro,-26.823957,-49.276914,mapbox_geocoding,True
+SC,4218202,Timbó,Dona Clara,dona clara,-26.824328,-49.30574,mapbox_geocoding,True
+SC,4218202,Timbó,Estados,estados,-26.823957,-49.276914,mapbox_geocoding,True
+SC,4218202,Timbó,Fritz Lorenz,fritz lorenz,-26.853003,-49.267968,mapbox_geocoding,True
+SC,4218202,Timbó,Imigrantes,imigrantes,-26.828463,-49.267756,mapbox_geocoding,True
+SC,4218202,Timbó,Nações,nacoes,-26.811911,-49.269489,mapbox_geocoding,True
+SC,4218202,Timbó,Padre Martinho Stein,padre martinho stein,-26.823957,-49.276914,mapbox_geocoding,True
+SC,4218202,Timbó,Pomeranos,pomeranos,-26.817481,-49.252963,mapbox_geocoding,True
+SC,4218202,Timbó,Quintino,quintino,-26.828463,-49.267756,mapbox_geocoding,True
+SC,4218202,Timbó,São Roque,sao roque,-26.765551,-49.234841,mapbox_geocoding,True
+SC,4218202,Timbó,Tiroleses,tiroleses,-26.793312,-49.295637,mapbox_geocoding,True
+SC,4218202,Timbó,Vila Germer,vila germer,-26.837583,-49.253053,mapbox_geocoding,True
+SC,4218251,Timbó Grande,Centro,centro,-26.618086,-50.662703,mapbox_geocoding,True
+SC,4218301,Três Barras,Centro,centro,-26.107454,-50.321482,mapbox_geocoding,True
+SC,4218301,Três Barras,São Cristóvão,sao cristovao,,,dne,True
+SC,4218350,Treviso,Centro,centro,-28.51464,-49.45786,mapbox_geocoding,True
+SC,4218400,Treze de Maio,Centro,centro,-28.557461,-49.146538,mapbox_geocoding,True
+SC,4218400,Treze de Maio,São Gabriel,sao gabriel,,,dne,True
+SC,4218509,Treze Tílias,Centro,centro,-26.997718,-51.408553,mapbox_geocoding,True
+SC,4218608,Trombudo Central,Centro,centro,-27.301477,-49.791959,mapbox_geocoding,True
+SC,4218707,Tubarão,Aeroporto,aeroporto,-28.4623199919,-49.0016763146,cep_aberto,True
+SC,4218707,Tubarão,Área Rural de Tubarão,area rural de tubarao,-28.4818875,-49.0058727,cep_aberto,True
+SC,4218707,Tubarão,Bom Pastor,bom pastor,-28.464515,-49.063451,mapbox_geocoding,True
+SC,4218707,Tubarão,Campestre,campestre,-28.467,-49.0145760064,cep_aberto,True
+SC,4218707,Tubarão,Caruru,caruru,-28.42234,-49.036181,mapbox_geocoding,True
+SC,4218707,Tubarão,Centro,centro,-28.467343,-48.991668,mapbox_geocoding,True
+SC,4218707,Tubarão,Congonhas,congonhas,-28.512453,-49.000463,mapbox_geocoding,True
+SC,4218707,Tubarão,Cruzeiro,cruzeiro,-28.485426,-49.026006,mapbox_geocoding,True
+SC,4218707,Tubarão,Dehon,dehon,-28.4704200057,-49.007,cep_aberto,True
+SC,4218707,Tubarão,Fábio Silva,fabio silva,-28.485426,-49.026006,mapbox_geocoding,True
+SC,4218707,Tubarão,Guarda Margem Direita,guarda margem direita,-28.469185,-49.061941,mapbox_geocoding,True
+SC,4218707,Tubarão,Guarda Margem Esquerda,guarda margem esquerda,-28.426403,-49.084293,mapbox_geocoding,True
+SC,4218707,Tubarão,Humaitá,humaita,-28.4630399962,-49.0024953466,cep_aberto,True
+SC,4218707,Tubarão,Humaitá de Cima,humaita de cima,-28.473881,-49.01101,mapbox_geocoding,True
+SC,4218707,Tubarão,Kilômetro 60,kilometro 60,-28.453516,-49.081064,mapbox_geocoding,True
+SC,4218707,Tubarão,Kilômetro 63,kilometro 63,-28.453516,-49.081064,mapbox_geocoding,True
+SC,4218707,Tubarão,Madre,madre,-28.531071,-48.953333,mapbox_geocoding,True
+SC,4218707,Tubarão,Monte Castelo,monte castelo,-28.4648399971,-49.007,cep_aberto,True
+SC,4218707,Tubarão,Morrotes,morrotes,-28.482858,-49.01874,mapbox_geocoding,True
+SC,4218707,Tubarão,Nova Tubarão,nova tubarao,-28.437604,-49.022957,mapbox_geocoding,True
+SC,4218707,Tubarão,Oficinas,oficinas,-28.4655599944,-49.007,cep_aberto,True
+SC,4218707,Tubarão,Passagem,passagem,-28.476419,-48.996222,mapbox_geocoding,True
+SC,4218707,Tubarão,Passo do Gado,passo do gado,-28.467,-48.9998335108,cep_aberto,True
+SC,4218707,Tubarão,Praia Redonda,praia redonda,-28.499782,-48.978231,mapbox_geocoding,True
+SC,4218707,Tubarão,Recife,recife,-28.467,-49.0121189221,cep_aberto,True
+SC,4218707,Tubarão,Revoredo,revoredo,-28.467343,-48.991668,mapbox_geocoding,True
+SC,4218707,Tubarão,Rio do Pouso,rio do pouso,-28.416237,-49.111305,mapbox_geocoding,True
+SC,4218707,Tubarão,Santa Luzia,santa luzia,-28.501889,-48.985595,mapbox_geocoding,True
+SC,4218707,Tubarão,Santo Antônio de Pádua,santo antonio de padua,-28.4681700033,-49.0056690772,cep_aberto,True
+SC,4218707,Tubarão,São Bernardo,sao bernardo,-28.473881,-49.01101,mapbox_geocoding,True
+SC,4218707,Tubarão,São Clemente,sao clemente,-28.497886,-48.982314,mapbox_geocoding,True
+SC,4218707,Tubarão,São Cristóvão,sao cristovao,-28.4636699963,-49.0032119954,cep_aberto,True
+SC,4218707,Tubarão,São João (Margem Direita),sao joao margem direita,-28.4642999996,-49.007,cep_aberto,True
+SC,4218707,Tubarão,São João (Margem Esquerda),sao joao margem esquerda,-26.928077,-48.691368,mapbox_geocoding,True
+SC,4218707,Tubarão,São Martinho,sao martinho,-28.470106,-49.014736,mapbox_geocoding,True
+SC,4218707,Tubarão,Sertão dos Correias,sertao dos correias,-28.4948468,-49.0485968,cep_aberto,True
+SC,4218707,Tubarão,Vila Esperança,vila esperanca,-28.460582,-49.013921,mapbox_geocoding,True
+SC,4218707,Tubarão,Vila Moema,vila moema,-28.478151,-48.9985452,cep_aberto,True
+SC,4218756,Tunápolis,Centro,centro,-26.972446,-53.640591,mapbox_geocoding,True
+SC,4218806,Turvo,Centro,centro,-20.476936,-54.607934,mapbox_geocoding,True
+SC,4218806,Turvo,Distrito de Morro Chato,distrito de morro chato,-28.6018371,-49.1514667,cep_aberto,True
+SC,4218806,Turvo,Morro Chato,morro chato,,,dne,True
+SC,4218855,União do Oeste,Centro,centro,-26.763227,-52.852998,mapbox_geocoding,True
+SC,4218905,Urubici,Águas Brancas,aguas brancas,,,dne,True
+SC,4218905,Urubici,Centro,centro,-28.0159,-49.595449,mapbox_geocoding,True
+SC,4218905,Urubici,Distrito de Águas Brancas,distrito de aguas brancas,-27.957066,-49.5794025,cep_aberto,True
+SC,4218905,Urubici,Santa Terezinha,santa terezinha,-28.017622,-49.602026,mapbox_geocoding,True
+SC,4218954,Urupema,Centro,centro,-27.954104,-49.875401,mapbox_geocoding,True
+SC,4219002,Urussanga,Centro,centro,-28.519949,-49.322512,mapbox_geocoding,True
+SC,4219002,Urussanga,Povoado de Santana,povoado de santana,-28.4650858,-49.3572392,cep_aberto,True
+SC,4219002,Urussanga,Povoado Rio América,povoado rio america,-28.513718,-49.369456,mapbox_geocoding,True
+SC,4219101,Vargeão,Centro,centro,-26.862257,-52.154039,mapbox_geocoding,True
+SC,4219150,Vargem,Centro,centro,-27.492273,-50.978383,mapbox_geocoding,True
+SC,4219176,Vargem Bonita,Centro,centro,-27.002985,-51.74032,mapbox_geocoding,True
+SC,4219176,Vargem Bonita,Vila Campina da Alegria,vila campina da alegria,-26.8721912,-51.7946898,cep_aberto,True
+SC,4219200,Vidal Ramos,Centro,centro,-27.392719,-49.3618,mapbox_geocoding,True
+SC,4219309,Videira,Aeroporto,aeroporto,-27.001515,-51.1429418,cep_aberto,True
+SC,4219309,Videira,Água Verde,agua verde,-27.003477,-51.135823,mapbox_geocoding,True
+SC,4219309,Videira,Alvorada,alvorada,-27.0112359,-51.1510674,cep_aberto,True
+SC,4219309,Videira,Amarante,amarante,-27.00255,-51.167286,mapbox_geocoding,True
+SC,4219309,Videira,Anta Gorda,anta gorda,,,dne,True
+SC,4219309,Videira,Área Rural de Videira,area rural de videira,-27.0052075,-51.154395,cep_aberto,True
+SC,4219309,Videira,Bom Sucesso,bom sucesso,,,dne,True
+SC,4219309,Videira,Campina Bela,campina bela,-27.046597,-51.14309,mapbox_geocoding,True
+SC,4219309,Videira,Campo Experimental,campo experimental,-27.039381,-51.141952,mapbox_geocoding,True
+SC,4219309,Videira,Carboni,carboni,-27.0050057,-51.1385187,cep_aberto,True
+SC,4219309,Videira,Carelli,carelli,-26.994332,-51.159849,mapbox_geocoding,True
+SC,4219309,Videira,Centro,centro,-27.0093524,-51.153735,cep_aberto,True
+SC,4219309,Videira,Cetrevi,cetrevi,-28.1061,-48.67907,mapbox_geocoding,True
+SC,4219309,Videira,Cibrazém,cibrazem,-27.0113102,-51.1652295,cep_aberto,True
+SC,4219309,Videira,Cidade Alta,cidade alta,-26.985703,-51.175104,mapbox_geocoding,True
+SC,4219309,Videira,Dois Pinheiros,dois pinheiros,-27.0081471,-51.1330117,cep_aberto,True
+SC,4219309,Videira,Farroupilha,farroupilha,-27.005272,-51.15433,mapbox_geocoding,True
+SC,4219309,Videira,Floresta,floresta,-27.0059797,-51.1605002,cep_aberto,True
+SC,4219309,Videira,Lourdes,lourdes,,,dne,True
+SC,4219309,Videira,Marafon,marafon,-27.005272,-51.15433,mapbox_geocoding,True
+SC,4219309,Videira,Matriz,matriz,-27.0070726,-51.1448181,cep_aberto,True
+SC,4219309,Videira,Morada do Sol,morada do sol,-27.003477,-51.135823,mapbox_geocoding,True
+SC,4219309,Videira,Nossa Senhora Aparecida,nossa senhora aparecida,-27.005272,-51.15433,mapbox_geocoding,True
+SC,4219309,Videira,Oficina,oficina,-27.0177003,-51.1341573,cep_aberto,True
+SC,4219309,Videira,Panazzolo,panazzolo,-27.00255,-51.167286,mapbox_geocoding,True
+SC,4219309,Videira,Portal das Videiras,portal das videiras,-26.9976264,-51.1309881,cep_aberto,True
+SC,4219309,Videira,Rio das Pedras,rio das pedras,-27.005235,-51.068398,mapbox_geocoding,True
+SC,4219309,Videira,Santa Gema,santa gema,-26.9868201,-51.1782513,cep_aberto,True
+SC,4219309,Videira,Santa Lucia,santa lucia,-27.003732,-51.146357,mapbox_geocoding,True
+SC,4219309,Videira,Santa Tereza,santa tereza,-27.002055,-51.1389383,cep_aberto,True
+SC,4219309,Videira,Santos Dumont,santos dumont,-26.99996,-51.149632,mapbox_geocoding,True
+SC,4219309,Videira,São Cristovão,sao cristovao,-27.0081471,-51.1330117,cep_aberto,True
+SC,4219309,Videira,São Francisco,sao francisco,-27.008136,-51.13304,mapbox_geocoding,True
+SC,4219309,Videira,Sesi,sesi,-27.0121271,-51.1533512,cep_aberto,True
+SC,4219309,Videira,Universitário,universitario,-27.00255,-51.167286,mapbox_geocoding,True
+SC,4219309,Videira,Vila de Carli,vila de carli,-27.0175332,-51.1463008,cep_aberto,True
+SC,4219309,Videira,Vila Verde,vila verde,-27.048894,-51.228623,mapbox_geocoding,True
+SC,4219358,Vitor Meireles,Barra da Prata,barra da prata,,,dne,True
+SC,4219358,Vitor Meireles,Centro,centro,-26.879418,-49.830786,mapbox_geocoding,True
+SC,4219358,Vitor Meireles,Lagoas,lagoas,-26.8785259,-49.8248328,cep_aberto,True
+SC,4219408,Witmarsum,Centro,centro,-26.928235,-49.80908,mapbox_geocoding,True
+SC,4219507,Xanxerê,Cambuinzal,cambuinzal,,,dne,True
+SC,4219507,Xanxerê,Centro,centro,-26.8782,-52.401514,mapbox_geocoding,True
+SC,4219606,Xavantina,Centro,centro,-27.06879,-52.34144,mapbox_geocoding,True
+SC,4219606,Xavantina,Linha das Palmeiras,linha das palmeiras,,,dne,True
+SC,4219705,Xaxim,Centro,centro,-26.961401,-52.532933,mapbox_geocoding,True
+SC,4219853,Zortéa,Imigrantes,imigrantes,-27.45823,-51.548459,mapbox_geocoding,True
+SC,4220000,Balneário Rincão,Centro,centro,-28.82499,-49.228437,mapbox_geocoding,True

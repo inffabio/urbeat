@@ -201,7 +201,7 @@ export class BluetoothPrinterAdapter {
       this.escPosInit(),
       this.escPosAlign('center'),
       this.escPosBold(true),
-      encodeSafe('URBEAT - TESTE'),
+      encodeSafe('urbeat - TESTE'),
       this.escPosBold(false),
       this.escPosAlign('left'),
       new Uint8Array([0x0A]),

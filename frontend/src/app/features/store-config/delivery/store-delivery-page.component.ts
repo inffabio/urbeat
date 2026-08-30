@@ -98,6 +98,7 @@ export class StoreDeliveryPageComponent implements OnInit {
   });
 
   readonly filteredNeighborhoods = computed(() => {
+    this.areaVersion();
     const s = this.neighborhoodSearch().toLowerCase();
     const radius = this.maxDeliveryRadiusKm();
     const lat = this.storeLat();
@@ -110,7 +111,9 @@ export class StoreDeliveryPageComponent implements OnInit {
       .filter(n => !existing.has(n.neighborhood.toLowerCase()));
     if (radius > 0 && lat != null && lon != null) {
       list = list.filter(n => {
-        if (!n.latitude || !n.longitude) return false;
+        // Manual neighborhoods have no coordinates; keep them visible and
+        // selectable instead of discarding them by the radius filter.
+        if (!n.latitude || !n.longitude) return true;
         return this.calcDistanceRaw(lat, lon, n.latitude, n.longitude) <= radius;
       });
     }
@@ -225,8 +228,6 @@ export class StoreDeliveryPageComponent implements OnInit {
           id: [area.id],
           neighborhood: [area.neighborhood, Validators.required],
           deliveryFee: [this.formatNumberToBRL(area.deliveryFee)],
-          minimumOrderValue: [this.formatNumberToBRL(area.minimumOrderValue ?? 0)],
-          freeShippingThreshold: [area.freeShippingThreshold == null ? '' : this.formatNumberToBRL(area.freeShippingThreshold)],
           isActive: [area.isActive !== false],
           notes: [area.notes ?? '']
         }));
@@ -268,8 +269,6 @@ export class StoreDeliveryPageComponent implements OnInit {
       this.areas.push(this.fb.group({
         neighborhood: [neighborhood, Validators.required],
         deliveryFee: [feeStr],
-        minimumOrderValue: ['0,00'],
-        freeShippingThreshold: [''],
         isActive: [true],
         notes: ['']
     }));
@@ -460,6 +459,8 @@ export class StoreDeliveryPageComponent implements OnInit {
       return;
     }
 
+    // The reference endpoint only accepts `city`, so the manual neighborhood
+    // keeps the store's city without UF or coordinates (we must not invent them).
     this.isAddingNeighborhood.set(true);
     this.storeService.createDeliveryNeighborhood(name, city).subscribe({
       next: (created) => {
@@ -500,13 +501,19 @@ export class StoreDeliveryPageComponent implements OnInit {
   }
 
   toggleAllNeighborhoods(): void {
-    const filtered = this.filteredNeighborhoods();
-    const allChecked = filtered.every(n => this.checkedNeighborhoodIds().has(n.id));
-    if (allChecked) {
-      this.checkedNeighborhoodIds.set(new Set());
-    } else {
-      this.checkedNeighborhoodIds.set(new Set(filtered.map(n => n.id)));
-    }
+    const filteredIds = this.filteredNeighborhoods().map(n => n.id);
+    const checked = this.checkedNeighborhoodIds();
+    const allChecked = filteredIds.length > 0 && filteredIds.every(id => checked.has(id));
+
+    this.checkedNeighborhoodIds.update(set => {
+      const next = new Set(set);
+      if (allChecked) {
+        for (const id of filteredIds) next.delete(id);
+      } else {
+        for (const id of filteredIds) next.add(id);
+      }
+      return next;
+    });
   }
 
   addSelectedNeighborhoods(): void {
@@ -520,8 +527,6 @@ export class StoreDeliveryPageComponent implements OnInit {
       this.areas.push(this.fb.group({
         neighborhood: [nb.neighborhood, Validators.required],
         deliveryFee: [feeStr],
-        minimumOrderValue: ['0,00'],
-        freeShippingThreshold: [''],
         isActive: [true],
         notes: ['']
       }));
@@ -601,8 +606,6 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.areas.push(this.fb.group({
           neighborhood: [neighborhood, Validators.required],
           deliveryFee: [deliveryFee],
-          minimumOrderValue: ['0,00'],
-          freeShippingThreshold: [''],
           isActive: [true],
           notes: ['']
     }));
@@ -647,8 +650,6 @@ export class StoreDeliveryPageComponent implements OnInit {
           id: val.id || undefined,
           neighborhood: val.neighborhood || '',
           deliveryFee: numFee,
-          minimumOrderValue: this.parseBRLToNumber(val.minimumOrderValue) || 0,
-          freeShippingThreshold: this.parseBRLToNumber(val.freeShippingThreshold),
           isActive: val.isActive !== false,
           notes: String(val.notes || '').slice(0, 100)
         };

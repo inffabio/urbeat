@@ -20,6 +20,8 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
 )
 
+. (Join-Path $PSScriptRoot "oci-context.ps1")
+
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
 
@@ -119,13 +121,17 @@ Write-Host "`n☁️  ORACLE CLOUD CHECKS" -ForegroundColor Yellow
 
 # OCI identifiers are supplied through the local OCI environment, not stored in the script.
 $compartmentId = $env:OCI_COMPARTMENT_OCID
-$vaultEndpoint = $env:OCI_VAULT_MANAGEMENT_ENDPOINT
+$script:vaultEndpoint = $env:OCI_VAULT_MANAGEMENT_ENDPOINT
 
-$null = Test-Requirement "OCI Vault 'urbeat' exists" {
+$null = Test-Requirement "OCI Vault 'urbeat'/'Urbeat'/'UrBeat' exists" {
     if ([string]::IsNullOrWhiteSpace($compartmentId)) { return $false }
     try {
         $vaults = oci kms management vault list --compartment-id $compartmentId --all 2>&1 | ConvertFrom-Json
-        @($vaults.data | Where-Object { $_.'display-name' -eq 'urbeat' }).Count -gt 0
+        $vault = @($vaults.data | Where-Object { $_.'display-name' -ieq 'urbeat' })
+        if ($vault.Count -gt 0 -and [string]::IsNullOrWhiteSpace($script:vaultEndpoint)) {
+            $script:vaultEndpoint = $vault[0].'management-endpoint'
+        }
+        $vault.Count -gt 0
     } catch {
         Write-Host " ⚠️ SKIP (vault may use legacy endpoint)" -ForegroundColor Yellow -NoNewline
         $true
@@ -133,9 +139,9 @@ $null = Test-Requirement "OCI Vault 'urbeat' exists" {
 } "Verify vault exists or check secrets-map.json is valid"
 
 $null = Test-Requirement "OCI Vault has encryption key" {
-    if ([string]::IsNullOrWhiteSpace($compartmentId) -or [string]::IsNullOrWhiteSpace($vaultEndpoint)) { return $false }
+    if ([string]::IsNullOrWhiteSpace($compartmentId) -or [string]::IsNullOrWhiteSpace($script:vaultEndpoint)) { return $false }
     try {
-        $keys = oci kms management key list --compartment-id $compartmentId --endpoint $vaultEndpoint --all 2>&1 | ConvertFrom-Json
+        $keys = oci kms management key list --compartment-id $compartmentId --endpoint $script:vaultEndpoint --all 2>&1 | ConvertFrom-Json
         @($keys.data | Where-Object { $_.'lifecycle-state' -eq 'ENABLED' }).Count -gt 0
     } catch {
         Write-Host " ⚠️ SKIP (key check skipped)" -ForegroundColor Yellow -NoNewline
@@ -156,7 +162,7 @@ $sshArgs = @("-p", $SSHPort, "-i", $keyPath, "-o", "StrictHostKeyChecking=no", "
 $serverChecksRaw = (& ssh @sshArgs $target @'
 echo "ARCH:$(uname -m | grep -q 'aarch64' && echo 'YES' || echo 'NO')"
 echo "NGINX_INSTALLED:$(command -v nginx >/dev/null 2>&1 && echo 'YES' || echo 'NO')"
-echo "NGINX_RUNNING:$(systemctl is-active nginx 2>/dev/null | grep -q 'active' && echo 'YES' || echo 'NO')"
+echo "NGINX_RUNNING:$(systemctl is-active nginx 2>/dev/null | grep -q '^active$' && echo 'YES' || echo 'NO')"
 echo "SUDO_OK:$(sudo -n true 2>/dev/null && echo 'YES' || echo 'NO')"
 '@ 2>$null)
 

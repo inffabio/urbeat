@@ -1,0 +1,251 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+SE,2800100,Amparo do São Francisco,Centro,centro,-10.130533,-36.926439,mapbox_geocoding,True
+SE,2800209,Aquidabã,Centro,centro,-10.280461,-37.017024,mapbox_geocoding,True
+SE,2800308,Aracaju,17 de Março,17 de marco,-10.898559,-37.059896,cep_aberto,True
+SE,2800308,Aracaju,Aeroporto,aeroporto,-10.998022,-37.069211,mapbox_geocoding,True
+SE,2800308,Aracaju,América,america,-10.918302,-37.0802772,cep_aberto,True
+SE,2800308,Aracaju,Areia Branca,areia branca,-10.89572,-37.100077,mapbox_geocoding,True
+SE,2800308,Aracaju,Aruana,aruana,-10.9472468,-37.0730823,cep_aberto,True
+SE,2800308,Aracaju,Atalaia,atalaia,-10.985556,-37.052733,mapbox_geocoding,True
+SE,2800308,Aracaju,Bugio,bugio,-10.8939626,-37.0963693,cep_aberto,True
+SE,2800308,Aracaju,Capucho,capucho,-10.90951,-37.078993,mapbox_geocoding,True
+SE,2800308,Aracaju,Centro,centro,-10.9184933,-37.055075,cep_aberto,True
+SE,2800308,Aracaju,Cidade Nova,cidade nova,-10.893788,-37.066517,mapbox_geocoding,True
+SE,2800308,Aracaju,Cirurgia,cirurgia,-10.9172183,-37.0628412,cep_aberto,True
+SE,2800308,Aracaju,Coroa do Meio,coroa do meio,-10.961455,-37.041549,mapbox_geocoding,True
+SE,2800308,Aracaju,Dezoito do Forte,dezoito do forte,-10.900966,-37.0695478,cep_aberto,True
+SE,2800308,Aracaju,Dom Luciano,dom luciano,-10.884322,-37.074587,mapbox_geocoding,True
+SE,2800308,Aracaju,Farolândia,farolandia,-10.941538,-37.062084,mapbox_geocoding,True
+SE,2800308,Aracaju,Gameleira,gameleira,-11.060903,-37.100424,mapbox_geocoding,True
+SE,2800308,Aracaju,Getúlio Vargas,getulio vargas,-10.9101511,-37.0628412,cep_aberto,True
+SE,2800308,Aracaju,Grageru,grageru,-10.94183,-37.062007,mapbox_geocoding,True
+SE,2800308,Aracaju,Inácio Barbosa,inacio barbosa,-10.942195,-37.0742217,cep_aberto,True
+SE,2800308,Aracaju,Industrial,industrial,-11.397607,-37.413414,mapbox_geocoding,True
+SE,2800308,Aracaju,Jabotiana,jabotiana,-10.9472468,-37.0730823,cep_aberto,True
+SE,2800308,Aracaju,Japãozinho,japaozinho,-10.884322,-37.074587,mapbox_geocoding,True
+SE,2800308,Aracaju,Jardim Centenário,jardim centenario,-10.8977356,-37.1040455,cep_aberto,True
+SE,2800308,Aracaju,Jardins,jardins,-10.918202,-37.064683,mapbox_geocoding,True
+SE,2800308,Aracaju,José Conrado de Araújo,jose conrado de araujo,-10.9044109,-37.0894622,cep_aberto,True
+SE,2800308,Aracaju,Lamarão,lamarao,-10.873647,-37.076544,mapbox_geocoding,True
+SE,2800308,Aracaju,Luzia,luzia,-10.942195,-37.0742217,cep_aberto,True
+SE,2800308,Aracaju,Marivan,marivan,-10.979272,-37.086799,mapbox_geocoding,True
+SE,2800308,Aracaju,Matapoã,matapoa,-11.096153,-37.1497657,cep_aberto,True
+SE,2800308,Aracaju,Mosqueiro,mosqueiro,-11.090355,-37.121524,mapbox_geocoding,True
+SE,2800308,Aracaju,Novo Paraíso,novo paraiso,-10.9118483,-37.0843003,cep_aberto,True
+SE,2800308,Aracaju,Olaria,olaria,-10.899233,-37.084031,mapbox_geocoding,True
+SE,2800308,Aracaju,Palestina,palestina,-10.893731,-37.0665293,cep_aberto,True
+SE,2800308,Aracaju,Pereira Lobo,pereira lobo,-10.917458,-37.06738,mapbox_geocoding,True
+SE,2800308,Aracaju,Ponto Novo,ponto novo,-10.9349279,-37.075392,cep_aberto,True
+SE,2800308,Aracaju,Porto D'Antas,porto d antas,-10.87678,-37.05092,mapbox_geocoding,True
+SE,2800308,Aracaju,Robalo,robalo,-11.018538,-37.070584,mapbox_geocoding,True
+SE,2800308,Aracaju,Salgado Filho,salgado filho,-10.9289225,-37.056472,cep_aberto,True
+SE,2800308,Aracaju,Santa Maria,santa maria,-10.216155,-37.4377,mapbox_geocoding,True
+SE,2800308,Aracaju,Santo Antônio,santo antonio,-10.8963946,-37.0601583,cep_aberto,True
+SE,2800308,Aracaju,Santos Dumont,santos dumont,-10.900401,-37.083487,mapbox_geocoding,True
+SE,2800308,Aracaju,São Conrado,sao conrado,-10.9837456,-37.053138,cep_aberto,True
+SE,2800308,Aracaju,São José,sao jose,-10.924417,-37.047941,mapbox_geocoding,True
+SE,2800308,Aracaju,São José dos Náufragos,sao jose dos naufragos,-10.915655,-37.078403,mapbox_geocoding,True
+SE,2800308,Aracaju,Siqueira Campos,siqueira campos,-10.9160879,-37.0708891,cep_aberto,True
+SE,2800308,Aracaju,Soledade,soledade,-10.888802,-37.069325,mapbox_geocoding,True
+SE,2800308,Aracaju,Suíça,suica,-10.9242862,-37.0628412,cep_aberto,True
+SE,2800308,Aracaju,Treze de Julho,treze de julho,-10.93006,-37.046712,mapbox_geocoding,True
+SE,2800407,Arauá,Centro,centro,-10.222339,-36.843797,mapbox_geocoding,True
+SE,2800506,Areia Branca,Centro,centro,-10.758138,-37.316106,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Alphaville,alphaville,-10.907704,-37.02962,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Antônio Pedro,antonio pedro,-10.907714,-37.029489,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Atalaia Nova,atalaia nova,-10.943855,-37.034864,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Baixo,baixo,-10.907714,-37.029489,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Beira Rio,beira rio,-10.907704,-37.02962,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Brisas de Atalaia,brisas de atalaia,-10.915492,-37.022959,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Caminho da Praia,caminho da praia,-10.916445,-37.027884,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Centro,centro,-10.905379,-37.037996,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Costa Paradiso,costa paradiso,-10.885926,-37.006905,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Espaço Tropical,espaco tropical,-10.909951,-37.012418,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Governador Marcelo Déda,governador marcelo deda,-10.909232,-37.020089,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Luar da Barra,luar da barra,-10.909129,-37.014683,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Marivan,marivan,-10.904133,-37.037844,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Moisés Gomes,moises gomes,-10.907714,-37.029489,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Olimar,olimar,-10.901055,-37.037797,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Paraíso da Barra,paraiso da barra,-10.764913,-36.890017,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Prisco Viana,prisco viana,-10.909543,-37.031183,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Quintas da Barra,quintas da barra,-10.914132,-37.00732,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Rio das Canas,rio das canas,-10.900396,-37.03192,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Serigy,serigy,-10.887168,-37.005883,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Zona de Expansão (Capuã),zona de expansao capua,-10.908077,-37.024674,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Zona de Expansão (Jatobá),zona de expansao jatoba,-10.817879,-36.94565,mapbox_geocoding,True
+SE,2800605,Barra dos Coqueiros,Zona de Expansão (Olhos D'Agua),zona de expansao olhos d agua,-10.764913,-36.890017,mapbox_geocoding,True
+SE,2800670,Boquim,Centro,centro,-11.146184,-37.620907,mapbox_geocoding,True
+SE,2800704,Brejo Grande,Centro,centro,-10.4251946,-36.4630206,cep_aberto,True
+SE,2801009,Campo do Brito,Centro,centro,-10.748707,-37.492132,mapbox_geocoding,True
+SE,2801108,Canhoba,Centro,centro,-10.279449,-37.018341,mapbox_geocoding,True
+SE,2801207,Canindé de São Francisco,Centro,centro,-9.660821,-37.790104,mapbox_geocoding,True
+SE,2801306,Capela,Barracas,barracas,,,dne,True
+SE,2801306,Capela,Centro,centro,-10.505879,-37.05492,mapbox_geocoding,True
+SE,2801306,Capela,Miranda,miranda,,,dne,True
+SE,2801306,Capela,Pedras,pedras,,,dne,True
+SE,2801405,Carira,Altos Verdes,altos verdes,,,dne,True
+SE,2801405,Carira,Centro,centro,-10.359201,-37.702587,mapbox_geocoding,True
+SE,2801504,Carmópolis,Centro,centro,-10.649003,-36.984965,mapbox_geocoding,True
+SE,2801603,Cedro de São João,Centro,centro,-10.249249,-36.883116,mapbox_geocoding,True
+SE,2801702,Cristinápolis,Centro,centro,-11.474945,-37.754074,mapbox_geocoding,True
+SE,2801900,Cumbe,Centro,centro,-10.773011,-37.876373,mapbox_geocoding,True
+SE,2802007,Divina Pastora,Centro,centro,-10.678006,-37.151765,mapbox_geocoding,True
+SE,2802106,Estância,Centro,centro,-11.270749,-37.43934,mapbox_geocoding,True
+SE,2802205,Feira Nova,Centro,centro,-10.264662,-37.310143,mapbox_geocoding,True
+SE,2802304,Frei Paulo,Centro,centro,-10.551849,-37.529767,mapbox_geocoding,True
+SE,2802403,Gararu,Centro,centro,-6.528662,-35.741264,mapbox_geocoding,True
+SE,2802403,Gararu,Lagoa Funda,lagoa funda,,,dne,True
+SE,2802403,Gararu,São Mateus da Palestina,sao mateus da palestina,,,dne,True
+SE,2802502,General Maynard,Centro,centro,-10.688218,-36.98461,mapbox_geocoding,True
+SE,2802601,Graccho Cardoso,Centro,centro,-10.228018,-37.197484,mapbox_geocoding,True
+SE,2802700,Ilha das Flores,Centro,centro,-10.433913,-36.53656,mapbox_geocoding,True
+SE,2802809,Indiaroba,Centro,centro,-10.892198,-37.056039,mapbox_geocoding,True
+SE,2802908,Itabaiana,Anízio Amancio de Oliveira,anizio amancio de oliveira,-10.6900407,-37.4227952,cep_aberto,True
+SE,2802908,Itabaiana,Área Rural de Itabaiana,area rural de itabaiana,-10.685971,-37.42724,mapbox_geocoding,True
+SE,2802908,Itabaiana,Bananeiras,bananeiras,-10.685971,-37.42724,mapbox_geocoding,True
+SE,2802908,Itabaiana,Centro,centro,-10.6902351,-37.4280424,cep_aberto,True
+SE,2802908,Itabaiana,Doutor José Milton Machado,doutor jose milton machado,-10.69708,-37.444292,mapbox_geocoding,True
+SE,2802908,Itabaiana,Mamede Paes Mendonça,mamede paes mendonca,-10.678264,-37.4342285,cep_aberto,True
+SE,2802908,Itabaiana,Marcela,marcela,-10.668367,-37.429559,mapbox_geocoding,True
+SE,2802908,Itabaiana,Marianga,marianga,-10.685971,-37.42724,mapbox_geocoding,True
+SE,2802908,Itabaiana,Miguel Teles de Mendonça,miguel teles de mendonca,-10.685971,-37.42724,mapbox_geocoding,True
+SE,2802908,Itabaiana,Oviedo Teixeira,oviedo teixeira,-10.6976498,-37.4341396,cep_aberto,True
+SE,2802908,Itabaiana,Porto,porto,-10.676662,-37.437008,mapbox_geocoding,True
+SE,2802908,Itabaiana,Queimadas,queimadas,-10.668466,-37.4480611,cep_aberto,True
+SE,2802908,Itabaiana,Riacho Doce,riacho doce,-10.68319,-37.440824,mapbox_geocoding,True
+SE,2802908,Itabaiana,Rotary Club de Itabaiana,rotary club de itabaiana,-10.6947687,-37.4334903,cep_aberto,True
+SE,2802908,Itabaiana,São Cristóvão,sao cristovao,-10.687872,-37.416427,mapbox_geocoding,True
+SE,2802908,Itabaiana,Serrano,serrano,-10.6984821,-37.4332174,cep_aberto,True
+SE,2803005,Itabaianinha,Centro,centro,-11.273978,-37.790436,mapbox_geocoding,True
+SE,2803104,Itabi,Centro,centro,-10.129298,-37.105261,mapbox_geocoding,True
+SE,2803203,Itaporanga d'Ajuda,Centro,centro,-10.999066,-37.30542,mapbox_geocoding,True
+SE,2803302,Japaratuba,Centro,centro,-10.591075,-36.942283,mapbox_geocoding,True
+SE,2803302,Japaratuba,São José da Caatinga,sao jose da caatinga,-10.5853465,-36.9421003,cep_aberto,True
+SE,2803401,Japoatã,Centro,centro,-10.345788,-36.798842,mapbox_geocoding,True
+SE,2803500,Lagarto,Aldemar de Carvalho,aldemar de carvalho,-10.911515,-37.661752,mapbox_geocoding,True
+SE,2803500,Lagarto,Alto da Boa Vista,alto da boa vista,-10.891334,-37.697545,mapbox_geocoding,True
+SE,2803500,Lagarto,Área Rural de Lagarto,area rural de lagarto,-10.915952,-37.670307,mapbox_geocoding,True
+SE,2803500,Lagarto,Área Rural do Povoado Brasília,area rural do povoado brasilia,-10.915952,-37.670307,mapbox_geocoding,True
+SE,2803500,Lagarto,Área Rural do Povoado Colônia Treze,area rural do povoado colonia treze,-10.915952,-37.670307,mapbox_geocoding,True
+SE,2803500,Lagarto,Área Rural do Povoado Jenipapo,area rural do povoado jenipapo,-10.915952,-37.670307,mapbox_geocoding,True
+SE,2803500,Lagarto,Artur Reis,artur reis,-10.931094,-37.652083,mapbox_geocoding,True
+SE,2803500,Lagarto,Centro,centro,-10.918053,-37.664496,mapbox_geocoding,True
+SE,2803500,Lagarto,Cidade Nova,cidade nova,-10.891334,-37.697545,mapbox_geocoding,True
+SE,2803500,Lagarto,Exposição,exposicao,-10.931094,-37.652083,mapbox_geocoding,True
+SE,2803500,Lagarto,Horta,horta,-10.931094,-37.652083,mapbox_geocoding,True
+SE,2803500,Lagarto,Jardim Campo Novo,jardim campo novo,-10.941932,-37.665361,mapbox_geocoding,True
+SE,2803500,Lagarto,Laudelino Freire,laudelino freire,-10.911818,-37.67777,mapbox_geocoding,True
+SE,2803500,Lagarto,Libórios,liborios,-10.224014,-36.846034,mapbox_geocoding,True
+SE,2803500,Lagarto,Novo Horizonte,novo horizonte,-10.931094,-37.652083,mapbox_geocoding,True
+SE,2803500,Lagarto,Povoado Brasília,povoado brasilia,-10.742859,-37.492379,mapbox_geocoding,True
+SE,2803500,Lagarto,Povoado Colonia Treze,povoado colonia treze,-10.972657,-37.547791,mapbox_geocoding,True
+SE,2803500,Lagarto,Povoado Jenipapo,povoado jenipapo,-10.881747,-37.510631,mapbox_geocoding,True
+SE,2803500,Lagarto,Pratas,pratas,-10.920313,-37.672609,mapbox_geocoding,True
+SE,2803500,Lagarto,Rosendo Ribeiro Filho,rosendo ribeiro filho,-10.891334,-37.697545,mapbox_geocoding,True
+SE,2803500,Lagarto,São José,sao jose,-10.918053,-37.664496,mapbox_geocoding,True
+SE,2803500,Lagarto,Sílvio Romero,silvio romero,-10.913891,-37.675273,mapbox_geocoding,True
+SE,2803500,Lagarto,Zona E 02,zona e 02,-10.925191,-37.66504,mapbox_geocoding,True
+SE,2803500,Lagarto,Zona E 03,zona e 03,-10.929383,-37.674664,mapbox_geocoding,True
+SE,2803500,Lagarto,Zona E 05,zona e 05,-18.545936,-40.300018,mapbox_geocoding,True
+SE,2803500,Lagarto,Zona Industrial,zona industrial,-10.948178,-37.640452,mapbox_geocoding,True
+SE,2803609,Laranjeiras,Centro,centro,-10.803773,-37.167564,mapbox_geocoding,True
+SE,2803708,Macambira,Centro,centro,-10.665349,-37.54182,mapbox_geocoding,True
+SE,2803807,Malhada dos Bois,Centro,centro,-10.343412,-36.919416,mapbox_geocoding,True
+SE,2803906,Malhador,Centro,centro,-10.658006,-37.306621,mapbox_geocoding,True
+SE,2804003,Maruim,Centro,centro,-10.735836,-37.082879,mapbox_geocoding,True
+SE,2804102,Moita Bonita,Centro,centro,-10.578457,-37.339476,mapbox_geocoding,True
+SE,2804201,Monte Alegre de Sergipe,Centro,centro,-10.02783,-37.562787,mapbox_geocoding,True
+SE,2804300,Muribeca,Centro,centro,-10.426956,-36.957204,mapbox_geocoding,True
+SE,2804409,Neópolis,Centro,centro,-10.317015,-36.577454,mapbox_geocoding,True
+SE,2804458,Nossa Senhora Aparecida,Centro,centro,-10.396567,-37.454458,mapbox_geocoding,True
+SE,2804508,Nossa Senhora da Glória,Centro,centro,-10.217401,-37.421841,mapbox_geocoding,True
+SE,2804607,Nossa Senhora das Dores,Centro,centro,-10.491264,-37.195813,mapbox_geocoding,True
+SE,2804706,Nossa Senhora de Lourdes,Centro,centro,-10.079494,-37.05598,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Albano Franco,albano franco,-10.828027,-37.064228,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Área Rural de Nossa Senhora do Socorro,area rural de nossa senhora do socorro,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Boa Viagem,boa viagem,-10.907702,-37.027277,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Castelo,castelo,-10.849376,-37.122406,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Centro Histórico,centro historico,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Bita,distrito bita,-10.880315,-37.17717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Industrial da Taiçoca,distrito industrial da taicoca,-10.843683,-37.081332,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Lavandeira,distrito lavandeira,-10.869865,-37.200772,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Nossa Senhora do Socorro,distrito nossa senhora do socorro,-10.892289,-37.132489,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Oiteiro,distrito oiteiro,-10.880315,-37.17717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Porto Grande,distrito porto grande,-10.849947,-37.125089,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Primavera,distrito primavera,-10.858018,-37.118769,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Sobrado,distrito sobrado,-10.872271,-37.163577,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Distrito Taboca,distrito taboca,-10.892289,-37.132489,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Fernando Collor,fernando collor,-10.84964,-37.07103,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Guajará,guajara,-10.907702,-37.027277,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Itacanema,itacanema,-10.907702,-37.027277,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Jardim,jardim,-10.851692,-37.068778,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,João Alves,joao alves,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Mangabeira,mangabeira,-10.8623,-37.073987,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Marcos Freire I,marcos freire i,-10.835153,-37.06436,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Marcos Freire II,marcos freire ii,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Marcos Freire III,marcos freire iii,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Novo Horizonte,novo horizonte,-10.838488,-37.056855,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Pai André,pai andre,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Palestina de Dentro,palestina de dentro,-10.854848,-37.125717,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Palestina de Fora,palestina de fora,-10.892289,-37.132489,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Parque dos Faróis,parque dos farois,-10.851692,-37.068778,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Piabeta,piabeta,-10.855576,-37.072736,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Porto Grande,porto grande,-10.836082,-37.13121,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Santa Cecília,santa cecilia,-10.907702,-37.027277,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Santa Inês,santa ines,-10.842318,-37.060034,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Santo Inácio,santo inacio,-10.916708,-37.160521,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,São Brás,sao bras,-10.85043,-37.051459,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Sobrado,sobrado,-10.855576,-37.072736,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Taboca,taboca,-10.892289,-37.132489,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Taiçoca de Dentro,taicoca de dentro,-10.832369,-37.072983,mapbox_geocoding,True
+SE,2804805,Nossa Senhora do Socorro,Taiçoca de Fora,taicoca de fora,-10.850268,-37.094197,mapbox_geocoding,True
+SE,2804904,Pacatuba,Centro,centro,-10.853743,-37.126853,mapbox_geocoding,True
+SE,2805000,Pedra Mole,Centro,centro,-10.617512,-37.686424,mapbox_geocoding,True
+SE,2805109,Pedrinhas,Centro,centro,-11.192083,-37.674728,mapbox_geocoding,True
+SE,2805208,Pinhão,Centro,centro,-10.568648,-37.723445,mapbox_geocoding,True
+SE,2805307,Pirambu,Centro,centro,-10.373852,-36.915988,mapbox_geocoding,True
+SE,2805406,Poço Redondo,Centro,centro,-9.804631,-37.684679,mapbox_geocoding,True
+SE,2805406,Poço Redondo,Santa Rosa do Ermirio,santa rosa do ermirio,-9.684294,-37.785624,mapbox_geocoding,True
+SE,2805406,Poço Redondo,Sítios Novos,sitios novos,-9.684294,-37.785624,mapbox_geocoding,True
+SE,2805505,Poço Verde,Centro,centro,-10.711726,-38.176918,mapbox_geocoding,True
+SE,2805604,Porto da Folha,Centro,centro,-10.197707,-37.421196,mapbox_geocoding,True
+SE,2805703,Propriá,Centro,centro,-10.468558,-36.485708,mapbox_geocoding,True
+SE,2805802,Riachão do Dantas,Centro,centro,-11.070688,-37.724459,mapbox_geocoding,True
+SE,2805802,Riachão do Dantas,Palmares,palmares,,,dne,True
+SE,2805901,Riachuelo,Centro,centro,-10.729237,-37.190096,mapbox_geocoding,True
+SE,2806008,Ribeirópolis,Centro,centro,-10.533768,-37.438235,mapbox_geocoding,True
+SE,2806107,Rosário do Catete,Centro,centro,-10.69637,-37.031002,mapbox_geocoding,True
+SE,2806206,Salgado,Centro,centro,-11.032735,-37.474235,mapbox_geocoding,True
+SE,2806305,Santa Luzia do Itanhy,Centro,centro,-11.351806,-37.447713,mapbox_geocoding,True
+SE,2806404,Santana do São Francisco,Centro,centro,-10.291069,-36.605166,mapbox_geocoding,True
+SE,2806503,Santa Rosa de Lima,Centro,centro,-10.646661,-37.192523,mapbox_geocoding,True
+SE,2806602,Santo Amaro das Brotas,Centro,centro,-10.788182,-37.05398,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Área Rural de São Cristóvão,area rural de sao cristovao,-11.012231,-37.205956,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Centro,centro,-11.014102,-37.206178,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Divineia,divineia,-10.941492,-37.118018,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Eduardo Gomes,eduardo gomes,-10.930499,-37.118388,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Irineu Neri,irineu neri,-11.00944,-37.209221,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Lourival Batista,lourival batista,-10.941492,-37.118018,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Luiz Alves,luiz alves,-10.947952,-37.097678,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Madre Paulina,madre paulina,-10.92758,-37.11061,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Marcelo Deda,marcelo deda,-10.943608,-37.12481,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Romualdo Prado,romualdo prado,-10.943608,-37.12481,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Rosa Elze,rosa elze,-10.92758,-37.11061,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Rosa Maria,rosa maria,-11.010059,-37.109895,mapbox_geocoding,True
+SE,2806701,São Cristóvão,São Gonçalo,sao goncalo,-11.012231,-37.205956,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Tijuquinha,tijuquinha,-11.012231,-37.205956,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Varzea Grande,varzea grande,-10.92758,-37.11061,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Zona de Expansão Colônia Miranda,zona de expansao colonia miranda,-10.971779,-37.088734,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Zona de Expansão Country Club,zona de expansao country club,-10.688514,-37.409684,mapbox_geocoding,True
+SE,2806701,São Cristóvão,Zona de Expansão Rita Cacete,zona de expansao rita cacete,-11.012231,-37.205956,mapbox_geocoding,True
+SE,2806800,São Domingos,Centro,centro,-10.792538,-37.567474,mapbox_geocoding,True
+SE,2806909,São Francisco,Centro,centro,-10.349591,-36.887872,mapbox_geocoding,True
+SE,2807006,São Miguel do Aleixo,Centro,centro,-10.38997,-37.382297,mapbox_geocoding,True
+SE,2807105,Simão Dias,Centro,centro,-10.736701,-37.809143,mapbox_geocoding,True
+SE,2807204,Siriri,Centro,centro,-10.605101,-37.114061,mapbox_geocoding,True
+SE,2807303,Telha,Centro,centro,-10.207661,-36.883281,mapbox_geocoding,True
+SE,2807402,Tobias Barreto,Centro,centro,-11.18731,-38.00222,mapbox_geocoding,True
+SE,2807402,Tobias Barreto,Samambaia,samambaia,,,dne,True
+SE,2807402,Tobias Barreto,Santa Rita,santa rita,-11.178098,-38.003789,mapbox_geocoding,True
+SE,2807501,Tomar do Geru,Centro,centro,-11.374834,-37.838239,mapbox_geocoding,True
+SE,2807600,Umbaúba,Centro,centro,-11.381528,-37.660536,mapbox_geocoding,True

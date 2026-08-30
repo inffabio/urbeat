@@ -91,7 +91,8 @@ export class StorePublishPageComponent implements OnInit {
 
   readonly allConfirmed = this.backendReady;
 
-  readonly areas = computed(() => this.summary()?.deliveryAreas ?? []);
+  readonly areas = computed(() => [...(this.summary()?.deliveryAreas ?? [])]
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })));
 
   readonly totalAreaPages = computed(() => {
     const len = this.areas().length;
@@ -122,20 +123,22 @@ export class StorePublishPageComponent implements OnInit {
 
   readonly allDays = computed(() => {
     const hours = this.summary()?.businessHours ?? [];
-    const map = new Map<number, { opensAt: string; closesAt: string }>();
+    const map = new Map<number, string[]>();
     for (const h of hours) {
-      const isClosed = h.opensAt === '00:00' && h.closesAt === '00:00';
-      map.set(h.dayOfWeek, {
-        opensAt: isClosed ? '' : h.opensAt,
-        closesAt: isClosed ? '' : h.closesAt,
-      });
+      if (!h.isOpen || h.shifts.length === 0) continue;
+      const ranges = [...h.shifts]
+        .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.endTime.localeCompare(b.endTime))
+        .map(shift => `${this.formatTime(shift.startTime)} - ${this.formatTime(shift.endTime)}`);
+      map.set(h.dayOfWeek, ranges);
     }
-    return DAY_NAMES.map((name, i) => ({
-      dayOfWeek: i,
+    return DAY_NAMES.map((name, index) => {
+      const dayOfWeek = index === 6 ? 0 : index + 1;
+      return {
+      dayOfWeek,
       name,
-      opensAt: map.get(i)?.opensAt ?? null,
-      closesAt: map.get(i)?.closesAt ?? null,
-    }));
+      ranges: map.get(dayOfWeek) ?? [],
+      };
+    });
   });
 
   readonly filteredCategories = computed(() => {
@@ -148,7 +151,7 @@ export class StorePublishPageComponent implements OnInit {
   }
 
   goToManage(): void {
-    this.router.navigate(['/configurar-loja']);
+    this.router.navigate(['/app/dashboard']);
   }
 
   constructor() {}
@@ -185,6 +188,10 @@ export class StorePublishPageComponent implements OnInit {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
+  private formatTime(value: string): string {
+    return value?.slice(0, 5) || '--:--';
+  }
+
   prevAreaPage() { if (this.areaPage() > 0) this.areaPage.update(p => p - 1); }
   nextAreaPage() { if (this.areaPage() < this.totalAreaPages() - 1) this.areaPage.update(p => p + 1); }
 
@@ -192,7 +199,7 @@ export class StorePublishPageComponent implements OnInit {
   nextProductPage() { if (this.productPage() < this.totalProductPages() - 1) this.productPage.update(p => p + 1); }
 
   goTo(path: string) {
-    this.router.navigate(['/', path]);
+    this.router.navigateByUrl(path.startsWith('/') ? path : `/${path}`);
   }
 
   goToCardapio() {

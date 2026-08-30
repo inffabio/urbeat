@@ -1,0 +1,90 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+RR,1400027,Amajari,Centro,centro,3.65508,-61.413039,mapbox_geocoding,True
+RR,1400027,Amajari,Terra Indígena Yanomami,terra indigena yanomami,,,dne,True
+RR,1400050,Alto Alegre,Centro,centro,2.989198,-61.302247,mapbox_geocoding,True
+RR,1400050,Alto Alegre,Terra Indígena Yanomami,terra indigena yanomami,,,dne,True
+RR,1400100,Boa Vista,13 de Setembro,13 de setembro,2.7061853,-60.8457615,cep_aberto,True
+RR,1400100,Boa Vista,31 de Março,31 de marco,2.836712,-60.680005,mapbox_geocoding,True
+RR,1400100,Boa Vista,Aeroporto,aeroporto,2.8408647,-60.6920066,cep_aberto,True
+RR,1400100,Boa Vista,Alvorada,alvorada,2.819124,-60.749528,mapbox_geocoding,True
+RR,1400100,Boa Vista,Área Rural de Boa Vista,area rural de boa vista,2.8235098,-60.6758331,cep_aberto,True
+RR,1400100,Boa Vista,Asa Branca,asa branca,2.81707,-60.712672,mapbox_geocoding,True
+RR,1400100,Boa Vista,Bela Vista,bela vista,2.7668073,-60.7213919,cep_aberto,True
+RR,1400100,Boa Vista,Buritis,buritis,2.808386,-60.703909,mapbox_geocoding,True
+RR,1400100,Boa Vista,Caçari,cacari,2.7954249,-60.681663,cep_aberto,True
+RR,1400100,Boa Vista,Caimbé,caimbe,2.828838,-60.699533,mapbox_geocoding,True
+RR,1400100,Boa Vista,Calungá,calunga,2.8036327,-60.6777915,cep_aberto,True
+RR,1400100,Boa Vista,Cambará,cambara,2.795213,-60.735594,mapbox_geocoding,True
+RR,1400100,Boa Vista,Canarinho,canarinho,2.8341253,-60.6573477,cep_aberto,True
+RR,1400100,Boa Vista,Caranã,carana,2.839621,-60.723158,mapbox_geocoding,True
+RR,1400100,Boa Vista,Cauamé,cauame,2.845344,-60.7143119,cep_aberto,True
+RR,1400100,Boa Vista,Centenário,centenario,-29.916333,-51.075668,mapbox_geocoding,True
+RR,1400100,Boa Vista,Centro,centro,2.8250339,-60.6660193,cep_aberto,True
+RR,1400100,Boa Vista,Cidade Satélite,cidade satelite,2.855708,-60.741312,mapbox_geocoding,True
+RR,1400100,Boa Vista,Cinturão Verde,cinturao verde,2.7982621,-60.6975015,cep_aberto,True
+RR,1400100,Boa Vista,Distr. Ind. Gov. Aquilino Mota Duarte,distr ind gov aquilino mota duarte,0.806363,-59.429239,mapbox_geocoding,True
+RR,1400100,Boa Vista,Doutor Sílvio Botelho,doutor silvio botelho,2.8038926,-60.7380024,cep_aberto,True
+RR,1400100,Boa Vista,Doutor Sílvio Leite,doutor silvio leite,2.831298,-60.743394,mapbox_geocoding,True
+RR,1400100,Boa Vista,Dr. Airton Rocha,dr airton rocha,-1.331551,-48.388115,mapbox_geocoding,True
+RR,1400100,Boa Vista,Equatorial,equatorial,2.8200332,-60.7655507,cep_aberto,True
+RR,1400100,Boa Vista,Estados,estados,2.847445,-60.666526,mapbox_geocoding,True
+RR,1400100,Boa Vista,Jardim Caranã,jardim carana,2.8492798,-60.7145006,cep_aberto,True
+RR,1400100,Boa Vista,Jardim Floresta,jardim floresta,2.8235098,-60.6758331,cep_aberto,True
+RR,1400100,Boa Vista,Jardim Primavera,jardim primavera,2.819871,-60.681038,mapbox_geocoding,True
+RR,1400100,Boa Vista,Jardim Tropical,jardim tropical,2.8235098,-60.6758331,cep_aberto,True
+RR,1400100,Boa Vista,João de Barro,joao de barro,2.847856,-60.750753,mapbox_geocoding,True
+RR,1400100,Boa Vista,Jóquei Clube,joquei clube,2.8032572,-60.7203561,cep_aberto,True
+RR,1400100,Boa Vista,Laura Moreira,laura moreira,2.787296,-60.710171,mapbox_geocoding,True
+RR,1400100,Boa Vista,Liberdade,liberdade,2.819546,-60.7002014,cep_aberto,True
+RR,1400100,Boa Vista,Marechal Rondon,marechal rondon,2.801877,-60.687894,mapbox_geocoding,True
+RR,1400100,Boa Vista,Mecejana,mecejana,2.8219585,-60.6876991,cep_aberto,True
+RR,1400100,Boa Vista,Monte Cristo,monte cristo,2.87563,-60.711223,mapbox_geocoding,True
+RR,1400100,Boa Vista,Murilo Teixeira Cidade,murilo teixeira cidade,2.8231515,-60.7425384,cep_aberto,True
+RR,1400100,Boa Vista,Nossa Senhora Aparecida,nossa senhora aparecida,2.841561,-60.663694,mapbox_geocoding,True
+RR,1400100,Boa Vista,Nova Canaã,nova canaa,2.8123995,-60.7409595,cep_aberto,True
+RR,1400100,Boa Vista,Nova Cidade,nova cidade,0.806363,-59.429239,mapbox_geocoding,True
+RR,1400100,Boa Vista,Olímpico,olimpico,2.8045655,-60.7535248,cep_aberto,True
+RR,1400100,Boa Vista,Operário,operario,2.78338,-60.748502,mapbox_geocoding,True
+RR,1400100,Boa Vista,Paraviana,paraviana,2.8588925,-60.6602046,cep_aberto,True
+RR,1400100,Boa Vista,Pátio Alphaville,patio alphaville,2.847844,-60.699244,mapbox_geocoding,True
+RR,1400100,Boa Vista,Pedra Pintada,pedra pintada,2.881916,-60.686758,mapbox_geocoding,True
+RR,1400100,Boa Vista,Pintolândia,pintolandia,2.8012953,-60.7508805,cep_aberto,True
+RR,1400100,Boa Vista,Piscicultura,piscicultura,2.828838,-60.699533,mapbox_geocoding,True
+RR,1400100,Boa Vista,Pricumã,pricuma,2.8133845,-60.7000947,cep_aberto,True
+RR,1400100,Boa Vista,Professora Araceli Souto Maior,professora araceli souto maior,0.806363,-59.429239,mapbox_geocoding,True
+RR,1400100,Boa Vista,Raiar do Sol,raiar do sol,2.7721473,-60.714691,cep_aberto,True
+RR,1400100,Boa Vista,Residencial Cidade Veredas do Rio Branco,residencial cidade veredas do rio branco,2.811033,-60.700768,mapbox_geocoding,True
+RR,1400100,Boa Vista,Residencial Flores,residencial flores,2.750392,-60.733146,mapbox_geocoding,True
+RR,1400100,Boa Vista,Residencial Vila Primavera,residencial vila primavera,37.7798721,-122.2821855,cep_aberto,True
+RR,1400100,Boa Vista,Said Salomão,said salomao,2.885561,-60.699127,mapbox_geocoding,True
+RR,1400100,Boa Vista,Santa Luzia,santa luzia,2.8019778,-60.7510406,cep_aberto,True
+RR,1400100,Boa Vista,Santa Tereza,santa tereza,2.828838,-60.699533,mapbox_geocoding,True
+RR,1400100,Boa Vista,São Bento,sao bento,2.801877,-60.687894,mapbox_geocoding,True
+RR,1400100,Boa Vista,São Francisco,sao francisco,2.8332919,-60.6770037,cep_aberto,True
+RR,1400100,Boa Vista,São Pedro,sao pedro,2.825522,-60.660553,mapbox_geocoding,True
+RR,1400100,Boa Vista,São Vicente,sao vicente,2.8094657,-60.6828465,cep_aberto,True
+RR,1400100,Boa Vista,Senador Hélio Campos,senador helio campos,2.80162,-60.750881,mapbox_geocoding,True
+RR,1400100,Boa Vista,Tancredo Neves,tancredo neves,2.8242879,-60.7246412,cep_aberto,True
+RR,1400100,Boa Vista,União,uniao,2.839621,-60.723158,mapbox_geocoding,True
+RR,1400159,Bonfim,Centro,centro,2.905834,-60.485143,mapbox_geocoding,True
+RR,1400175,Cantá,Bairro Novo,bairro novo,2.610231,-60.599121,mapbox_geocoding,True
+RR,1400175,Cantá,Félix Pinto,felix pinto,,,dne,True
+RR,1400175,Cantá,Santa Cecília,santa cecilia,,,dne,True
+RR,1400175,Cantá,Taboca,taboca,,,dne,True
+RR,1400209,Caracaraí,Centro,centro,1.816006,-61.127692,mapbox_geocoding,True
+RR,1400209,Caracaraí,Novo Paraíso,novo paraiso,,,dne,True
+RR,1400209,Caracaraí,Terra Indígena Yanomami,terra indigena yanomami,,,dne,True
+RR,1400233,Caroebe,Centro,centro,1.832481,-61.123466,mapbox_geocoding,True
+RR,1400282,Iracema,Centro,centro,2.16486,-61.055591,mapbox_geocoding,True
+RR,1400282,Iracema,Terra Indígena Yanomami,terra indigena yanomami,,,dne,True
+RR,1400308,Mucajaí,Centro,centro,2.444879,-60.918723,mapbox_geocoding,True
+RR,1400308,Mucajaí,Terra Indígena Yanomami,terra indigena yanomami,,,dne,True
+RR,1400407,Normandia,Centro,centro,3.883402,-59.630142,mapbox_geocoding,True
+RR,1400456,Pacaraima,Vila Nova,vila nova,4.483534,-61.133984,mapbox_geocoding,True
+RR,1400472,Rorainópolis,Centro,centro,0.940781,-60.426825,mapbox_geocoding,True
+RR,1400472,Rorainópolis,Terra Indígena Pirititi,terra indigena pirititi,,,dne,True
+RR,1400472,Rorainópolis,Terra Indígena Waimiri-Atroari,terra indigena waimiri atroari,,,dne,True
+RR,1400506,São João da Baliza,Centro,centro,0.948072,-59.912107,mapbox_geocoding,True
+RR,1400506,São João da Baliza,Terra Indígena Waimiri-Atroari,terra indigena waimiri atroari,,,dne,True
+RR,1400605,São Luiz do Anauá,Centro,centro,1.018816,-60.044832,mapbox_geocoding,True
+RR,1400704,Uiramutã,Centro,centro,4.6028228,-60.1819672,cep_aberto,True

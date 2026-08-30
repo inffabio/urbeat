@@ -2,6 +2,10 @@
   display: block;
 }
 
+:host(.urbeat-onboarding) {
+  background: var(--app-wizard-bg);
+}
+
 .container {
   padding: 0 22px 120px;
   max-width: 860px;

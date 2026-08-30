@@ -74,4 +74,11 @@ export class SellerSubscriptionPageComponent implements OnInit {
     if (!value) return 'Sem data';
     return formatSaoPauloDate(value);
   }
+
+  formatPeriod(charge: SellerSubscriptionChargeHistoryItem): string {
+    if (!charge.billingPeriodStartUtc || !charge.billingPeriodEndUtc) {
+      return 'Sem período';
+    }
+    return `${this.formatDate(charge.billingPeriodStartUtc)} - ${this.formatDate(charge.billingPeriodEndUtc)}`;
+  }
 }

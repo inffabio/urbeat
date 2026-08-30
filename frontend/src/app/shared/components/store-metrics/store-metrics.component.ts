@@ -40,7 +40,7 @@ import { IonIcon } from '@ionic/angular/standalone';
       border: 1px solid var(--app-border-light, #eadfd6);
       border-radius: var(--app-radius-lg, 18px);
       padding: 12px 6px;
-      margin-bottom: 18px;
+      margin-bottom: 0;
       text-align: center;
     }
 

@@ -1,0 +1,457 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+RO,1100015,Alta Floresta D'Oeste,Centro,centro,-11.927556,-61.997565,mapbox_geocoding,True
+RO,1100015,Alta Floresta D'Oeste,Terra Indígena Massaco,terra indigena massaco,,,dne,True
+RO,1100015,Alta Floresta D'Oeste,Terra Indígena Rio Branco,terra indigena rio branco,,,dne,True
+RO,1100023,Ariquemes,Apoio BR-364,apoio br 364,-10.1147007,-62.9150894,cep_aberto,True
+RO,1100023,Ariquemes,Apoio BR-421,apoio br 421,-10.083125,-62.996413,mapbox_geocoding,True
+RO,1100023,Ariquemes,Apoio Rodoviário,apoio rodoviario,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Apoio Rodoviário Sul,apoio rodoviario sul,-9.922024,-63.034614,mapbox_geocoding,True
+RO,1100023,Ariquemes,Apoio Social,apoio social,-9.9088754,-63.0179083,cep_aberto,True
+RO,1100023,Ariquemes,Área Industrial,area industrial,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Área Rural de Ariquemes,area rural de ariquemes,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Áreas de Chácara,areas de chacara,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Áreas Especiais,areas especiais,-9.913187,-63.02417,mapbox_geocoding,True
+RO,1100023,Ariquemes,Áreas Especiais 01,areas especiais 01,-9.9163395,-63.0414662,cep_aberto,True
+RO,1100023,Ariquemes,Áreas Especiais 02,areas especiais 02,-9.922024,-63.034614,mapbox_geocoding,True
+RO,1100023,Ariquemes,Bela Vista,bela vista,-9.8943472,-63.0346525,cep_aberto,True
+RO,1100023,Ariquemes,BNH,bnh,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Bom Futuro,bom futuro,,,dne,True
+RO,1100023,Ariquemes,Bom Jesus,bom jesus,-9.888283,-63.030695,mapbox_geocoding,True
+RO,1100023,Ariquemes,Centro,centro,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Colonial,colonial,-9.89908,-63.029342,mapbox_geocoding,True
+RO,1100023,Ariquemes,Condomínio São Paulo,condominio sao paulo,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Coqueiral,coqueiral,-9.915254,-63.011405,mapbox_geocoding,True
+RO,1100023,Ariquemes,Entre Rios,entre rios,-10.083125,-62.996413,mapbox_geocoding,True
+RO,1100023,Ariquemes,Estância Sol Nascente,estancia sol nascente,-10.083125,-62.996413,mapbox_geocoding,True
+RO,1100023,Ariquemes,Feliz Cidade,feliz cidade,-9.888283,-63.030695,mapbox_geocoding,True
+RO,1100023,Ariquemes,Flores,flores,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Grandes Áreas,grandes areas,-9.922024,-63.034614,mapbox_geocoding,True
+RO,1100023,Ariquemes,Industrial Jamari,industrial jamari,-9.9113195,-63.0668963,cep_aberto,True
+RO,1100023,Ariquemes,Jamari,jamari,-10.083125,-62.996413,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim América,jardim america,-9.896574,-63.0479032,cep_aberto,True
+RO,1100023,Ariquemes,Jardim Bela Vista,jardim bela vista,-9.87617,-63.025005,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim das Palmeiras,jardim das palmeiras,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Jardim Europa,jardim europa,-9.888283,-63.030695,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim Jorge Teixeira,jardim jorge teixeira,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Jardim Paraná,jardim parana,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim Paulista,jardim paulista,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Jardim Primavera,jardim primavera,-9.913187,-63.02417,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim Rio de Janeiro,jardim rio de janeiro,-9.918712,-63.022222,mapbox_geocoding,True
+RO,1100023,Ariquemes,Jardim Vitória,jardim vitoria,-9.9022758,-63.0477857,cep_aberto,True
+RO,1100023,Ariquemes,Jardim Zona Sul,jardim zona sul,-9.948905,-63.014781,mapbox_geocoding,True
+RO,1100023,Ariquemes,Loteamento Renascer,loteamento renascer,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Marechal Rondon 01,marechal rondon 01,-9.927167,-63.05745,mapbox_geocoding,True
+RO,1100023,Ariquemes,Marechal Rondon 02,marechal rondon 02,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Monte Alegre,monte alegre,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Monte Cristo,monte cristo,-9.9116595,-63.0639263,cep_aberto,True
+RO,1100023,Ariquemes,Nova Londrina,nova londrina,-9.917134,-63.057788,mapbox_geocoding,True
+RO,1100023,Ariquemes,Nova União 01,nova uniao 01,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Nova União 03,nova uniao 03,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Nova Vida,nova vida,,,dne,True
+RO,1100023,Ariquemes,PAD Marechal Dutra,pad marechal dutra,-9.895958,-63.04779,mapbox_geocoding,True
+RO,1100023,Ariquemes,Park Tropical,park tropical,-9.9261274,-63.0353447,cep_aberto,True
+RO,1100023,Ariquemes,Parque das Gemas,parque das gemas,-9.913187,-63.02417,mapbox_geocoding,True
+RO,1100023,Ariquemes,Pedras,pedras,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,Polo Moveleiro de Ariquemes,polo moveleiro de ariquemes,-9.888283,-63.030695,mapbox_geocoding,True
+RO,1100023,Ariquemes,Raio de Luz,raio de luz,-9.9224995,-63.0230162,cep_aberto,True
+RO,1100023,Ariquemes,Residencial Alvorada,residencial alvorada,-9.948905,-63.014781,mapbox_geocoding,True
+RO,1100023,Ariquemes,Residencial Eldorado,residencial eldorado,-9.888283,-63.030695,mapbox_geocoding,True
+RO,1100023,Ariquemes,Residencial Gerson Neco,residencial gerson neco,-9.896838,-63.0160369,cep_aberto,True
+RO,1100023,Ariquemes,Rota do Sol,rota do sol,-9.889543,-63.024029,mapbox_geocoding,True
+RO,1100023,Ariquemes,São Geraldo,sao geraldo,-9.9061054,-63.0330413,cep_aberto,True
+RO,1100023,Ariquemes,São Luiz,sao luiz,-9.911822,-63.011218,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 01,setor 01,-9.9130423,-63.0421267,cep_aberto,True
+RO,1100023,Ariquemes,Setor 02,setor 02,-9.91689,-63.02819,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 03,setor 03,-9.9067632,-63.0351909,cep_aberto,True
+RO,1100023,Ariquemes,Setor 04,setor 04,-9.908894,-63.025585,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 05,setor 05,-9.8984395,-63.0293862,cep_aberto,True
+RO,1100023,Ariquemes,Setor 06,setor 06,-9.89908,-63.029342,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 08,setor 08,-9.9044695,-63.0207862,cep_aberto,True
+RO,1100023,Ariquemes,Setor 09,setor 09,-9.909153,-63.018834,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 10,setor 10,-9.9350444,-63.0153986,cep_aberto,True
+RO,1100023,Ariquemes,Setor 11,setor 11,-9.89908,-63.029342,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor 12,setor 12,-9.9285495,-63.0349462,cep_aberto,True
+RO,1100023,Ariquemes,Setor Institucional,setor institucional,-9.922024,-63.034614,mapbox_geocoding,True
+RO,1100023,Ariquemes,Setor Recreativo,setor recreativo,-9.9207613,-63.0319155,cep_aberto,True
+RO,1100023,Ariquemes,Trevo,trevo,-10.083125,-62.996413,mapbox_geocoding,True
+RO,1100031,Cabixi,Centro,centro,-13.493946,-60.54248,mapbox_geocoding,True
+RO,1100049,Cacoal,Alpha Parque,alpha parque,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Alphaville,alphaville,-11.422774,-61.422162,mapbox_geocoding,True
+RO,1100049,Cacoal,Área Rural de Cacoal,area rural de cacoal,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Balneário Arco-Íris,balneario arco iris,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Centro,centro,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Chácaras Brizon,chacaras brizon,-11.466249,-61.333243,mapbox_geocoding,True
+RO,1100049,Cacoal,Colina Park,colina park,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Colina Verde,colina verde,-11.415526,-61.406822,mapbox_geocoding,True
+RO,1100049,Cacoal,Conjunto Halley,conjunto halley,-11.417742,-61.4705447,cep_aberto,True
+RO,1100049,Cacoal,Distrito Riozinho,distrito riozinho,-11.42329,-61.424319,mapbox_geocoding,True
+RO,1100049,Cacoal,Eldorado,eldorado,-11.4442753,-61.4311447,cep_aberto,True
+RO,1100049,Cacoal,Embratel,embratel,-11.433181,-61.4224,mapbox_geocoding,True
+RO,1100049,Cacoal,Floresta,floresta,-11.4367928,-61.4349353,cep_aberto,True
+RO,1100049,Cacoal,Habitar Brasil,habitar brasil,-11.433558,-61.477241,mapbox_geocoding,True
+RO,1100049,Cacoal,Habitar Brasil II,habitar brasil ii,-11.4237797,-61.4805634,cep_aberto,True
+RO,1100049,Cacoal,Incra,incra,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Industrial,industrial,-11.4381549,-61.4639774,cep_aberto,True
+RO,1100049,Cacoal,Jardim Bandeirantes,jardim bandeirantes,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Jardim Clodoaldo,jardim clodoaldo,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Jardim Europa,jardim europa,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Jardim Itália,jardim italia,-11.419502,-61.446378,mapbox_geocoding,True
+RO,1100049,Cacoal,Jardim Limoeiro,jardim limoeiro,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Jardim Paulista,jardim paulista,-11.418218,-61.412197,mapbox_geocoding,True
+RO,1100049,Cacoal,Jardim São Pedro I,jardim sao pedro i,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Jardim São Pedro II,jardim sao pedro ii,-11.418991,-61.457276,mapbox_geocoding,True
+RO,1100049,Cacoal,Jardim Saúde,jardim saude,-11.434803,-61.4397559,cep_aberto,True
+RO,1100049,Cacoal,Josino Brito,josino brito,-11.424181,-61.46631,mapbox_geocoding,True
+RO,1100049,Cacoal,Liberdade,liberdade,-11.4457209,-61.4508435,cep_aberto,True
+RO,1100049,Cacoal,Morada do Bosque,morada do bosque,-8.745987,-63.853442,mapbox_geocoding,True
+RO,1100049,Cacoal,Morada do Sol,morada do sol,-11.426884,-61.4695161,cep_aberto,True
+RO,1100049,Cacoal,Nova Esperança,nova esperanca,-11.42256,-61.463513,mapbox_geocoding,True
+RO,1100049,Cacoal,Novo Cacoal,novo cacoal,-11.4236216,-61.4595993,cep_aberto,True
+RO,1100049,Cacoal,Novo Horizonte,novo horizonte,-11.4338545,-61.4595993,cep_aberto,True
+RO,1100049,Cacoal,Parque dos Lagos,parque dos lagos,-12.721018,-60.141895,mapbox_geocoding,True
+RO,1100049,Cacoal,Parque Fortaleza,parque fortaleza,-11.4322155,-61.4728328,cep_aberto,True
+RO,1100049,Cacoal,Parque Industrial Governador Jeronimo Santana,parque industrial governador jeronimo santana,-11.446285,-61.487363,mapbox_geocoding,True
+RO,1100049,Cacoal,Princesa Isabel,princesa isabel,-11.4384397,-61.439642,cep_aberto,True
+RO,1100049,Cacoal,Prosperidade,prosperidade,-19.81818,-43.951594,mapbox_geocoding,True
+RO,1100049,Cacoal,Residencial Cidade Verde,residencial cidade verde,-11.424181,-61.46631,mapbox_geocoding,True
+RO,1100049,Cacoal,Residencial Paineiras,residencial paineiras,-11.414614,-61.415685,mapbox_geocoding,True
+RO,1100049,Cacoal,Residencial Parque Alvorada,residencial parque alvorada,-11.4439833,-61.4549866,cep_aberto,True
+RO,1100049,Cacoal,Residencial Parque Brizon,residencial parque brizon,-11.429778,-61.452066,mapbox_geocoding,True
+RO,1100049,Cacoal,Santo Antônio,santo antonio,-11.4508269,-61.4408244,cep_aberto,True
+RO,1100049,Cacoal,Sete de Setembro,sete de setembro,-11.408147,-61.43839,mapbox_geocoding,True
+RO,1100049,Cacoal,Sociedade Bela Vista,sociedade bela vista,-11.424181,-61.46631,mapbox_geocoding,True
+RO,1100049,Cacoal,Teixeirão,teixeirao,-11.4283331,-61.4325332,cep_aberto,True
+RO,1100049,Cacoal,Vila Romana,vila romana,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100049,Cacoal,Vila Verde,vila verde,-11.4366072,-61.4739649,cep_aberto,True
+RO,1100049,Cacoal,Village do Sol,village do sol,-11.431577,-61.445188,mapbox_geocoding,True
+RO,1100049,Cacoal,Village do Sol II,village do sol ii,-11.4346743,-61.4566861,cep_aberto,True
+RO,1100049,Cacoal,Vista Alegre,vista alegre,-11.480124,-61.390454,mapbox_geocoding,True
+RO,1100056,Cerejeiras,Centro,centro,-13.192584,-60.820828,mapbox_geocoding,True
+RO,1100064,Colorado do Oeste,Centro,centro,-13.122566,-60.540689,mapbox_geocoding,True
+RO,1100072,Corumbiara,Centro,centro,-12.998427,-60.943442,mapbox_geocoding,True
+RO,1100072,Corumbiara,Terra Indígena Rio Omerê,terra indigena rio omere,,,dne,True
+RO,1100072,Corumbiara,Terra Indígena Tanaru,terra indigena tanaru,,,dne,True
+RO,1100080,Costa Marques,Centro,centro,-12.435562,-64.230519,mapbox_geocoding,True
+RO,1100080,Costa Marques,Príncipe da Beira,principe da beira,,,dne,True
+RO,1100080,Costa Marques,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100098,Espigão D'Oeste,Boa Vista de Pacarana,boa vista de pacarana,,,dne,True
+RO,1100098,Espigão D'Oeste,Centro,centro,-11.5296313,-61.0165127,cep_aberto,True
+RO,1100098,Espigão D'Oeste,Nova Esperança,nova esperanca,,,dne,True
+RO,1100106,Guajará-Mirim,Centro,centro,-10.792009,-65.345193,mapbox_geocoding,True
+RO,1100106,Guajará-Mirim,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100114,Jaru,Bom Jesus,bom jesus,,,dne,True
+RO,1100114,Jaru,Centro,centro,-10.856753,-62.799091,mapbox_geocoding,True
+RO,1100114,Jaru,Santa Cruz,santa cruz,,,dne,True
+RO,1100114,Jaru,Setor 01,setor 01,-10.4322235,-62.4792921,cep_aberto,True
+RO,1100114,Jaru,Tarilândia,tarilandia,,,dne,True
+RO,1100114,Jaru,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100122,Ji-Paraná,Açaí,acai,-23.281399,-51.078115,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Alto Alegre,alto alegre,-10.8731789,-61.9009718,cep_aberto,True
+RO,1100122,Ji-Paraná,Araçá,araca,-10.869938,-61.954705,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Área Rural de Ji-Paraná,area rural de ji parana,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Bairro Barcelona,bairro barcelona,-9.550472,-62.016132,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Bairro Realeza,bairro realeza,-12.73002,-60.111014,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Bela Vista,bela vista,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Boa Esperança,boa esperanca,-10.860776,-61.907034,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Bosque dos Ipês,bosque dos ipes,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Cafezinho,cafezinho,-10.891958,-61.916003,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Capelasso,capelasso,-10.9056604,-61.8820013,cep_aberto,True
+RO,1100122,Ji-Paraná,Casa Preta,casa preta,-10.881668,-61.946885,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Centro,centro,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Cidade Jardim,cidade jardim,-23.817154,-53.678992,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Colina Park I,colina park i,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Colina Park II,colina park ii,-10.876375,-61.979664,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Copas Verdes,copas verdes,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Distrito Industrial,distrito industrial,-10.879771,-61.943887,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Dois de Abril,dois de abril,-10.8820048,-61.9447868,cep_aberto,True
+RO,1100122,Ji-Paraná,Dom Bosco,dom bosco,-10.869773,-61.948462,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Duque de Caxias,duque de caxias,-10.8767839,-61.9330921,cep_aberto,True
+RO,1100122,Ji-Paraná,Ecoville,ecoville,-11.328873,-61.944885,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Espelho D' Água,espelho d agua,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Flórida,florida,-10.879771,-61.943887,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Green Park,green park,-10.8811745,-61.9758934,cep_aberto,True
+RO,1100122,Ji-Paraná,Greenville,greenville,-10.903653,-61.911952,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Greenville II,greenville ii,-25.406382,-49.277914,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Habitar Brasil,habitar brasil,-10.8852372,-61.8998142,cep_aberto,True
+RO,1100122,Ji-Paraná,Jardim Aurélio Bernardi,jardim aurelio bernardi,-10.862707,-61.961127,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Jardim Capelasso,jardim capelasso,-10.8999174,-61.8833431,cep_aberto,True
+RO,1100122,Ji-Paraná,Jardim das Seringueiras,jardim das seringueiras,-26.000303,-49.205932,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Jardim dos Migrantes,jardim dos migrantes,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Jardim Presidencial,jardim presidencial,-10.871999,-61.974774,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Jardim São Cristóvão,jardim sao cristovao,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,JK,jk,-10.87751,-61.901342,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Jorge Teixeira,jorge teixeira,-10.9000609,-61.9071093,cep_aberto,True
+RO,1100122,Ji-Paraná,Jotão,jotao,-10.891958,-61.916003,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Mário Andreazza,mario andreazza,-10.9096345,-61.9318739,cep_aberto,True
+RO,1100122,Ji-Paraná,Milão,milao,-10.860483,-61.995217,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Morar Melhor II,morar melhor ii,-10.848735,-61.95289,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Mutirão,mutirao,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Nossa Senhora de Fátima,nossa senhora de fatima,-10.883752,-61.879974,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Nova Brasília,nova brasilia,-10.8863819,-61.9140687,cep_aberto,True
+RO,1100122,Ji-Paraná,Nova Colina,nova colina,,,dne,True
+RO,1100122,Ji-Paraná,Nova Londrina,nova londrina,,,dne,True
+RO,1100122,Ji-Paraná,Novo Horizonte,novo horizonte,-10.850139,-61.974667,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Novo Ji-Paraná,novo ji parana,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Novo Urupá,novo urupa,-10.909083,-61.912211,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Orleans Ji-Paraná I,orleans ji parana i,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Orleans Ji-Paraná II,orleans ji parana ii,-10.893692,-61.886715,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Park Amazonas,park amazonas,-10.8513132,-61.9710323,cep_aberto,True
+RO,1100122,Ji-Paraná,Parque Brasil,parque brasil,-10.891914,-61.889903,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Parque dos Pioneiros,parque dos pioneiros,-10.9069022,-61.91289,cep_aberto,True
+RO,1100122,Ji-Paraná,Parque São Pedro,parque sao pedro,-10.860262,-61.931861,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Planalto I,planalto i,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Primavera,primavera,-10.891958,-61.916003,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Residencial Carneiro,residencial carneiro,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Residencial Planalto II,residencial planalto ii,-25.319709,-49.232821,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Residencial Veneza,residencial veneza,-10.8936568,-61.981213,cep_aberto,True
+RO,1100122,Ji-Paraná,Riachuelo,riachuelo,-10.891958,-61.916003,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Rondon,rondon,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Santiago,santiago,-10.879771,-61.943887,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,São Bernardo,sao bernardo,-10.8620238,-61.9699277,cep_aberto,True
+RO,1100122,Ji-Paraná,São Francisco,sao francisco,-10.87751,-61.901342,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,São Pedro,sao pedro,-10.8781412,-61.9326728,cep_aberto,True
+RO,1100122,Ji-Paraná,Setor Anel Viário,setor anel viario,-10.856307,-62.008676,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Talismã,talisma,-10.8675185,-61.9011368,cep_aberto,True
+RO,1100122,Ji-Paraná,Terra Nova,terra nova,-10.861507,-61.900983,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Trianon,trianon,-6.465771,-38.309979,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,União,uniao,-10.883464,-61.9426045,cep_aberto,True
+RO,1100122,Ji-Paraná,União II,uniao ii,-10.907377,-61.91498,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Urupá,urupa,-10.8825029,-61.9587036,cep_aberto,True
+RO,1100122,Ji-Paraná,Valle Verde,valle verde,-12.720861,-60.09921,mapbox_geocoding,True
+RO,1100122,Ji-Paraná,Valparaíso,valparaiso,-10.8804654,-61.9157358,cep_aberto,True
+RO,1100122,Ji-Paraná,Vila de Rondônia,vila de rondonia,-10.88771,-61.947361,cep_aberto,True
+RO,1100130,Machadinho D'Oeste,Centro,centro,-9.427328,-62.001716,mapbox_geocoding,True
+RO,1100130,Machadinho D'Oeste,Tabajara,tabajara,,,dne,True
+RO,1100148,Nova Brasilândia D'Oeste,Centro,centro,-11.730538,-62.317626,mapbox_geocoding,True
+RO,1100148,Nova Brasilândia D'Oeste,Terra Indígena Rio Branco,terra indigena rio branco,,,dne,True
+RO,1100155,Ouro Preto do Oeste,Centro,centro,-10.723948,-62.257967,mapbox_geocoding,True
+RO,1100189,Pimenta Bueno,Centro,centro,-11.679287,-61.18442,mapbox_geocoding,True
+RO,1100189,Pimenta Bueno,Marco Rondon,marco rondon,,,dne,True
+RO,1100205,Porto Velho,Abunã,abuna,,,dne,True
+RO,1100205,Porto Velho,Aeroclube,aeroclube,-8.816125,-63.829823,mapbox_geocoding,True
+RO,1100205,Porto Velho,Aeroporto,aeroporto,-8.7611605,-63.9004303,cep_aberto,True
+RO,1100205,Porto Velho,Agenor de Carvalho,agenor de carvalho,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Aponiã,aponia,-8.7611605,-63.9004303,cep_aberto,True
+RO,1100205,Porto Velho,Área Rural de Porto Velho,area rural de porto velho,-8.774869,-63.89808,mapbox_geocoding,True
+RO,1100205,Porto Velho,Areal,areal,-8.7742299,-63.8980333,cep_aberto,True
+RO,1100205,Porto Velho,Areia Branca,areia branca,-8.810858,-63.887359,mapbox_geocoding,True
+RO,1100205,Porto Velho,Arigolândia,arigolandia,-8.7544371,-63.9125842,cep_aberto,True
+RO,1100205,Porto Velho,Bairro Novo,bairro novo,-8.803345,-63.801773,mapbox_geocoding,True
+RO,1100205,Porto Velho,Baixa União,baixa uniao,-8.7613646,-63.8392389,cep_aberto,True
+RO,1100205,Porto Velho,Caiari,caiari,-8.75914,-63.892914,mapbox_geocoding,True
+RO,1100205,Porto Velho,Caladinho,caladinho,-8.7983147,-63.8832604,cep_aberto,True
+RO,1100205,Porto Velho,Calama,calama,,,dne,True
+RO,1100205,Porto Velho,Cascalheira,cascalheira,-8.784648,-63.839041,mapbox_geocoding,True
+RO,1100205,Porto Velho,Castanheira,castanheira,-8.7751279,-63.8813041,cep_aberto,True
+RO,1100205,Porto Velho,Centro,centro,-8.764593,-63.904379,mapbox_geocoding,True
+RO,1100205,Porto Velho,Centro-Distrito de Vista A. do Abunã,centro distrito de vista a do abuna,-8.768659,-63.906134,mapbox_geocoding,True
+RO,1100205,Porto Velho,Cidade do Lobo,cidade do lobo,-8.8060885,-63.8862149,cep_aberto,True
+RO,1100205,Porto Velho,Cidade Jardim,cidade jardim,-8.784648,-63.839041,mapbox_geocoding,True
+RO,1100205,Porto Velho,Cidade Nova,cidade nova,-8.8068516,-63.8912964,cep_aberto,True
+RO,1100205,Porto Velho,Cohab,cohab,-8.787972,-63.877858,mapbox_geocoding,True
+RO,1100205,Porto Velho,Conceição,conceicao,-8.7987526,-63.8891694,cep_aberto,True
+RO,1100205,Porto Velho,Costa e Silva,costa e silva,-8.738352,-63.883203,mapbox_geocoding,True
+RO,1100205,Porto Velho,Cuniã,cunia,-8.7558563,-63.8537172,cep_aberto,True
+RO,1100205,Porto Velho,Demarcação,demarcacao,,,dne,True
+RO,1100205,Porto Velho,Distrito Industrial,distrito industrial,-8.781341,-63.872374,mapbox_geocoding,True
+RO,1100205,Porto Velho,Distrito Jaci-Paraná,distrito jaci parana,-8.797622,-63.837279,mapbox_geocoding,True
+RO,1100205,Porto Velho,Eldorado,eldorado,-8.784632,-63.8684884,cep_aberto,True
+RO,1100205,Porto Velho,Eletronorte,eletronorte,-8.812458,-63.884322,mapbox_geocoding,True
+RO,1100205,Porto Velho,Embratel,embratel,-8.7493383,-63.8847376,cep_aberto,True
+RO,1100205,Porto Velho,Escola de Polícia,escola de policia,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Esperança da Comunidade,esperanca da comunidade,-8.7433802,-63.8510384,cep_aberto,True
+RO,1100205,Porto Velho,Extrema,extrema,,,dne,True
+RO,1100205,Porto Velho,Flodoaldo Pontes Pinto,flodoaldo pontes pinto,-8.742832,-63.858829,mapbox_geocoding,True
+RO,1100205,Porto Velho,Floresta,floresta,-8.7803556,-63.8775571,cep_aberto,True
+RO,1100205,Porto Velho,Fortaleza do Abunã,fortaleza do abuna,,,dne,True
+RO,1100205,Porto Velho,Igarapé,igarape,-8.742832,-63.858829,mapbox_geocoding,True
+RO,1100205,Porto Velho,Industrial,industrial,-8.7392736,-63.8847376,cep_aberto,True
+RO,1100205,Porto Velho,Jaci Paraná,jaci parana,,,dne,True
+RO,1100205,Porto Velho,Jardim Santana,jardim santana,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Juscelino Kubitschek,juscelino kubitschek,-8.7710098,-63.83747,cep_aberto,True
+RO,1100205,Porto Velho,KM 1,km 1,-8.767091,-63.890542,mapbox_geocoding,True
+RO,1100205,Porto Velho,Lagoa,lagoa,-8.7777924,-63.8611027,cep_aberto,True
+RO,1100205,Porto Velho,Lagoinha,lagoinha,-8.76198,-63.854271,mapbox_geocoding,True
+RO,1100205,Porto Velho,Liberdade,liberdade,-8.7461079,-63.892124,cep_aberto,True
+RO,1100205,Porto Velho,Marcos Freire,marcos freire,-8.749078,-63.871857,mapbox_geocoding,True
+RO,1100205,Porto Velho,Mariana,mariana,-8.7770736,-63.8106328,cep_aberto,True
+RO,1100205,Porto Velho,Maringá,maringa,-8.749078,-63.871857,mapbox_geocoding,True
+RO,1100205,Porto Velho,Mato Grosso,mato grosso,-8.771276,-63.892124,cep_aberto,True
+RO,1100205,Porto Velho,Militar,militar,-8.782596,-63.910317,mapbox_geocoding,True
+RO,1100205,Porto Velho,Mocambo,mocambo,-8.7688384,-63.9017266,cep_aberto,True
+RO,1100205,Porto Velho,Nacional,nacional,-8.763205,-63.908682,mapbox_geocoding,True
+RO,1100205,Porto Velho,Nazaré,nazare,,,dne,True
+RO,1100205,Porto Velho,Nossa Senhora das Graças,nossa senhora das gracas,-8.7611605,-63.9004303,cep_aberto,True
+RO,1100205,Porto Velho,Nova Califórnia,nova california,,,dne,True
+RO,1100205,Porto Velho,Nova Esperança,nova esperanca,-8.781629,-63.871745,mapbox_geocoding,True
+RO,1100205,Porto Velho,Nova Floresta,nova floresta,-8.7861627,-63.8891694,cep_aberto,True
+RO,1100205,Porto Velho,Nova Mutum Paraná,nova mutum parana,,,dne,True
+RO,1100205,Porto Velho,Nova Porto Velho,nova porto velho,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Novo Horizonte,novo horizonte,-8.8055959,-63.896556,cep_aberto,True
+RO,1100205,Porto Velho,Olaria,olaria,-8.742832,-63.858829,mapbox_geocoding,True
+RO,1100205,Porto Velho,Panair,panair,-8.7471646,-63.9150232,cep_aberto,True
+RO,1100205,Porto Velho,Pantanal,pantanal,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Pedrinhas,pedrinhas,-8.7460461,-63.9083748,cep_aberto,True
+RO,1100205,Porto Velho,Planalto,planalto,-8.735571,-63.847995,mapbox_geocoding,True
+RO,1100205,Porto Velho,Rio Madeira,rio madeira,-8.7372543,-63.8743971,cep_aberto,True
+RO,1100205,Porto Velho,Rio Pardo,rio pardo,,,dne,True
+RO,1100205,Porto Velho,Ronaldo Aragão,ronaldo aragao,-8.769928,-63.796917,mapbox_geocoding,True
+RO,1100205,Porto Velho,Roque,roque,-8.7708396,-63.8862149,cep_aberto,True
+RO,1100205,Porto Velho,Rosalina de Carvalho,rosalina de carvalho,-8.782197,-63.784755,mapbox_geocoding,True
+RO,1100205,Porto Velho,Santa Bárbara,santa barbara,-8.7611605,-63.9004303,cep_aberto,True
+RO,1100205,Porto Velho,São Carlos,sao carlos,,,dne,True
+RO,1100205,Porto Velho,São Cristóvão,sao cristovao,-8.75914,-63.892914,mapbox_geocoding,True
+RO,1100205,Porto Velho,São Francisco,sao francisco,-8.749078,-63.871857,mapbox_geocoding,True
+RO,1100205,Porto Velho,São João Bosco,sao joao bosco,-8.7469457,-63.90278,cep_aberto,True
+RO,1100205,Porto Velho,São Sebastião,sao sebastiao,-8.738352,-63.883203,mapbox_geocoding,True
+RO,1100205,Porto Velho,Socialista,socialista,-8.7527947,-63.8296567,cep_aberto,True
+RO,1100205,Porto Velho,Tancredo Neves,tancredo neves,-8.784648,-63.839041,mapbox_geocoding,True
+RO,1100205,Porto Velho,Teixeirão,teixeirao,-8.7447029,-63.8389469,cep_aberto,True
+RO,1100205,Porto Velho,Tiradentes,tiradentes,-8.748192,-63.809757,mapbox_geocoding,True
+RO,1100205,Porto Velho,Três Marias,tres marias,-8.7769177,-63.849286,cep_aberto,True
+RO,1100205,Porto Velho,Triângulo,triangulo,-8.782596,-63.910317,mapbox_geocoding,True
+RO,1100205,Porto Velho,Tucumanzal,tucumanzal,-8.7797306,-63.8958173,cep_aberto,True
+RO,1100205,Porto Velho,Tupy,tupy,-8.812458,-63.884322,mapbox_geocoding,True
+RO,1100205,Porto Velho,Ulisses Guimarães,ulisses guimaraes,-8.7714158,-63.8064076,cep_aberto,True
+RO,1100205,Porto Velho,União Bandeirante,uniao bandeirante,,,dne,True
+RO,1100205,Porto Velho,Vila Calderita,vila calderita,,,dne,True
+RO,1100205,Porto Velho,Vista Alegre do Abunã,vista alegre do abuna,,,dne,True
+RO,1100254,Presidente Médici,Centro,centro,-11.171297,-61.907169,mapbox_geocoding,True
+RO,1100262,Rio Crespo,Centro,centro,-9.705941,-62.899768,mapbox_geocoding,True
+RO,1100288,Rolim de Moura,Centro,centro,-11.726285,-61.772918,mapbox_geocoding,True
+RO,1100296,Santa Luzia D'Oeste,Centro,centro,-11.902014,-61.7807,mapbox_geocoding,True
+RO,1100304,Vilhena,Alto Alegre,alto alegre,-12.7331523,-60.1151076,cep_aberto,True
+RO,1100304,Vilhena,Área Rural de Vilhena,area rural de vilhena,-9.808232,-63.53409,mapbox_geocoding,True
+RO,1100304,Vilhena,Aripuanã,aripuana,-12.7316224,-60.1116022,cep_aberto,True
+RO,1100304,Vilhena,Assosete,assosete,-12.718932,-60.105487,mapbox_geocoding,True
+RO,1100304,Vilhena,Bela Vista,bela vista,-12.7284335,-60.1250996,cep_aberto,True
+RO,1100304,Vilhena,BNH,bnh,-12.733282,-60.13096,mapbox_geocoding,True
+RO,1100304,Vilhena,Bodanese,bodanese,-12.7354562,-60.1510917,cep_aberto,True
+RO,1100304,Vilhena,Centro,centro,-12.983219,-60.285626,mapbox_geocoding,True
+RO,1100304,Vilhena,Centro (5º BEC),centro 5o bec,-12.7437413,-60.1241241,cep_aberto,True
+RO,1100304,Vilhena,Centro (S-01),centro s 01,-12.742018,-60.145327,mapbox_geocoding,True
+RO,1100304,Vilhena,Cidade Nova,cidade nova,-12.7565994,-60.1417333,cep_aberto,True
+RO,1100304,Vilhena,Cidade Nova 4ª Etapa,cidade nova 4a etapa,-12.757472,-60.14586,mapbox_geocoding,True
+RO,1100304,Vilhena,Cidade Nova 6ª Etapa,cidade nova 6a etapa,-12.7602542,-60.1401125,cep_aberto,True
+RO,1100304,Vilhena,Cristo Rei,cristo rei,-12.722155,-60.144185,mapbox_geocoding,True
+RO,1100304,Vilhena,Green Ville,green ville,-12.7293297,-60.1458316,cep_aberto,True
+RO,1100304,Vilhena,Hípica,hipica,-12.741603,-60.117077,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Acácia,jardim acacia,-12.746536,-60.1454297,cep_aberto,True
+RO,1100304,Vilhena,Jardim América,jardim america,-12.733282,-60.13096,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Araucária,jardim araucaria,-12.7412243,-60.1087082,cep_aberto,True
+RO,1100304,Vilhena,Jardim Bandeirante,jardim bandeirante,-12.732668,-60.102351,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Eldorado,jardim eldorado,-12.7339011,-60.1258542,cep_aberto,True
+RO,1100304,Vilhena,Jardim Novo Horizonte,jardim novo horizonte,-12.732918,-60.102867,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Oliveiras,jardim oliveiras,-12.7253608,-60.1355142,cep_aberto,True
+RO,1100304,Vilhena,Jardim Pioneiros,jardim pioneiros,-12.760336,-60.121521,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Primavera,jardim primavera,-12.7298337,-60.1438234,cep_aberto,True
+RO,1100304,Vilhena,Jardim Social,jardim social,-12.751179,-60.145448,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Universitário,jardim universitario,-12.7511343,-60.1457405,cep_aberto,True
+RO,1100304,Vilhena,Jardim Vilhena,jardim vilhena,-12.742018,-60.145327,mapbox_geocoding,True
+RO,1100304,Vilhena,Jardim Vitória,jardim vitoria,-12.7190277,-60.1045702,cep_aberto,True
+RO,1100304,Vilhena,João Pedro,joao pedro,-12.732918,-60.102867,mapbox_geocoding,True
+RO,1100304,Vilhena,Marcos Freire,marcos freire,-12.7332559,-60.159209,cep_aberto,True
+RO,1100304,Vilhena,Nova Conquista,nova conquista,,,dne,True
+RO,1100304,Vilhena,Nova Esperança,nova esperanca,-12.73002,-60.111014,mapbox_geocoding,True
+RO,1100304,Vilhena,Nova Jerusalém,nova jerusalem,-12.7578395,-60.1419267,cep_aberto,True
+RO,1100304,Vilhena,Parque Cidade Jardim I,parque cidade jardim i,-12.720829,-60.152752,mapbox_geocoding,True
+RO,1100304,Vilhena,Parque Cidade Jardim II,parque cidade jardim ii,-12.7200293,-60.1540638,cep_aberto,True
+RO,1100304,Vilhena,Parque Industrial Novo Tempo,parque industrial novo tempo,-12.715574,-60.128326,mapbox_geocoding,True
+RO,1100304,Vilhena,Parque Industrial Tancredo Neves,parque industrial tancredo neves,-12.7466149,-60.1137741,cep_aberto,True
+RO,1100304,Vilhena,Parque Recreativo,parque recreativo,-12.751179,-60.145448,mapbox_geocoding,True
+RO,1100304,Vilhena,Praças de Vilhena,pracas de vilhena,-12.760336,-60.121521,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Alphaville I,residencial alphaville i,-12.7414031,-60.1304566,cep_aberto,True
+RO,1100304,Vilhena,Residencial Alto dos Parecis,residencial alto dos parecis,-12.724877,-60.122868,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Alvorada,residencial alvorada,-12.7151012,-60.1299946,cep_aberto,True
+RO,1100304,Vilhena,Residencial Barão Melgaço I,residencial barao melgaco i,-12.714944,-60.12005,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Barão Melgaço II,residencial barao melgaco ii,-12.7151012,-60.1299946,cep_aberto,True
+RO,1100304,Vilhena,Residencial Barão Melgaço III,residencial barao melgaco iii,-12.697885,-60.120126,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Cidade Verde,residencial cidade verde,-12.7123636,-60.1278811,cep_aberto,True
+RO,1100304,Vilhena,Residencial Cidade Verde II,residencial cidade verde ii,-12.711615,-60.134251,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Cidade Verde III,residencial cidade verde iii,-12.7123636,-60.1278811,cep_aberto,True
+RO,1100304,Vilhena,Residencial Cidade Verde IV,residencial cidade verde iv,-12.73922,-60.139244,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Florença,residencial florenca,-12.7197176,-60.1467305,cep_aberto,True
+RO,1100304,Vilhena,Residencial Ipê,residencial ipe,-12.739489,-60.086395,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Iquê,residencial ique,-12.2996317,-59.5231704,cep_aberto,True
+RO,1100304,Vilhena,Residencial Maria Moura,residencial maria moura,-12.714944,-60.12005,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Moriá,residencial moria,-12.720581,-60.133127,cep_aberto,True
+RO,1100304,Vilhena,Residencial Moysés de Freitas,residencial moyses de freitas,-12.714944,-60.12005,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Orleans,residencial orleans,-12.7239448,-60.0977824,cep_aberto,True
+RO,1100304,Vilhena,Residencial Santos Dumont II,residencial santos dumont ii,-12.701916,-60.118804,mapbox_geocoding,True
+RO,1100304,Vilhena,Residencial Solar de Vilhena,residencial solar de vilhena,-12.7265986,-60.1159325,cep_aberto,True
+RO,1100304,Vilhena,Residencial União,residencial uniao,-12.714944,-60.12005,mapbox_geocoding,True
+RO,1100304,Vilhena,S-11,s 11,-12.7894124,-60.0873177,cep_aberto,True
+RO,1100304,Vilhena,S-12,s 12,-13.001534,-60.943327,mapbox_geocoding,True
+RO,1100304,Vilhena,S-13,s 13,-12.740469,-60.1321899,cep_aberto,True
+RO,1100304,Vilhena,S-22,s 22,-12.730344,-60.116896,mapbox_geocoding,True
+RO,1100304,Vilhena,S-23,s 23,-12.7427967,-60.1234472,cep_aberto,True
+RO,1100304,Vilhena,S-26,s 26,-12.739772,-60.10837,mapbox_geocoding,True
+RO,1100304,Vilhena,S-27,s 27,-12.7414031,-60.1304566,cep_aberto,True
+RO,1100304,Vilhena,S-29,s 29,-12.722155,-60.144185,mapbox_geocoding,True
+RO,1100304,Vilhena,S-30,s 30,-12.7358807,-60.1060005,cep_aberto,True
+RO,1100304,Vilhena,S-31,s 31,-12.7445,-60.121389,mapbox_geocoding,True
+RO,1100304,Vilhena,S-32,s 32,-12.7347016,-60.159246,cep_aberto,True
+RO,1100304,Vilhena,S-35,s 35,-12.725553,-60.134718,mapbox_geocoding,True
+RO,1100304,Vilhena,S-43A,s 43a,-13.1249806,-60.5515985,cep_aberto,True
+RO,1100304,Vilhena,S-45,s 45,-12.732918,-60.102867,mapbox_geocoding,True
+RO,1100304,Vilhena,S-56,s 56,-12.7402519,-60.10801,cep_aberto,True
+RO,1100304,Vilhena,S-70,s 70,-12.749646,-60.137858,mapbox_geocoding,True
+RO,1100304,Vilhena,S-90,s 90,-12.7414031,-60.1304566,cep_aberto,True
+RO,1100304,Vilhena,S-94,s 94,-12.732918,-60.102867,mapbox_geocoding,True
+RO,1100304,Vilhena,Santo Antônio,santo antonio,-12.7429492,-60.1616359,cep_aberto,True
+RO,1100304,Vilhena,São Jerônimo,sao jeronimo,-12.726661,-60.154201,mapbox_geocoding,True
+RO,1100304,Vilhena,São José,sao jose,-12.7389873,-60.1562166,cep_aberto,True
+RO,1100304,Vilhena,São Paulo,sao paulo,-12.739772,-60.10837,mapbox_geocoding,True
+RO,1100320,São Miguel do Guaporé,Centro,centro,-11.705853,-62.704687,mapbox_geocoding,True
+RO,1100320,São Miguel do Guaporé,Terra Indígena Rio Branco,terra indigena rio branco,,,dne,True
+RO,1100320,São Miguel do Guaporé,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100338,Nova Mamoré,Centro,centro,-10.412072,-65.331011,mapbox_geocoding,True
+RO,1100338,Nova Mamoré,Jacynópolis,jacynopolis,,,dne,True
+RO,1100338,Nova Mamoré,Nova Dimensão,nova dimensao,,,dne,True
+RO,1100338,Nova Mamoré,Palmeiras,palmeiras,,,dne,True
+RO,1100338,Nova Mamoré,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100346,Alvorada D'Oeste,Centro,centro,-11.348815,-62.285467,mapbox_geocoding,True
+RO,1100346,Alvorada D'Oeste,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100379,Alto Alegre dos Parecis,Centro,centro,-12.132643,-61.858188,mapbox_geocoding,True
+RO,1100403,Alto Paraíso,Centro,centro,-9.742667,-63.318695,mapbox_geocoding,True
+RO,1100452,Buritis,Setor 3,setor 3,-10.208507,-63.833233,mapbox_geocoding,True
+RO,1100502,Novo Horizonte do Oeste,Centro,centro,-11.6965484,-61.9956597,cep_aberto,True
+RO,1100601,Cacaulândia,Centro,centro,-10.338752,-62.899982,mapbox_geocoding,True
+RO,1100601,Cacaulândia,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100700,Campo Novo de Rondônia,Centro,centro,-10.57012,-63.618923,mapbox_geocoding,True
+RO,1100700,Campo Novo de Rondônia,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1100809,Candeias do Jamari,Centro,centro,-8.796159,-63.695691,mapbox_geocoding,True
+RO,1100809,Candeias do Jamari,Triunfo,triunfo,,,dne,True
+RO,1100908,Castanheiras,Centro,centro,-11.427096,-61.948551,mapbox_geocoding,True
+RO,1100924,Chupinguaia,Centro,centro,-12.556178,-60.903623,mapbox_geocoding,True
+RO,1100924,Chupinguaia,Guaporé,guapore,,,dne,True
+RO,1100924,Chupinguaia,Terra Indígena Rio Omerê,terra indigena rio omere,,,dne,True
+RO,1100924,Chupinguaia,Terra Indígena Tanaru,terra indigena tanaru,,,dne,True
+RO,1100940,Cujubim,Centro,centro,-9.38219,-62.575928,mapbox_geocoding,True
+RO,1101005,Governador Jorge Teixeira,Centro,centro,-10.611399,-62.732621,mapbox_geocoding,True
+RO,1101005,Governador Jorge Teixeira,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1101104,Itapuã do Oeste,Centro,centro,-9.190793,-63.188685,mapbox_geocoding,True
+RO,1101203,Ministro Andreazza,Centro,centro,-11.197983,-61.517255,mapbox_geocoding,True
+RO,1101302,Mirante da Serra,Centro,centro,-11.031621,-62.671769,mapbox_geocoding,True
+RO,1101302,Mirante da Serra,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1101401,Monte Negro,Centro,centro,-10.258355,-63.298689,mapbox_geocoding,True
+RO,1101401,Monte Negro,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1101435,Nova União,Centro,centro,-10.915286,-62.556956,mapbox_geocoding,True
+RO,1101450,Parecis,Centro,centro,-12.18232,-61.604521,mapbox_geocoding,True
+RO,1101450,Parecis,Terra Indígena Tanaru,terra indigena tanaru,,,dne,True
+RO,1101468,Pimenteiras do Oeste,Centro,centro,-13.48485,-61.048305,mapbox_geocoding,True
+RO,1101468,Pimenteiras do Oeste,Terra Indígena Tanaru,terra indigena tanaru,,,dne,True
+RO,1101476,Primavera de Rondônia,Centro,centro,-11.831336,-61.318203,mapbox_geocoding,True
+RO,1101484,São Felipe D'Oeste,Centro,centro,-11.907083,-61.51264,mapbox_geocoding,True
+RO,1101492,São Francisco do Guaporé,Centro,centro,-12.060126,-63.569633,mapbox_geocoding,True
+RO,1101492,São Francisco do Guaporé,Pedras Negras,pedras negras,,,dne,True
+RO,1101492,São Francisco do Guaporé,Terra Indígena Massaco,terra indigena massaco,,,dne,True
+RO,1101492,São Francisco do Guaporé,Terra Indígena Rio Branco,terra indigena rio branco,,,dne,True
+RO,1101492,São Francisco do Guaporé,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1101500,Seringueiras,Centro,centro,-11.7692,-63.038029,mapbox_geocoding,True
+RO,1101500,Seringueiras,Terra Indígena Uru-Eu-Wau-Wau,terra indigena uru eu wau wau,,,dne,True
+RO,1101559,Teixeirópolis,Centro,centro,-10.935268,-62.255642,mapbox_geocoding,True
+RO,1101609,Theobroma,Centro,centro,-11.194264,-61.518428,mapbox_geocoding,True
+RO,1101708,Urupá,Centro,centro,-11.124124,-62.372238,mapbox_geocoding,True
+RO,1101757,Vale do Anari,Centro,centro,-9.864257,-62.174755,mapbox_geocoding,True
+RO,1101807,Vale do Paraíso,Centro,centro,-10.428209,-62.126974,mapbox_geocoding,True

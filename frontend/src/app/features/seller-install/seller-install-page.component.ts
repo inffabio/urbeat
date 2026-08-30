@@ -40,7 +40,7 @@ export class SellerInstallPageComponent {
     {
       number: '01',
       title: 'Instale o painel',
-      description: 'Fixe o Urbeat na tela inicial do dispositivo para deixar o dashboard sempre pronto durante o expediente.',
+      description: 'Fixe o urbeat na tela inicial do dispositivo para deixar o dashboard sempre pronto durante o expediente.',
       emphasis: 'PWA seller',
     },
     {
@@ -72,7 +72,7 @@ export class SellerInstallPageComponent {
     {
       title: 'Linux',
       recommendation: 'CUPS + local-agent',
-      detail: 'Padrão oficial do Urbeat para mini PC e terminais Linux.',
+      detail: 'Padrão oficial do urbeat para mini PC e terminais Linux.',
       tone: 'neutral',
     },
     {

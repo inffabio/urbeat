@@ -27,7 +27,7 @@ export class InstallPromptService {
   }
 
   fallbackMessage(): string {
-    return 'Use o menu do navegador para instalar o Urbeat na tela inicial quando esta opcao estiver disponivel.';
+    return 'Use o menu do navegador para instalar o urbeat na tela inicial quando esta opcao estiver disponivel.';
   }
 
   async promptInstall(): Promise<boolean> {

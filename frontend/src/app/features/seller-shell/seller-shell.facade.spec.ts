@@ -12,7 +12,7 @@ describe('SellerShellFacade', () => {
   let facade: SellerShellFacade;
   let storeServiceMock: { getMyStore: jest.Mock };
   let notificationServiceMock: { list: jest.Mock };
-  let signalRServiceMock: { startSellerHub: jest.Mock; stopSellerHub: jest.Mock; onSellerEvent: jest.Mock };
+  let signalRServiceMock: { startSellerHub: jest.Mock; stopSellerHub: jest.Mock; onSellerEvent: jest.Mock; removeSellerListener: jest.Mock };
   let soundServiceMock: { enabled: any; needsActivation: any; playNewOrder: jest.Mock; enable: jest.Mock; disable: jest.Mock };
   let printingServiceMock: { autoPrintOrder: jest.Mock; config: jest.Mock };
 
@@ -23,6 +23,7 @@ describe('SellerShellFacade', () => {
       startSellerHub: jest.fn().mockResolvedValue(undefined),
       stopSellerHub: jest.fn(),
       onSellerEvent: jest.fn(),
+      removeSellerListener: jest.fn(),
     };
     soundServiceMock = {
       enabled: jest.fn(() => true),
@@ -178,6 +179,76 @@ describe('SellerShellFacade', () => {
     expect(facade.notifications()).toEqual([]);
     expect(facade.unreadCount()).toBe(0);
     expect(facade.orderActivityPulse()).toBeNull();
+  });
+
+  it('removes the registered seller notification listener on reset', async () => {
+    let sellerCallback: ((notification: SellerNotification) => void) | undefined;
+    signalRServiceMock.onSellerEvent.mockImplementation(
+      (eventName: string, cb: (notification: SellerNotification) => void) => {
+        if (eventName === 'ReceiveSellerNotification') sellerCallback = cb;
+      },
+    );
+    storeServiceMock.getMyStore.mockReturnValue(
+      of({
+        id: 'store1',
+        ownerUserId: 'owner1',
+        name: 'Loja Teste',
+        slug: 'loja-teste',
+        phoneNumber: '11999999999',
+        description: 'Loja teste',
+        cuisineType: 'Pizzaria',
+        isOpen: true,
+        isSubscriptionBlocked: false,
+        supportsDelivery: true,
+        supportsPickup: false,
+        minimumOrderValue: 20,
+        deliveryAreas: [],
+        averageRating: 0,
+        totalReviews: 0,
+      }),
+    );
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    await facade.init();
+    expect(sellerCallback).toBeDefined();
+
+    facade.reset();
+
+    expect(signalRServiceMock.removeSellerListener).toHaveBeenCalledWith(
+      'ReceiveSellerNotification',
+      sellerCallback,
+    );
+  });
+
+  it('does not register a duplicate notification listener after reinit', async () => {
+    storeServiceMock.getMyStore.mockReturnValue(
+      of({
+        id: 'store1',
+        ownerUserId: 'owner1',
+        name: 'Loja Teste',
+        slug: 'loja-teste',
+        phoneNumber: '11999999999',
+        description: 'Loja teste',
+        cuisineType: 'Pizzaria',
+        isOpen: true,
+        isSubscriptionBlocked: false,
+        supportsDelivery: true,
+        supportsPickup: false,
+        minimumOrderValue: 20,
+        deliveryAreas: [],
+        averageRating: 0,
+        totalReviews: 0,
+      }),
+    );
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    await facade.init();
+    facade.reset();
+    await facade.init();
+    facade.reset();
+
+    expect(signalRServiceMock.onSellerEvent).toHaveBeenCalledTimes(2);
+    expect(signalRServiceMock.removeSellerListener).toHaveBeenCalledTimes(2);
   });
 
   it('should ignore pending init results after reset', async () => {

@@ -80,14 +80,34 @@ server {
     location /downloads/ {
         alias /opt/urbeat/downloads/;
         autoindex off;
+        types { text/plain md; }
         add_header Cache-Control "public, max-age=300" always;
         add_header X-Content-Type-Options "nosniff" always;
-        try_files $request_filename =404;
     }
 
     # Angular routing support (fallback for SPA)
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # The app shell and service-worker metadata must be revalidated after deployments.
+    location = /index.html {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /ngsw.json {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Content-Type "application/json" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /ngsw-worker.js {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header X-Content-Type-Options "nosniff" always;
     }
 
     # Security headers
@@ -281,9 +301,28 @@ sudo nginx -t
 
 if [ $? -eq 0 ]; then
     echo "✅ NGINX configuration is valid"
-    echo "🔄 Reloading NGINX..."
-    sudo nginx -s reload || sudo systemctl reload nginx
-    echo "✅ NGINX reloaded successfully"
+    if sudo systemctl is-active --quiet nginx; then
+        echo "🔄 Reloading NGINX..."
+        sudo systemctl reload nginx
+        echo "✅ NGINX reloaded successfully"
+       else
+           if pgrep -x nginx >/dev/null 2>&1; then
+                echo "🛑 Stopping orphan NGINX master..."
+                NGINX_MASTER_PID=$(pgrep -f 'nginx: master process' | head -n 1)
+                if [ -n "$NGINX_MASTER_PID" ]; then
+                    sudo kill -QUIT "$NGINX_MASTER_PID" 2>/dev/null || sudo nginx -s stop
+                else
+                    sudo nginx -s stop
+                fi
+                for attempt in {1..10}; do
+                   pgrep -x nginx >/dev/null 2>&1 || break
+                   sleep 1
+               done
+           fi
+           echo "▶️ Starting NGINX under systemd..."
+           sudo systemctl enable --now nginx
+           echo "✅ NGINX started successfully"
+       fi
     sudo systemctl status nginx --no-pager
 else
     echo "❌ NGINX configuration has errors!"

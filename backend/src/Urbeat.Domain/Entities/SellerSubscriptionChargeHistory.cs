@@ -14,6 +14,10 @@ public sealed class SellerSubscriptionChargeHistory : BaseEntity
 
     public DateTime DueDateUtc { get; set; }
 
+    public DateTime? BillingPeriodStartUtc { get; set; }
+
+    public DateTime? BillingPeriodEndUtc { get; set; }
+
     public DateTime? PaidAtUtc { get; set; }
 
     public decimal? Amount { get; set; }

@@ -25,31 +25,24 @@
 
         <div class="content-card p-4 mt-3">
           <h2 class="h5 fw-bold mb-3">Logo da loja</h2>
-          <div class="image-upload-row align-items-center">
-            <div class="logo-preview-box">
-              @if (logoPreview()) { <img [src]="logoPreview()" alt="Logo" class="logo-preview" (error)="onImageError($event)" /> } @else { <span>Sem logo</span> }
-            </div>
-            <div class="d-grid gap-2">
-              <input type="file" accept="image/png,image/webp" (change)="onLogoFile($event)" hidden #logoInput />
-              <button type="button" class="btn btn-outline-primary btn-outline-app" (click)="logoInput.click()"><ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>{{ logoPreview() ? 'Alterar logo' : 'Enviar logo' }}</button>
-              @if (logoPreview()) { <button type="button" class="btn btn-outline-danger btn-outline-danger-app" (click)="removeLogo()"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>Remover</button> }
-            </div>
-          </div>
-          <p class="text-secondary small fw-semibold mt-3 mb-0">Formato recomendado: PNG com fundo transparente.</p>
+          <app-media-upload
+            kind="logo"
+            [previewUrl]="logoPreview()"
+            altText="Logo da loja"
+            (fileSelected)="onLogoFile($event)"
+            (fileRemoved)="removeLogo()"
+          />
         </div>
 
         <div class="content-card p-4 mt-3">
           <h2 class="h5 fw-bold mb-3">Banner da loja</h2>
-          <div class="banner-upload-box">
-            <div class="banner-art"><strong>Hambúrgueres<br />feitos na brasa</strong><span>Sabor que marca</span><i></i></div>
-            @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Banner da loja" (error)="onImageError($event)" /> }
-          </div>
-          <div class="d-flex flex-wrap gap-3 mt-3">
-            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onBannerFile($event)" hidden #bannerInput />
-            <button type="button" class="btn btn-outline-primary btn-outline-app" (click)="bannerInput.click()"><ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>{{ bannerPreview() ? 'Alterar banner' : 'Enviar banner' }}</button>
-            @if (bannerPreview()) { <button type="button" class="btn btn-outline-danger btn-outline-danger-app" (click)="removeBanner()"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>Remover</button> }
-          </div>
-          <p class="text-secondary small fw-semibold mt-3 mb-0">Tamanho recomendado: 1200 x 400 px.</p>
+          <app-media-upload
+            kind="banner"
+            [previewUrl]="bannerPreview()"
+            altText="Banner da loja"
+            (fileSelected)="onBannerFile($event)"
+            (fileRemoved)="removeBanner()"
+          />
         </div>
 
         <div class="d-flex justify-content-end gap-3 mt-3 save-actions">
@@ -63,9 +56,8 @@
           <h2 class="h5 fw-bold mb-1">Prévia da bio</h2>
           <p class="text-secondary small fw-semibold mb-3">Assim seus clientes verão</p>
           <div class="preview-phone">
-            <div class="preview-banner">
-              <div class="preview-art-copy"><strong>Hambúrgueres<br />feitos na brasa</strong><span>Sabor que marca</span><i></i></div>
-              @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Banner" (error)="onImageError($event)" /> }
+              <div class="preview-banner">
+                @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Banner" (error)="onImageError($event)" /> }
             </div>
             <div class="text-center p-4 pt-0 preview-body">
               <div class="preview-logo-box">
@@ -93,8 +85,8 @@
 
         <div class="content-card p-4 info-card">
           <h2 class="h5 fw-bold mb-3"><ion-icon name="image-outline" aria-hidden="true"></ion-icon>Requisitos de imagem</h2>
-          <p><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Logo:</strong> PNG com fundo transparente, máx. 2MB.</span></p>
-          <p class="mb-0"><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Banner:</strong> 1200 x 400 px, JPG ou PNG, máx. 5MB.</span></p>
+            <p><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Logo:</strong> AVIF, PNG, SVG, WEBP, JPG ou JPEG, máx. 2MB.</span></p>
+            <p class="mb-0"><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span><strong>Banner:</strong> AVIF, PNG, SVG, WEBP, JPG ou JPEG, máx. 5MB.</span></p>
         </div>
       </div>
     </section>

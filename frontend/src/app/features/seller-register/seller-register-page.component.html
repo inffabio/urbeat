@@ -3,7 +3,7 @@
     <!-- ══════════════ FORM ══════════════ -->
     <div class="register-form-side">
       <div class="form-wrapper">
-        <img src="assets/images/urbeat-logo.jpg" alt="Urbeat" class="register-logo" width="150" />
+        <img src="assets/images/urbeat-logo.jpg" alt="urbeat" class="register-logo" width="150" />
 
         <h1 class="register-title">
           Crie sua conta e comece agora<br /><span class="accent">seu delivery profissional</span>
@@ -14,15 +14,13 @@
 
         <div class="divider-row">
           <div class="divider-line"></div>
-          <span>ou</span>
-          <div class="divider-line"></div>
         </div>
 
         <form #f="ngForm" (ngSubmit)="submit()" novalidate>
           <!-- Nome e Documento -->
           <div class="field-row">
             <div class="field">
-              <label for="fullName">Nome completo da loja</label>
+              <label for="fullName">Nome do Contratante</label>
               <div class="input-wrap">
                 <ion-icon name="person-outline" class="input-icon"></ion-icon>
                 <input

@@ -79,9 +79,6 @@ public sealed class StoreService : IStoreService
             PhoneNumber = request.PhoneNumber.Trim(),
             Document = NormalizeDocument(request.Document),
             PixKey = NormalizeOptional(request.PixKey, 50),
-            InstagramUrl = NormalizeOptional(request.InstagramUrl, 500),
-            FacebookUrl = NormalizeOptional(request.FacebookUrl, 500),
-            TikTokUrl = NormalizeOptional(request.TikTokUrl, 500),
             WebsiteUrl = NormalizeOptional(request.WebsiteUrl, 500),
             Description = request.Description.Trim(),
             CuisineTypeId = cuisine.Id,
@@ -102,6 +99,9 @@ public sealed class StoreService : IStoreService
         };
 
         await _dbContext.Stores.AddAsync(store, cancellationToken);
+
+        await AttachDefaultSubscriptionAsync(store, ownerUserId, cancellationToken);
+
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
         await WriteAuditLogAsync(
@@ -194,9 +194,6 @@ public sealed class StoreService : IStoreService
         store.PhoneNumber = request.PhoneNumber.Trim();
         store.Document = NormalizeDocument(request.Document);
         store.PixKey = NormalizeOptional(request.PixKey, 50);
-        store.InstagramUrl = NormalizeOptional(request.InstagramUrl, 500);
-        store.FacebookUrl = NormalizeOptional(request.FacebookUrl, 500);
-        store.TikTokUrl = NormalizeOptional(request.TikTokUrl, 500);
         store.WebsiteUrl = NormalizeOptional(request.WebsiteUrl, 500);
         store.Description = request.Description.Trim();
 
@@ -409,8 +406,6 @@ public sealed class StoreService : IStoreService
                     StoreId = storeId,
                     Neighborhood = area.Neighborhood,
                     DeliveryFee = area.DeliveryFee,
-                    MinimumOrderValue = area.MinimumOrderValue,
-                    FreeShippingThreshold = area.FreeShippingThreshold,
                     IsActive = area.IsActive,
                     Notes = area.Notes.Trim()
                 });
@@ -521,9 +516,18 @@ public sealed class StoreService : IStoreService
                 : Array.Empty<DeliveryNeighborhoodResponseDto>();
         }
         var maxRadius = store.MaxDeliveryRadiusKm.Value;
-        var allNeighborhoods = await _dbContext.DeliveryNeighborhoods
+
+        var neighborhoodsQuery = _dbContext.DeliveryNeighborhoods
             .AsNoTracking()
-            .Where(x => x.IsActive && x.Latitude != null && x.Longitude != null)
+            .Where(x => x.IsActive && x.Latitude != null && x.Longitude != null);
+
+        if (storeAddr.City is not null)
+        {
+            var city = storeAddr.City.ToLower().Trim();
+            neighborhoodsQuery = neighborhoodsQuery.Where(x => x.City.ToLower() == city);
+        }
+
+        var allNeighborhoods = await neighborhoodsQuery
             .OrderBy(x => x.Neighborhood)
             .Select(x => new DeliveryNeighborhoodResponseDto
             {
@@ -549,8 +553,46 @@ public sealed class StoreService : IStoreService
             .Where(x => HaversineKm(storeLat, storeLon, x.Latitude!.Value, x.Longitude!.Value) <= maxRadius)
             .ToList();
 
-        if (withinRadius.Count > 0)
-            return withinRadius;
+        // Bairros manuais (sem Latitude/Longitude) pertencem à cidade da loja e
+        // não podem ser filtrados por raio; devem continuar sendo retornados.
+        List<DeliveryNeighborhoodResponseDto> manualNeighborhoods;
+        if (storeAddr.City is not null)
+        {
+            manualNeighborhoods = await _dbContext.DeliveryNeighborhoods
+                .AsNoTracking()
+                .Where(x => x.IsActive
+                    && (x.Latitude == null || x.Longitude == null)
+                    && x.City.ToLower() == storeAddr.City.ToLower().Trim())
+                .OrderBy(x => x.Neighborhood)
+                .Select(x => new DeliveryNeighborhoodResponseDto
+                {
+                    Id = x.Id,
+                    Neighborhood = x.Neighborhood,
+                    NormalizedName = x.NormalizedName,
+                    City = x.City,
+                    CityId = x.CityId,
+                    OsmId = x.OsmId,
+                    OsmType = x.OsmType,
+                    PlaceType = x.PlaceType,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    Source = x.Source,
+                    IsActive = x.IsActive
+                })
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            manualNeighborhoods = [];
+        }
+
+        var result = manualNeighborhoods
+            .Concat(withinRadius)
+            .OrderBy(x => x.Neighborhood)
+            .ToList();
+
+        if (result.Count > 0)
+            return result;
 
         return storeAddr.City is not null
             ? await GetNeighborhoodsByCityAsync(storeAddr.City, cancellationToken)
@@ -679,6 +721,53 @@ public sealed class StoreService : IStoreService
         slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-");
         slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
         return slug.Trim('-');
+    }
+
+    private async Task AttachDefaultSubscriptionAsync(Store store, Guid ownerUserId, CancellationToken cancellationToken)
+    {
+        var plan = await _dbContext.Plans
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Name == BillingPlanSeeder.DefaultPlanName, cancellationToken);
+
+        var planId = plan?.Id;
+        var planName = plan?.Name ?? BillingPlanSeeder.DefaultPlanName;
+        var planAmount = plan?.Amount ?? BillingPlanSeeder.DefaultPlanAmount;
+
+        var now = DateTime.UtcNow;
+        var nextBillingDateUtc = now.AddMonths(1);
+
+        await _dbContext.SellerSubscriptions.AddAsync(new SellerSubscription
+        {
+            StoreId = store.Id,
+            SellerUserId = ownerUserId,
+            PlanId = planId,
+            PlanName = planName,
+            PlanAmount = planAmount,
+            Status = SellerSubscriptionBillingStatus.Active,
+            StartDateUtc = now,
+            NextBillingDateUtc = nextBillingDateUtc,
+            GatewayCustomerId = string.Empty,
+            GatewaySubscriptionId = string.Empty
+        }, cancellationToken);
+
+        var status = await _dbContext.SellerSubscriptionStatuses
+            .SingleOrDefaultAsync(x => x.SellerUserId == ownerUserId, cancellationToken);
+
+        if (status is null)
+        {
+            await _dbContext.SellerSubscriptionStatuses.AddAsync(new SellerSubscriptionStatus
+            {
+                SellerUserId = ownerUserId,
+                NextDueDateUtc = nextBillingDateUtc,
+                BillingStatus = SellerSubscriptionBillingStatus.Active
+            }, cancellationToken);
+        }
+        else
+        {
+            status.BillingStatus = SellerSubscriptionBillingStatus.Active;
+            status.NextDueDateUtc = nextBillingDateUtc;
+            status.MarkAsUpdated();
+        }
     }
 
     private async Task WriteAuditLogAsync(

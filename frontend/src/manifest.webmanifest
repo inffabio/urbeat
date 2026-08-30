@@ -1,7 +1,7 @@
 ﻿{
-  "name": "Urbeat - Painel da loja",
-  "short_name": "Urbeat",
-  "description": "Painel do lojista Urbeat para acompanhar pedidos e operar a loja.",
+  "name": "urbeat - Painel da loja",
+  "short_name": "urbeat",
+  "description": "Painel do lojista urbeat para acompanhar pedidos e operar a loja.",
   "theme_color": "#D54A51",
   "background_color": "#ede9e3",
   "display": "standalone",

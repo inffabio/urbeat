@@ -3,7 +3,9 @@ export type DashboardPeriod = 'all' | 'today' | 'week' | 'month';
 const SAO_PAULO_TIME_ZONE = 'America/Sao_Paulo';
 
 export function formatSaoPauloTime(value: string | Date): string {
-  return new Date(value).toLocaleTimeString('pt-BR', {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: SAO_PAULO_TIME_ZONE,
@@ -11,19 +13,24 @@ export function formatSaoPauloTime(value: string | Date): string {
 }
 
 export function formatSaoPauloDate(value: string | Date): string {
-  return new Date(value).toLocaleDateString('pt-BR', {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('pt-BR', {
     timeZone: SAO_PAULO_TIME_ZONE,
   });
 }
 
 export function formatSaoPauloDateTime(value: string | Date): string {
-  return new Date(value).toLocaleString('pt-BR', {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('pt-BR', {
     timeZone: SAO_PAULO_TIME_ZONE,
   });
 }
 
 export function saoPauloPeriodRange(period: DashboardPeriod, now = new Date()): { startDateUtc?: string; endDateUtc?: string } {
   if (period === 'all') return {};
+  if (Number.isNaN(now.getTime())) return {};
 
   const today = saoPauloDateParts(now);
   const start = new Date(Date.UTC(today.year, today.month - 1, today.day, 3, 0, 0, 0));

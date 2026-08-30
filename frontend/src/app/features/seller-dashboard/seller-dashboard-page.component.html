@@ -67,9 +67,9 @@
     </div>
   } @else {
     <section class="metrics-grid">
-      <div class="metric-card"><div class="metric-icon orange"><i class="bi bi-bag-check"></i></div><div><div class="metric-label">Pedidos hoje</div><div class="metric-value">{{ formatNumber(report()?.totalOrders) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 12% <span>vs ontem</span></div></div></div>
-      <div class="metric-card"><div class="metric-icon"><i class="bi bi-wallet2"></i></div><div><div class="metric-label">Faturamento</div><div class="metric-value">{{ formatCurrency(report()?.totalRevenue ?? 0) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 8% <span>vs ontem</span></div></div></div>
-      <div class="metric-card"><div class="metric-icon yellow"><i class="bi bi-ticket-perforated"></i></div><div><div class="metric-label">Ticket médio</div><div class="metric-value">{{ formatCurrency(averageTicket()) }}</div><div class="trend"><i class="bi bi-arrow-up"></i> 5% <span>vs ontem</span></div></div></div>
+       <div class="metric-card"><div class="metric-icon orange"><i class="bi bi-bag-check"></i></div><div><div class="metric-label">Pedidos {{ activePeriodLabel().toLowerCase() }}</div><div class="metric-value">{{ formatNumber(report()?.totalOrders) }}</div></div></div>
+      <div class="metric-card"><div class="metric-icon"><i class="bi bi-wallet2"></i></div><div><div class="metric-label">Faturamento</div><div class="metric-value">{{ formatCurrency(report()?.totalRevenue ?? 0) }}</div></div></div>
+      <div class="metric-card"><div class="metric-icon yellow"><i class="bi bi-ticket-perforated"></i></div><div><div class="metric-label">Ticket médio</div><div class="metric-value">{{ formatCurrency(averageTicket()) }}</div></div></div>
       <div class="metric-card"><div class="metric-icon"><i class="bi bi-clock"></i></div><div><div class="metric-label">Pedidos em andamento</div><div class="metric-value">{{ formatNumber(report()?.inProgressOrders) }}</div><div class="attention">Exigem atenção</div></div></div>
     </section>
 

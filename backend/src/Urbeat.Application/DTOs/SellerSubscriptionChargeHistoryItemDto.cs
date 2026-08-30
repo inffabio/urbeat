@@ -12,6 +12,10 @@ public sealed class SellerSubscriptionChargeHistoryItemDto
 
     public DateTime DueDateUtc { get; init; }
 
+    public DateTime? BillingPeriodStartUtc { get; init; }
+
+    public DateTime? BillingPeriodEndUtc { get; init; }
+
     public DateTime? PaidAtUtc { get; init; }
 
     public decimal? Amount { get; init; }

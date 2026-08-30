@@ -95,6 +95,8 @@ public sealed class SubscriptionWebhookService : ISubscriptionWebhookService
                 GatewayStatus = parsed.BillingStatusRaw?.Trim().ToUpperInvariant() ?? "UNKNOWN",
                 BillingStatus = mappedBillingStatus,
                 DueDateUtc = nextDueDateUtc,
+                BillingPeriodStartUtc = nextDueDateUtc,
+                BillingPeriodEndUtc = nextDueDateUtc.AddMonths(1),
                 PaidAtUtc = parsed.PaidAtUtc,
                 Amount = parsed.Amount,
                 RawPayload = rawPayload
@@ -109,6 +111,8 @@ public sealed class SubscriptionWebhookService : ISubscriptionWebhookService
             charge.GatewayStatus = parsed.BillingStatusRaw?.Trim().ToUpperInvariant() ?? charge.GatewayStatus;
             charge.BillingStatus = mappedBillingStatus;
             charge.DueDateUtc = nextDueDateUtc;
+            charge.BillingPeriodStartUtc ??= nextDueDateUtc;
+            charge.BillingPeriodEndUtc ??= nextDueDateUtc.AddMonths(1);
             charge.PaidAtUtc = parsed.PaidAtUtc;
             charge.Amount = parsed.Amount;
             charge.RawPayload = rawPayload;

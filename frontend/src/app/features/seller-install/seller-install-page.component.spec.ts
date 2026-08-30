@@ -10,7 +10,7 @@ describe('SellerInstallPageComponent', () => {
     installPromptMock = {
       canInstall: jest.fn(() => false),
       isInstalled: jest.fn(() => false),
-      fallbackMessage: jest.fn(() => 'Use o menu do navegador para instalar o Urbeat.'),
+      fallbackMessage: jest.fn(() => 'Use o menu do navegador para instalar o urbeat.'),
       promptInstall: jest.fn().mockResolvedValue(false),
     };
 
@@ -32,7 +32,7 @@ describe('SellerInstallPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Driver Windows da POS-58');
     expect(fixture.nativeElement.textContent).toContain('Ordem ideal de instalação');
     expect(fixture.nativeElement.textContent).toContain('Plataformas recomendadas');
-    expect(fixture.nativeElement.textContent).toContain('Use o menu do navegador para instalar o Urbeat.');
+    expect(fixture.nativeElement.textContent).toContain('Use o menu do navegador para instalar o urbeat.');
   });
 
   it('prompts installation when browser supports it', () => {

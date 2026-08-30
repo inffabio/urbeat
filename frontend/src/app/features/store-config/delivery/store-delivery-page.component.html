@@ -1,3 +1,4 @@
+<ion-content class="wizard-content delivery-content" [class.is-dashboard]="isDashboardView()">
 @if (!isDashboardView()) {
   <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
 }
@@ -211,14 +212,16 @@
     }
   </div>
 
+</ion-content>
+
   <ion-modal [isOpen]="isNeighborhoodModalOpen()" (didDismiss)="closeNeighborhoodModal()" cssClass="neighborhood-modal" alignment="center">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Selecionar Bairros</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="closeNeighborhoodModal()">
-              <ion-icon name="close" slot="icon-only"></ion-icon>
+            <ion-button (click)="closeNeighborhoodModal()" aria-label="Fechar modal de bairros">
+              <ion-icon name="close" slot="icon-only" aria-hidden="true"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
@@ -229,6 +232,7 @@
           <!-- Search -->
           <ion-searchbar
             placeholder="Filtrar bairros..."
+            aria-label="Buscar bairro na modal"
             [ngModel]="neighborhoodSearch()"
             (ngModelChange)="neighborhoodSearch.set($event)"
             class="nb-searchbar">
@@ -249,13 +253,16 @@
           <!-- List -->
           <ion-list class="nb-list">
             @for (nb of filteredNeighborhoods(); track nb.id) {
-              <ion-item lines="none" button (click)="toggleNeighborhood(nb.id)" detail="false"
+              <ion-item lines="none" (click)="toggleNeighborhood(nb.id)"
                 [style.--background]="checkedNeighborhoodIds().has(nb.id) ? 'var(--app-brand-soft)' : ''">
-                <input type="checkbox" slot="start"
-                  [checked]="checkedNeighborhoodIds().has(nb.id)"
-                  (click)="$event.stopPropagation(); toggleNeighborhood(nb.id)"
-                  [attr.aria-label]="'Selecionar ' + nb.neighborhood"
-                  class="nb-checkbox" />
+                <label class="nb-check-wrap" slot="start" (click)="$event.stopPropagation()">
+                  <input type="checkbox"
+                    [checked]="checkedNeighborhoodIds().has(nb.id)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleNeighborhood(nb.id)"
+                    [attr.aria-label]="'Selecionar ' + nb.neighborhood"
+                    class="nb-checkbox" />
+                </label>
                 <ion-label>
                   <span class="nb-name">{{ nb.neighborhood }}</span>
                   <p class="nb-city">{{ nb.city }}</p>
@@ -278,6 +285,7 @@
             <div class="nb-add-row">
               <input type="text" class="input"
                 placeholder="Nome do novo bairro"
+                aria-label="Nome do novo bairro"
                 [ngModel]="newNeighborhoodName()"
                 (ngModelChange)="newNeighborhoodName.set($event)"
                 (keyup.enter)="addNeighborhood()"
@@ -300,7 +308,8 @@
           <input type="text"
             [ngModel]="bulkFeeValue()"
             (ngModelChange)="onMoneyInputBulk($event)"
-            placeholder="0,00" />
+            placeholder="0,00"
+            aria-label="Taxa em lote" />
         </div>
         <button class="btn-confirm"
           (click)="addSelectedNeighborhoods()"
@@ -318,8 +327,8 @@
         <ion-toolbar>
           <ion-title class="ion-text-center">Mapa de entregas</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="closeMap()">
-              <ion-icon name="close" slot="icon-only"></ion-icon>
+            <ion-button (click)="closeMap()" aria-label="Fechar mapa">
+              <ion-icon name="close" slot="icon-only" aria-hidden="true"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>

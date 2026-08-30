@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -103,9 +104,6 @@ public sealed class StoreManagementFlowTests : IClassFixture<TestWebApplicationF
             PhoneNumber = "11982221111",
             Document = "529.982.247-25",
             PixKey = "pix@example.com",
-            InstagramUrl = "https://instagram.com/loja",
-            FacebookUrl = "https://facebook.com/loja",
-            TikTokUrl = "https://tiktok.com/@loja",
             WebsiteUrl = "https://loja.example.com",
             Description = "Loja atualizada",
             CuisineType = "Lanches",
@@ -122,8 +120,63 @@ public sealed class StoreManagementFlowTests : IClassFixture<TestWebApplicationF
         storePayload.Should().NotBeNull();
         storePayload!.Document.Should().Be("52998224725");
         storePayload.PixKey.Should().Be("pix@example.com");
-        storePayload.InstagramUrl.Should().Be("https://instagram.com/loja");
         storePayload.WebsiteUrl.Should().Be("https://loja.example.com");
+    }
+
+    [Fact]
+    public async Task Seller_ShouldNotPersistOrExposeSocialMediaUrls()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (token, storeId) = await RegisterLoginAndCreateStoreAsync(client, "Lanches");
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/stores/{storeId}", new
+        {
+            Name = "Loja Sem Redes",
+            Slug = "loja-sem-redes",
+            PhoneNumber = "11982221111",
+            Document = "529.982.247-25",
+            PixKey = "pix@example.com",
+            InstagramUrl = "https://instagram.com/loja",
+            FacebookUrl = "https://facebook.com/loja",
+            TikTokUrl = "https://tiktok.com/@loja",
+            WebsiteUrl = "https://loja.example.com",
+            Description = "Loja sem redes sociais",
+            CuisineType = "Lanches",
+            SupportsDelivery = true,
+            SupportsPickup = true,
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var myStoreResponse = await client.GetAsync("/api/stores/my-store");
+        myStoreResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // The API serializes with camelCase JSON. The social media URLs must not
+        // be part of the response contract, while websiteUrl must be present.
+        var rawJson = await myStoreResponse.Content.ReadAsStringAsync();
+        rawJson.Should().NotContain("instagramUrl");
+        rawJson.Should().NotContain("facebookUrl");
+        rawJson.Should().NotContain("tikTokUrl");
+
+        using var document = JsonDocument.Parse(rawJson);
+        var root = document.RootElement;
+
+        root.TryGetProperty("instagramUrl", out _).Should().BeFalse();
+        root.TryGetProperty("facebookUrl", out _).Should().BeFalse();
+        root.TryGetProperty("tikTokUrl", out _).Should().BeFalse();
+
+        // websiteUrl must appear and reflect the value that was sent, proving it persists.
+        root.TryGetProperty("websiteUrl", out var websiteUrlElement).Should().BeTrue();
+        websiteUrlElement.GetString().Should().Be("https://loja.example.com");
+
+        var storePayload = root.Deserialize<StoreResponseDto>(
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        storePayload.Should().NotBeNull();
+        storePayload!.WebsiteUrl.Should().Be("https://loja.example.com");
     }
 
     [Fact]

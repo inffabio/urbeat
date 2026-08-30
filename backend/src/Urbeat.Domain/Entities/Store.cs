@@ -15,12 +15,6 @@ public sealed class Store : BaseEntity
 
     public string? PixKey { get; set; }
 
-    public string? InstagramUrl { get; set; }
-
-    public string? FacebookUrl { get; set; }
-
-    public string? TikTokUrl { get; set; }
-
     public string? WebsiteUrl { get; set; }
 
     public string Description { get; set; } = string.Empty;

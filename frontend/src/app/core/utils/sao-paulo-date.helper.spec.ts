@@ -22,4 +22,14 @@ describe('sao-paulo-date.helper', () => {
       endDateUtc: '2026-07-29T12:00:00.000Z',
     });
   });
+
+  it('returns an empty string for invalid date input', () => {
+    expect(formatSaoPauloTime('invalid')).toBe('');
+    expect(formatSaoPauloDate('not-a-date')).toBe('');
+    expect(formatSaoPauloDateTime('')).toBe('');
+  });
+
+  it('returns an empty range for an invalid now date', () => {
+    expect(saoPauloPeriodRange('today', new Date('invalid'))).toEqual({});
+  });
 });

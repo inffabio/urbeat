@@ -13,7 +13,7 @@
 /* ─── HERO ─── */
 
 .product-hero {
-  height: 316px;
+  height: 270px;
   background: var(--app-ink);
   position: relative;
   overflow: hidden;
@@ -43,7 +43,7 @@
   color: var(--app-brand);
 
   ion-icon {
-    font-size: 72px;
+    font-size: 58px;
   }
 }
 
@@ -51,14 +51,14 @@
   position: absolute;
   left: 22px;
   right: 22px;
-  top: 52px;
+  top: calc(42px + env(safe-area-inset-top, 0px));
   display: flex;
   z-index: 5;
 }
 
 .circle-btn {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, .96);
@@ -70,7 +70,7 @@
   font-family: inherit;
 
   ion-icon {
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1;
   }
 }
@@ -81,7 +81,7 @@
   margin-top: -38px;
   background: var(--app-surface);
   border-radius: 32px 32px 0 0;
-  padding: 24px 22px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 20px 18px calc(16px + env(safe-area-inset-bottom, 0px));
   position: relative;
   z-index: 8;
 }
@@ -94,7 +94,7 @@
 
   h1 {
     margin: 0;
-    font-size: 29px;
+    font-size: 25px;
     letter-spacing: -0.04em;
     line-height: 1.1;
     font-weight: 800;
@@ -104,17 +104,17 @@
 
 .product-price {
   color: var(--app-brand);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
   white-space: nowrap;
   letter-spacing: -0.04em;
 }
 
 .product-desc {
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.45;
   color: var(--app-muted-strong);
-  margin: 12px 0 24px;
+  margin: 10px 0 18px;
 }
 
 /* ─── SECTION TITLES ─── */
@@ -126,7 +126,7 @@
   margin: 0 0 16px;
 
   h2 {
-    font-size: 23px;
+    font-size: 20px;
     margin: 0;
     letter-spacing: -0.04em;
     font-weight: 800;
@@ -134,7 +134,7 @@
   }
 
   span {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--app-brand);
   }
 }

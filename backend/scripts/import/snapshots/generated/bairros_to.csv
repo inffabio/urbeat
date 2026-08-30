@@ -1,0 +1,671 @@
+Uf,CityIbgeCode,City,Neighborhood,NormalizedName,Latitude,Longitude,Source,IsActive
+TO,1700251,Abreulândia,Setor Central,setor central,,,dne,True
+TO,1700301,Aguiarnópolis,Setor Central,setor central,,,dne,True
+TO,1700350,Aliança do Tocantins,Centro,centro,,,dne,True
+TO,1700400,Almas,Centro,centro,,,dne,True
+TO,1700707,Alvorada,Jorge Figueiras,jorge figueiras,,,dne,True
+TO,1700707,Alvorada,Setor Central,setor central,,,dne,True
+TO,1701002,Ananás,Setor Central,setor central,,,dne,True
+TO,1701051,Angico,Setor Central,setor central,,,dne,True
+TO,1701101,Aparecida do Rio Negro,Setor Central,setor central,,,dne,True
+TO,1701309,Aragominas,Setor Central,setor central,,,dne,True
+TO,1701903,Araguacema,Setor Central,setor central,,,dne,True
+TO,1702000,Araguaçu,Setor Central,setor central,,,dne,True
+TO,1702109,Araguaína,Área Rural de Araguaína,area rural de araguaina,,,dne,True
+TO,1702109,Araguaína,Bairro da Cimba,bairro da cimba,,,dne,True
+TO,1702109,Araguaína,Barra da Grota,barra da grota,,,dne,True
+TO,1702109,Araguaína,Barra do Grota,barra do grota,,,dne,True
+TO,1702109,Araguaína,Boa Sorte,boa sorte,,,dne,True
+TO,1702109,Araguaína,Brasilândia,brasilandia,,,dne,True
+TO,1702109,Araguaína,Cocalândia,cocalandia,,,dne,True
+TO,1702109,Araguaína,Cocalinho,cocalinho,,,dne,True
+TO,1702109,Araguaína,Conjunto Residencial Patrocínio,conjunto residencial patrocinio,,,dne,True
+TO,1702109,Araguaína,Conjunto Urbanístico,conjunto urbanistico,,,dne,True
+TO,1702109,Araguaína,Correinha,correinha,,,dne,True
+TO,1702109,Araguaína,Daiara,daiara,,,dne,True
+TO,1702109,Araguaína,Dom Orione,dom orione,,,dne,True
+TO,1702109,Araguaína,Eldorado,eldorado,,,dne,True
+TO,1702109,Araguaína,Escondido,escondido,,,dne,True
+TO,1702109,Araguaína,Ilha Barreira Branca,ilha barreira branca,,,dne,True
+TO,1702109,Araguaína,Jardim Beira Lago,jardim beira lago,,,dne,True
+TO,1702109,Araguaína,Jardim Bounganville,jardim bounganville,,,dne,True
+TO,1702109,Araguaína,Jardim Califórnia,jardim california,,,dne,True
+TO,1702109,Araguaína,Jardim das Palmeiras,jardim das palmeiras,,,dne,True
+TO,1702109,Araguaína,Jardim dos Ipês I,jardim dos ipes i,,,dne,True
+TO,1702109,Araguaína,Jardim dos Ipês II,jardim dos ipes ii,,,dne,True
+TO,1702109,Araguaína,Jardim dos Ipês III,jardim dos ipes iii,,,dne,True
+TO,1702109,Araguaína,Jardim Esplanada,jardim esplanada,,,dne,True
+TO,1702109,Araguaína,Jardim Filadélfia,jardim filadelfia,,,dne,True
+TO,1702109,Araguaína,Jardim Flores,jardim flores,,,dne,True
+TO,1702109,Araguaína,Jardim Garavelo Sul,jardim garavelo sul,,,dne,True
+TO,1702109,Araguaína,Jardim Goiás,jardim goias,,,dne,True
+TO,1702109,Araguaína,Jardim Itália,jardim italia,,,dne,True
+TO,1702109,Araguaína,Jardim Mansões Palmeiras,jardim mansoes palmeiras,,,dne,True
+TO,1702109,Araguaína,Jardim Paulista,jardim paulista,,,dne,True
+TO,1702109,Araguaína,Jardim Pedra Alta,jardim pedra alta,,,dne,True
+TO,1702109,Araguaína,Jardim Santa Helena,jardim santa helena,,,dne,True
+TO,1702109,Araguaína,JK,jk,,,dne,True
+TO,1702109,Araguaína,Jussara,jussara,,,dne,True
+TO,1702109,Araguaína,Loteamento Alaska,loteamento alaska,,,dne,True
+TO,1702109,Araguaína,Loteamento Araguaína Sul,loteamento araguaina sul,,,dne,True
+TO,1702109,Araguaína,Loteamento Barros,loteamento barros,,,dne,True
+TO,1702109,Araguaína,Loteamento Boa Vista,loteamento boa vista,,,dne,True
+TO,1702109,Araguaína,Loteamento Brejão 3ª Etapa,loteamento brejao 3a etapa,,,dne,True
+TO,1702109,Araguaína,Loteamento Castelo Branco,loteamento castelo branco,,,dne,True
+TO,1702109,Araguaína,Loteamento Céu Azul,loteamento ceu azul,,,dne,True
+TO,1702109,Araguaína,Loteamento Cidade Jardim,loteamento cidade jardim,,,dne,True
+TO,1702109,Araguaína,Loteamento Cidade Nova,loteamento cidade nova,,,dne,True
+TO,1702109,Araguaína,Loteamento Costa Esmeralda,loteamento costa esmeralda,,,dne,True
+TO,1702109,Araguaína,Loteamento Couto Magalhães,loteamento couto magalhaes,,,dne,True
+TO,1702109,Araguaína,Loteamento Cruzeiro,loteamento cruzeiro,,,dne,True
+TO,1702109,Araguaína,Loteamento de Fátima,loteamento de fatima,,,dne,True
+TO,1702109,Araguaína,Loteamento Dona Nélcia,loteamento dona nelcia,,,dne,True
+TO,1702109,Araguaína,Loteamento e Residencial Cazarotto,loteamento e residencial cazarotto,,,dne,True
+TO,1702109,Araguaína,Loteamento Flamboyant,loteamento flamboyant,,,dne,True
+TO,1702109,Araguaína,Loteamento Jardim América,loteamento jardim america,,,dne,True
+TO,1702109,Araguaína,Loteamento Jardim Boa Sorte,loteamento jardim boa sorte,,,dne,True
+TO,1702109,Araguaína,Loteamento Jardim do Lago,loteamento jardim do lago,,,dne,True
+TO,1702109,Araguaína,Loteamento Jardins Mônaco,loteamento jardins monaco,,,dne,True
+TO,1702109,Araguaína,Loteamento Jardins Siena,loteamento jardins siena,,,dne,True
+TO,1702109,Araguaína,Loteamento José Ferreira,loteamento jose ferreira,,,dne,True
+TO,1702109,Araguaína,Loteamento Lago Sul,loteamento lago sul,,,dne,True
+TO,1702109,Araguaína,Loteamento Liberdade,loteamento liberdade,,,dne,True
+TO,1702109,Araguaína,Loteamento Manoel Cardoso (Vila Cardoso),loteamento manoel cardoso vila cardoso,,,dne,True
+TO,1702109,Araguaína,Loteamento Manoel Gomes da Cunha,loteamento manoel gomes da cunha,,,dne,True
+TO,1702109,Araguaína,Loteamento Mansões do Lago,loteamento mansoes do lago,,,dne,True
+TO,1702109,Araguaína,Loteamento Maracanã,loteamento maracana,,,dne,True
+TO,1702109,Araguaína,Loteamento Martins Jorge,loteamento martins jorge,,,dne,True
+TO,1702109,Araguaína,Loteamento Monte Sinai,loteamento monte sinai,,,dne,True
+TO,1702109,Araguaína,Loteamento Morada dos Pássaros,loteamento morada dos passaros,,,dne,True
+TO,1702109,Araguaína,Loteamento Nova Araguaína,loteamento nova araguaina,,,dne,True
+TO,1702109,Araguaína,Loteamento Pampulha,loteamento pampulha,,,dne,True
+TO,1702109,Araguaína,Loteamento Panorama,loteamento panorama,,,dne,True
+TO,1702109,Araguaína,Loteamento Park Primavera,loteamento park primavera,,,dne,True
+TO,1702109,Araguaína,Loteamento Parque do Lago,loteamento parque do lago,,,dne,True
+TO,1702109,Araguaína,Loteamento Pedro Borges,loteamento pedro borges,,,dne,True
+TO,1702109,Araguaína,Loteamento Planalto,loteamento planalto,,,dne,True
+TO,1702109,Araguaína,Loteamento Presidente Costa e Silva,loteamento presidente costa e silva,,,dne,True
+TO,1702109,Araguaína,Loteamento Recanto do Lago,loteamento recanto do lago,,,dne,True
+TO,1702109,Araguaína,Loteamento Santa Luzia,loteamento santa luzia,,,dne,True
+TO,1702109,Araguaína,Loteamento Santa Mônica,loteamento santa monica,,,dne,True
+TO,1702109,Araguaína,Loteamento Santos Dumont,loteamento santos dumont,,,dne,True
+TO,1702109,Araguaína,Loteamento São Francisco,loteamento sao francisco,,,dne,True
+TO,1702109,Araguaína,Loteamento São Luiz,loteamento sao luiz,,,dne,True
+TO,1702109,Araguaína,Loteamento São Miguel,loteamento sao miguel,,,dne,True
+TO,1702109,Araguaína,Loteamento São Pedro,loteamento sao pedro,,,dne,True
+TO,1702109,Araguaína,Loteamento Vila Azul,loteamento vila azul,,,dne,True
+TO,1702109,Araguaína,Loteamento Vila Ferreira,loteamento vila ferreira,,,dne,True
+TO,1702109,Araguaína,Morada do Sol,morada do sol,,,dne,True
+TO,1702109,Araguaína,Morada do Sol 2,morada do sol 2,,,dne,True
+TO,1702109,Araguaína,Morada do Sol 3,morada do sol 3,,,dne,True
+TO,1702109,Araguaína,Novo Horizonte,novo horizonte,,,dne,True
+TO,1702109,Araguaína,Parque Bom Viver,parque bom viver,,,dne,True
+TO,1702109,Araguaína,Parque Sonhos Dourados,parque sonhos dourados,,,dne,True
+TO,1702109,Araguaína,Parque Vale Araguaia,parque vale araguaia,,,dne,True
+TO,1702109,Araguaína,Pé da Serra,pe da serra,,,dne,True
+TO,1702109,Araguaína,Pedro Ludovico,pedro ludovico,,,dne,True
+TO,1702109,Araguaína,Peixe,peixe,,,dne,True
+TO,1702109,Araguaína,Pilões,piloes,,,dne,True
+TO,1702109,Araguaína,Pontes,pontes,,,dne,True
+TO,1702109,Araguaína,Porãozinho,poraozinho,,,dne,True
+TO,1702109,Araguaína,Porto Lemos,porto lemos,,,dne,True
+TO,1702109,Araguaína,Residencial Belchior,residencial belchior,,,dne,True
+TO,1702109,Araguaína,Residencial Camargo,residencial camargo,,,dne,True
+TO,1702109,Araguaína,Residencial Itaipu,residencial itaipu,,,dne,True
+TO,1702109,Araguaína,Residencial Jardim Europa,residencial jardim europa,,,dne,True
+TO,1702109,Araguaína,Residencial Lago Azul I,residencial lago azul i,,,dne,True
+TO,1702109,Araguaína,Residencial Lago Azul III,residencial lago azul iii,,,dne,True
+TO,1702109,Araguaína,Residencial Topázio,residencial topazio,,,dne,True
+TO,1702109,Araguaína,Santa Mônica,santa monica,,,dne,True
+TO,1702109,Araguaína,Santa Terezinha,santa terezinha,,,dne,True
+TO,1702109,Araguaína,São João,sao joao,,,dne,True
+TO,1702109,Araguaína,Senador,senador,,,dne,True
+TO,1702109,Araguaína,Setor Aeroviário,setor aeroviario,,,dne,True
+TO,1702109,Araguaína,Setor Alto Bonito,setor alto bonito,,,dne,True
+TO,1702109,Araguaína,Setor Ana Maria,setor ana maria,,,dne,True
+TO,1702109,Araguaína,Setor Anhangüera,setor anhanguera,,,dne,True
+TO,1702109,Araguaína,Setor Bela Vista,setor bela vista,,,dne,True
+TO,1702109,Araguaína,Setor Belo Horizonte,setor belo horizonte,,,dne,True
+TO,1702109,Araguaína,Setor Brasil,setor brasil,,,dne,True
+TO,1702109,Araguaína,Setor Brejão,setor brejao,,,dne,True
+TO,1702109,Araguaína,Setor Carajá,setor caraja,,,dne,True
+TO,1702109,Araguaína,Setor Central,setor central,,,dne,True
+TO,1702109,Araguaína,Setor Coimbra,setor coimbra,,,dne,True
+TO,1702109,Araguaína,Setor de Telecomunicações,setor de telecomunicacoes,,,dne,True
+TO,1702109,Araguaína,Setor George Yunes,setor george yunes,,,dne,True
+TO,1702109,Araguaína,Setor Itatiaia,setor itatiaia,,,dne,True
+TO,1702109,Araguaína,Setor Novo Horizonte,setor novo horizonte,,,dne,True
+TO,1702109,Araguaína,Setor Oeste,setor oeste,,,dne,True
+TO,1702109,Araguaína,Setor Palmas,setor palmas,,,dne,True
+TO,1702109,Araguaína,Setor Raizal,setor raizal,,,dne,True
+TO,1702109,Araguaína,Setor Rodoviário,setor rodoviario,,,dne,True
+TO,1702109,Araguaína,Setor Sul,setor sul,,,dne,True
+TO,1702109,Araguaína,Setor Tereza Hilário,setor tereza hilario,,,dne,True
+TO,1702109,Araguaína,Setor Tiuba,setor tiuba,,,dne,True
+TO,1702109,Araguaína,Setor Tocantins,setor tocantins,,,dne,True
+TO,1702109,Araguaína,Setor Universitário,setor universitario,,,dne,True
+TO,1702109,Araguaína,Vênus,venus,,,dne,True
+TO,1702109,Araguaína,Vila Aliança,vila alianca,,,dne,True
+TO,1702109,Araguaína,Vila Boa,vila boa,,,dne,True
+TO,1702109,Araguaína,Vila Cearense,vila cearense,,,dne,True
+TO,1702109,Araguaína,Vila Couto Magalhães,vila couto magalhaes,,,dne,True
+TO,1702109,Araguaína,Vila Goiás,vila goias,,,dne,True
+TO,1702109,Araguaína,Vila Norte,vila norte,,,dne,True
+TO,1702109,Araguaína,Vila Nova,vila nova,,,dne,True
+TO,1702109,Araguaína,Vila Ribeiro,vila ribeiro,,,dne,True
+TO,1702109,Araguaína,Vila Rosário,vila rosario,,,dne,True
+TO,1702109,Araguaína,Vila Santiago,vila santiago,,,dne,True
+TO,1702109,Araguaína,Vila União,vila uniao,,,dne,True
+TO,1702158,Araguanã,Setor Central,setor central,,,dne,True
+TO,1702208,Araguatins,Natal,natal,,,dne,True
+TO,1702208,Araguatins,Setor Central,setor central,,,dne,True
+TO,1702307,Arapoema,Setor Central,setor central,,,dne,True
+TO,1702406,Arraias,Cana Brava,cana brava,,,dne,True
+TO,1702406,Arraias,Centro,centro,,,dne,True
+TO,1702406,Arraias,Setor Central,setor central,,,dne,True
+TO,1702554,Augustinópolis,Setor Central,setor central,,,dne,True
+TO,1702703,Aurora do Tocantins,Setor Central,setor central,,,dne,True
+TO,1702901,Axixá do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703008,Babaçulândia,Setor Central,setor central,,,dne,True
+TO,1703057,Bandeirantes do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703073,Barra do Ouro,Centro,centro,,,dne,True
+TO,1703073,Barra do Ouro,Morro Grande,morro grande,,,dne,True
+TO,1703073,Barra do Ouro,Setor Central,setor central,,,dne,True
+TO,1703107,Barrolândia,Setor Central,setor central,,,dne,True
+TO,1703206,Bernardo Sayão,Setor Central,setor central,,,dne,True
+TO,1703305,Bom Jesus do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703602,Brasilândia do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703701,Brejinho de Nazaré,Setor Central,setor central,,,dne,True
+TO,1703800,Buriti do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703826,Cachoeirinha,Setor Central,setor central,,,dne,True
+TO,1703842,Campos Lindos,Setor Central,setor central,,,dne,True
+TO,1703867,Cariri do Tocantins,Setor Central,setor central,,,dne,True
+TO,1703883,Carmolândia,Setor Central,setor central,,,dne,True
+TO,1703891,Carrasco Bonito,Setor Central,setor central,,,dne,True
+TO,1703909,Caseara,Aragaçuí,aragacui,,,dne,True
+TO,1703909,Caseara,Setor Central,setor central,,,dne,True
+TO,1704105,Centenário,Setor Central,setor central,,,dne,True
+TO,1704600,Chapada de Areia,Setor Central,setor central,,,dne,True
+TO,1705102,Chapada da Natividade,Setor Central,setor central,,,dne,True
+TO,1705508,Colinas do Tocantins,Aeroporto II,aeroporto ii,,,dne,True
+TO,1705508,Colinas do Tocantins,AICI Aeroporto,aici aeroporto,,,dne,True
+TO,1705508,Colinas do Tocantins,Alvorada,alvorada,,,dne,True
+TO,1705508,Colinas do Tocantins,Araguaia,araguaia,,,dne,True
+TO,1705508,Colinas do Tocantins,Área Rural de Colinas,area rural de colinas,,,dne,True
+TO,1705508,Colinas do Tocantins,Bela Vista,bela vista,,,dne,True
+TO,1705508,Colinas do Tocantins,Boa Esperança,boa esperanca,,,dne,True
+TO,1705508,Colinas do Tocantins,Campinas,campinas,,,dne,True
+TO,1705508,Colinas do Tocantins,Centro,centro,,,dne,True
+TO,1705508,Colinas do Tocantins,Doirado,doirado,,,dne,True
+TO,1705508,Colinas do Tocantins,Estrela do Norte I,estrela do norte i,,,dne,True
+TO,1705508,Colinas do Tocantins,Estrela do Norte II,estrela do norte ii,,,dne,True
+TO,1705508,Colinas do Tocantins,Industrial,industrial,,,dne,True
+TO,1705508,Colinas do Tocantins,Industrial Santo Antonio,industrial santo antonio,,,dne,True
+TO,1705508,Colinas do Tocantins,Jardim America,jardim america,,,dne,True
+TO,1705508,Colinas do Tocantins,Jardim Campo Clube,jardim campo clube,,,dne,True
+TO,1705508,Colinas do Tocantins,Novo Horizonte,novo horizonte,,,dne,True
+TO,1705508,Colinas do Tocantins,Novo Planalto,novo planalto,,,dne,True
+TO,1705508,Colinas do Tocantins,Oeste,oeste,,,dne,True
+TO,1705508,Colinas do Tocantins,Primavera,primavera,,,dne,True
+TO,1705508,Colinas do Tocantins,Real,real,,,dne,True
+TO,1705508,Colinas do Tocantins,Recanto do Bosque,recanto do bosque,,,dne,True
+TO,1705508,Colinas do Tocantins,Residencial Santo Antonio,residencial santo antonio,,,dne,True
+TO,1705508,Colinas do Tocantins,Rodoviário,rodoviario,,,dne,True
+TO,1705508,Colinas do Tocantins,Santa Maria,santa maria,,,dne,True
+TO,1705508,Colinas do Tocantins,Santa Rosa,santa rosa,,,dne,True
+TO,1705508,Colinas do Tocantins,Santo Antonio,santo antonio,,,dne,True
+TO,1705508,Colinas do Tocantins,São Cristovão,sao cristovao,,,dne,True
+TO,1705508,Colinas do Tocantins,Senador João Ribeiro,senador joao ribeiro,,,dne,True
+TO,1705508,Colinas do Tocantins,Sol Nascente,sol nascente,,,dne,True
+TO,1705508,Colinas do Tocantins,Sul,sul,,,dne,True
+TO,1705508,Colinas do Tocantins,Vila São João,vila sao joao,,,dne,True
+TO,1705557,Combinado,Setor Central,setor central,,,dne,True
+TO,1705607,Conceição do Tocantins,Setor Central,setor central,,,dne,True
+TO,1706001,Couto Magalhães,Setor Central,setor central,,,dne,True
+TO,1706100,Cristalândia,Setor Central,setor central,,,dne,True
+TO,1706258,Crixás do Tocantins,Setor Central,setor central,,,dne,True
+TO,1706506,Darcinópolis,Setor Central,setor central,,,dne,True
+TO,1707009,Dianópolis,Setor Central,setor central,,,dne,True
+TO,1707108,Divinópolis do Tocantins,Setor Central,setor central,,,dne,True
+TO,1707207,Dois Irmãos do Tocantins,Setor Central,setor central,,,dne,True
+TO,1707306,Dueré,Setor Central,setor central,,,dne,True
+TO,1707405,Esperantina,Setor Central,setor central,,,dne,True
+TO,1707553,Fátima,Setor Central,setor central,,,dne,True
+TO,1707652,Figueirópolis,Setor Central,setor central,,,dne,True
+TO,1707702,Filadélfia,Bielândia,bielandia,,,dne,True
+TO,1707702,Filadélfia,Setor Central,setor central,,,dne,True
+TO,1708205,Formoso do Araguaia,Setor Central,setor central,,,dne,True
+TO,1708254,Tabocão,Setor Central,setor central,,,dne,True
+TO,1708304,Goianorte,Setor Central,setor central,,,dne,True
+TO,1709005,Goiatins,Cartucho,cartucho,,,dne,True
+TO,1709005,Goiatins,Centro,centro,,,dne,True
+TO,1709005,Goiatins,Craolândia,craolandia,,,dne,True
+TO,1709005,Goiatins,Monte Lindo,monte lindo,,,dne,True
+TO,1709005,Goiatins,Setor Central,setor central,,,dne,True
+TO,1709302,Guaraí,Alto Bonito,alto bonito,,,dne,True
+TO,1709302,Guaraí,Área Rural de Guaraí,area rural de guarai,,,dne,True
+TO,1709302,Guaraí,Jardim Águas Claras,jardim aguas claras,,,dne,True
+TO,1709302,Guaraí,Jardim Alto Alegre,jardim alto alegre,,,dne,True
+TO,1709302,Guaraí,Jardim Brasília,jardim brasilia,,,dne,True
+TO,1709302,Guaraí,Jardim Irany,jardim irany,,,dne,True
+TO,1709302,Guaraí,Loteamento Jardins,loteamento jardins,,,dne,True
+TO,1709302,Guaraí,Loteamento Presidencial Lysan,loteamento presidencial lysan,,,dne,True
+TO,1709302,Guaraí,Loteamento Residencial Floresta II,loteamento residencial floresta ii,,,dne,True
+TO,1709302,Guaraí,Menino Jesus de Praga,menino jesus de praga,,,dne,True
+TO,1709302,Guaraí,Mirandópolis,mirandopolis,,,dne,True
+TO,1709302,Guaraí,Parque das Palmeiras,parque das palmeiras,,,dne,True
+TO,1709302,Guaraí,Parque Sol Nascente,parque sol nascente,,,dne,True
+TO,1709302,Guaraí,Portal da Serra,portal da serra,,,dne,True
+TO,1709302,Guaraí,Residencial Habitate II,residencial habitate ii,,,dne,True
+TO,1709302,Guaraí,Residencial Jardim Floresta,residencial jardim floresta,,,dne,True
+TO,1709302,Guaraí,Residencial Por do Sol I,residencial por do sol i,,,dne,True
+TO,1709302,Guaraí,Residencial Por do Sol II,residencial por do sol ii,,,dne,True
+TO,1709302,Guaraí,São Luiz,sao luiz,,,dne,True
+TO,1709302,Guaraí,Setor Aeroporto,setor aeroporto,,,dne,True
+TO,1709302,Guaraí,Setor Aeroporto II,setor aeroporto ii,,,dne,True
+TO,1709302,Guaraí,Setor Alvorada,setor alvorada,,,dne,True
+TO,1709302,Guaraí,Setor Bela Vista,setor bela vista,,,dne,True
+TO,1709302,Guaraí,Setor Bueno,setor bueno,,,dne,True
+TO,1709302,Guaraí,Setor Canaã,setor canaa,,,dne,True
+TO,1709302,Guaraí,Setor Cristo Redentor,setor cristo redentor,,,dne,True
+TO,1709302,Guaraí,Setor Dantas,setor dantas,,,dne,True
+TO,1709302,Guaraí,Setor Guará,setor guara,,,dne,True
+TO,1709302,Guaraí,Setor Guarazinho,setor guarazinho,,,dne,True
+TO,1709302,Guaraí,Setor Leste,setor leste,,,dne,True
+TO,1709302,Guaraí,Setor Mapa I,setor mapa i,,,dne,True
+TO,1709302,Guaraí,Setor Mapa II,setor mapa ii,,,dne,True
+TO,1709302,Guaraí,Setor Mapa III,setor mapa iii,,,dne,True
+TO,1709302,Guaraí,Setor Norte I,setor norte i,,,dne,True
+TO,1709302,Guaraí,Setor Norte II,setor norte ii,,,dne,True
+TO,1709302,Guaraí,Setor Norte Rodoviário,setor norte rodoviario,,,dne,True
+TO,1709302,Guaraí,Setor Park Esperança,setor park esperanca,,,dne,True
+TO,1709302,Guaraí,Setor Pestana,setor pestana,,,dne,True
+TO,1709302,Guaraí,Setor Piassava,setor piassava,,,dne,True
+TO,1709302,Guaraí,Setor Planalto,setor planalto,,,dne,True
+TO,1709302,Guaraí,Setor Primavera,setor primavera,,,dne,True
+TO,1709302,Guaraí,Setor Sul,setor sul,,,dne,True
+TO,1709302,Guaraí,Setor Universitário,setor universitario,,,dne,True
+TO,1709302,Guaraí,Setor Vettorazzi,setor vettorazzi,,,dne,True
+TO,1709302,Guaraí,Vale do Amanhecer,vale do amanhecer,,,dne,True
+TO,1709302,Guaraí,Vila Moraes,vila moraes,,,dne,True
+TO,1709302,Guaraí,Vila Redenção,vila redencao,,,dne,True
+TO,1709302,Guaraí,Vila Vilela,vila vilela,,,dne,True
+TO,1709500,Gurupi,Alto da Boa Vista,alto da boa vista,,,dne,True
+TO,1709500,Gurupi,Alto dos Buritis,alto dos buritis,,,dne,True
+TO,1709500,Gurupi,Área Rural de Gurupi,area rural de gurupi,,,dne,True
+TO,1709500,Gurupi,Chácara Recreio Vale do Sol,chacara recreio vale do sol,,,dne,True
+TO,1709500,Gurupi,Chácara Recreios Irmãos Ferreira,chacara recreios irmaos ferreira,,,dne,True
+TO,1709500,Gurupi,Cidade Industrial,cidade industrial,,,dne,True
+TO,1709500,Gurupi,Crixás,crixas,,,dne,True
+TO,1709500,Gurupi,Green Park,green park,,,dne,True
+TO,1709500,Gurupi,Jardim Boulivard,jardim boulivard,,,dne,True
+TO,1709500,Gurupi,Jardim da Luz,jardim da luz,,,dne,True
+TO,1709500,Gurupi,Jardim das Bandeiras,jardim das bandeiras,,,dne,True
+TO,1709500,Gurupi,Jardim das Palmeiras,jardim das palmeiras,,,dne,True
+TO,1709500,Gurupi,Jardim Eldorado,jardim eldorado,,,dne,True
+TO,1709500,Gurupi,Jardim Flamboyant,jardim flamboyant,,,dne,True
+TO,1709500,Gurupi,Jardim Guanabara,jardim guanabara,,,dne,True
+TO,1709500,Gurupi,Jardim Medeiros,jardim medeiros,,,dne,True
+TO,1709500,Gurupi,Jardim Paulicéia,jardim pauliceia,,,dne,True
+TO,1709500,Gurupi,Jardim São Lucas,jardim sao lucas,,,dne,True
+TO,1709500,Gurupi,Jardim Sevilha,jardim sevilha,,,dne,True
+TO,1709500,Gurupi,Jardim Tocantins,jardim tocantins,,,dne,True
+TO,1709500,Gurupi,Jardim Tropical,jardim tropical,,,dne,True
+TO,1709500,Gurupi,Loteamento Águas Claras,loteamento aguas claras,,,dne,True
+TO,1709500,Gurupi,Loteamento Campo Bello,loteamento campo bello,,,dne,True
+TO,1709500,Gurupi,Loteamento Fazenda Santo Antônio,loteamento fazenda santo antonio,,,dne,True
+TO,1709500,Gurupi,Loteamento Parque Residencial Atalaia,loteamento parque residencial atalaia,,,dne,True
+TO,1709500,Gurupi,Loteamento Residencial João Lisboa da Cruz,loteamento residencial joao lisboa da cruz,,,dne,True
+TO,1709500,Gurupi,Loteamento São Jorge,loteamento sao jorge,,,dne,True
+TO,1709500,Gurupi,Mansões do Cerrado,mansoes do cerrado,,,dne,True
+TO,1709500,Gurupi,Muniz Santana,muniz santana,,,dne,True
+TO,1709500,Gurupi,Park Filó Moreira,park filo moreira,,,dne,True
+TO,1709500,Gurupi,Parque Agroindustrial,parque agroindustrial,,,dne,True
+TO,1709500,Gurupi,Parque Primavera,parque primavera,,,dne,True
+TO,1709500,Gurupi,Parque Residencial dos Cajueiros,parque residencial dos cajueiros,,,dne,True
+TO,1709500,Gurupi,Parque Residencial Nova Fronteira,parque residencial nova fronteira,,,dne,True
+TO,1709500,Gurupi,Parque Residencial São José,parque residencial sao jose,,,dne,True
+TO,1709500,Gurupi,Parque Residencial São Paulo,parque residencial sao paulo,,,dne,True
+TO,1709500,Gurupi,Parque Sol Nascente,parque sol nascente,,,dne,True
+TO,1709500,Gurupi,Residencial Daniela,residencial daniela,,,dne,True
+TO,1709500,Gurupi,Residencial Jardim América,residencial jardim america,,,dne,True
+TO,1709500,Gurupi,Residencial Jardim dos Buritis,residencial jardim dos buritis,,,dne,True
+TO,1709500,Gurupi,Residencial Jardim Nova América,residencial jardim nova america,,,dne,True
+TO,1709500,Gurupi,Residencial Madrid,residencial madrid,,,dne,True
+TO,1709500,Gurupi,Residencial Park dos Buritis,residencial park dos buritis,,,dne,True
+TO,1709500,Gurupi,Residencial Parque das Acácias,residencial parque das acacias,,,dne,True
+TO,1709500,Gurupi,Santa Rita de Cássia,santa rita de cassia,,,dne,True
+TO,1709500,Gurupi,Setor Aeroporto,setor aeroporto,,,dne,True
+TO,1709500,Gurupi,Setor Aeroporto II,setor aeroporto ii,,,dne,True
+TO,1709500,Gurupi,Setor Bela Vista,setor bela vista,,,dne,True
+TO,1709500,Gurupi,Setor Canaã,setor canaa,,,dne,True
+TO,1709500,Gurupi,Setor Casego,setor casego,,,dne,True
+TO,1709500,Gurupi,Setor Central,setor central,,,dne,True
+TO,1709500,Gurupi,Setor Cruzeiro,setor cruzeiro,,,dne,True
+TO,1709500,Gurupi,Setor dos Funcionários,setor dos funcionarios,,,dne,True
+TO,1709500,Gurupi,Setor Leste,setor leste,,,dne,True
+TO,1709500,Gurupi,Setor Morada do Sol,setor morada do sol,,,dne,True
+TO,1709500,Gurupi,Setor Novo Horizonte,setor novo horizonte,,,dne,True
+TO,1709500,Gurupi,Setor Paulo de Tarso,setor paulo de tarso,,,dne,True
+TO,1709500,Gurupi,Setor Sul II,setor sul ii,,,dne,True
+TO,1709500,Gurupi,Setor União I,setor uniao i,,,dne,True
+TO,1709500,Gurupi,Setor União II,setor uniao ii,,,dne,True
+TO,1709500,Gurupi,Setor União III,setor uniao iii,,,dne,True
+TO,1709500,Gurupi,Setor União IV,setor uniao iv,,,dne,True
+TO,1709500,Gurupi,Setor União V,setor uniao v,,,dne,True
+TO,1709500,Gurupi,Shangri-Lá,shangri la,,,dne,True
+TO,1709500,Gurupi,Trevo Oeste,trevo oeste,,,dne,True
+TO,1709500,Gurupi,Vila Alagoana,vila alagoana,,,dne,True
+TO,1709500,Gurupi,Vila Guaracy,vila guaracy,,,dne,True
+TO,1709500,Gurupi,Vila Independência,vila independencia,,,dne,True
+TO,1709500,Gurupi,Vila Iris,vila iris,,,dne,True
+TO,1709500,Gurupi,Vila Paulista,vila paulista,,,dne,True
+TO,1709500,Gurupi,Vila Pedroso,vila pedroso,,,dne,True
+TO,1709500,Gurupi,Vila São José,vila sao jose,,,dne,True
+TO,1709500,Gurupi,Waldir Lins I,waldir lins i,,,dne,True
+TO,1709500,Gurupi,Waldir Lins II,waldir lins ii,,,dne,True
+TO,1709807,Ipueiras,Setor Central,setor central,,,dne,True
+TO,1710508,Itacajá,Setor Central,setor central,,,dne,True
+TO,1710706,Itaguatins,Setor Central,setor central,,,dne,True
+TO,1710904,Itapiratins,Setor Central,setor central,,,dne,True
+TO,1711100,Itaporã do Tocantins,Setor Central,setor central,,,dne,True
+TO,1711506,Jaú do Tocantins,Centro,centro,,,dne,True
+TO,1711803,Juarina,Setor Central,setor central,,,dne,True
+TO,1711902,Lagoa da Confusão,Setor Central,setor central,,,dne,True
+TO,1711951,Lagoa do Tocantins,Setor Central,setor central,,,dne,True
+TO,1712009,Lajeado,Setor Central,setor central,,,dne,True
+TO,1712157,Lavandeira,Setor Central,setor central,,,dne,True
+TO,1712405,Lizarda,Setor Central,setor central,,,dne,True
+TO,1712454,Luzinópolis,Setor Central,setor central,,,dne,True
+TO,1712504,Marianópolis do Tocantins,Setor Central,setor central,,,dne,True
+TO,1712702,Mateiros,Setor Central,setor central,,,dne,True
+TO,1712801,Maurilândia do Tocantins,Setor Central,setor central,,,dne,True
+TO,1713205,Miracema do Tocantins,Setor Central,setor central,,,dne,True
+TO,1713304,Miranorte,Setor Central,setor central,,,dne,True
+TO,1713601,Monte do Carmo,Setor Central,setor central,,,dne,True
+TO,1713700,Monte Santo do Tocantins,Setor Central,setor central,,,dne,True
+TO,1713809,Palmeiras do Tocantins,Setor Central,setor central,,,dne,True
+TO,1713957,Muricilândia,Setor Central,setor central,,,dne,True
+TO,1714203,Natividade,Centro,centro,,,dne,True
+TO,1714203,Natividade,Príncipe,principe,,,dne,True
+TO,1714203,Natividade,Setor Central,setor central,,,dne,True
+TO,1714302,Nazaré,Setor Central,setor central,,,dne,True
+TO,1714302,Nazaré,Tamboril,tamboril,,,dne,True
+TO,1714880,Nova Olinda,Setor Central,setor central,,,dne,True
+TO,1715002,Nova Rosalândia,Setor Central,setor central,,,dne,True
+TO,1715101,Novo Acordo,Setor Central,setor central,,,dne,True
+TO,1715150,Novo Alegre,Setor Central,setor central,,,dne,True
+TO,1715259,Novo Jardim,Setor Central,setor central,,,dne,True
+TO,1715507,Oliveira de Fátima,Setor Central,setor central,,,dne,True
+TO,1715705,Palmeirante,Setor Central,setor central,,,dne,True
+TO,1715754,Palmeirópolis,Setor Central,setor central,,,dne,True
+TO,1716109,Paraíso do Tocantins,Aeroporto,aeroporto,,,dne,True
+TO,1716109,Paraíso do Tocantins,Alto Paraíso,alto paraiso,,,dne,True
+TO,1716109,Paraíso do Tocantins,Área Rural de Paraíso do Tocantins,area rural de paraiso do tocantins,,,dne,True
+TO,1716109,Paraíso do Tocantins,Bela Vista,bela vista,,,dne,True
+TO,1716109,Paraíso do Tocantins,Bueno,bueno,,,dne,True
+TO,1716109,Paraíso do Tocantins,Centro,centro,,,dne,True
+TO,1716109,Paraíso do Tocantins,Chacara Targus,chacara targus,,,dne,True
+TO,1716109,Paraíso do Tocantins,Chapadão,chapadao,,,dne,True
+TO,1716109,Paraíso do Tocantins,Interlagos,interlagos,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim America,jardim america,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim do Lago,jardim do lago,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim Itália,jardim italia,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim Limeira,jardim limeira,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim Paulista,jardim paulista,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardim Universitário,jardim universitario,,,dne,True
+TO,1716109,Paraíso do Tocantins,Jardins das Acácias,jardins das acacias,,,dne,True
+TO,1716109,Paraíso do Tocantins,Joaquim Gomes Cardoso,joaquim gomes cardoso,,,dne,True
+TO,1716109,Paraíso do Tocantins,Lago Sul,lago sul,,,dne,True
+TO,1716109,Paraíso do Tocantins,Marista,marista,,,dne,True
+TO,1716109,Paraíso do Tocantins,Milena 2,milena 2,,,dne,True
+TO,1716109,Paraíso do Tocantins,Milena I,milena i,,,dne,True
+TO,1716109,Paraíso do Tocantins,Neuton Moraes,neuton moraes,,,dne,True
+TO,1716109,Paraíso do Tocantins,Nova Esperança,nova esperanca,,,dne,True
+TO,1716109,Paraíso do Tocantins,Nova Fronteira,nova fronteira,,,dne,True
+TO,1716109,Paraíso do Tocantins,Novo Jardim Paulista,novo jardim paulista,,,dne,True
+TO,1716109,Paraíso do Tocantins,Oeste,oeste,,,dne,True
+TO,1716109,Paraíso do Tocantins,Ouro Verde,ouro verde,,,dne,True
+TO,1716109,Paraíso do Tocantins,Paraíso dos Ipês,paraiso dos ipes,,,dne,True
+TO,1716109,Paraíso do Tocantins,Parque Agroindustrial José Antônio de Deus,parque agroindustrial jose antonio de deus,,,dne,True
+TO,1716109,Paraíso do Tocantins,Parque dos Buritis,parque dos buritis,,,dne,True
+TO,1716109,Paraíso do Tocantins,Parque Industrial Álvaro Moreira Milhomem,parque industrial alvaro moreira milhomem,,,dne,True
+TO,1716109,Paraíso do Tocantins,PIMEP,pimep,,,dne,True
+TO,1716109,Paraíso do Tocantins,Portal do Sul,portal do sul,,,dne,True
+TO,1716109,Paraíso do Tocantins,Pouso Alegre,pouso alegre,,,dne,True
+TO,1716109,Paraíso do Tocantins,Residencial Carlos Magno,residencial carlos magno,,,dne,True
+TO,1716109,Paraíso do Tocantins,Residencial Flamboyant,residencial flamboyant,,,dne,True
+TO,1716109,Paraíso do Tocantins,Santa Clara,santa clara,,,dne,True
+TO,1716109,Paraíso do Tocantins,Santa Luzia,santa luzia,,,dne,True
+TO,1716109,Paraíso do Tocantins,Santana,santana,,,dne,True
+TO,1716109,Paraíso do Tocantins,Serra Verde,serra verde,,,dne,True
+TO,1716109,Paraíso do Tocantins,Serrano,serrano,,,dne,True
+TO,1716109,Paraíso do Tocantins,Setor Sul,setor sul,,,dne,True
+TO,1716109,Paraíso do Tocantins,Terra Bela,terra bela,,,dne,True
+TO,1716109,Paraíso do Tocantins,Vale do Araguaia,vale do araguaia,,,dne,True
+TO,1716109,Paraíso do Tocantins,Vila Oeste,vila oeste,,,dne,True
+TO,1716109,Paraíso do Tocantins,Vila Popular,vila popular,,,dne,True
+TO,1716109,Paraíso do Tocantins,Vila Regina,vila regina,,,dne,True
+TO,1716109,Paraíso do Tocantins,Vitória,vitoria,,,dne,True
+TO,1716208,Paranã,Bom Jesus da Palma,bom jesus da palma,,,dne,True
+TO,1716208,Paranã,Campo Alegre,campo alegre,,,dne,True
+TO,1716208,Paranã,Setor Central,setor central,,,dne,True
+TO,1716307,Pau D'Arco,Setor Central,setor central,,,dne,True
+TO,1716505,Pedro Afonso,Anajanópolis,anajanopolis,,,dne,True
+TO,1716505,Pedro Afonso,Setor Central,setor central,,,dne,True
+TO,1716604,Peixe,Setor Central,setor central,,,dne,True
+TO,1716653,Pequizeiro,Setor Central,setor central,,,dne,True
+TO,1716703,Colméia,Setor Central,setor central,,,dne,True
+TO,1717008,Pindorama do Tocantins,Setor Central,setor central,,,dne,True
+TO,1717206,Piraquê,Setor Central,setor central,,,dne,True
+TO,1717503,Pium,Setor Central,setor central,,,dne,True
+TO,1717800,Ponte Alta do Bom Jesus,Setor Central,setor central,,,dne,True
+TO,1717909,Ponte Alta do Tocantins,Setor Central,setor central,,,dne,True
+TO,1718006,Porto Alegre do Tocantins,Setor Central,setor central,,,dne,True
+TO,1718204,Porto Nacional,Acapulco (Luzimangues),acapulco luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Agroindustrial,agroindustrial,,,dne,True
+TO,1718204,Porto Nacional,Águas Lindas (Luzimangues),aguas lindas luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Aldeia do Lago (Luzimangues),aldeia do lago luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Alto da Colina,alto da colina,,,dne,True
+TO,1718204,Porto Nacional,Alto do Porto,alto do porto,,,dne,True
+TO,1718204,Porto Nacional,Área Rural de Luzimangues,area rural de luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Área Rural de Porto Nacional,area rural de porto nacional,,,dne,True
+TO,1718204,Porto Nacional,Bairro Imperial,bairro imperial,,,dne,True
+TO,1718204,Porto Nacional,Barcelona (Luzimangues),barcelona luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Beira Rio,beira rio,,,dne,True
+TO,1718204,Porto Nacional,Bela Vista (Luzimangues),bela vista luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Boa Vista (Luzimangues),boa vista luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Brigadeiro Eduardo Gomes,brigadeiro eduardo gomes,,,dne,True
+TO,1718204,Porto Nacional,Buena Vista (Luzimangues),buena vista luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Campinas (Luzimangues),campinas luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Campo Belo (Luzimangues),campo belo luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Canadá (Luzimangues),canada luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Centro,centro,,,dne,True
+TO,1718204,Porto Nacional,Condomínio Lake Side,condominio lake side,,,dne,True
+TO,1718204,Porto Nacional,Cruzeiro do Sul,cruzeiro do sul,,,dne,True
+TO,1718204,Porto Nacional,Distrito Multissetorial 13 de Julho,distrito multissetorial 13 de julho,,,dne,True
+TO,1718204,Porto Nacional,Escola Brasil,escola brasil,,,dne,True
+TO,1718204,Porto Nacional,Estação da Luz,estacao da luz,,,dne,True
+TO,1718204,Porto Nacional,Fabrício César Freire,fabricio cesar freire,,,dne,True
+TO,1718204,Porto Nacional,Flamboyant II (Luzimangues),flamboyant ii luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Flamboyant (Luzimangues),flamboyant luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Flor do Cerrado (Luzimangues),flor do cerrado luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Florença (Luzimangues),florenca luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Flores (Luzimangues),flores luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Genebra (Luzimangues),genebra luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Granville,granville,,,dne,True
+TO,1718204,Porto Nacional,Guanabara (Luzimangues),guanabara luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Haonat (Luzimangues),haonat luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Irmâ Edila,irma edila,,,dne,True
+TO,1718204,Porto Nacional,Itália (Luzimangues),italia luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Aeroporto,jardim aeroporto,,,dne,True
+TO,1718204,Porto Nacional,Jardim America,jardim america,,,dne,True
+TO,1718204,Porto Nacional,Jardim Bougaville (Luzimangues),jardim bougaville luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Brasilia,jardim brasilia,,,dne,True
+TO,1718204,Porto Nacional,Jardim do Porto (Luzimangues),jardim do porto luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim dos Ipês,jardim dos ipes,,,dne,True
+TO,1718204,Porto Nacional,Jardim Europa (Luzimangues),jardim europa luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Guaxupé,jardim guaxupe,,,dne,True
+TO,1718204,Porto Nacional,Jardim Madri (Luzimangues),jardim madri luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Milão 2 (Luzimangues),jardim milao 2 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Milão (Luzimangues),jardim milao luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Municipal,jardim municipal,,,dne,True
+TO,1718204,Porto Nacional,Jardim Nova America,jardim nova america,,,dne,True
+TO,1718204,Porto Nacional,Jardim Planalto,jardim planalto,,,dne,True
+TO,1718204,Porto Nacional,Jardim Primavera (Luzimangues),jardim primavera luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardim Querido,jardim querido,,,dne,True
+TO,1718204,Porto Nacional,Jardim Sofia (Luzimangues),jardim sofia luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Jardins,jardins,,,dne,True
+TO,1718204,Porto Nacional,Jardins do Lago (Luzimangues),jardins do lago luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Lago Azul (Luzimangues),lago azul luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Laguna I (Luzimangues),laguna i luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Laguna II (Luzimangues),laguna ii luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Laguna III (Luzimangues),laguna iii luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Loteamento São José,loteamento sao jose,,,dne,True
+TO,1718204,Porto Nacional,Luzimangues,luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Maranata (Luzimangues),maranata luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Monaco (Luzimangues),monaco luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Montreal Park (Luzimangues),montreal park luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Morumbi (Luzimangues),morumbi luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Náutico (Luzimangues),nautico luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Nova Capital,nova capital,,,dne,True
+TO,1718204,Porto Nacional,Nova Pinheiropolis,nova pinheiropolis,,,dne,True
+TO,1718204,Porto Nacional,Novo Horizonte,novo horizonte,,,dne,True
+TO,1718204,Porto Nacional,Novo Planalto,novo planalto,,,dne,True
+TO,1718204,Porto Nacional,Orla Oeste (Luzimangues),orla oeste luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Orla Ville (Luzimangues),orla ville luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Padre Luso,padre luso,,,dne,True
+TO,1718204,Porto Nacional,Palmares (Luzimangues),palmares luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Palmeiras,palmeiras,,,dne,True
+TO,1718204,Porto Nacional,Park dos Girassois (Luzimangues),park dos girassois luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Parque do Trevo,parque do trevo,,,dne,True
+TO,1718204,Porto Nacional,Parque dos Buritis (Luzimangues),parque dos buritis luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Parque Eldorado,parque eldorado,,,dne,True
+TO,1718204,Porto Nacional,Parque Liberdade,parque liberdade,,,dne,True
+TO,1718204,Porto Nacional,Parque Res Porto Real,parque res porto real,,,dne,True
+TO,1718204,Porto Nacional,Portal do Lago (Luzimangues),portal do lago luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Porto Imperial,porto imperial,,,dne,True
+TO,1718204,Porto Nacional,Porto Real (Luzimangues),porto real luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Porto Seguro (Luzimangues),porto seguro luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Praia Bela,praia bela,,,dne,True
+TO,1718204,Porto Nacional,Residencial Camila (Luzimangues),residencial camila luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Residencial Cristal,residencial cristal,,,dne,True
+TO,1718204,Porto Nacional,Residencial Porto Leman,residencial porto leman,,,dne,True
+TO,1718204,Porto Nacional,Residencial Sydnei (Luzimangues),residencial sydnei luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Riviera SQ-1 (Luzimangues),riviera sq 1 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Riviera SQ-2 (Luzimangues),riviera sq 2 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Riviera SQ-3 (Luzimangues),riviera sq 3 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Riviera SQ-4 (Luzimangues),riviera sq 4 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Santa Helena,santa helena,,,dne,True
+TO,1718204,Porto Nacional,São Francisco,sao francisco,,,dne,True
+TO,1718204,Porto Nacional,São Vicente,sao vicente,,,dne,True
+TO,1718204,Porto Nacional,Seles (Luzimangues),seles luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Setor Aeroporto,setor aeroporto,,,dne,True
+TO,1718204,Porto Nacional,Setor Consorcio,setor consorcio,,,dne,True
+TO,1718204,Porto Nacional,Setor das Mansões,setor das mansoes,,,dne,True
+TO,1718204,Porto Nacional,Setor Fama,setor fama,,,dne,True
+TO,1718204,Porto Nacional,Setor Nacional,setor nacional,,,dne,True
+TO,1718204,Porto Nacional,Setor Universitário,setor universitario,,,dne,True
+TO,1718204,Porto Nacional,Terra Vista (Luzimangues),terra vista luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Tropical Palmas,tropical palmas,,,dne,True
+TO,1718204,Porto Nacional,Umuarama,umuarama,,,dne,True
+TO,1718204,Porto Nacional,Veneza (Luzimangues),veneza luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Vila Bela (Luzimangues),vila bela luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Vila Luzimangues (Luzimangues),vila luzimangues luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Vila Nova,vila nova,,,dne,True
+TO,1718204,Porto Nacional,Vila Operária,vila operaria,,,dne,True
+TO,1718204,Porto Nacional,Village Morena SQ-1 (Luzimangues),village morena sq 1 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Village Morena SQ-2 (Luzimangues),village morena sq 2 luzimangues,,,dne,True
+TO,1718204,Porto Nacional,Village Morena SQ-3 (Luzimangues),village morena sq 3 luzimangues,,,dne,True
+TO,1718303,Praia Norte,Setor Central,setor central,,,dne,True
+TO,1718402,Presidente Kennedy,Setor Central,setor central,,,dne,True
+TO,1718402,Presidente Kennedy,Tupiratã,tupirata,,,dne,True
+TO,1718451,Pugmil,Setor Central,setor central,,,dne,True
+TO,1718501,Recursolândia,Setor Central,setor central,,,dne,True
+TO,1718550,Riachinho,Setor Central,setor central,,,dne,True
+TO,1718659,Rio da Conceição,Setor Central,setor central,,,dne,True
+TO,1718709,Rio dos Bois,Setor Central,setor central,,,dne,True
+TO,1718758,Rio Sono,Setor Pioneiro,setor pioneiro,,,dne,True
+TO,1718808,Sampaio,Setor Central,setor central,,,dne,True
+TO,1718840,Sandolândia,Setor Central,setor central,,,dne,True
+TO,1718865,Santa Fé do Araguaia,Setor Central,setor central,,,dne,True
+TO,1718881,Santa Maria do Tocantins,Setor Central,setor central,,,dne,True
+TO,1718899,Santa Rita do Tocantins,Setor Central,setor central,,,dne,True
+TO,1718907,Santa Rosa do Tocantins,Setor Central,setor central,,,dne,True
+TO,1719004,Santa Tereza do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720002,Santa Terezinha do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720101,São Bento do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720150,São Félix do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720200,São Miguel do Tocantins,Centro,centro,,,dne,True
+TO,1720259,São Salvador do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720309,São Sebastião do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720499,São Valério,Apinajé,apinaje,,,dne,True
+TO,1720499,São Valério,Setor Central,setor central,,,dne,True
+TO,1720655,Silvanópolis,Setor Central,setor central,,,dne,True
+TO,1720804,Sítio Novo do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720853,Sucupira,Setor Central,setor central,,,dne,True
+TO,1720903,Taguatinga,Setor Central,setor central,,,dne,True
+TO,1720937,Taipas do Tocantins,Setor Central,setor central,,,dne,True
+TO,1720978,Talismã,Setor Central,setor central,,,dne,True
+TO,1721000,Palmas,Área Rural de Palmas,area rural de palmas,,,dne,True
+TO,1721000,Palmas,Buritirana,buritirana,,,dne,True
+TO,1721000,Palmas,Centro (Taquaralto),centro taquaralto,,,dne,True
+TO,1721000,Palmas,Conjunto Maria Rosa (Taquaralto),conjunto maria rosa taquaralto,,,dne,True
+TO,1721000,Palmas,Distrito Industrial de Taquaralto,distrito industrial de taquaralto,,,dne,True
+TO,1721000,Palmas,Graciosa - Orla 14,graciosa orla 14,,,dne,True
+TO,1721000,Palmas,Irmã Dulce,irma dulce,,,dne,True
+TO,1721000,Palmas,Jardim Aeroporto,jardim aeroporto,,,dne,True
+TO,1721000,Palmas,Jardim Aureny I,jardim aureny i,,,dne,True
+TO,1721000,Palmas,Jardim Aureny II,jardim aureny ii,,,dne,True
+TO,1721000,Palmas,Jardim Aureny III,jardim aureny iii,,,dne,True
+TO,1721000,Palmas,Jardim Aureny IV,jardim aureny iv,,,dne,True
+TO,1721000,Palmas,Jardim Bela Vista,jardim bela vista,,,dne,True
+TO,1721000,Palmas,Jardim Janaína (Taquaralto),jardim janaina taquaralto,,,dne,True
+TO,1721000,Palmas,Jardim Paulista (Taquaralto),jardim paulista taquaralto,,,dne,True
+TO,1721000,Palmas,Jardim Santa Bárbara,jardim santa barbara,,,dne,True
+TO,1721000,Palmas,Jardim Santa Helena,jardim santa helena,,,dne,True
+TO,1721000,Palmas,Jardim Taquari (Taquaralto),jardim taquari taquaralto,,,dne,True
+TO,1721000,Palmas,Lago Norte,lago norte,,,dne,True
+TO,1721000,Palmas,Loteamento Água Fria,loteamento agua fria,,,dne,True
+TO,1721000,Palmas,Loteamento Água Fria 4ª Etapa,loteamento agua fria 4a etapa,,,dne,True
+TO,1721000,Palmas,Loteamento Bertaville,loteamento bertaville,,,dne,True
+TO,1721000,Palmas,Loteamento Caribe,loteamento caribe,,,dne,True
+TO,1721000,Palmas,Loteamento Caribe Residence & Resort 2ª Etapa,loteamento caribe residence resort 2a etapa,,,dne,True
+TO,1721000,Palmas,"Loteamento Córrego Jaú, 6ª Etapa",loteamento corrego jau 6a etapa,,,dne,True
+TO,1721000,Palmas,Loteamento Jardim Laila,loteamento jardim laila,,,dne,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 1,loteamento jardim vitoria 1,,,dne,True
+TO,1721000,Palmas,Loteamento Jardim Vitória 2,loteamento jardim vitoria 2,,,dne,True
+TO,1721000,Palmas,Loteamento Lago Sul (Taquaralto),loteamento lago sul taquaralto,,,dne,True
+TO,1721000,Palmas,Loteamento Nova Flamboyant,loteamento nova flamboyant,,,dne,True
+TO,1721000,Palmas,Loteamento Palmas Sul,loteamento palmas sul,,,dne,True
+TO,1721000,Palmas,Loteamento Residencial Polinésia,loteamento residencial polinesia,,,dne,True
+TO,1721000,Palmas,Loteamento Santa Fé Quarta Etapa,loteamento santa fe quarta etapa,,,dne,True
+TO,1721000,Palmas,Loteamento Sonho Meu,loteamento sonho meu,,,dne,True
+TO,1721000,Palmas,Lotemaneto Sucupira,lotemaneto sucupira,,,dne,True
+TO,1721000,Palmas,Plano Diretor Expansão Sul,plano diretor expansao sul,,,dne,True
+TO,1721000,Palmas,Plano Diretor Norte,plano diretor norte,,,dne,True
+TO,1721000,Palmas,Plano Diretor Sul,plano diretor sul,,,dne,True
+TO,1721000,Palmas,Recanto das Araras I,recanto das araras i,,,dne,True
+TO,1721000,Palmas,Recanto das Araras II,recanto das araras ii,,,dne,True
+TO,1721000,Palmas,Residencial Ipê Amarelo,residencial ipe amarelo,,,dne,True
+TO,1721000,Palmas,Setor Bela Vista (Taquaralto),setor bela vista taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Leste,setor leste,,,dne,True
+TO,1721000,Palmas,Setor Morada do Sol 2 (Taquaralto),setor morada do sol 2 taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Morada do Sol 3 (Taquaralto),setor morada do sol 3 taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Morada do Sol (Taquaralto),setor morada do sol taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Santa Fé 2 (Taquaralto),setor santa fe 2 taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Santa Fé 3 (Taquaralto),setor santa fe 3 taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Santa Fé (Taquaralto),setor santa fe taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Sol Nascente (Taquaralto),setor sol nascente taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Sônia Regina (Taquaralto),setor sonia regina taquaralto,,,dne,True
+TO,1721000,Palmas,Setor Sul (Taquaralto),setor sul taquaralto,,,dne,True
+TO,1721000,Palmas,Setor União Sul,setor uniao sul,,,dne,True
+TO,1721000,Palmas,Setor Vale do Sol (Taquaralto),setor vale do sol taquaralto,,,dne,True
+TO,1721000,Palmas,Taquaruçu,taquarucu,,,dne,True
+TO,1721000,Palmas,Taquarussu,taquarussu,,,dne,True
+TO,1721109,Tocantínia,Setor Central,setor central,,,dne,True
+TO,1721208,Tocantinópolis,Setor Central,setor central,,,dne,True
+TO,1721257,Tupirama,Setor Central,setor central,,,dne,True
+TO,1721307,Tupiratins,Setor Central,setor central,,,dne,True
+TO,1722081,Wanderlândia,Setor Central,setor central,,,dne,True
+TO,1722107,Xambioá,Setor Central,setor central,,,dne,True

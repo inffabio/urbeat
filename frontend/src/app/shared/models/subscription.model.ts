@@ -22,6 +22,8 @@ export interface SellerSubscriptionChargeHistoryItem {
   gatewayStatus: string;
   billingStatus: SellerSubscriptionBillingStatus;
   dueDateUtc: string;
+  billingPeriodStartUtc?: string | null;
+  billingPeriodEndUtc?: string | null;
   paidAtUtc?: string | null;
   amount?: number | null;
   externalReference?: string | null;

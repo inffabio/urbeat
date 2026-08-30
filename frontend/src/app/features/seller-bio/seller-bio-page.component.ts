@@ -10,6 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { PendingChangesComponent } from '../../core/guards/pending-changes.guard';
 import { ConfigSubnavComponent } from '../seller-shell/config-subnav.component';
 import { StoreResponse } from '../../shared/models/store.model';
+import { MediaUploadComponent } from '../../shared/components/media-upload/media-upload.component';
 
 addIcons({
   'call-outline': callOutline,
@@ -27,7 +28,7 @@ addIcons({
 @Component({
   selector: 'app-seller-bio-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonIcon, ConfigSubnavComponent],
+  imports: [CommonModule, FormsModule, IonIcon, ConfigSubnavComponent, MediaUploadComponent],
   templateUrl: './seller-bio-page.component.html',
   styleUrls: ['./seller-bio-page.component.scss'],
 })
@@ -96,36 +97,14 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
     this.dirty.set(true);
   }
 
-  onLogoFile(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!['image/png', 'image/webp'].includes(file.type)) {
-      this.toast.showError('A logo deve ser PNG ou WebP.');
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      this.toast.showError('A logo deve ter no maximo 2 MB.');
-      return;
-    }
+  onLogoFile(file: File): void {
     this.revokeUrl(this.logoPreview());
     this.logoFile.set(file);
     this.logoPreview.set(URL.createObjectURL(file));
     this.dirty.set(true);
   }
 
-  onBannerFile(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-      this.toast.showError('O banner deve ser PNG, JPG ou WebP.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      this.toast.showError('O banner deve ter no maximo 5 MB.');
-      return;
-    }
+  onBannerFile(file: File): void {
     this.revokeUrl(this.bannerPreview());
     this.bannerFile.set(file);
     this.bannerPreview.set(URL.createObjectURL(file));

@@ -1,0 +1,4 @@
+{
+  "OCI_COMPARTMENT_OCID": "ocid1.compartment.oc1..replace-with-your-compartment-ocid",
+  "OCI_VAULT_MANAGEMENT_ENDPOINT": "https://replace-with-vault-management-endpoint"
+}

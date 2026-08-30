@@ -7,6 +7,8 @@ import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AlertController, ToastController } from '@ionic/angular';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('StoreDeliveryPageComponent', () => {
   let component: StoreDeliveryPageComponent;
@@ -74,6 +76,15 @@ describe('StoreDeliveryPageComponent', () => {
     component = fixture.componentInstance;
   });
 
+  it('provides a centered wizard surface with a vertical Ionic scroller', () => {
+    const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+    expect(template).toContain('<ion-content class="wizard-content delivery-content"');
+    expect(styles).toContain('margin: 0 auto;');
+    expect(styles).toContain('--background: var(--app-wizard-bg);');
+  });
+
   describe('neighborhood loading', () => {
     it('should show empty modal list when no neighborhoods exist', () => {
       storeServiceMock.getMyStore!.mockReturnValue(of(mockStore));
@@ -107,6 +118,23 @@ describe('StoreDeliveryPageComponent', () => {
       component.openNeighborhoodModal(-1);
 
       expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep a manual neighborhood (no coordinates) visible after reload when radius is active', () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of(mockStore));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-manual', neighborhood: 'Bairro Manual', city: 'Sao Paulo' },
+        { id: 'nb-near', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-far', neighborhood: 'Itaquera', city: 'Sao Paulo', latitude: -23.54, longitude: -46.46 },
+      ]));
+
+      fixture.detectChanges();
+
+      const names = component.filteredNeighborhoods().map(n => n.neighborhood);
+      expect(names).toContain('Bairro Manual');
+      expect(names).toContain('Bela Vista');
+      expect(names).not.toContain('Itaquera');
     });
   });
 
@@ -212,6 +240,121 @@ describe('StoreDeliveryPageComponent', () => {
       const indices = component.filteredAreaIndices();
       const names = indices.map(i => component.areas.at(i).value.neighborhood);
       expect(names).toEqual(['Bela Vista', 'Jardins']);
+    });
+  });
+
+  describe('selection modal accessibility and interaction', () => {
+    const readTemplate = () => readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+    const readStyles = () => readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+    it('gives the search bar an explicit accessible name', () => {
+      expect(readTemplate()).toContain('aria-label="Buscar bairro na modal"');
+    });
+
+    it('keeps each row clickable without being an interactive button or nesting a checkbox button', () => {
+      const template = readTemplate();
+
+      expect(template).toContain('(click)="toggleNeighborhood(nb.id)"');
+      expect(template).toContain('<label class="nb-check-wrap" slot="start"');
+      expect(template).toContain('(change)="toggleNeighborhood(nb.id)"');
+      expect(template).not.toContain('lines="none" button');
+    });
+
+    it('stops the checkbox from bubbling so the row and checkbox do not double-toggle', () => {
+      const template = readTemplate();
+
+      expect(template).toContain('<label class="nb-check-wrap" slot="start" (click)="$event.stopPropagation()"');
+      expect(template).toContain('(click)="$event.stopPropagation()"');
+      expect(template).toContain('(change)="toggleNeighborhood(nb.id)"');
+    });
+
+    it('gives the checkbox a real 44x44 touch target while keeping the native input', () => {
+      const template = readTemplate();
+      const styles = readStyles();
+
+      expect(template).toContain('class="nb-checkbox"');
+      expect(template).toContain('type="checkbox"');
+      expect(styles).toContain('.nb-check-wrap');
+      expect(styles).toContain('width: 44px');
+      expect(styles).toContain('min-width: 44px');
+      expect(styles).toContain('height: 44px');
+      expect(styles).toContain('min-height: 44px');
+      expect(styles).toContain('place-items: center');
+    });
+
+    it('toggles a neighborhood exactly once per call', () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of(mockStore));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      fixture.detectChanges();
+
+      expect(component.checkedNeighborhoodIds().size).toBe(0);
+
+      component.toggleNeighborhood('nb-1');
+      expect(component.checkedNeighborhoodIds().has('nb-1')).toBe(true);
+
+      component.toggleNeighborhood('nb-1');
+      expect(component.checkedNeighborhoodIds().has('nb-1')).toBe(false);
+    });
+  });
+
+  describe('select-all control accessibility', () => {
+    const readTemplate = () => readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+    const readStyles = () => readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+    it('gives the "Selecionar todos" control a native checkbox, an accessible name and a 44px touch target', () => {
+      const template = readTemplate();
+      const styles = readStyles();
+
+      expect(template).toContain('aria-label="Selecionar todos os bairros"');
+      expect(template).toContain('type="checkbox"');
+      expect(styles).toContain('.nb-check-label');
+      expect(styles).toContain('min-height: 44px');
+      expect(styles).toContain('display: flex; align-items: center');
+    });
+  });
+
+  describe('modal accessible names', () => {
+    it('gives accessible names to the close buttons and modal inputs', () => {
+      const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+
+      expect(template).toContain('aria-label="Fechar modal de bairros"');
+      expect(template).toContain('aria-label="Nome do novo bairro"');
+      expect(template).toContain('aria-label="Taxa em lote"');
+      expect(template).toContain('aria-label="Fechar mapa"');
+    });
+  });
+
+  describe('toggleAllNeighborhoods', () => {
+    beforeEach(() => {
+      storeServiceMock.getMyStore!.mockReturnValue(of({ ...mockStore, deliveryAreas: [] }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-a', neighborhood: 'Bairro A', city: 'Sao Paulo' },
+        { id: 'nb-b', neighborhood: 'Bairro B', city: 'Sao Paulo' },
+      ]));
+      fixture.detectChanges();
+      component.neighborhoodSearch.set('Bairro');
+    });
+
+    it('removes only the filtered ids and preserves selections outside the filter when all filtered are checked', () => {
+      component.checkedNeighborhoodIds.set(new Set(['outside', 'nb-a', 'nb-b']));
+
+      component.toggleAllNeighborhoods();
+
+      expect(component.checkedNeighborhoodIds().has('outside')).toBe(true);
+      expect(component.checkedNeighborhoodIds().has('nb-a')).toBe(false);
+      expect(component.checkedNeighborhoodIds().has('nb-b')).toBe(false);
+    });
+
+    it('adds the filtered ids to the existing set without clearing other selections when not all are checked', () => {
+      component.checkedNeighborhoodIds.set(new Set(['outside']));
+
+      component.toggleAllNeighborhoods();
+
+      expect(component.checkedNeighborhoodIds().has('outside')).toBe(true);
+      expect(component.checkedNeighborhoodIds().has('nb-a')).toBe(true);
+      expect(component.checkedNeighborhoodIds().has('nb-b')).toBe(true);
     });
   });
 });

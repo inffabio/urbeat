@@ -155,76 +155,51 @@
       <button type="button" class="modal-close-btn" (click)="closeEditor()" aria-label="Fechar editor">&times;</button>
     </div>
 
-    @if (showEditCategoryModal()) {
-      <div class="modal-backdrop" (click)="closeEditCategory()">
-        <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="editCatTitle">
-          <div class="modal-header-row">
-            <div>
-              <h2 id="editCatTitle" class="modal-title">Editar categoria</h2>
-              <p class="modal-subtitle">Altere o nome sem perder os produtos associados.</p>
-            </div>
-            <button class="modal-close-btn" (click)="closeEditCategory()" aria-label="Fechar">&times;</button>
-          </div>
+    <dialog #categoryDialog class="category-dialog" aria-labelledby="categoryDialogTitle" (cancel)="$event.preventDefault(); closeCategoryDialog()">
+      <div class="modal-header-row">
+        <div>
+          <h2 id="categoryDialogTitle" class="modal-title">
+            {{ categoryDialogMode() === 'edit' ? 'Editar categoria' : 'Excluir categoria' }}
+          </h2>
+          <p class="modal-subtitle">
+            {{ categoryDialogMode() === 'edit' ? 'Altere o nome sem perder os produtos associados.' : 'Confirme a exclusao desta categoria.' }}
+          </p>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeCategoryDialog()" aria-label="Fechar">&times;</button>
+      </div>
+
+      @if (categoryDialogMode() === 'edit') {
+        <form class="category-dialog-form" (ngSubmit)="saveCategoryDialog()">
           <div class="modal-body">
-            <div class="field">
-              <label class="prod-label" for="editCategoryName">Nome da categoria *</label>
-              <input id="editCategoryName" type="text" class="prod-input" [ngModel]="editingCategoryName()" (ngModelChange)="editingCategoryName.set($event)" maxlength="80" (keyup.enter)="saveEditCategory()" />
-            </div>
+            <label class="prod-label" for="categoryDialogName">Nome da categoria *</label>
+            <input id="categoryDialogName" name="categoryName" type="text" class="prod-input" [ngModel]="categoryDialogDraft()" (ngModelChange)="categoryDialogDraft.set($event)" maxlength="80" autocomplete="off" required />
+            @if (categoryDialogError()) { <p class="category-dialog-error" role="alert">{{ categoryDialogError() }}</p> }
           </div>
           <div class="modal-footer">
-            <button class="btn-secondary" (click)="closeEditCategory()">Cancelar</button>
-            <button class="btn-brand" (click)="saveEditCategory()" [disabled]="isEditingCategory()">
+            <button type="button" class="btn-secondary" (click)="closeCategoryDialog()">Cancelar</button>
+            <button type="submit" class="btn-brand" [disabled]="isEditingCategory()">
               @if (isEditingCategory()) { Salvando... } @else { Salvar }
             </button>
           </div>
+        </form>
+      } @else if (categoryDialogMode() === 'delete') {
+        <div class="modal-body">
+          <p class="modal-confirm-text">Tem certeza que deseja excluir a categoria "{{ categoryDialogCategoryName() }}"? Esta acao nao pode ser desfeita.</p>
+          @if (categoryDialogError()) { <p class="category-dialog-error" role="alert">{{ categoryDialogError() }}</p> }
         </div>
-      </div>
-    }
-
-    @if (showDeleteCategoryModal()) {
-      <div class="modal-backdrop" (click)="closeDeleteCategory()">
-        <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="deleteCatTitle">
-          <div class="modal-header-row">
-            <div>
-              <h2 id="deleteCatTitle" class="modal-title">Excluir categoria</h2>
-              <p class="modal-subtitle">Confirme a exclusao desta categoria.</p>
-            </div>
-            <button class="modal-close-btn" (click)="closeDeleteCategory()" aria-label="Fechar">&times;</button>
-          </div>
-          <div class="modal-body">
-            @if (deletingCategoryProductCount() > 0) {
-              <div class="modal-warning">
-                A categoria "{{ deletingCategoryName() }}" tem {{ deletingCategoryProductCount() }} {{ deletingCategoryProductCount() === 1 ? 'produto associado' : 'produtos associados' }}.
-                Selecione uma categoria para transferir os produtos antes de excluir.
-              </div>
-              <div class="field">
-                <label class="prod-label" for="reassignCategory">Transferir produtos para</label>
-                <select id="reassignCategory" class="prod-select" [ngModel]="reassignCategoryId()" (ngModelChange)="reassignCategoryId.set($event)">
-                  <option value="" disabled>Selecione uma categoria</option>
-                  @for (cat of categoriesForReassign(); track cat.id) {
-                    <option [value]="cat.id">{{ cat.name }}</option>
-                  }
-                </select>
-              </div>
-            } @else {
-              <p class="modal-confirm-text">Tem certeza que deseja excluir a categoria "{{ deletingCategoryName() }}"? Esta acao nao pode ser desfeita.</p>
-            }
-          </div>
-          <div class="modal-footer">
-            <button class="btn-secondary" (click)="closeDeleteCategory()">Cancelar</button>
-            <button class="btn-danger" (click)="confirmDeleteCategory()" [disabled]="!canDeleteCategory() || isDeletingCategory()">
-              @if (isDeletingCategory()) { Excluindo... } @else { Excluir }
-            </button>
-          </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeCategoryDialog()">Cancelar</button>
+          <button type="button" class="btn-danger" (click)="confirmDeleteCategory()" [disabled]="isDeletingCategory()">
+            @if (isDeletingCategory()) { Excluindo... } @else { Excluir }
+          </button>
         </div>
-      </div>
-    }
+      }
+    </dialog>
 
     <section class="block-section editor-section">
       <div class="content-head editor-head">
         <div>
           <h2>Cadastro e edicao</h2>
-             <p class="block-sub">Preencha os dados do produto sem misturar o fluxo com o wizard de configuração.</p>
         </div>
         <span class="seller-status-badge" [class.is-info]="editingProduct()" [class.is-neutral]="!editingProduct()">
           {{ editingProduct() ? 'Editando item' : 'Novo item' }}

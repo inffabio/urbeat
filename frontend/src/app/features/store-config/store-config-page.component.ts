@@ -19,6 +19,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { createStepperSteps } from '../../shared/config/wizard-steps.config';
 import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
 import { WizardFooterComponent } from '../../shared/components/wizard-footer/wizard-footer.component';
+import { MediaUploadComponent } from '../../shared/components/media-upload/media-upload.component';
 
 // Register icons to prevent Ionic standalone warnings
 addIcons({
@@ -34,7 +35,7 @@ addIcons({
 @Component({
   selector: 'app-store-config-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonSpinner, WizardHeaderComponent, WizardFooterComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonSpinner, WizardHeaderComponent, WizardFooterComponent, MediaUploadComponent],
   templateUrl: './store-config-page.component.html',
   styleUrl: './store-config-page.component.scss',
   host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
@@ -56,9 +57,6 @@ export class StoreConfigPageComponent implements OnInit {
   readonly storeDocument = signal('');
   readonly documentValid = signal<boolean | null>(null);
   readonly pixKey = signal('');
-  readonly instagramUrl = signal('');
-  readonly facebookUrl = signal('');
-  readonly tikTokUrl = signal('');
   readonly websiteUrl = signal('');
   readonly description = signal('');
   readonly street = signal('');
@@ -95,8 +93,8 @@ export class StoreConfigPageComponent implements OnInit {
   readonly cuisineTypes = signal<CuisineTypeDto[]>([]);
   readonly existingStoreId = signal<string | null>(null);
   readonly existingDeliveryAreas = signal<any[]>([]);
-  readonly existingLogoUrl = signal<string | undefined>(undefined);
-  readonly existingBannerUrl = signal<string | undefined>(undefined);
+  readonly existingLogoUrl = signal<string | null | undefined>(undefined);
+  readonly existingBannerUrl = signal<string | null | undefined>(undefined);
   readonly storeIsOpen = signal(false);
   private existingFreeShippingThreshold: number | undefined = undefined;
 
@@ -289,14 +287,12 @@ export class StoreConfigPageComponent implements OnInit {
     this.onWhatsappInput(store.phoneNumber);
     this.onDocumentInput(store.document ?? '');
     this.pixKey.set(store.pixKey ?? '');
-    this.instagramUrl.set(store.instagramUrl ?? '');
-    this.facebookUrl.set(store.facebookUrl ?? '');
-    this.tikTokUrl.set(store.tikTokUrl ?? '');
     this.websiteUrl.set(store.websiteUrl ?? '');
     this.description.set(store.description ?? '');
     this.storeUrl.set(store.slug);
-    this.supportsDelivery.set(store.supportsDelivery ?? true);
-    this.supportsPickup.set(store.supportsPickup ?? true);
+    const atendimento = this.resolveAtendimentoDefaults(store.supportsDelivery, store.supportsPickup);
+    this.supportsDelivery.set(atendimento.delivery);
+    this.supportsPickup.set(atendimento.pickup);
     this.initialMinute.set(store.initialMinute ?? null);
     this.finalMinute.set(store.finalMinute ?? null);
     this.maxDeliveryRadiusKm.set(store.maxDeliveryRadiusKm ?? 10);
@@ -408,80 +404,42 @@ export class StoreConfigPageComponent implements OnInit {
   }
 
   // ─── File uploads (logo / banner) ───────────────────────
-  private async compressImage(file: File, maxWidth: number = 1920, quality: number = 0.8): Promise<File> {
-    return new Promise((resolve) => {
+  async onLogoSelected(file: File): Promise<void> {
+    this.logoFile.set(file);
+    this.logoPreview.set(await this.readFilePreview(file));
+  }
+
+  async onBannerSelected(file: File): Promise<void> {
+    this.bannerFile.set(file);
+    this.bannerPreview.set(await this.readFilePreview(file));
+  }
+
+  onLogoRemoved(): void {
+    this.logoFile.set(null);
+    this.logoPreview.set(null);
+    this.existingLogoUrl.set(null);
+  }
+
+  onBannerRemoved(): void {
+    this.bannerFile.set(null);
+    this.bannerPreview.set(null);
+    this.existingBannerUrl.set(null);
+  }
+
+  private readFilePreview(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Não foi possível criar a pré-visualização.'));
       reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-          }
-
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              } else {
-                resolve(file); // Fallback to original if compression fails
-              }
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-      };
     });
   }
 
-  async onLogoSelected(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-
-    try {
-      const compressedFile = await this.compressImage(file, 800, 0.85); // Logo: max 800px
-      this.logoFile.set(compressedFile);
-      const reader = new FileReader();
-      reader.onload = () => this.logoPreview.set(reader.result as string);
-      reader.readAsDataURL(compressedFile);
-    } catch (err) {
-      console.error('Error compressing logo', err);
-      this.toast.showError('Erro ao processar a imagem da logo.');
-    }
-  }
-
-  async onBannerSelected(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-
-    try {
-      const compressedFile = await this.compressImage(file, 1920, 0.8); // Banner: max 1920px
-      this.bannerFile.set(compressedFile);
-      const reader = new FileReader();
-      reader.onload = () => this.bannerPreview.set(reader.result as string);
-      reader.readAsDataURL(compressedFile);
-    } catch (err) {
-      console.error('Error compressing banner', err);
-      this.toast.showError('Erro ao processar a imagem do banner.');
-    }
+  protected resolveAtendimentoDefaults(
+    delivery: boolean | undefined,
+    pickup: boolean | undefined,
+  ): { delivery: boolean; pickup: boolean } {
+    return { delivery: delivery ?? true, pickup: pickup ?? true };
   }
 
   // ─── Toggle atendimento ─────────────────────────────────
@@ -560,15 +518,12 @@ export class StoreConfigPageComponent implements OnInit {
       .replace(/^-|-$/g, '')
       .substring(0, 80);
 
-    const buildReq = (logoUrl?: string, bannerUrl?: string): CreateStoreRequest => ({
+    const buildReq = (logoUrl?: string | null, bannerUrl?: string | null): CreateStoreRequest => ({
       name: this.storeName().trim(),
       slug,
       phoneNumber: this.whatsapp().replace(/\D/g, ''),
       document: this.storeDocument().replace(/\D/g, '') || undefined,
       pixKey: this.pixKey().trim() || undefined,
-      instagramUrl: this.instagramUrl().trim() || undefined,
-      facebookUrl: this.facebookUrl().trim() || undefined,
-      tikTokUrl: this.tikTokUrl().trim() || undefined,
       websiteUrl: this.websiteUrl().trim() || undefined,
       cuisineType: this.cuisineType(),
       description: this.description().trim(),
@@ -577,8 +532,8 @@ export class StoreConfigPageComponent implements OnInit {
       initialMinute: this.initialMinute() ?? undefined,
       finalMinute: this.finalMinute() ?? undefined,
       maxDeliveryRadiusKm: this.maxDeliveryRadiusKm(),
-      ...(logoUrl != null && { logoUrl }),
-      ...(bannerUrl != null && { bannerUrl }),
+      ...(logoUrl !== undefined && { logoUrl }),
+      ...(bannerUrl !== undefined && { bannerUrl }),
     });
 
     const saveAddressAndConfig = (storeId: string): Promise<boolean> => {
@@ -622,8 +577,8 @@ export class StoreConfigPageComponent implements OnInit {
       const existingLogo = this.existingLogoUrl();
       const existingBanner = this.existingBannerUrl();
 
-      let logoUrl: string | undefined = existingLogo;
-      let bannerUrl: string | undefined = existingBanner;
+      let logoUrl: string | null | undefined = existingLogo;
+      let bannerUrl: string | null | undefined = existingBanner;
 
       try {
         const newLogo = await uploadImageIfNew('logo', this.logoFile());

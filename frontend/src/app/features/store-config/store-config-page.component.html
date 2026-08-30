@@ -1,4 +1,5 @@
-﻿@if (!isDashboardView()) {
+﻿<ion-content class="store-config-content">
+@if (!isDashboardView()) {
   <app-wizard-header [steps]="stepperSteps"></app-wizard-header>
 }
 
@@ -148,29 +149,23 @@
           <div class="visual-grid">
             <div>
               <label>Logo da loja</label>
-              <label class="upload-box" for="logoInput">
-                @if (logoPreview()) {
-                  <img [src]="logoPreview()" class="upload-preview-img" alt="Logo preview" />
-                } @else {
-                  <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
-                  <div class="upload-text">Arraste sua logo aqui<br>ou clique para enviar</div>
-                  <div class="upload-sub">PNG ou JPG até 2MB</div>
-                }
-              </label>
-              <input type="file" id="logoInput" accept="image/png,image/jpeg" class="file-input-hidden" (change)="onLogoSelected($event)" />
+              <app-media-upload
+                kind="logo"
+                [previewUrl]="logoPreview()"
+                altText="Logo da loja"
+                (fileSelected)="onLogoSelected($event)"
+                (fileRemoved)="onLogoRemoved()"
+              />
             </div>
             <div>
               <label>Banner da loja</label>
-              <label class="upload-box upload-box-banner" for="bannerInput">
-                @if (bannerPreview()) {
-                  <img [src]="bannerPreview()" class="upload-preview-img" alt="Banner preview" />
-                } @else {
-                  <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
-                  <div class="upload-text">Arraste sua imagem aqui<br>ou clique para enviar</div>
-                  <div class="upload-sub">PNG ou JPG até 2MB • 1200x400px</div>
-                }
-              </label>
-              <input type="file" id="bannerInput" accept="image/png,image/jpeg" class="file-input-hidden" (change)="onBannerSelected($event)" />
+              <app-media-upload
+                kind="banner"
+                [previewUrl]="bannerPreview()"
+                altText="Banner da loja"
+                (fileSelected)="onBannerSelected($event)"
+                (fileRemoved)="onBannerRemoved()"
+              />
             </div>
           </div>
         </div>
@@ -376,6 +371,7 @@
     (save)="saveDraft()">
   </app-wizard-footer>
 }
+</ion-content>
 <!-- Category Modal -->
 <ion-modal [isOpen]="isCatModalOpen()" (didDismiss)="isCatModalOpen.set(false)" cssClass="category-modal" alignment="center">
   <ng-template>

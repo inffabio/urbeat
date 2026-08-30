@@ -66,6 +66,7 @@ export class SellerDashboardPageComponent implements OnInit {
   readonly subscriptionStatus = signal<SubscriptionBannerStatus>('ok');
   readonly subscriptionDueDate = signal('');
   private lastActivityPulseId: string | null = null;
+  private loadSequence = 0;
 
   readonly periods: { label: string; value: DashboardPeriod }[] = [
     { label: 'Hoje', value: 'today' },
@@ -173,22 +174,32 @@ export class SellerDashboardPageComponent implements OnInit {
   load(options?: { silent?: boolean }): void {
     if (!options?.silent) this.loading.set(true);
     if (!options?.silent) this.error.set(false);
+    const sequence = ++this.loadSequence;
     const range = saoPauloPeriodRange(this.selectedPeriod());
     this.orders.getStoreReport(range.startDateUtc, range.endDateUtc).subscribe({
       next: (report) => {
+        if (sequence !== this.loadSequence) return;
         this.report.set(report);
-        this.orders.getStoreOrders({ pageSize: 100 }).subscribe({
+        this.shell.ordersCount.set(report.totalOrders);
+        this.orders.getStoreOrders({
+          pageSize: 100,
+          startDateUtc: range.startDateUtc,
+          endDateUtc: range.endDateUtc,
+        }).subscribe({
           next: (orders) => {
+            if (sequence !== this.loadSequence) return;
             this.recentOrders.set(orders.items);
             this.loading.set(false);
           },
           error: () => {
+            if (sequence !== this.loadSequence) return;
             this.error.set(true);
             this.loading.set(false);
           },
         });
       },
       error: () => {
+        if (sequence !== this.loadSequence) return;
         this.error.set(true);
         this.loading.set(false);
       },
@@ -226,9 +237,9 @@ export class SellerDashboardPageComponent implements OnInit {
   paymentLabel(method?: PaymentMethod): string {
     switch (method) {
       case PaymentMethod.PixOnline: return 'Pix';
-      case PaymentMethod.CardOnline: return 'Cartao Online';
+      case PaymentMethod.CardOnline: return 'Cartão Online';
       case PaymentMethod.CashOnDelivery: return 'Dinheiro';
-      case PaymentMethod.CardOnDelivery: return 'Cartao na entrega';
+      case PaymentMethod.CardOnDelivery: return 'Cartão na entrega';
       default: return '-';
     }
   }

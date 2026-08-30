@@ -2,13 +2,18 @@
 
 :host {
   display: block;
-  background: #f5f6fb;
+  background: var(--app-wizard-bg);
   min-height: 100%;
   padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   --c-green: var(--app-success-green);
   --c-green-bg: var(--app-success-green-soft);
   --c-border: var(--app-line);
   --c-bg: var(--app-bg-warm);
+}
+
+.store-config-content {
+  --background: transparent;
+  display: block;
 }
 
 .dashboard-save-bar {

@@ -131,6 +131,7 @@ services:
       ASPNETCORE_URLS: http://+:5000
       ConnectionStrings__DefaultConnection: ${URBEAT_DB_CONNECTION}
       Redis__ConnectionString: "redis:6379"
+      SignalR__RedisBackplaneEnabled: "true"
       Email__LogOnly: "false"
       Email__Smtp__Host: ${SMTP_HOST}
       Email__Smtp__Port: ${SMTP_PORT}
@@ -402,9 +403,11 @@ Write-Host "`n📦 Preparing and uploading source code for local build..." -Fore
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $backendDir = Join-Path $projectRoot "backend"
 $frontendDir = Join-Path $projectRoot "frontend"
+$downloadsDir = Join-Path $projectRoot "downloads"
 
 $backendTar = [System.IO.Path]::GetTempFileName() + ".tar.gz"
 $frontendTar = [System.IO.Path]::GetTempFileName() + ".tar.gz"
+$downloadsTar = [System.IO.Path]::GetTempFileName() + ".tar.gz"
 
 # Compress directories using tar (more reliable than zip on Linux)
 Write-Host "  🗜️  Compressing backend..." -ForegroundColor White
@@ -432,6 +435,9 @@ Write-Host "  🗜️  Compressing frontend..." -ForegroundColor White
     --exclude="frontend/**/*.docx" `
     -C $projectRoot "frontend"
 
+Write-Host "  🗜️  Compressing downloads..." -ForegroundColor White
+& tar -czf $downloadsTar -C $projectRoot "downloads"
+
 # Upload tars using scp (with strict timeouts to prevent Windows hangs)
 Write-Host "  📤 Uploading backend source (this may take a minute)..." -ForegroundColor White
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
@@ -440,6 +446,9 @@ scp @scpOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
 Write-Host "  📤 Uploading frontend source (this may take a minute)..." -ForegroundColor White
 scp @scpOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
 
+Write-Host "  📤 Uploading download packages..." -ForegroundColor White
+scp @scpOpts $downloadsTar "${SSHUser}@${ServerIP}:/tmp/downloads.tar.gz" | Out-Null
+
 # Extract on server
 Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
 ssh @sshOpts "${SSHUser}@${ServerIP}" "
@@ -447,13 +456,16 @@ ssh @sshOpts "${SSHUser}@${ServerIP}" "
     sudo mkdir -p $AppDir/backend $AppDir/frontend
     sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
     sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
-    sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend
-    rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz
+    sudo rm -rf $AppDir/downloads
+    sudo tar -xzf /tmp/downloads.tar.gz -C $AppDir
+    sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend $AppDir/downloads
+    rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz /tmp/downloads.tar.gz
     echo '✅ Source code extracted successfully'
 "
 
 Remove-Item $backendTar -Force
 Remove-Item $frontendTar -Force
+Remove-Item $downloadsTar -Force
 
 # ─────────────────────────────────────────
 # Deploy application

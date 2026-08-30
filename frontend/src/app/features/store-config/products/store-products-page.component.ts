@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { checkmark, close, reorderTwoOutline, trashOutline, arrowBackOutline, arrowForwardOutline, searchOutline, chevronDownOutline, chevronUpOutline, informationCircleOutline, pencilOutline, cloudUploadOutline } from 'ionicons/icons';
 import {
-  IonIcon, IonSpinner,
+  IonContent, IonIcon, IonSpinner,
   IonReorderGroup, IonReorder
 } from '@ionic/angular/standalone';
 import { WizardFooterComponent } from '../../../shared/components/wizard-footer/wizard-footer.component';
@@ -59,10 +59,12 @@ export interface WeightConfigForm {
   isEstimated: boolean;
 }
 
+type CategoryDialogMode = 'edit' | 'delete' | null;
+
 @Component({
   selector: 'app-store-products-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonIcon, IonSpinner, IonReorderGroup, IonReorder, WizardHeaderComponent, WizardFooterComponent, CardapioMenuTabsComponent, SubscriptionBannerComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonSpinner, IonReorderGroup, IonReorder, WizardHeaderComponent, WizardFooterComponent, CardapioMenuTabsComponent, SubscriptionBannerComponent],
   templateUrl: './store-products-page.component.html',
   styleUrl: './store-products-page.component.scss',
   host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
@@ -80,6 +82,7 @@ export class StoreProductsPageComponent implements OnInit {
   readonly isDashboardView = computed(() => (this.router.url ?? '').startsWith('/app/'));
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('categoryDialog') categoryDialog?: ElementRef<HTMLDialogElement>;
 
   readonly storeId = signal<string | null>(null);
   readonly loading = signal(true);
@@ -136,18 +139,13 @@ export class StoreProductsPageComponent implements OnInit {
   readonly newCategoryName = signal('');
   readonly isAddingCategory = signal(false);
 
-  readonly editingCategoryId = signal<string | null>(null);
-  readonly editingCategoryName = signal('');
+  readonly categoryDialogMode = signal<CategoryDialogMode>(null);
+  readonly categoryDialogCategoryId = signal<string | null>(null);
+  readonly categoryDialogCategoryName = signal('');
+  readonly categoryDialogDraft = signal('');
+  readonly categoryDialogError = signal('');
   readonly isEditingCategory = signal(false);
-
-  readonly deletingCategoryId = signal<string | null>(null);
-  readonly deletingCategoryName = signal('');
-  readonly deletingCategoryProductCount = signal(0);
-  readonly reassignCategoryId = signal('');
   readonly isDeletingCategory = signal(false);
-
-  readonly showEditCategoryModal = computed(() => this.editingCategoryId() !== null);
-  readonly showDeleteCategoryModal = computed(() => this.deletingCategoryId() !== null);
 
   readonly isReorderingCategories = signal(false);
 
@@ -207,16 +205,6 @@ export class StoreProductsPageComponent implements OnInit {
 
   readonly categoryOptionsForProduct = computed(() => {
     return this.activeCategories();
-  });
-
-  readonly canDeleteCategory = computed(() => {
-    const id = this.deletingCategoryId();
-    if (!id) return true;
-    return (this.categoryProductCounts()[id] || 0) === 0 || this.reassignCategoryId() !== '';
-  });
-
-  readonly categoriesForReassign = computed(() => {
-    return this.categories().filter(c => c.id !== this.deletingCategoryId());
   });
 
   constructor() {
@@ -310,21 +298,58 @@ export class StoreProductsPageComponent implements OnInit {
   }
 
   openEditCategory(cat: ProductCategory) {
-    this.editingCategoryId.set(cat.id);
-    this.editingCategoryName.set(cat.name);
+    this.categoryDialogMode.set('edit');
+    this.categoryDialogCategoryId.set(cat.id);
+    this.categoryDialogCategoryName.set(cat.name);
+    this.categoryDialogDraft.set(cat.name);
+    this.categoryDialogError.set('');
+    this.syncCategoryDialog();
   }
 
-  closeEditCategory() {
-    this.editingCategoryId.set(null);
-    this.editingCategoryName.set('');
+  openDeleteCategory(cat: ProductCategory) {
+    this.categoryDialogMode.set('delete');
+    this.categoryDialogCategoryId.set(cat.id);
+    this.categoryDialogCategoryName.set(cat.name);
+    this.categoryDialogDraft.set('');
+    this.categoryDialogError.set('');
+    this.syncCategoryDialog();
   }
 
-  saveEditCategory() {
-    const name = this.editingCategoryName().trim();
+  closeCategoryDialog() {
+    this.categoryDialogMode.set(null);
+    this.categoryDialogCategoryId.set(null);
+    this.categoryDialogCategoryName.set('');
+    this.categoryDialogDraft.set('');
+    this.categoryDialogError.set('');
+    this.isEditingCategory.set(false);
+    this.isDeletingCategory.set(false);
+    this.syncCategoryDialog();
+  }
+
+  private syncCategoryDialog(): void {
+    const dialog = this.categoryDialog?.nativeElement;
+    if (!dialog) return;
+
+    if (this.categoryDialogMode()) {
+      if (!dialog.open) {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.open = true;
+      }
+      return;
+    }
+
+    if (dialog.open) {
+      if (typeof dialog.close === 'function') dialog.close();
+      else dialog.open = false;
+    }
+  }
+
+  saveCategoryDialog() {
+    const name = this.categoryDialogDraft().trim();
     if (!name) { this.toast.showError('Informe o nome da categoria.'); return; }
     if (name.length > 80) { this.toast.showError('Nome deve ter no máximo 80 caracteres.'); return; }
     const normalized = name.toLowerCase();
-    const cat = this.categories().find(c => c.id === this.editingCategoryId());
+    const cat = this.categories().find(c => c.id === this.categoryDialogCategoryId());
     if (!cat) return;
     const sid = this.storeId();
     if (!sid) return;
@@ -342,14 +367,14 @@ export class StoreProductsPageComponent implements OnInit {
       next: (updated) => {
         this.categories.update(cats => cats.map(c => c.id === updated.id ? updated : c));
         this.isEditingCategory.set(false);
-        this.closeEditCategory();
+        this.closeCategoryDialog();
         this.refreshProductsIfNeeded();
         this.toast.showSuccess('Categoria atualizada.');
       },
       error: (err) => {
         this.isEditingCategory.set(false);
         const detail = err?.error?.detail;
-        this.toast.showError(detail || 'Erro ao atualizar categoria.');
+        this.categoryDialogError.set(detail || 'Erro ao atualizar categoria.');
       }
     });
   }
@@ -372,40 +397,22 @@ export class StoreProductsPageComponent implements OnInit {
     });
   }
 
-  openDeleteCategory(cat: ProductCategory) {
-    const count = this.categoryProductCounts()[cat.id] || 0;
-    this.deletingCategoryId.set(cat.id);
-    this.deletingCategoryName.set(cat.name);
-    this.deletingCategoryProductCount.set(count);
-    this.reassignCategoryId.set('');
-  }
-
-  closeDeleteCategory() {
-    this.deletingCategoryId.set(null);
-    this.deletingCategoryName.set('');
-    this.deletingCategoryProductCount.set(0);
-    this.reassignCategoryId.set('');
-  }
-
   confirmDeleteCategory() {
-    if (!this.canDeleteCategory()) return;
     const sid = this.storeId();
-    const catId = this.deletingCategoryId();
+    const catId = this.categoryDialogCategoryId();
     if (!sid || !catId) return;
     this.isDeletingCategory.set(true);
-    const reassignId = this.reassignCategoryId() || undefined;
-    this.storeService.deleteStoreCategory(sid, catId, reassignId).subscribe({
+    this.storeService.deleteStoreCategory(sid, catId).subscribe({
       next: () => {
         this.categories.update(cats => cats.filter(c => c.id !== catId));
         if (this.productCatId() === catId) this.productCatId.set('');
-        this.products.update(prods => prods.map(p => p.categoryId === catId ? { ...p, categoryId: reassignId || p.categoryId, categoryName: reassignId ? this.categories().find(c => c.id === reassignId)?.name || p.categoryName : p.categoryName } : p));
         this.isDeletingCategory.set(false);
-        this.closeDeleteCategory();
+        this.closeCategoryDialog();
         this.toast.showSuccess('Categoria excluída.');
       },
-      error: () => {
+      error: (err) => {
         this.isDeletingCategory.set(false);
-        this.toast.showError('Erro ao excluir categoria.');
+        this.categoryDialogError.set(err?.error?.detail || 'Erro ao excluir categoria.');
       }
     });
   }
@@ -943,17 +950,33 @@ export class StoreProductsPageComponent implements OnInit {
   // ── Product list helpers ─────────────────────────────────
 
   productStartingPrice(product: Product): string {
+    const parts = this.productPriceParts(product);
+    return parts.label ? `${parts.label} ${parts.value}` : parts.value;
+  }
+
+  productPriceLabel(product: Product): string {
+    return this.productPriceParts(product).label;
+  }
+
+  productPriceValue(product: Product): string {
+    return this.productPriceParts(product).value;
+  }
+
+  private productPriceParts(product: Product): { label: string; value: string } {
     const sm = product.saleMode as string;
     if (sm === 'size' || sm === 'fixed_weight') {
       const active = (product.variations ?? []).filter(v => v.isActive && v.price > 0);
-      if (active.length) return `A partir de R$ ${active.map(v => v.price).reduce((a, b) => a < b ? a : b).toFixed(2).replace('.', ',')}`;
+      if (active.length) return {
+        label: 'A partir de',
+        value: `R$ ${active.map(v => v.price).reduce((a, b) => a < b ? a : b).toFixed(2).replace('.', ',')}`,
+      };
     }
     if (sm === 'variable_weight' && product.weightConfig) {
       const est = product.weightConfig.isEstimated ? ' (estimado)' : '';
-      return `R$ ${product.weightConfig.pricePerKg.toFixed(2).replace('.', ',')}/kg${est}`;
+      return { label: '', value: `R$ ${product.weightConfig.pricePerKg.toFixed(2).replace('.', ',')}/kg${est}` };
     }
-    if (product.price > 0) return `R$ ${product.price.toFixed(2).replace('.', ',')}`;
-    return 'Sem preço';
+    if (product.price > 0) return { label: '', value: `R$ ${product.price.toFixed(2).replace('.', ',')}` };
+    return { label: '', value: 'Sem preço' };
   }
 
   deleteLocalProduct(product: Product) {

@@ -31,6 +31,7 @@ public sealed class CheckoutServiceTests : IDisposable
             _db,
             new EfUnitOfWork(_db),
             Mock.Of<INotificationService>(),
+            Mock.Of<IOutboxWriter>(),
             userManager,
             new PricingService());
     }

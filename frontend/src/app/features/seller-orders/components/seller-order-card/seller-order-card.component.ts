@@ -98,11 +98,11 @@ export class SellerOrderCardComponent {
       case PaymentMethod.PixOnline:
         return 'Pix online';
       case PaymentMethod.CardOnline:
-        return 'Cartao online';
+        return 'Cartão online';
       case PaymentMethod.CashOnDelivery:
         return 'Dinheiro ao receber';
       case PaymentMethod.CardOnDelivery:
-        return 'Cartao ao receber';
+        return 'Cartão ao receber';
       default:
         return '';
     }

@@ -16,12 +16,6 @@ public sealed class StoreResponseDto
 
     public string? PixKey { get; init; }
 
-    public string? InstagramUrl { get; init; }
-
-    public string? FacebookUrl { get; init; }
-
-    public string? TikTokUrl { get; init; }
-
     public string? WebsiteUrl { get; init; }
 
     public string Description { get; init; } = string.Empty;
@@ -33,6 +27,10 @@ public sealed class StoreResponseDto
     public string? LogoUrl { get; init; }
 
     public bool IsOpen { get; init; }
+
+    public bool IsOpenNow { get; set; }
+
+    public DateTimeOffset? NextStatusChangeAt { get; set; }
 
     public bool IsSubscriptionBlocked { get; init; }
 

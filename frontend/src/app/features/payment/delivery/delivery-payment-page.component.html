@@ -121,20 +121,13 @@
       </div>
     </div>
 
-    <footer class="page-footer">
-      <button
-        type="button"
-        class="btn-primary"
-        [disabled]="!canFinalize() || processing()"
-        (click)="finalize()"
-      >
-        @if (processing()) {
-          Processando...
-        } @else {
-          CONTINUAR
-        }
-      </button>
-      <app-back-to-menu-link [disabled]="processing()" (navigateBack)="goToMenu()" />
-    </footer>
   </section>
 </ion-content>
+
+<app-sticky-action-bar
+  icon="wallet-outline"
+  [label]="processing() ? 'Processando...' : 'Continuar'"
+  detail="Finalize o pagamento na entrega"
+  [disabled]="!canFinalize() || processing()"
+  (action)="finalize()"
+/>

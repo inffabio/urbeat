@@ -18,6 +18,7 @@ describe('SellerAppShellComponent', () => {
       storeName: jest.fn(() => 'Loja Teste'),
       store: jest.fn(() => ({ isOpen: true })),
       unreadCount: jest.fn(() => 2),
+      ordersCount: jest.fn(() => 2),
       loading: jest.fn(() => false),
       soundEnabled: jest.fn(() => false),
       soundNeedsActivation: jest.fn(() => true),
@@ -88,6 +89,14 @@ describe('SellerAppShellComponent', () => {
     expect(facadeMock.reset).toHaveBeenCalled();
   });
 
+  it('resets the seller shell facade when the shell is destroyed (session expiry)', () => {
+    fixture.detectChanges();
+
+    fixture.destroy();
+
+    expect(facadeMock.reset).toHaveBeenCalled();
+  });
+
   it('should show realtime fallback when seller notifications are disconnected', () => {
     facadeMock.realtimeConnected.mockReturnValue(false);
     fixture.detectChanges();
@@ -102,5 +111,21 @@ describe('SellerAppShellComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Mensalidade bloqueada');
     expect(fixture.nativeElement.textContent).toContain('Regularizar mensalidade');
+  });
+
+  it('renders a scrollable sidebar-nav in both desktop and mobile sidebars, separate from seller-main', () => {
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.desktop-sidebar .sidebar-nav')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.mobile-sidebar .sidebar-nav')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.seller-main')).not.toBeNull();
+  });
+
+  it('uses the current schedule status instead of the manual store flag', () => {
+    facadeMock.store.mockReturnValue({ isOpen: true, isOpenNow: false });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.store-card strong')?.textContent).toContain('Loja fechada');
+    expect(fixture.nativeElement.querySelector('.store-card')?.classList.contains('open')).toBe(false);
   });
 });

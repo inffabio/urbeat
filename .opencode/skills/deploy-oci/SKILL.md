@@ -26,7 +26,7 @@ This skill describes `scripts/criarDeployOracleCloud/`. It does not authorize a 
 
 Existing OCI Vault secrets are protected configuration. Do not rotate, delete, replace, or rewrite them unless the user explicitly requests that exact change. The normal deployment path reads existing values through their OCIDs; the local secrets file is only needed when the user explicitly chooses to create a missing Vault entry.
 
-The Vault setup script requires a local ignored JSON file supplied with `-SecretsFile` or `URBEAT_VAULT_SECRETS_FILE`. It also requires `OCI_COMPARTMENT_OCID`. The local file is read but values are never printed. Do not use `01-cleanup-secrets.ps1` during normal deployment because it schedules secrets for deletion.
+The Vault setup script requires `OCI_COMPARTMENT_OCID`, loaded automatically from the ignored `configs/oci.local.json` when present. Copy `configs/oci.local.json.example` once and fill the local file; `URBEAT_OCI_CONTEXT_FILE` can point to a file outside the repository. Session environment variables take precedence. The optional local secrets JSON is supplied with `-SecretsFile` or `URBEAT_VAULT_SECRETS_FILE` only when mapped secrets are missing. Vault display names `urbeat`, `Urbeat`, and `UrBeat` are matched case-insensitively, and the management endpoint is derived from the matched Vault when available. Values are never printed. Do not use `01-cleanup-secrets.ps1` during normal deployment because it schedules secrets for deletion.
 
 Example local invocation with a path outside version control:
 

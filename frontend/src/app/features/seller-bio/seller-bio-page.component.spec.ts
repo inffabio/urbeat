@@ -62,13 +62,13 @@ describe('SellerBioPageComponent', () => {
     }));
   });
 
-  it('uploads a replaced banner before saving its new Cloudinary URL', async () => {
+  it('uploads a replaced banner in its original format before saving its new Cloudinary URL', async () => {
     storeServiceMock.uploadImage.mockReturnValue(of({ url: 'https://res.cloudinary.com/demo/image/upload/v2/urbeat/banner-new.png' }));
     const fixture = TestBed.createComponent(SellerBioPageComponent);
     fixture.detectChanges();
 
-    const file = new File(['banner'], 'banner.png', { type: 'image/png' });
-    fixture.componentInstance.onBannerFile({ target: { files: [file] } } as unknown as Event);
+    const file = new File(['banner'], 'banner.avif', { type: 'image/avif' });
+    fixture.componentInstance.onBannerFile(file);
     fixture.componentInstance.save();
     await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -88,5 +88,29 @@ describe('SellerBioPageComponent', () => {
 
     expect(openSpy).toHaveBeenCalledWith('/loja-teste', '_blank', 'noopener,noreferrer');
     openSpy.mockRestore();
+  });
+
+  it('shows only the configured banner without promotional fallback copy', () => {
+    const fixture = TestBed.createComponent(SellerBioPageComponent);
+    fixture.detectChanges();
+
+    const previewBanner = fixture.nativeElement.querySelector('.preview-banner') as HTMLElement;
+
+    expect(previewBanner.textContent).not.toContain('Hambúrgueres');
+    expect(previewBanner.textContent).not.toContain('Sabor que marca');
+  });
+
+  it('lists every supported image format in the requirements card', () => {
+    const fixture = TestBed.createComponent(SellerBioPageComponent);
+    fixture.detectChanges();
+
+    const requirements = fixture.nativeElement.querySelector('.info-card:last-child') as HTMLElement;
+
+    expect(requirements.textContent).toContain('AVIF');
+    expect(requirements.textContent).toContain('PNG');
+    expect(requirements.textContent).toContain('SVG');
+    expect(requirements.textContent).toContain('WEBP');
+    expect(requirements.textContent).toContain('JPG');
+    expect(requirements.textContent).toContain('JPEG');
   });
 });

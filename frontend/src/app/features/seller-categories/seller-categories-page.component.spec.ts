@@ -132,17 +132,18 @@ describe('SellerCategoriesPageComponent', () => {
     ]);
   });
 
-  it('blocks deletion when the category has associated products', () => {
+  it('delegates the product ownership rule to the backend', () => {
     const fixture = TestBed.createComponent(SellerCategoriesPageComponent);
     fixture.detectChanges();
-    const confirmSpy = jest.spyOn(window, 'confirm');
+    storeServiceMock.deleteStoreCategory.mockReturnValue(throwError(() => ({ status: 409 })));
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
 
     fixture.componentInstance.deleteCategory(fixture.componentInstance.sortedCategories()[0]);
 
-    expect(confirmSpy).not.toHaveBeenCalled();
-    expect(storeServiceMock.deleteStoreCategory).not.toHaveBeenCalled();
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(storeServiceMock.deleteStoreCategory).toHaveBeenCalledWith('store-1', 'cat-1');
     expect(TestBed.inject(ToastService).showError).toHaveBeenCalledWith(
-      'Não é possível excluir "Burgers" porque ela possui 2 produto(s) associado(s).',
+      'Não é possível excluir uma categoria que possui produtos associados.',
     );
     confirmSpy.mockRestore();
   });

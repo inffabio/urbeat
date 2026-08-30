@@ -18,7 +18,7 @@ export interface CategoryTab {
           class="tab"
           [class.active]="tab.id === activeId"
           [attr.aria-selected]="tab.id === activeId"
-          (click)="selectTab(tab.id)"
+          (click)="selectTab(tab.id, $event)"
           role="tab"
           [tabIndex]="tab.id === activeId ? 0 : -1">
           {{ tab.name }}
@@ -41,13 +41,11 @@ export interface CategoryTab {
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(213,74,81,.35) transparent;
-      gap: 10px;
-      width: calc(100% + 44px);
-      margin-left: -22px;
-      margin-right: -22px;
-      padding: 12px 22px 10px;
+      scrollbar-width: none;
+      gap: 8px;
+      width: 100%;
+      margin: 0;
+      padding: 6px 0 4px;
       cursor: grab;
       user-select: none;
       touch-action: pan-x;
@@ -55,41 +53,70 @@ export interface CategoryTab {
 
       &:active { cursor: grabbing; }
 
-      &::-webkit-scrollbar { height: 4px; display: block; }
-      &::-webkit-scrollbar-track { background: transparent; }
-      &::-webkit-scrollbar-thumb {
-        background: rgba(213,74,81,.35);
-        border-radius: 999px;
-      }
+      &::-webkit-scrollbar { height: 0; }
+    }
+
+    @media (min-width: 900px) {
+      .tabs {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(213,74,81,.35) transparent;
+
+        &::-webkit-scrollbar { height: 4px; }
+        &::-webkit-scrollbar-track { background: transparent; }
+        &::-webkit-scrollbar-thumb {
+          background: rgba(213,74,81,.35);
+          border-radius: 999px;
+        }
+       }
     }
 
     .tab {
       flex: 0 0 auto;
       min-width: max-content;
       white-space: nowrap;
-      height: 42px;
-      padding: 0 15px;
-      border-radius: 999px;
-      border: 1px solid var(--app-border-light, #eadfd6);
-      background: var(--app-surface, #fff);
-      color: var(--app-ink, #161616);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background .2s, color .2s, border-color .2s;
+      min-height: 44px;
+      padding: 0 10px;
+       border-radius: 999px;
+       border: 0;
+       background: transparent;
+       color: var(--app-ink, #161616);
+      font-size: 11px;
+       font-weight: 700;
+       cursor: pointer;
+       font-family: inherit;
+       position: relative;
+       isolation: isolate;
+       transition: background .2s, color .2s, border-color .2s;
 
-      &:hover {
-        background: var(--app-brand-soft, #FDECEE);
-        color: var(--app-brand, #D54A51);
-      }
+       &::before {
+         content: "";
+         position: absolute;
+         z-index: -1;
+          inset: 4px 0;
+         border: 1px solid var(--app-border-light, #eadfd6);
+         border-radius: 999px;
+         background: var(--app-surface, #fff);
+         transition: background .2s, border-color .2s;
+       }
 
-      &.active {
-        background: var(--app-brand, #D54A51);
-        color: #fff;
-        border-color: var(--app-brand, #D54A51);
-        font-weight: 800;
-      }
+       &:hover {
+         color: var(--app-brand, #D54A51);
+
+         &::before {
+           background: var(--app-brand-soft, #FDECEE);
+           border-color: var(--app-brand-shadow, rgba(213,74,81,.18));
+         }
+       }
+
+       &.active {
+         color: #fff;
+         font-weight: 800;
+
+         &::before {
+           background: var(--app-brand, #D54A51);
+           border-color: var(--app-brand, #D54A51);
+         }
+       }
     }
   `],
 })
@@ -98,7 +125,13 @@ export class CategoryTabsComponent {
   @Input() activeId: string | null = null;
   @Output() select = new EventEmitter<string>();
 
-  selectTab(id: string): void {
+  selectTab(id: string, event?: Event): void {
+    const tab = event?.currentTarget as HTMLElement | null;
+    const tabs = tab?.parentElement;
+    if (tab && tabs) {
+      const left = Math.max(0, tab.offsetLeft - (tabs.clientWidth - tab.offsetWidth) / 2);
+      tabs.scrollTo({ left, behavior: 'smooth' });
+    }
     this.select.emit(id);
   }
 

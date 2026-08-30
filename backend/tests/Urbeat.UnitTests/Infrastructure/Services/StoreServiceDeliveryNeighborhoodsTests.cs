@@ -96,6 +96,66 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
     }
 
     [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExcludeNeighborhoodFromAnotherCityWithinRadius_WhenRadiusIsSet()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            Name = "Loja SP",
+            Slug = "loja-sp",
+            MaxDeliveryRadiusKm = 10
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbOtherCityWithinRadius = new DeliveryNeighborhood
+        {
+            Neighborhood = "Vila Guarulhos",
+            NormalizedName = "vila guarulhos",
+            City = "Guarulhos",
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5540,
+            Longitude = -46.6400,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbOtherCityWithinRadius);
+
+        var nbSameCityWithinRadius = new DeliveryNeighborhood
+        {
+            Neighborhood = "Centro",
+            NormalizedName = "centro",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5580,
+            Longitude = -46.6420,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbSameCityWithinRadius);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
+
+        result.Should().HaveCount(1);
+        result.Single().Neighborhood.Should().Be("Centro");
+    }
+
+    [Fact]
     public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldReturnEmpty_WhenStoreNotFound()
     {
         using var db = CreateDbContext();
@@ -253,7 +313,7 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
     }
 
     [Fact]
-    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExcludeNeighborhoodsWithoutCoordinates_WhenRadiusIsSet()
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldIncludeManualNeighborhoodWithoutCoordinates_WhenRadiusIsSet()
     {
         using var db = CreateDbContext();
         var storeCity = "Sao Paulo";
@@ -284,7 +344,7 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
             Latitude = null,
             Longitude = null,
             IsActive = true,
-            Source = "test"
+            Source = null
         };
         db.DeliveryNeighborhoods.Add(nbNoCoords);
 
@@ -306,7 +366,67 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
 
         var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
 
+        result.Should().HaveCount(2);
+        result.Should().Contain(x => x.Neighborhood == "Com Coordenadas");
+        result.Should().Contain(x => x.Neighborhood == "Sem Coordenadas");
+        result.Should().Contain(x => x.Neighborhood == "Sem Coordenadas" && x.Latitude == null && x.Longitude == null);
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldNotReturnManualNeighborhoodFromAnotherCity_WhenRadiusIsSet()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            Name = "Loja SP",
+            Slug = "loja-sp",
+            MaxDeliveryRadiusKm = 10
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbManualStoreCity = new DeliveryNeighborhood
+        {
+            Neighborhood = "Manual SP",
+            NormalizedName = "manual sp",
+            City = storeCity,
+            Latitude = null,
+            Longitude = null,
+            IsActive = true,
+            Source = null
+        };
+        db.DeliveryNeighborhoods.Add(nbManualStoreCity);
+
+        var nbManualOtherCity = new DeliveryNeighborhood
+        {
+            Neighborhood = "Manual RJ",
+            NormalizedName = "manual rj",
+            City = "Rio de Janeiro",
+            Latitude = null,
+            Longitude = null,
+            IsActive = true,
+            Source = null
+        };
+        db.DeliveryNeighborhoods.Add(nbManualOtherCity);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
+
         result.Should().HaveCount(1);
-        result.Single().Neighborhood.Should().Be("Com Coordenadas");
+        result.Single().Neighborhood.Should().Be("Manual SP");
     }
 }

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -20,6 +20,7 @@ describe('SellerDashboardPageComponent', () => {
     };
     shellFacadeMock = {
       unreadCount: jest.fn(() => 3),
+      ordersCount: signal(0),
       store: jest.fn(() => ({ isSubscriptionBlocked: false })),
       newOrderPulse: jest.fn(() => null),
       orderActivityPulse: signal(null),
@@ -139,6 +140,22 @@ describe('SellerDashboardPageComponent', () => {
     expect(orderServiceMock.getStoreReport).toHaveBeenLastCalledWith(expect.any(String), expect.any(String));
   });
 
+  it('shares the selected period order count with the Pedidos navigation badge', () => {
+    orderServiceMock.getStoreReport
+      .mockReturnValueOnce(of({ totalOrders: 1, totalRevenue: 50, inProgressOrders: 1 }))
+      .mockReturnValueOnce(of({ totalOrders: 6, totalRevenue: 300, inProgressOrders: 2 }));
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    expect(shellFacadeMock.ordersCount()).toBe(1);
+
+    fixture.nativeElement.querySelector('[data-period="week"]').click();
+    fixture.detectChanges();
+
+    expect(shellFacadeMock.ordersCount()).toBe(6);
+  });
+
   it('uses Sao Paulo calendar boundaries converted to UTC for dashboard periods', () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-07-29T12:00:00.000Z'));
     orderServiceMock.getStoreReport.mockReturnValue(of({ totalOrders: 1, totalRevenue: 50, inProgressOrders: 1 }));
@@ -150,5 +167,115 @@ describe('SellerDashboardPageComponent', () => {
 
     expect(orderServiceMock.getStoreReport).toHaveBeenLastCalledWith('2026-07-29T03:00:00.000Z', '2026-07-29T12:00:00.000Z');
     jest.useRealTimers();
+  });
+
+  it('passes the selected period range to getStoreOrders as well as the report', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-29T12:00:00.000Z'));
+    orderServiceMock.getStoreReport.mockReturnValue(of({ totalOrders: 1, totalRevenue: 50, inProgressOrders: 1 }));
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders).toHaveBeenLastCalledWith({
+      pageSize: 100,
+      startDateUtc: '2026-07-29T03:00:00.000Z',
+      endDateUtc: '2026-07-29T12:00:00.000Z',
+    });
+
+    fixture.nativeElement.querySelector('[data-period="week"]').click();
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders).toHaveBeenLastCalledWith({
+      pageSize: 100,
+      startDateUtc: '2026-07-23T03:00:00.000Z',
+      endDateUtc: '2026-07-29T12:00:00.000Z',
+    });
+    jest.useRealTimers();
+  });
+
+  it('drops a stale report response and does not fetch orders for it when the period changes quickly', () => {
+    const reportSubjects: Subject<{ totalOrders: number; totalRevenue: number; inProgressOrders: number }>[] = [];
+    orderServiceMock.getStoreReport.mockImplementation(() => {
+      const subject = new Subject<{ totalOrders: number; totalRevenue: number; inProgressOrders: number }>();
+      reportSubjects.push(subject);
+      return subject.asObservable();
+    });
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.selectPeriod('week');
+    fixture.detectChanges();
+
+    expect(reportSubjects.length).toBe(2);
+
+    reportSubjects[1].next({ totalOrders: 6, totalRevenue: 300, inProgressOrders: 2 });
+    reportSubjects[1].complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.report()?.totalOrders).toBe(6);
+    expect(orderServiceMock.getStoreOrders).toHaveBeenCalledTimes(1);
+
+    reportSubjects[0].next({ totalOrders: 1, totalRevenue: 50, inProgressOrders: 1 });
+    reportSubjects[0].complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.report()?.totalOrders).toBe(6);
+    expect(orderServiceMock.getStoreOrders).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the newest orders when a stale orders response resolves later', () => {
+    const reportSubjects: Subject<{ totalOrders: number; totalRevenue: number; inProgressOrders: number }>[] = [];
+    const orderSubjects: Subject<any>[] = [];
+    orderServiceMock.getStoreReport.mockImplementation(() => {
+      const subject = new Subject<{ totalOrders: number; totalRevenue: number; inProgressOrders: number }>();
+      reportSubjects.push(subject);
+      return subject.asObservable();
+    });
+    orderServiceMock.getStoreOrders.mockImplementation(() => {
+      const subject = new Subject<any>();
+      orderSubjects.push(subject);
+      return subject.asObservable();
+    });
+
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    reportSubjects[0].next({ totalOrders: 1, totalRevenue: 50, inProgressOrders: 1 });
+    reportSubjects[0].complete();
+    fixture.detectChanges();
+
+    fixture.componentInstance.load({ silent: true });
+    reportSubjects[1].next({ totalOrders: 2, totalRevenue: 100, inProgressOrders: 1 });
+    reportSubjects[1].complete();
+    fixture.detectChanges();
+
+    expect(orderSubjects.length).toBe(2);
+
+    orderSubjects[1].next({ items: [{ id: 'new', status: 1, total: 10 }] });
+    orderSubjects[1].complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.recentOrders().map((o) => o.id)).toEqual(['new']);
+
+    orderSubjects[0].next({ items: [{ id: 'old', status: 1, total: 5 }] });
+    orderSubjects[0].complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.recentOrders().map((o) => o.id)).toEqual(['new']);
+  });
+
+  it('does not render fixed trend percentages on the metric cards', () => {
+    orderServiceMock.getStoreReport.mockReturnValue(of({ totalOrders: 2, totalRevenue: 100, inProgressOrders: 4 }));
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('12%');
+    expect(fixture.nativeElement.textContent).not.toContain('8%');
+    expect(fixture.nativeElement.textContent).not.toContain('5%');
+    expect(fixture.nativeElement.querySelector('.trend')).toBeNull();
   });
 });

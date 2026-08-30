@@ -1,4 +1,4 @@
-/* Variante "UrBeat Green" — landpage + onboarding do lojista (login, cadastro, wizard).
+/* Variante "urbeat Green" — landpage + onboarding do lojista (login, cadastro, wizard).
    Aplicada adicionando a classe `.urbeat-onboarding` no elemento raiz da rota.
    Fora desse escopo o app continua bordeaux (loja do cliente, dashboard). */
 
@@ -20,6 +20,7 @@
   --app-bg: #f9fafb;
   --app-bg-warm: #f9fafb;
   --app-surface-soft: #f2faf0;
+  --app-wizard-bg: #f5f6fb;
 
   /* === Semânticas === */
   --app-accent-red: var(--app-brand);

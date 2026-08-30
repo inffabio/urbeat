@@ -258,6 +258,62 @@ public sealed class PricingServiceTests
     }
 
     [Fact]
+    public void PriceItem_ShouldIncludeOptionPrices_ForChoiceAdditionalsAndGroups()
+    {
+        var product = SingleProduct(40m);
+        var choice = new ProductChoiceOption { Name = "Com fritas", Price = 6m, IsActive = true };
+        product.ChoiceOptions.Add(choice);
+        var bacon = new ProductAdditional { Name = "Bacon", Price = 5m, IsActive = true };
+        product.Additionals.Add(bacon);
+        var group = new ProductOptionGroup
+        {
+            Name = "Adicionais",
+            ChoiceType = "multiple",
+            MinChoices = 0,
+            MaxChoices = 3,
+        };
+        var cheddar = new ProductOptionItem { Name = "Cheddar", Price = 4m };
+        group.Items.Add(cheddar);
+        product.OptionGroups.Add(group);
+
+        var result = _sut.PriceItem(product, new CheckoutItemRequestDto
+        {
+            ProductId = product.Id,
+            Quantity = 1,
+            ChoiceOptionId = choice.Id,
+            AdditionalIds = new[] { bacon.Id },
+            OptionGroups = new[]
+            {
+                new CheckoutOptionGroupSelectionDto { GroupId = group.Id, ItemIds = new[] { cheddar.Id } },
+            },
+        });
+
+        result.UnitPrice.Should().Be(55m); // 40 + 6 + 5 + 4
+        result.OptionPrices.Should().Contain(x => x.Name == "Com fritas" && x.Price == 6m);
+        result.OptionPrices.Should().Contain(x => x.Name == "Bacon" && x.Price == 5m);
+        result.OptionPrices.Should().Contain(x => x.Name == "Cheddar" && x.Price == 4m);
+        result.OptionPrices.Should().NotContain(x => x.Name == "Pizza");
+    }
+
+    [Fact]
+    public void PriceItem_ShouldNotIncludeVariationPrice_AsOptionPrice()
+    {
+        var product = SizeProduct(55m);
+        var variation = product.Variations.First();
+
+        var result = _sut.PriceItem(product, new CheckoutItemRequestDto
+        {
+            ProductId = product.Id,
+            Quantity = 1,
+            VariationId = variation.Id,
+        });
+
+        result.UnitPrice.Should().Be(55m);
+        result.VariationName.Should().Be("Grande");
+        result.OptionPrices.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PriceItem_ShouldAllowZeroPriceItem()
     {
         var product = SizeProduct(55m);
@@ -335,5 +391,58 @@ public sealed class PricingServiceTests
         });
 
         result.IsValid.Should().BeFalse();
+    }
+
+    // ── Duplicate selections ────────────────────────────────
+
+    [Fact]
+    public void PriceItem_ShouldChargeDuplicateAdditionalOnlyOnce()
+    {
+        var product = SingleProduct(40m);
+        var bacon = new ProductAdditional { Name = "Bacon", Price = 5m, IsActive = true };
+        product.Additionals.Add(bacon);
+
+        var result = _sut.PriceItem(product, new CheckoutItemRequestDto
+        {
+            ProductId = product.Id,
+            Quantity = 1,
+            AdditionalIds = new[] { bacon.Id, bacon.Id },
+        });
+
+        result.IsValid.Should().BeTrue();
+        result.UnitPrice.Should().Be(45m);
+        result.ExtraNames.Should().ContainSingle().Which.Should().Be("Bacon");
+        result.OptionPrices.Should().ContainSingle(x => x.Name == "Bacon" && x.Price == 5m);
+    }
+
+    [Fact]
+    public void PriceItem_ShouldChargeDuplicateGroupItemOnlyOnce()
+    {
+        var product = SingleProduct(50m);
+        var group = new ProductOptionGroup
+        {
+            Name = "Sabores",
+            ChoiceType = "multiple",
+            MinChoices = 0,
+            MaxChoices = 3,
+        };
+        var bacon = new ProductOptionItem { Name = "Bacon", Price = 5m };
+        group.Items.Add(bacon);
+        product.OptionGroups.Add(group);
+
+        var result = _sut.PriceItem(product, new CheckoutItemRequestDto
+        {
+            ProductId = product.Id,
+            Quantity = 1,
+            OptionGroups = new[]
+            {
+                new CheckoutOptionGroupSelectionDto { GroupId = group.Id, ItemIds = new[] { bacon.Id, bacon.Id } },
+            },
+        });
+
+        result.IsValid.Should().BeTrue();
+        result.UnitPrice.Should().Be(55m); // 50 + 5 (não 60)
+        result.ExtraNames.Should().ContainSingle().Which.Should().Be("Bacon");
+        result.OptionPrices.Should().ContainSingle(x => x.Name == "Bacon" && x.Price == 5m);
     }
 }

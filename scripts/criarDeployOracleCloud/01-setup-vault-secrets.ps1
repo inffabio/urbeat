@@ -1,12 +1,12 @@
 ﻿<#
 .SYNOPSIS
-    Creates all required secrets in Oracle Vault (urbeat-vault)
+    Creates all required secrets in the Urbeat OCI Vault.
 .DESCRIPTION
     This script creates all application secrets in the Oracle Vault.
     Run this FIRST before any other deployment script.
 .REQUIREMENTS
     - OCI CLI installed and configured
-    - Proper IAM permissions to write to urbeat-vault
+    - Proper IAM permissions to write to the Urbeat OCI Vault
 #>
 
 param(
@@ -33,39 +33,11 @@ param(
     [string]$SSHKeyPath
 )
 
+. (Join-Path $PSScriptRoot "oci-context.ps1")
+
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
-
-# Secret values must come from a local, ignored JSON file. The file path may
-# also be supplied through URBEAT_VAULT_SECRETS_FILE.
-if ([string]::IsNullOrWhiteSpace($SecretsFile)) {
-    Write-Error "SecretsFile is required. Use -SecretsFile with an unversioned local JSON file or set URBEAT_VAULT_SECRETS_FILE."
-    exit 1
-}
-$SecretsFile = [System.IO.Path]::GetFullPath($SecretsFile)
-if (-not (Test-Path -LiteralPath $SecretsFile -PathType Leaf)) {
-    Write-Error "Secrets file not found: $SecretsFile"
-    exit 1
-}
-
-try {
-    $secrets = @{}
-    $localSecrets = Get-Content -LiteralPath $SecretsFile -Raw | ConvertFrom-Json
-    foreach ($property in $localSecrets.PSObject.Properties) {
-        if ([string]::IsNullOrWhiteSpace([string]$property.Value)) {
-            Write-Error "Secret '$($property.Name)' is empty in the local secrets file."
-            exit 1
-        }
-        $secrets[$property.Name] = [string]$property.Value
-    }
-} catch {
-    Write-Error "Could not parse the local secrets file."
-    exit 1
-}
-if ($secrets.Count -eq 0) {
-    Write-Error "The local secrets file does not contain any secrets."
-    exit 1
-}
+. (Join-Path $PSScriptRoot "secret-input.ps1")
 
 Write-Host "🔐 Starting Oracle Vault Secrets Setup for Urbeat..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
@@ -89,9 +61,9 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$vaultData = @((($vaultList | ConvertFrom-Json).data) | Where-Object { $_.'display-name' -eq $VaultName })
+$vaultData = @((($vaultList | ConvertFrom-Json).data) | Where-Object { $_.'display-name' -ieq $VaultName })
 if ($vaultData.Count -eq 0) {
-    Write-Host "❌ Vault '$VaultName' not found. Please verify vault exists." -ForegroundColor Red
+    Write-Host "❌ Vault '$VaultName' (case-insensitive) not found. Please verify OCI_COMPARTMENT_OCID and the Vault display name." -ForegroundColor Red
     exit 1
 }
 
@@ -150,6 +122,31 @@ if ($jsonString) {
 # ─────────────────────────────────────────
 # Step 5: Create or Update Secrets in Vault
 # ─────────────────────────────────────────
+
+$secretsMapPath = Join-Path $PSScriptRoot "configs\secrets-map.json"
+if (-not (Test-Path -LiteralPath $secretsMapPath -PathType Leaf)) {
+    Write-Error "secrets-map.json not found: $secretsMapPath"
+    exit 1
+}
+
+$expectedSecretNames = @((Get-Content -LiteralPath $secretsMapPath -Raw | ConvertFrom-Json).PSObject.Properties.Name)
+try {
+    $secretInput = Resolve-SecretInput `
+        -SecretsFile $SecretsFile `
+        -ExpectedSecretNames $expectedSecretNames `
+        -ExistingSecretNames @($existingSecrets.Keys)
+} catch {
+    Write-Error $_.Exception.Message
+    exit 1
+}
+
+if ($secretInput.ReuseExisting) {
+    Write-Host "  ✅ Vault already contains all $($expectedSecretNames.Count) mapped secrets; no local secrets file is required." -ForegroundColor Green
+    Write-Host "`n🎉 Existing Vault secrets are ready for deployment." -ForegroundColor Green
+    exit 0
+}
+
+$secrets = $secretInput.Secrets
 
 Write-Host "`n🔐 Processing secrets in Oracle Vault..." -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray

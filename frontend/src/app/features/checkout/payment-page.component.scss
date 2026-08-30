@@ -6,27 +6,30 @@
 
 .page-head {
   display: grid;
-  grid-template-columns: 50px 1fr 50px;
+   grid-template-columns: 46px 1fr 46px;
   align-items: center;
-  padding: 14px 22px 22px;
+   padding: 10px 18px 16px;
 
-  .ghost-btn {
-    width: 50px;
-    height: 50px;
+   .circle-btn {
+     width: 46px;
+     height: 46px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+     background: rgba(255, 255, 255, .96);
     border: none;
     color: var(--app-ink);
     cursor: pointer;
-    font-size: 24px;
-    transition: opacity .15s;
+     font-size: 21px;
+     box-shadow: var(--shadow-sm);
+     transition: color .15s, transform .05s;
 
-    ion-icon { font-size: 24px; line-height: 1; }
+     ion-icon { font-size: 21px; line-height: 1; }
 
-    &:hover { opacity: .7; }
+     &:hover,
+     &:focus-visible { color: var(--app-brand); outline: none; }
+     &:active { transform: scale(.95); }
   }
 }
 
@@ -34,7 +37,7 @@
   text-align: center;
 
   h1 {
-    font-size: 23px;
+     font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.04em;
     color: var(--app-ink);
@@ -49,11 +52,28 @@
 }
 
 .screen-padding {
-  padding: 0 22px 24px;
+   padding: 0 18px 136px;
+}
+
+.sticky-action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)));
+  z-index: 40;
+  width: min(430px, 100%);
+  padding: 0 12px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.sticky-action-bar .btn-primary {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 999px;
 }
 
 .order-summary {
-  padding: 18px;
+   padding: 14px;
   margin-bottom: 24px;
 
   h2 {
@@ -119,7 +139,7 @@
   place-items: center;
 
   ion-icon {
-    font-size: 22px;
+   font-size: 19px;
     color: var(--app-brand);
     line-height: 1;
   }
@@ -146,7 +166,7 @@
 
 .option-card {
   position: relative;
-  min-height: 88px;
+   min-height: 78px;
   display: grid;
   grid-template-columns: 24px 56px 1fr 24px;
   align-items: center;
@@ -316,19 +336,18 @@
 .modal-overlay {
   position: fixed; inset: 0;
   background: var(--app-overlay);
-  display: flex; align-items: flex-end; justify-content: center;
+   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }
 
 .modal-sheet {
   position: relative;
   background: var(--app-surface);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 24px 20px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 80vh;
-  overflow-y: auto;
+   border-radius: 18px;
+   padding: 18px;
+   width: min(360px, 100%);
+   max-height: 60vh;
+   overflow-y: auto;
 
   .modal-close {
     position: absolute;
@@ -345,23 +364,23 @@
   }
 
   h2 {
-    font-size: 16px;
-    margin-bottom: 16px;
+     font-size: 15px;
+     margin: 0 34px 12px 0;
   }
 
   .modal-items {
     list-style: none;
     padding: 0;
-    margin: 0 0 16px;
+     margin: 0 0 12px;
     display: flex; flex-direction: column;
-    gap: 10px;
+     gap: 6px;
 
     li {
       display: grid;
       grid-template-columns: 32px 1fr auto;
       align-items: center;
       gap: 10px;
-      font-size: 13px;
+       font-size: 11px;
 
       .qty { color: var(--app-brand); font-weight: 700; }
       .name { color: var(--app-text-primary); }
@@ -372,15 +391,15 @@
   .modal-total {
     display: flex;
     justify-content: space-between;
-    padding: 14px 0;
+     padding: 10px 0;
     border-top: 1px solid var(--app-border-light);
-    font-size: 15px;
+     font-size: 13px;
     font-weight: 700;
 
     .total-value { color: var(--app-brand); }
   }
 
-  .modal-close-btn { margin-top: 12px; }
+   .modal-close-btn { margin-top: 8px; min-height: 42px; }
 }
 
 @media (max-width: 400px) {

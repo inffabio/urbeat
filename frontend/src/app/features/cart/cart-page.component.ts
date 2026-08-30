@@ -11,11 +11,12 @@ import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { StorePublicDetails } from '../../shared/models/store.model';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { BackToMenuLinkComponent } from '../../shared/components/back-to-menu-link/back-to-menu-link.component';
+import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
 @Component({
   selector: 'app-cart-page',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent],
+  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent, StickyActionBarComponent],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.scss',
 })
@@ -33,6 +34,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
   readonly minimumOrderValue = signal(15);
   readonly discount = signal(0);
   readonly freeShippingApplied = signal(false);
+  readonly deliveryFeeKnown = signal(false);
   readonly showClearConfirm = signal(false);
   readonly store = signal<StorePublicDetails | null>(null);
   readonly storeLoadError = signal(false);
@@ -46,7 +48,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
 
   // No carrinho a região ainda é desconhecida (sem endereço) → frete calculado na próxima etapa.
   readonly deliveryFeePending = computed(
-    () => this.fulfillment() === FulfillmentType.Delivery && !this.freeShippingApplied(),
+    () => this.fulfillment() === FulfillmentType.Delivery
+      && (!this.checkout.customerAddressId() || !this.deliveryFeeKnown()),
   );
   readonly effectiveDeliveryFee = computed(() =>
     this.fulfillment() === FulfillmentType.Delivery ? this.deliveryFee() : 0,
@@ -90,12 +93,32 @@ export class CartPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.cart.isEmpty()) return;
     const storeId = this.cart.storeId();
-    if (!storeId) return;
+    if (!storeId) {
+      const storePath = this.route.parent?.snapshot.paramMap.get('storePath');
+      if (!storePath) {
+        this.storeLoadError.set(true);
+        return;
+      }
+
+      this.dataLoading.set(true);
+      this.storeService.getStoreByPath(storePath).subscribe({
+        next: (store) => {
+          this.cart.setStore(store.id, store.name, store.logoUrl);
+          this.storeId = store.id;
+          this.loadStore(store.id);
+           this.restoreCustomerSession(store.id);
+        },
+        error: () => {
+          this.dataLoading.set(false);
+          this.storeLoadError.set(true);
+        },
+      });
+      return;
+    }
     this.storeId = storeId;
 
     this.loadStore(storeId);
-    this.loadCheckoutPreview(storeId);
-    this.restoreCustomerSession();
+     this.restoreCustomerSession(storeId);
   }
 
   ngOnDestroy(): void {
@@ -128,25 +151,35 @@ export class CartPageComponent implements OnInit, OnDestroy {
 
   private loadCheckoutPreview(storeId: string): void {
     this.checkoutPreviewError.set(false);
+    this.deliveryFeeKnown.set(false);
     this.checkout
       .preview({
-        storeId,
-        fulfillmentType: this.fulfillment(),
-        items: this.cart.toCheckoutItems(),
+         storeId,
+         fulfillmentType: this.fulfillment(),
+         customerAddressId: this.checkout.customerAddressId() ?? undefined,
+         items: this.cart.toCheckoutItems(),
       })
       .subscribe({
         next: (res) => {
           this.deliveryFee.set(res.deliveryFee);
           this.minimumOrderValue.set(res.minimumOrderValue);
-          this.freeShippingApplied.set(res.freeShippingApplied);
+           this.freeShippingApplied.set(res.freeShippingApplied);
+           this.deliveryFeeKnown.set(true);
           this.checkoutPreviewError.set(false);
         },
         error: (err) => {
+          if (this.isDeliveryAreaError(err)) {
+            this.deliveryFeeKnown.set(false);
+            this.checkoutPreviewError.set(false);
+            return;
+          }
+
           const summary = err?.error?.summary;
           if (summary) {
             this.deliveryFee.set(summary.deliveryFee ?? 0);
             this.minimumOrderValue.set(summary.minimumOrderValue ?? this.minimumOrderValue());
             this.freeShippingApplied.set(summary.freeShippingApplied ?? false);
+            this.deliveryFeeKnown.set(true);
             this.checkoutPreviewError.set(false);
             return;
           }
@@ -154,6 +187,17 @@ export class CartPageComponent implements OnInit, OnDestroy {
           this.checkoutPreviewError.set(true);
         },
       });
+  }
+
+  private isDeliveryAreaError(error: unknown): boolean {
+    const responseError = (error as { error?: unknown })?.error;
+    const message = typeof responseError === 'string'
+      ? responseError
+      : (responseError as { error?: string; message?: string; detail?: string } | undefined)?.error
+        ?? (responseError as { message?: string; detail?: string } | undefined)?.message
+        ?? (responseError as { detail?: string } | undefined)?.detail
+        ?? '';
+    return /entregamos.*bairro/i.test(message);
   }
 
   retryLoad(): void {
@@ -251,18 +295,20 @@ export class CartPageComponent implements OnInit, OnDestroy {
     this.router.navigate(['/', this.guessStorePath(), 'checkout', nextStep]);
   }
 
-  private restoreCustomerSession(): void {
+  private restoreCustomerSession(storeId: string): void {
     if (this.auth.isLoggedIn() && this.auth.customerProfile()) {
       const addressId = this.auth.customerProfile()?.primaryAddressId ?? null;
       if (addressId) this.checkout.customerAddressId.set(addressId);
+      this.loadCheckoutPreview(storeId);
       return;
     }
 
     this.auth.restoreCustomerSession().subscribe({
       next: (profile) => {
         if (profile?.primaryAddressId) this.checkout.customerAddressId.set(profile.primaryAddressId);
+        this.loadCheckoutPreview(storeId);
       },
-      error: () => undefined,
+      error: () => this.loadCheckoutPreview(storeId),
     });
   }
 

@@ -88,6 +88,22 @@
 
 ---
 
+## Preflight OCI Vault
+
+O pipeline usa o compartimento informado por `OCI_COMPARTMENT_OCID` para localizar o Vault e a chave de criptografia. Para não perder esses valores entre sessões, copie `scripts/criarDeployOracleCloud/configs/oci.local.json.example` para `oci.local.json` no mesmo diretório e preencha o arquivo local. Ele é ignorado pelo Git e carregado automaticamente pelo pipeline; variáveis já definidas na sessão têm precedência:
+
+```powershell
+Copy-Item .\scripts\criarDeployOracleCloud\configs\oci.local.json.example .\scripts\criarDeployOracleCloud\configs\oci.local.json
+# Edite o arquivo local; não cole os valores neste documento.
+.\scripts\criarDeployOracleCloud\validate-pipeline.ps1
+```
+
+Para armazenar o contexto fora do repositório, defina `URBEAT_OCI_CONTEXT_FILE` com o caminho de um JSON equivalente.
+
+O nome exibido do Vault pode ser `urbeat`, `Urbeat` ou `UrBeat`; o pipeline compara esses nomes sem diferenciar maiúsculas e minúsculas. O Vault precisa conter uma chave de criptografia habilitada. O pipeline interrompe no `prerequisites` quando o compartimento não está definido, o Vault não é encontrado ou nenhuma chave habilitada é listada.
+
+---
+
 ## Dados seed (DemoDataSeeder)
 
 3 lojas × 10 produtos cada, criadas automaticamente no 1o startup se `Stores` estiver vazia.
@@ -215,7 +231,7 @@ Enquanto este servidor continuar sendo o ambiente de producao, qualquer reset ex
 - `__EFMigrationsHistory`: 58 migrations aplicadas.
 - `Cities`: 0 registros após o reset.
 - `DeliveryNeighborhoods`: 0 registros após o reset.
-- A base de bairros de referência está no banco PostgreSQL de produção. Antes de um reset, exporte os estados existentes para snapshots CSV e versione-os em `backend/scripts/import/snapshots/bairros_<uf>.csv`; a reconstrução deve restaurar esses CSVs sem consultar a API externa. O CSV pode conter bairros sem geolocalização, mantendo `Latitude` e `Longitude` vazios; valide o total, os geolocalizados e os pendentes. Coordenadas são aproximadas pela primeira rua/CEP encontrada, com e-DNE/CEP antes de fontes reais como Nominatim, nunca por centroide municipal. A restauração via CSV preserva vazios e nunca inventa coordenadas.
+- A base de bairros de referência está no banco PostgreSQL de produção. Antes de um reset, exporte os estados existentes para snapshots CSV e versione-os em `backend/scripts/import/snapshots/bairros_<uf>.csv`; a reconstrução deve restaurar esses CSVs sem consultar a API externa. O CSV pode conter bairros sem geolocalização, mantendo `Latitude` e `Longitude` vazios; valide o total, os geolocalizados e os pendentes. Coordenadas são aproximadas pela primeira rua/CEP encontrada: o e-DNE escolhe a rua alfabeticamente menor dentro do bairro e município, cujo CEP é convertido pela API Brasil Aberto com origem `brasil_aberto_first_street`; quando o Brasil Aberto não retorna um par válido, o Cep Aberto é usado como fallback (se `CEP_ABERTO_API_TOKEN` estiver configurado) com origem `cep_aberto`; o reparador `neighborhood_regeocode.py` ainda tenta o Mapbox Geocoding (se `MAPBOX_API_TOKEN` estiver configurado) com origem `mapbox_geocoding`, e Nominatim é usado apenas como fallback com origem `osm_nominatim`, nunca por centroide municipal. O snapshot é exportado ao final de cada importação ou reparo, após o commit, com escrita atômica. A restauração via CSV preserva vazios e nunca inventa coordenadas.
 
 ### Exportar bairros do banco de produção
 
@@ -229,12 +245,30 @@ export URBEAT_DB_NAME=UrbeatDb
 export URBEAT_DB_USER=postgres
 export URBEAT_DB_PASSWORD='use-a-senha-do-ambiente-sem-registrar-em-arquivo-versionado'
 
-for uf in AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO; do
-  python3 neighborhood_snapshot.py export --uf "$uf" --file "snapshots/bairros_${uf,,}.csv"
-done
+# Substitui os snapshots de TODAS as 27 UFs com o estado atual do banco
+python3 neighborhood_snapshot.py export-all
 ```
 
+O `export-all` lê o banco e substitui `snapshots/bairros_<uf>.csv` para todas as
+27 UFs (sem append/merge), preservando a escrita atômica: um temporário é
+validado antes de substituir o destino. Estados sem registros geram um CSV
+válido só com o cabeçalho. Para exportar apenas uma UF, use
+`python3 neighborhood_snapshot.py export --uf "<UF>" --file "snapshots/bairros_<uf>.csv"`.
+
 Os CSVs gerados devem ser copiados para `backend/scripts/import/snapshots/` no repositório e revisados antes de qualquer reset. Em 2026-08-14, todas as 27 UFs foram importadas na produção e exportadas: 56.580 bairros no total, sendo 53.015 geolocalizados e 3.565 pendentes sem par completo de coordenadas. Estados sem registros produzem um snapshot vazio e devem ser confirmados antes de versionar. Depois do reset, restaure somente os arquivos disponíveis e valide a contagem de `Cities` e `DeliveryNeighborhoods`.
+
+### Substituicao controlada de bairros na importacao
+
+O importador (`brasil_aberto_import.py`) substitui os bairros oficiais de cada
+municipio pela lista atual da API Brasil Aberto, preservando os bairros
+manuais/customizados (`Source` e `CityId` nulos). Um registro e oficial quando
+`Source` tem uma origem conhecida (`brasil_aberto`, `brasil_aberto_cep`,
+`brasil_aberto_first_street`, `osm_nominatim`, `openstreetmap`) ou `CityId` esta
+preenchido. Oficiais obsoletos (fora da resposta atual) sao removidos; se a API
+retornar lista vazia ou a consulta de um municipio falhar, nada e removido. A
+substituicao roda em transacao por municipio. Bairros manuais nunca sao apagados
+e nomes que conflitam com um manual nao geram duplicata. Apos o processamento,
+a geocodificacao e o `export-all` das 27 UFs continuam rodando.
 
 ### Restore
 ```bash
@@ -312,7 +346,7 @@ openssl rand -hex 12      # HANGFIRE_PASSWORD
 - **Remetente:** `contato@urbeat.com.br`
 - **Servico:** OCI Email Delivery via SMTP (MailKit `SmtpEmailService` em `Urbeat.Infrastructure/Services/Email/`)
 - Porta 587 com STARTTLS (MailKit usa `SecureSocketOptions.StartTls` quando `UseStartTls=true`)
-- Credenciais SMTP armazenadas no **OCI Vault** (`urbeat-vault`, regiao `sa-saopaulo-1`)
+- Credenciais SMTP armazenadas no **OCI Vault** (display name `urbeat`, `Urbeat` ou `UrBeat`, regiao `sa-saopaulo-1`)
 - Script de deploy `03-setup-environment.ps1` busca os secrets do vault e gera o `.env`
 
 | Config | Valor |

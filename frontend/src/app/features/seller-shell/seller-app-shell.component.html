@@ -38,17 +38,17 @@
 
   <section
     class="store-card"
-    [class.open]="facade.store()?.isOpen"
+    [class.open]="storeIsOpenNow()"
     role="status"
     aria-live="polite"
-    [attr.aria-label]="'Status da loja: ' + (facade.store()?.isOpen ? 'aberta' : 'fechada')"
+    [attr.aria-label]="'Status da loja: ' + (storeIsOpenNow() ? 'aberta' : 'fechada')"
   >
     <div class="store-card-main">
       <span class="status-dot" aria-hidden="true"></span>
       @if (!sidebarCollapsed() || mobile) {
         <div>
-          <strong>{{ facade.store()?.isOpen ? 'Loja aberta' : 'Loja fechada' }}</strong>
-          <span>{{ facade.store()?.isOpen ? 'Recebendo pedidos' : 'Operação pausada' }}</span>
+          <strong>{{ storeIsOpenNow() ? 'Loja aberta' : 'Loja fechada' }}</strong>
+          <span>{{ storeIsOpenNow() ? 'Recebendo pedidos' : 'Operação pausada' }}</span>
         </div>
       }
     </div>
@@ -71,8 +71,8 @@
         >
           <ion-icon [attr.name]="item.icon" aria-hidden="true"></ion-icon>
           <span class="nav-text">{{ item.label }}</span>
-          @if (item.badge && facade.unreadCount() > 0) {
-            <strong class="badge">{{ facade.unreadCount() }}</strong>
+          @if (item.badge && facade.ordersCount() > 0) {
+            <strong class="badge">{{ facade.ordersCount() }}</strong>
           }
         </a>
       }

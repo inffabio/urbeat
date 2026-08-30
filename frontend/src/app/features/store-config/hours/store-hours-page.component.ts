@@ -178,7 +178,7 @@ export class StoreHoursPageComponent implements OnInit {
           for (const day of WEEKDAYS) {
             const item = res.items.find(i => i.dayOfWeek === day.dayOfWeek);
             s[day.id] = item
-              ? { isOpen: item.isOpen, shifts: item.shifts?.map(sh => ({ startTime: sh.startTime, endTime: sh.endTime })) ?? [] }
+              ? { isOpen: item.isOpen, shifts: this.sortShifts(item.shifts?.map(sh => ({ startTime: sh.startTime, endTime: sh.endTime })) ?? []) }
               : { isOpen: false, shifts: [] };
           }
           this.schedule.set(s);
@@ -221,7 +221,7 @@ export class StoreHoursPageComponent implements OnInit {
         const endTotal = (total + 240) % 1440;
         end = `${String(Math.floor(endTotal / 60)).padStart(2, '0')}:${String(endTotal % 60).padStart(2, '0')}`;
       }
-      return { ...s, [dayId]: { ...day, shifts: [...day.shifts, { startTime: start, endTime: end }] } };
+      return { ...s, [dayId]: { ...day, shifts: this.sortShifts([...day.shifts, { startTime: start, endTime: end }]) } };
     });
     this.markDirty();
     if (this.syncAll()) this.syncAllDays(dayId);
@@ -243,7 +243,7 @@ export class StoreHoursPageComponent implements OnInit {
       const day = s[dayId];
       const shifts = [...day.shifts];
       shifts[index] = { ...shifts[index], [field]: value };
-      return { ...s, [dayId]: { ...day, shifts } };
+      return { ...s, [dayId]: { ...day, shifts: this.sortShifts(shifts) } };
     });
     this.markDirty();
     if (this.syncAll()) this.syncAllDays(dayId);
@@ -277,7 +277,7 @@ export class StoreHoursPageComponent implements OnInit {
     this.schedule.update(s => {
       const copy = { ...s };
       for (const day of WEEKDAYS) {
-        copy[day.id] = { isOpen: source.isOpen, shifts: source.shifts.map(sh => ({ ...sh })) };
+        copy[day.id] = { isOpen: source.isOpen, shifts: this.sortShifts(source.shifts.map(sh => ({ ...sh }))) };
       }
       return copy;
     });
@@ -345,7 +345,7 @@ export class StoreHoursPageComponent implements OnInit {
     this.schedule.update(s => {
       const copy = { ...s };
       for (const t of targets) {
-        copy[t] = { isOpen: source.isOpen, shifts: source.shifts.map(sh => ({ ...sh })) };
+         copy[t] = { isOpen: source.isOpen, shifts: this.sortShifts(source.shifts.map(sh => ({ ...sh }))) };
       }
       return copy;
     });
@@ -402,10 +402,10 @@ export class StoreHoursPageComponent implements OnInit {
         return {
           dayOfWeek: day.dayOfWeek,
           isOpen: s?.isOpen ?? false,
-          shifts: (s?.shifts ?? []).map(sh => ({
+          shifts: this.sortShifts((s?.shifts ?? []).map(sh => ({
             startTime: sh.startTime || '09:00',
             endTime: sh.endTime || '18:00',
-          })),
+          }))),
         };
       }),
     };
@@ -478,5 +478,13 @@ export class StoreHoursPageComponent implements OnInit {
         shifts: day.shifts.map(shift => ({ ...shift })),
       }]),
     );
+  }
+
+  private sortShifts(shifts: Shift[]): Shift[] {
+    return [...shifts].sort((a, b) => {
+      const startDifference = this.toMinutes(a.startTime) - this.toMinutes(b.startTime);
+      if (startDifference !== 0) return startDifference;
+      return this.toMinutes(a.endTime) - this.toMinutes(b.endTime);
+    });
   }
 }

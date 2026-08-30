@@ -1,6 +1,7 @@
 import gzip
 import json
 import os
+import unicodedata
 import urllib.request
 from pathlib import Path
 
@@ -41,6 +42,58 @@ def ibge_state_code(uf):
 
 def snapshot_path(uf, directory=None):
     base = Path(directory) if directory else Path(__file__).parent / "snapshots"
+    return base / f"bairros_{validate_uf(uf).lower()}.csv"
+
+def normalize_neighborhood_name(name):
+    value = (name or "").strip()
+    if not value:
+        raise ValueError("Nome de bairro vazio")
+    normalized = unicodedata.normalize("NFKD", value)
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char))
+    normalized = "".join(char if char.isalnum() else " " for char in normalized)
+    normalized = " ".join(normalized.split()).lower()
+    if not normalized:
+        raise ValueError("Nome de bairro vazio")
+    return normalized
+
+def normalize_ibge_code(value):
+    """Normaliza um codigo IBGE de municipio para sua forma canonica de string.
+
+    Aceita inteiros, floats integrais e strings, inclusive valores numericos
+    com sufixo ".0" (ex.: ``3304557.0``), retornando ``"3304557"``. Retorna
+    ``None`` para valores ausentes, nao numericos ou nao inteiros.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        text = str(value)
+    elif isinstance(value, float):
+        if not value.is_integer():
+            return None
+        text = str(int(value))
+    else:
+        text = str(value).strip()
+        if not text:
+            return None
+        if text.endswith(".0") and text[:-2].isdigit():
+            text = text[:-2]
+    if not text.isdigit():
+        return None
+    return text
+
+
+def candidate_key(uf, city_ibge_code, neighborhood_name):
+    ibge = normalize_ibge_code(city_ibge_code)
+    if not ibge:
+        raise ValueError("CityIbgeCode ausente ou vazio")
+    return (
+        validate_uf(uf),
+        ibge,
+        normalize_neighborhood_name(neighborhood_name),
+    )
+
+def candidate_path(uf, directory=None):
+    base = Path(directory) if directory else Path(__file__).parent / "candidates"
     return base / f"bairros_{validate_uf(uf).lower()}.csv"
 
 def fetch_json(url, headers=None):

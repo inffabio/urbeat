@@ -4,6 +4,7 @@ using FluentValidation;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
+using Urbeat.WebApi.Uploads;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -469,6 +470,10 @@ public sealed class StoresController : ControllerBase
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "Nenhum arquivo enviado." });
+
+        var validationError = StoreMediaUploadValidator.Validate(file, type);
+        if (validationError is not null)
+            return BadRequest(new { error = validationError });
 
         var userId = GetCurrentUserId();
         if (userId is null) return Unauthorized();

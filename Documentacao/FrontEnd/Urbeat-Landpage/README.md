@@ -1,4 +1,4 @@
-# UrBeat V2 — versão organizada
+# urbeat V2 — versão organizada
 
 Abra `index.html` no navegador para visualizar a página.
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -59,12 +59,16 @@ addIcons({
   templateUrl: './seller-app-shell.component.html',
   styleUrl: './seller-app-shell.component.scss',
 })
-export class SellerAppShellComponent implements OnInit {
+export class SellerAppShellComponent implements OnInit, OnDestroy {
   readonly facade = inject(SellerShellFacade);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
+  readonly storeIsOpenNow = computed(() => {
+    const store = this.facade.store();
+    return store?.isOpenNow ?? store?.isOpen ?? false;
+  });
 
   readonly menuItems = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline' },
@@ -123,5 +127,9 @@ export class SellerAppShellComponent implements OnInit {
     this.facade.reset();
     this.auth.logout();
     this.router.navigate(['/login-vendedor']);
+  }
+
+  ngOnDestroy(): void {
+    this.facade.reset();
   }
 }

@@ -23,4 +23,8 @@ export class AddressService {
   create(payload: UpsertCustomerAddress): Observable<CustomerAddress> {
     return this.api.post<CustomerAddress>('/api/customer/addresses', payload);
   }
+
+  update(addressId: string, payload: UpsertCustomerAddress): Observable<CustomerAddress> {
+    return this.api.put<CustomerAddress>(`/api/customer/addresses/${addressId}`, payload);
+  }
 }
