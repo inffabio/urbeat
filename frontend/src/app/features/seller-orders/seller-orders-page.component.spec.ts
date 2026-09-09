@@ -2008,7 +2008,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.orderItems('a')[0].productName).toBe('FRESH');
   });
 
-  describe('time period filter', () => {
+  describe('day board (period selector removed)', () => {
     const statusOrder = [
       OrderStatus.Received,
       OrderStatus.Preparing,
@@ -2040,89 +2040,27 @@ describe('SellerOrdersPageComponent', () => {
       expect(fixture.componentInstance.selectedPeriod()).toBe('today');
     });
 
-    it('updates the page title to reflect the selected period', () => {
+    it('keeps the page title on the day board', () => {
       const fixture = TestBed.createComponent(SellerOrdersPageComponent);
       fixture.detectChanges();
 
       const title = fixture.nativeElement.querySelector('.page-title');
       expect(title.textContent).toContain('Pedidos do dia');
-
-      fixture.componentInstance.selectPeriod('week');
-      fixture.detectChanges();
-      expect(title.textContent).toContain('Pedidos da semana');
-
-      fixture.componentInstance.selectPeriod('month');
-      fixture.detectChanges();
-      expect(title.textContent).toContain('Pedidos do mês');
     });
 
-    it('switches to week and reloads with Sao Paulo week boundaries', () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2026-07-29T12:00:00.000Z'));
-
+    it('does not render the Hoje/Semana/Mês period selector and keeps refresh', () => {
       const fixture = TestBed.createComponent(SellerOrdersPageComponent);
       fixture.detectChanges();
 
-      fixture.componentInstance.selectPeriod('week');
-      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.segmented')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[aria-label="Filtrar pedidos por período"]')).toBeNull();
 
-      expect(fixture.componentInstance.selectedPeriod()).toBe('week');
+      const topButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.top-actions button'),
+      ).map((button) => button.textContent?.trim() ?? '');
 
-      const lastCalls = orderServiceMock.getStoreOrders.mock.calls.slice(-statusOrder.length);
-      expect(lastCalls.map(([query]: any) => query.status)).toEqual(statusOrder);
-      for (const [query] of lastCalls) {
-        expect(query.startDateUtc).toBe('2026-07-23T03:00:00.000Z');
-        expect(query.endDateUtc).toBe('2026-07-29T12:00:00.000Z');
-      }
-    });
-
-    it('switches to month and reloads with Sao Paulo month boundaries', () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2026-07-29T12:00:00.000Z'));
-
-      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
-      fixture.detectChanges();
-
-      fixture.componentInstance.selectPeriod('month');
-      fixture.detectChanges();
-
-      expect(fixture.componentInstance.selectedPeriod()).toBe('month');
-
-      const lastCalls = orderServiceMock.getStoreOrders.mock.calls.slice(-statusOrder.length);
-      for (const [query] of lastCalls) {
-        expect(query.startDateUtc).toBe('2026-06-30T03:00:00.000Z');
-        expect(query.endDateUtc).toBe('2026-07-29T12:00:00.000Z');
-      }
-    });
-
-    it('does not reload when selecting the already active period', () => {
-      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
-      fixture.detectChanges();
-
-      const before = orderServiceMock.getStoreOrders.mock.calls.length;
-      fixture.componentInstance.selectPeriod('today');
-      fixture.detectChanges();
-
-      expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before);
-    });
-
-    it('marks the active period button and toggles aria-pressed on click', () => {
-      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
-      fixture.detectChanges();
-
-      const buttons = () => Array.from(fixture.nativeElement.querySelectorAll('.segmented button'));
-      expect(buttons().length).toBe(3);
-      expect(buttons()[0].classList.contains('active')).toBe(true);
-      expect(buttons()[0].getAttribute('aria-pressed')).toBe('true');
-      expect(buttons()[1].getAttribute('aria-pressed')).toBe('false');
-
-      buttons()[1].click();
-      fixture.detectChanges();
-
-      expect(buttons()[0].classList.contains('active')).toBe(false);
-      expect(buttons()[1].classList.contains('active')).toBe(true);
-      expect(buttons()[1].getAttribute('aria-pressed')).toBe('true');
-      expect(buttons()[0].getAttribute('aria-pressed')).toBe('false');
+      expect(topButtons.some((label) => ['Hoje', 'Semana', 'Mês'].includes(label))).toBe(false);
+      expect(topButtons).toContain('Atualizar');
     });
   });
 

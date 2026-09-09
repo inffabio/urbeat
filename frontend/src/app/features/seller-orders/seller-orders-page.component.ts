@@ -82,12 +82,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly selectedPeriod = signal<DashboardPeriod>('today');
   readonly prefetchingOrderIds = signal<ReadonlySet<string>>(new Set());
 
-  readonly periods: { label: string; value: DashboardPeriod }[] = [
-    { label: 'Hoje', value: 'today' },
-    { label: 'Semana', value: 'week' },
-    { label: 'Mês', value: 'month' },
-  ];
-
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
       case 'week': return 'Pedidos da semana';
@@ -259,12 +253,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
     });
-  }
-
-  selectPeriod(period: DashboardPeriod): void {
-    if (this.selectedPeriod() === period) return;
-    this.selectedPeriod.set(period);
-    this.load();
   }
 
   private loadOrderItems(orders: OrderSummary[], sequence: number): void {
