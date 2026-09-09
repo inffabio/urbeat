@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { CartPageComponent } from './cart-page.component';
 import { CartService } from '../../core/services/cart.service';
@@ -94,6 +96,12 @@ describe('CartPageComponent', () => {
     const content = fixture.debugElement.query(By.css('.cart-content')).nativeElement as HTMLElement;
 
     expect(content.hasAttribute('fullscreen')).toBe(false);
+  });
+
+  it('keeps the footer and action bar clearance inside the scrolling content', () => {
+    const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 56px\)/);
   });
 
   it('should restore the store context from the route when persisted items have no store id', () => {

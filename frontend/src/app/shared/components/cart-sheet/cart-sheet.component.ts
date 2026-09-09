@@ -172,7 +172,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
 export class CartSheetComponent {
   readonly cart = inject(CartService);
   @Input() isOpen = false;
-  @Input() footerHeight = 'calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))';
+  @Input() footerHeight = 'var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))';
   @Input() sheetHeight = 'calc(50vh - var(--footer-height))';
   @Output() readonly close = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();

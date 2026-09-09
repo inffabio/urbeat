@@ -5,6 +5,8 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { Product } from '../../shared/models/product.model';
 
 describe('ProductDetailPageComponent', () => {
@@ -173,5 +175,15 @@ describe('ProductDetailPageComponent', () => {
 
     expect(fixture.debugElement.query(By.css('.hero-placeholder'))).not.toBeNull();
     expect(fixture.debugElement.query(By.css('.product-hero img'))).toBeNull();
+  });
+
+  it('keeps the add-to-cart bar clearance inside the ion-content scrollport', () => {
+    const styles = readFileSync(resolve(__dirname, 'product-detail-page.component.scss'), 'utf8');
+    const template = readFileSync(resolve(__dirname, 'product-detail-page.component.html'), 'utf8');
+
+    expect(styles).toMatch(/\.product-detail-content\s*\{[\s\S]*--padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 76px\)/);
+    expect(styles).toMatch(/\.product-fixed\s*\{[\s\S]*position:\s*sticky;[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
+    expect(template.indexOf('class="product-fixed"')).toBeGreaterThan(template.indexOf('class="product-sheet"'));
+    expect(template.indexOf('class="back-to-menu"')).toBeGreaterThan(template.indexOf('class="product-fixed"'));
   });
 });

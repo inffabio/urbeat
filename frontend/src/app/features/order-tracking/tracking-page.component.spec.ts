@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { TrackingPageComponent } from './tracking-page.component';
 import {
@@ -691,6 +693,21 @@ describe('TrackingPageComponent', () => {
 
       fixture.destroy();
     });
+  });
+});
+
+describe('TrackingPageComponent mobile footer clearance', () => {
+  it('keeps the footer clearance inside the ion-content scrollport', () => {
+    const styles = readFileSync(resolve(__dirname, 'tracking-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 20px\)/);
+  });
+
+  it('keeps the confirm-delivery FAB above the fixed footer without breaking the safe area', () => {
+    const styles = readFileSync(resolve(__dirname, 'tracking-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.confirm-delivery-fab\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
+    expect(styles).toMatch(/\.confirm-delivery-fab\s*\{[\s\S]*z-index:\s*40/);
   });
 });
 

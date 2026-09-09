@@ -4,6 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { PaymentPageComponent } from './payment-page.component';
 import { CartService } from '../../core/services/cart.service';
@@ -247,5 +249,14 @@ describe('PaymentPageComponent', () => {
     fixture.destroy();
 
     expect(unsubscribed).toBe(true);
+  });
+});
+
+describe('PaymentPageComponent footer clearance', () => {
+  it('keeps the scrollport clear of the fixed footer and sticky action bar via the measured variable', () => {
+    const styles = readFileSync(resolve(__dirname, 'payment-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 64px\)/);
+    expect(styles).toMatch(/\.sticky-action-bar\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
   });
 });

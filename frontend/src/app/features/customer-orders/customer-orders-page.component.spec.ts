@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { CustomerOrdersPageComponent } from './customer-orders-page.component';
 import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
@@ -144,6 +146,12 @@ describe('CustomerOrdersPageComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
 
     fixture.destroy();
+  });
+
+  it('keeps the footer clearance inside the scrolling content', () => {
+    const styles = readFileSync(resolve(__dirname, 'customer-orders-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 20px\)/);
   });
 
   it('shows finished orders separately and navigates to a finished order', () => {

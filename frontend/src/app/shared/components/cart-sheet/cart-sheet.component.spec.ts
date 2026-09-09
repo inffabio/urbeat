@@ -27,7 +27,7 @@ describe('CartSheetComponent', () => {
     expect(sheet).not.toBeNull();
     expect(sheet.textContent).toContain('Hot dog');
     expect(sheet.textContent?.replace(/\u00a0/g, ' ')).toContain('R$ 36,00');
-    expect(sheet.style.getPropertyValue('--footer-height')).toBe('calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))');
+    expect(sheet.style.getPropertyValue('--footer-height')).toBe('var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))');
     expect(sheet.style.getPropertyValue('--cart-sheet-height')).toBe('calc(50vh - var(--footer-height))');
     expect(sheet.classList).toContain('cart-sheet-above-footer');
     expect(backdrop.classList).toContain('cart-sheet-backdrop-above-footer');

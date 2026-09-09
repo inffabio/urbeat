@@ -52,13 +52,13 @@
 }
 
 .screen-padding {
-   padding: 0 18px 136px;
+   padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 64px);
 }
 
 .sticky-action-bar {
   position: fixed;
   left: 50%;
-  bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)));
+  bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
   z-index: 40;
   width: min(430px, 100%);
   padding: 0 12px;

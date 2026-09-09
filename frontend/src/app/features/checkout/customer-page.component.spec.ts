@@ -5,6 +5,8 @@ import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { CustomerPageComponent } from './customer-page.component';
 import { AddressService } from '../../core/services/address.service';
@@ -980,5 +982,13 @@ describe('CustomerPageComponent', () => {
     fixture.destroy();
 
     expect(unsubscribed).toBe(true);
+  });
+});
+
+describe('CustomerPageComponent footer clearance', () => {
+  it('keeps the account form clear of the fixed footer via the measured variable', () => {
+    const styles = readFileSync(resolve(__dirname, 'customer-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.checkout-form--account\s*\{[\s\S]*padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 24px\)/);
   });
 });

@@ -5,7 +5,7 @@
 .product-detail-content {
   --background: var(--app-bg);
   --padding-top: 0;
-  --padding-bottom: 0;
+  --padding-bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 76px);
   --padding-start: 0;
   --padding-end: 0;
 }
@@ -354,7 +354,7 @@
 
 .product-fixed {
   position: sticky;
-  bottom: 0;
+  bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
   display: grid;
   grid-template-columns: 112px 1fr;
   gap: 10px;

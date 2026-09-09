@@ -286,7 +286,7 @@
 }
 
 .checkout-form--account {
-  padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)) + 24px);
+  padding-bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 24px);
 }
 
 .account-actions {

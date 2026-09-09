@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { StickyActionBarComponent } from './sticky-action-bar.component';
 
 describe('StickyActionBarComponent', () => {
@@ -38,5 +40,14 @@ describe('StickyActionBarComponent', () => {
 
     expect(button.disabled).toBe(true);
     expect(action).not.toHaveBeenCalled();
+  });
+});
+
+describe('StickyActionBarComponent footer clearance', () => {
+  it('anchors the fixed bar above the measured storefront footer with a safe-area fallback', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).toMatch(/:host\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
+    expect(source).not.toMatch(/bottom:\s*calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\);/);
   });
 });
