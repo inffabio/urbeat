@@ -18,8 +18,10 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
   standalone: true,
     imports: [CommonModule, RouterOutlet, IonIcon, FooterNavComponent, CartSheetComponent],
   template: `
-     <main class="app-shell">
-       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()">
+     <main
+       class="app-shell"
+       [style.--store-footer-clearance.px]="footerClearance()">
+       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()">
         @if (storeResolved()) {
           <router-outlet />
         }
@@ -29,7 +31,8 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
            [class.sheet-open]="isCartSheetOpen() || isAccountMenuOpen()"
            [inert]="isCartSheetOpen() || isAccountMenuOpen()"
            [items]="footerItems()"
-           (select)="onFooterSelect($event)" />
+           (select)="onFooterSelect($event)"
+           (heightChange)="onFooterHeightChange($event)" />
        }
         @if (isAccountMenuOpen()) {
           <div class="account-menu-backdrop" role="presentation" (click)="closeAccountMenu()"></div>
@@ -73,10 +76,6 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
       min-height: 0;
       width: 100%;
     }
-
-     .store-route.has-footer {
-         padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)));
-     }
 
      .account-menu-backdrop {
        position: fixed;
@@ -139,6 +138,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   readonly storeResolved = signal(false);
   readonly isCartSheetOpen = signal(false);
   readonly isAccountMenuOpen = signal(false);
+  readonly footerClearance = signal<number>(72);
 
   private readonly storeSlug = signal('');
   private readonly currentUrl = signal(this.router.url);
@@ -242,6 +242,10 @@ export class StoreShellComponent implements OnInit, OnDestroy {
     if (id === 'carrinho') this.isCartSheetOpen.set(true);
     if (id === 'pedidos') this.navigate('pedidos');
     if (id === 'conta') this.openAccountMenu();
+  }
+
+  onFooterHeightChange(height: number): void {
+    this.footerClearance.set(height);
   }
 
   openAccountMenu(): void {

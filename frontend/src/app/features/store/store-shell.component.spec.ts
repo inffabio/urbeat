@@ -3,8 +3,11 @@ import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, Subject } from 'rxjs';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { StoreShellComponent } from './store-shell.component';
+import { FooterNavComponent } from '../../shared/components/footer-nav/footer-nav.component';
 import { StoreService } from '../../core/services/store.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
@@ -577,5 +580,84 @@ describe('StoreShellComponent account menu accessibility', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('#account-menu')).toBeNull();
+  });
+});
+
+describe('StoreShellComponent mobile footer layout', () => {
+  it('does not push the store home route down and leaves footer clearance to each route scrollport', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toContain('[class.store-home]="isStoreHome()"');
+    expect(source).toContain('[class.has-footer]="storeResolved() && showFooterNav()"');
+    expect(source).not.toContain('.store-route.has-footer:not(.store-home)');
+    expect(source).not.toContain('padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))');
+  });
+
+  it('keeps the shell as a column flex container so the fixed footer stays within the viewport', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toContain('display: flex');
+    expect(source).toContain('flex-direction: column');
+  });
+
+  it('exposes a pixel-valued footer-clearance property without adding fixed footer padding to the route', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toContain('(heightChange)="onFooterHeightChange($event)"');
+    expect(source).toContain('[style.--store-footer-clearance.px]="footerClearance()"');
+    expect(source).toMatch(/footerClearance\s*=\s*signal<number>\(72\)/);
+    expect(source).toMatch(/\.store-route\s*\{[\s\S]*?\n\s*\}/);
+    expect(source).not.toMatch(/\.store-route[\s\S]*padding-bottom/);
+  });
+});
+
+describe('StoreShellComponent footer clearance propagation', () => {
+  let fixture: ComponentFixture<StoreShellComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [StoreShellComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of({ get: () => 'loja' }),
+            snapshot: { paramMap: { get: () => 'loja' } },
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '', isOpenNow: true })),
+          },
+        },
+        { provide: AuthService, useValue: { customerProfile: signal(null), logout: jest.fn() } },
+        { provide: CheckoutService, useValue: { resetCheckout: jest.fn() } },
+        { provide: CustomerOrderTrackingService, useValue: { activeOrders: signal([]), trackedOrders: signal([]), hasTrackedOrders: signal(false), start: jest.fn(), stop: jest.fn(), reset: jest.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(StoreShellComponent);
+    fixture.componentInstance.storeResolved.set(true);
+    (fixture.componentInstance as any).storeSlug.set('loja');
+    fixture.detectChanges();
+  });
+
+  it('starts with a safe non-zero footer clearance before the first measurement', () => {
+    const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
+
+    expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('72px');
+  });
+
+  it('updates the shell clearance property from the footer measured height output', () => {
+    const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
+    expect(footer).not.toBeNull();
+
+    footer.componentInstance.heightChange.emit(104);
+    fixture.detectChanges();
+
+    const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
+    expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('104px');
   });
 });
