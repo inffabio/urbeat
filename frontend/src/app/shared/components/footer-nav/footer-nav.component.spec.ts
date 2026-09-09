@@ -256,15 +256,32 @@ describe('FooterNavComponent height reporting', () => {
     expect(emit).toHaveBeenCalledWith(132);
   });
 
-  it('falls back to the content-rect height when borderBoxSize is present but empty', () => {
+  it('measures the rendered box/padding height when borderBoxSize is unavailable (legacy WebView fallback)', () => {
     const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+    const safeZone = fixture.nativeElement.querySelector('.footer-nav-safe-zone') as HTMLElement;
+    jest.spyOn(safeZone, 'getBoundingClientRect').mockReturnValue({ height: 132 } as DOMRect);
 
     lastObserver().callback(
-      [{ contentRect: { height: 104 }, borderBoxSize: [] } as unknown as ResizeObserverEntry],
+      [{ target: safeZone, contentRect: { height: 96 } } as unknown as ResizeObserverEntry],
       lastObserver() as unknown as ResizeObserver,
     );
 
-    expect(emit).toHaveBeenCalledWith(104);
+    expect(emit).not.toHaveBeenCalledWith(96);
+    expect(emit).toHaveBeenCalledWith(132);
+  });
+
+  it('measures the rendered box/padding height when borderBoxSize is present but empty', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+    const safeZone = fixture.nativeElement.querySelector('.footer-nav-safe-zone') as HTMLElement;
+    jest.spyOn(safeZone, 'getBoundingClientRect').mockReturnValue({ height: 132 } as DOMRect);
+
+    lastObserver().callback(
+      [{ target: safeZone, contentRect: { height: 104 }, borderBoxSize: [] } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).not.toHaveBeenCalledWith(104);
+    expect(emit).toHaveBeenCalledWith(132);
   });
 
   it('emits only finite non-negative heights', () => {

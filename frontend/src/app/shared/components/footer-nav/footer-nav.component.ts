@@ -165,19 +165,27 @@ export class FooterNavComponent implements AfterViewInit, OnDestroy {
     if (!safeZone) return;
     this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const box: unknown = (entry as ResizeObserverEntry & {
-          borderBoxSize?: ReadonlyArray<ResizeObserverSize> | ResizeObserverSize;
-        }).borderBoxSize;
-        const blockSize = Array.isArray(box)
-          ? (box[0] as ResizeObserverSize | undefined)?.blockSize
-          : (box as ResizeObserverSize | undefined)?.blockSize;
-        const height = blockSize ?? entry.contentRect.height;
+        const height = this.measureSafeZoneHeight(entry);
         if (Number.isFinite(height) && height >= 0) {
           this.heightChange.emit(height);
         }
       }
     });
     this.resizeObserver.observe(safeZone);
+  }
+
+  private measureSafeZoneHeight(entry: ResizeObserverEntry): number {
+    const box: unknown = (entry as ResizeObserverEntry & {
+      borderBoxSize?: ReadonlyArray<ResizeObserverSize> | ResizeObserverSize;
+    }).borderBoxSize;
+    const blockSize = Array.isArray(box)
+      ? (box[0] as ResizeObserverSize | undefined)?.blockSize
+      : (box as ResizeObserverSize | undefined)?.blockSize;
+    if (blockSize !== undefined) return blockSize;
+    const safeZone = entry.target as HTMLElement | undefined;
+    const boxHeight = safeZone?.getBoundingClientRect().height;
+    if (boxHeight !== undefined) return boxHeight;
+    return entry.contentRect.height;
   }
 
   ngOnDestroy(): void {
