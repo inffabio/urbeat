@@ -161,7 +161,7 @@ export class FooterNavComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (typeof ResizeObserver === 'undefined') return;
-    const safeZone = this.host.nativeElement.querySelector<HTMLElement>('.footer-nav-safe-zone');
+    const safeZone = this.host.nativeElement.querySelector('.footer-nav-safe-zone') as HTMLElement | null;
     if (!safeZone) return;
     this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
