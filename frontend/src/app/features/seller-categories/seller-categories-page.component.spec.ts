@@ -67,6 +67,14 @@ describe('SellerCategoriesPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('2');
   });
 
+  it('does not render the static Hoje/Semana/Mes period segmented control', () => {
+    const fixture = TestBed.createComponent(SellerCategoriesPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.segmented')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.segmented button').length).toBe(0);
+  });
+
   it('submits the complete category form to the backend', () => {
     storeServiceMock.createStoreCategory.mockReturnValue(of({
       id: 'cat-3', name: 'Sobremesas', description: 'Doces da casa', displayOrder: 3,

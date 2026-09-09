@@ -42,6 +42,14 @@ describe('SellerAdditionalsPageComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.content-head .btn-primary-app').length).toBe(0);
   });
 
+  it('does not render the static Hoje/Semana/Mes period segmented control', () => {
+    const fixture = TestBed.createComponent(SellerAdditionalsPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.segmented')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.segmented button').length).toBe(0);
+  });
+
   it('loads an additional into edit mode and returns to new mode after saving', () => {
     storeServiceMock.updateStoreAdditional.mockReturnValue(of({ ...additional, name: 'Bacon premium' }));
     const fixture = TestBed.createComponent(SellerAdditionalsPageComponent);

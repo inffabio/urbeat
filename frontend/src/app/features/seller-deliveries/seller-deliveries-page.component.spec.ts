@@ -36,6 +36,16 @@ describe('SellerDeliveriesPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Atualizado');
   });
 
+  it('does not render the static Hoje/Semana/Mes period segmented control', () => {
+    orderServiceMock.getStoreDeliveries.mockReturnValue(of([]));
+
+    const fixture = TestBed.createComponent(SellerDeliveriesPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.segmented')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.segmented button').length).toBe(0);
+  });
+
   it('renders empty state when there are no delivery orders', () => {
     orderServiceMock.getStoreDeliveries.mockReturnValue(of([]));
 
