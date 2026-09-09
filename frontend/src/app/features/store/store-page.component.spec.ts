@@ -136,10 +136,17 @@ describe('StorePageComponent — feature logic', () => {
       return readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
     }
 
+    function ruleBody(selector: string): string {
+      return stylesText().match(new RegExp(`${selector}\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1] ?? '';
+    }
+
+    function pxValue(block: string, property: RegExp): number {
+      return Number(block.match(property)?.[1] ?? '');
+    }
+
     it('sizes the published hero/banner and its skeleton to 286px', () => {
-      const css = stylesText();
-      const heroBlock = css.match(/\.hero\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
-      const skeletonBlock = css.match(/\.skeleton-hero\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+      const heroBlock = ruleBody('\\.hero');
+      const skeletonBlock = ruleBody('\\.skeleton-hero');
 
       expect(heroBlock).toMatch(/height:\s*286px/);
       expect(skeletonBlock).toMatch(/height:\s*286px/);
@@ -151,18 +158,39 @@ describe('StorePageComponent — feature logic', () => {
       expect(css).toMatch(/\.hero\s*\{[\s\S]*?background:\s*var\(--app-ink[\s\S]*?img\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*100%[\s\S]*?object-fit:\s*cover/);
     });
 
-    it('draws the logo as a 144px white disc centered over the hero-panel junction', () => {
+    it('draws the logo as a 144px white disc centered exactly on the hero/banner bottom', () => {
       const css = stylesText();
-      const logoBlock = css.match(/\.store-logo\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+      const logoBlock = ruleBody('\\.store-logo');
 
       expect(logoBlock).toMatch(/position:\s*absolute/);
-      expect(logoBlock).toMatch(/top:\s*-74px/);
+      expect(logoBlock).toMatch(/top:\s*-14px/);
       expect(logoBlock).toMatch(/left:\s*50%/);
       expect(logoBlock).toMatch(/transform:\s*translateX\(-50%\)/);
       expect(logoBlock).toMatch(/width:\s*144px/);
       expect(logoBlock).toMatch(/height:\s*144px/);
       expect(logoBlock).toMatch(/border-radius:\s*50%/);
       expect(logoBlock).toMatch(/background:\s*var\(--app-surface/);
+    });
+
+    it('splits the 144px logo 72px above and 72px below the hero/banner bottom edge', () => {
+      const heroBlock = ruleBody('\\.hero');
+      const panelBlock = ruleBody('\\.store-panel');
+      const logoBlock = ruleBody('\\.store-logo');
+
+      const heroHeight = pxValue(heroBlock, /height:\s*(\d+)px/);
+      const panelMargin = pxValue(panelBlock, /margin-top:\s*(-?\d+)px/);
+      const logoSize = pxValue(logoBlock, /width:\s*(\d+)px/);
+      const logoTop = pxValue(logoBlock, /top:\s*(-?\d+)px/);
+
+      const panelTop = heroHeight + panelMargin;
+      const discTop = panelTop + logoTop;
+      const discBottom = discTop + logoSize;
+      const discCenter = discTop + logoSize / 2;
+
+      expect(panelTop).toBe(heroHeight - 58);
+      expect(discTop).toBe(heroHeight - 72);
+      expect(discBottom).toBe(heroHeight + 72);
+      expect(discCenter).toBe(heroHeight);
     });
 
     it('fits the logo artwork at 132px with object-fit contain so it is never cropped', () => {
@@ -176,12 +204,53 @@ describe('StorePageComponent — feature logic', () => {
       expect(imageBlock).toMatch(/border-radius:\s*50%/);
     });
 
-    it('keeps the panel pulled over the hero and clears the enlarged logo overhang', () => {
-      const css = stylesText();
-      const panelBlock = css.match(/\.store-panel\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    it('keeps the panel pulled over the hero and clears the identity text below the enlarged logo', () => {
+      const panelBlock = ruleBody('\\.store-panel');
+      const logoBlock = ruleBody('\\.store-logo');
+
+      const panelPaddingTop = pxValue(panelBlock, /padding:\s*(\d+)px/);
+      const logoSize = pxValue(logoBlock, /width:\s*(\d+)px/);
+      const logoTop = pxValue(logoBlock, /top:\s*(-?\d+)px/);
+      const logoBottomOffset = logoTop + logoSize;
 
       expect(panelBlock).toMatch(/margin-top:\s*-58px/);
-      expect(panelBlock).toMatch(/padding:\s*86px 18px 0/);
+      expect(panelBlock).toMatch(/padding:\s*146px 18px 0/);
+      expect(panelPaddingTop).toBeGreaterThan(logoBottomOffset);
+    });
+
+    it('uses the same hero/logo geometry in the loading skeleton and keeps its text clear', () => {
+      const heroBlock = ruleBody('\\.hero');
+      const panelBlock = ruleBody('\\.store-panel');
+      const logoBlock = ruleBody('\\.store-logo');
+      const skeletonHeroBlock = ruleBody('\\.skeleton-hero');
+      const skeletonPanelBlock = ruleBody('\\.skeleton-panel');
+      const skeletonLogoBlock = ruleBody('\\.skeleton-logo');
+
+      const heroHeight = pxValue(heroBlock, /height:\s*(\d+)px/);
+      const panelMargin = pxValue(panelBlock, /margin-top:\s*(-?\d+)px/);
+      const logoSize = pxValue(logoBlock, /width:\s*(\d+)px/);
+      const logoTop = pxValue(logoBlock, /top:\s*(-?\d+)px/);
+
+      expect(skeletonHeroBlock).toMatch(/height:\s*286px/);
+      expect(skeletonPanelBlock).toMatch(/margin-top:\s*-58px/);
+      expect(skeletonPanelBlock).toMatch(/padding:\s*146px 18px 18px/);
+      expect(skeletonPanelBlock).toMatch(/position:\s*relative/);
+      expect(skeletonLogoBlock).toMatch(/position:\s*absolute/);
+      expect(skeletonLogoBlock).toMatch(/top:\s*-14px/);
+      expect(skeletonLogoBlock).toMatch(/width:\s*144px/);
+      expect(skeletonLogoBlock).toMatch(/height:\s*144px/);
+      expect(skeletonLogoBlock).toMatch(/border-radius:\s*50%/);
+
+      const skeletonPanelTop = heroHeight + pxValue(skeletonPanelBlock, /margin-top:\s*(-?\d+)px/);
+      const skeletonDiscTop = skeletonPanelTop + pxValue(skeletonLogoBlock, /top:\s*(-?\d+)px/);
+      const skeletonDiscBottom = skeletonDiscTop + pxValue(skeletonLogoBlock, /width:\s*(\d+)px/);
+
+      expect(skeletonDiscTop).toBe(heroHeight - 72);
+      expect(skeletonDiscBottom).toBe(heroHeight + 72);
+      expect(skeletonDiscTop + logoSize / 2).toBe(heroHeight);
+
+      const skeletonPaddingTop = pxValue(skeletonPanelBlock, /padding:\s*(\d+)px/);
+      expect(skeletonPaddingTop).toBeGreaterThan(skeletonDiscBottom - skeletonPanelTop);
     });
   });
 

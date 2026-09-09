@@ -61,7 +61,7 @@
   border-radius: 34px 34px 0 0;
   position: relative;
   z-index: 8;
-  padding: 86px 18px 0;
+  padding: 146px 18px 0;
   box-shadow: 0 -10px 26px rgba(0,0,0,.04);
 }
 
@@ -82,7 +82,7 @@
 
 .store-logo {
   position: absolute;
-  top: -74px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
   width: 144px;
@@ -213,18 +213,22 @@
   margin-top: -58px;
   background: var(--app-surface, #fff);
   border-radius: 34px 34px 0 0;
-  padding: 70px 18px 18px;
+  position: relative;
+  padding: 146px 18px 18px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .skeleton-logo {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 144px;
   height: 144px;
   border-radius: 50%;
   background: var(--app-hairline-warm, #f3efe9);
-  margin: -130px auto 0;
 }
 
 .skeleton-title {
