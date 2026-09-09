@@ -255,7 +255,7 @@ Used on the product-detail sticky bar and inside cart product cards.
 ### 5.4 Cards / Containers
 
 - **Default card (`card`):** `border-radius: 18px` (`--radius-lg`), white surface, `1px solid border-light`, shadow-sm, padding `16px`. Never pair border and shadow on the same element.
-- **Store panel sheet:** `border-radius: 34px 34px 0 0` (`--radius-2xl`), white surface, `margin-top: -58px`, `padding: 86px 22px 0`, z-index 8, `box-shadow: 0 -10px 26px rgba(0,0,0,.04)`. Pulled up over the hero; the overhang creates depth.
+- **Store panel sheet:** `border-radius: 34px 34px 0 0` (`--radius-2xl`), white surface, `margin-top: -58px`, `padding: 146px 18px 0`, z-index 8, `box-shadow: 0 -10px 26px rgba(0,0,0,.04)`. Pulled up 58px over the hero; the overhang creates depth. The 146px top padding keeps identity content below the logo.
 - **Product detail sheet:** `border-radius: 32px 32px 0 0`, white surface, `margin-top: -38px`, `padding: 28px 24px calc(22px + env(safe-area-inset-bottom))`, z-index 8.
 - **Configuration card (option groups):** `border-radius: 16px`, white surface, `1px solid border-light`, shadow-sm, padding `15px 16px 14px`, `margin-bottom: 14px`. Houses variation/choice grids, flavor grids, check lists, and compact options.
 
@@ -269,9 +269,9 @@ These patterns form the merchant storefront — the primary customer surface.
 - **Hero actions:** Absolutely positioned, `left/right: 22px`, `top: calc(52px + env(safe-area-inset-top))`. Contains the circle back button.
 
 #### Store Logo
-- **Dimensions:** 144px × 144px, `border-radius: 50%`, white surface, `box-shadow: 0 12px 26px rgba(0,0,0,.14)`.
-- **Position:** Absolute, `top: -74px` from the panel, `left: 50%`, `transform: translateX(-50%)`. Overhangs the hero-panel junction.
-- **Inner image:** 132px × 132px, `border-radius: 50%`, `object-fit: contain`.
+- **Dimensions:** 144px × 144px outer disc, `border-radius: 50%`, white ring surface, `box-shadow: 0 12px 26px rgba(0,0,0,.14)`.
+- **Position:** Absolute to the store panel, `top: -14px`, `left: 50%`, `transform: translateX(-50%)`. Because the panel is pulled `-58px` over the hero, the disc's center lands exactly on the hero bottom edge: 72px of the logo sits above it (in the 286px hero) and 72px hangs below it over the panel. Identity content begins only below the logo.
+- **Inner image:** 132px × 132px, `border-radius: 50%`, `object-fit: contain`; the surrounding 6px stays white to form the ring.
 
 #### Store Title & Subtitle
 - **Title:** Inter 800, 34px, `letter-spacing: -0.04em`, ink color, `margin: 0`. No clamp — fixed size for consistent identity.
