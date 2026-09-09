@@ -349,6 +349,40 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('reserves extra scroll clearance while the confirmation FAB is shown so the last link clears it', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const fab = fixture.debugElement.query(By.css('.confirm-delivery-fab'));
+    const content = fixture.debugElement.query(By.css('.screen-padding'));
+
+    expect(fab).not.toBeNull();
+    expect(content.nativeElement.classList).toContain('has-confirm-fab');
+
+    fixture.destroy();
+  });
+
+  it('keeps the base scroll clearance when the confirmation FAB is hidden', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const fab = fixture.debugElement.query(By.css('.confirm-delivery-fab'));
+    const content = fixture.debugElement.query(By.css('.screen-padding'));
+
+    expect(fab).toBeNull();
+    expect(content.nativeElement.classList).not.toContain('has-confirm-fab');
+
+    fixture.destroy();
+  });
+
   it('should hide the confirmation action when delivery was already confirmed', () => {
     getOrderMock.mockReturnValue(of({
       ...baseOrder,
@@ -701,6 +735,12 @@ describe('TrackingPageComponent mobile footer clearance', () => {
     const styles = readFileSync(resolve(__dirname, 'tracking-page.component.scss'), 'utf8');
 
     expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 20px\)/);
+  });
+
+  it('adds the confirmation FAB reserve on top of the footer clearance when it is shown', () => {
+    const styles = readFileSync(resolve(__dirname, 'tracking-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.screen-padding\.has-confirm-fab\s*\{[\s\S]*padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 84px\)/);
   });
 
   it('keeps the confirm-delivery FAB above the fixed footer without breaking the safe area', () => {

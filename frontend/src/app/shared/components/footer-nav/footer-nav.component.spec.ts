@@ -239,6 +239,34 @@ describe('FooterNavComponent height reporting', () => {
     expect(emit).toHaveBeenCalledWith(132);
   });
 
+  it('reads a single-object borderBoxSize shape as reported by some WebViews', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [
+        {
+          contentRect: { height: 96 },
+          borderBoxSize: { blockSize: 132, inlineSize: 430 },
+        } as unknown as ResizeObserverEntry,
+      ],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).not.toHaveBeenCalledWith(96);
+    expect(emit).toHaveBeenCalledWith(132);
+  });
+
+  it('falls back to the content-rect height when borderBoxSize is present but empty', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [{ contentRect: { height: 104 }, borderBoxSize: [] } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).toHaveBeenCalledWith(104);
+  });
+
   it('emits only finite non-negative heights', () => {
     const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
 

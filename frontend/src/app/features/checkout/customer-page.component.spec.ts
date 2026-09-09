@@ -991,4 +991,11 @@ describe('CustomerPageComponent footer clearance', () => {
 
     expect(styles).toMatch(/\.checkout-form--account\s*\{[\s\S]*padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 24px\)/);
   });
+
+  it('keeps the shared-fixed-action-bar form clear by reserving footer clearance plus action-bar space', () => {
+    const styles = readFileSync(resolve(__dirname, 'customer-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.checkout-form\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 56px\)/);
+    expect(styles).not.toMatch(/--checkout-action-space/);
+  });
 });

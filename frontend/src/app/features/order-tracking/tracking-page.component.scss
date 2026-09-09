@@ -71,6 +71,10 @@
    padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 20px);
 }
 
+.screen-padding.has-confirm-fab {
+  padding-bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 84px);
+}
+
 /* === CARDS === */
 .card {
   background: var(--app-surface);

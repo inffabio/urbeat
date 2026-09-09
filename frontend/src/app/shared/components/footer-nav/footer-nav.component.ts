@@ -165,7 +165,13 @@ export class FooterNavComponent implements AfterViewInit, OnDestroy {
     if (!safeZone) return;
     this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const height = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+        const box: unknown = (entry as ResizeObserverEntry & {
+          borderBoxSize?: ReadonlyArray<ResizeObserverSize> | ResizeObserverSize;
+        }).borderBoxSize;
+        const blockSize = Array.isArray(box)
+          ? (box[0] as ResizeObserverSize | undefined)?.blockSize
+          : (box as ResizeObserverSize | undefined)?.blockSize;
+        const height = blockSize ?? entry.contentRect.height;
         if (Number.isFinite(height) && height >= 0) {
           this.heightChange.emit(height);
         }

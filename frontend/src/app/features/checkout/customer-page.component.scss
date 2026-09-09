@@ -5,7 +5,6 @@
 
 .checkout-content {
   --background: var(--app-bg);
-  --checkout-action-space: 86px;
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
   min-height: 100vh;
@@ -127,7 +126,7 @@
   display: flex;
   flex-direction: column;
   gap: 11px;
-  padding: 0 18px calc(84px + env(safe-area-inset-bottom, 0px));
+  padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 56px);
 }
 
 .checkout-form--compact {
@@ -279,10 +278,6 @@
   font-size: 12px;
   font-weight: 600;
   margin: -5px 0 1px 4px;
-}
-
-.checkout-form {
-  padding-bottom: var(--checkout-action-space);
 }
 
 .checkout-form--account {

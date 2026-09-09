@@ -32,7 +32,7 @@
       </header>
     }
 
-    <section class="screen-padding">
+    <section class="screen-padding" [class.has-confirm-fab]="canConfirmDelivery()">
       <div class="card order-summary-card">
         <div class="order-line">
           <span class="round-icon" aria-hidden="true">
