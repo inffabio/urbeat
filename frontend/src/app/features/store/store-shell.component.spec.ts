@@ -604,7 +604,8 @@ describe('StoreShellComponent mobile footer layout', () => {
     const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
 
     expect(source).toContain('(heightChange)="onFooterHeightChange($event)"');
-    expect(source).toContain('[style.--store-footer-clearance.px]="footerClearance()"');
+    expect(source).toContain('[style.--store-footer-clearance.px]="exposedFooterClearance()"');
+    expect(source).toMatch(/exposedFooterClearance\s*\(\s*\):\s*number\s*\{[\s\S]*showFooterNav\(\)\s*\?\s*this\.footerClearance\(\)\s*:\s*0/);
     expect(source).toMatch(/footerClearance\s*=\s*signal<number>\(72\)/);
     expect(source).toMatch(/\.store-route\s*\{[\s\S]*?\n\s*\}/);
     expect(source).not.toMatch(/\.store-route[\s\S]*padding-bottom/);
@@ -659,5 +660,86 @@ describe('StoreShellComponent footer clearance propagation', () => {
 
     const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
     expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('104px');
+  });
+});
+
+describe('StoreShellComponent footer clearance respects hidden footer routes', () => {
+  let fixture: ComponentFixture<StoreShellComponent>;
+
+  function routeTo(url: string): void {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'url', 'get').mockReturnValue(url);
+    fixture.detectChanges();
+  }
+
+  function shellClearance(): string {
+    const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
+    return shell.style.getPropertyValue('--store-footer-clearance');
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [StoreShellComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of({ get: () => 'loja' }),
+            snapshot: { paramMap: { get: () => 'loja' } },
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '', isOpenNow: true })),
+          },
+        },
+        { provide: AuthService, useValue: { customerProfile: signal(null), logout: jest.fn() } },
+        { provide: CheckoutService, useValue: { resetCheckout: jest.fn() } },
+        { provide: CustomerOrderTrackingService, useValue: { activeOrders: signal([]), trackedOrders: signal([]), hasTrackedOrders: signal(false), start: jest.fn(), stop: jest.fn(), reset: jest.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(StoreShellComponent);
+    fixture.componentInstance.storeResolved.set(true);
+    (fixture.componentInstance as any).storeSlug.set('loja');
+  });
+
+  it('exposes zero clearance when the footer is hidden on a checkout route', () => {
+    routeTo('/loja/checkout/cadastro');
+
+    expect(fixture.debugElement.query(By.directive(FooterNavComponent))).toBeNull();
+    expect(shellClearance()).toBe('0px');
+  });
+
+  it('drops the measured clearance when navigating to a hidden-footer checkout route', () => {
+    routeTo('/loja/carrinho');
+
+    const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
+    expect(footer).not.toBeNull();
+    footer.componentInstance.heightChange.emit(104);
+    fixture.detectChanges();
+    expect(shellClearance()).toBe('104px');
+
+    routeTo('/loja/checkout/cadastro');
+
+    expect(fixture.debugElement.query(By.directive(FooterNavComponent))).toBeNull();
+    expect(shellClearance()).toBe('0px');
+  });
+
+  it('restores the measured clearance when returning to a footer-present route', () => {
+    routeTo('/loja/carrinho');
+    fixture.debugElement.query(By.directive(FooterNavComponent)).componentInstance.heightChange.emit(104);
+    fixture.detectChanges();
+    expect(shellClearance()).toBe('104px');
+
+    routeTo('/loja/checkout/cadastro');
+    expect(shellClearance()).toBe('0px');
+
+    routeTo('/loja/carrinho');
+
+    expect(fixture.debugElement.query(By.directive(FooterNavComponent))).not.toBeNull();
+    expect(shellClearance()).toBe('104px');
   });
 });

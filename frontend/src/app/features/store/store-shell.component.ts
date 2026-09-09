@@ -20,7 +20,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
   template: `
      <main
        class="app-shell"
-       [style.--store-footer-clearance.px]="footerClearance()">
+       [style.--store-footer-clearance.px]="exposedFooterClearance()">
        <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()">
         @if (storeResolved()) {
           <router-outlet />
@@ -246,6 +246,10 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   onFooterHeightChange(height: number): void {
     this.footerClearance.set(height);
+  }
+
+  exposedFooterClearance(): number {
+    return this.storeResolved() && this.showFooterNav() ? this.footerClearance() : 0;
   }
 
   openAccountMenu(): void {
