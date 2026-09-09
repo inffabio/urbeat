@@ -96,6 +96,41 @@ describe('StorePageComponent — feature logic', () => {
     expect(styles).toMatch(/\.store-content[\s\S]*overflow-y:\s*auto/);
   });
 
+  it('lays the store content out as a flex column so the products panel can fill the empty space', () => {
+    const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.store-content[\s\S]*display:\s*flex[\s\S]*flex-direction:\s*column/);
+    expect(styles).toMatch(/\.store-products-panel[\s\S]*flex:\s*1 0 auto/);
+  });
+
+  it('keeps the footer clearance inside the products panel surface, driven by the measured shell variable', () => {
+    const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+
+    const contentBlock = styles.match(/\.store-content\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const panelBlock = styles.match(/\.store-products-panel\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(contentBlock).not.toContain('padding-bottom');
+    expect(panelBlock).toContain('padding-bottom: calc(var(--store-footer-clearance, 72px) + 8px)');
+    expect(panelBlock).not.toContain('padding-bottom: calc(64px');
+    expect(styles).not.toContain('padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))');
+    expect(styles).toMatch(/\.store-panel\s*\{[\s\S]*background:\s*var\(--app-surface/);
+    expect(styles).toMatch(/\.store-products-panel\s*\{[\s\S]*flex:\s*1 0 auto/);
+  });
+
+  it('keeps the catalog error on the products surface so it inherits the panel background and footer clearance', () => {
+    const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+
+    const panel = template.indexOf('class="store-panel store-products-panel"');
+    const banner = template.indexOf('catalog-error-banner');
+    const productList = template.indexOf('class="product-list"');
+
+    expect(panel).toBeGreaterThan(-1);
+    expect(banner).toBeGreaterThan(panel);
+    expect(productList).toBeGreaterThan(banner);
+    expect(styles).toMatch(/\.catalog-error-banner\s*\{[\s\S]*margin:\s*20px 0/);
+  });
+
   it('scrolls a selected category title below the sticky category bar', () => {
     const categoryBar = { getBoundingClientRect: () => ({ height: 52 }) } as HTMLElement;
     const categoryTitle = {
@@ -423,6 +458,22 @@ describe('StorePageComponent — feature logic', () => {
       component.activeCategoryId.set('c1');
       component.clearFilters();
       expect(component.activeCategoryId()).toBe('todos');
+    });
+  });
+
+  describe('onBannerImageError', () => {
+    it('hides a broken banner so the dark hero falls back instead of showing a broken image', () => {
+      const image = { style: { display: '' } } as unknown as HTMLImageElement;
+
+      component.onBannerImageError({ target: image } as Event);
+
+      expect(image.style.display).toBe('none');
+    });
+
+    it('keeps the banner image element wired to an error fallback in the template', () => {
+      const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
+
+      expect(template).toContain('(error)="onBannerImageError($event)"');
     });
   });
 

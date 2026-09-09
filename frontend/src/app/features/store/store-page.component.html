@@ -3,7 +3,7 @@
     <div class="store-header">
       <section class="hero">
         @if (s.bannerUrl) {
-          <img [src]="s.bannerUrl" [alt]="s.name" loading="eager" />
+          <img [src]="s.bannerUrl" [alt]="s.name" loading="eager" (error)="onBannerImageError($event)" />
         }
       </section>
 
@@ -39,17 +39,17 @@
       </app-category-tabs>
     </div>
 
-    @if (catalogError()) {
-      <div class="error-banner catalog-error-banner" role="alert">
-        <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-        <div>
-          <strong>Nao foi possivel carregar os itens do cardapio</strong>
-          <p>Verifique sua conexao e tente novamente.</p>
+    <div class="store-panel store-products-panel">
+      @if (catalogError()) {
+        <div class="error-banner catalog-error-banner" role="alert">
+          <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+          <div>
+            <strong>Nao foi possivel carregar os itens do cardapio</strong>
+            <p>Verifique sua conexao e tente novamente.</p>
+          </div>
+          <button class="btn-retry" (click)="retryCatalog()">Tentar novamente</button>
         </div>
-        <button class="btn-retry" (click)="retryCatalog()">Tentar novamente</button>
-      </div>
-    } @else {
-      <div class="store-panel store-products-panel">
+      } @else {
         <div class="product-list">
           <div id="cat-top" class="scroll-sentinel"></div>
 
@@ -72,9 +72,8 @@
               </app-empty-state>
             }
         </div>
-
-      </div>
-    }
+      }
+    </div>
 
   } @else if (loadError()) {
     <div class="error-banner" role="alert">

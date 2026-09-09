@@ -356,6 +356,13 @@ export class StorePageComponent implements OnInit, OnDestroy {
     return this.cartQuantityMap().get(productId) ?? 0;
   }
 
+  onBannerImageError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (image) {
+      image.style.display = 'none';
+    }
+  }
+
   onAddToCard(product: Product): void {
     const item: CartItem = {
       productId: product.id,
