@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { FooterNavComponent, FooterNavItem } from './footer-nav.component';
 
@@ -137,5 +139,132 @@ describe('FooterNavComponent', () => {
 
     const badge = fixture.nativeElement.querySelector('.footer-nav-badge') as HTMLElement;
     expect(badge.getAttribute('aria-label')).toBe('2 itens');
+  });
+
+  it('anchors the footer to the viewport bottom and respects the bottom safe area', () => {
+    const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
+
+    expect(source).toMatch(/\.footer-nav-safe-zone[\s\S]*position:\s*fixed/);
+    expect(source).toMatch(/\.footer-nav-safe-zone[\s\S]*bottom:\s*0/);
+    expect(source).toContain('padding-bottom: max(8px, env(safe-area-inset-bottom, 0px))');
+  });
+
+  it('constrains the footer width to the mobile shell so it never overflows the viewport', () => {
+    const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
+
+    expect(source).toContain('width: min(430px, 100%)');
+    expect(source).toContain('max-width: 100%');
+  });
+
+  it('renders the safe-area wrapper around the footer bar', () => {
+    expect(fixture.nativeElement.querySelector('.footer-nav-safe-zone')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.footer-nav-safe-zone > footer.footer-nav')).not.toBeNull();
+  });
+});
+
+class FakeResizeObserver {
+  static instances: FakeResizeObserver[] = [];
+  static reset(): void {
+    FakeResizeObserver.instances = [];
+  }
+  readonly observed: Element[] = [];
+  readonly disconnect = jest.fn();
+  constructor(readonly callback: ResizeObserverCallback) {
+    FakeResizeObserver.instances.push(this);
+  }
+  observe(target: Element): void {
+    this.observed.push(target);
+  }
+  unobserve(): void {}
+}
+
+describe('FooterNavComponent height reporting', () => {
+  let fixture: ComponentFixture<FooterNavComponent>;
+
+  beforeEach(async () => {
+    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = FakeResizeObserver;
+    await TestBed.configureTestingModule({
+      imports: [FooterNavComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(FooterNavComponent);
+    fixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho' } as FooterNavItem,
+    ]);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+    FakeResizeObserver.reset();
+  });
+
+  function lastObserver(): FakeResizeObserver {
+    return FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1];
+  }
+
+  it('observes the fixed safe-zone wrapper so it can report the rendered footer height', () => {
+    const safeZone = fixture.nativeElement.querySelector('.footer-nav-safe-zone') as HTMLElement;
+
+    expect(safeZone).not.toBeNull();
+    expect(lastObserver().observed).toContain(safeZone);
+  });
+
+  it('reports a measured safe-zone height through heightChange', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [{ contentRect: { height: 104 } } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).toHaveBeenCalledWith(104);
+  });
+
+  it('prefers the border-box size so safe-area padding counts toward the clearance', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [
+        {
+          contentRect: { height: 96 },
+          borderBoxSize: [{ blockSize: 132, inlineSize: 430 }],
+        } as unknown as ResizeObserverEntry,
+      ],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).not.toHaveBeenCalledWith(96);
+    expect(emit).toHaveBeenCalledWith(132);
+  });
+
+  it('emits only finite non-negative heights', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [{ contentRect: { height: Number.NaN } } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+    lastObserver().callback(
+      [{ contentRect: { height: -4 } } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+    lastObserver().callback(
+      [{ contentRect: { height: 0 } } as unknown as ResizeObserverEntry],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).not.toHaveBeenCalledWith(Number.NaN);
+    expect(emit).not.toHaveBeenCalledWith(-4);
+    expect(emit).toHaveBeenCalledWith(0);
+  });
+
+  it('disconnects the observer when the component is destroyed', () => {
+    const observer = lastObserver();
+
+    fixture.destroy();
+
+    expect(observer.disconnect).toHaveBeenCalled();
   });
 });

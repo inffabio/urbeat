@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnDestroy, inject, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 
@@ -150,8 +150,31 @@ export interface FooterNavItem {
     }
   `],
 })
-export class FooterNavComponent {
+export class FooterNavComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) items!: FooterNavItem[];
   @Input() inert = false;
   @Output() select = new EventEmitter<string>();
+  @Output() heightChange = new EventEmitter<number>();
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private resizeObserver?: ResizeObserver;
+
+  ngAfterViewInit(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    const safeZone = this.host.nativeElement.querySelector<HTMLElement>('.footer-nav-safe-zone');
+    if (!safeZone) return;
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+        if (Number.isFinite(height) && height >= 0) {
+          this.heightChange.emit(height);
+        }
+      }
+    });
+    this.resizeObserver.observe(safeZone);
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
 }
