@@ -131,6 +131,60 @@ describe('StorePageComponent — feature logic', () => {
     expect(styles).toMatch(/\.catalog-error-banner\s*\{[\s\S]*margin:\s*20px 0/);
   });
 
+  describe('published hero/banner and logo composition', () => {
+    function stylesText(): string {
+      return readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+    }
+
+    it('sizes the published hero/banner and its skeleton to 286px', () => {
+      const css = stylesText();
+      const heroBlock = css.match(/\.hero\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+      const skeletonBlock = css.match(/\.skeleton-hero\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+      expect(heroBlock).toMatch(/height:\s*286px/);
+      expect(skeletonBlock).toMatch(/height:\s*286px/);
+    });
+
+    it('keeps the banner full-bleed with cover fit and the ink fallback behind it', () => {
+      const css = stylesText();
+
+      expect(css).toMatch(/\.hero\s*\{[\s\S]*?background:\s*var\(--app-ink[\s\S]*?img\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*100%[\s\S]*?object-fit:\s*cover/);
+    });
+
+    it('draws the logo as a 144px white disc centered over the hero-panel junction', () => {
+      const css = stylesText();
+      const logoBlock = css.match(/\.store-logo\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+      expect(logoBlock).toMatch(/position:\s*absolute/);
+      expect(logoBlock).toMatch(/top:\s*-74px/);
+      expect(logoBlock).toMatch(/left:\s*50%/);
+      expect(logoBlock).toMatch(/transform:\s*translateX\(-50%\)/);
+      expect(logoBlock).toMatch(/width:\s*144px/);
+      expect(logoBlock).toMatch(/height:\s*144px/);
+      expect(logoBlock).toMatch(/border-radius:\s*50%/);
+      expect(logoBlock).toMatch(/background:\s*var\(--app-surface/);
+    });
+
+    it('fits the logo artwork at 132px with object-fit contain so it is never cropped', () => {
+      const css = stylesText();
+      const imageBlock = css.match(/\.store-logo\s*\{[\s\S]*?img\s*\{([\s\S]*?)\n\s+\}/)?.[1] ?? '';
+
+      expect(imageBlock).toMatch(/width:\s*132px/);
+      expect(imageBlock).toMatch(/height:\s*132px/);
+      expect(imageBlock).toMatch(/object-fit:\s*contain/);
+      expect(imageBlock).not.toMatch(/object-fit:\s*cover/);
+      expect(imageBlock).toMatch(/border-radius:\s*50%/);
+    });
+
+    it('keeps the panel pulled over the hero and clears the enlarged logo overhang', () => {
+      const css = stylesText();
+      const panelBlock = css.match(/\.store-panel\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+      expect(panelBlock).toMatch(/margin-top:\s*-58px/);
+      expect(panelBlock).toMatch(/padding:\s*86px 18px 0/);
+    });
+  });
+
   it('scrolls a selected category title below the sticky category bar', () => {
     const categoryBar = { getBoundingClientRect: () => ({ height: 52 }) } as HTMLElement;
     const categoryTitle = {

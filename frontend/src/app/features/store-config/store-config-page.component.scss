@@ -953,7 +953,8 @@ label {
 .store-logo-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .store-logo-placeholder {
