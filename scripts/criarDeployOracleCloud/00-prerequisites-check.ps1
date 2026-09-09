@@ -21,6 +21,7 @@ param(
 )
 
 . (Join-Path $PSScriptRoot "oci-context.ps1")
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
 
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
@@ -104,6 +105,12 @@ $null = Test-Requirement "Server reachable (Port 80 HTTP)" {
     }
 } "Check firewall rules in OCI Console for Port 80"
 
+# The SSH port (2208) is protected by port knocking and the knock window is
+# short-lived, so the fixed sequence must be sent immediately before each
+# test/connection that depends on SSH, not once ahead of unrelated checks.
+$knockScript = Join-Path $PSScriptRoot "port-knock.ps1"
+& $knockScript -ServerIP $ServerIP
+
 $null = Test-Requirement "Server reachable (Port 2208 SSH)" {
     # Custom TCP connection test with a strict 3-minute (180s) timeout
     $tcpClient = New-Object System.Net.Sockets.TcpClient
@@ -157,6 +164,10 @@ if (-not $keyPath) { $keyPath = (Resolve-Path "$env:USERPROFILE\.ssh\id_rsa" -Er
 $target = "${SSHUser}@${ServerIP}"
 # 3-minute (180s) timeout as explicitly requested, with disabled GSSAPI to prevent Windows SSH hangs
 $sshArgs = @("-p", $SSHPort, "-i", $keyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+
+# Re-knock immediately before the SSH connection itself (the earlier knock only
+# guarded the port 2208 TCP check and its window is short-lived).
+Send-PortKnock -ServerIP $ServerIP
 
 # Combine all server checks into a SINGLE SSH connection to prevent overloading the SSH daemon
 $serverChecksRaw = (& ssh @sshArgs $target @'

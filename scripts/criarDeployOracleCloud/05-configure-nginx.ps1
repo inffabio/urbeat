@@ -23,6 +23,8 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 Write-Host "🌐 Configuring NGINX Reverse Proxy..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
@@ -258,9 +260,11 @@ function Upload-NginxConfig {
 
     $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
     $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    Send-PortKnock -ServerIP $ServerIP
     scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
 
     if ($LASTEXITCODE -eq 0) {
+        Send-PortKnock -ServerIP $ServerIP
         ssh @sshOpts "${SSHUser}@${ServerIP}" `
             "sudo mv /tmp/$FileName /etc/nginx/sites-available/$FileName && echo '✅ Moved to sites-available'"
         Write-Host " ✅" -ForegroundColor Green
@@ -344,7 +348,9 @@ $cleanScript = $nginxSetupScript -replace "`r`n", "`n"
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempNginxScript "${SSHUser}@${ServerIP}:/tmp/nginx-setup.sh" | Out-Null
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/nginx-setup.sh && /tmp/nginx-setup.sh && rm /tmp/nginx-setup.sh"
 
 Remove-Item $tempNginxScript -Force

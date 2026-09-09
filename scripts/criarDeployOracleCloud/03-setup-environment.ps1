@@ -26,6 +26,8 @@ param(
     [string]$AppDir = "/opt/urbeat"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
 
@@ -199,7 +201,9 @@ $cleanDirScript = $cleanDirScript.Replace("__SSH_USER__", $SSHUser)
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempDirScript "${SSHUser}@${ServerIP}:/tmp/setup-dirs.sh" | Out-Null
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/setup-dirs.sh && /tmp/setup-dirs.sh && rm /tmp/setup-dirs.sh"
 
 Remove-Item $tempDirScript -Force
@@ -215,7 +219,9 @@ $tempEnvFile = [System.IO.Path]::GetTempFileName()
 $cleanEnv = $mainEnv -replace "`r`n", "`n"
 [System.IO.File]::WriteAllText($tempEnvFile, $cleanEnv, [System.Text.UTF8Encoding]::new($false))
 
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempEnvFile "${SSHUser}@${ServerIP}:/tmp/.env.urbeat" | Out-Null
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "cp /tmp/.env.urbeat $AppDir/.env && chmod 600 $AppDir/.env && rm /tmp/.env.urbeat"
 
 Remove-Item $tempEnvFile -Force

@@ -31,6 +31,8 @@ param(
     [string]$ConfirmReset
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 $ErrorActionPreference = "Stop"
 
 if ($ResetDatabase -and $ConfirmReset -ne "RESET URBEAT DATABASE") {
@@ -120,8 +122,10 @@ try {
         "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes",
         "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no"
     )
+    Send-PortKnock -ServerIP $ServerIP
     scp @scpOptions $tempScript "${target}:/tmp/urbeat-rebuild-database.sh" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Falha ao enviar o script remoto." }
+    Send-PortKnock -ServerIP $ServerIP
     ssh @sshOptions $target "chmod 700 /tmp/urbeat-rebuild-database.sh && /tmp/urbeat-rebuild-database.sh; status=`$?; rm -f /tmp/urbeat-rebuild-database.sh; exit `$status"
     if ($LASTEXITCODE -ne 0) { throw "A operacao remota falhou." }
 } finally {

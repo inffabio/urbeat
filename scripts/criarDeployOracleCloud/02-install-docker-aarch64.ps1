@@ -23,6 +23,8 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 Write-Host "🐳 Starting Docker ARM64 Installation..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 Write-Host "🖥️  Server: $ServerIP" -ForegroundColor White
@@ -145,6 +147,7 @@ Write-Host "`n📤 Uploading installation script to server..." -ForegroundColor 
 # Upload script via SCP
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempScript "${SSHUser}@${ServerIP}:/tmp/install-docker.sh"
 
 if ($LASTEXITCODE -ne 0) {
@@ -159,6 +162,7 @@ Write-Host "`n🚀 Executing Docker installation on server..." -ForegroundColor 
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
 # Execute script via SSH
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/install-docker.sh && /tmp/install-docker.sh"
 
 if ($LASTEXITCODE -ne 0) {
@@ -168,6 +172,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n🔍 Verifying Docker installation..." -ForegroundColor Yellow
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "docker --version && docker compose version"
 
 Write-Host "`n🧹 Cleaning up temporary files..." -ForegroundColor Yellow
@@ -178,6 +183,7 @@ try {
 }
 
 try {
+    Send-PortKnock -ServerIP $ServerIP
     ssh @sshOpts "${SSHUser}@${ServerIP}" "rm -f /tmp/install-docker.sh" 2>$null
 } catch {
     Write-Host "⚠️ Warning: Could not remove remote temp file" -ForegroundColor Yellow

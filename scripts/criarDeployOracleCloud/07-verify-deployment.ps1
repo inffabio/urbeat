@@ -20,6 +20,8 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 Write-Host "✅ Verifying Urbeat Deployment..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
@@ -151,7 +153,9 @@ $verifyScript | Out-File -FilePath $tempVerify -Encoding UTF8 -NoNewline
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempVerify "${SSHUser}@${ServerIP}:/tmp/verify.sh"
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/verify.sh && /tmp/verify.sh && rm /tmp/verify.sh"
 
 Remove-Item $tempVerify -Force

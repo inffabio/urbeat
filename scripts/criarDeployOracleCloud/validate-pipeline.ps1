@@ -42,6 +42,54 @@ foreach ($script in $scripts) {
     }
 }
 
+# SSH/knocking invariants: the SSH port is protected by port knocking, so every
+# SSH/SCP connection must be preceded by a knock. Defaults must stay dexter/2208,
+# and deploy-all must forward the SSH settings to every step script.
+$sshCallRegex = [regex]'\b(?:ssh|scp)\s+@[A-Za-z_][A-Za-z0-9_]*'
+$knockCallRegex = [regex]'^(?:Send-PortKnock\s+-ServerIP|port-knock\.ps1\s+-ServerIP|&\s*\$knockScript\s+-ServerIP)'
+
+foreach ($script in $scripts) {
+    $connectLines = @(Get-Content -LiteralPath $script.FullName | Where-Object {
+        $trimmed = $_.Trim()
+        $trimmed -ne '' -and -not $trimmed.StartsWith('#')
+    })
+
+    $knocked = $false
+    foreach ($line in $connectLines) {
+        if ($knockCallRegex.IsMatch($line.Trim())) {
+            $knocked = $true
+        }
+        if ($sshCallRegex.IsMatch($line) -and -not $knocked) {
+            $errors.Add("$($script.Name): an SSH/SCP call must be preceded by a port knock.")
+        }
+    }
+
+    $content = Get-Content -LiteralPath $script.FullName -Raw
+    if ($sshCallRegex.IsMatch($content)) {
+        if ($content -notmatch '\[string\]\$SSHUser\s*=\s*"dexter"') {
+            $errors.Add("$($script.Name): default SSH user must be dexter.")
+        }
+        if ($content -notmatch '\[int\]\$SSHPort\s*=\s*2208') {
+            $errors.Add("$($script.Name): default SSH port must be 2208.")
+        }
+    }
+
+    if ($script.Name -eq "deploy-all.ps1") {
+        if ($content -notmatch '\[string\]\$SSHUser\s*=\s*"dexter"') {
+            $errors.Add("deploy-all.ps1: default SSH user must be dexter.")
+        }
+        if ($content -notmatch '\[int\]\$SSHPort\s*=\s*2208') {
+            $errors.Add("deploy-all.ps1: default SSH port must be 2208.")
+        }
+        if ($content -notmatch '@commonParams') {
+            $errors.Add("deploy-all.ps1: must forward SSH settings to each step via @commonParams.")
+        }
+        if ($content -notmatch '\$commonParams\s*=\s*@\{') {
+            $errors.Add("deploy-all.ps1: must define the @commonParams splat with ServerIP/SSHUser/SSHPort/SSHKeyPath.")
+        }
+    }
+}
+
 if ($errors.Count -gt 0) {
     $errors | ForEach-Object { Write-Error $_ }
     exit 1

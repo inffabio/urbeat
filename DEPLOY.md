@@ -25,6 +25,21 @@
 
 ---
 
+## SSH — acesso e port knocking (obrigatorio)
+
+O SSH do servidor usa **usuario `dexter`** (com sudo) na **porta `2208`** e chave `~/.ssh/id_ed25519` — nao use `ubuntu` nem a porta 22.
+
+A porta SSH e protegida por **port knocking**: envie a sequencia fixa `1230/tcp`, `5688/udp`, `9112/tcp` (nessa ordem) **imediatamente antes de cada** conexao/SSH/SCP, pois a janela aberta e curta. Sem o knocking a conexao falha:
+
+```bash
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
+```
+
+Nos trechos abaixo, quando um bloco comeca com `ssh`, execute antes o `port-knock.ps1` acima. O pipeline automatizado (`deploy-all.ps1` e as etapas `0X-*.ps1`) ja envia o knocking antes de cada SSH/SCP — inclusive o `00-prerequisites-check.ps1`, que dispara o knocking imediatamente antes de cada teste/conexao dependente de SSH (como o teste TCP da porta 2208).
+
+---
+
 ## Layout no servidor
 
 ```
@@ -126,7 +141,8 @@ O nome exibido do Vault pode ser `urbeat`, `Urbeat` ou `UrBeat`; o pipeline comp
 
 ### Status / logs
 ```bash
-ssh ubuntu@136.248.115.135
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 cd /opt/urbeat/docker
 
 sudo docker compose ps                              # status de todos
@@ -154,7 +170,7 @@ sudo docker compose up -d --force-recreate webapi
 ```powershell
 # Na maquina Windows, do repo root
 Set-Location -LiteralPath "scripts\criarDeployOracleCloud"
-.\deploy-all.ps1 -Step application -ServerIP "136.248.115.135" -SSHUser "ubuntu"
+.\deploy-all.ps1 -Step application -ServerIP "136.248.115.135" -SSHUser "dexter"
 ```
 
 ### Acessar Postgres direto
@@ -176,7 +192,8 @@ KEYS *
 
 ### Verificar o certificado SSL
 ```bash
-ssh ubuntu@136.248.115.135 'echo | openssl s_client -servername urbeat.com.br -connect urbeat.com.br:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'echo | openssl s_client -servername urbeat.com.br -connect urbeat.com.br:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName'
 ```
 
 ---
@@ -185,6 +202,7 @@ ssh ubuntu@136.248.115.135 'echo | openssl s_client -servername urbeat.com.br -c
 
 ### Backup manual (recomendado antes de migrations/destrutivas)
 ```bash
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
 ssh -p 2208 dexter@136.248.115.135
 cd /opt/urbeat
 mkdir -p backups
@@ -304,8 +322,10 @@ sudo docker compose exec nginx nginx -s reload
 
 ### Inspecionar
 ```bash
-ssh ubuntu@136.248.115.135 'sudo ls -la /var/lib/docker/volumes/urbeat_letsencrypt/_data/live/urbeat.com.br/'
-ssh ubuntu@136.248.115.135 'sudo docker compose -f /opt/urbeat/docker/docker-compose.yml run --rm --entrypoint "" certbot certbot certificates'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'sudo ls -la /var/lib/docker/volumes/urbeat_letsencrypt/_data/live/urbeat.com.br/'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'sudo docker compose -f /opt/urbeat/docker/docker-compose.yml run --rm --entrypoint "" certbot certbot certificates'
 ```
 
 ---
@@ -313,7 +333,8 @@ ssh ubuntu@136.248.115.135 'sudo docker compose -f /opt/urbeat/docker/docker-com
 ## Rotacionar segredos (`.env`)
 
 ```bash
-ssh ubuntu@136.248.115.135
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 cd /opt/urbeat/docker
 sudo nano .env                                  # editar valores
 sudo docker compose up -d --force-recreate webapi   # aplicar
@@ -379,11 +400,12 @@ Se o envio falhar com `535 Authentication credentials invalid`:
 # 2. Copiar Username e Password gerados
 # 3. Atualizar no vault (via OCI Console ou CLI):
 oci vault secret update-base64 --secret-id <ocid> --secret-bundle-content "{""content"":""<base64-da-credencial>""}"
-# 4. Rodar deploy para gerar novo .env a partir do vault:
+# 4. Rodar deploy para gerar novo .env a partir do vault (o pipeline envia o knocking):
 cd scripts/criarDeployOracleCloud
-./deploy-all.ps1 -Step environment -ServerIP "136.248.115.135" -SSHUser "ubuntu"
+./deploy-all.ps1 -Step environment -ServerIP "136.248.115.135" -SSHUser "dexter"
 # 5. Recriar webapi:
-ssh ubuntu@136.248.115.135 'sudo docker compose -f /opt/urbeat/docker/docker-compose.yml up -d --force-recreate webapi'
+pwsh ./port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'sudo docker compose -f /opt/urbeat/docker/docker-compose.yml up -d --force-recreate webapi'
 ```
 
 ### Testar envio de email
@@ -392,13 +414,16 @@ Sempre teste enviando para `intfabio@gmail.com`:
 
 ```bash
 # 1. Verificar configuracao atual
-ssh ubuntu@136.248.115.135 'sudo docker exec urbeat_webapi printenv | grep -iE "SMTP|EMAIL_LOGONLY"'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'sudo docker exec urbeat_webapi printenv | grep -iE "SMTP|EMAIL_LOGONLY"'
 
 # 2. Registrar usuario de teste e disparar email de confirmacao
-ssh ubuntu@136.248.115.135 'printf '"'"'{"fullName":"Teste","email":"intfabio@gmail.com","password":"Teste1234","phoneNumber":"11999999999"}'"'"' > /tmp/reg.json && curl -sk -X POST https://localhost/api/auth/register/customer -H "Content-Type: application/json" -d @/tmp/reg.json'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'printf '"'"'{"fullName":"Teste","email":"intfabio@gmail.com","password":"Teste1234","phoneNumber":"11999999999"}'"'"' > /tmp/reg.json && curl -sk -X POST https://localhost/api/auth/register/customer -H "Content-Type: application/json" -d @/tmp/reg.json'
 
 # 3. Verificar logs (deve mostrar EMAIL_SENT)
-ssh ubuntu@136.248.115.135 'sudo docker logs urbeat_webapi --tail 20 2>&1 | grep -iE "EMAIL|email"'
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135 'sudo docker logs urbeat_webapi --tail 20 2>&1 | grep -iE "EMAIL|email"'
 
 # 4. Se mostrar EMAIL_LOG_ONLY, o .env esta ausente ou EMAIL_LOGONLY=true
 # 5. Se mostrar EMAIL_FAILED com 535, as credenciais SMTP do vault estao invalidas — regerar no OCI Console
@@ -452,7 +477,8 @@ dig +short api.urbeat.com.br @1.1.1.1
 ### "relation X does not exist" (HTTP 500 nas APIs)
 Migration EF Core nao rodou no startup. Diagnostico:
 ```bash
-ssh ubuntu@136.248.115.135
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 sudo docker logs urbeat_webapi 2>&1 | grep -iE "PendingModel|migration|seed|FATAL" | head -20
 ```
 Se aparecer `PendingModelChangesWarning`, ha mudanca no modelo sem migration. Solucao: gerar nova migration localmente (`dotnet ef migrations add NomeDaMudanca` no `backend/`), commitar, redeploy.
@@ -511,7 +537,8 @@ Se o `.env` foi perdido (reset, restore, redeploy), os defaults do Docker Compos
 
 ```bash
 # Diagnosticar
-ssh ubuntu@136.248.115.135
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 sudo docker exec urbeat_webapi printenv | grep -iE 'EMAIL|SMTP|JWT_SECRET'
 
 # Corrigir
@@ -522,7 +549,8 @@ sudo docker compose -f /opt/urbeat/docker/docker-compose.yml up -d --force-recre
 ### Emails nao estao sendo enviados
 Verificar configuracao:
 ```bash
-ssh ubuntu@136.248.115.135
+pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
+ssh -p 2208 dexter@136.248.115.135
 # 1. Checar se .env existe e tem as variaveis
 sudo cat /opt/urbeat/docker/.env | grep -iE 'SMTP|EMAIL_LOGONLY'
 
@@ -550,10 +578,10 @@ sudo docker system df
 
 ## Acessos rapidos
 
-- **SSH:** `ssh ubuntu@136.248.115.135`
+- **SSH:** rode antes `pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135` e conecte com `ssh -p 2208 dexter@136.248.115.135`
 - **App dir:** `/opt/urbeat/docker/`
 - **Site:** https://urbeat.com.br
 - **Swagger:** https://api.urbeat.com.br/swagger
 - **Hangfire:** https://api.urbeat.com.br/hangfire — `admin / <ver .env>`
-- **Grafana:** http://136.248.115.135:3000 (SSH tunnel)
-- **Prometheus:** http://136.248.115.135:9090 (SSH tunnel)
+- **Grafana:** http://136.248.115.135:3000 (SSH tunnel — enviar port knocking antes do tunnel)
+- **Prometheus:** http://136.248.115.135:9090 (SSH tunnel — enviar port knocking antes do tunnel)

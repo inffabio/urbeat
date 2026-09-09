@@ -25,6 +25,8 @@ param(
     [string]$Email = "contato@urbeat.com.br"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 Write-Host "🔒 Setting up SSL Certificates (Let's Encrypt)..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
@@ -94,9 +96,11 @@ $sslScript | Out-File -FilePath $tempSSL -Encoding UTF8 -NoNewline
 Write-Host "`n📤 Uploading SSL setup script..." -ForegroundColor Yellow
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempSSL "${SSHUser}@${ServerIP}:/tmp/setup-ssl.sh"
 
 Write-Host "🚀 Executing SSL setup..." -ForegroundColor Yellow
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/setup-ssl.sh && /tmp/setup-ssl.sh && rm /tmp/setup-ssl.sh"
 
 Remove-Item $tempSSL -Force

@@ -23,6 +23,8 @@ param(
     [string]$AppDir = "/opt/urbeat"
 )
 
+. (Join-Path $PSScriptRoot "oci-ssh.ps1")
+
 Write-Host "🚀 Deploying Urbeat Application Stack..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 
@@ -371,9 +373,11 @@ function Upload-FileToServer {
 
         $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
         $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    Send-PortKnock -ServerIP $ServerIP
     scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
 
     if ($LASTEXITCODE -eq 0) {
+        Send-PortKnock -ServerIP $ServerIP
         ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mv /tmp/$FileName $RemotePath/$FileName && sudo chown ${SSHUser}:${SSHUser} $RemotePath/$FileName"
         Write-Host " ✅" -ForegroundColor Green
     } else {
@@ -386,6 +390,7 @@ function Upload-FileToServer {
 # Create postgres config directory
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mkdir -p $AppDir/configs/postgres && sudo chown -R ${SSHUser}:${SSHUser} $AppDir/configs"
 
 # Upload files
@@ -441,16 +446,20 @@ Write-Host "  🗜️  Compressing downloads..." -ForegroundColor White
 # Upload tars using scp (with strict timeouts to prevent Windows hangs)
 Write-Host "  📤 Uploading backend source (this may take a minute)..." -ForegroundColor White
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
 
 Write-Host "  📤 Uploading frontend source (this may take a minute)..." -ForegroundColor White
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
 
 Write-Host "  📤 Uploading download packages..." -ForegroundColor White
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $downloadsTar "${SSHUser}@${ServerIP}:/tmp/downloads.tar.gz" | Out-Null
 
 # Extract on server
 Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "
     sudo rm -rf $AppDir/backend $AppDir/frontend
     sudo mkdir -p $AppDir/backend $AppDir/frontend
@@ -533,7 +542,9 @@ $cleanScript = $deployScript -replace "`r`n", "`n"
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+Send-PortKnock -ServerIP $ServerIP
 scp @scpOpts $tempDeploy "${SSHUser}@${ServerIP}:/tmp/deploy.sh" | Out-Null
+Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/deploy.sh && /tmp/deploy.sh && rm /tmp/deploy.sh"
 
 Remove-Item $tempDeploy -Force
