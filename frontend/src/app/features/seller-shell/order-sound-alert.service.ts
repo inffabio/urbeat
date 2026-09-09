@@ -14,7 +14,7 @@ export class OrderSoundAlertService {
     localStorage.setItem(SOUND_KEY, 'on');
     const played = await this.playNewOrder();
     this.needsActivation.set(!played);
-    return true;
+    return played;
   }
 
   disable(): void {

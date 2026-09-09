@@ -128,4 +128,58 @@ describe('SellerAppShellComponent', () => {
     expect(fixture.nativeElement.querySelector('.store-card strong')?.textContent).toContain('Loja fechada');
     expect(fixture.nativeElement.querySelector('.store-card')?.classList.contains('open')).toBe(false);
   });
+
+  it('shows the sound toggle as disabled with the muted icon and Som desligado', () => {
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('.sound-btn');
+    expect(toggle.textContent).toContain('Som desligado');
+    expect(toggle.querySelector('ion-icon').getAttribute('name')).toBe('volume-mute-outline');
+  });
+
+  it('shows the sound toggle as enabled with the high-volume icon and Som ligado', () => {
+    facadeMock.soundEnabled.mockReturnValue(true);
+    facadeMock.soundNeedsActivation.mockReturnValue(false);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('.sound-btn');
+    expect(toggle.textContent).toContain('Som ligado');
+    expect(toggle.querySelector('ion-icon').getAttribute('name')).toBe('volume-high-outline');
+  });
+
+  it('enables sound through the facade when toggled from the disabled state', () => {
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.sound-btn').click();
+
+    expect(facadeMock.enableSound).toHaveBeenCalled();
+    expect(facadeMock.disableSound).not.toHaveBeenCalled();
+  });
+
+  it('disables sound through the facade when toggled from the enabled state', () => {
+    facadeMock.soundEnabled.mockReturnValue(true);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.sound-btn').click();
+
+    expect(facadeMock.disableSound).toHaveBeenCalled();
+    expect(facadeMock.enableSound).not.toHaveBeenCalled();
+  });
+
+  it('hides the activation banner when audio does not need activation', () => {
+    facadeMock.soundNeedsActivation.mockReturnValue(false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Ativar som de pedidos');
+    expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+  });
+
+  it('requests playback unlock when the activation banner is clicked', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
+
+    fixture.nativeElement.querySelector('.activation-banner').click();
+
+    expect(facadeMock.enableSound).toHaveBeenCalled();
+  });
 });
