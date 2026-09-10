@@ -1,11 +1,12 @@
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace Urbeat.Infrastructure.Outbox.Handlers;
 
 /// <summary>
-/// Live SignalR push for seller-driven order status changes.
+/// Best-effort live SignalR push for seller-driven order status changes.
 ///
 /// SignalR has no server-side idempotency key, so delivery is at-least-once. A crash after the push
 /// but before the message is marked processed (or a claim re-acquisition after lock expiry) can
@@ -13,14 +14,20 @@ namespace Urbeat.Infrastructure.Outbox.Handlers;
 /// notification rows and the existing list/polling endpoint remain the authoritative source of
 /// truth. We therefore do NOT record a delivery marker here — doing so would falsely imply
 /// exactly-once and could suppress a legitimate retry.
+///
+/// Because the durable rows/endpoints are authoritative, a live push that cannot be delivered is
+/// treated as best-effort: the failure is logged and the handler reports success so the underlying
+/// order/event outbox processing completes instead of leaving the message Failed on retries.
 /// </summary>
 public sealed class OrderSignalRHandler : IOutboxEventHandler
 {
     private readonly INotificationService _notificationService;
+    private readonly ILogger<OrderSignalRHandler> _logger;
 
-    public OrderSignalRHandler(INotificationService notificationService)
+    public OrderSignalRHandler(INotificationService notificationService, ILogger<OrderSignalRHandler> logger)
     {
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public IReadOnlyCollection<string> SupportedTypes => new[] { OutboxEventTypes.OrderStatusChanged };
@@ -42,8 +49,13 @@ public sealed class OrderSignalRHandler : IOutboxEventHandler
             evt.ChangedAtUtc,
             cancellationToken);
 
-        return delivered
-            ? OutboxProcessingResult.Ok()
-            : OutboxProcessingResult.Retry("SignalR live push failed; will retry.");
+        if (!delivered)
+        {
+            _logger.LogWarning(
+                "SignalR live push not delivered; skipping as best-effort | CustomerUserId={CustomerUserId} | OrderId={OrderId} | Code={Code} | NewStatus={NewStatus}",
+                evt.CustomerUserId, evt.OrderId, evt.Code, evt.NewStatus);
+        }
+
+        return OutboxProcessingResult.Ok();
     }
 }

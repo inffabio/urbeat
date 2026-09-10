@@ -10,6 +10,7 @@ using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -57,7 +58,7 @@ public sealed class OutboxHandlerTests
                 It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<OrderStatus>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         var (db, _) = CreateTracker();
-        var handler = new OrderSignalRHandler(notificationService.Object);
+        var handler = new OrderSignalRHandler(notificationService.Object, NullLogger<OrderSignalRHandler>.Instance);
         var orderId = Guid.NewGuid();
         var customerUserId = Guid.NewGuid();
         var changedAtUtc = new DateTime(2026, 8, 29, 12, 0, 0, DateTimeKind.Utc);
@@ -83,14 +84,15 @@ public sealed class OutboxHandlerTests
     }
 
     [Fact]
-    public async Task OrderSignalRHandler_ShouldReturnRetry_WhenSignalRPushFails()
+    public async Task OrderSignalRHandler_ShouldTreatLivePushFailureAsBestEffort_SoOrderCompletes()
     {
         var notificationService = new Mock<INotificationService>();
         notificationService
             .Setup(x => x.NotifyCustomerOrderStatusUpdatedAsync(
                 It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<OrderStatus>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        var handler = new OrderSignalRHandler(notificationService.Object);
+        var logger = new CapturingLogger<OrderSignalRHandler>();
+        var handler = new OrderSignalRHandler(notificationService.Object, logger);
 
         var message = MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
         {
@@ -101,15 +103,16 @@ public sealed class OutboxHandlerTests
 
         var result = await handler.HandleAsync(message);
 
-        result.Success.Should().BeFalse();
-        result.Retryable.Should().BeTrue();
+        result.Success.Should().BeTrue();
+        result.Retryable.Should().BeFalse();
+        logger.Warnings.Should().ContainSingle(x => x.Contains("SignalR"));
     }
 
     [Fact]
     public async Task OrderSignalRHandler_ShouldIgnoreWebhookDrivenChanges()
     {
         var notificationService = new Mock<INotificationService>();
-        var handler = new OrderSignalRHandler(notificationService.Object);
+        var handler = new OrderSignalRHandler(notificationService.Object, NullLogger<OrderSignalRHandler>.Instance);
 
         var message = MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
         {
@@ -365,9 +368,10 @@ public sealed class OutboxHandlerTests
     }
 
     [Fact]
-    public async Task PrintHandler_ShouldReturnExplicitFailure_ForOrderCreated()
+    public async Task PrintHandler_ShouldSkipAsBestEffort_WhenPrintAgentIsUnavailable()
     {
-        var handler = new PrintHandler(NullLogger<PrintHandler>.Instance);
+        var logger = new CapturingLogger<PrintHandler>();
+        var handler = new PrintHandler(logger);
         var message = MessageOf(OutboxEventTypes.OrderCreated, new OrderCreatedEvent
         {
             OrderId = Guid.NewGuid(),
@@ -376,9 +380,27 @@ public sealed class OutboxHandlerTests
 
         var result = await handler.HandleAsync(message);
 
-        result.Success.Should().BeFalse();
+        result.Success.Should().BeTrue();
         result.Retryable.Should().BeFalse();
-        result.Error.Should().NotBeNullOrWhiteSpace();
+        logger.Warnings.Should().ContainSingle();
+    }
+
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        public List<string> Warnings { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel == LogLevel.Warning)
+            {
+                Warnings.Add(formatter(state, exception));
+            }
+        }
     }
 
     private static EmailHandler CreateEmailHandler(
