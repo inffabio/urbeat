@@ -16,7 +16,7 @@ describe('SellerAppShellComponent', () => {
       disableSound: jest.fn(),
       reset: jest.fn(),
       storeName: jest.fn(() => 'Loja Teste'),
-      store: jest.fn(() => ({ isOpen: true })),
+      store: jest.fn(() => ({ isOpen: true, slug: 'loja-teste' })),
       unreadCount: jest.fn(() => 2),
       ordersCount: jest.fn(() => 2),
       loading: jest.fn(() => false),
@@ -181,5 +181,42 @@ describe('SellerAppShellComponent', () => {
     fixture.nativeElement.querySelector('.activation-banner').click();
 
     expect(facadeMock.enableSound).toHaveBeenCalled();
+  });
+
+  it('links every dashboard logo variant to the storefront in a new tab', () => {
+    fixture.detectChanges();
+
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a.storefront-logo-link')) as HTMLAnchorElement[];
+
+    expect(links).toHaveLength(3);
+    for (const link of links) {
+      expect(link.getAttribute('href')).toBe('/loja-teste');
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+      expect(link.getAttribute('title')).toBe('Clique para ir para loja');
+      expect(link.getAttribute('aria-label')).toBe('Clique para ir para loja');
+    }
+  });
+
+  it('omits the storefront href on every logo variant when the store slug is unavailable', () => {
+    facadeMock.store.mockReturnValue(null);
+    fixture.detectChanges();
+
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a.storefront-logo-link')) as HTMLAnchorElement[];
+
+    expect(links).toHaveLength(3);
+    for (const link of links) {
+      expect(link.hasAttribute('href')).toBe(false);
+      expect(link.getAttribute('href')).toBeNull();
+    }
+  });
+
+  it('keeps the logo fallback when the store has no logo', () => {
+    fixture.detectChanges();
+
+    const marks = fixture.nativeElement.querySelectorAll('.brand-mark, .mobile-brand-mark');
+
+    expect(marks).toHaveLength(3);
+    expect(Array.from(marks).every((mark: Element) => mark.textContent?.trim() === 'H')).toBe(true);
   });
 });

@@ -1,17 +1,26 @@
 <ng-template #sidebarContent let-mobile="mobile">
   <div class="brand-row">
-    <div
-      class="brand-mark"
-      [class.has-logo]="!!facade.store()?.logoUrl"
-      [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
-      aria-hidden="true"
+    <a
+      class="storefront-logo-link"
+      [attr.href]="facade.store()?.slug ? '/' + facade.store()?.slug : null"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Clique para ir para loja"
+      aria-label="Clique para ir para loja"
     >
-      @if (facade.store()?.logoUrl) {
-        <span></span>
-      } @else {
-        H
-      }
-    </div>
+      <div
+        class="brand-mark"
+        [class.has-logo]="!!facade.store()?.logoUrl"
+        [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
+        aria-hidden="true"
+      >
+        @if (facade.store()?.logoUrl) {
+          <span></span>
+        } @else {
+          H
+        }
+      </div>
+    </a>
     <div class="brand-block">
       <strong>{{ facade.storeName() }}</strong>
     </div>
@@ -146,14 +155,23 @@
         <ion-icon name="menu-outline"></ion-icon>
       </button>
       <div class="mobile-brand">
-        <div
-          class="mobile-brand-mark"
-          [class.has-logo]="!!facade.store()?.logoUrl"
-          [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
-          aria-hidden="true"
+        <a
+          class="storefront-logo-link"
+          [attr.href]="facade.store()?.slug ? '/' + facade.store()?.slug : null"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Clique para ir para loja"
+          aria-label="Clique para ir para loja"
         >
-          @if (!facade.store()?.logoUrl) { H }
-        </div>
+          <div
+            class="mobile-brand-mark"
+            [class.has-logo]="!!facade.store()?.logoUrl"
+            [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
+            aria-hidden="true"
+          >
+            @if (!facade.store()?.logoUrl) { H }
+          </div>
+        </a>
         <span>{{ facade.storeName() }}</span>
       </div>
     </header>
