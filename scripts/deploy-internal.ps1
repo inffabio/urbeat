@@ -20,7 +20,6 @@ param(
     [switch]$NoRebuild,
     [switch]$Down,
     [switch]$LogsOnly,
-    [switch]$SkipUpload,
 
     # Explicitly allow shipping a dirty working tree (local snapshot).
     [switch]$AllowDirty,
@@ -52,6 +51,22 @@ function Invoke-Ssh {
     }
 }
 
+# ─── 0. Validar origem ANTES de qualquer comando remoto ─────
+# Assert-DeploySource must run before the first Invoke-Ssh (including the
+# remote mkdir) so an invalid/dirty source never touches the server.
+try {
+    $sourceState = Assert-DeploySource -ProjectRoot $ProjectRoot -AllowDirty:$AllowDirty -ExpectedCommit $ExpectedCommit
+} catch {
+    Write-Host "❌ Deployment source validation failed: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "==> Origem do deploy:" -ForegroundColor Cyan
+Write-Host "   projectRoot : $($sourceState.ProjectRoot)"
+Write-Host "   commit      : $($sourceState.Commit)"
+Write-Host "   branch      : $($sourceState.Branch)"
+Write-Host "   dirty       : $($sourceState.Dirty)$(if ($sourceState.Dirty) { ' (permitido via -AllowDirty)' })"
+
 # ─── LOGS ONLY ───────────────────────────────────────────────
 if ($LogsOnly) {
     Invoke-Ssh "cd $RemoteRoot/docker && docker compose -f docker-compose.dev.yml ps && echo '--- webapi logs ---' && docker logs --tail 80 urbeat_webapi 2>&1 | tail -80"
@@ -69,96 +84,66 @@ if ($Down) {
 Invoke-Ssh "mkdir -p $RemoteRoot && rm -rf $RemoteRoot/_incoming && mkdir -p $RemoteRoot/_incoming"
 
 # ─── 2. Empacotar e enviar ──────────────────────────────────
-if (-not $SkipUpload) {
-    # Validate the source revision BEFORE bumping package.json or packaging.
-    try {
-        $sourceState = Assert-DeploySource -ProjectRoot $ProjectRoot -AllowDirty:$AllowDirty -ExpectedCommit $ExpectedCommit
-    } catch {
-        Write-Host "❌ Deployment source validation failed: $($_.Exception.Message)" -ForegroundColor Red
-        exit 1
-    }
+Write-Host "==> Empacotando projeto..." -ForegroundColor Yellow
 
-    Write-Host "==> Origem do deploy:" -ForegroundColor Cyan
-    Write-Host "   projectRoot : $($sourceState.ProjectRoot)"
-    Write-Host "   commit      : $($sourceState.Commit)"
-    Write-Host "   branch      : $($sourceState.Branch)"
-    Write-Host "   dirty       : $($sourceState.Dirty)$(if ($sourceState.Dirty) { ' (permitido via -AllowDirty)' })"
+$tarball = Join-Path $env:TEMP "urbeat-deploy-$(Get-Date -Format 'yyyyMMddHHmmss').tar.gz"
 
-    Write-Host "==> Atualizando versão da aplicação..." -ForegroundColor Yellow
-    $pkgPath = Join-Path $ProjectRoot "frontend\package.json"
-    $pkg = Get-Content $pkgPath -Raw | ConvertFrom-Json
-    $v = $pkg.version -split '\.'
-    $v[2] = [int]$v[2] + 1
-    $newVersion = "$($v[0]).$($v[1]).$($v[2])"
-    $pkg.version = $newVersion
-    $pkg | ConvertTo-Json -Depth 100 | Set-Content $pkgPath
+Push-Location $ProjectRoot
+try {
+    # Usa tar nativo do Windows com excludes
+    $excludes = @(
+        "--exclude=.git",
+        "--exclude=node_modules",
+        "--exclude=bin",
+        "--exclude=obj",
+        "--exclude=dist",
+        "--exclude=.angular",
+        "--exclude=.vs",
+        "--exclude=.vscode",
+        "--exclude=TestResults",
+        "--exclude=coverage",
+        "--exclude=*.log",
+        "--exclude=UrbeatLogs",
+        "--exclude=Documentacao",
+        "--exclude=.agents",
+        "--exclude=.claude",
+        "--exclude=.cursor",
+        "--exclude=.github"
+    )
+    Write-Host "tar -czf $tarball backend frontend docker scripts" -ForegroundColor DarkGray
+    & tar -czf $tarball @excludes backend frontend docker scripts
+    if ($LASTEXITCODE -ne 0) { throw "tar local falhou" }
+} finally {
+    Pop-Location
+}
 
-    # Atualiza também no componente da landing page
-    $tsPath = Join-Path $ProjectRoot "frontend\src\app\features\landing-page\landing-page.component.ts"
-    $tsContent = Get-Content $tsPath -Raw
-    $tsContent = $tsContent -replace "readonly appVersion = 'v\d+\.\d+\.\d+';", "readonly appVersion = 'v$newVersion';"
-    Set-Content $tsPath $tsContent
+$sz = [math]::Round((Get-Item $tarball).Length / 1MB, 2)
+Write-Host "  > tarball: $sz MB" -ForegroundColor DarkGray
 
-    Write-Host "  > Versão atualizada para: v$newVersion" -ForegroundColor Green
+# O manifesto registra o commit/branch/dirty exatos e o SHA256 do tarball
+# enviado, para que o conteúdo implantado possa ser verificado.
+$manifest = New-DeploymentManifest -SourceState $sourceState -Artifacts @{
+    packageSha256 = Get-FileSha256 -Path $tarball
+}
+$manifestFile = Join-Path $env:TEMP "urbeat-deployment-manifest-$(Get-Date -Format 'yyyyMMddHHmmss').json"
+Write-DeploymentManifest -Manifest $manifest -Path $manifestFile
+Write-Host "  > manifest: commit $($manifest.commit) branch $($manifest.branch) dirty $($manifest.dirty) sha256 $($manifest.artifacts.packageSha256)" -ForegroundColor DarkGray
 
-    Write-Host "==> Empacotando projeto..." -ForegroundColor Yellow
+try {
+    Write-Host "==> Enviando via scp..." -ForegroundColor Yellow
+    & scp -o StrictHostKeyChecking=accept-new $tarball "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deploy.tar.gz"
+    if ($LASTEXITCODE -ne 0) { throw "scp falhou" }
 
-    $tarball = Join-Path $env:TEMP "urbeat-deploy-$(Get-Date -Format 'yyyyMMddHHmmss').tar.gz"
+    Write-Host "==> Enviando manifesto..." -ForegroundColor Yellow
+    & scp -o StrictHostKeyChecking=accept-new $manifestFile "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deployment-manifest.json"
+    if ($LASTEXITCODE -ne 0) { throw "scp do manifesto falhou" }
+} finally {
+    Remove-Item -LiteralPath $tarball -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $manifestFile -Force -ErrorAction SilentlyContinue
+}
 
-    Push-Location $ProjectRoot
-    try {
-        # Usa tar nativo do Windows com excludes
-        $excludes = @(
-            "--exclude=.git",
-            "--exclude=node_modules",
-            "--exclude=bin",
-            "--exclude=obj",
-            "--exclude=dist",
-            "--exclude=.angular",
-            "--exclude=.vs",
-            "--exclude=.vscode",
-            "--exclude=TestResults",
-            "--exclude=coverage",
-            "--exclude=*.log",
-            "--exclude=UrbeatLogs",
-            "--exclude=Documentacao",
-            "--exclude=.agents",
-            "--exclude=.claude",
-            "--exclude=.cursor",
-            "--exclude=.github"
-        )
-        Write-Host "tar -czf $tarball backend frontend docker scripts" -ForegroundColor DarkGray
-        & tar -czf $tarball @excludes backend frontend docker scripts
-        if ($LASTEXITCODE -ne 0) { throw "tar local falhou" }
-    } finally {
-        Pop-Location
-    }
-
-    $sz = [math]::Round((Get-Item $tarball).Length / 1MB, 2)
-    Write-Host "  > tarball: $sz MB" -ForegroundColor DarkGray
-
-    $manifest = New-DeploymentManifest -SourceState $sourceState -Artifacts @{
-        packageSha256 = Get-FileSha256 -Path $tarball
-    }
-    $manifestFile = Join-Path $env:TEMP "urbeat-deployment-manifest-$(Get-Date -Format 'yyyyMMddHHmmss').json"
-    Write-DeploymentManifest -Manifest $manifest -Path $manifestFile
-    Write-Host "  > manifest: commit $($manifest.commit) branch $($manifest.branch) dirty $($manifest.dirty) sha256 $($manifest.artifacts.packageSha256)" -ForegroundColor DarkGray
-
-    try {
-        Write-Host "==> Enviando via scp..." -ForegroundColor Yellow
-        & scp -o StrictHostKeyChecking=accept-new $tarball "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deploy.tar.gz"
-        if ($LASTEXITCODE -ne 0) { throw "scp falhou" }
-
-        Write-Host "==> Enviando manifesto..." -ForegroundColor Yellow
-        & scp -o StrictHostKeyChecking=accept-new $manifestFile "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deployment-manifest.json"
-        if ($LASTEXITCODE -ne 0) { throw "scp do manifesto falhou" }
-    } finally {
-        Remove-Item -LiteralPath $tarball -Force -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath $manifestFile -Force -ErrorAction SilentlyContinue
-    }
-
-    Write-Host "==> Extraindo no servidor..." -ForegroundColor Yellow
-    $extractCmd = @"
+Write-Host "==> Extraindo no servidor..." -ForegroundColor Yellow
+$extractCmd = @"
 set -e
 cd $RemoteRoot
 mkdir -p _stage
@@ -167,28 +152,29 @@ rsync -a --delete _stage/backend/ ./backend/ 2>/dev/null || cp -rT _stage/backen
 rsync -a --delete _stage/frontend/ ./frontend/ 2>/dev/null || cp -rT _stage/frontend ./frontend
 rsync -a --delete _stage/docker/ ./docker/ 2>/dev/null || cp -rT _stage/docker ./docker
 rsync -a --delete _stage/scripts/ ./scripts/ 2>/dev/null || cp -rT _stage/scripts ./scripts
-mv _incoming/deployment-manifest.json ./deployment-manifest.json 2>/dev/null || true
+mv _incoming/deployment-manifest.json ./deployment-manifest.json
+test -s ./deployment-manifest.json
 rm -rf _stage _incoming
 echo 'extracted'
 echo '--- deployment manifest ---'
-cat ./deployment-manifest.json 2>/dev/null || true
+cat ./deployment-manifest.json
 echo ''
 echo '---------------------------'
 "@
-    Invoke-Ssh $extractCmd
+Invoke-Ssh $extractCmd
 
-    Write-Host "==> Garantindo .env em docker/" -ForegroundColor Yellow
-    if (Test-Path "$ProjectRoot/docker/.env.production") {
-        Write-Host "    Copiando .env.production local para o servidor..." -ForegroundColor DarkGray
-        & scp -o StrictHostKeyChecking=accept-new "$ProjectRoot/docker/.env.production" "${ServerUser}@${ServerHost}:${RemoteRoot}/docker/.env"
-        
-        # Override FRONTEND_BASE_URL for internal development environment
-        Write-Host "    Ajustando FRONTEND_BASE_URL para ambiente interno (192.168.1.15)..." -ForegroundColor DarkGray
-        Invoke-Ssh "sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://192.168.1.15|' $RemoteRoot/docker/.env"
-    } else {
-        Invoke-Ssh "test -f $RemoteRoot/docker/.env || cp $RemoteRoot/docker/.env.example $RemoteRoot/docker/.env"
-        Invoke-Ssh "sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://192.168.1.15|' $RemoteRoot/docker/.env"
-    }
+Write-Host "==> Garantindo .env em docker/" -ForegroundColor Yellow
+if (Test-Path "$ProjectRoot/docker/.env.production") {
+    Write-Host "    Copiando .env.production local para o servidor..." -ForegroundColor DarkGray
+    & scp -o StrictHostKeyChecking=accept-new "$ProjectRoot/docker/.env.production" "${ServerUser}@${ServerHost}:${RemoteRoot}/docker/.env"
+    if ($LASTEXITCODE -ne 0) { throw "scp do .env.production falhou (exit $LASTEXITCODE)" }
+
+    # Override FRONTEND_BASE_URL for internal development environment
+    Write-Host "    Ajustando FRONTEND_BASE_URL para ambiente interno (192.168.1.15)..." -ForegroundColor DarkGray
+    Invoke-Ssh "sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://192.168.1.15|' $RemoteRoot/docker/.env"
+} else {
+    Invoke-Ssh "test -f $RemoteRoot/docker/.env || cp $RemoteRoot/docker/.env.example $RemoteRoot/docker/.env"
+    Invoke-Ssh "sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://192.168.1.15|' $RemoteRoot/docker/.env"
 }
 
 # ─── 3. Preparar Nginx para ambiente interno (SPA Padrão + SignalR) ───
@@ -273,16 +259,10 @@ if ($ok) {
 
 # ─── 5. Origem do deploy (Git NÃO é alterado por este script) ─
 Write-Host "==> Origem do deploy (Git não foi alterado por este script):" -ForegroundColor Yellow
-if ($null -ne $sourceState) {
-    Write-Host "   commit   : $($sourceState.Commit)"
-    Write-Host "   branch   : $($sourceState.Branch)"
-    Write-Host "   dirty    : $($sourceState.Dirty)"
-    if ($null -ne $manifest) {
-        Write-Host "   manifest : $RemoteRoot/deployment-manifest.json"
-    }
-} else {
-    Write-Host "   (upload ignorado via -SkipUpload; nenhuma validação de origem executada)"
-}
+Write-Host "   commit   : $($sourceState.Commit)"
+Write-Host "   branch   : $($sourceState.Branch)"
+Write-Host "   dirty    : $($sourceState.Dirty)"
+Write-Host "   manifest : $RemoteRoot/deployment-manifest.json"
 
 # ─── 6. Status ──────────────────────────────────────────────
 Invoke-Ssh "cd $RemoteRoot/docker && docker compose -f docker-compose.dev.yml ps"

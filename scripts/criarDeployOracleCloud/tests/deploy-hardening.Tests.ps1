@@ -159,4 +159,61 @@ Describe "deploy hardening invariants" {
         $content | Should Match '-ExtraParams'
         $content | Should Match '-eq\s+["'']application["'']'
     }
+
+    It "internal deploy validates the source before the first remote command" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        $validateIndex = $content.IndexOf("Assert-DeploySource")
+        $firstCall = [regex]::Match($content, '(?m)^\s*Invoke-Ssh\s+')
+        $mkdirIndex = $content.IndexOf("mkdir -p `$RemoteRoot")
+
+        ($validateIndex -ge 0) | Should Be $true
+        ($firstCall.Success) | Should Be $true
+        ($validateIndex -lt $firstCall.Index) | Should Be $true
+        ($validateIndex -lt $mkdirIndex) | Should Be $true
+    }
+
+    It "internal deploy does not bump or rewrite version files" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        ($content -match 'package\.json') | Should Be $false
+        ($content -match 'landing-page\.component\.ts') | Should Be $false
+        ($content -match 'Set-Content') | Should Be $false
+        ($content -match 'ConvertTo-Json') | Should Be $false
+        ($content -match 'newVersion') | Should Be $false
+    }
+
+    It "internal deploy requires a deployment manifest (no skip-upload escape hatch)" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        ($content -match '\$SkipUpload') | Should Be $false
+        $content | Should Match 'New-DeploymentManifest'
+        $content | Should Match 'Write-DeploymentManifest'
+        $content | Should Match 'scp[^\r\n]*deployment-manifest\.json'
+        $content | Should Match 'Get-FileSha256 -Path \$tarball'
+        ($content.IndexOf("tar -czf") -lt $content.IndexOf("New-DeploymentManifest")) | Should Be $true
+    }
+
+    It "internal deploy fails when the remote manifest cannot be installed" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        $content | Should Match 'mv _incoming/deployment-manifest\.json \./deployment-manifest\.json'
+        $content | Should Match 'test -s \./deployment-manifest\.json'
+        ($content.IndexOf("mv _incoming/deployment-manifest.json ./deployment-manifest.json") -lt $content.IndexOf("test -s ./deployment-manifest.json")) | Should Be $true
+        ($content -match 'deployment-manifest\.json\s+\./deployment-manifest\.json\s+2>/dev/null\s*\|\|\s*true') | Should Be $false
+    }
+
+    It "internal deploy verifies the .env.production upload" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        $content | Should Match 'scp[^\r\n]*\.env\.production'
+        $content | Should Match 'scp do \.env\.production falhou'
+    }
+
+    It "internal deploy does not disable SSH host key checking" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
+
+        ($content -match 'StrictHostKeyChecking=no') | Should Be $false
+        $content | Should Match 'StrictHostKeyChecking=accept-new'
+    }
 }

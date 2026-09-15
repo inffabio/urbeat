@@ -159,6 +159,15 @@ if (Test-Path -LiteralPath $internalScript -PathType Leaf) {
     if ($internalContent -match 'git commit') {
         $errors.Add("deploy-internal.ps1 must not create git commits during deploy.")
     }
+    if ($internalContent -match '\$SkipUpload') {
+        $errors.Add("deploy-internal.ps1 must always produce a deployment manifest (no -SkipUpload escape hatch).")
+    }
+    if ($internalContent -match 'Set-Content|ConvertTo-Json') {
+        $errors.Add("deploy-internal.ps1 must not rewrite version files (package.json/landing-page.component.ts).")
+    }
+    if ($internalContent -match 'StrictHostKeyChecking=no') {
+        $errors.Add("deploy-internal.ps1 must not disable SSH host key checking.")
+    }
 } else {
     $errors.Add("scripts/deploy-internal.ps1 is missing.")
 }
