@@ -11,8 +11,9 @@ public interface ICuisineTypeService
     Task<IReadOnlyCollection<CuisineTypeResponseDto>> GetForStoreAsync(Guid ownerUserId, Guid storeId, CancellationToken cancellationToken = default);
 
     // Cria uma categoria privada da loja. Nunca cria categoria global.
-    // Retorna nulo para nome vazio, nome de categoria padrão, duplicado no escopo ou loja sem proprietário.
-    Task<CuisineTypeResponseDto?> CreateForStoreAsync(Guid ownerUserId, Guid storeId, string name, CancellationToken cancellationToken = default);
+    // Retorna um resultado controlado para nome vazio, nome de categoria padrão, duplicado no escopo,
+    // loja sem proprietário ou corrida no índice único (conflito), nunca deixando a exceção escapar.
+    Task<CreateCuisineTypeResultDto> CreateForStoreAsync(Guid ownerUserId, Guid storeId, string name, CancellationToken cancellationToken = default);
 
     // Remove somente uma categoria privada da loja que não esteja em uso pela loja.
     Task<DeleteCuisineTypeResultDto> DeleteForStoreAsync(Guid ownerUserId, Guid storeId, Guid cuisineTypeId, CancellationToken cancellationToken = default);

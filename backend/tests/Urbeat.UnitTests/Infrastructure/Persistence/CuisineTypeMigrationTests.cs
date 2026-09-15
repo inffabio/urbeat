@@ -17,9 +17,13 @@ public sealed class CuisineTypeMigrationTests
         "\n",
         UpSqlOperations.Select(operation => operation.Sql));
 
+    private IReadOnlyList<SqlOperation> DownSqlOperations => _migration.DownOperations
+        .OfType<SqlOperation>()
+        .ToList();
+
     private string DownSql => string.Join(
         "\n",
-        _migration.DownOperations.OfType<SqlOperation>().Select(operation => operation.Sql));
+        DownSqlOperations.Select(operation => operation.Sql));
 
     [Fact]
     public void Up_ShouldAddScopeColumns_ToCuisineTypes()
@@ -151,7 +155,19 @@ public sealed class CuisineTypeMigrationTests
         DownSql.Should().Contain("_CuisineTypeDownMap");
         DownSql.Should().Contain("UPDATE \"Stores\"");
         DownSql.Should().Contain("DELETE FROM \"CuisineTypes\"");
-        DownSql.Should().Contain("GROUP BY c.\"NormalizedName\"");
+        DownSql.Should().Contain("GROUP BY c.\"Name\"");
+    }
+
+    [Fact]
+    public void Down_ShouldCollapseOnlyExactDuplicateNames_PreservingCaseAndAccentVariants()
+    {
+        // The old schema has a unique index on the exact Name, so two private categories that
+        // differ only by case/accent can coexist. Merging by NormalizedName would delete one of
+        // them and silently rewrite a store to a different original name.
+        DownSql.Should().Contain("GROUP BY c.\"Name\"");
+        DownSql.Should().NotContain("GROUP BY c.\"NormalizedName\"");
+        DownSql.Should().Contain("m.\"Name\" = c.\"Name\"");
+        DownSql.Should().NotContain("m.\"NormalizedName\"");
     }
 
     [Fact]
@@ -173,6 +189,35 @@ public sealed class CuisineTypeMigrationTests
         DownSql.Should().Contain("Cachorro Quente");
         DownSql.Should().Contain("Tapioca e crepes");
         DownSql.Should().Contain("NOT EXISTS");
+
+        var restoreSql = DownSqlOperations
+            .Single(x => x.Sql.Contains("Cachorro Quente", StringComparison.Ordinal)
+                && x.Sql.Contains("Tapioca e crepes", StringComparison.Ordinal)).Sql;
+
+        // Fixed ids keep the restoration deterministic and non-duplicating.
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000002'::uuid");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000008'::uuid");
+        // Absence is checked against the global scope (StoreId IS NULL), not any scope.
+        restoreSql.Should().Contain("c.\"StoreId\" IS NULL");
+    }
+
+    [Fact]
+    public void Down_ShouldRestoreLegacySeeds_BeforeCollapsingDuplicates()
+    {
+        var restoreIndex = DownSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("Cachorro Quente", StringComparison.Ordinal)
+                && x.operation.Sql.Contains("Tapioca e crepes", StringComparison.Ordinal))
+            .index;
+
+        var collapseIndex = DownSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("_CuisineTypeDownMap", StringComparison.Ordinal))
+            .index;
+
+        restoreIndex.Should().BeLessThan(
+            collapseIndex,
+            "the legacy seeds must exist before the exact-name merge so a global seed wins it");
     }
 
     [Fact]

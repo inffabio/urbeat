@@ -128,13 +128,23 @@ public sealed class StoresController : ControllerBase
             return Forbid();
         }
 
-        var created = await _cuisineTypeService.CreateForStoreAsync(ownerUserId.Value, storeId, request.Name, cancellationToken);
-        if (created is null)
+        var result = await _cuisineTypeService.CreateForStoreAsync(ownerUserId.Value, storeId, request.Name, cancellationToken);
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Invalid)
+        {
+            return BadRequest(new { error = "Nome de categoria inválido." });
+        }
+
+        if (result.Conflict)
         {
             return Conflict(new { error = "Categoria inválida, duplicada ou protegida." });
         }
 
-        return StatusCode(StatusCodes.Status201Created, created);
+        return StatusCode(StatusCodes.Status201Created, result.CuisineType);
     }
 
     [HttpDelete("{storeId:guid}/cuisine-types/{cuisineTypeId:guid}")]

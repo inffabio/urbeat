@@ -1,16 +1,21 @@
 using AutoMapper;
 using FluentAssertions;
+using Urbeat.Application.Interfaces;
 using Urbeat.Application.Mappings;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
+using Urbeat.Infrastructure.Persistence.UnitOfWork;
 using Urbeat.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using Npgsql;
 
 namespace Urbeat.UnitTests.Infrastructure.Services;
 
 public sealed class CuisineTypeServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _db;
+    private readonly IMapper _mapper;
     private readonly CuisineTypeService _sut;
 
     public CuisineTypeServiceTests()
@@ -20,13 +25,38 @@ public sealed class CuisineTypeServiceTests : IDisposable
             .Options;
         _db = new ApplicationDbContext(options);
 
-        var mapper = new MapperConfiguration(cfg => cfg.AddProfile<EntityToDtoProfile>()).CreateMapper();
-        _sut = new CuisineTypeService(_db, mapper);
+        _mapper = new MapperConfiguration(cfg => cfg.AddProfile<EntityToDtoProfile>()).CreateMapper();
+        _sut = new CuisineTypeService(_db, _mapper, new EfUnitOfWork(_db));
     }
 
     public void Dispose()
     {
         _db.Dispose();
+    }
+
+    private CuisineTypeService CreateSut(IEfUnitOfWork unitOfWork)
+        => new(_db, _mapper, unitOfWork);
+
+    private static DbUpdateException StoreCuisineUniqueIndexRaceViolation()
+    {
+        return new DbUpdateException(
+            "save failed",
+            new PostgresException(
+                "duplicate key value violates unique constraint \"IX_CuisineTypes_StoreId_NormalizedName\"",
+                "ERROR",
+                "ERROR",
+                PostgresErrorCodes.UniqueViolation));
+    }
+
+    private static DbUpdateException StoreCuisineForeignKeyRaceViolation()
+    {
+        return new DbUpdateException(
+            "save failed",
+            new PostgresException(
+                "update or delete on table \"CuisineTypes\" violates foreign key constraint \"FK_Stores_CuisineTypes_CuisineTypeId\" on table \"Stores\"",
+                "ERROR",
+                "ERROR",
+                PostgresErrorCodes.ForeignKeyViolation));
     }
 
     [Fact]
@@ -99,10 +129,11 @@ public sealed class CuisineTypeServiceTests : IDisposable
 
         var result = await _sut.CreateForStoreAsync(owner, store.Id, "Comida Baiana");
 
-        result.Should().NotBeNull();
-        result!.Name.Should().Be("Comida Baiana");
+        result.Created.Should().BeTrue();
+        result.CuisineType.Should().NotBeNull();
+        result.CuisineType!.Name.Should().Be("Comida Baiana");
 
-        var persisted = await _db.CuisineTypes.SingleAsync(x => x.Id == result.Id);
+        var persisted = await _db.CuisineTypes.SingleAsync(x => x.Id == result.CuisineType.Id);
         persisted.StoreId.Should().Be(store.Id);
         persisted.IsDefault.Should().BeFalse();
         persisted.NormalizedName.Should().Be("comida baiana");
@@ -119,7 +150,8 @@ public sealed class CuisineTypeServiceTests : IDisposable
 
         var result = await _sut.CreateForStoreAsync(owner, store.Id, "pizzaria");
 
-        result.Should().BeNull();
+        result.Conflict.Should().BeTrue();
+        result.Created.Should().BeFalse();
     }
 
     [Fact]
@@ -132,7 +164,8 @@ public sealed class CuisineTypeServiceTests : IDisposable
 
         var result = await _sut.CreateForStoreAsync(owner, store.Id, "   ");
 
-        result.Should().BeNull();
+        result.Invalid.Should().BeTrue();
+        result.Created.Should().BeFalse();
     }
 
     [Fact]
@@ -145,7 +178,8 @@ public sealed class CuisineTypeServiceTests : IDisposable
 
         var result = await _sut.CreateForStoreAsync(Guid.NewGuid(), store.Id, "Comida Baiana");
 
-        result.Should().BeNull();
+        result.NotFound.Should().BeTrue();
+        result.Created.Should().BeFalse();
         (await _db.CuisineTypes.CountAsync(x => x.Name == "Comida Baiana")).Should().Be(0);
     }
 
@@ -160,8 +194,8 @@ public sealed class CuisineTypeServiceTests : IDisposable
         var first = await _sut.CreateForStoreAsync(owner, store.Id, "Comida Baiana");
         var second = await _sut.CreateForStoreAsync(owner, store.Id, "COMIDA BAIANA");
 
-        first.Should().NotBeNull();
-        second.Should().BeNull();
+        first.Created.Should().BeTrue();
+        second.Conflict.Should().BeTrue();
         (await _db.CuisineTypes.CountAsync(x => x.StoreId == store.Id)).Should().Be(1);
     }
 
@@ -176,7 +210,7 @@ public sealed class CuisineTypeServiceTests : IDisposable
 
         var result = await _sut.CreateForStoreAsync(owner, store.Id, "comida arabe");
 
-        result.Should().BeNull();
+        result.Conflict.Should().BeTrue();
         (await _db.CuisineTypes.CountAsync(x => x.StoreId == store.Id)).Should().Be(0);
     }
 
@@ -246,6 +280,56 @@ public sealed class CuisineTypeServiceTests : IDisposable
         (await _db.CuisineTypes.CountAsync(x => x.Id == category.Id)).Should().Be(1);
     }
 
+    // O pre-check AnyAsync(Stores.CuisineTypeId == categoria) não é a garantia real: uma
+    // requisição concorrente pode associar a categoria à loja entre a verificação e o delete.
+    // O InMemory não aplica a FK, então este teste simula a violação de FK do Postgres.
+    [Fact]
+    public async Task DeleteForStoreAsync_ShouldReportInUse_WhenSaveFailsOnStoreCuisineForeignKeyRace()
+    {
+        var owner = Guid.NewGuid();
+        var store = new Store { OwnerUserId = owner, Name = "Loja", Slug = "loja" };
+        _db.Stores.Add(store);
+        var category = new CuisineType { Name = "Comida Baiana", IsActive = true, StoreId = store.Id };
+        _db.CuisineTypes.Add(category);
+        await _db.SaveChangesAsync();
+
+        var unitOfWork = new Mock<IEfUnitOfWork>();
+        unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(StoreCuisineForeignKeyRaceViolation());
+        var sut = CreateSut(unitOfWork.Object);
+
+        var result = await sut.DeleteForStoreAsync(owner, store.Id, category.Id);
+
+        result.InUse.Should().BeTrue();
+        result.Deleted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteForStoreAsync_ShouldNotMaskNonForeignKeyViolation()
+    {
+        var owner = Guid.NewGuid();
+        var store = new Store { OwnerUserId = owner, Name = "Loja", Slug = "loja" };
+        _db.Stores.Add(store);
+        var category = new CuisineType { Name = "Comida Baiana", IsActive = true, StoreId = store.Id };
+        _db.CuisineTypes.Add(category);
+        await _db.SaveChangesAsync();
+
+        var unitOfWork = new Mock<IEfUnitOfWork>();
+        unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException(
+                "save failed",
+                new PostgresException(
+                    "duplicate key value violates unique constraint \"IX_Stores_Slug\"",
+                    "ERROR",
+                    "ERROR",
+                    PostgresErrorCodes.UniqueViolation)));
+        var sut = CreateSut(unitOfWork.Object);
+
+        var act = () => sut.DeleteForStoreAsync(owner, store.Id, category.Id);
+
+        await act.Should().ThrowAsync<DbUpdateException>();
+    }
+
     [Fact]
     public async Task CreateForStoreAsync_ShouldNotCreateCategoryForAnotherStore()
     {
@@ -262,5 +346,52 @@ public sealed class CuisineTypeServiceTests : IDisposable
         var categories = await _db.CuisineTypes.Where(x => x.Name == "Comida Baiana").ToListAsync();
         categories.Should().HaveCount(2);
         categories.Select(x => x.StoreId).Should().BeEquivalentTo(new[] { storeA.Id, storeB.Id });
+    }
+
+    // O pre-check não é a garantia real: uma requisição concorrente pode persistir o mesmo
+    // nome normalizado entre o AnyAsync e o SaveChanges. O InMemory não aplica o índice único,
+    // então este teste simula a gravação perdedora lançando unique_violation do Postgres.
+    [Fact]
+    public async Task CreateForStoreAsync_ShouldReportConflict_WhenSaveFailsOnStoreUniqueIndexRace()
+    {
+        var owner = Guid.NewGuid();
+        var store = new Store { OwnerUserId = owner, Name = "Loja", Slug = "loja" };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var unitOfWork = new Mock<IEfUnitOfWork>();
+        unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(StoreCuisineUniqueIndexRaceViolation());
+        var sut = CreateSut(unitOfWork.Object);
+
+        var result = await sut.CreateForStoreAsync(owner, store.Id, "Comida Baiana");
+
+        result.Conflict.Should().BeTrue();
+        result.Created.Should().BeFalse();
+        result.CuisineType.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateForStoreAsync_ShouldNotMaskNonCuisineUniqueViolation()
+    {
+        var owner = Guid.NewGuid();
+        var store = new Store { OwnerUserId = owner, Name = "Loja", Slug = "loja" };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var unitOfWork = new Mock<IEfUnitOfWork>();
+        unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException(
+                "save failed",
+                new PostgresException(
+                    "duplicate key value violates unique constraint \"IX_Stores_Slug\"",
+                    "ERROR",
+                    "ERROR",
+                    PostgresErrorCodes.UniqueViolation)));
+        var sut = CreateSut(unitOfWork.Object);
+
+        var act = () => sut.CreateForStoreAsync(owner, store.Id, "Comida Baiana");
+
+        await act.Should().ThrowAsync<DbUpdateException>();
     }
 }

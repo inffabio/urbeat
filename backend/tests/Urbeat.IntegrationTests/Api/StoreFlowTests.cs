@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -242,6 +242,82 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
 
         var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
         scoped!.Any(x => x.Id == category.Id).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Seller_ShouldUpdateStoreWithOwnPrivateCategory_IgnoringCase()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.update-own");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-update-own", "Lanches");
+
+        var createResponse = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/stores/{storeId}", new UpdateStoreRequestDto
+        {
+            Name = "Loja cuisine-update-own",
+            Slug = "cuisine-update-own",
+            PhoneNumber = "11999999999",
+            CuisineType = "COMIDA BAIANA",
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var store = await client.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
+        store!.CuisineType.Should().Be("Comida Baiana");
+    }
+
+    [Fact]
+    public async Task Seller_ShouldUpdateStoreWithGlobalDefault_IgnoringAccents()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.update-global");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-update-global", "Lanches");
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/stores/{storeId}", new UpdateStoreRequestDto
+        {
+            Name = "Loja cuisine-update-global",
+            Slug = "cuisine-update-global",
+            PhoneNumber = "11999999999",
+            CuisineType = "comida arabe",
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var store = await client.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
+        store!.CuisineType.Should().Be("Comida Árabe");
+    }
+
+    [Fact]
+    public async Task Seller_ShouldRejectCategoryOwnedByAnotherStore()
+    {
+        var ownerClient = await CreateAuthenticatedSellerAsync("store.cuisine.update-owner");
+        var ownerStoreId = await CreateStoreAndGetIdAsync(ownerClient, "cuisine-update-owner", "Lanches");
+
+        var otherClient = await CreateAuthenticatedSellerAsync("store.cuisine.update-other");
+        var otherStoreId = await CreateStoreAndGetIdAsync(otherClient, "cuisine-update-other", "Lanches");
+
+        var createResponse = await otherClient.PostAsJsonAsync(
+            $"/api/stores/{otherStoreId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var updateResponse = await ownerClient.PutAsJsonAsync($"/api/stores/{ownerStoreId}", new UpdateStoreRequestDto
+        {
+            Name = "Loja cuisine-update-owner",
+            Slug = "cuisine-update-owner",
+            PhoneNumber = "11999999999",
+            CuisineType = "Comida Baiana",
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var store = await ownerClient.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
+        store!.CuisineType.Should().Be("Lanches");
     }
 
     private async Task<HttpClient> CreateAuthenticatedSellerAsync(string prefix)

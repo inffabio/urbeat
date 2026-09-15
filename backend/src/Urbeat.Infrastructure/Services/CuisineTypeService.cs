@@ -4,6 +4,7 @@ using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -11,11 +12,13 @@ public sealed class CuisineTypeService : ICuisineTypeService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
+    private readonly IEfUnitOfWork _efUnitOfWork;
 
-    public CuisineTypeService(ApplicationDbContext dbContext, IMapper mapper)
+    public CuisineTypeService(ApplicationDbContext dbContext, IMapper mapper, IEfUnitOfWork efUnitOfWork)
     {
         _dbContext = dbContext;
         _mapper = mapper;
+        _efUnitOfWork = efUnitOfWork;
     }
 
     public async Task<IReadOnlyCollection<CuisineTypeResponseDto>> GetActiveAsync(CancellationToken cancellationToken = default)
@@ -49,11 +52,11 @@ public sealed class CuisineTypeService : ICuisineTypeService
         return _mapper.Map<IReadOnlyCollection<CuisineTypeResponseDto>>(entities);
     }
 
-    public async Task<CuisineTypeResponseDto?> CreateForStoreAsync(Guid ownerUserId, Guid storeId, string name, CancellationToken cancellationToken = default)
+    public async Task<CreateCuisineTypeResultDto> CreateForStoreAsync(Guid ownerUserId, Guid storeId, string name, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return null;
+            return new CreateCuisineTypeResultDto { Invalid = true };
         }
 
         var storeExists = await _dbContext.Stores
@@ -62,7 +65,7 @@ public sealed class CuisineTypeService : ICuisineTypeService
 
         if (!storeExists)
         {
-            return null;
+            return new CreateCuisineTypeResultDto { NotFound = true };
         }
 
         var trimmedName = name.Trim();
@@ -71,7 +74,7 @@ public sealed class CuisineTypeService : ICuisineTypeService
         // Nunca cria/muta categorias padrão protegidas.
         if (CuisineTypeDefaults.IsDefaultNormalizedName(normalizedName))
         {
-            return null;
+            return new CreateCuisineTypeResultDto { Conflict = true };
         }
 
         // Rejeita duplicado normalizado no escopo da loja.
@@ -80,7 +83,7 @@ public sealed class CuisineTypeService : ICuisineTypeService
 
         if (duplicateInStore)
         {
-            return null;
+            return new CreateCuisineTypeResultDto { Conflict = true };
         }
 
         // Defesa extra: nenhuma categoria global pode colidir com a chave normalizada.
@@ -89,7 +92,7 @@ public sealed class CuisineTypeService : ICuisineTypeService
 
         if (collidesWithGlobal)
         {
-            return null;
+            return new CreateCuisineTypeResultDto { Conflict = true };
         }
 
         var entity = new CuisineType
@@ -101,9 +104,35 @@ public sealed class CuisineTypeService : ICuisineTypeService
         };
 
         _dbContext.CuisineTypes.Add(entity);
-        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<CuisineTypeResponseDto>(entity);
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsStoreCuisineUniqueViolation(exception))
+        {
+            // Uma requisição concorrente persistiu o mesmo nome normalizado entre o pre-check e
+            // este save; o índice único parcial é a garantia real. Reporta conflito em vez de 500.
+            _dbContext.Entry(entity).State = EntityState.Detached;
+            return new CreateCuisineTypeResultDto { Conflict = true };
+        }
+
+        return new CreateCuisineTypeResultDto
+        {
+            Created = true,
+            CuisineType = _mapper.Map<CuisineTypeResponseDto>(entity)
+        };
+    }
+
+    private static bool IsStoreCuisineUniqueViolation(DbUpdateException exception)
+    {
+        // PostgreSQL raises SQLSTATE 23505 when a concurrent request persists the same normalized
+        // name for a store between the pre-check and SaveChanges. Only the store-scoped unique index
+        // maps to a conflict; any other DbUpdateException propagates.
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation
+        } pg && pg.MessageText.Contains("IX_CuisineTypes_StoreId_NormalizedName", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<DeleteCuisineTypeResultDto> DeleteForStoreAsync(Guid ownerUserId, Guid storeId, Guid cuisineTypeId, CancellationToken cancellationToken = default)

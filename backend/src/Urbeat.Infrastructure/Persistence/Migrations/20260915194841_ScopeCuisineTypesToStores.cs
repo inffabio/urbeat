@@ -283,38 +283,62 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                 name: "IX_CuisineTypes_StoreId_NormalizedName",
                 table: "CuisineTypes");
 
-            // Regroup every row by its normalized name instead of deleting private categories:
-            // stores are rewired to one canonical row per name, then only the duplicate rows are
-            // removed. This preserves each store's category value (same name) and avoids dropping
-            // data that the old schema (unique index on Name) could not represent twice.
+            // 1. Restore the two legacy seeds that Up removed, but only when they are absent from
+            //    the global scope. They are inserted before the merge so that, when a store owns a
+            //    private category with the exact same name, the global seed wins the merge below and
+            //    the original fixed id/name is restored deterministically. Fixed values (no now())
+            //    keep the Down reproducible.
+            migrationBuilder.Sql(
+                """
+                INSERT INTO "CuisineTypes" ("Id", "Name", "NormalizedName", "IsActive", "IsDefault", "StoreId", "CreatedAtUtc")
+                SELECT v."Id", v."Name", v."NormalizedName", true, false, NULL, v."CreatedAtUtc"
+                FROM (VALUES
+                    ('b1000000-0000-0000-0000-000000000002'::uuid, 'Cachorro Quente', 'cachorro quente', '2026-07-26 21:42:39.6432789+00'::timestamptz),
+                    ('b1000000-0000-0000-0000-000000000008'::uuid, 'Tapioca e crepes', 'tapioca e crepes', '2026-07-26 21:42:39.6432796+00'::timestamptz)
+                ) AS v("Id", "Name", "NormalizedName", "CreatedAtUtc")
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM "CuisineTypes" AS c
+                    WHERE c."StoreId" IS NULL
+                      AND c."Name" = v."Name"
+                )
+                  AND NOT EXISTS (
+                    SELECT 1 FROM "CuisineTypes" AS c WHERE c."Id" = v."Id"
+                );
+                """);
+
+            // 2. Collapse only exact duplicate names, because the old schema has a unique index on
+            //    Name. Names that differ only by case/accent stay distinct, so no private category
+            //    loses its original name. Global rows win the merge so the restored seeds keep their
+            //    fixed id. Stores are rewired to the canonical row before duplicates are removed.
             migrationBuilder.Sql(
                 """
                 DROP TABLE IF EXISTS "_CuisineTypeDownMap";
                 CREATE TEMP TABLE "_CuisineTypeDownMap" (
-                    "NormalizedName" text NOT NULL,
+                    "Name" text NOT NULL,
                     "CanonicalId" uuid NOT NULL
                 );
 
-                INSERT INTO "_CuisineTypeDownMap" ("NormalizedName", "CanonicalId")
-                SELECT c."NormalizedName",
+                INSERT INTO "_CuisineTypeDownMap" ("Name", "CanonicalId")
+                SELECT c."Name",
                        (SELECT c2."Id"
                         FROM "CuisineTypes" AS c2
-                        WHERE c2."NormalizedName" = c."NormalizedName"
+                        WHERE c2."Name" = c."Name"
                         ORDER BY (c2."StoreId" IS NULL) DESC, c2."CreatedAtUtc" ASC, c2."Id" ASC
                         LIMIT 1)
                 FROM "CuisineTypes" AS c
-                GROUP BY c."NormalizedName";
+                GROUP BY c."Name";
 
                 UPDATE "Stores" AS s
                 SET "CuisineTypeId" = m."CanonicalId"
                 FROM "CuisineTypes" AS c
-                JOIN "_CuisineTypeDownMap" AS m ON m."NormalizedName" = c."NormalizedName"
+                JOIN "_CuisineTypeDownMap" AS m ON m."Name" = c."Name"
                 WHERE s."CuisineTypeId" = c."Id"
                   AND c."Id" <> m."CanonicalId";
 
                 DELETE FROM "CuisineTypes" AS c
                 USING "_CuisineTypeDownMap" AS m
-                WHERE c."NormalizedName" = m."NormalizedName"
+                WHERE c."Name" = m."Name"
                   AND c."Id" <> m."CanonicalId";
 
                 DROP TABLE "_CuisineTypeDownMap";
@@ -331,20 +355,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
             migrationBuilder.DropColumn(
                 name: "StoreId",
                 table: "CuisineTypes");
-
-            // Restore the two original seeded categories removed by Up, guarded so a re-run cannot
-            // duplicate them and existing data is never overwritten.
-            migrationBuilder.Sql(
-                """
-                INSERT INTO "CuisineTypes" ("Id", "Name", "IsActive", "CreatedAtUtc")
-                SELECT v."Id", v."Name", true, now()
-                FROM (VALUES
-                    ('b1000000-0000-0000-0000-000000000002'::uuid, 'Cachorro Quente'),
-                    ('b1000000-0000-0000-0000-000000000008'::uuid, 'Tapioca e crepes')
-                ) AS v("Id", "Name")
-                WHERE NOT EXISTS (SELECT 1 FROM "CuisineTypes" AS c WHERE c."Name" = v."Name")
-                  AND NOT EXISTS (SELECT 1 FROM "CuisineTypes" AS c WHERE c."Id" = v."Id");
-                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_CuisineTypes_Name",
