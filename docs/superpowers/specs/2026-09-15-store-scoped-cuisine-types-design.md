@@ -16,7 +16,6 @@ The protected default categories are exactly:
 - Cafeteria
 - Churrascaria
 - Comida Árabe
-- Comida Brasileira
 - Comida Japonesa
 - Comida Mexicana
 - Doceria
