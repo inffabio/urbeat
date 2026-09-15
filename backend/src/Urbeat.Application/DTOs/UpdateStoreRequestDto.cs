@@ -14,8 +14,6 @@ public sealed class UpdateStoreRequestDto
 
     public string? WebsiteUrl { get; init; }
 
-    public string Description { get; init; } = string.Empty;
-
     public string CuisineType { get; init; } = string.Empty;
 
     public string? BannerUrl { get; init; }

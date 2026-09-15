@@ -7,6 +7,9 @@ public interface IProductService
     Task<IReadOnlyCollection<ProductResponseDto>> ListByStoreAsync(
         Guid ownerUserId, Guid storeId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<ProductOptionGroupTemplateDto>> ListOptionGroupTemplatesAsync(
+        Guid ownerUserId, Guid storeId, CancellationToken cancellationToken = default);
+
     Task<UpdateProductResultDto> CreateAsync(
         Guid ownerUserId, Guid storeId, CreateProductRequestDto request,
         string? ipAddress, CancellationToken cancellationToken = default);

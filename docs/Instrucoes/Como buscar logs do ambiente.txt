@@ -1,0 +1,14 @@
+Para consultar os logs do backend em produção:
+1. Faça o port knocking obrigatório:
+.\scripts\criarDeployOracleCloud\port-knock.ps1 -ServerIP "136.248.115.135"
+2. Conecte via SSH:
+ssh -p 2208 -i "$HOME/.ssh/id_ed25519" dexter@136.248.115.135
+3. Veja os logs recentes:
+docker logs --since 30m urbeat-backend
+4. Filtre por login ou administrador:
+docker logs --since 2h urbeat-backend 2>&1 | grep -Ei "login|admin|password|reset"
+5. Filtre logs do Outbox:
+docker logs --since 2h urbeat-backend 2>&1 | grep -Ei "outbox|OrderCreated|OrderStatusChanged|SignalR|print"
+6. Acompanhe em tempo real:
+docker logs -f --tail 100 urbeat-backend
+Não use docker logs com --env nem imprima variáveis de ambiente, pois podem conter senhas e tokens.

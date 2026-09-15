@@ -195,6 +195,26 @@ describe('AuthService', () => {
     req.flush({ ...request, primaryAddressId: 'address-1' });
   });
 
+  describe('updateSellerProfile', () => {
+    it('should PUT the contractor name to the seller profile endpoint', () => {
+      const request = { fullName: 'Contratante Atualizado' };
+
+      service.updateSellerProfile(request).subscribe((profile) => {
+        expect(profile.fullName).toBe('Contratante Atualizado');
+      });
+
+      const req = httpMock.expectOne('/api/seller/profile');
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(request);
+      req.flush({
+        fullName: 'Contratante Atualizado',
+        document: null,
+        phoneNumber: '11999999999',
+        email: 'vendedor@email.com',
+      });
+    });
+  });
+
   describe('registerSeller', () => {
     it('should call seller registration API', () => {
       const registerReq = { 

@@ -593,7 +593,7 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(source).not.toContain('padding-bottom: calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))');
   });
 
-  it('keeps the shell as a column flex container so the fixed footer stays within the viewport', () => {
+  it('keeps the shell as a column flex container so the footer stays within the viewport', () => {
     const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
 
     expect(source).toContain('display: flex');
@@ -609,6 +609,37 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(source).toMatch(/footerClearance\s*=\s*signal<number>\(72\)/);
     expect(source).toMatch(/\.store-route\s*\{[\s\S]*?\n\s*\}/);
     expect(source).not.toMatch(/\.store-route[\s\S]*padding-bottom/);
+  });
+
+  it('keeps the footer in the shell flex flow and sizes the shell to the dynamic viewport', () => {
+    const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+    const globalStyles = readFileSync(resolve(__dirname, '../../../theme/global.scss'), 'utf8');
+    const rootStyles = readFileSync(resolve(__dirname, '../../../styles.scss'), 'utf8');
+
+    expect(shellSource).toMatch(/\.app-shell\s*\{[^}]*min-height:\s*100dvh/);
+    expect(globalStyles).toMatch(/\.app-shell\s*\{[^}]*min-height:\s*100dvh/);
+    expect(shellSource).toMatch(/\.store-route\s*\{[^}]*flex:\s*1 1 0/);
+    expect(shellSource).toMatch(/\.store-route\s*\{[^}]*min-height:\s*0/);
+
+    expect(rootStyles).not.toMatch(/body\.store-page-active\s+\.ion-page\s*\{[^}]*height:\s*100dvh/);
+  });
+
+  it('makes every routed store page flex to fill the space above the in-flow footer', () => {
+    const globalStyles = readFileSync(resolve(__dirname, '../../../theme/global.scss'), 'utf8');
+
+    expect(globalStyles).toMatch(/\.store-route\s*>\s*router-outlet\s*\+\s*\*[^{]*\{[^}]*flex:\s*1 1 0/);
+  });
+
+  it('does not reserve the in-flow footer height twice inside routed content', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toMatch(/\.store-route\s*\{[^}]*--store-footer-clearance:\s*0px/);
+  });
+
+  it('renders the footer as the last structural element after the routed store content', () => {
+    const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(shellSource).toMatch(/<\/section>\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/);
   });
 });
 

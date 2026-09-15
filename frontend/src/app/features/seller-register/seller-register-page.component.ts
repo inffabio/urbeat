@@ -238,7 +238,10 @@ export class SellerRegisterPageComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        if (err?.error?.documentAlreadyRegistered) {
+        if (err?.error?.contractorNameAlreadyRegistered) {
+          this.toastService.showError('Nome do contratante já cadastrado.');
+          this.setError('fullName', 'Nome do contratante já cadastrado.');
+        } else if (err?.error?.documentAlreadyRegistered) {
           if (err.error.emailConfirmationPending) {
             this.toastService.showSuccess(
               'CPF já cadastrado. Um novo link de confirmação foi enviado para o seu e-mail.'

@@ -101,7 +101,7 @@
               <label class="upload-btn" [class.has-img]="!!productForm().imageUrl">
                 <ion-icon name="cloud-upload-outline"></ion-icon>
                 {{ productForm().imageUrl ? 'Trocar imagem' : 'Upload' }}
-                <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+                <input type="file" [accept]="imageAccept" hidden (change)="onImageSelected($event)" />
               </label>
             </div>
           </div>

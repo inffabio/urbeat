@@ -2,8 +2,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -196,6 +200,103 @@ public sealed class CheckoutFlowTests : IClassFixture<TestWebApplicationFactory>
         previewResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task Preview_ShouldApplyDailyFreeShipping_WhenEnabledToday()
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        var deliveryConfigResponse = await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 9m,
+            MinimumOrderValue = 0m,
+            FreeShippingToday = true,
+            DeliveryAreas = new[]
+            {
+                new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 9m }
+            }
+        });
+        deliveryConfigResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Dia", 30m);
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000", Number = "1", Street = "R", Neighborhood = "Bairro Fora da Cobertura", City = "Sao Paulo", State = "SP", IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnline,
+            Items = [ new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 } ]
+        };
+
+        var preview = await (await customerClient.PostAsJsonAsync("/api/checkout/preview", request)).Content.ReadFromJsonAsync<CheckoutSummaryResponseDto>();
+
+        preview!.DeliveryFee.Should().Be(0m);
+        preview.FreeShippingApplied.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Preview_ShouldNotApplyDailyFreeShipping_WhenDateExpired()
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 9m,
+            MinimumOrderValue = 0m,
+            FreeShippingToday = true,
+            DeliveryAreas = new[]
+            {
+                new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 9m }
+            }
+        });
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var store = await db.Stores.SingleAsync(x => x.Id == storeId);
+            store.FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1);
+            await db.SaveChangesAsync();
+        }
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Expira", 30m);
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000", Number = "1", Street = "R", Neighborhood = "Centro", City = "Sao Paulo", State = "SP", IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnline,
+            Items = [ new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 } ]
+        };
+
+        var preview = await (await customerClient.PostAsJsonAsync("/api/checkout/preview", request)).Content.ReadFromJsonAsync<CheckoutSummaryResponseDto>();
+
+        preview!.DeliveryFee.Should().Be(9m);
+        preview.FreeShippingApplied.Should().BeFalse();
+    }
+
     private async Task<(string AccessToken, Guid StoreId)> RegisterLoginAndCreateStoreAsync(HttpClient client, string cuisineType)
     {
         var email = $"checkout.seller.{Guid.NewGuid():N}@urbeat.local";
@@ -222,8 +323,8 @@ public sealed class CheckoutFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Checkout",
+            Slug = "loja-checkout",
             PhoneNumber = "11987778888",
-            Description = "Loja para testes de checkout",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

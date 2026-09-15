@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -85,6 +86,194 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenPayload!.AccessToken);
         var protectedResponse = await client.GetAsync("/api/customer/home");
         protectedResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task RegisterSeller_ShouldReturnConflict_WhenContractorNameAlreadyRegistered()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var baseName = $"Contratante {Guid.NewGuid():N}";
+
+        var firstResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = baseName,
+            Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
+            Password = "SenhaForte123",
+            PhoneNumber = "11988888888"
+        });
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var variations = new[]
+        {
+            baseName,
+            baseName.ToLowerInvariant(),
+            $"  {baseName}  "
+        };
+
+        foreach (var variation in variations)
+        {
+            var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+            {
+                FullName = variation,
+                Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
+                Password = "SenhaForte123",
+                PhoneNumber = "11977777777"
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+            var payload = await response.Content.ReadFromJsonAsync<JsonElement>();
+            payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
+            payload.GetProperty("errors").GetArrayLength().Should().Be(1);
+            payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+        }
+    }
+
+    [Fact]
+    public async Task RegisterSeller_WithSameEmail_ShouldReturnEmailAlreadyExists_NotContractorNameConflict()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var email = $"seller.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        var fullName = $"Contratante {Guid.NewGuid():N}";
+
+        var firstResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = fullName,
+            Email = email,
+            Password = password,
+            PhoneNumber = "11988888888"
+        });
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = fullName,
+            Email = email,
+            Password = password,
+            PhoneNumber = "11988888888"
+        });
+
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var payload = await secondResponse.Content.ReadFromJsonAsync<JsonElement>();
+        payload.TryGetProperty("contractorNameAlreadyRegistered", out _).Should().BeFalse();
+        payload.GetProperty("errors").GetArrayLength().Should().Be(1);
+        payload.GetProperty("errors")[0].GetString().Should().Be("An account with this e-mail already exists.");
+    }
+
+    [Fact]
+    public async Task RegisterSeller_ShouldReturnConflict_WhenPromotingCustomerWithNameAlreadyRegistered()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var baseName = $"Contratante {Guid.NewGuid():N}";
+        var customerEmail = $"customer.{Guid.NewGuid():N}@urbeat.local";
+
+        var sellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = baseName,
+            Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
+            Password = "SenhaForte123",
+            PhoneNumber = "11988888888"
+        });
+        sellerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var customerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Cliente Existente",
+            Email = customerEmail,
+            Password = "SenhaForte123",
+            PhoneNumber = "11977777777"
+        });
+        customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = baseName,
+            Email = customerEmail,
+            Password = "SenhaForte123",
+            PhoneNumber = "11977777777"
+        });
+
+        promoteResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var payload = await promoteResponse.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
+        payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+    }
+
+    [Fact]
+    public async Task PromoteCustomerToSeller_ShouldPersistFullName_AndBlockSubsequentSellerWithSameName()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var unique = Guid.NewGuid().ToString("N");
+        var customerEmail = $"customer.{unique}@urbeat.local";
+        var promotedName = $"Contratante Promovido {unique}";
+        const string password = "SenhaForte123";
+
+        var customerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Cliente Original",
+            Email = customerEmail,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = promotedName,
+            Email = customerEmail,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        promoteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondSellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = promotedName,
+            Email = $"seller.{unique}@urbeat.local",
+            Password = password,
+            PhoneNumber = "11966666666"
+        });
+
+        secondSellerResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var payload = await secondSellerResponse.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
+        payload.GetProperty("errors").GetArrayLength().Should().Be(1);
+        payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+    }
+
+    [Fact]
+    public async Task RegisterCustomer_ShouldNotBeBlockedByExistingSellerName()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        var baseName = $"Contratante {Guid.NewGuid():N}";
+
+        var sellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = baseName,
+            Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
+            Password = "SenhaForte123",
+            PhoneNumber = "11988888888"
+        });
+        sellerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var customerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = baseName,
+            Email = $"customer.{Guid.NewGuid():N}@urbeat.local",
+            Password = "SenhaForte123",
+            PhoneNumber = "11977777777"
+        });
+
+        customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     [Fact]

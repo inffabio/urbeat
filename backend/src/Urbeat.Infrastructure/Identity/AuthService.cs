@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Data;
+using Serilog;
 using Hangfire;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
@@ -251,6 +252,57 @@ public sealed class AuthService : IAuthService
         CancellationToken cancellationToken)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var contractorName = role == SellerRole && !string.IsNullOrWhiteSpace(request.FullName)
+            ? request.FullName.Trim()
+            : null;
+
+        var outcome = await RunRegistrationCoreAsync(request, role, auditEvent, normalizedEmail, contractorName, cancellationToken);
+
+        if (!outcome.Result.Succeeded)
+        {
+            _dbContext.ChangeTracker.Clear();
+        }
+
+        if (outcome.AuditEvent is not null)
+        {
+            await WriteAuditLogAsync(
+                userId: outcome.AuditUserId,
+                auditEvent: outcome.AuditEvent,
+                entity: nameof(IdentityUser<Guid>),
+                entityId: outcome.AuditUserId,
+                description: outcome.AuditDescription!,
+                ipAddress: null,
+                cancellationToken);
+        }
+
+        if (outcome.EnqueueConfirmationUserId is { } enqueueUserId)
+        {
+            _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(enqueueUserId));
+        }
+
+        return outcome.Result;
+    }
+
+    private async Task<RegistrationOutcome> RunRegistrationCoreAsync(
+        RegisterUserRequestDto request,
+        string role,
+        string auditEvent,
+        string normalizedEmail,
+        string? contractorName,
+        CancellationToken cancellationToken)
+    {
+        // The duplicate-name check and the seller creation/promotion must be atomic so that two
+        // concurrent registrations cannot both observe the contractor name as free. Serializable
+        // isolation guarantees this on relational providers; EF InMemory (integration tests) does
+        // not support transactions and executes the same operations sequentially without one.
+        await using var transaction = _dbContext.Database.IsRelational()
+            ? await _dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            : null;
+
+        // Re-registering an e-mail that is already a seller must surface the "account exists" error,
+        // not a spurious contractor-name conflict against its own FullName. The existing-user check
+        // therefore runs before the name check, which only applies when promoting a non-seller account
+        // or creating a brand-new seller.
         var userAlreadyExists = await _userManager.FindByEmailAsync(normalizedEmail);
         if (userAlreadyExists is not null)
         {
@@ -258,37 +310,121 @@ public sealed class AuthService : IAuthService
             if (isInRole)
             {
                 Log.Warning("{EventType} | Registration failed | Email={Email}", "USER_REGISTER_FAILED", normalizedEmail);
-                await WriteAuditLogAsync(
-                    userId: userAlreadyExists.Id,
-                    auditEvent: $"{auditEvent}Failed",
-                    entity: nameof(IdentityUser<Guid>),
-                    entityId: userAlreadyExists.Id,
-                    description: $"Registration failed for {normalizedEmail}: user already exists.",
-                    ipAddress: null,
-                    cancellationToken);
 
-                return new RegistrationResultDto
-                {
-                    Succeeded = false,
-                    Errors = ["An account with this e-mail already exists."]
-                };
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = ["An account with this e-mail already exists."]
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: user already exists.",
+                    EnqueueConfirmationUserId: null);
             }
 
-            await _userManager.AddToRoleAsync(userAlreadyExists, role);
+            // Promotion path: a non-seller account is being promoted. The contractor name is still
+            // checked against other sellers before the role is added, and the FullName claim is
+            // persisted before the role so a failed claim never leaves a Seller role without FullName
+            // on a non-transactional provider (InMemory). Every IdentityResult is validated.
+            if (contractorName is not null)
+            {
+                var nameAlreadyRegistered = await IsContractorNameRegisteredBySellerAsync(contractorName, cancellationToken);
+                if (nameAlreadyRegistered)
+                {
+                    Log.Warning("{EventType} | Registration failed | ContractorName={FullName}", "USER_REGISTER_FAILED", contractorName);
+
+                    return new RegistrationOutcome(
+                        Result: new RegistrationResultDto
+                        {
+                            Succeeded = false,
+                            ContractorNameAlreadyRegistered = true,
+                            Errors = ["Nome do contratante já cadastrado."]
+                        },
+                        AuditUserId: userAlreadyExists.Id,
+                        AuditEvent: $"{auditEvent}Failed",
+                        AuditDescription: $"Registration failed for {normalizedEmail}: contractor name already registered.",
+                        EnqueueConfirmationUserId: null);
+                }
+
+                var upsertNameResult = await UpsertFullNameClaimAsync(userAlreadyExists, contractorName);
+                if (!upsertNameResult.Succeeded)
+                {
+                    var errors = upsertNameResult.Errors.Select(x => x.Description).ToArray();
+                    Log.Warning("{EventType} | Registration failed (claim) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
+
+                    return new RegistrationOutcome(
+                        Result: new RegistrationResultDto
+                        {
+                            Succeeded = false,
+                            Errors = errors
+                        },
+                        AuditUserId: userAlreadyExists.Id,
+                        AuditEvent: $"{auditEvent}Failed",
+                        AuditDescription: $"FullName claim update failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                        EnqueueConfirmationUserId: null);
+                }
+            }
+
+            var addRoleResult = await _userManager.AddToRoleAsync(userAlreadyExists, role);
+            if (!addRoleResult.Succeeded)
+            {
+                var errors = addRoleResult.Errors.Select(x => x.Description).ToArray();
+                Log.Warning("{EventType} | Registration failed (role) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = errors
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Role assignment failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                    EnqueueConfirmationUserId: null);
+            }
+
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+
             Log.Information("{EventType} | Added {Role} role to existing user | Email={Email}", auditEvent, role, normalizedEmail);
 
             var confirmationPending = !userAlreadyExists.EmailConfirmed;
-            if (confirmationPending)
-            {
-                _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(userAlreadyExists.Id));
-            }
 
-            return new RegistrationResultDto
+            return new RegistrationOutcome(
+                Result: new RegistrationResultDto
+                {
+                    Succeeded = true,
+                    UserId = userAlreadyExists.Id,
+                    EmailConfirmationPending = confirmationPending,
+                },
+                AuditUserId: null,
+                AuditEvent: null,
+                AuditDescription: null,
+                EnqueueConfirmationUserId: confirmationPending ? userAlreadyExists.Id : null);
+        }
+
+        if (contractorName is not null)
+        {
+            var nameAlreadyRegistered = await IsContractorNameRegisteredBySellerAsync(contractorName, cancellationToken);
+            if (nameAlreadyRegistered)
             {
-                Succeeded = true,
-                UserId = userAlreadyExists.Id,
-                EmailConfirmationPending = confirmationPending,
-            };
+                Log.Warning("{EventType} | Registration failed | ContractorName={FullName}", "USER_REGISTER_FAILED", contractorName);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        ContractorNameAlreadyRegistered = true,
+                        Errors = ["Nome do contratante já cadastrado."]
+                    },
+                    AuditUserId: null,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: contractor name already registered.",
+                    EnqueueConfirmationUserId: null);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.Document))
@@ -303,24 +439,32 @@ public sealed class AuthService : IAuthService
                 {
                     if (existingUser.EmailConfirmed)
                     {
-                        return new RegistrationResultDto
+                        return new RegistrationOutcome(
+                            Result: new RegistrationResultDto
+                            {
+                                Succeeded = false,
+                                DocumentAlreadyRegistered = true,
+                                Errors = ["CPF já cadastrado."]
+                            },
+                            AuditUserId: null,
+                            AuditEvent: null,
+                            AuditDescription: null,
+                            EnqueueConfirmationUserId: null);
+                    }
+
+                    return new RegistrationOutcome(
+                        Result: new RegistrationResultDto
                         {
                             Succeeded = false,
                             DocumentAlreadyRegistered = true,
-                            Errors = ["CPF já cadastrado."]
-                        };
-                    }
-
-                    _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(existingUser.Id));
-
-                    return new RegistrationResultDto
-                    {
-                        Succeeded = false,
-                        DocumentAlreadyRegistered = true,
-                        ExistingUserEmail = existingUser.Email,
-                        EmailConfirmationPending = true,
-                        Errors = ["CPF já cadastrado. Mas email ainda não confirmado. Um novo link de confirmação foi enviado para o seu e-mail."]
-                    };
+                            ExistingUserEmail = existingUser.Email,
+                            EmailConfirmationPending = true,
+                            Errors = ["CPF já cadastrado. Mas email ainda não confirmado. Um novo link de confirmação foi enviado para o seu e-mail."]
+                        },
+                        AuditUserId: null,
+                        AuditEvent: null,
+                        AuditDescription: null,
+                        EnqueueConfirmationUserId: existingUser.Id);
                 }
             }
         }
@@ -345,74 +489,156 @@ public sealed class AuthService : IAuthService
         {
             Log.Warning("{EventType} | Registration failed | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", createResult.Errors.Select(x => x.Description)));
             var errors = createResult.Errors.Select(x => x.Description).ToArray();
-            await WriteAuditLogAsync(
-                userId: null,
-                auditEvent: $"{auditEvent}Failed",
-                entity: nameof(IdentityUser<Guid>),
-                entityId: null,
-                description: $"Registration failed for {normalizedEmail}: {string.Join("; ", errors)}",
-                ipAddress: null,
-                cancellationToken);
 
-            return new RegistrationResultDto
-            {
-                Succeeded = false,
-                Errors = errors
-            };
+            return new RegistrationOutcome(
+                Result: new RegistrationResultDto
+                {
+                    Succeeded = false,
+                    Errors = errors
+                },
+                AuditUserId: null,
+                AuditEvent: $"{auditEvent}Failed",
+                AuditDescription: $"Registration failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                EnqueueConfirmationUserId: null);
         }
         if (!string.IsNullOrWhiteSpace(request.Document))
         {
             var cleanDoc = new string(request.Document.Where(char.IsDigit).ToArray());
-            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Document", cleanDoc));
+            var documentClaimResult = await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Document", cleanDoc));
+            if (!documentClaimResult.Succeeded)
+            {
+                var errors = documentClaimResult.Errors.Select(x => x.Description).ToArray();
+                Log.Warning("{EventType} | Registration failed (document claim) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
+                await TryRemoveUserAsync(user);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = errors
+                    },
+                    AuditUserId: user.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Document claim persistence failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                    EnqueueConfirmationUserId: null);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
-            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", request.FullName.Trim()));
+            var fullNameClaimResult = await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", request.FullName.Trim()));
+            if (!fullNameClaimResult.Succeeded)
+            {
+                var errors = fullNameClaimResult.Errors.Select(x => x.Description).ToArray();
+                Log.Warning("{EventType} | Registration failed (full name claim) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
+                await TryRemoveUserAsync(user);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = errors
+                    },
+                    AuditUserId: user.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"FullName claim persistence failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                    EnqueueConfirmationUserId: null);
+            }
         }
+
         var roleResult = await _userManager.AddToRoleAsync(user, role);
         if (!roleResult.Succeeded)
         {
             Log.Warning("{EventType} | Registration failed (role) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", roleResult.Errors.Select(x => x.Description)));
             var errors = roleResult.Errors.Select(x => x.Description).ToArray();
-            await WriteAuditLogAsync(
-                userId: user.Id,
-                auditEvent: $"{auditEvent}Failed",
-                entity: nameof(IdentityUser<Guid>),
-                entityId: user.Id,
-                description: $"Role assignment failed for {normalizedEmail}: {string.Join("; ", errors)}",
-                ipAddress: null,
-                cancellationToken);
+            await TryRemoveUserAsync(user);
 
-            return new RegistrationResultDto
-            {
-                Succeeded = false,
-                Errors = errors
-            };
+            return new RegistrationOutcome(
+                Result: new RegistrationResultDto
+                {
+                    Succeeded = false,
+                    Errors = errors
+                },
+                AuditUserId: user.Id,
+                AuditEvent: $"{auditEvent}Failed",
+                AuditDescription: $"Role assignment failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                EnqueueConfirmationUserId: null);
         }
 
-        await WriteAuditLogAsync(
-            userId: user.Id,
-            auditEvent: auditEvent,
-            entity: nameof(IdentityUser<Guid>),
-            entityId: user.Id,
-            description: $"User {request.FullName} registered as {role} ({normalizedEmail}).",
-            ipAddress: null,
-            cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         Log.Information("{EventType} | Registration succeeded | UserId={UserId} | Email={Email} | Role={Role}", auditEvent, user.Id, normalizedEmail, role);
 
-        // Enqueue confirmation email (fire-and-forget via Hangfire)
-        var enqueuedUserId = user.Id;
-        _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(enqueuedUserId));
-
-        return new RegistrationResultDto
-        {
-            Succeeded = true,
-            UserId = user.Id,
-            EmailConfirmationPending = true
-        };
+        return new RegistrationOutcome(
+            Result: new RegistrationResultDto
+            {
+                Succeeded = true,
+                UserId = user.Id,
+                EmailConfirmationPending = true
+            },
+            AuditUserId: user.Id,
+            AuditEvent: auditEvent,
+            AuditDescription: $"User {request.FullName} registered as {role} ({normalizedEmail}).",
+            EnqueueConfirmationUserId: user.Id);
     }
+
+    private async Task<IdentityResult> UpsertFullNameClaimAsync(IdentityUser<Guid> user, string fullName)
+    {
+        var normalizedFullName = fullName.Trim();
+        var existingClaim = (await _userManager.GetClaimsAsync(user))
+            .FirstOrDefault(c => c.Type == "FullName");
+
+        if (existingClaim is null)
+        {
+            return await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", normalizedFullName));
+        }
+
+        if (string.Equals(existingClaim.Value, normalizedFullName, StringComparison.Ordinal))
+        {
+            return IdentityResult.Success;
+        }
+
+        return await _userManager.ReplaceClaimAsync(user, existingClaim, new System.Security.Claims.Claim("FullName", normalizedFullName));
+    }
+
+    private async Task TryRemoveUserAsync(IdentityUser<Guid> user)
+    {
+        try
+        {
+            await _userManager.DeleteAsync(user);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("{EventType} | Failed to clean up user after failed registration | UserId={UserId} | Error={Error}", "USER_REGISTER_CLEANUP_FAILED", user.Id, ex.Message);
+        }
+    }
+
+    private async Task<bool> IsContractorNameRegisteredBySellerAsync(string contractorName, CancellationToken cancellationToken)
+    {
+        // Single relational query joining UserClaims -> UserRoles -> Roles filtered by the Seller
+        // role. EF translates ToUpper() to UPPER() so the comparison is case-insensitive and runs in
+        // the database instead of loading every seller name into memory.
+        return await (
+            from claim in _dbContext.UserClaims
+            join userRole in _dbContext.UserRoles on claim.UserId equals userRole.UserId
+            join role in _dbContext.Roles on userRole.RoleId equals role.Id
+            where role.Name == SellerRole
+                && claim.ClaimType == "FullName"
+                && claim.ClaimValue != null
+                && claim.ClaimValue.ToUpper() == contractorName.ToUpper()
+            select claim.Id
+        ).AnyAsync(cancellationToken);
+    }
+
+    private sealed record RegistrationOutcome(
+        RegistrationResultDto Result,
+        Guid? AuditUserId,
+        string? AuditEvent,
+        string? AuditDescription,
+        Guid? EnqueueConfirmationUserId);
 
     private async Task WriteAuditLogAsync(
         Guid? userId,

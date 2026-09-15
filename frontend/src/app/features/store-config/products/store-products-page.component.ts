@@ -16,7 +16,9 @@ import { createStepperSteps } from '../../../shared/config/wizard-steps.config';
 import { StoreService } from '../../../core/services/store.service';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Product, ProductCategory, ProductOptionGroup, ProductOptionItem, ProductVariation, ProductSaleMode, ProductWeightConfig } from '../../../shared/models/product.model';
+import { Product, ProductCategory, ProductOptionGroup, ProductOptionGroupTemplate, ProductOptionItem, ProductVariation, ProductSaleMode, ProductWeightConfig } from '../../../shared/models/product.model';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, PRODUCT_IMAGE_MAX_BYTES, imageSizeError, isAllowedImageFile } from '../../../shared/utils/image-upload.utils';
+import { compressImage } from '../../../shared/utils/image-compression.utils';
 
 addIcons({
   'checkmark': checkmark,
@@ -110,6 +112,7 @@ export class StoreProductsPageComponent implements OnInit {
   readonly productImagePreview = signal<string | null>(null);
   readonly uploadingImage = signal(false);
   readonly isProductActive = signal(true);
+  readonly imageAccept = IMAGE_ACCEPT_ATTRIBUTE;
 
   readonly tagDestaque = signal(false);
   readonly tagMaisVendido = signal(false);
@@ -122,6 +125,7 @@ export class StoreProductsPageComponent implements OnInit {
   readonly weightConfig = signal<WeightConfigForm>({ pricePerKg: '', minGrams: '', maxGrams: '', incrementGrams: '', isEstimated: false });
 
   readonly optionGroups = signal<ProductOptionGroup[]>([]);
+  readonly availableOptionGroups = signal<ProductOptionGroupTemplate[]>([]);
   private groupCounter = 0;
 
   readonly searchQuery = signal('');
@@ -237,6 +241,7 @@ export class StoreProductsPageComponent implements OnInit {
         this.storeId.set(store.id);
         this.loadCategories(store.id);
         this.loadProducts(store.id);
+        this.loadOptionGroups(store.id);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -259,6 +264,19 @@ export class StoreProductsPageComponent implements OnInit {
   private loadProducts(storeId: string) {
     this.storeService.getStoreProducts(storeId).subscribe({
       next: (prods) => this.products.set(prods),
+    });
+  }
+
+  private loadOptionGroups(storeId: string) {
+    this.storeService.getProductOptionGroupTemplates(storeId).subscribe({
+      next: (groups) => {
+        const loaded = groups ?? [];
+        this.availableOptionGroups.update(current => [
+          ...loaded,
+          ...current.filter(existing => !loaded.some(group => group.id === existing.id)),
+        ]);
+      },
+      error: () => this.availableOptionGroups.set([]),
     });
   }
 
@@ -849,6 +867,7 @@ export class StoreProductsPageComponent implements OnInit {
       variations,
       optionGroups: this.optionGroups().map(g => ({
         id: g.id,
+        templateId: g.templateId ?? null,
         name: g.name,
         isRequired: g.isRequired,
         choiceType: g.choiceType,
@@ -877,6 +896,7 @@ export class StoreProductsPageComponent implements OnInit {
 
     req$.subscribe({
       next: (created) => {
+        this.registerSavedOptionGroups(created.optionGroups ?? []);
         this.products.update(list => {
           const idx = list.findIndex(p => p.id === created.id);
           if (idx >= 0) {
@@ -913,6 +933,24 @@ export class StoreProductsPageComponent implements OnInit {
 
   protected onProductSaved(): void {
     // Seller dashboard overrides this to close its modal after the API confirms the save.
+  }
+
+  private registerSavedOptionGroups(groups: ProductOptionGroup[]): void {
+    const newTemplates = groups
+      .filter(group => !!group.templateId && !this.availableOptionGroups().some(template => template.id === group.templateId))
+      .map(group => ({
+        id: group.templateId!,
+        name: group.name,
+        isRequired: group.isRequired,
+        choiceType: group.choiceType,
+        minChoices: group.minChoices,
+        maxChoices: group.maxChoices,
+        displayOrder: group.displayOrder,
+        items: group.items.map(item => ({ ...item })),
+      }));
+
+    if (newTemplates.length > 0)
+      this.availableOptionGroups.update(templates => [...templates, ...newTemplates]);
   }
 
   private buildVariationsPayload(sm: ProductSaleMode): any[] {
@@ -1019,42 +1057,26 @@ export class StoreProductsPageComponent implements OnInit {
 
   triggerFileInput() { this.fileInput?.nativeElement?.click(); }
 
-  private async compressImage(file: File, maxWidth: number = 1200, quality: number = 0.75): Promise<File> {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob(
-            (blob) => {
-              if (blob) { resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() })); }
-              else { resolve(file); }
-            },
-            'image/jpeg',
-            quality
-          );
-        };
-      };
-    });
-  }
-
   async onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const rawFile = input.files?.[0];
     if (!rawFile) return;
+
+    if (!isAllowedImageFile(rawFile)) {
+      this.toast.showError(IMAGE_FORMAT_ERROR);
+      input.value = '';
+      return;
+    }
+
+    if (rawFile.size > PRODUCT_IMAGE_MAX_BYTES) {
+      this.toast.showError(imageSizeError('6 MB'));
+      input.value = '';
+      return;
+    }
+
     this.uploadingImage.set(true);
     let file = rawFile;
-    try { file = await this.compressImage(rawFile, 1200, 0.75); } catch { /* proceed */ }
+    try { file = await compressImage(rawFile, { maxWidth: 1200, quality: 0.75 }); } catch { file = rawFile; }
     this.storeService.uploadImage(file, 'products').subscribe({
       next: (res) => {
         this.productImage.set(res.url);
@@ -1062,11 +1084,21 @@ export class StoreProductsPageComponent implements OnInit {
         this.uploadingImage.set(false);
       },
       error: (err) => {
-        this.toast.showError('Erro ao enviar imagem.');
+        const message = this.resolveUploadError(err);
+        if (message) this.toast.showError(message);
         this.uploadingImage.set(false);
         input.value = '';
       }
     });
+  }
+
+  private resolveUploadError(err: unknown): string | null {
+    const status = (err as { status?: number } | null)?.status;
+    // The HTTP error interceptor already surfaces the upload message for 413 responses.
+    if (status === 413) return null;
+    const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
+    if (typeof backendMessage === 'string' && backendMessage.trim()) return backendMessage;
+    return 'Erro ao enviar imagem.';
   }
 
   onPriceInput(value: string) {
@@ -1119,6 +1151,41 @@ export class StoreProductsPageComponent implements OnInit {
       items: [],
     }]);
     this.expandedGroupId.set(id);
+    this.markDirty();
+  }
+
+  isOptionGroupTemplateSelected(templateId: string): boolean {
+    return this.optionGroups().some(g => g.templateId === templateId);
+  }
+
+  toggleOptionGroupTemplate(template: ProductOptionGroupTemplate) {
+    const existing = this.optionGroups().find(g => g.templateId === template.id);
+    if (existing) {
+      this.optionGroups.update(groups => groups.filter(g => g.templateId !== template.id));
+      this.markDirty();
+      return;
+    }
+
+    const snapshot: ProductOptionGroup = {
+      id: this.uid(),
+      templateId: template.id,
+      name: template.name,
+      isRequired: template.isRequired,
+      choiceType: (template.choiceType as 'single' | 'multiple') || 'single',
+      minChoices: template.minChoices,
+      maxChoices: template.maxChoices,
+      displayOrder: this.optionGroups().length + 1,
+      items: (template.items ?? []).map((item, index) => ({
+        id: this.uid(),
+        name: item.name,
+        price: item.price,
+        displayOrder: item.displayOrder || index + 1,
+      })),
+    };
+
+    this.optionGroups.update(groups => [...groups, snapshot]);
+    this.expandedGroupId.set(snapshot.id!);
+    this.markDirty();
   }
 
   toggleGroupExpanded(groupId: string) { this.expandedGroupId.update(id => id === groupId ? null : groupId); }

@@ -1,6 +1,6 @@
 ﻿import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerBioPageComponent } from './seller-bio-page.component';
@@ -12,7 +12,6 @@ describe('SellerBioPageComponent', () => {
     name: 'Loja Teste',
     slug: 'loja-teste',
     phoneNumber: '21999999999',
-    description: 'Bio da loja',
     cuisineType: 'Lanches',
     logoUrl: 'https://res.cloudinary.com/demo/image/upload/v1/urbeat/logo-old.png',
     bannerUrl: 'https://res.cloudinary.com/demo/image/upload/v1/urbeat/banner-old.png',
@@ -28,6 +27,7 @@ describe('SellerBioPageComponent', () => {
   };
 
   let storeServiceMock: { getMyStore: jest.Mock; updateStore: jest.Mock; uploadImage: jest.Mock };
+  const toastMock = { showError: jest.fn(), showSuccess: jest.fn(), showWarning: jest.fn() };
 
   beforeEach(async () => {
     if (!URL.createObjectURL) URL.createObjectURL = jest.fn(() => 'blob:test') as unknown as typeof URL.createObjectURL;
@@ -43,9 +43,13 @@ describe('SellerBioPageComponent', () => {
       providers: [
         provideRouter([]),
         { provide: StoreService, useValue: storeServiceMock },
-        { provide: ToastService, useValue: { showError: jest.fn(), showSuccess: jest.fn(), showWarning: jest.fn() } },
+        { provide: ToastService, useValue: toastMock },
       ],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('sends null for a removed logo so the backend removes the Cloudinary asset', async () => {
@@ -77,6 +81,40 @@ describe('SellerBioPageComponent', () => {
       logoUrl: store.logoUrl,
       bannerUrl: 'https://res.cloudinary.com/demo/image/upload/v2/urbeat/banner-new.png',
     }));
+  });
+
+  it('does not save the bio as success when a logo upload fails', async () => {
+    storeServiceMock.uploadImage.mockReturnValue(throwError(() => new Error('Upload failed')));
+    const fixture = TestBed.createComponent(SellerBioPageComponent);
+    fixture.detectChanges();
+
+    const file = new File(['logo'], 'logo.png', { type: 'image/png' });
+    fixture.componentInstance.onLogoFile(file);
+    fixture.componentInstance.save();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'logo');
+    expect(storeServiceMock.updateStore).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.saving()).toBe(false);
+    expect(fixture.componentInstance.dirty()).toBe(true);
+    expect(toastMock.showError).toHaveBeenCalledWith('Falha ao enviar logo.');
+  });
+
+  it('does not overwrite the interceptor 413 size message with a generic toast when a logo upload fails', async () => {
+    storeServiceMock.uploadImage.mockReturnValue(throwError(() => ({ status: 413, message: 'Payload Too Large' })));
+    const fixture = TestBed.createComponent(SellerBioPageComponent);
+    fixture.detectChanges();
+
+    const file = new File(['logo'], 'logo.png', { type: 'image/png' });
+    fixture.componentInstance.onLogoFile(file);
+    fixture.componentInstance.save();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'logo');
+    expect(storeServiceMock.updateStore).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.saving()).toBe(false);
+    expect(fixture.componentInstance.dirty()).toBe(true);
+    expect(toastMock.showError).not.toHaveBeenCalledWith('Falha ao enviar logo.');
   });
 
   it('opens the store storefront in a new tab from the preview', () => {

@@ -131,7 +131,6 @@ public sealed class SellerSubscriptionStatusServiceContractTests : IDisposable
             Name = "Loja Teste",
             Slug = $"loja-{sellerUserId:N}",
             PhoneNumber = "11999999999",
-            Description = "Descricao"
         };
         _db.Stores.Add(store);
 

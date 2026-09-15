@@ -105,7 +105,6 @@ public sealed class StoreManagementFlowTests : IClassFixture<TestWebApplicationF
             Document = "529.982.247-25",
             PixKey = "pix@example.com",
             WebsiteUrl = "https://loja.example.com",
-            Description = "Loja atualizada",
             CuisineType = "Lanches",
             SupportsDelivery = true,
             SupportsPickup = true,
@@ -142,7 +141,6 @@ public sealed class StoreManagementFlowTests : IClassFixture<TestWebApplicationF
             FacebookUrl = "https://facebook.com/loja",
             TikTokUrl = "https://tiktok.com/@loja",
             WebsiteUrl = "https://loja.example.com",
-            Description = "Loja sem redes sociais",
             CuisineType = "Lanches",
             SupportsDelivery = true,
             SupportsPickup = true,
@@ -266,8 +264,8 @@ public sealed class StoreManagementFlowTests : IClassFixture<TestWebApplicationF
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Gestao",
+            Slug = "loja-gestao",
             PhoneNumber = "11982221111",
-            Description = "Loja para teste de gestao",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

@@ -14,7 +14,6 @@ public sealed class UpdateStoreRequestDtoValidatorTests
         Document = document,
         PixKey = pixKey,
         CuisineType = "Lanches",
-        Description = "Descrição da loja",
         SupportsDelivery = true,
         SupportsPickup = true,
         InitialMinute = 30,

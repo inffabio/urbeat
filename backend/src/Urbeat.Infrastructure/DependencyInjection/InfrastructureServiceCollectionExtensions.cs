@@ -45,6 +45,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<AdminSeedOptions>(configuration.GetSection(AdminSeedOptions.SectionName));
         services.Configure<MercadoPagoOptions>(configuration.GetSection(MercadoPagoOptions.SectionName));
+        services.AddOptions<MockPixOptions>()
+            .Bind(configuration.GetSection(MockPixOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<MockPixOptions>, MockPixOptionsValidator>();
         services.Configure<AsaasWebhookOptions>(configuration.GetSection(AsaasWebhookOptions.SectionName));
         services.Configure<AsaasSubscriptionOptions>(configuration.GetSection(AsaasSubscriptionOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
@@ -164,6 +168,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ISubscriptionWebhookService, SubscriptionWebhookService>();
         services.AddScoped<IOrderPaymentStrategyFactory, OrderPaymentStrategyFactory>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddSingleton<IMockPixClock, SystemClock>();
+        services.AddSingleton<IMockPixRandom, SystemRandom>();
+        services.AddScoped<MockPixPaymentProcessor>();
+        services.AddScoped<IOrderPaymentStrategy, MockPixPaymentStrategy>();
         services.AddScoped<IOrderPaymentStrategy, MercadoPagoOrderPaymentStrategy>();
         services.AddHttpClient<IMercadoPagoCheckoutAdapter, MercadoPagoCheckoutAdapter>(client =>
         {
@@ -225,6 +233,12 @@ public static class InfrastructureServiceCollectionExtensions
         if (outboxOptions.WorkerEnabled)
         {
             services.AddHostedService<OutboxWorker>();
+        }
+
+        var mockPixOptions = configuration.GetSection(MockPixOptions.SectionName).Get<MockPixOptions>() ?? new MockPixOptions();
+        if (mockPixOptions.IsMockEnabled && mockPixOptions.WorkerEnabled)
+        {
+            services.AddHostedService<MockPixPaymentWorker>();
         }
         
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));

@@ -19,7 +19,7 @@ import {
   NeighborhoodMapResponse,
   CityDto,
 } from '../../shared/models/store.model';
-import { Product, ProductCategory, StoreAdditional, StoreAdditionalGroup, StoreAdditionalRequest } from '../../shared/models/product.model';
+import { Product, ProductCategory, ProductOptionGroupTemplate, StoreAdditional, StoreAdditionalGroup, StoreAdditionalRequest } from '../../shared/models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class StoreService {
@@ -61,8 +61,9 @@ export class StoreService {
     return this.api.get<DeliveryNeighborhood[]>(`/api/stores/delivery-neighborhoods?city=${encodeURIComponent(city)}`);
   }
 
-  getDeliveryNeighborhoodsByStore(storeId: string): Observable<DeliveryNeighborhood[]> {
-    return this.api.get<DeliveryNeighborhood[]>(`/api/stores/delivery-neighborhoods-by-store?storeId=${encodeURIComponent(storeId)}`);
+  getDeliveryNeighborhoodsByStore(storeId: string, radiusKm?: number): Observable<DeliveryNeighborhood[]> {
+    const radiusQuery = radiusKm != null ? `&radiusKm=${encodeURIComponent(radiusKm)}` : '';
+    return this.api.get<DeliveryNeighborhood[]>(`/api/stores/delivery-neighborhoods-by-store?storeId=${encodeURIComponent(storeId)}${radiusQuery}`);
   }
 
   createDeliveryNeighborhood(neighborhood: string, city: string): Observable<DeliveryNeighborhood> {
@@ -129,11 +130,15 @@ export class StoreService {
   uploadImage(file: File, type: string = 'store-media'): Observable<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.api.post<{ url: string }>(`/api/stores/upload-image?type=${type}`, formData);
+    return this.api.post<{ url: string }>(`/api/stores/upload-image?type=${encodeURIComponent(type)}`, formData);
   }
 
   getStoreProducts(storeId: string): Observable<Product[]> {
     return this.api.get<Product[]>(`/api/stores/${storeId}/products`);
+  }
+
+  getProductOptionGroupTemplates(storeId: string): Observable<ProductOptionGroupTemplate[]> {
+    return this.api.get<ProductOptionGroupTemplate[]>(`/api/stores/${storeId}/products/option-groups`);
   }
 
   getStoreCategories(storeId: string): Observable<ProductCategory[]> {

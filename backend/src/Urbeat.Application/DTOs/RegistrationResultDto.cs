@@ -10,6 +10,8 @@ public sealed class RegistrationResultDto
 
     public bool DocumentAlreadyRegistered { get; init; }
 
+    public bool ContractorNameAlreadyRegistered { get; init; }
+
     public string? ExistingUserEmail { get; init; }
 
     public IReadOnlyCollection<string> Errors { get; init; } = [];

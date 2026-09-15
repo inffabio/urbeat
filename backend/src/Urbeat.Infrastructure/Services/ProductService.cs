@@ -51,6 +51,26 @@ public sealed class ProductService : IProductService
         return dtos;
     }
 
+    public async Task<IReadOnlyCollection<ProductOptionGroupTemplateDto>> ListOptionGroupTemplatesAsync(
+        Guid ownerUserId, Guid storeId, CancellationToken cancellationToken = default)
+    {
+        var isOwner = await _dbContext.Stores
+            .AnyAsync(x => x.Id == storeId && x.OwnerUserId == ownerUserId, cancellationToken);
+
+        if (!isOwner)
+            return [];
+
+        var templates = await _dbContext.ProductOptionGroupTemplates
+            .AsNoTracking()
+            .Include(t => t.Items)
+            .Where(t => t.StoreId == storeId)
+            .OrderBy(t => t.DisplayOrder)
+            .ThenBy(t => t.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return _mapper.Map<List<ProductOptionGroupTemplateDto>>(templates);
+    }
+
     public async Task<UpdateProductResultDto> CreateAsync(
         Guid ownerUserId, Guid storeId, CreateProductRequestDto request,
         string? ipAddress, CancellationToken cancellationToken = default)
@@ -73,6 +93,10 @@ public sealed class ProductService : IProductService
             : await GetCatalogAdditionalsAsync(storeId, request.AdditionalIds, cancellationToken);
         if (request.AdditionalIds is not null && catalogAdditionals.Count != request.AdditionalIds.Distinct().Count())
             return new UpdateProductResultDto { NotFound = true };
+
+        await using var transaction = _dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory"
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
 
         var product = new Product
         {
@@ -118,11 +142,12 @@ public sealed class ProductService : IProductService
             foreach (var item in request.ChoiceOptions)
                 product.ChoiceOptions.Add(new ProductChoiceOption { Name = item.Name, Price = item.Price, IsActive = item.IsActive, IsRequired = item.IsRequired, DisplayOrder = item.DisplayOrder });
         }
-        if (request.OptionGroups != null)
-        {
-            foreach (var group in request.OptionGroups)
-                product.OptionGroups.Add(BuildOptionGroup(group, null));
-        }
+        var (optionGroupsValid, optionGroups) = await ResolveOptionGroupsAsync(
+            storeId, null, request.OptionGroups, cancellationToken);
+        if (!optionGroupsValid)
+            return new UpdateProductResultDto { NotFound = true };
+        foreach (var group in optionGroups)
+            product.OptionGroups.Add(group);
 
         await _dbContext.Products.AddAsync(product, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
@@ -130,6 +155,8 @@ public sealed class ProductService : IProductService
         await WriteAuditLogAsync(ownerUserId, "ProductCreated", nameof(Product),
             product.Id, $"Product '{product.Name}' created.", ipAddress, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+            await transaction.CommitAsync(cancellationToken);
 
         var dto = _mapper.Map<ProductResponseDto>(product);
         dto.CategoryName = await GetCategoryNameAsync(request.CategoryId, cancellationToken) ?? string.Empty;
@@ -165,6 +192,15 @@ public sealed class ProductService : IProductService
             .AnyAsync(x => x.Id == request.CategoryId && x.StoreId == product.StoreId, cancellationToken);
 
         if (!categoryExists)
+            return new UpdateProductResultDto { NotFound = true };
+
+        await using var transaction = isRelational
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        var (optionGroupsValid, resolvedOptionGroups) = await ResolveOptionGroupsAsync(
+            product.StoreId, productId, request.OptionGroups, cancellationToken);
+        if (!optionGroupsValid)
             return new UpdateProductResultDto { NotFound = true };
 
         var catalogAdditionals = request.AdditionalIds is null
@@ -252,11 +288,8 @@ public sealed class ProductService : IProductService
 
             await _dbContext.ProductOptionItems.Where(i => i.Group.ProductId == productId).ExecuteDeleteAsync(cancellationToken);
             await _dbContext.ProductOptionGroups.Where(g => g.ProductId == productId).ExecuteDeleteAsync(cancellationToken);
-            if (request.OptionGroups != null)
-            {
-                foreach (var group in request.OptionGroups)
-                    _dbContext.ProductOptionGroups.Add(BuildOptionGroup(group, productId));
-            }
+            foreach (var group in resolvedOptionGroups)
+                _dbContext.ProductOptionGroups.Add(group);
         }
         else
         {
@@ -310,13 +343,12 @@ public sealed class ProductService : IProductService
             if (saleMode == "variable_weight" && request.WeightConfig is { } wc2)
                 product.WeightConfig = BuildWeightConfig(wc2);
 
-            _dbContext.RemoveRange(product.OptionGroups.SelectMany(g => g.Items));
-            _dbContext.RemoveRange(product.OptionGroups);
-            if (request.OptionGroups != null)
-            {
-                foreach (var group in request.OptionGroups)
-                    product.OptionGroups.Add(BuildOptionGroup(group, productId));
-            }
+            var removedOptionGroups = product.OptionGroups.ToList();
+            _dbContext.RemoveRange(removedOptionGroups.SelectMany(g => g.Items));
+            _dbContext.RemoveRange(removedOptionGroups);
+            product.OptionGroups.Clear();
+            foreach (var group in resolvedOptionGroups)
+                _dbContext.ProductOptionGroups.Add(group);
         }
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
@@ -329,6 +361,8 @@ public sealed class ProductService : IProductService
         await WriteAuditLogAsync(ownerUserId, "ProductUpdated", nameof(Product),
             productId, $"Product '{(request.Name ?? product.Name).Trim()}' updated.", ipAddress, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+            await transaction.CommitAsync(cancellationToken);
 
         var responseProduct = isRelational
             ? await _dbContext.Products.AsNoTracking().Include(p => p.Additionals).Include(p => p.ChoiceOptions).Include(p => p.Variations).Include(p => p.WeightConfig).Include(p => p.OptionGroups).ThenInclude(g => g.Items).SingleAsync(x => x.Id == productId, cancellationToken)
@@ -544,6 +578,87 @@ public sealed class ProductService : IProductService
 
         return g;
     }
+
+    /// <summary>
+    /// Valida os templates reutilizáveis informados, monta os snapshots independentes
+    /// do produto e cria um template novo para cada grupo autoral (sem template de origem).
+    /// Quando um template é selecionado, apenas valida-se que ele pertence à loja; o
+    /// snapshot é sempre construído a partir do grupo enviado, preservando as edições
+    /// feitas no produto. Os dados do template servem somente à seleção no frontend.
+    /// Ids repetidos no mesmo request são rejeitados. Grupos autorais sempre geram um
+    /// template novo e independente, mesmo quando já existe um com o mesmo nome.
+    /// </summary>
+    private async Task<(bool Valid, List<ProductOptionGroup> Groups)> ResolveOptionGroupsAsync(
+        Guid storeId,
+        Guid? productId,
+        IReadOnlyCollection<ProductOptionGroupDto>? optionGroups,
+        CancellationToken cancellationToken)
+    {
+        var groups = new List<ProductOptionGroup>();
+        if (optionGroups is null || optionGroups.Count == 0)
+            return (true, groups);
+
+        var templateIds = optionGroups
+            .Where(g => g.TemplateId is { } id && id != Guid.Empty)
+            .Select(g => g.TemplateId!.Value)
+            .ToArray();
+
+        // O mesmo template não pode ser associado duas vezes ao mesmo produto.
+        if (templateIds.Distinct().Count() != templateIds.Length)
+            return (false, groups);
+
+        if (templateIds.Length > 0)
+        {
+            // Apenas valida a posse do template pela loja; os dados não são copiados.
+            var ownedTemplateCount = await _dbContext.ProductOptionGroupTemplates
+                .Where(t => t.StoreId == storeId && templateIds.Contains(t.Id))
+                .Select(t => t.Id)
+                .Distinct()
+                .CountAsync(cancellationToken);
+
+            if (ownedTemplateCount != templateIds.Length)
+                return (false, groups);
+        }
+
+        foreach (var group in optionGroups)
+        {
+            var built = BuildOptionGroup(group, productId);
+
+            if (group.TemplateId is { } selectedTemplateId && selectedTemplateId != Guid.Empty)
+            {
+                built.TemplateId = selectedTemplateId;
+                groups.Add(built);
+                continue;
+            }
+
+            // Grupos autorais geram sempre um template novo e independente, mesmo
+            // quando já existe um template com o mesmo nome na loja.
+            var template = BuildOptionGroupTemplate(storeId, built);
+            built.TemplateId = template.Id;
+            await _dbContext.ProductOptionGroupTemplates.AddAsync(template, cancellationToken);
+            groups.Add(built);
+        }
+
+        return (true, groups);
+    }
+
+    /// <summary>Cria um template reutilizável a partir de um grupo autoral, com itens independentes.</summary>
+    private static ProductOptionGroupTemplate BuildOptionGroupTemplate(Guid storeId, ProductOptionGroup group) => new()
+    {
+        StoreId = storeId,
+        Name = group.Name,
+        IsRequired = group.IsRequired,
+        ChoiceType = group.ChoiceType,
+        MinChoices = group.MinChoices,
+        MaxChoices = group.MaxChoices,
+        DisplayOrder = group.DisplayOrder,
+        Items = group.Items.Select(item => new ProductOptionItemTemplate
+        {
+            Name = item.Name,
+            Price = item.Price,
+            DisplayOrder = item.DisplayOrder,
+        }).ToList(),
+    };
 
     private static string NormalizeChoiceType(string? type) => (type?.Trim().ToLowerInvariant()) switch
     {

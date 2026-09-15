@@ -1,10 +1,11 @@
 import { PaymentMethod } from '../enums/payment-method.enum';
 import { PaymentStatus } from '../enums/payment-status.enum';
+import { PaymentGateway } from '../enums/payment-gateway.enum';
 
 export interface PaymentResponse {
   paymentId: string;
   orderId: string;
-  gateway: number; // 1 = MercadoPago
+  gateway: PaymentGateway;
   gatewayTransactionId: string;
   gatewayCheckoutUrl: string;
   method: PaymentMethod;
@@ -12,6 +13,7 @@ export interface PaymentResponse {
   amount: number;
   createdAtUtc: string;
   updatedAtUtc?: string | null;
+  expiresAtUtc?: string | null;
   history?: PaymentHistoryEntry[];
 }
 

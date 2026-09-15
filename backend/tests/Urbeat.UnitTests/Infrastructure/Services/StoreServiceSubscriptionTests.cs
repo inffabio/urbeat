@@ -63,7 +63,6 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
             {
                 Name = "Loja Teste",
                 PhoneNumber = "11999999999",
-                Description = "Descricao da loja",
                 CuisineType = "Pizza"
             },
             ipAddress: null);
@@ -106,7 +105,6 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
         {
             Name = "Loja Teste",
             PhoneNumber = "11999999999",
-            Description = "Descricao da loja",
             CuisineType = "Pizza"
         };
 

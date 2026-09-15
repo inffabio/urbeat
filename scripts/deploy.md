@@ -57,3 +57,39 @@ As alterações foram implantadas integralmente no servidor `52.144.45.199`:
 **Rotas ativas:**
 - Produção Frontend: [https://urbeat.com.br/cadastro](https://urbeat.com.br/cadastro)
 - Produção API Auth: [https://urbeat.com.br/api/auth/register/seller](https://urbeat.com.br/api/auth/register/seller)
+
+## 4. Uso seguro dos scripts de deploy (hardening)
+
+Os scripts de deploy validam a origem antes de empacotar ou enviar qualquer arquivo.
+
+- `scripts/criarDeployOracleCloud/04-deploy-application.ps1` e `scripts/deploy-internal.ps1`:
+  - Resolvem `git HEAD`, branch e status do working tree antes de gerar/enviar pacotes.
+  - **Bloqueiam por padrão** qualquer working tree sujo (tracked ou untracked).
+  - `-AllowDirty` libera explicitamente o envio de um snapshot local sujo.
+  - `-ExpectedCommit <sha>` exige que o `HEAD` corresponda (SHA completo ou prefixo com 7+ caracteres).
+- Cada deploy gera um `deployment-manifest.json` com `commit`, `branch`, `dirty`, `generatedAtUtc`, `projectRoot` e os SHA256 dos arquivos enviados. O manifesto **não** contém conteúdo de arquivos nem segredos, e é enviado junto ao deploy (`/opt/urbeat/deployment-manifest.json` no OCI; raiz do deploy interno).
+- `scripts/deploy-internal.ps1` **não** faz `git commit` nem `git push`; o Git não é alterado pelo deploy.
+
+Exemplos (produção, exigindo um commit específico):
+
+```powershell
+scripts/criarDeployOracleCloud/deploy-all.ps1 -Step application -ExpectedCommit <sha>
+scripts/deploy-internal.ps1 -ExpectedCommit <sha>
+```
+
+Para um snapshot local sujo (uso consciente):
+
+```powershell
+scripts/criarDeployOracleCloud/deploy-all.ps1 -Step application -AllowDirty
+scripts/deploy-internal.ps1 -AllowDirty
+```
+
+`deploy-all.ps1` expõe `-AllowDirty`/`-ExpectedCommit` e os repassa **apenas** ao passo `application`; os demais passos continuam recebendo somente os parâmetros de SSH. `04-deploy-application.ps1` também pode ser executado diretamente (defaults de SSH `dexter@136.248.115.135:2208`).
+
+Valide as invariantes antes de qualquer deploy:
+
+```powershell
+scripts/criarDeployOracleCloud/validate-pipeline.ps1
+Invoke-Pester scripts/criarDeployOracleCloud/tests
+```
+

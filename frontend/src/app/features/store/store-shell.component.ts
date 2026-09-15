@@ -55,7 +55,8 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
       font-family: var(--app-font);
       overflow-x: hidden;
       position: relative;
-      min-height: 100vh;
+      min-height: 100dvh;
+      height: 100dvh;
       background: var(--app-shell-bg);
       display: flex;
        flex-direction: column;
@@ -65,16 +66,23 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
        .app-shell {
          width: 100%;
          max-width: 430px;
-         min-height: 100vh;
+         min-height: calc(100dvh - 56px);
+         height: calc(100dvh - 56px);
          margin: 0 auto;
          box-shadow: 0 30px 90px rgba(0, 0, 0, .18);
        }
      }
 
+    /* The routed storefront content owns the scroll; the footer stays the last
+       flex child so it is always rendered inside the visible shell. */
     .store-route {
-      flex: 1;
+      --store-footer-clearance: 0px;
+      flex: 1 1 0;
       min-height: 0;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
      .account-menu-backdrop {
@@ -85,7 +93,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
      }
 
      .account-menu {
-       position: fixed;
+       position: absolute;
        right: max(12px, calc(50% - 203px));
        bottom: calc(72px + max(8px, env(safe-area-inset-bottom, 0px)));
        z-index: 60;

@@ -1,13 +1,13 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .verification-content {
   --background: var(--app-bg);
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .back-btn {
@@ -18,7 +18,7 @@
 }
 
 .verification-card {
-  min-height: 100vh;
+  min-height: 100%;
   padding: calc(70px + env(safe-area-inset-top, 0px)) 18px calc(28px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;

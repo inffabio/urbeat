@@ -520,8 +520,8 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Payments",
+            Slug = "loja-payments",
             PhoneNumber = "11987770000",
-            Description = "Loja para pagamentos",
             CuisineType = cuisineType
 ,
             MaxDeliveryRadiusKm = 5,

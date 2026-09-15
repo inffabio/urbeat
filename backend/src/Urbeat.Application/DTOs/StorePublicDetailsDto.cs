@@ -10,8 +10,6 @@ public sealed class StorePublicDetailsDto
 
     public string PhoneNumber { get; set; } = string.Empty;
 
-    public string Description { get; set; } = string.Empty;
-
     public string CuisineType { get; set; } = string.Empty;
 
     public string? BannerUrl { get; set; }
@@ -39,6 +37,11 @@ public sealed class StorePublicDetailsDto
     public decimal? FreeShippingThreshold { get; set; }
 
     public bool FreeShippingToday { get; set; }
+
+    // Internal mapping aid: the local date the daily promotion was enabled on. Never serialized;
+    // the API exposes only the effective FreeShippingToday boolean.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DateOnly? FreeShippingTodayDate { get; set; }
 
     public int? InitialMinute { get; set; }
 

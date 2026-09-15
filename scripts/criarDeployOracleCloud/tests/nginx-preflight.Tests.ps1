@@ -28,4 +28,23 @@ Describe "NGINX deployment safeguards" {
         $content | Should Match "location = /ngsw-worker.js"
         $content | Should Match "no-cache, no-store, must-revalidate"
     }
+
+    It "accepts API uploads through the frontend /api/ proxy with a 50M body limit" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\05-configure-nginx.ps1") -Raw
+
+        # Isolate the www/frontend vhost so the backend vhost cannot satisfy the assertion.
+        $backendMarker = "`$nginxBackend = @'"
+        $frontendEnd = $content.IndexOf($backendMarker)
+        $frontendEnd | Should BeGreaterThan 0
+        $frontendOnly = $content.Substring(0, $frontendEnd)
+
+        $apiMatch = [regex]::Match($frontendOnly, 'location\s+/api/\s*\{(?<block>[^}]*)\}', 'Singleline')
+        $apiMatch.Success | Should Be $true
+
+        $apiBlock = $apiMatch.Groups['block'].Value
+        $apiBlock | Should Match 'client_max_body_size\s+50M;'
+        $apiBlock | Should Match 'proxy_connect_timeout\s+75s;'
+        $apiBlock | Should Match 'proxy_send_timeout\s+300s;'
+        $apiBlock | Should Match 'proxy_read_timeout\s+300s;'
+    }
 }

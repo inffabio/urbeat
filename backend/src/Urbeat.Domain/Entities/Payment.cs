@@ -29,4 +29,17 @@ public sealed class Payment : BaseEntity
     public Guid ConcurrencyStamp { get; set; }
 
     public string? RawPayload { get; set; }
+
+    /// <summary>
+    /// Mock Pix simulation metadata. Present only for payments created under
+    /// <c>Payments:Provider=Mock</c>. <see cref="MockExpiresAtUtc"/> is the end of the payment
+    /// window; <see cref="MockApprovalAtUtc"/> is the scheduled approval time when the selected
+    /// outcome is <c>Approved</c> (null otherwise); <see cref="MockOutcome"/> stores the outcome
+    /// chosen once per attempt.
+    /// </summary>
+    public DateTime? MockExpiresAtUtc { get; set; }
+
+    public DateTime? MockApprovalAtUtc { get; set; }
+
+    public string? MockOutcome { get; set; }
 }

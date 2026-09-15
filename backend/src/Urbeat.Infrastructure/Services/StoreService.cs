@@ -2,8 +2,10 @@
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -29,7 +31,7 @@ public sealed class StoreService : IStoreService
         _imageUploadService = imageUploadService;
     }
 
-    public async Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, StoreResponseDto? Store)> CreateForOwnerAsync(
+    public async Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, StoreResponseDto? Store)> CreateForOwnerAsync(
         Guid ownerUserId,
         CreateStoreRequestDto request,
         string? ipAddress,
@@ -53,7 +55,7 @@ public sealed class StoreService : IStoreService
 
             await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return (false, true, false, null);
+            return (false, true, false, false, null);
         }
 
         var normalizedCuisineType = request.CuisineType.Trim().ToLowerInvariant();
@@ -66,10 +68,20 @@ public sealed class StoreService : IStoreService
         if (cuisine is null)
         {
             Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
-            return (false, false, true, null);
+            return (false, false, true, false, null);
         }
 
-        var slug = await GenerateUniqueSlugAsync(request.Slug?.Trim(), request.Name.Trim(), cancellationToken);
+        var slug = string.IsNullOrWhiteSpace(request.Slug)
+            ? Slugify(request.Name.Trim())
+            : request.Slug.Trim();
+
+        if (await _dbContext.Stores
+            .AsNoTracking()
+            .AnyAsync(x => x.Slug == slug, cancellationToken))
+        {
+            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, slug, ipAddress);
+            return (false, false, false, true, null);
+        }
 
         var store = new Store
         {
@@ -80,7 +92,6 @@ public sealed class StoreService : IStoreService
             Document = NormalizeDocument(request.Document),
             PixKey = NormalizeOptional(request.PixKey, 50),
             WebsiteUrl = NormalizeOptional(request.WebsiteUrl, 500),
-            Description = request.Description.Trim(),
             CuisineTypeId = cuisine.Id,
 
             BannerUrl = request.BannerUrl?.Trim(),
@@ -102,7 +113,17 @@ public sealed class StoreService : IStoreService
 
         await AttachDefaultSubscriptionAsync(store, ownerUserId, cancellationToken);
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsStoreSlugUniqueViolation(exception))
+        {
+            // A concurrent request persisted the same slug between the pre-check above and this
+            // save; the unique index is the real guard. Report it as a slug conflict instead of a 500.
+            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, store.Slug, ipAddress);
+            return (false, false, false, true, null);
+        }
 
         await WriteAuditLogAsync(
             ownerUserId,
@@ -118,7 +139,7 @@ public sealed class StoreService : IStoreService
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return (true, false, false, _mapper.Map<StoreResponseDto>(store));
+        return (true, false, false, false, _mapper.Map<StoreResponseDto>(store));
     }
 
     public async Task<StoreResponseDto?> GetByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
@@ -181,21 +202,35 @@ public sealed class StoreService : IStoreService
             };
         }
 
-        var nameChanged = !string.Equals(store.Name, request.Name.Trim(), StringComparison.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(request.Slug))
+        {
+            var requestedSlug = request.Slug.Trim();
+            var slugConflict = await _dbContext.Stores
+                .AsNoTracking()
+                .AnyAsync(x => x.Slug == requestedSlug && x.Id != store.Id, cancellationToken);
+
+            if (slugConflict)
+            {
+                Serilog.Log.Warning("{EventType} | Store update failed | OwnerUserId={OwnerUserId} | StoreId={StoreId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_UPDATE_FAILED", ownerUserId, storeId, requestedSlug, ipAddress);
+                return new UpdateStoreResultDto
+                {
+                    SlugConflict = true
+                };
+            }
+        }
+
         store.Name = request.Name.Trim();
         store.CuisineTypeId = cuisine.Id;
 
         if (!string.IsNullOrWhiteSpace(request.Slug))
         {
-            var slug = await GenerateUniqueSlugAsync(request.Slug.Trim(), request.Name.Trim(), cancellationToken, store.Id);
-            store.Slug = slug;
+            store.Slug = request.Slug.Trim();
         }
 
         store.PhoneNumber = request.PhoneNumber.Trim();
         store.Document = NormalizeDocument(request.Document);
         store.PixKey = NormalizeOptional(request.PixKey, 50);
         store.WebsiteUrl = NormalizeOptional(request.WebsiteUrl, 500);
-        store.Description = request.Description.Trim();
 
         if (!string.IsNullOrWhiteSpace(store.LogoUrl) && store.LogoUrl != request.LogoUrl?.Trim())
         {
@@ -216,7 +251,20 @@ public sealed class StoreService : IStoreService
 
         store.MarkAsUpdated();
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsStoreSlugUniqueViolation(exception))
+        {
+            // A concurrent request persisted the same slug between the pre-check above and this
+            // save; the unique index is the real guard. Report it as a slug conflict instead of a 500.
+            Serilog.Log.Warning("{EventType} | Store update failed | OwnerUserId={OwnerUserId} | StoreId={StoreId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_UPDATE_FAILED", ownerUserId, storeId, store.Slug, ipAddress);
+            return new UpdateStoreResultDto
+            {
+                SlugConflict = true
+            };
+        }
 
         await WriteAuditLogAsync(
             ownerUserId,
@@ -334,6 +382,68 @@ public sealed class StoreService : IStoreService
         };
     }
 
+    public async Task<UpdateStoreResultDto> MarkAsPublishedAsync(
+        Guid ownerUserId,
+        Guid storeId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.Id == storeId, cancellationToken);
+
+        if (store is null)
+        {
+            Serilog.Log.Warning("{EventType} | Store publish failed | OwnerUserId={OwnerUserId} | StoreId={StoreId} | Reason=not_found | IP={IpAddress}", "STORE_PUBLISH_FAILED", ownerUserId, storeId, ipAddress);
+            return new UpdateStoreResultDto
+            {
+                NotFound = true
+            };
+        }
+
+        if (store.OwnerUserId != ownerUserId)
+        {
+            Serilog.Log.Warning("{EventType} | Store publish forbidden | OwnerUserId={OwnerUserId} | StoreId={StoreId} | IP={IpAddress}", "STORE_PUBLISH_FORBIDDEN", ownerUserId, storeId, ipAddress);
+            await WriteAuditLogAsync(
+                ownerUserId,
+                "StorePublishForbidden",
+                nameof(Store),
+                store.Id,
+                "Store publish denied: user is not the owner.",
+                ipAddress,
+                cancellationToken);
+
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new UpdateStoreResultDto
+            {
+                Forbidden = true
+            };
+        }
+
+        store.IsPublished = true;
+        store.MarkAsUpdated();
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        await WriteAuditLogAsync(
+            ownerUserId,
+            "StorePublished",
+            nameof(Store),
+            store.Id,
+            "Store published successfully.",
+            ipAddress,
+            cancellationToken);
+
+        Serilog.Log.Information("{EventType} | Store published | StoreId={StoreId} | OwnerUserId={OwnerUserId} | IP={IpAddress}",
+            "STORE_PUBLISHED", store.Id, ownerUserId, ipAddress);
+
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new UpdateStoreResultDto
+        {
+            Store = _mapper.Map<StoreResponseDto>(store)
+        };
+    }
+
     public async Task<UpdateStoreResultDto> UpdateDeliveryConfigAsync(
         Guid ownerUserId,
         Guid storeId,
@@ -342,7 +452,8 @@ public sealed class StoreService : IStoreService
         decimal? freeShippingThreshold,
         bool freeShippingToday,
         IEnumerable<StoreDeliveryAreaDto>? deliveryAreas,
-        string? ipAddress,
+        double? maxDeliveryRadiusKm = null,
+        string? ipAddress = null,
         CancellationToken cancellationToken = default)
     {
         var store = await _dbContext.Stores
@@ -381,9 +492,68 @@ public sealed class StoreService : IStoreService
         store.MinimumOrderValue = minimumOrderValue;
         store.FreeShippingThreshold = freeShippingThreshold;
         store.FreeShippingToday = freeShippingToday;
+        store.FreeShippingTodayDate = freeShippingToday
+            ? StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow)
+            : null;
+
+        if (maxDeliveryRadiusKm is > 0)
+        {
+            store.MaxDeliveryRadiusKm = maxDeliveryRadiusKm.Value;
+        }
 
         if (deliveryAreas is not null)
         {
+            var submittedAreas = deliveryAreas.ToList();
+
+            var effectiveRadiusKm = maxDeliveryRadiusKm is > 0
+                ? maxDeliveryRadiusKm
+                : store.MaxDeliveryRadiusKm;
+
+            // Server-side guard: a radius reduction/change must not retain store delivery areas
+            // outside the radius, even when a stale or direct client submits them. Eligibility is
+            // derived from the same radius/city/manual rules used to list neighborhoods; global
+            // DeliveryNeighborhood rows are never modified. Stores without an address cannot apply
+            // the radius rules, so their submitted areas keep the previous behavior.
+            var storeAddress = await _dbContext.StoreAddresses
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.StoreId == storeId, cancellationToken);
+
+            if (effectiveRadiusKm is > 0 && storeAddress is not null)
+            {
+                var eligible = await GetActiveDeliveryNeighborhoodsByStoreAsync(storeId, effectiveRadiusKm, cancellationToken);
+                var eligibleNames = eligible
+                    .Select(x => NormalizeText(x.Neighborhood))
+                    .ToHashSet();
+
+                // Only store associations whose names match a global DeliveryNeighborhood in
+                // the store's city are subject to the radius rules. Manual store-only
+                // associations without a global record cannot be classified by distance and
+                // must be kept. Global DeliveryNeighborhood rows themselves are never modified.
+                var globalNamesQuery = _dbContext.DeliveryNeighborhoods
+                    .AsNoTracking()
+                    .Where(x => x.IsActive);
+
+                if (storeAddress.City is not null)
+                {
+                    var storeCity = storeAddress.City.ToLower().Trim();
+                    globalNamesQuery = globalNamesQuery.Where(x => x.City.ToLower() == storeCity);
+                }
+
+                var knownGlobalNames = (await globalNamesQuery
+                        .Select(x => x.Neighborhood)
+                        .ToListAsync(cancellationToken))
+                    .Select(NormalizeText)
+                    .ToHashSet();
+
+                submittedAreas = submittedAreas
+                    .Where(x =>
+                    {
+                        var normalized = NormalizeText(x.Neighborhood);
+                        return !knownGlobalNames.Contains(normalized) || eligibleNames.Contains(normalized);
+                    })
+                    .ToList();
+            }
+
             var isRelational = _dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
             if (isRelational)
             {
@@ -399,7 +569,7 @@ public sealed class StoreService : IStoreService
                 _dbContext.Set<StoreDeliveryArea>().RemoveRange(existing);
             }
 
-            foreach (var area in deliveryAreas)
+            foreach (var area in submittedAreas)
             {
                 _dbContext.Set<StoreDeliveryArea>().Add(new StoreDeliveryArea
                 {
@@ -486,7 +656,7 @@ public sealed class StoreService : IStoreService
         return await GetNeighborhoodsByCityAsync(city, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsByStoreAsync(Guid storeId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsByStoreAsync(Guid storeId, double? radiusKm = null, CancellationToken cancellationToken = default)
     {
         var store = await _dbContext.Stores
             .AsNoTracking()
@@ -495,7 +665,9 @@ public sealed class StoreService : IStoreService
         if (store is null)
             return Array.Empty<DeliveryNeighborhoodResponseDto>();
 
-        if (store.MaxDeliveryRadiusKm is null or <= 0)
+        var effectiveRadiusKm = radiusKm ?? store.MaxDeliveryRadiusKm;
+
+        if (effectiveRadiusKm is null or <= 0)
         {
             var addr = await _dbContext.StoreAddresses
                 .AsNoTracking()
@@ -515,7 +687,7 @@ public sealed class StoreService : IStoreService
                 ? await GetNeighborhoodsByCityAsync(storeAddr.City, cancellationToken)
                 : Array.Empty<DeliveryNeighborhoodResponseDto>();
         }
-        var maxRadius = store.MaxDeliveryRadiusKm.Value;
+        var maxRadius = effectiveRadiusKm.Value;
 
         var neighborhoodsQuery = _dbContext.DeliveryNeighborhoods
             .AsNoTracking()
@@ -591,12 +763,12 @@ public sealed class StoreService : IStoreService
             .OrderBy(x => x.Neighborhood)
             .ToList();
 
-        if (result.Count > 0)
-            return result;
-
-        return storeAddr.City is not null
-            ? await GetNeighborhoodsByCityAsync(storeAddr.City, cancellationToken)
-            : Array.Empty<DeliveryNeighborhoodResponseDto>();
+        // A valid positive radius with coordinates must honor the radius even
+        // when it yields no eligible neighborhoods: returning the full city
+        // here would make shrinking the radius unable to remove store areas.
+        // The city fallback only applies to missing/zero radius or missing
+        // coordinates, which are handled above.
+        return result;
     }
 
     private async Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetNeighborhoodsByCityAsync(string city, CancellationToken cancellationToken)
@@ -685,24 +857,6 @@ public sealed class StoreService : IStoreService
             .Trim();
     }
 
-    private async Task<string> GenerateUniqueSlugAsync(string? requestedSlug, string storeName, CancellationToken cancellationToken, Guid? excludeStoreId = null)
-    {
-        var baseSlug = string.IsNullOrWhiteSpace(requestedSlug)
-            ? Slugify(storeName)
-            : requestedSlug;
-
-        var slug = baseSlug;
-        var suffix = 1;
-        while (await _dbContext.Stores.AnyAsync(x =>
-            x.Slug == slug &&
-            (!excludeStoreId.HasValue || x.Id != excludeStoreId.Value), cancellationToken))
-        {
-            slug = $"{baseSlug}-{suffix++}";
-        }
-
-        return slug;
-    }
-
     private static string Slugify(string value)
     {
         var slug = value.ToLowerInvariant()
@@ -788,6 +942,17 @@ public sealed class StoreService : IStoreService
             Description = description,
             IpAddress = ipAddress
         }, cancellationToken);
+    }
+
+    private static bool IsStoreSlugUniqueViolation(DbUpdateException exception)
+    {
+        // PostgreSQL raises SQLSTATE 23505 when a concurrent request persists the same slug between
+        // the pre-check and SaveChanges. Only the Stores.IX_Stores_Slug unique index maps to a slug
+        // conflict; any other DbUpdateException (including other unique indexes on Stores) propagates.
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation
+        } pg && pg.MessageText.Contains("IX_Stores_Slug", StringComparison.OrdinalIgnoreCase);
     }
 
 }

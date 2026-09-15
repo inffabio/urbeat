@@ -54,10 +54,6 @@
               @for (ct of sortedCuisineTypes(); track ct.id) { <option [value]="ct.name">{{ ct.name }}</option> }
             </select>
           </div>
-          <div class="col-12">
-            <label class="form-label-app" for="description">Descrição</label>
-            <textarea id="description" class="form-control-app pt-3" [ngModel]="description()" (ngModelChange)="description.set($event.slice(0, 500))" name="description" maxlength="500"></textarea>
-          </div>
         </div>
       </div>
 

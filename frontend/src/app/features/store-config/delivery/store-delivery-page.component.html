@@ -150,6 +150,7 @@
       }
     </div>
 
+    @if (isDashboardView()) {
     <div class="card" [formGroup]="form">
       <h2>Frete grátis</h2>
 
@@ -160,7 +161,7 @@
             <strong>Frete grátis hoje</strong>
             <small>Ative para liberar frete grátis em todos os pedidos de hoje</small>
           </span>
-          <input type="checkbox" class="toggle-input" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday()" />
+          <input type="checkbox" class="toggle-input" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday($event)" />
           <span class="toggle-switch"></span>
         </label>
         @if (freeShippingToday()) {
@@ -185,6 +186,7 @@
         <p class="free-shipping-hint" id="free-shipping-hint">Pedidos iguais ou acima desse valor terão frete grátis.</p>
       </div>
     </div>
+    }
 
     @if (isDashboardView()) {
       <div class="dashboard-save-bar">
@@ -194,7 +196,7 @@
           @else if (saveStatus() === 'error') { Nao foi possivel salvar. }
           @else { Salve as alteracoes antes de sair. }
         </span>
-        <button type="button" class="btn-confirm" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">
+        <button type="button" class="btn-confirm" (click)="saveDraft()" [disabled]="isSaving() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()">
           @if (isSaving()) { Salvando... } @else { Salvar }
         </button>
       </div>

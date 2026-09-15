@@ -91,5 +91,12 @@ public sealed class UpdateProductRequestDtoValidator : AbstractValidator<UpdateP
 
         RuleForEach(x => x.OptionGroups)
             .SetValidator(new ProductOptionGroupDtoValidator());
+
+        RuleFor(x => x.OptionGroups)
+            .Must(groups => groups
+                .Where(g => g.TemplateId is { } id && id != Guid.Empty)
+                .Select(g => g.TemplateId!.Value)
+                .Distinct().Count() == groups.Count(g => g.TemplateId is { } id && id != Guid.Empty))
+            .WithMessage("Não é permitido associar o mesmo grupo salvo mais de uma vez ao produto.");
     }
 }

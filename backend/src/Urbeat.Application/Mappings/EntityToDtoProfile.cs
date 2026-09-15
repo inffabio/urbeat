@@ -24,6 +24,8 @@ public sealed class EntityToDtoProfile : Profile
         CreateMap<ProductVariation, ProductVariationDto>();
         CreateMap<ProductOptionGroup, ProductOptionGroupDto>();
         CreateMap<ProductOptionItem, ProductOptionItemDto>();
+        CreateMap<ProductOptionGroupTemplate, ProductOptionGroupTemplateDto>();
+        CreateMap<ProductOptionItemTemplate, ProductOptionItemDto>();
 
         CreateMap<StorePaymentGatewayConfig, PaymentGatewayConfigResponseDto>()
             .ForMember(d => d.HasAccessToken, o => o.MapFrom(s => !string.IsNullOrWhiteSpace(s.EncryptedAccessToken)))

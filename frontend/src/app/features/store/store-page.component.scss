@@ -8,7 +8,9 @@
   background: var(--app-bg, #ede9e3);
   overflow-x: clip;
   overflow-y: auto;
-  height: 100dvh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -283,8 +285,6 @@
 
       .store-content {
         width: 430px;
-        height: calc(100vh - 56px);
-        min-height: calc(100vh - 56px);
         border-radius: 34px;
         overflow-x: clip;
         overflow-y: auto;

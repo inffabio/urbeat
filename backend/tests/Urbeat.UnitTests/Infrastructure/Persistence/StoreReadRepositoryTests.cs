@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Persistence.ReadRepositories;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,6 @@ public sealed class StoreReadRepositoryTests : IDisposable
             Name = "Loja Teste",
             Slug = "loja-teste",
             PhoneNumber = "11999999999",
-            Description = "Descricao da loja",
             IsOpen = true,
             IsSubscriptionBlocked = false,
             SupportsDelivery = true,
@@ -47,6 +47,7 @@ public sealed class StoreReadRepositoryTests : IDisposable
             MinimumOrderValue = 20.00m,
             FreeShippingThreshold = 50.00m,
             FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow),
             AverageRating = 4.5,
             TotalReviews = 42,
             MaxDeliveryRadiusKm = 10,
@@ -151,6 +152,252 @@ public sealed class StoreReadRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task GetPublicByIdAsync_ShouldReturnFreeShippingTodayFalse_WhenDateMissing()
+    {
+        var store = new Store
+        {
+            Name = "Loja Sem Data",
+            Slug = "loja-sem-data",
+            IsSubscriptionBlocked = false,
+            FreeShippingToday = true,
+            FreeShippingTodayDate = null
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicByIdAsync(store.Id);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetPublicByIdAsync_ShouldReturnFreeShippingTodayFalse_WhenDateExpired()
+    {
+        var store = new Store
+        {
+            Name = "Loja Data Expirada",
+            Slug = "loja-data-expirada",
+            IsSubscriptionBlocked = false,
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1)
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicByIdAsync(store.Id);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ShouldExposeEffectiveFreeShippingToday()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerUserId,
+            Name = "Loja Hoje",
+            Slug = "loja-hoje",
+            IsSubscriptionBlocked = false,
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow)
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerUserId);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ShouldReturnFreeShippingTodayFalse_WhenDateExpired()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerUserId,
+            Name = "Loja Ontem",
+            Slug = "loja-ontem",
+            IsSubscriptionBlocked = false,
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1)
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerUserId);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ShouldReturnIsPublishedFalse_WhenStoreWasNeverPublished()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerUserId,
+            Name = "Loja Nova",
+            Slug = "loja-nova",
+            IsSubscriptionBlocked = false,
+            IsOpen = true
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerUserId);
+
+        result.Should().NotBeNull();
+        result!.IsPublished.Should().BeFalse();
+        result.IsOpen.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ShouldReturnIsPublishedTrue_WhenStoreWasPublished()
+    {
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerUserId,
+            Name = "Loja Publicada",
+            Slug = "loja-publicada",
+            IsSubscriptionBlocked = false,
+            IsPublished = true
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerUserId);
+
+        result.Should().NotBeNull();
+        result!.IsPublished.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetPublicByIdAsync_ActiveFreeShippingTodayDate_ShouldReturnTrue()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicByIdAsync(store.Id);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetPublicByIdAsync_ExpiredFreeShippingTodayDate_ShouldReturnFalse()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicByIdAsync(store.Id);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetPublicByIdAsync_MissingFreeShippingTodayDate_ShouldReturnFalse()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = null;
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicByIdAsync(store.Id);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetPublicBySlugAsync_ExpiredFreeShippingTodayDate_ShouldReturnFalse()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetPublicBySlugAsync(store.Slug);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ActiveFreeShippingTodayDate_ShouldReturnTrue()
+    {
+        var ownerId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerId,
+            Name = "Loja Seller Ativa",
+            Slug = "loja-seller-ativa",
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow)
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerId);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ExpiredFreeShippingTodayDate_ShouldReturnFalse()
+    {
+        var ownerId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerId,
+            Name = "Loja Seller Expirada",
+            Slug = "loja-seller-expirada",
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1)
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerId);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_MissingFreeShippingTodayDate_ShouldReturnFalse()
+    {
+        var ownerId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerId,
+            Name = "Loja Seller Sem Data",
+            Slug = "loja-seller-sem-data",
+            FreeShippingToday = true,
+            FreeShippingTodayDate = null
+        };
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetByOwnerAsync(ownerId);
+
+        result.Should().NotBeNull();
+        result!.FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task GetPublicByIdAsync_ShouldReturnAddress()
     {
         var store = await SeedStoreAsync(withAddress: true);
@@ -197,6 +444,43 @@ public sealed class StoreReadRepositoryTests : IDisposable
 
         results.Should().NotBeEmpty();
         results.Should().ContainSingle(x => x.Id == store.Id && x.FreeShippingThreshold == 50.00m);
+    }
+
+    [Fact]
+    public async Task ListPublicAsync_ShouldExposeEffectiveFreeShippingToday_WhenActiveToday()
+    {
+        var store = await SeedStoreAsync();
+
+        var results = await _sut.ListPublicAsync(cuisineType: null);
+
+        var item = results.Single(x => x.Id == store.Id);
+        item.FreeShippingToday.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ListPublicAsync_ShouldReturnFreeShippingTodayFalse_WhenDateExpired()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow).AddDays(-1);
+        await _db.SaveChangesAsync();
+
+        var results = await _sut.ListPublicAsync(cuisineType: null);
+
+        results.Single(x => x.Id == store.Id).FreeShippingToday.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ListPublicAsync_ShouldReturnFreeShippingTodayFalse_WhenDateMissing()
+    {
+        var store = await SeedStoreAsync();
+        store.FreeShippingToday = true;
+        store.FreeShippingTodayDate = null;
+        await _db.SaveChangesAsync();
+
+        var results = await _sut.ListPublicAsync(cuisineType: null);
+
+        results.Single(x => x.Id == store.Id).FreeShippingToday.Should().BeFalse();
     }
 
     [Fact]

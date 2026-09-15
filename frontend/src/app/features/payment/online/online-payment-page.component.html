@@ -24,17 +24,43 @@
       }
     </div>
 
-    <section class="pix-card card" aria-labelledby="pix-title">
-      <span class="pix-mark" aria-hidden="true"><ion-icon name="lock-closed-outline"></ion-icon></span>
-      <h2 id="pix-title">Seu Pix está pronto</h2>
-      <p>Abra o link do gateway para pagar. Assim que o pagamento for aprovado, a loja recebe o pedido e esta tela avança para o acompanhamento.</p>
+    @if (loading()) {
+      <div class="notice-card" aria-live="polite">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <p>Carregando pagamento...</p>
+      </div>
+    } @else if (expired()) {
+      <section class="pix-card card expired-card" aria-labelledby="expired-title">
+        <span class="pix-mark expired" aria-hidden="true"><ion-icon name="time-outline"></ion-icon></span>
+        <h2 id="expired-title">Tempo para pagamento encerrado</h2>
+        <p>O prazo para pagar este Pix terminou. Você pode tentar novamente sem refazer o pedido.</p>
+        <button type="button" class="btn-primary pix-link" (click)="retryPayment()">
+          TENTAR NOVAMENTE
+        </button>
+      </section>
+    } @else if (isMock()) {
+      <section class="pix-card card" aria-labelledby="pix-title">
+        <span class="pix-mark" aria-hidden="true"><ion-icon name="qr-code-outline"></ion-icon></span>
+        <h2 id="pix-title">Pix simulado</h2>
+        <p>Aguarde: o pagamento será confirmado automaticamente em até 1 minuto. Não há cobrança real.</p>
+        <div class="countdown" role="timer" aria-live="polite">
+          <span class="countdown-label">Tempo restante</span>
+          <strong class="countdown-value">{{ countdownLabel() }}</strong>
+        </div>
+      </section>
+    } @else {
+      <section class="pix-card card" aria-labelledby="pix-title">
+        <span class="pix-mark" aria-hidden="true"><ion-icon name="lock-closed-outline"></ion-icon></span>
+        <h2 id="pix-title">Seu Pix está pronto</h2>
+        <p>Abra o link do gateway para pagar. Assim que o pagamento for aprovado, a loja recebe o pedido e esta tela avança para o acompanhamento.</p>
 
-      @if (payment()?.gatewayCheckoutUrl) {
-        <a class="btn-primary pix-link" [href]="payment()?.gatewayCheckoutUrl" target="_blank" rel="noopener noreferrer">
-          ABRIR PAGAMENTO PIX
-        </a>
-      }
-    </section>
+        @if (payment()?.gatewayCheckoutUrl) {
+          <a class="btn-primary pix-link" [href]="payment()?.gatewayCheckoutUrl" target="_blank" rel="noopener noreferrer">
+            ABRIR PAGAMENTO PIX
+          </a>
+        }
+      </section>
+    }
 
     <div class="notice-card">
       <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
@@ -53,8 +79,8 @@
 
 <app-sticky-action-bar
   icon="qr-code-outline"
-  [label]="loading() ? 'Carregando...' : 'Continuar'"
+  [label]="stickyLabel()"
   detail="Atualize o status do Pix"
   [disabled]="loading()"
-  (action)="refreshPayment()"
+  (action)="onStickyAction()"
 />

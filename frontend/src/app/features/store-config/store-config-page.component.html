@@ -39,13 +39,23 @@
             <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
           </button>
           <div class="form-grid">
-            <div class="form-field">
-              <label>Nome da loja</label>
-              <input class="input" type="text" placeholder="Ex: Burger House"
-                [ngModel]="storeName()" (ngModelChange)="onStoreNameChange($event)" name="storeName" required #storeNameRef="ngModel" />
-              @if (storeNameRef.touched && storeNameRef.invalid) {
-                <span class="field-error">O nome da loja é obrigatório.</span>
-              }
+            <div class="identity-grid">
+              <div class="form-field">
+                <label>Nome da loja</label>
+                <input class="input" type="text" placeholder="Ex: Burger House" maxlength="100"
+                  [ngModel]="storeName()" (ngModelChange)="onStoreNameChange($event)" name="storeName" required #storeNameRef="ngModel" />
+                @if (storeNameRef.touched && storeNameRef.invalid) {
+                  <span class="field-error">O nome da loja é obrigatório.</span>
+                }
+              </div>
+              <div class="form-field">
+                <label>Nome do contratante/lojista</label>
+                <input class="input" type="text" placeholder="Ex: João da Silva" maxlength="120"
+                  [ngModel]="contractorName()" (ngModelChange)="contractorName.set($event)" name="contractorName" required #contractorNameRef="ngModel" />
+                @if (contractorNameRef.touched && contractorNameRef.invalid) {
+                  <span class="field-error">O nome do contratante/lojista é obrigatório.</span>
+                }
+              </div>
             </div>
             <div class="form-field">
               <label>Categoria da Loja</label>
@@ -125,25 +135,10 @@
           </div>
         </div>
 
-        <!-- ═══ 2. Descrição da loja ═══ -->
-        <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().desc">
-          <button type="button" class="accordion-header" (click)="toggleSection('desc')" aria-expanded="false">
-            <h2 class="card-title">2. Descrição da loja</h2>
-            <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
-          </button>
-          <div class="form-grid">
-            <div class="form-field span-2">
-              <label>Descrição <span style="color: #9a9a9a; font-weight: 400;">({{ description().length }}/500)</span></label>
-              <textarea class="input" rows="4" placeholder="Conte um pouco sobre sua loja, especialidades..."
-                [ngModel]="description()" (ngModelChange)="description.set($event.slice(0, 500))" name="description" maxlength="500" style="resize: vertical; min-height: 100px; font-family: inherit;"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══ 3. Identidade visual ═══ -->
+        <!-- ═══ 2. Identidade visual ═══ -->
         <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().visual">
           <button type="button" class="accordion-header" (click)="toggleSection('visual')" aria-expanded="false">
-            <h2 class="card-title">3. Identidade visual</h2>
+            <h2 class="card-title">2. Identidade visual</h2>
             <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
           </button>
           <div class="visual-grid">
@@ -170,10 +165,10 @@
           </div>
         </div>
 
-        <!-- ═══ 4. Configuração rápida ═══ -->
+        <!-- ═══ 3. Configuração rápida ═══ -->
         <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().config">
           <button type="button" class="accordion-header" (click)="toggleSection('config')" aria-expanded="false">
-            <h2 class="card-title">4. Configuração rápida</h2>
+            <h2 class="card-title">3. Configuração rápida</h2>
             <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
           </button>
           <div class="config-grid">
@@ -228,17 +223,22 @@
           </div>
         </div>
 
-        <!-- ═══ 5. URL da loja ═══ -->
+        <!-- ═══ 4. URL da loja ═══ -->
         <div class="card accordion-section" [class.collapsed]="!sectionsExpanded().url">
           <button type="button" class="accordion-header" (click)="toggleSection('url')" aria-expanded="false">
-            <h2 class="card-title">5. URL da loja</h2>
+            <h2 class="card-title">4. URL da loja</h2>
             <ion-icon name="chevron-down-outline" class="accordion-chevron"></ion-icon>
           </button>
-          <div class="url-group">
+          <div class="url-group" [class.is-invalid]="storeUrlConflict() !== null || (storeUrlErrorVisible() && storeUrlError() !== null)">
             <div class="url-prefix">urbeat.com.br/</div>
             <input type="text" class="url-input" placeholder="minha-loja"
-              [ngModel]="storeUrl()" (ngModelChange)="storeUrl.set($event)" name="storeUrl" />
+              [ngModel]="storeUrl()" (ngModelChange)="onStoreUrlInput($event)" (blur)="onStoreUrlBlur()" name="storeUrl"
+              [attr.aria-invalid]="storeUrlConflict() !== null || (storeUrlErrorVisible() && storeUrlError() !== null)"
+              aria-describedby="store-url-error" />
           </div>
+          @if (storeUrlConflict() || (storeUrlErrorVisible() && storeUrlError())) {
+            <span class="field-error store-url-error" id="store-url-error" role="alert">{{ storeUrlConflict() ?? storeUrlError() }}</span>
+          }
           <div class="url-helper">Escolha o endereço do seu cardápio online</div>
         </div>
 

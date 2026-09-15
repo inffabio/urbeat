@@ -10,5 +10,7 @@ public sealed class UpdateStoreDeliveryConfigRequestDto
 
     public bool FreeShippingToday { get; init; }
 
+    public double? MaxDeliveryRadiusKm { get; init; }
+
     public IEnumerable<StoreDeliveryAreaDto>? DeliveryAreas { get; init; }
 }

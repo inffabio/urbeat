@@ -54,15 +54,42 @@
         </div>
         <section class="content-card free-shipping-card" [formGroup]="form">
           <h2>Frete grátis</h2>
-          <label class="free-shipping-toggle"><span><strong>Frete grátis hoje</strong><small>Ative para liberar frete grátis em todos os pedidos de hoje</small></span><input type="checkbox" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday()" /><span class="free-switch"></span></label>
+          <label class="free-shipping-toggle"><span><strong>Frete grátis hoje</strong><small>Ative para liberar frete grátis em todos os pedidos de hoje</small></span><input type="checkbox" [checked]="freeShippingToday()" (change)="toggleFreeShippingToday($event)" /><span class="free-switch"></span></label>
           @if (freeShippingToday()) { <div class="free-active-banner"><ion-icon name="checkmark-circle"></ion-icon><span>Todas as entregas de hoje estão com frete grátis. As taxas definidas acima não serão cobradas.</span></div> }
           <div class="free-divider"></div><h3>Frete grátis a partir de</h3><p>Defina o valor mínimo do pedido para o frete ser grátis.</p>
           <div class="free-field"><div class="inline-money"><span>R$</span><input class="form-control-app" formControlName="freeShippingThreshold" placeholder="Ex: 50,00" aria-label="Valor mínimo para frete grátis" (blur)="formatMoneyFreeShipping()" (input)="maskMoneyInput($event)" /></div><small>Pedidos iguais ou acima desse valor terão frete grátis.</small></div>
-          <div class="free-save-bar"><span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">@if (saveStatus() === 'saving') { Salvando frete grátis... } @else if (saveStatus() === 'saved') { Frete grátis salvo. } @else if (saveStatus() === 'error') { Não foi possível salvar. } @else { Salve as alterações antes de sair. }</span><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar frete grátis' }}</button></div>
+          <div class="free-save-bar"><span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">@if (saveStatus() === 'saving') { Salvando frete grátis... } @else if (saveStatus() === 'saved') { Frete grátis salvo. } @else if (saveStatus() === 'error') { Não foi possível salvar. } @else { Salve as alterações antes de sair. }</span><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar frete grátis' }}</button></div>
         </section>
       </div>
 
       <div class="col-12 col-xl-4">
+        <div class="content-card radius-card">
+          <h2>Alcance de entrega</h2>
+          <p class="radius-copy">Defina a distância máxima, em quilômetros, que sua loja atende.</p>
+          <label class="radius-field" for="delivery-radius">
+            <span class="form-label-app">Raio máximo</span>
+            <span class="radius-input-wrap">
+              <input id="delivery-radius" class="radius-input" type="number" min="1" step="1" inputmode="numeric"
+                [ngModel]="radiusInputValue()" (ngModelChange)="onDeliveryRadiusChange($event)"
+                [attr.aria-invalid]="radiusValidationError()" [attr.aria-describedby]="radiusDescribedBy()" />
+              <span class="radius-suffix">km</span>
+            </span>
+          </label>
+          @if (radiusValidationError()) {
+            <span class="radius-error" id="delivery-radius-error" role="alert">Informe um raio maior que zero.</span>
+          } @else {
+            <span class="radius-hint" id="delivery-radius-hint">{{ filteredNeighborhoods().length }} bairros disponíveis</span>
+          }
+          @if (radiusPreviewError()) {
+            <span class="radius-error" id="delivery-radius-preview-error" role="alert">{{ radiusPreviewErrorMessage }}</span>
+          }
+          @if (isRadiusUpdating()) {
+            <span class="radius-pending">Atualizando bairros...</span>
+          } @else if (formDirty()) {
+            <span class="radius-pending">Alterações pendentes de salvar.</span>
+          }
+        </div>
+
         @for (entry of editorEntry(); track entry.index) {
           @let area = entry.group;
           <div class="content-card area-editor area-enter" [formGroup]="area">
@@ -74,7 +101,7 @@
             </div>
             <label class="area-active-row" for="area-active"><span><strong>Atender este bairro</strong><small>O bairro aparece para os clientes no checkout.</small></span><input id="area-active" type="checkbox" formControlName="isActive" /><span class="area-switch"></span></label>
             <div class="mb-3"><label class="form-label-app" for="area-notes">Observações</label><textarea id="area-notes" class="form-control-app notes-input" formControlName="notes" maxlength="100"></textarea><div class="text-end small text-secondary fw-bold mt-1">{{ (area.value.notes || '').length }}/100</div></div>
-            <div class="editor-actions"><button type="button" class="btn btn-outline-primary btn-outline-app" (click)="cancelChanges()">Cancelar</button><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar alterações' }}</button></div>
+            <div class="editor-actions"><button type="button" class="btn btn-outline-primary btn-outline-app" (click)="cancelChanges()">Cancelar</button><button type="button" class="btn btn-primary btn-primary-app btn-orange" (click)="saveDraft()" [disabled]="isSaving() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()">{{ isSaving() ? 'Salvando...' : 'Salvar alterações' }}</button></div>
           </div>
         }
 

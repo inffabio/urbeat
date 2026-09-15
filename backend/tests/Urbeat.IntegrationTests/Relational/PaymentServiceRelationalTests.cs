@@ -72,7 +72,7 @@ public sealed class PaymentServiceRelationalTests
 
             var strategy = new MercadoPagoOrderPaymentStrategy(sutContext, adapterMock.Object);
             var factory = new OrderPaymentStrategyFactory([strategy]);
-            var sut = new PaymentService(sutContext, new EfUnitOfWork(sutContext), factory);
+            var sut = new PaymentService(sutContext, new EfUnitOfWork(sutContext), factory, new SystemClock());
 
             var request = new CreateOrderPaymentRequestDto { OrderId = order.Id };
 

@@ -47,6 +47,18 @@ export interface ProductWeightConfig {
 
 export interface ProductOptionGroup {
   id?: string;
+  templateId?: string;
+  name: string;
+  isRequired: boolean;
+  choiceType: 'single' | 'multiple';
+  minChoices: number;
+  maxChoices: number;
+  displayOrder: number;
+  items: ProductOptionItem[];
+}
+
+export interface ProductOptionGroupTemplate {
+  id: string;
   name: string;
   isRequired: boolean;
   choiceType: 'single' | 'multiple';

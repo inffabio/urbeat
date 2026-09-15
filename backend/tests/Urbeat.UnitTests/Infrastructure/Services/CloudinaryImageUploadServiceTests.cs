@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
+﻿using System.IO;
 using FluentAssertions;
 using Urbeat.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
@@ -17,7 +12,6 @@ public class CloudinaryImageUploadServiceTests
 {
     private readonly Mock<IOptions<CloudinaryOptions>> _optionsMock;
     private readonly Mock<ILogger<CloudinaryImageUploadService>> _loggerMock;
-    private readonly Mock<Cloudinary> _cloudinaryMock;
 
     public CloudinaryImageUploadServiceTests()
     {
@@ -30,11 +24,6 @@ public class CloudinaryImageUploadServiceTests
         });
 
         _loggerMock = new Mock<ILogger<CloudinaryImageUploadService>>();
-        
-        // We can't easily mock Cloudinary itself as it's a sealed class in some contexts or has complex internals,
-        // but we can test the parameter construction or use a real instance with mocked dependencies if needed.
-        // For this test, we'll verify the service can be instantiated and the options are read correctly.
-        _cloudinaryMock = new Mock<Cloudinary>();
     }
 
     [Fact]
@@ -48,25 +37,42 @@ public class CloudinaryImageUploadServiceTests
     }
 
     [Fact]
-    public async Task UploadAsync_ShouldApplyOptimizationTransformations()
+    public void BuildUploadParams_ShouldConfigureUploadWithoutContactingCloudinary()
     {
         // Arrange
-        var service = new CloudinaryImageUploadService(_optionsMock.Object, _loggerMock.Object);
-        
-        // We will use a real Cloudinary instance but with invalid credentials to test parameter construction.
-        // Alternatively, we can use Moq to verify the UploadAsync call if we wrap Cloudinary in an interface,
-        // but since CloudinaryDotNet is a third-party library, we'll test the integration conceptually 
-        // or rely on the fact that the code compiles and the Transformation object is correctly chained.
-        
-        // For a pure unit test, we'd mock the ICloudinary interface. Since we don't have one, 
-        // we'll assert that the service throws a Cloudinary exception (due to bad credentials) 
-        // rather than a null reference, proving the parameters were constructed.
-        
         using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
-        
-        // Act & Assert
-        // We expect it to fail due to invalid credentials, but NOT due to null transformation.
-        await Assert.ThrowsAnyAsync<Exception>(async () => 
-            await service.UploadAsync(stream, "test.jpg", "test-folder", CancellationToken.None));
+
+        // Act
+        var parameters = CloudinaryImageUploadService.BuildUploadParams(stream, "test.jpg", "test-folder");
+
+        // Assert
+        parameters.Folder.Should().Be("test-folder");
+        parameters.UseFilename.Should().BeTrue();
+        parameters.UniqueFilename.Should().BeTrue();
+        parameters.Overwrite.Should().BeFalse();
+        parameters.File.Should().NotBeNull();
+        parameters.File.FileName.Should().Be("test.jpg");
+        parameters.File.Stream.Should().BeSameAs(stream);
+        parameters.Transformation.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void BuildIncomingTransformation_ShouldNotUseDeliveryOnlyParameters()
+    {
+        // Act
+        var transformation = CloudinaryImageUploadService.BuildIncomingTransformation();
+        var serialized = transformation.ToString();
+
+        // Assert
+        // The incoming transformation must only normalize resolution and quality. An isolated
+        // q_auto is allowed because quality normalization can be resolved at upload time, while
+        // delivery-only parameters (f_auto, dpr_auto) are forbidden because they depend on the
+        // requesting browser and, when baked into the stored asset, produce a broken/black image.
+        serialized.Should().Contain("c_limit");
+        serialized.Should().Contain("w_1920");
+        serialized.Should().Contain("h_1920");
+        serialized.Should().Contain("q_auto");
+        serialized.Should().NotContain("f_auto");
+        serialized.Should().NotContain("dpr_auto");
     }
 }

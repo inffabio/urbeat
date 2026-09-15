@@ -18,8 +18,6 @@ public sealed class StoreResponseDto
 
     public string? WebsiteUrl { get; init; }
 
-    public string Description { get; init; } = string.Empty;
-
     public string CuisineType { get; init; } = string.Empty;
 
     public string? BannerUrl { get; init; }
@@ -27,6 +25,8 @@ public sealed class StoreResponseDto
     public string? LogoUrl { get; init; }
 
     public bool IsOpen { get; init; }
+
+    public bool IsPublished { get; init; }
 
     public bool IsOpenNow { get; set; }
 
@@ -47,7 +47,12 @@ public sealed class StoreResponseDto
 
     public decimal? FreeShippingThreshold { get; init; }
 
-    public bool FreeShippingToday { get; init; }
+    public bool FreeShippingToday { get; set; }
+
+    // Internal mapping aid: the local date the daily promotion was enabled on. Never serialized;
+    // the API exposes only the effective FreeShippingToday boolean.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DateOnly? FreeShippingTodayDate { get; set; }
 
     public IEnumerable<StoreDeliveryAreaDto> DeliveryAreas { get; set; } = Array.Empty<StoreDeliveryAreaDto>();
 

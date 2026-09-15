@@ -20,10 +20,19 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519",
 
     [Parameter(Mandatory=$false)]
-    [string]$AppDir = "/opt/urbeat"
+    [string]$AppDir = "/opt/urbeat",
+
+    # Explicitly allow shipping a dirty working tree (local snapshot).
+    [Parameter(Mandatory=$false)]
+    [switch]$AllowDirty,
+
+    # Require git HEAD to match this commit (full or >=7-char prefix).
+    [Parameter(Mandatory=$false)]
+    [string]$ExpectedCommit
 )
 
 . (Join-Path $PSScriptRoot "oci-ssh.ps1")
+. (Join-Path $PSScriptRoot "deploy-manifest.ps1")
 
 Write-Host "🚀 Deploying Urbeat Application Stack..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
@@ -33,6 +42,26 @@ $resolvedKeyPath = (Resolve-Path $SSHKeyPath -ErrorAction SilentlyContinue).Path
 if (-not $resolvedKeyPath) {
     $resolvedKeyPath = Resolve-Path "$env:USERPROFILE\.ssh\id_rsa" -ErrorAction SilentlyContinue
 }
+
+# ─────────────────────────────────────────
+# Validate the source revision BEFORE any config/upload
+# ─────────────────────────────────────────
+
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+
+try {
+    $sourceState = Assert-DeploySource -ProjectRoot $projectRoot -AllowDirty:$AllowDirty -ExpectedCommit $ExpectedCommit
+} catch {
+    Write-Host "❌ Deployment source validation failed: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "🔖 Deploy source origin:" -ForegroundColor Cyan
+Write-Host "   projectRoot : $($sourceState.ProjectRoot)" -ForegroundColor Gray
+Write-Host "   commit      : $($sourceState.Commit)" -ForegroundColor Gray
+Write-Host "   branch      : $($sourceState.Branch)" -ForegroundColor Gray
+Write-Host "   dirty       : $($sourceState.Dirty)$(if ($sourceState.Dirty) { " (explicitly allowed via -AllowDirty)" })" -ForegroundColor Gray
+Write-Host "   expected    : $(if ([string]::IsNullOrWhiteSpace($ExpectedCommit)) { '<not specified>' } else { $ExpectedCommit })" -ForegroundColor Gray
 
 # ─────────────────────────────────────────
 # Generate docker-compose.yml
@@ -365,26 +394,32 @@ function Upload-FileToServer {
     )
 
     $tempFile = [System.IO.Path]::GetTempFileName()
-    # Convert CRLF to LF and write as UTF-8 without BOM for Linux compatibility
-    $cleanContent = $Content -replace "`r`n", "`n"
-    [System.IO.File]::WriteAllText($tempFile, $cleanContent, [System.Text.UTF8Encoding]::new($false))
+    try {
+        # Convert CRLF to LF and write as UTF-8 without BOM for Linux compatibility
+        $cleanContent = $Content -replace "`r`n", "`n"
+        [System.IO.File]::WriteAllText($tempFile, $cleanContent, [System.Text.UTF8Encoding]::new($false))
 
-    Write-Host "  📄 Uploading: $FileName" -ForegroundColor White -NoNewline
+        Write-Host "  📄 Uploading: $FileName" -ForegroundColor White -NoNewline
 
         $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
         $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-    Send-PortKnock -ServerIP $ServerIP
-    scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+        Send-PortKnock -ServerIP $ServerIP
+        scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host " ❌" -ForegroundColor Red
+            throw "Failed to upload $FileName (scp exit code $LASTEXITCODE). Aborting deployment."
+        }
 
-    if ($LASTEXITCODE -eq 0) {
         Send-PortKnock -ServerIP $ServerIP
         ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mv /tmp/$FileName $RemotePath/$FileName && sudo chown ${SSHUser}:${SSHUser} $RemotePath/$FileName"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host " ❌" -ForegroundColor Red
+            throw "Failed to install $FileName on the server (ssh exit code $LASTEXITCODE). Aborting deployment."
+        }
         Write-Host " ✅" -ForegroundColor Green
-    } else {
-        Write-Host " ❌" -ForegroundColor Red
+    } finally {
+        Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
     }
-
-    Remove-Item $tempFile -Force
 }
 
 # Create postgres config directory
@@ -405,7 +440,7 @@ Upload-FileToServer -Content $postgresInit -RemotePath "$AppDir/configs/postgres
 
 Write-Host "`n📦 Preparing and uploading source code for local build..." -ForegroundColor Yellow
 
-$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+# $projectRoot was resolved and validated at the top of this script.
 $backendDir = Join-Path $projectRoot "backend"
 $frontendDir = Join-Path $projectRoot "frontend"
 $downloadsDir = Join-Path $projectRoot "downloads"
@@ -415,66 +450,120 @@ $frontendTar = [System.IO.Path]::GetTempFileName() + ".tar.gz"
 $downloadsTar = [System.IO.Path]::GetTempFileName() + ".tar.gz"
 
 # Compress directories using tar (more reliable than zip on Linux)
+function New-SourceArchive {
+    param(
+        [Parameter(Mandatory=$true)][string]$ArchivePath,
+        [Parameter(Mandatory=$true)][string]$SourcePath,
+        [Parameter(Mandatory=$false)][string[]]$ExcludePatterns = @()
+    )
+
+    $tarArgs = @("-czf", $ArchivePath)
+    foreach ($pattern in $ExcludePatterns) {
+        $tarArgs += "--exclude=$pattern"
+    }
+    $tarArgs += @("-C", $projectRoot, $SourcePath)
+
+    & tar @tarArgs
+    if ($LASTEXITCODE -ne 0) {
+        Remove-Item -LiteralPath $ArchivePath -Force -ErrorAction SilentlyContinue
+        throw "Failed to compress '$SourcePath' into '$ArchivePath' (tar exit code $LASTEXITCODE). Aborting deployment before upload."
+    }
+}
+
 Write-Host "  🗜️  Compressing backend..." -ForegroundColor White
-& tar -czf $backendTar `
-    --exclude="backend/**/bin" `
-    --exclude="backend/**/obj" `
-    --exclude="backend/**/TestResults" `
-    --exclude="backend/**/*.md" `
-    --exclude="backend/**/*.txt" `
-    --exclude="backend/**/*.pdf" `
-    --exclude="backend/**/*.doc" `
-    --exclude="backend/**/*.docx" `
-    -C $projectRoot "backend"
+New-SourceArchive -ArchivePath $backendTar -SourcePath "backend" -ExcludePatterns @(
+    "*/.vs",
+    "*/bin",
+    "*/obj",
+    "*/TestResults",
+    "backend/**/*.md",
+    "backend/**/*.txt",
+    "backend/**/*.pdf",
+    "backend/**/*.doc",
+    "backend/**/*.docx"
+)
 
 Write-Host "  🗜️  Compressing frontend..." -ForegroundColor White
-& tar -czf $frontendTar `
-    --exclude="frontend/node_modules" `
-    --exclude="frontend/.angular" `
-    --exclude="frontend/dist" `
-    --exclude="frontend/coverage" `
-    --exclude="frontend/**/*.md" `
-    --exclude="frontend/**/*.txt" `
-    --exclude="frontend/**/*.pdf" `
-    --exclude="frontend/**/*.doc" `
-    --exclude="frontend/**/*.docx" `
-    -C $projectRoot "frontend"
+New-SourceArchive -ArchivePath $frontendTar -SourcePath "frontend" -ExcludePatterns @(
+    "frontend/node_modules",
+    "frontend/.angular",
+    "frontend/dist",
+    "frontend/coverage",
+    "frontend/**/*.md",
+    "frontend/**/*.txt",
+    "frontend/**/*.pdf",
+    "frontend/**/*.doc",
+    "frontend/**/*.docx"
+)
 
 Write-Host "  🗜️  Compressing downloads..." -ForegroundColor White
-& tar -czf $downloadsTar -C $projectRoot "downloads"
+New-SourceArchive -ArchivePath $downloadsTar -SourcePath "downloads"
 
-# Upload tars using scp (with strict timeouts to prevent Windows hangs)
-Write-Host "  📤 Uploading backend source (this may take a minute)..." -ForegroundColor White
-$sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
+# ─────────────────────────────────────────
+# Build the deployment manifest (no file contents, no secrets)
+# ─────────────────────────────────────────
 
-Write-Host "  📤 Uploading frontend source (this may take a minute)..." -ForegroundColor White
-Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
+$manifestTemp = [System.IO.Path]::GetTempFileName() + ".json"
+$manifest = New-DeploymentManifest -SourceState $sourceState -Artifacts @{
+    backendArchiveSha256   = Get-FileSha256 -Path $backendTar
+    frontendArchiveSha256  = Get-FileSha256 -Path $frontendTar
+    downloadsArchiveSha256 = Get-FileSha256 -Path $downloadsTar
+}
+Write-DeploymentManifest -Manifest $manifest -Path $manifestTemp
+Write-Host "  🧾 Deployment manifest prepared (commit $($manifest.commit), dirty=$($manifest.dirty))" -ForegroundColor White
 
-Write-Host "  📤 Uploading download packages..." -ForegroundColor White
-Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $downloadsTar "${SSHUser}@${ServerIP}:/tmp/downloads.tar.gz" | Out-Null
+try {
+    # Upload tars using scp (with strict timeouts to prevent Windows hangs)
+    $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
+    $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 
-# Extract on server
-Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
-Send-PortKnock -ServerIP $ServerIP
-ssh @sshOpts "${SSHUser}@${ServerIP}" "
-    sudo rm -rf $AppDir/backend $AppDir/frontend
-    sudo mkdir -p $AppDir/backend $AppDir/frontend
-    sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
-    sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
-    sudo rm -rf $AppDir/downloads
-    sudo tar -xzf /tmp/downloads.tar.gz -C $AppDir
-    sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend $AppDir/downloads
-    rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz /tmp/downloads.tar.gz
-    echo '✅ Source code extracted successfully'
-"
+    Write-Host "  📤 Uploading backend source (this may take a minute)..." -ForegroundColor White
+    Send-PortKnock -ServerIP $ServerIP
+    scp @scpOpts $backendTar "${SSHUser}@${ServerIP}:/tmp/backend.tar.gz" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to upload backend.tar.gz (scp exit code $LASTEXITCODE). Aborting deployment." }
 
-Remove-Item $backendTar -Force
-Remove-Item $frontendTar -Force
-Remove-Item $downloadsTar -Force
+    Write-Host "  📤 Uploading frontend source (this may take a minute)..." -ForegroundColor White
+    Send-PortKnock -ServerIP $ServerIP
+    scp @scpOpts $frontendTar "${SSHUser}@${ServerIP}:/tmp/frontend.tar.gz" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to upload frontend.tar.gz (scp exit code $LASTEXITCODE). Aborting deployment." }
+
+    Write-Host "  📤 Uploading download packages..." -ForegroundColor White
+    Send-PortKnock -ServerIP $ServerIP
+    scp @scpOpts $downloadsTar "${SSHUser}@${ServerIP}:/tmp/downloads.tar.gz" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to upload downloads.tar.gz (scp exit code $LASTEXITCODE). Aborting deployment." }
+
+    Write-Host "  📤 Uploading deployment manifest..." -ForegroundColor White
+    Send-PortKnock -ServerIP $ServerIP
+    scp @scpOpts $manifestTemp "${SSHUser}@${ServerIP}:/tmp/deployment-manifest.json" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to upload deployment-manifest.json (scp exit code $LASTEXITCODE). Aborting deployment." }
+
+    # Extract on server
+    Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
+    Send-PortKnock -ServerIP $ServerIP
+    ssh @sshOpts "${SSHUser}@${ServerIP}" "
+        sudo rm -rf $AppDir/backend $AppDir/frontend
+        sudo mkdir -p $AppDir/backend $AppDir/frontend
+        sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
+        sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
+        sudo rm -rf $AppDir/downloads
+        sudo tar -xzf /tmp/downloads.tar.gz -C $AppDir
+        sudo mv /tmp/deployment-manifest.json $AppDir/deployment-manifest.json
+        sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend $AppDir/downloads
+        sudo chown ${SSHUser}:${SSHUser} $AppDir/deployment-manifest.json
+        rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz /tmp/downloads.tar.gz
+        echo '✅ Source code extracted successfully'
+        echo '--- deployment manifest ---'
+        cat $AppDir/deployment-manifest.json
+        echo ''
+        echo '---------------------------'
+    "
+    if ($LASTEXITCODE -ne 0) { throw "Remote extraction failed (ssh exit code $LASTEXITCODE). Aborting deployment." }
+} finally {
+    Remove-Item -LiteralPath $backendTar -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $frontendTar -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $downloadsTar -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $manifestTemp -Force -ErrorAction SilentlyContinue
+}
 
 # ─────────────────────────────────────────
 # Deploy application
@@ -488,6 +577,10 @@ set -e
 
 echo "🚀 Starting Urbeat deployment..."
 cd $AppDir
+
+echo "📋 Deployment manifest:"
+cat $AppDir/deployment-manifest.json 2>/dev/null || echo "   (manifest not found)"
+echo ""
 
 echo "🔨 Building Docker images (aarch64)..."
 docker compose build --no-cache
@@ -542,12 +635,17 @@ $cleanScript = $deployScript -replace "`r`n", "`n"
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
-Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $tempDeploy "${SSHUser}@${ServerIP}:/tmp/deploy.sh" | Out-Null
-Send-PortKnock -ServerIP $ServerIP
-ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/deploy.sh && /tmp/deploy.sh && rm /tmp/deploy.sh"
+try {
+    Send-PortKnock -ServerIP $ServerIP
+    scp @scpOpts $tempDeploy "${SSHUser}@${ServerIP}:/tmp/deploy.sh" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to upload deploy.sh (scp exit code $LASTEXITCODE). Aborting deployment." }
 
-Remove-Item $tempDeploy -Force
+    Send-PortKnock -ServerIP $ServerIP
+    ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/deploy.sh && /tmp/deploy.sh && rm /tmp/deploy.sh"
+    if ($LASTEXITCODE -ne 0) { throw "Remote docker compose deployment failed (ssh exit code $LASTEXITCODE)." }
+} finally {
+    Remove-Item -LiteralPath $tempDeploy -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 Write-Host "🎉 Application deployment completed!" -ForegroundColor Green

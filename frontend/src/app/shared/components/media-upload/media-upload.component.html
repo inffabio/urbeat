@@ -4,6 +4,8 @@
     type="file"
     [accept]="acceptedMimeTypes"
     [disabled]="disabled()"
+    [attr.aria-describedby]="errorMessage() ? errorId : null"
+    [attr.aria-invalid]="errorMessage() ? 'true' : null"
     (change)="onFileSelected($event)"
     hidden
   />
@@ -23,7 +25,10 @@
       <ion-icon name="cloud-upload-outline" class="upload-icon" aria-hidden="true"></ion-icon>
       <strong class="upload-title">{{ emptyTitle() }}</strong>
       <span class="upload-hint">Clique para selecionar um arquivo</span>
-       <span class="upload-formats">Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.</span>
+      <span class="upload-formats">Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.</span>
+      @if (kind() === 'banner') {
+        <span class="upload-formats">Dimensão recomendada: 1200 x 400 px.</span>
+      }
       <span class="upload-formats">Até {{ maxSizeLabel() }}.</span>
     }
   </button>
@@ -36,6 +41,6 @@
   }
 
   @if (errorMessage(); as error) {
-    <p class="upload-error" role="alert">{{ error }}</p>
+    <p class="upload-error" role="alert" [id]="errorId">{{ error }}</p>
   }
 </div>

@@ -94,6 +94,11 @@ public sealed class MercadoPagoOrderPaymentStrategy : IOrderPaymentStrategy
         payment.GatewayTransactionId = gatewayCheckout.TransactionId;
         payment.GatewayCheckoutUrl = gatewayCheckout.CheckoutUrl;
         payment.RawPayload = gatewayCheckout.RawPayload;
+        // A reused Payment row must never leak mock Pix simulation metadata into a real gateway
+        // attempt (e.g. when the provider configuration changed or a retry reuses the same row).
+        payment.MockExpiresAtUtc = null;
+        payment.MockApprovalAtUtc = null;
+        payment.MockOutcome = null;
         payment.MarkAsUpdated();
 
         if (existingPayment is null)

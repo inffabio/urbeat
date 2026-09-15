@@ -59,8 +59,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Teste",
+            Slug = "loja-teste",
             PhoneNumber = "11999999999",
-            Description = "Loja para teste de cadastro",
             CuisineType = "Pizza",
             MaxDeliveryRadiusKm = 5,
         });
@@ -103,8 +103,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Primeira Loja",
+            Slug = "primeira-loja",
             PhoneNumber = "11999990000",
-            Description = "Primeira loja do vendedor",
             CuisineType = "Lanches",
             MaxDeliveryRadiusKm = 5,
         });
@@ -112,8 +112,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         var secondCreateResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Segunda Loja",
+            Slug = "segunda-loja",
             PhoneNumber = "11999991111",
-            Description = "Tentativa inválida de segunda loja",
             CuisineType = "Japonesa",
             MaxDeliveryRadiusKm = 5,
         });
@@ -153,8 +153,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Sem Culinaria Valida",
+            Slug = "loja-sem-culinaria-valida",
             PhoneNumber = "11991112222",
-            Description = "Teste de culinaria invalida",
             CuisineType = "NaoExiste",
             MaxDeliveryRadiusKm = 5,
         });

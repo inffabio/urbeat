@@ -249,7 +249,7 @@
                     <div class="upload-dashed" (click)="triggerFileInput()"><ion-icon name="cloud-upload-outline"></ion-icon> Clique para enviar imagem</div>
                   }
                 </div>
-                <input #fileInput type="file" accept="image/png,image/jpeg,image/webp" class="hidden-file-input" (change)="onImageSelected($event)" />
+                <input #fileInput type="file" [accept]="imageAccept" class="hidden-file-input" (change)="onImageSelected($event)" />
               </div>
             </div>
           </div>
@@ -288,13 +288,28 @@
         <button class="add-row-btn" (click)="addOptionGroup()">+ Adicionar grupo</button>
       </div>
 
+      @if (availableOptionGroups().length) {
+        <div class="saved-groups">
+          <p class="saved-groups-title">Grupos salvos</p>
+          <div class="saved-groups-list">
+            @for (saved of availableOptionGroups(); track saved.id) {
+              <label class="saved-group-item" [class.selected]="isOptionGroupTemplateSelected(saved.id)">
+                <input type="checkbox" [checked]="isOptionGroupTemplateSelected(saved.id)" (change)="toggleOptionGroupTemplate(saved)" [attr.aria-label]="'Usar grupo ' + saved.name" />
+                <span class="saved-group-name">{{ saved.name }}</span>
+                <span class="saved-group-meta">{{ saved.items.length }} {{ saved.items.length === 1 ? 'item' : 'itens' }} &middot; {{ saved.choiceType === 'single' ? 'Escolha única' : 'Múltipla escolha' }} &middot; {{ saved.isRequired ? 'Obrigatório' : 'Opcional' }}</span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+
       @if (optionGroups().length) {
         <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderGroups($any($event))" class="og-list">
           @for (group of optionGroups(); track group.id; let idx = $index) {
             <div class="option-group" [class.expanded]="expandedGroupId() === group.id">
               <div class="og-head">
                 <ion-reorder class="og-drag"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
-               <h3 class="og-heading" (click)="toggleGroupExpanded(group.id!)">Grupo de opções {{ idx + 1 }}</h3>
+               <h3 class="og-heading" (click)="toggleGroupExpanded(group.id!)">{{ group.name || ('Grupo ' + (idx + 1)) }}</h3>
                 <button class="og-remove" (click)="removeOptionGroup(group.id!)">Remover grupo</button>
               </div>
 
@@ -357,6 +372,8 @@
       } @else {
          <div class="empty-state">Nenhum grupo de opções adicionado.</div>
       }
+
+      <button class="add-item-btn add-group-btn" (click)="addOptionGroup()">+ Adicionar grupo</button>
     </section>
 
     <section class="block-section">

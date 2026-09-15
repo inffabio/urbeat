@@ -84,6 +84,12 @@ export class SellerShellFacade {
     }
   }
 
+  mergeStore(store: StoreResponse): void {
+    this.store.set(store);
+    this.scheduleStoreStatusRefresh(store);
+    if (store.logoUrl) this.printing.setLogoUrl(store.logoUrl);
+  }
+
   async enableSound(): Promise<void> {
     await this.sound.enable();
   }

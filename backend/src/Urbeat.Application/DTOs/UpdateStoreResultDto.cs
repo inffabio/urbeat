@@ -10,5 +10,7 @@ public sealed class UpdateStoreResultDto
 
     public bool InvalidCuisineType { get; init; }
 
+    public bool SlugConflict { get; init; }
+
     public StoreResponseDto? Store { get; init; }
 }

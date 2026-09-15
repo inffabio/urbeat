@@ -191,8 +191,8 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja SignalR",
+            Slug = "loja-signalr",
             PhoneNumber = "11987770000",
-            Description = "Loja para eventos SignalR",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

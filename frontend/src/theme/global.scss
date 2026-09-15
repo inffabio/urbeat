@@ -29,6 +29,7 @@ ion-content {
 .app-shell {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--app-shell-bg);
   position: relative;
   overflow-x: hidden;
@@ -44,6 +45,16 @@ ion-content {
 ion-app:has(.urbeat-onboarding) {
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/* The store shell keeps the footer in normal flex flow after the routed
+   content. Every routed storefront page flexes to fill the space above the
+   footer instead of sizing itself against the viewport. */
+.store-route > router-outlet + * {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 @media (min-width: 900px) {

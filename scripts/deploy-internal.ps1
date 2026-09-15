@@ -20,11 +20,23 @@ param(
     [switch]$NoRebuild,
     [switch]$Down,
     [switch]$LogsOnly,
-    [switch]$SkipUpload
+    [switch]$SkipUpload,
+
+    # Explicitly allow shipping a dirty working tree (local snapshot).
+    [switch]$AllowDirty,
+
+    # Require git HEAD to match this commit (full or >=7-char prefix).
+    [string]$ExpectedCommit
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+
+. (Join-Path $PSScriptRoot "criarDeployOracleCloud\deploy-manifest.ps1")
+
+$sourceState = $null
+$manifest = $null
+$manifestFile = $null
 
 Write-Host "== Urbeat deploy (Servidor Interno) ==" -ForegroundColor Cyan
 Write-Host "Local root : $ProjectRoot"
@@ -58,6 +70,20 @@ Invoke-Ssh "mkdir -p $RemoteRoot && rm -rf $RemoteRoot/_incoming && mkdir -p $Re
 
 # ─── 2. Empacotar e enviar ──────────────────────────────────
 if (-not $SkipUpload) {
+    # Validate the source revision BEFORE bumping package.json or packaging.
+    try {
+        $sourceState = Assert-DeploySource -ProjectRoot $ProjectRoot -AllowDirty:$AllowDirty -ExpectedCommit $ExpectedCommit
+    } catch {
+        Write-Host "❌ Deployment source validation failed: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "==> Origem do deploy:" -ForegroundColor Cyan
+    Write-Host "   projectRoot : $($sourceState.ProjectRoot)"
+    Write-Host "   commit      : $($sourceState.Commit)"
+    Write-Host "   branch      : $($sourceState.Branch)"
+    Write-Host "   dirty       : $($sourceState.Dirty)$(if ($sourceState.Dirty) { ' (permitido via -AllowDirty)' })"
+
     Write-Host "==> Atualizando versão da aplicação..." -ForegroundColor Yellow
     $pkgPath = Join-Path $ProjectRoot "frontend\package.json"
     $pkg = Get-Content $pkgPath -Raw | ConvertFrom-Json
@@ -111,11 +137,25 @@ if (-not $SkipUpload) {
     $sz = [math]::Round((Get-Item $tarball).Length / 1MB, 2)
     Write-Host "  > tarball: $sz MB" -ForegroundColor DarkGray
 
-    Write-Host "==> Enviando via scp..." -ForegroundColor Yellow
-    & scp -o StrictHostKeyChecking=accept-new $tarball "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deploy.tar.gz"
-    if ($LASTEXITCODE -ne 0) { throw "scp falhou" }
+    $manifest = New-DeploymentManifest -SourceState $sourceState -Artifacts @{
+        packageSha256 = Get-FileSha256 -Path $tarball
+    }
+    $manifestFile = Join-Path $env:TEMP "urbeat-deployment-manifest-$(Get-Date -Format 'yyyyMMddHHmmss').json"
+    Write-DeploymentManifest -Manifest $manifest -Path $manifestFile
+    Write-Host "  > manifest: commit $($manifest.commit) branch $($manifest.branch) dirty $($manifest.dirty) sha256 $($manifest.artifacts.packageSha256)" -ForegroundColor DarkGray
 
-    Remove-Item $tarball -Force
+    try {
+        Write-Host "==> Enviando via scp..." -ForegroundColor Yellow
+        & scp -o StrictHostKeyChecking=accept-new $tarball "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deploy.tar.gz"
+        if ($LASTEXITCODE -ne 0) { throw "scp falhou" }
+
+        Write-Host "==> Enviando manifesto..." -ForegroundColor Yellow
+        & scp -o StrictHostKeyChecking=accept-new $manifestFile "${ServerUser}@${ServerHost}:${RemoteRoot}/_incoming/deployment-manifest.json"
+        if ($LASTEXITCODE -ne 0) { throw "scp do manifesto falhou" }
+    } finally {
+        Remove-Item -LiteralPath $tarball -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $manifestFile -Force -ErrorAction SilentlyContinue
+    }
 
     Write-Host "==> Extraindo no servidor..." -ForegroundColor Yellow
     $extractCmd = @"
@@ -127,8 +167,13 @@ rsync -a --delete _stage/backend/ ./backend/ 2>/dev/null || cp -rT _stage/backen
 rsync -a --delete _stage/frontend/ ./frontend/ 2>/dev/null || cp -rT _stage/frontend ./frontend
 rsync -a --delete _stage/docker/ ./docker/ 2>/dev/null || cp -rT _stage/docker ./docker
 rsync -a --delete _stage/scripts/ ./scripts/ 2>/dev/null || cp -rT _stage/scripts ./scripts
+mv _incoming/deployment-manifest.json ./deployment-manifest.json 2>/dev/null || true
 rm -rf _stage _incoming
 echo 'extracted'
+echo '--- deployment manifest ---'
+cat ./deployment-manifest.json 2>/dev/null || true
+echo ''
+echo '---------------------------'
 "@
     Invoke-Ssh $extractCmd
 
@@ -226,18 +271,17 @@ if ($ok) {
     Invoke-Ssh "docker logs --tail 60 urbeat_webapi 2>&1" -IgnoreExitCode
 }
 
-# ─── 5. Git commit & push ───────────────────────────────────
-Write-Host "==> Commitando e enviando para GitHub..." -ForegroundColor Yellow
-Push-Location $ProjectRoot
-try {
-    git add -A
-    git commit -m "deploy v$newVersion" --allow-empty
-    git push origin master
-    Write-Host "  > Push concluido." -ForegroundColor Green
-} catch {
-    Write-Host "AVISO: git push falhou. Verifique manualmente." -ForegroundColor Red
-} finally {
-    Pop-Location
+# ─── 5. Origem do deploy (Git NÃO é alterado por este script) ─
+Write-Host "==> Origem do deploy (Git não foi alterado por este script):" -ForegroundColor Yellow
+if ($null -ne $sourceState) {
+    Write-Host "   commit   : $($sourceState.Commit)"
+    Write-Host "   branch   : $($sourceState.Branch)"
+    Write-Host "   dirty    : $($sourceState.Dirty)"
+    if ($null -ne $manifest) {
+        Write-Host "   manifest : $RemoteRoot/deployment-manifest.json"
+    }
+} else {
+    Write-Host "   (upload ignorado via -SkipUpload; nenhuma validação de origem executada)"
 }
 
 # ─── 6. Status ──────────────────────────────────────────────

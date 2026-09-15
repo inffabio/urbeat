@@ -181,4 +181,44 @@ public sealed class CreateProductRequestDtoValidatorTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(x => x.PropertyName == nameof(CreateProductRequestDto.Description));
     }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldReturnInvalidResult_WhenOptionGroupTemplateIdsAreDuplicated()
+    {
+        var templateId = Guid.NewGuid();
+        var request = new CreateProductRequestDto
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Pizza",
+            Price = 30m,
+            ImageUrl = "https://example.com/image.jpg",
+            DisplayOrder = 0,
+            OptionGroups = new[]
+            {
+                new ProductOptionGroupDto
+                {
+                    Name = "Grupo A",
+                    ChoiceType = "multiple",
+                    MinChoices = 0,
+                    MaxChoices = 2,
+                    TemplateId = templateId,
+                    Items = new[] { new ProductOptionItemDto { Name = "Item", Price = 1m } },
+                },
+                new ProductOptionGroupDto
+                {
+                    Name = "Grupo B",
+                    ChoiceType = "multiple",
+                    MinChoices = 0,
+                    MaxChoices = 2,
+                    TemplateId = templateId,
+                    Items = new[] { new ProductOptionItemDto { Name = "Item", Price = 1m } },
+                },
+            },
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.PropertyName == nameof(CreateProductRequestDto.OptionGroups));
+    }
 }

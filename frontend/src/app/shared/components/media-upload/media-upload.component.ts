@@ -3,18 +3,11 @@ import { Component, computed, input, OnDestroy, output, signal } from '@angular/
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cloudUploadOutline, trashOutline } from 'ionicons/icons';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, imageSizeError, isAllowedImageFile } from '../../utils/image-upload.utils';
 
 type MediaKind = 'logo' | 'banner';
 
-const ACCEPTED_MIME_TYPES = [
-  'image/avif',
-  'image/png',
-  'image/svg+xml',
-  'image/webp',
-  'image/jpeg',
-] as const;
-
-const ACCEPTED_MIME_ATTRIBUTE = ACCEPTED_MIME_TYPES.join(',');
+let mediaUploadIdCounter = 0;
 
 addIcons({
   'cloud-upload-outline': cloudUploadOutline,
@@ -38,31 +31,37 @@ export class MediaUploadComponent implements OnDestroy {
   readonly fileRemoved = output<void>();
 
   readonly errorMessage = signal<string | null>(null);
+  readonly errorId = `media-upload-error-${++mediaUploadIdCounter}`;
   private readonly localPreviewUrl = signal<string | null>(null);
 
-  readonly acceptedMimeTypes = ACCEPTED_MIME_ATTRIBUTE;
+  readonly acceptedMimeTypes = IMAGE_ACCEPT_ATTRIBUTE;
   readonly maxSizeLabel = computed(() => this.kind() === 'logo' ? '2 MB' : '5 MB');
   readonly emptyTitle = computed(() => this.kind() === 'logo' ? 'Envie a logo da loja' : 'Envie o banner da loja');
   readonly effectivePreviewUrl = computed(() => this.localPreviewUrl() ?? this.previewUrl());
 
   onFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
 
     const maxBytes = this.kind() === 'logo' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
-    if (!ACCEPTED_MIME_TYPES.includes(file.type as (typeof ACCEPTED_MIME_TYPES)[number])) {
-      this.errorMessage.set('Formato não aceito. Use AVIF, PNG, SVG, WEBP, JPG ou JPEG.');
+    if (!isAllowedImageFile(file)) {
+      this.errorMessage.set(IMAGE_FORMAT_ERROR);
+      // Reset so selecting the same invalid file again still fires a change event.
+      input.value = '';
       return;
     }
 
     if (file.size > maxBytes) {
-      this.errorMessage.set(`O arquivo deve ter no máximo ${this.maxSizeLabel()}.`);
+      this.errorMessage.set(imageSizeError(this.maxSizeLabel()));
+      input.value = '';
       return;
     }
 
     this.revokeLocalPreview();
     this.localPreviewUrl.set(URL.createObjectURL(file));
     this.errorMessage.set(null);
+    input.value = '';
     this.fileSelected.emit(file);
   }
 

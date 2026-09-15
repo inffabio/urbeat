@@ -20,6 +20,7 @@ import {
   CustomerProfileResponse,
   UpdateCustomerProfileRequest,
   SellerProfileResponse,
+  UpdateSellerProfileRequest,
 } from '../../shared/models/auth.model';
 
 const TOKEN_KEY = 'urbeat_token';
@@ -47,6 +48,10 @@ export class AuthService {
 
   getSellerProfile(): Observable<SellerProfileResponse> {
     return this.api.get<SellerProfileResponse>('/api/seller/profile');
+  }
+
+  updateSellerProfile(request: UpdateSellerProfileRequest): Observable<SellerProfileResponse> {
+    return this.api.put<SellerProfileResponse>('/api/seller/profile', request);
   }
 
   login(req: LoginRequest): Observable<AuthTokenResponse> {

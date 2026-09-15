@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AlertController, ToastController } from '@ionic/angular';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -71,6 +71,40 @@ describe('SellerNeighborhoodsPageComponent', () => {
 
     expect(fixture.componentInstance.formDirty()).toBe(false);
     expect(fixture.componentInstance.areas.at(0).value.deliveryFee).toBe('5,00');
+  });
+
+  it('restores the persisted available neighborhood list when cancelling changes', () => {
+    storeServiceMock.getMyStore.mockReturnValue(of({
+      id: 'store-123',
+      maxDeliveryRadiusKm: 5,
+      deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+    }));
+    storeServiceMock.getStoreAddress.mockReturnValue(of({
+      city: 'Sao Paulo',
+      state: 'SP',
+      latitude: -23.5505,
+      longitude: -46.6333,
+    }));
+    const persisted = [
+      { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.55, longitude: -46.584 },
+    ];
+    storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of(persisted));
+
+    const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+    fixture.detectChanges();
+
+    storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValueOnce(of([
+      { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+    ]));
+    fixture.componentInstance.onDeliveryRadiusChange(3);
+    expect(fixture.componentInstance.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+
+    fixture.componentInstance.cancelChanges();
+
+    expect(fixture.componentInstance.maxDeliveryRadiusKm()).toBe(5);
+    expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenLastCalledWith('store-123', 5);
+    expect(fixture.componentInstance.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
   });
 
   describe('manual neighborhood in the selection modal', () => {
@@ -722,6 +756,215 @@ describe('SellerNeighborhoodsPageComponent', () => {
 
       expect(template).toContain('(ngModelChange)="setAreaSearchFilter($event)"');
       expect(template).toContain('(ngModelChange)="setAreaStatusFilter($event)"');
+    });
+  });
+
+  describe('dashboard free shipping card', () => {
+    it('keeps the complete free shipping card in the dashboard template', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      expect(template).toContain('Frete grátis hoje');
+      expect(template).toContain('[checked]="freeShippingToday()"');
+      expect(template).toContain('(change)="toggleFreeShippingToday($event)"');
+      expect(template).toContain('Frete grátis a partir de');
+      expect(template).toContain('formControlName="freeShippingThreshold"');
+      expect(template).toContain('(blur)="formatMoneyFreeShipping()"');
+    });
+
+    it('renders the free shipping controls through the dashboard component', () => {
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Frete grátis hoje');
+      expect(text).toContain('Frete grátis a partir de');
+      expect(fixture.nativeElement.querySelector('[formcontrolname="freeShippingThreshold"]')).toBeTruthy();
+    });
+
+    it('turns the promotion on from the native checkbox checked state', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', deliveryAreas: [], freeShippingToday: false }));
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('.free-shipping-toggle input') as HTMLInputElement;
+      input.checked = true;
+      input.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.freeShippingToday()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.free-active-banner')).toBeTruthy();
+    });
+
+    it('turns the promotion off from the native checkbox checked state', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', deliveryAreas: [], freeShippingToday: true }));
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('.free-shipping-toggle input') as HTMLInputElement;
+      input.checked = false;
+      input.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.freeShippingToday()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.free-active-banner')).toBeNull();
+    });
+
+    it('sends the exact current boolean when saving the free shipping card', async () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', deliveryAreas: [], freeShippingToday: true }));
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      await fixture.componentInstance.saveDraft();
+
+      const [, payload] = storeServiceMock.updateDeliveryConfig.mock.calls[0] as [string, any];
+      expect(payload.freeShippingToday).toBe(true);
+    });
+  });
+
+  describe('delivery radius card', () => {
+    it('renders the Alcance de entrega container with a numeric km input', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      expect(template).toContain('Alcance de entrega');
+      expect(template).toContain('type="number"');
+      expect(template).toContain('min="1"');
+      expect(template).toContain('step="1"');
+      expect(template).toContain('radius-suffix');
+      expect(template).toContain('(ngModelChange)="onDeliveryRadiusChange($event)"');
+    });
+
+    it('renders the radius card and the available neighborhood count through the dashboard component', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', maxDeliveryRadiusKm: 5, deliveryAreas: [] }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({ city: 'Sao Paulo', state: 'SP' }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([
+        { id: 'nb-a', neighborhood: 'Centro', city: 'Sao Paulo' },
+      ]));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Alcance de entrega');
+      expect(text).toContain('bairros disponíveis');
+    });
+
+    it('gives the radius input a 44px-plus touch target and responsive width', () => {
+      const styles = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.scss'), 'utf8');
+
+      expect(styles).toContain('.radius-input-wrap');
+      expect(styles).toContain('.radius-input');
+      expect(styles).toContain('min-height: 44px');
+      expect(styles).toContain('minmax(0, 1fr)');
+    });
+
+    it('points aria-describedby to an element that exists in both the hint and error states', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      expect(template).toContain('[attr.aria-describedby]="radiusDescribedBy()"');
+      expect(template).toContain('id="delivery-radius-error"');
+      expect(template).toContain('id="delivery-radius-hint"');
+      expect(template).toContain('id="delivery-radius-preview-error"');
+      expect(template).not.toContain('aria-describedby="delivery-radius-hint"');
+    });
+
+    it('describes the radius input with the preview-error element when a valid preview fails', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', maxDeliveryRadiusKm: 5, deliveryAreas: [] }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({ city: 'Sao Paulo', state: 'SP' }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([]));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(throwError(() => new Error('boom')));
+      fixture.componentInstance.onDeliveryRadiusChange(3);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#delivery-radius') as HTMLInputElement;
+      const describedBy = input.getAttribute('aria-describedby') ?? '';
+      expect(describedBy).toContain('delivery-radius-preview-error');
+      expect(describedBy).toContain('delivery-radius-hint');
+      expect(fixture.nativeElement.querySelector('#delivery-radius-preview-error')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#delivery-radius-hint')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#delivery-radius-error')).toBeNull();
+    });
+
+    it('describes the radius input with the invalid-radius element that exists when the value is invalid', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', maxDeliveryRadiusKm: 5, deliveryAreas: [] }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({ city: 'Sao Paulo', state: 'SP' }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([]));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      fixture.componentInstance.onDeliveryRadiusChange(0);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#delivery-radius') as HTMLInputElement;
+      expect(input.getAttribute('aria-describedby')).toBe('delivery-radius-error');
+      expect(fixture.nativeElement.querySelector('#delivery-radius-error')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#delivery-radius-hint')).toBeNull();
+    });
+
+    it('disables the dashboard save buttons while the radius preview is updating or failed', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      const disabledBindings = template.match(/\[disabled\]="isSaving\(\) \|\| isRadiusUpdating\(\) \|\| radiusPreviewError\(\) \|\| radiusValidationError\(\) \|\| !formDirty\(\)"/g) ?? [];
+      expect(disabledBindings.length).toBe(2);
+    });
+
+    it('blocks saving and disables the dashboard save buttons when the radius is invalid', async () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Centro', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({ city: 'Sao Paulo', state: 'SP' }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      fixture.componentInstance.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      fixture.componentInstance.onDeliveryRadiusChange(0);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.radiusValidationError()).toBe(true);
+      expect(fixture.componentInstance.formDirty()).toBe(true);
+
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+      const saveButtons = buttons.filter(button => button.textContent?.includes('Salvar'));
+      expect(saveButtons.length).toBeGreaterThan(0);
+      expect(saveButtons.every(button => button.disabled)).toBe(true);
+
+      await fixture.componentInstance.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+    });
+
+    it('surfaces a distinct preview-error message when a valid radius request fails', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-123', maxDeliveryRadiusKm: 5, deliveryAreas: [] }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({ city: 'Sao Paulo', state: 'SP' }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(throwError(() => new Error('boom')));
+      fixture.componentInstance.onDeliveryRadiusChange(3);
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(fixture.componentInstance.radiusPreviewError()).toBe(true);
+      expect(fixture.componentInstance.radiusValidationError()).toBe(false);
+      expect(text).toContain('Não foi possível atualizar os bairros para o novo raio. Tente novamente.');
+
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+      const saveButtons = buttons.filter(button => button.textContent?.includes('Salvar'));
+      expect(saveButtons.length).toBeGreaterThan(0);
+      expect(saveButtons.every(button => button.disabled)).toBe(true);
     });
   });
 });

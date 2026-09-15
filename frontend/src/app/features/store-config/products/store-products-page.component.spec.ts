@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StoreProductsPageComponent } from './store-products-page.component';
+import { ProductOptionGroupTemplate } from '../../../shared/models/product.model';
 import { StoreService } from '../../../core/services/store.service';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -26,6 +27,7 @@ describe('StoreProductsPageComponent — option groups', () => {
     getMyStore: jest.fn().mockReturnValue(of(null)),
     getStoreCategories: jest.fn().mockReturnValue(of([])),
     getStoreProducts: jest.fn().mockReturnValue(of([])),
+    getProductOptionGroupTemplates: jest.fn().mockReturnValue(of([])),
     createStoreCategory: jest.fn(),
     deleteStoreCategory: jest.fn(),
     createProduct: jest.fn(),
@@ -231,6 +233,138 @@ describe('StoreProductsPageComponent — option groups', () => {
       component.removeOptionGroup(id2);
       component.addOptionGroup();
       expect(component.optionGroups()[1].name).toBe('Grupo 3');
+    });
+  });
+
+  describe('reusable option group templates', () => {
+    const template = (overrides: Partial<ProductOptionGroupTemplate> = {}): ProductOptionGroupTemplate => ({
+      id: 'tpl-molho',
+      name: 'Escolha um molho',
+      isRequired: false,
+      choiceType: 'multiple',
+      minChoices: 0,
+      maxChoices: 2,
+      displayOrder: 1,
+      items: [
+        { id: 'tpl-item-1', name: 'Molho 1', price: 5, displayOrder: 1 },
+        { id: 'tpl-item-2', name: 'Molho 2', price: 5.5, displayOrder: 2 },
+      ],
+      ...overrides,
+    });
+
+    it('starts with no saved group selected on a new product', () => {
+      component.availableOptionGroups.set([template()]);
+      expect(component.isOptionGroupTemplateSelected('tpl-molho')).toBe(false);
+    });
+
+    it('marks associated templates as selected when editing an existing product', () => {
+      component.availableOptionGroups.set([template()]);
+      component.selectProduct(sampleProduct({
+        optionGroups: [
+          {
+            id: 'g1',
+            templateId: 'tpl-molho',
+            name: 'Escolha um molho',
+            isRequired: false,
+            choiceType: 'multiple',
+            minChoices: 0,
+            maxChoices: 2,
+            displayOrder: 1,
+            items: [{ id: 'i1', name: 'Molho 1', price: 5, displayOrder: 1 }],
+          },
+        ],
+      }));
+
+      expect(component.isOptionGroupTemplateSelected('tpl-molho')).toBe(true);
+    });
+
+    it('copies rules, items and prices with fresh local ids when selected', () => {
+      component.toggleOptionGroupTemplate(template());
+      const group = component.optionGroups()[0];
+      expect(group.templateId).toBe('tpl-molho');
+      expect(group.name).toBe('Escolha um molho');
+      expect(group.choiceType).toBe('multiple');
+      expect(group.minChoices).toBe(0);
+      expect(group.maxChoices).toBe(2);
+      expect(group.items.map(i => i.name)).toEqual(['Molho 1', 'Molho 2']);
+      expect(group.items.map(i => i.price)).toEqual([5, 5.5]);
+      expect(group.items[0].id).not.toBe('tpl-item-1');
+      expect(component.isOptionGroupTemplateSelected('tpl-molho')).toBe(true);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('removes only the product snapshot when deselected and keeps the reusable group', () => {
+      component.availableOptionGroups.set([template()]);
+      component.toggleOptionGroupTemplate(template());
+      component.toggleOptionGroupTemplate(template());
+      expect(component.optionGroups()).toHaveLength(0);
+      expect(component.availableOptionGroups()).toHaveLength(1);
+    });
+
+    it('does not duplicate the snapshot for the same template', () => {
+      component.toggleOptionGroupTemplate(template());
+      component.toggleOptionGroupTemplate(template({ id: 'tpl-borda', name: 'Borda' }));
+      expect(component.optionGroups().filter(g => g.templateId === 'tpl-molho')).toHaveLength(1);
+    });
+
+    it('keeps manually created groups selected with no template id', () => {
+      component.addOptionGroup();
+      expect(component.optionGroups()).toHaveLength(1);
+      expect(component.optionGroups()[0].templateId).toBeUndefined();
+    });
+
+    it('sends only selected groups with their template id on save', () => {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.availableOptionGroups.set([template(), template({ id: 'tpl-borda', name: 'Borda' })]);
+      component.toggleOptionGroupTemplate(template());
+      storeServiceMock.createProduct.mockReturnValue(of({ id: 'p1', optionGroups: [] }));
+
+      component.saveProduct();
+
+      const body = storeServiceMock.createProduct.mock.calls[0][1];
+      expect(body.optionGroups).toHaveLength(1);
+      expect(body.optionGroups[0].templateId).toBe('tpl-molho');
+    });
+
+    it('makes a newly persisted authored group available without reloading the page', () => {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.addOptionGroup();
+      component.updateGroupName(component.optionGroups()[0].id!, 'Escolha um molho');
+      component.addOptionItem(component.optionGroups()[0].id!);
+      component.updateOptionItemName(component.optionGroups()[0].id!, component.optionGroups()[0].items[0].id!, 'Molho 1');
+      storeServiceMock.createProduct.mockReturnValue(of({
+        id: 'p1',
+        optionGroups: [{
+          templateId: 'tpl-new',
+          name: 'Escolha um molho',
+          isRequired: false,
+          choiceType: 'multiple',
+          minChoices: 0,
+          maxChoices: 2,
+          displayOrder: 1,
+          items: [{ name: 'Molho 1', price: 5, displayOrder: 1 }],
+        }],
+      }));
+
+      component.saveProduct();
+
+      expect(component.availableOptionGroups().map(group => group.id)).toContain('tpl-new');
+    });
+
+    it('renders a checkbox before each saved group and the lower add-group button', () => {
+      const html = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+      expect(html).toContain('saved-group-item');
+      expect(html).toContain('toggleOptionGroupTemplate(saved)');
+      expect(html).toContain('add-group-btn');
+      expect(html).toContain('+ Adicionar grupo');
     });
   });
 
@@ -465,6 +599,110 @@ describe('StoreProductsPageComponent — option groups', () => {
       const priceIdx = styles.indexOf('.catalog-product-price');
       const priceBlock = styles.slice(priceIdx, styles.indexOf('.catalog-product-price-label', priceIdx + 1));
       expect(priceBlock).toContain('flex-direction: row;');
+    });
+  });
+
+  describe('product image upload', () => {
+    const fileEvent = (file: File): Event =>
+      ({ target: { files: [file], value: '' } } as unknown as Event);
+
+    const originalImage = window.Image;
+    const originalFileReader = window.FileReader;
+
+    beforeEach(() => {
+      storeServiceMock.uploadImage.mockReturnValue(of({ url: 'https://img.test/uploaded.png' }));
+    });
+
+    afterEach(() => {
+      window.Image = originalImage;
+      window.FileReader = originalFileReader;
+    });
+
+    it('uploads SVG originals without browser compression', async () => {
+      const file = new File(['<svg/>'], 'product.svg', { type: 'image/svg+xml' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'products');
+    });
+
+    it('uploads AVIF originals without browser compression', async () => {
+      const file = new File([new Uint8Array([1, 2, 3])], 'product.avif', { type: 'image/avif' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'products');
+    });
+
+    it('rejects unsupported formats before uploading', async () => {
+      const file = new File(['x'], 'product.gif', { type: 'image/gif' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).not.toHaveBeenCalled();
+      expect(toastMock.showError).toHaveBeenCalledWith(expect.stringContaining('Formato'));
+    });
+
+    it('rejects files above the documented 6 MB product limit', async () => {
+      const file = new File([new Uint8Array(6 * 1024 * 1024 + 1)], 'product.png', { type: 'image/png' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).not.toHaveBeenCalled();
+      expect(toastMock.showError).toHaveBeenCalledWith(expect.stringContaining('6 MB'));
+    });
+
+    it('falls back to the original file when the browser cannot decode it', async () => {
+      (window as unknown as { Image: unknown }).Image = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        width = 0;
+        height = 0;
+        set src(_value: string) {
+          this.onerror?.();
+        }
+      };
+      const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'product.png', { type: 'image/png' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'products');
+    });
+
+    it('falls back to the original file when FileReader fails', async () => {
+      (window as unknown as { FileReader: unknown }).FileReader = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        result: string | null = null;
+        readAsDataURL(_file: File) {
+          this.onerror?.();
+        }
+      };
+      const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'product.png', { type: 'image/png' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(file, 'products');
+    });
+
+    it('surfaces the backend message when the upload is rejected', async () => {
+      storeServiceMock.uploadImage.mockReturnValue(
+        throwError(() => ({ status: 400, error: { error: 'O arquivo de imagem é inválido ou está corrompido.' } })),
+      );
+      const file = new File(['<svg/>'], 'product.svg', { type: 'image/svg+xml' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(toastMock.showError).toHaveBeenCalledWith('O arquivo de imagem é inválido ou está corrompido.');
+    });
+
+    it('does not double-report 413 size errors because the interceptor owns the message', async () => {
+      storeServiceMock.uploadImage.mockReturnValue(throwError(() => ({ status: 413 })));
+      const file = new File(['<svg/>'], 'product.svg', { type: 'image/svg+xml' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(toastMock.showError).not.toHaveBeenCalled();
     });
   });
 

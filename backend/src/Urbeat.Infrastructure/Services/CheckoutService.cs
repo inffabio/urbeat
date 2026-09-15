@@ -2,6 +2,7 @@
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -149,7 +150,8 @@ public sealed class CheckoutService : ICheckoutService
         var deliveryFee = 0m;
         if (isDelivery)
         {
-            if (store.FreeShippingToday)
+            if (store.FreeShippingToday
+                && store.FreeShippingTodayDate == StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow))
             {
                 freeShippingApplied = true;
                 deliveryFee = 0m;

@@ -198,6 +198,19 @@ describe('errorInterceptor', () => {
       expect(trackingServiceMock.reset).not.toHaveBeenCalled();
     });
 
+    it('sends a seller on the wizard to login on session expiry so the next login routes by publication state', () => {
+      authServiceMock.getToken.mockReturnValue(encodeTokenPayload({ role: 'Seller' }));
+      refreshTokenSpy.mockReturnValue(throwError(() => new Error('Refresh failed')));
+      routerMock.url = '/configurar-loja/produtos';
+
+      httpClient.get('/api/stores/my-store').subscribe({ error: () => {} });
+
+      const req = httpMock.expectOne('/api/stores/my-store');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
+    });
+
     it('resolves pending requests with an error when the refresh fails', () => {
       let failRefresh: (err: unknown) => void = () => {};
       refreshTokenSpy.mockReturnValue(new Observable((subscriber) => {
@@ -259,6 +272,57 @@ describe('errorInterceptor', () => {
     it('should show generic server error message', () => {
       triggerError('/api/crash', 'Internal Server Error', 500);
       expect(toastServiceMock.showError).toHaveBeenCalledWith('Erro interno no servidor. Tente novamente mais tarde.');
+    });
+  });
+
+  describe('413 Payload Too Large', () => {
+    const uploadInfrastructureMessage =
+      'Não foi possível enviar o arquivo: ele excede o limite de upload do servidor. Reduza o tamanho da imagem e tente novamente.';
+
+    it('shows a clear upload infrastructure/size message for 413 on a logo upload', () => {
+      const formData = new FormData();
+      httpClient.post('/api/stores/upload-image?type=logo', formData).subscribe({ error: () => {} });
+      const req = httpMock.expectOne('/api/stores/upload-image?type=logo');
+      req.flush('Payload Too Large', { status: 413, statusText: 'Payload Too Large' });
+
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(uploadInfrastructureMessage);
+    });
+
+    it('does not falsely claim a 2 MB logo limit when the proxy rejects a logo upload', () => {
+      const formData = new FormData();
+      httpClient.post('/api/stores/upload-image?type=logo', formData).subscribe({ error: () => {} });
+      const req = httpMock.expectOne('/api/stores/upload-image?type=logo');
+      req.flush('Payload Too Large', { status: 413, statusText: 'Payload Too Large' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith('A logo deve ter no máximo 2 MB.');
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith(expect.stringContaining('2 MB'));
+    });
+
+    it('does not claim a specific banner size limit for a 413 from the proxy', () => {
+      const formData = new FormData();
+      httpClient.post('/api/stores/upload-image?type=banner', formData).subscribe({ error: () => {} });
+      const req = httpMock.expectOne('/api/stores/upload-image?type=banner');
+      req.flush('Payload Too Large', { status: 413, statusText: 'Payload Too Large' });
+
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(uploadInfrastructureMessage);
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith(expect.stringContaining('5 MB'));
+    });
+
+    it('keeps generic handling for 413 responses that are not image uploads', () => {
+      triggerError('/api/orders/bulk', 'Payload Too Large', 413);
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith(expect.stringContaining('2 MB'));
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith(expect.stringContaining('5 MB'));
+      expect(toastServiceMock.showError).not.toHaveBeenCalledWith(uploadInfrastructureMessage);
+    });
+
+    it('leaves legacy product image 413 responses to the component size message', () => {
+      const url = '/api/stores/store-1/products/product-1/images';
+      httpClient.post(url, new FormData()).subscribe({ error: () => {} });
+      const req = httpMock.expectOne(url);
+      req.flush('Payload Too Large', { status: 413, statusText: 'Payload Too Large' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
     });
   });
 

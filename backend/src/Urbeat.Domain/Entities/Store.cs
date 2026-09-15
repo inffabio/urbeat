@@ -17,8 +17,6 @@ public sealed class Store : BaseEntity
 
     public string? WebsiteUrl { get; set; }
 
-    public string Description { get; set; } = string.Empty;
-
     public Guid? CuisineTypeId { get; set; }
     public CuisineType? CuisineType { get; set; }
 
@@ -27,6 +25,10 @@ public sealed class Store : BaseEntity
     public string? LogoUrl { get; set; }
 
     public bool IsOpen { get; set; }
+
+    // Persisted publication state. Set to true only after a successful publish action;
+    // it must never be derived from operational open/closed state or wizard completion.
+    public bool IsPublished { get; set; }
 
     public bool IsSubscriptionBlocked { get; set; }
 
@@ -41,6 +43,10 @@ public sealed class Store : BaseEntity
     public decimal? FreeShippingThreshold { get; set; }
 
     public bool FreeShippingToday { get; set; }
+
+    // Local Sao Paulo calendar date on which the daily free shipping promotion was enabled.
+    // Null (or a date other than today) means the promotion is not active.
+    public DateOnly? FreeShippingTodayDate { get; set; }
 
     public int? InitialMinute { get; set; }
     public int? FinalMinute { get; set; }

@@ -7,6 +7,7 @@ import { StoreService } from '../../core/services/store.service';
 import { AddressService } from '../../core/services/address.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { StoreResponse, StoreAddressResponse } from '../../shared/models/store.model';
 
 describe('SellerStoreInfoPageComponent', () => {
@@ -28,6 +29,7 @@ describe('SellerStoreInfoPageComponent', () => {
 
   const mockAuthService = {
     getSellerProfile: jest.fn(),
+    updateSellerProfile: jest.fn(),
   };
 
   const mockToastService = {
@@ -35,6 +37,10 @@ describe('SellerStoreInfoPageComponent', () => {
     showSuccess: jest.fn(),
     showWarning: jest.fn(),
     showInfo: jest.fn(),
+  };
+
+  const mockSellerShellFacade = {
+    mergeStore: jest.fn(),
   };
 
   const buildStore = (overrides: Partial<StoreResponse> = {}): StoreResponse => ({
@@ -46,9 +52,9 @@ describe('SellerStoreInfoPageComponent', () => {
     document: '',
     pixKey: '',
     websiteUrl: '',
-    description: 'Descricao',
     cuisineType: 'Hamburgueria',
     isOpen: true,
+    isPublished: false,
     isSubscriptionBlocked: false,
     supportsDelivery: true,
     supportsPickup: true,
@@ -91,7 +97,18 @@ describe('SellerStoreInfoPageComponent', () => {
     mockStoreService.getCuisineTypes.mockReturnValue(of([{ id: '1', name: 'Hamburgueria' }]));
     mockStoreService.getMyStore.mockReturnValue(throwError(() => new Error('Not found')));
     mockStoreService.getStoreAddress.mockReturnValue(of(buildAddress()));
-    mockAuthService.getSellerProfile.mockReturnValue(of({}));
+    mockAuthService.getSellerProfile.mockReturnValue(of({
+      fullName: 'Contratante Teste',
+      document: null,
+      phoneNumber: null,
+      email: 'contratante@urbeat.local',
+    }));
+    mockAuthService.updateSellerProfile.mockReturnValue(of({
+      fullName: 'Contratante Teste',
+      document: null,
+      phoneNumber: null,
+      email: 'contratante@urbeat.local',
+    }));
     mockStoreService.updateStore.mockReturnValue(of(buildStore()));
     mockStoreService.upsertStoreAddress.mockReturnValue(of(buildAddress()));
     mockStoreService.updateDeliveryConfig.mockReturnValue(of(buildStore()));
@@ -105,6 +122,7 @@ describe('SellerStoreInfoPageComponent', () => {
         { provide: AddressService, useValue: mockAddressService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: SellerShellFacade, useValue: mockSellerShellFacade },
       ],
     }).compileComponents();
   });
@@ -228,6 +246,8 @@ describe('SellerStoreInfoPageComponent', () => {
     const fillValidStore = () => {
       component.existingStoreId.set('store-123');
       component.storeName.set('Minha Loja');
+      component.contractorName.set('Contratante Teste');
+      component.storeUrl.set('minha-loja');
       component.cuisineType.set('Hamburgueria');
       component.whatsapp.set('(21) 99999-9999');
       component.cep.set('20040-010');

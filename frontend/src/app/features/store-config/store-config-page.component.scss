@@ -233,6 +233,10 @@
   display: none;
 }
 
+.accordion-section.collapsed .store-url-error {
+  display: none;
+}
+
 .accordion-header {
   cursor: pointer;
   background: none;
@@ -269,6 +273,13 @@
 .form-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.identity-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
@@ -648,6 +659,11 @@ label {
   background: var(--app-surface);
 }
 
+.url-group.is-invalid {
+  border-color: #e53935;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
 .url-prefix {
   background: var(--app-hairline-warm);
   border-right: 1px solid #d4d4d4;
@@ -741,6 +757,7 @@ label {
 
 @media (max-width: 768px) {
   .form-grid { grid-template-columns: 1fr; }
+  .identity-grid { grid-template-columns: 1fr; }
   .form-field.span-2 { grid-column: span 1; }
   .visual-grid { grid-template-columns: 1fr; }
   .upload-box, .upload-box-banner { width: 100%; }

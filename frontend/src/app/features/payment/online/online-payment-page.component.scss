@@ -284,6 +284,40 @@
   text-decoration: none;
 }
 
+.countdown {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  background: var(--app-surface-soft);
+  border: 1px solid var(--app-line);
+}
+
+.countdown-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--app-text-secondary);
+}
+
+.countdown-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--app-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.pix-mark.expired {
+  background: var(--app-brand-soft);
+
+  ion-icon {
+    color: var(--app-brand);
+  }
+}
+
 .summary-card {
   padding: 16px;
   margin-bottom: 18px;

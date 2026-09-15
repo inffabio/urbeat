@@ -17,5 +17,13 @@ public sealed class ProductOptionGroup : BaseEntity
 
     public int DisplayOrder { get; set; }
 
+    /// <summary>
+    /// Identificador do template reutilizável de origem, quando o grupo foi criado
+    /// a partir de um grupo salvo da loja. Nulo para grupos legados ou autorais.
+    /// </summary>
+    public Guid? TemplateId { get; set; }
+
+    public ProductOptionGroupTemplate? Template { get; set; }
+
     public ICollection<ProductOptionItem> Items { get; set; } = new List<ProductOptionItem>();
 }

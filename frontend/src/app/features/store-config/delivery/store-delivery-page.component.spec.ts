@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { StoreDeliveryPageComponent } from './store-delivery-page.component';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DeliveryNeighborhood } from '../../../shared/models/store.model';
 import { AlertController, ToastController } from '@ionic/angular';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { readFileSync } from 'node:fs';
@@ -355,6 +356,753 @@ describe('StoreDeliveryPageComponent', () => {
       expect(component.checkedNeighborhoodIds().has('outside')).toBe(true);
       expect(component.checkedNeighborhoodIds().has('nb-a')).toBe(true);
       expect(component.checkedNeighborhoodIds().has('nb-b')).toBe(true);
+    });
+  });
+
+  describe('persistConfig payload', () => {
+    it('sends deliveryAreas when saving neighborhoods from the delivery screen', async () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 25,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Centro', deliveryFee: 5, isActive: true, notes: '' },
+          { id: 'a2', neighborhood: 'Jardins', deliveryFee: 8, isActive: true, notes: '' },
+        ]
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+
+      fixture.detectChanges();
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      const [storeId, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(storeId).toBe('store-123');
+      expect(Array.isArray(payload.deliveryAreas)).toBe(true);
+      const names = (payload.deliveryAreas as { neighborhood: string }[]).map(a => a.neighborhood);
+      expect(names).toEqual(['Centro', 'Jardins']);
+    });
+  });
+
+  describe('free shipping card visibility', () => {
+    it('does not render the free shipping card in the wizard', () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of(mockStore));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+
+      fixture.detectChanges();
+
+      expect(component.isDashboardView()).toBe(false);
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).not.toContain('Frete grátis hoje');
+      expect(text).not.toContain('Frete grátis a partir de');
+      expect(text).not.toContain('Valor mínimo para frete grátis');
+      expect(fixture.nativeElement.querySelector('[formcontrolname="freeShippingThreshold"]')).toBeNull();
+    });
+
+    it('keeps the shared free shipping state and payload intact in wizard mode', () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of({ ...mockStore, freeShippingToday: true, freeShippingThreshold: 50 }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+
+      fixture.detectChanges();
+
+      expect(component.freeShippingToday()).toBe(true);
+      expect(component.form.get('freeShippingThreshold')?.value).toBe('50,00');
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('free shipping today toggle', () => {
+    const changeEvent = (checked: boolean) => ({ target: { checked } } as unknown as Event);
+
+    function load(freeShippingToday: boolean) {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        freeShippingToday,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        deliveryAreas: []
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+      fixture.detectChanges();
+    }
+
+    it('follows the native input checked state when turning the promotion on', () => {
+      load(false);
+
+      component.toggleFreeShippingToday(changeEvent(true));
+
+      expect(component.freeShippingToday()).toBe(true);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('follows the native input checked state when turning the promotion off', () => {
+      load(true);
+
+      component.toggleFreeShippingToday(changeEvent(false));
+
+      expect(component.freeShippingToday()).toBe(false);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('does not invert the signal when the input state already matches it', () => {
+      load(true);
+
+      component.toggleFreeShippingToday(changeEvent(true));
+
+      expect(component.freeShippingToday()).toBe(true);
+    });
+
+    it('sends the exact current boolean in the update payload', async () => {
+      load(false);
+
+      component.toggleFreeShippingToday(changeEvent(true));
+      await component.saveDraft();
+      let [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(payload.freeShippingToday).toBe(true);
+
+      storeServiceMock.updateDeliveryConfig!.mockClear();
+      component.toggleFreeShippingToday(changeEvent(false));
+      await component.saveDraft();
+      [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(payload.freeShippingToday).toBe(false);
+    });
+
+    it('reloads the persisted boolean when changes are discarded', () => {
+      load(true);
+
+      expect(component.freeShippingToday()).toBe(true);
+      component.toggleFreeShippingToday(changeEvent(false));
+      expect(component.freeShippingToday()).toBe(false);
+
+      component.cancelChanges();
+
+      expect(component.freeShippingToday()).toBe(true);
+      expect(component.formDirty()).toBe(false);
+    });
+  });
+
+  describe('delivery radius editing', () => {
+    function loadStore(
+      overrides: Record<string, unknown> = {},
+      knownGlobalNeighborhoods: DeliveryNeighborhood[] = [],
+    ) {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        ...overrides,
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of(knownGlobalNeighborhoods));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+      fixture.detectChanges();
+    }
+
+    it('hydrates the radius from the store', () => {
+      loadStore({ maxDeliveryRadiusKm: 7 });
+
+      expect(component.maxDeliveryRadiusKm()).toBe(7);
+      expect(component.radiusInputValue()).toBe(7);
+    });
+
+    it('queries with the edited radius and marks the form dirty', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-1', neighborhood: 'Pinheiros', city: 'Sao Paulo', latitude: -23.5667, longitude: -46.6833 },
+      ]));
+
+      component.onDeliveryRadiusChange(8);
+
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenLastCalledWith('store-123', 8);
+      expect(component.maxDeliveryRadiusKm()).toBe(8);
+      expect(component.formDirty()).toBe(true);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toContain('Pinheiros');
+    });
+
+    it('does not query or remove areas for an invalid radius', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Centro', deliveryFee: 5 }],
+      });
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockClear();
+
+      component.onDeliveryRadiusChange(0);
+
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).not.toHaveBeenCalled();
+      expect(component.areas.length).toBe(1);
+      expect(component.radiusValidationError()).toBe(true);
+      expect(component.maxDeliveryRadiusKm()).toBe(5);
+    });
+
+    it('removes selected areas outside the reduced radius after a successful reload', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+
+      component.onDeliveryRadiusChange(3);
+
+      const names = component.areas.controls.map(c => c.value.neighborhood);
+      expect(names).toEqual(['Bela Vista']);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('retains an unknown store-only manual neighborhood while removing a known out-of-radius one', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+          { id: 'a3', neighborhood: 'Bairro Manual', deliveryFee: 4 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+
+      component.onDeliveryRadiusChange(3);
+
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bairro Manual', 'Bela Vista']);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('removes only the store form-array areas and keeps the global eligible list available', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+
+      const eligible: DeliveryNeighborhood[] = [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-manual', neighborhood: 'Bairro Manual', city: 'Sao Paulo' },
+      ];
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of(eligible));
+
+      component.onDeliveryRadiusChange(3);
+
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Bairro Manual']);
+      expect(eligible.map(n => n.neighborhood)).toEqual(['Bela Vista', 'Bairro Manual']);
+    });
+
+    it('keeps selected store areas when the radius increases', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 3,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.5840 },
+      ]));
+
+      component.onDeliveryRadiusChange(10);
+
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+    });
+
+    it('keeps selected store areas when the radius stays the same', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+
+      component.onDeliveryRadiusChange(5);
+
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+    });
+
+    it('invalidates a pending preview when the input becomes invalid and never mutates the store FormArray', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      expect(component.isRadiusUpdating()).toBe(true);
+
+      component.onDeliveryRadiusChange('');
+      expect(component.radiusValidationError()).toBe(true);
+      expect(component.isRadiusUpdating()).toBe(false);
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenCalledTimes(2);
+
+      pending$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      pending$.complete();
+
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+      expect(component.deliveryNeighborhoods()).toEqual([]);
+    });
+
+    it('persists only the remaining in-range areas after a radius reduction', async () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+
+      component.onDeliveryRadiusChange(3);
+      await component.saveDraft();
+
+      const [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect((payload.deliveryAreas as { neighborhood: string }[]).map(a => a.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('retains areas and the previous list when the reload fails', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+      const previous = component.deliveryNeighborhoods();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(throwError(() => new Error('boom')));
+
+      component.onDeliveryRadiusChange(3);
+
+      expect(component.areas.length).toBe(2);
+      expect(component.deliveryNeighborhoods()).toEqual(previous);
+      expect(toastServiceMock.showError).toHaveBeenCalled();
+    });
+
+    it('exposes a distinct preview error and blocks saving after a failed valid-radius request', async () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+      const previous = component.deliveryNeighborhoods();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(throwError(() => new Error('boom')));
+
+      component.onDeliveryRadiusChange(3);
+
+      expect(component.radiusPreviewError()).toBe(true);
+      expect(component.radiusValidationError()).toBe(false);
+      expect(component.isRadiusUpdating()).toBe(false);
+      expect(component.maxDeliveryRadiusKm()).toBe(3);
+      expect(component.radiusInputValue()).toBe(3);
+      expect(component.formDirty()).toBe(true);
+      expect(component.areas.length).toBe(2);
+      expect(component.deliveryNeighborhoods()).toEqual(previous);
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('idle');
+    });
+
+    it('clears the preview error after a successful retry and allows saving again', async () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(throwError(() => new Error('boom')));
+
+      component.onDeliveryRadiusChange(3);
+      expect(component.radiusPreviewError()).toBe(true);
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+
+      component.onDeliveryRadiusChange(3);
+
+      expect(component.radiusPreviewError()).toBe(false);
+      expect(component.isRadiusUpdating()).toBe(false);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      const [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(payload.maxDeliveryRadiusKm).toBe(3);
+      expect((payload.deliveryAreas as { neighborhood: string }[]).map(a => a.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('ignores a stale preview response that resolves after a newer radius request', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }, [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+      ]);
+
+      const stale$ = new Subject<DeliveryNeighborhood[]>();
+      const latest$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!
+        .mockReturnValueOnce(stale$)
+        .mockReturnValueOnce(latest$);
+
+      component.onDeliveryRadiusChange(8);
+      component.onDeliveryRadiusChange(3);
+
+      latest$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      latest$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.isRadiusUpdating()).toBe(false);
+
+      stale$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.55, longitude: -46.584 },
+      ]);
+      stale$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('does not show an error when a stale preview request fails after a newer one succeeds', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      });
+
+      const stale$ = new Subject<DeliveryNeighborhood[]>();
+      const latest$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!
+        .mockReturnValueOnce(stale$)
+        .mockReturnValueOnce(latest$);
+
+      component.onDeliveryRadiusChange(8);
+      component.onDeliveryRadiusChange(3);
+
+      latest$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      latest$.complete();
+      toastServiceMock.showError.mockClear();
+
+      stale$.error(new Error('boom'));
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.areas.length).toBe(1);
+    });
+
+    it('ignores the initial neighborhood load when a newer radius preview has already resolved', () => {
+      const initial$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 10,
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(initial$);
+
+      fixture.detectChanges();
+
+      const preview$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(preview$);
+
+      component.onDeliveryRadiusChange(3);
+      preview$.next([
+        { id: 'nb-preview', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      preview$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+
+      initial$.next([
+        { id: 'nb-initial', neighborhood: 'Centro', city: 'Sao Paulo', latitude: -23.55, longitude: -46.63 },
+      ]);
+      initial$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('ignores the initial neighborhood load when the radius changed before the address response', () => {
+      const address$ = new Subject<typeof mockAddress>();
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 10,
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(address$);
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+
+      fixture.detectChanges();
+
+      const preview$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(preview$);
+
+      component.onDeliveryRadiusChange(3);
+      preview$.next([
+        { id: 'nb-preview', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      preview$.complete();
+
+      address$.next(mockAddress);
+      address$.complete();
+
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenCalledTimes(1);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('restores the persisted neighborhood list for the persisted radius when changes are discarded', () => {
+      const persistedList: DeliveryNeighborhood[] = [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.55, longitude: -46.584 },
+      ];
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of(persistedList));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+
+      fixture.detectChanges();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(of([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+      component.onDeliveryRadiusChange(3);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+
+      component.cancelChanges();
+
+      expect(component.maxDeliveryRadiusKm()).toBe(5);
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenLastCalledWith('store-123', 5);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('does not restore the persisted config when the radius is edited after cancelChanges but before the restore response', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      });
+
+      const restore$ = new Subject<typeof mockStore>();
+      storeServiceMock.getMyStore!.mockReturnValue(restore$);
+      storeServiceMock.getDeliveryNeighborhoodsByStore!
+        .mockReturnValueOnce(of([
+          { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.55, longitude: -46.584 },
+        ]))
+        .mockReturnValue(of([
+          { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        ]));
+
+      component.cancelChanges();
+
+      component.onDeliveryRadiusChange(8);
+
+      expect(component.maxDeliveryRadiusKm()).toBe(8);
+      expect(component.radiusInputValue()).toBe(8);
+      expect(component.formDirty()).toBe(true);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Vila Mariana']);
+
+      restore$.next({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      });
+      restore$.complete();
+
+      expect(component.maxDeliveryRadiusKm()).toBe(8);
+      expect(component.radiusInputValue()).toBe(8);
+      expect(component.formDirty()).toBe(true);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Vila Mariana']);
+    });
+
+    it('keeps the restored persisted list when a pending preview resolves after cancelChanges', () => {
+      const persistedList: DeliveryNeighborhood[] = [
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+        { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.55, longitude: -46.584 },
+      ];
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of(persistedList));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+
+      fixture.detectChanges();
+
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(pending$);
+      component.onDeliveryRadiusChange(3);
+      expect(component.isRadiusUpdating()).toBe(true);
+
+      component.cancelChanges();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+
+      pending$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      pending$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.radiusPreviewError()).toBe(false);
+      expect(component.isRadiusUpdating()).toBe(false);
+    });
+
+    it('ignores a pending preview response that resolves after cancelChanges', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      expect(component.isRadiusUpdating()).toBe(true);
+
+      component.cancelChanges();
+
+      expect(component.isRadiusUpdating()).toBe(false);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+
+      pending$.next([
+        { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]);
+      pending$.complete();
+
+      expect(component.deliveryNeighborhoods()).toEqual([]);
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+      expect(component.radiusPreviewError()).toBe(false);
+    });
+
+    it('ignores a pending preview error that arrives after cancelChanges', () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      });
+
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      component.cancelChanges();
+      toastServiceMock.showError.mockClear();
+
+      pending$.error(new Error('boom'));
+
+      expect(component.radiusPreviewError()).toBe(false);
+      expect(component.isRadiusUpdating()).toBe(false);
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+      expect(component.areas.controls.map(c => c.value.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('blocks persistence while a radius preview is in flight', async () => {
+      loadStore({
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Centro', deliveryFee: 5 }],
+      });
+
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      expect(component.isRadiusUpdating()).toBe(true);
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('idle');
+    });
+
+    it('includes the radius in the save payload', async () => {
+      loadStore({
+        maxDeliveryRadiusKm: 6,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Centro', deliveryFee: 5 }],
+      });
+
+      await component.saveDraft();
+
+      const [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(payload.maxDeliveryRadiusKm).toBe(6);
     });
   });
 });

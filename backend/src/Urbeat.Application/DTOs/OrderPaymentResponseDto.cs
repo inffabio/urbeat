@@ -24,5 +24,10 @@ public sealed class OrderPaymentResponseDto
 
     public DateTime? UpdatedAtUtc { get; init; }
 
+    /// <summary>
+    /// Server-provided deadline for a pending mock Pix payment. Null for real gateways.
+    /// </summary>
+    public DateTime? ExpiresAtUtc { get; init; }
+
     public IReadOnlyCollection<PaymentStatusHistoryResponseDto> History { get; init; } = [];
 }

@@ -140,8 +140,8 @@ public sealed class AsaasSubscriptionWebhookFlowTests : IClassFixture<TestWebApp
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Asaas",
+            Slug = "loja-asaas",
             PhoneNumber = "11989990000",
-            Description = "Loja para testes de webhook Asaas",
             CuisineType = "Pizza",
             MaxDeliveryRadiusKm = 5,
         });

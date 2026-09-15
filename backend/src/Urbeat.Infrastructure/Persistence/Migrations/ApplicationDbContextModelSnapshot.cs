@@ -254,7 +254,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.City", b =>
@@ -306,7 +306,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("\"IbgeCode\" IS NOT NULL");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.CuisineType", b =>
@@ -334,7 +334,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("CuisineTypes");
+                    b.ToTable("CuisineTypes", (string)null);
 
                     b.HasData(
                         new
@@ -461,7 +461,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CustomerAddresses");
+                    b.ToTable("CustomerAddresses", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.CustomerPhoneVerification", b =>
@@ -550,7 +550,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CustomerPhoneVerifications");
+                    b.ToTable("CustomerPhoneVerifications", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryNeighborhood", b =>
@@ -622,7 +622,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("\"CityId\" IS NOT NULL");
 
-                    b.ToTable("DeliveryNeighborhoods");
+                    b.ToTable("DeliveryNeighborhoods", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryTime", b =>
@@ -653,7 +653,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("DeliveryTime");
+                    b.ToTable("DeliveryTime", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.LandingPageContent", b =>
@@ -697,7 +697,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Section", "Key")
                         .IsUnique();
 
-                    b.ToTable("LandingPageContents");
+                    b.ToTable("LandingPageContents", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.Notification", b =>
@@ -744,7 +744,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("RecipientUserId", "OrderId", "Type")
                         .IsUnique();
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.Order", b =>
@@ -852,7 +852,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId", "Status", "CreatedAtUtc");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderItem", b =>
@@ -908,7 +908,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderReview", b =>
@@ -946,7 +946,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("OrderReviews");
+                    b.ToTable("OrderReviews", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderStatusHistory", b =>
@@ -981,7 +981,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderStatusHistories");
+                    b.ToTable("OrderStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OutboxDelivery", b =>
@@ -1114,7 +1114,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("PasswordResetTokens", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.Payment", b =>
@@ -1160,6 +1160,16 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<int>("Method")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("MockApprovalAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("MockExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MockOutcome")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
@@ -1177,7 +1187,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrderId")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.PaymentGatewayTransactionLog", b =>
@@ -1237,7 +1247,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("PaymentGatewayTransactionLogs");
+                    b.ToTable("PaymentGatewayTransactionLogs", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.PaymentStatusHistory", b =>
@@ -1279,7 +1289,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PaymentId", "NewStatus", "Source");
 
-                    b.ToTable("PaymentStatusHistories");
+                    b.ToTable("PaymentStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.PaymentWebhookEvent", b =>
@@ -1318,7 +1328,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Gateway", "EventKey")
                         .IsUnique();
 
-                    b.ToTable("PaymentWebhookEvents");
+                    b.ToTable("PaymentWebhookEvents", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.Plan", b =>
@@ -1355,7 +1365,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Plans");
+                    b.ToTable("Plans", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.PrinterPreset", b =>
@@ -1412,7 +1422,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AdapterId");
 
-                    b.ToTable("PrinterPresets");
+                    b.ToTable("PrinterPresets", (string)null);
 
                     b.HasData(
                         new
@@ -1561,7 +1571,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductAdditional", b =>
@@ -1604,7 +1614,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreAdditionalId");
 
-                    b.ToTable("ProductAdditional");
+                    b.ToTable("ProductAdditional", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductAdditionalAssignment", b =>
@@ -1632,7 +1642,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId", "AdditionalId")
                         .IsUnique();
 
-                    b.ToTable("ProductAdditionalAssignments");
+                    b.ToTable("ProductAdditionalAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductCategory", b =>
@@ -1672,7 +1682,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "Name")
                         .IsUnique();
 
-                    b.ToTable("ProductCategories");
+                    b.ToTable("ProductCategories", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductChoiceOption", b =>
@@ -1710,7 +1720,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductChoiceOption");
+                    b.ToTable("ProductChoiceOption", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionGroup", b =>
@@ -1745,6 +1755,9 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -1752,7 +1765,55 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductOptionGroups");
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("ProductOptionGroups", (string)null);
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionGroupTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ChoiceType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("single");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MaxChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MinChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "Name");
+
+                    b.ToTable("ProductOptionGroupTemplates", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionItem", b =>
@@ -1784,7 +1845,41 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("ProductOptionItems");
+                    b.ToTable("ProductOptionItems", (string)null);
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionItemTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("ProductOptionItemTemplates", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductVariation", b =>
@@ -1835,7 +1930,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariation");
+                    b.ToTable("ProductVariation", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductWeightConfig", b =>
@@ -1874,7 +1969,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("ProductWeightConfig");
+                    b.ToTable("ProductWeightConfig", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.RefreshToken", b =>
@@ -1908,7 +2003,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.SellerSubscription", b =>
@@ -1971,7 +2066,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId")
                         .IsUnique();
 
-                    b.ToTable("SellerSubscriptions");
+                    b.ToTable("SellerSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.SellerSubscriptionChargeHistory", b =>
@@ -2035,7 +2130,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SellerUserId");
 
-                    b.ToTable("SellerSubscriptionChargeHistories");
+                    b.ToTable("SellerSubscriptionChargeHistories", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.SellerSubscriptionStatus", b =>
@@ -2069,7 +2164,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("SellerUserId")
                         .IsUnique();
 
-                    b.ToTable("SellerSubscriptionStatuses");
+                    b.ToTable("SellerSubscriptionStatuses", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.Store", b =>
@@ -2095,11 +2190,6 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
                     b.Property<string>("Document")
                         .HasMaxLength(14)
                         .HasColumnType("character varying(14)");
@@ -2114,11 +2204,19 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<bool>("FreeShippingToday")
                         .HasColumnType("boolean");
 
+                    b.Property<DateOnly?>("FreeShippingTodayDate")
+                        .HasColumnType("date");
+
                     b.Property<int?>("InitialMinute")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsOpen")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsSubscriptionBlocked")
                         .HasColumnType("boolean");
@@ -2185,7 +2283,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Stores");
+                    b.ToTable("Stores", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreAdditional", b =>
@@ -2233,7 +2331,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "GroupId", "Name")
                         .IsUnique();
 
-                    b.ToTable("StoreAdditionals");
+                    b.ToTable("StoreAdditionals", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreAdditionalGroup", b =>
@@ -2264,7 +2362,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "Name")
                         .IsUnique();
 
-                    b.ToTable("StoreAdditionalGroups");
+                    b.ToTable("StoreAdditionalGroups", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreAddress", b =>
@@ -2331,7 +2429,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId")
                         .IsUnique();
 
-                    b.ToTable("StoreAddresses");
+                    b.ToTable("StoreAddresses", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreBusinessHour", b =>
@@ -2360,7 +2458,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "DayOfWeek")
                         .IsUnique();
 
-                    b.ToTable("StoreBusinessHours");
+                    b.ToTable("StoreBusinessHours", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreBusinessHourShift", b =>
@@ -2388,7 +2486,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreBusinessHourId");
 
-                    b.ToTable("StoreBusinessHourShift");
+                    b.ToTable("StoreBusinessHourShift", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreCustomer", b =>
@@ -2419,7 +2517,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "CustomerUserId")
                         .IsUnique();
 
-                    b.ToTable("StoreCustomers");
+                    b.ToTable("StoreCustomers", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryArea", b =>
@@ -2458,7 +2556,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("StoreDeliveryAreas");
+                    b.ToTable("StoreDeliveryAreas", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StorePaymentGatewayConfig", b =>
@@ -2503,7 +2601,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "Gateway")
                         .IsUnique();
 
-                    b.ToTable("StorePaymentGatewayConfigs");
+                    b.ToTable("StorePaymentGatewayConfigs", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StorePrinterConfig", b =>
@@ -2566,7 +2664,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId")
                         .IsUnique();
 
-                    b.ToTable("StorePrinterConfigs");
+                    b.ToTable("StorePrinterConfigs", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.SubscriptionWebhookEvent", b =>
@@ -2612,7 +2710,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SellerUserId");
 
-                    b.ToTable("SubscriptionWebhookEvents");
+                    b.ToTable("SubscriptionWebhookEvents", (string)null);
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.SystemParameter", b =>
@@ -2654,7 +2752,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("SystemParameters");
+                    b.ToTable("SystemParameters", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -2858,11 +2956,38 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Urbeat.Domain.Entities.ProductOptionGroupTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionGroupTemplate", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionItem", b =>
                 {
                     b.HasOne("Urbeat.Domain.Entities.ProductOptionGroup", "Group")
+                        .WithMany("Items")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionItemTemplate", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.ProductOptionGroupTemplate", "Group")
                         .WithMany("Items")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -3009,6 +3134,11 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionGroup", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ProductOptionGroupTemplate", b =>
                 {
                     b.Navigation("Items");
                 });

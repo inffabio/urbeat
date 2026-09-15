@@ -20,6 +20,13 @@ public sealed class StorePublicListItemDto
 
     public decimal? FreeShippingThreshold { get; init; }
 
+    public bool FreeShippingToday { get; set; }
+
+    // Internal mapping aid: the local date the daily promotion was enabled on. Never serialized;
+    // the API exposes only the effective FreeShippingToday boolean.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DateOnly? FreeShippingTodayDate { get; set; }
+
     public IEnumerable<StoreDeliveryAreaDto> DeliveryAreas { get; init; } = Array.Empty<StoreDeliveryAreaDto>();
 
     public double AverageRating { get; init; }

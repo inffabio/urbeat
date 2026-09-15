@@ -1,18 +1,29 @@
-﻿using FluentValidation;
+﻿using System.Text.RegularExpressions;
+using FluentValidation;
 using Urbeat.Application.DTOs;
 
 namespace Urbeat.Application.Validators;
 
 public sealed class UpdateStoreRequestDtoValidator : AbstractValidator<UpdateStoreRequestDto>
 {
+    private static readonly Regex StoreSlugPattern = new("^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.Compiled);
+
     public UpdateStoreRequestDtoValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(120);
+            .MaximumLength(100)
+            .WithMessage("O nome da loja deve ter no máximo 100 caracteres.");
 
         RuleFor(x => x.Slug)
-            .MaximumLength(120);
+            .Must(slug => !string.IsNullOrWhiteSpace(slug))
+            .WithMessage("A URL da loja é obrigatória.")
+            .Must(slug => string.IsNullOrWhiteSpace(slug) || slug.Length >= 3)
+            .WithMessage("A URL da loja deve ter pelo menos 3 caracteres.")
+            .Must(slug => string.IsNullOrWhiteSpace(slug) || IsValidStoreSlug(slug))
+            .WithMessage("Use apenas letras minúsculas, números e hífens, sem hífens consecutivos ou nas extremidades.")
+            .MaximumLength(120)
+            .WithMessage("A URL da loja deve ter no máximo 120 caracteres.");
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
@@ -27,9 +38,6 @@ public sealed class UpdateStoreRequestDtoValidator : AbstractValidator<UpdateSto
             .MaximumLength(50);
 
         RuleFor(x => x.WebsiteUrl).MaximumLength(500);
-
-        RuleFor(x => x.Description)
-            .MaximumLength(500);
 
         RuleFor(x => x.CuisineType)
             .NotEmpty()
@@ -57,4 +65,6 @@ public sealed class UpdateStoreRequestDtoValidator : AbstractValidator<UpdateSto
             .GreaterThan(0)
             .WithMessage("O raio máximo de entrega deve ser maior que zero.");
     }
+
+    private static bool IsValidStoreSlug(string slug) => StoreSlugPattern.IsMatch(slug);
 }

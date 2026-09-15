@@ -63,6 +63,15 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Uploads reach the API through this vhost because the browser uses
+        # origin-relative URLs. Without this, NGINX applies its 1m default and
+        # rejects the body with HTTP 413 before the API/Cloudinary is reached.
+        # Keep these values aligned with the api.urbeat.com.br vhost.
+        client_max_body_size 50M;
+        proxy_connect_timeout 75s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
     }
 
     # Proxy SignalR Hubs to the .NET Backend

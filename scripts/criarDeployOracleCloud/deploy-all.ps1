@@ -21,7 +21,14 @@ param(
     [int]$SSHPort = 2208,
 
     [Parameter(Mandatory=$false)]
-    [string]$SSHKeyPath = "~/.ssh/id_ed25519"
+    [string]$SSHKeyPath = "~/.ssh/id_ed25519",
+
+    # Forwarded to the application step only.
+    [Parameter(Mandatory=$false)]
+    [switch]$AllowDirty,
+
+    [Parameter(Mandatory=$false)]
+    [string]$ExpectedCommit
 )
 
 $commonParams = @{
@@ -29,6 +36,14 @@ $commonParams = @{
     SSHUser    = $SSHUser
     SSHPort    = $SSHPort
     SSHKeyPath = $SSHKeyPath
+}
+
+$applicationParams = @{}
+if ($AllowDirty) {
+    $applicationParams["AllowDirty"] = $true
+}
+if (-not [string]::IsNullOrWhiteSpace($ExpectedCommit)) {
+    $applicationParams["ExpectedCommit"] = $ExpectedCommit
 }
 
 $scriptRoot = $PSScriptRoot
@@ -56,7 +71,11 @@ $steps = @{
 }
 
 function Run-Step {
-    param([string]$StepName, [string]$ScriptPath)
+    param(
+        [string]$StepName,
+        [string]$ScriptPath,
+        [hashtable]$ExtraParams = @{}
+    )
 
     Write-Host "`n" -NoNewline
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor DarkCyan
@@ -65,7 +84,15 @@ function Run-Step {
     Write-Host "  Time: $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Gray
     Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor DarkCyan
 
-    & $ScriptPath @commonParams
+    if ($ExtraParams.Count -gt 0) {
+        $mergedParams = $commonParams.Clone()
+        foreach ($key in $ExtraParams.Keys) {
+            $mergedParams[$key] = $ExtraParams[$key]
+        }
+        & $ScriptPath @mergedParams
+    } else {
+        & $ScriptPath @commonParams
+    }
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host "`n❌ Step '$StepName' FAILED! Stopping deployment." -ForegroundColor Red
@@ -79,10 +106,14 @@ $startTime = Get-Date
 
 if ($Step -eq "all") {
     foreach ($stepName in @("prerequisites", "vault", "docker", "environment", "application", "nginx", "ssl", "verify")) {
-        Run-Step -StepName $stepName -ScriptPath $steps[$stepName]
+        $extraParams = @{}
+        if ($stepName -eq "application") { $extraParams = $applicationParams }
+        Run-Step -StepName $stepName -ScriptPath $steps[$stepName] -ExtraParams $extraParams
     }
 } else {
-    Run-Step -StepName $Step -ScriptPath $steps[$Step]
+    $extraParams = @{}
+    if ($Step -eq "application") { $extraParams = $applicationParams }
+    Run-Step -StepName $Step -ScriptPath $steps[$Step] -ExtraParams $extraParams
 }
 
 $endTime = Get-Date

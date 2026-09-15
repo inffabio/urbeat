@@ -38,7 +38,6 @@ export interface StorePublicDetails {
   name: string;
   slug: string;
   phoneNumber: string;
-  description: string;
   cuisineType: string;
   bannerUrl: string;
   logoUrl: string;
@@ -77,7 +76,6 @@ export interface CreateStoreRequest {
   document?: string;
   pixKey?: string;
   websiteUrl?: string;
-  description?: string;
   cuisineType: string;
   bannerUrl?: string | null;
   logoUrl?: string | null;
@@ -99,11 +97,11 @@ export interface StoreResponse {
   document?: string;
   pixKey?: string;
   websiteUrl?: string;
-  description: string;
   cuisineType: string;
   bannerUrl?: string;
   logoUrl?: string;
   isOpen: boolean;
+  isPublished: boolean;
   isOpenNow?: boolean;
   nextStatusChangeAt?: string;
   isSubscriptionBlocked: boolean;
@@ -151,7 +149,8 @@ export interface UpdateDeliveryConfigRequest {
   minimumOrderValue: number;
   freeShippingThreshold?: number;
   freeShippingToday?: boolean;
-  deliveryAreas: StoreDeliveryArea[];
+  maxDeliveryRadiusKm?: number;
+  deliveryAreas?: StoreDeliveryArea[];
 }
 
 export interface CuisineTypeDto {
@@ -218,7 +217,6 @@ export interface StorePublishSummary {
     name: string;
     cuisineType: string;
     phoneNumber: string;
-    description: string;
     address: string;
     city: string;
     logoUrl: string | null;

@@ -141,11 +141,11 @@ describe('FooterNavComponent', () => {
     expect(badge.getAttribute('aria-label')).toBe('2 itens');
   });
 
-  it('anchors the footer to the viewport bottom and respects the bottom safe area', () => {
+  it('keeps the footer in the shell flex flow instead of overlaying the viewport and respects the bottom safe area', () => {
     const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
 
-    expect(source).toMatch(/\.footer-nav-safe-zone[\s\S]*position:\s*fixed/);
-    expect(source).toMatch(/\.footer-nav-safe-zone[\s\S]*bottom:\s*0/);
+    expect(source).not.toMatch(/\.footer-nav-safe-zone\s*\{[^}]*position:\s*fixed/);
+    expect(source).toMatch(/\.footer-nav-safe-zone\s*\{[^}]*position:\s*relative/);
     expect(source).toContain('padding-bottom: max(8px, env(safe-area-inset-bottom, 0px))');
   });
 

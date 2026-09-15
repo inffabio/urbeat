@@ -68,6 +68,33 @@ public sealed class StoreOpeningHoursCalculatorTests
         result.ClosedMessage.Should().Be("A loja está fechada no momento.");
     }
 
+    [Fact]
+    public void GetSaoPauloDate_ShouldStayOnPreviousDay_BeforeSaoPauloMidnight()
+    {
+        // 02:30 UTC is 23:30 on the previous day in Sao Paulo (UTC-3).
+        var utcNow = new DateTimeOffset(2026, 1, 2, 2, 30, 0, TimeSpan.Zero);
+
+        StoreOpeningHoursCalculator.GetSaoPauloDate(utcNow).Should().Be(new DateOnly(2026, 1, 1));
+    }
+
+    [Fact]
+    public void GetSaoPauloDate_ShouldRollToNextDay_AtSaoPauloMidnight()
+    {
+        // 03:00 UTC is exactly midnight in Sao Paulo (UTC-3), starting the new local day.
+        var utcNow = new DateTimeOffset(2026, 1, 2, 3, 0, 0, TimeSpan.Zero);
+
+        StoreOpeningHoursCalculator.GetSaoPauloDate(utcNow).Should().Be(new DateOnly(2026, 1, 2));
+    }
+
+    [Fact]
+    public void GetSaoPauloDate_ShouldNormalizeInputOffsetToUtc()
+    {
+        // 03:00 at +03:00 equals 00:00 UTC, which is still 21:00 of the previous day in Sao Paulo.
+        var offsetNow = new DateTimeOffset(2026, 1, 2, 3, 0, 0, TimeSpan.FromHours(3));
+
+        StoreOpeningHoursCalculator.GetSaoPauloDate(offsetNow).Should().Be(new DateOnly(2026, 1, 1));
+    }
+
     private static StoreBusinessHour CreateHour(DayOfWeek day, bool isOpen, TimeOnly start, TimeOnly end)
     {
         return new StoreBusinessHour

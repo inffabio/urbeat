@@ -156,8 +156,8 @@ public sealed class SubscriptionEnforcementFlowTests : IClassFixture<TestWebAppl
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Subscription",
+            Slug = "loja-subscription",
             PhoneNumber = "11987770000",
-            Description = "Loja para assinatura",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

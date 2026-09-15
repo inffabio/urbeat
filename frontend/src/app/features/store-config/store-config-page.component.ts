@@ -10,16 +10,21 @@ import { AddressService } from '../../core/services/address.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
   CreateStoreRequest,
+  StoreResponse,
   UpdateStoreAddressRequest,
   UpdateDeliveryConfigRequest,
   CuisineTypeDto,
 } from '../../shared/models/store.model';
+import { SellerProfileResponse } from '../../shared/models/auth.model';
 
 import { ToastService } from '../../core/services/toast.service';
+import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { createStepperSteps } from '../../shared/config/wizard-steps.config';
 import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
 import { WizardFooterComponent } from '../../shared/components/wizard-footer/wizard-footer.component';
 import { MediaUploadComponent } from '../../shared/components/media-upload/media-upload.component';
+
+const STORE_URL_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // Register icons to prevent Ionic standalone warnings
 addIcons({
@@ -46,19 +51,20 @@ export class StoreConfigPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly sellerShell = inject(SellerShellFacade);
   readonly stepperSteps = createStepperSteps(0);
   readonly isDashboardView = computed(() => (this.router.url ?? '').startsWith('/app/'));
   readonly footerSaveStatus = computed(() => this.saveStatus() ?? 'idle');
 
   // ─── Form state ──────────────────────────────────────────
   readonly storeName = signal('');
+  readonly contractorName = signal('');
   readonly cuisineType = signal('');
   readonly whatsapp = signal('');
   readonly storeDocument = signal('');
   readonly documentValid = signal<boolean | null>(null);
   readonly pixKey = signal('');
   readonly websiteUrl = signal('');
-  readonly description = signal('');
   readonly street = signal('');
   readonly number = signal('');
   readonly complement = signal('');
@@ -74,6 +80,12 @@ export class StoreConfigPageComponent implements OnInit {
   readonly logoPreview = signal<string | null>(null);
   readonly bannerFile = signal<File | null>(null);
   readonly bannerPreview = signal<string | null>(null);
+  private logoPreviewGeneration = 0;
+  private bannerPreviewGeneration = 0;
+  private logoPendingSelections: { generation: number; file: File; preview?: string }[] = [];
+  private bannerPendingSelections: { generation: number; file: File; preview?: string }[] = [];
+  private logoCommittedState: { file: File | null; preview: string | null } = { file: null, preview: null };
+  private bannerCommittedState: { file: File | null; preview: string | null } = { file: null, preview: null };
 
   // Section 3 – quick config
   readonly supportsDelivery = signal(true);
@@ -85,6 +97,17 @@ export class StoreConfigPageComponent implements OnInit {
 
   // Section 4 – URL
   readonly storeUrl = signal('');
+  readonly storeUrlConflict = signal<string | null>(null);
+  readonly storeUrlErrorVisible = signal(false);
+  readonly storeUrlError = computed<string | null>(() => {
+    const value = this.storeUrl();
+    if (!value.trim()) return 'A URL da loja é obrigatória.';
+    if (value.length < 3) return 'A URL da loja deve ter pelo menos 3 caracteres.';
+    if (!STORE_URL_SLUG_PATTERN.test(value)) {
+      return 'Use apenas letras minúsculas, números e hífens, sem hífens consecutivos ou nas extremidades.';
+    }
+    return null;
+  });
 
   // ─── UI state ────────────────────────────────────────────
   readonly loading = signal(false);
@@ -92,17 +115,18 @@ export class StoreConfigPageComponent implements OnInit {
   readonly saveStatus = signal<'saved' | 'saving' | 'error' | null>(null);
   readonly cuisineTypes = signal<CuisineTypeDto[]>([]);
   readonly existingStoreId = signal<string | null>(null);
-  readonly existingDeliveryAreas = signal<any[]>([]);
   readonly existingLogoUrl = signal<string | null | undefined>(undefined);
   readonly existingBannerUrl = signal<string | null | undefined>(undefined);
   readonly storeIsOpen = signal(false);
   private existingFreeShippingThreshold: number | undefined = undefined;
+  private existingFreeShippingToday: boolean | undefined = undefined;
+  private storeLoaded = false;
 
   readonly sectionsExpanded = signal({
-    info: true, desc: false, visual: false, config: true, url: false,
+    info: true, visual: false, config: true, url: false,
   });
 
-  toggleSection(key: 'info' | 'desc' | 'visual' | 'config' | 'url'): void {
+  toggleSection(key: 'info' | 'visual' | 'config' | 'url'): void {
     this.sectionsExpanded.update((s) => ({ ...s, [key]: !s[key] }));
   }
 
@@ -248,39 +272,40 @@ export class StoreConfigPageComponent implements OnInit {
       error: () => this.toast.showError('Não foi possível carregar os tipos de cozinha.'),
     });
 
+    this.authService.getSellerProfile().subscribe({
+      next: (profile) => this.applySellerProfile(profile),
+      error: () => {},
+    });
+
     this.storeService.getMyStore().subscribe({
       next: (store) => {
+        this.storeLoaded = true;
         this.populateFromExisting(store);
-      },
-      error: () => {
-        this.loadProfileFallback();
-      },
-    });
-  }
-
-  private loadProfileFallback(): void {
-    this.authService.getSellerProfile().subscribe({
-      next: (profile) => {
-        if (profile.fullName) {
-          this.storeName.set(profile.fullName);
-        }
-        if (profile.phoneNumber) {
-          this.whatsapp.set(profile.phoneNumber);
-          this.onWhatsappInput(profile.phoneNumber);
-        }
-        if (profile.document) {
-          this.onDocumentInput(profile.document);
-        }
       },
       error: () => {},
     });
   }
 
+  private applySellerProfile(profile: SellerProfileResponse): void {
+    if (profile.fullName) {
+      this.contractorName.set(profile.fullName);
+    }
+    if (!this.storeLoaded) {
+      if (profile.phoneNumber) {
+        this.whatsapp.set(profile.phoneNumber);
+        this.onWhatsappInput(profile.phoneNumber);
+      }
+      if (profile.document) {
+        this.onDocumentInput(profile.document);
+      }
+    }
+  }
+
   private populateFromExisting(store: import('../../shared/models/store.model').StoreResponse): void {
     this.existingStoreId.set(store.id);
     this.storeIsOpen.set(store.isOpen);
-    this.existingDeliveryAreas.set(store.deliveryAreas || []);
     this.existingFreeShippingThreshold = store.freeShippingThreshold ?? undefined;
+    this.existingFreeShippingToday = store.freeShippingToday ?? undefined;
     this.storeName.set(store.name);
     this.cuisineType.set(store.cuisineType);
     this.whatsapp.set(store.phoneNumber);
@@ -288,7 +313,6 @@ export class StoreConfigPageComponent implements OnInit {
     this.onDocumentInput(store.document ?? '');
     this.pixKey.set(store.pixKey ?? '');
     this.websiteUrl.set(store.websiteUrl ?? '');
-    this.description.set(store.description ?? '');
     this.storeUrl.set(store.slug);
     const atendimento = this.resolveAtendimentoDefaults(store.supportsDelivery, store.supportsPickup);
     this.supportsDelivery.set(atendimento.delivery);
@@ -390,6 +414,7 @@ export class StoreConfigPageComponent implements OnInit {
   // ─── Store URL slug generation ──────────────────────────
   onStoreNameChange(value: string): void {
     this.storeName.set(value);
+    this.storeUrlConflict.set(null);
 
     if (!this.storeUrl()) {
       const slug = value
@@ -403,35 +428,173 @@ export class StoreConfigPageComponent implements OnInit {
     }
   }
 
+  onStoreUrlInput(value: string): void {
+    this.storeUrl.set(value.toLowerCase());
+    this.storeUrlConflict.set(null);
+    this.storeUrlErrorVisible.set(false);
+  }
+
+  onStoreUrlBlur(): void {
+    this.storeUrlErrorVisible.set(true);
+  }
+
   // ─── File uploads (logo / banner) ───────────────────────
   async onLogoSelected(file: File): Promise<void> {
-    this.logoFile.set(file);
-    this.logoPreview.set(await this.readFilePreview(file));
+    await this.applyMediaPreview('logo', file);
   }
 
   async onBannerSelected(file: File): Promise<void> {
-    this.bannerFile.set(file);
-    this.bannerPreview.set(await this.readFilePreview(file));
+    await this.applyMediaPreview('banner', file);
+  }
+
+  private async applyMediaPreview(kind: 'logo' | 'banner', file: File): Promise<void> {
+    const isLogo = kind === 'logo';
+    const pending = isLogo ? this.logoPendingSelections : this.bannerPendingSelections;
+
+    // When no read is in flight the current file/preview are the last committed
+    // state, so snapshot them before this selection replaces them. While another
+    // read is still pending the current file is only optimistic and must not be
+    // treated as the fallback for a failed replacement.
+    if (pending.length === 0) {
+      const committed = {
+        file: isLogo ? this.logoFile() : this.bannerFile(),
+        preview: isLogo ? this.logoPreview() : this.bannerPreview(),
+      };
+      if (isLogo) this.logoCommittedState = committed;
+      else this.bannerCommittedState = committed;
+    }
+
+    // Each selection bumps a per-kind generation. A FileReader is asynchronous, so
+    // when the user picks a second logo/banner before the first read completes the
+    // stale read must not overwrite the latest preview, pending file or error state.
+    const generation = isLogo
+      ? ++this.logoPreviewGeneration
+      : ++this.bannerPreviewGeneration;
+
+    // Track every in-flight selection so a failed replacement can fall back to the
+    // immediately previous pending selection instead of losing it.
+    pending.push({ generation, file });
+
+    // Expose the pending file synchronously so submitting immediately after
+    // selecting an image still uploads it, even though its preview is not ready.
+    if (isLogo) this.logoFile.set(file);
+    else this.bannerFile.set(file);
+
+    const preview = await this.readFilePreview(file);
+
+    const index = pending.findIndex((selection) => selection.generation === generation);
+    if (index === -1) {
+      return;
+    }
+
+    if (index !== pending.length - 1) {
+      // A newer selection superseded this read. A successful stale read still
+      // retains its preview on the pending entry so a later failure of the newest
+      // selection can restore it; a failed stale read is dropped without touching
+      // state.
+      if (preview !== null) {
+        pending[index].preview = preview;
+      } else {
+        pending.splice(index, 1);
+      }
+      return;
+    }
+
+    pending.pop();
+
+    if (preview === null) {
+      // A failed replacement must not drop the immediately previous pending
+      // selection: restore its file and, when its read already completed, its
+      // preview so submit still uploads the last valid selection. When no pending
+      // selection remains, fall back to the last committed state (which may be a
+      // server preview) or clear the invalid selection.
+      if (pending.length > 0) {
+        const previous = pending[pending.length - 1];
+        if (isLogo) {
+          this.logoFile.set(previous.file);
+          if (previous.preview) this.logoPreview.set(previous.preview);
+        } else {
+          this.bannerFile.set(previous.file);
+          if (previous.preview) this.bannerPreview.set(previous.preview);
+        }
+      } else {
+        const committed = isLogo ? this.logoCommittedState : this.bannerCommittedState;
+        if (isLogo) {
+          this.logoFile.set(committed.file);
+          this.logoPreview.set(committed.preview);
+        } else {
+          this.bannerFile.set(committed.file);
+          this.bannerPreview.set(committed.preview);
+        }
+      }
+      this.toast.showError('Não foi possível gerar a pré-visualização da imagem. Tente novamente.');
+      return;
+    }
+
+    // The latest selection succeeded: discard older in-flight selections so their
+    // stale callbacks cannot overwrite this preview.
+    pending.length = 0;
+
+    if (isLogo) {
+      this.logoFile.set(file);
+      this.logoPreview.set(preview);
+    } else {
+      this.bannerFile.set(file);
+      this.bannerPreview.set(preview);
+    }
   }
 
   onLogoRemoved(): void {
+    // Bump the generation before clearing so an in-flight FileReader from a prior
+    // selection cannot resolve afterwards and restore the removed logo. Clear the
+    // pending selections in place and drop the committed fallback too so a later
+    // failed selection cannot resurrect it.
+    this.logoPreviewGeneration++;
+    this.logoPendingSelections.length = 0;
     this.logoFile.set(null);
     this.logoPreview.set(null);
     this.existingLogoUrl.set(null);
+    this.logoCommittedState = { file: null, preview: null };
   }
 
   onBannerRemoved(): void {
+    // Bump the generation before clearing so an in-flight FileReader from a prior
+    // selection cannot resolve afterwards and restore the removed banner. Clear the
+    // pending selections in place and drop the committed fallback too so a later
+    // failed selection cannot resurrect it.
+    this.bannerPreviewGeneration++;
+    this.bannerPendingSelections.length = 0;
     this.bannerFile.set(null);
     this.bannerPreview.set(null);
     this.existingBannerUrl.set(null);
+    this.bannerCommittedState = { file: null, preview: null };
   }
 
-  private readFilePreview(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Não foi possível criar a pré-visualização.'));
-      reader.readAsDataURL(file);
+  // Never rejects: FileReader failures (constructor, read error, abort, empty
+  // result) resolve to null so callers can surface a clear message and clear the
+  // pending file instead of producing an unhandled promise rejection.
+  private readFilePreview(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      let reader: FileReader;
+      try {
+        reader = new FileReader();
+      } catch {
+        resolve(null);
+        return;
+      }
+
+      reader.onload = () => {
+        const result = reader.result;
+        resolve(typeof result === 'string' && result.length > 0 ? result : null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.onabort = () => resolve(null);
+
+      try {
+        reader.readAsDataURL(file);
+      } catch {
+        resolve(null);
+      }
     });
   }
 
@@ -468,6 +631,14 @@ export class StoreConfigPageComponent implements OnInit {
     // 1. Basic Validation
     if (!this.storeName().trim()) {
       this.toast.showError('Por favor, informe o nome da loja.');
+      return false;
+    }
+    if (this.storeName().trim().length > 100) {
+      this.toast.showError('O nome da loja deve ter no máximo 100 caracteres.');
+      return false;
+    }
+    if (!this.contractorName().trim()) {
+      this.toast.showError('Por favor, informe o nome do contratante/lojista.');
       return false;
     }
     if (!this.cuisineType()) {
@@ -507,16 +678,18 @@ export class StoreConfigPageComponent implements OnInit {
       this.toast.showError('Informe o raio máximo de entrega em km.');
       return false;
     }
+    const storeUrlValidationError = this.storeUrlError();
+    if (storeUrlValidationError) {
+      this.storeUrlErrorVisible.set(true);
+      this.sectionsExpanded.update((s) => ({ ...s, url: true }));
+      this.toast.showError(storeUrlValidationError);
+      return false;
+    }
 
     this.loading.set(true);
     this.saveStatus.set('saving');
 
-    const rawSlug = this.storeUrl().trim() || this.storeName();
-    const slug = rawSlug.toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .substring(0, 80);
+    const slug = this.storeUrl().toLowerCase();
 
     const buildReq = (logoUrl?: string | null, bannerUrl?: string | null): CreateStoreRequest => ({
       name: this.storeName().trim(),
@@ -526,7 +699,6 @@ export class StoreConfigPageComponent implements OnInit {
       pixKey: this.pixKey().trim() || undefined,
       websiteUrl: this.websiteUrl().trim() || undefined,
       cuisineType: this.cuisineType(),
-      description: this.description().trim(),
       supportsDelivery: this.supportsDelivery(),
       supportsPickup: this.supportsPickup(),
       initialMinute: this.initialMinute() ?? undefined,
@@ -552,7 +724,7 @@ export class StoreConfigPageComponent implements OnInit {
           deliveryFee: 0,
           minimumOrderValue: parseFloat(this.minimumOrderValue().replace(',', '.')) || 0,
           freeShippingThreshold: this.existingFreeShippingThreshold,
-          deliveryAreas: this.existingDeliveryAreas()
+          freeShippingToday: this.existingFreeShippingToday,
         };
 
         this.storeService.upsertStoreAddress(storeId, addrReq).subscribe({
@@ -573,63 +745,116 @@ export class StoreConfigPageComponent implements OnInit {
       return res.url;
     };
 
-    const afterStoreSaved = async (storeId: string): Promise<boolean> => {
+    const afterStoreSaved = async (savedStore: StoreResponse): Promise<StoreResponse | null> => {
+      const storeId = savedStore.id;
       const existingLogo = this.existingLogoUrl();
       const existingBanner = this.existingBannerUrl();
 
       let logoUrl: string | null | undefined = existingLogo;
       let bannerUrl: string | null | undefined = existingBanner;
+      let finalStore = savedStore;
 
-      try {
-        const newLogo = await uploadImageIfNew('logo', this.logoFile());
-        if (newLogo) {
-          logoUrl = newLogo;
-          this.logoFile.set(null);
-          this.existingLogoUrl.set(newLogo);
+      const uploadFailureMessage = (err: unknown): string => {
+        const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
+        return typeof backendMessage === 'string' && backendMessage.trim()
+          ? backendMessage
+          : 'Não foi possível enviar a imagem. Tente novamente.';
+      };
+      const handleUploadError = (err: unknown): null => {
+        console.error('Failed to upload image after store save', err);
+        this.loading.set(false);
+        this.saveStatus.set('error');
+        // For HTTP 413 the global interceptor already surfaces the upload
+        // infrastructure/size message, so showing it here would duplicate it.
+        if ((err as { status?: number } | null)?.status !== 413) {
+          this.toast.showError(uploadFailureMessage(err));
         }
-        const newBanner = await uploadImageIfNew('banner', this.bannerFile());
-        if (newBanner) {
-          bannerUrl = newBanner;
-          this.bannerFile.set(null);
-          this.existingBannerUrl.set(newBanner);
+        return null;
+      };
+
+      if (this.logoFile()) {
+        try {
+          const newLogo = await uploadImageIfNew('logo', this.logoFile());
+          if (newLogo) {
+            logoUrl = newLogo;
+            this.logoFile.set(null);
+            this.existingLogoUrl.set(newLogo);
+          }
+        } catch (err) {
+          return handleUploadError(err);
         }
-      } catch (err) {
-        console.error('Failed to upload images after store save', err);
+      }
+
+      if (this.bannerFile()) {
+        try {
+          const newBanner = await uploadImageIfNew('banner', this.bannerFile());
+          if (newBanner) {
+            bannerUrl = newBanner;
+            this.bannerFile.set(null);
+            this.existingBannerUrl.set(newBanner);
+          }
+        } catch (err) {
+          return handleUploadError(err);
+        }
       }
 
       if (logoUrl !== existingLogo || bannerUrl !== existingBanner) {
         const patchReq = buildReq(logoUrl, bannerUrl);
-        await import('rxjs').then(x => x.firstValueFrom(this.storeService.updateStore(storeId, patchReq)));
+        try {
+          finalStore = await import('rxjs').then(x => x.firstValueFrom(this.storeService.updateStore(storeId, patchReq)));
+        } catch (err) {
+          this.handleSubmitError(
+            err as { status?: number; error?: { error?: unknown; detail?: unknown; errors?: unknown; message?: unknown } },
+            'Não foi possível atualizar as informações da loja. Verifique os dados.',
+          );
+          return null;
+        }
       }
 
       const result = await saveAddressAndConfig(storeId);
-      return result;
+      if (!result) {
+        this.toast.showError('Não foi possível salvar as configurações de entrega.');
+        return null;
+      }
+
+      return {
+        ...finalStore,
+        name: this.storeName().trim(),
+        logoUrl: logoUrl ?? undefined,
+        bannerUrl: bannerUrl ?? undefined,
+      };
     };
 
     const req = buildReq(this.existingLogoUrl(), this.existingBannerUrl());
 
-    console.log('PAYLOAD BEING SENT TO BACKEND:', JSON.stringify(req, null, 2));
+    const finishSave = async (savedStore: StoreResponse, isNewStore: boolean): Promise<boolean> => {
+      const finalStore = await afterStoreSaved(savedStore);
+      if (!finalStore) {
+        this.loading.set(false);
+        this.saveStatus.set('error');
+        return false;
+      }
+
+      const profileSaved = await this.saveContractorName();
+      this.loading.set(false);
+      this.saveStatus.set(profileSaved ? 'saved' : 'error');
+      if (profileSaved) {
+        this.sellerShell.mergeStore(finalStore);
+      }
+      if (profileSaved && isNewStore) {
+        this.toast.showSuccess('Configurações salvas com sucesso!');
+      }
+      return profileSaved;
+    };
 
     return new Promise((resolve) => {
       if (this.existingStoreId()) {
         this.storeService.updateStore(this.existingStoreId()!, req).subscribe({
           next: (res) => {
-            afterStoreSaved(res.id).then((result) => {
-              this.loading.set(false);
-              this.saveStatus.set(result ? 'saved' : 'error');
-              if (!result) this.toast.showError('Não foi possível salvar as configurações de entrega.');
-              resolve(result);
-            });
+            finishSave(res, false).then(resolve);
           },
           error: (err) => {
-            this.loading.set(false);
-            this.saveStatus.set('error');
-            let backendError = 'Não foi possível atualizar as informações da loja. Verifique os dados.';
-            if (err.error?.error) backendError = err.error.error;
-            else if (err.error?.detail) backendError = err.error.detail;
-            else if (err.error?.errors) backendError = Object.values(err.error.errors).flat().join('\n');
-            else if (err.error?.message) backendError = err.error.message;
-            this.toast.showError(backendError);
+            this.handleSubmitError(err, 'Não foi possível atualizar as informações da loja. Verifique os dados.');
             resolve(false);
           },
         });
@@ -637,32 +862,50 @@ export class StoreConfigPageComponent implements OnInit {
         this.storeService.createStore(req).subscribe({
           next: (res) => {
             this.existingStoreId.set(res.id);
-            afterStoreSaved(res.id).then((result) => {
-              this.loading.set(false);
-              if (result) {
-                this.saveStatus.set('saved');
-                this.toast.showSuccess('Configurações salvas com sucesso!');
-              } else {
-                this.saveStatus.set('error');
-                this.toast.showError('Não foi possível salvar as configurações de entrega.');
-              }
-              resolve(result);
-            });
+            finishSave(res, true).then(resolve);
           },
           error: (err) => {
-            this.loading.set(false);
-            this.saveStatus.set('error');
-            let backendError = 'Não foi possível criar a loja. Verifique os dados.';
-            if (err.error?.error) backendError = err.error.error;
-            else if (err.error?.detail) backendError = err.error.detail;
-            else if (err.error?.errors) backendError = Object.values(err.error.errors).flat().join('\n');
-            else if (err.error?.message) backendError = err.error.message;
-            this.toast.showError(backendError);
+            this.handleSubmitError(err, 'Não foi possível criar a loja. Verifique os dados.');
             resolve(false);
           },
         });
       }
     });
+  }
+
+  private async saveContractorName(): Promise<boolean> {
+    try {
+      await import('rxjs').then(x => x.firstValueFrom(
+        this.authService.updateSellerProfile({ fullName: this.contractorName().trim() }),
+      ));
+      return true;
+    } catch (err) {
+      console.error('Failed to update seller profile', err);
+      this.toast.showError('Não foi possível salvar o nome do contratante/lojista.');
+      return false;
+    }
+  }
+
+  private handleSubmitError(
+    err: { status?: number; error?: { error?: unknown; detail?: unknown; errors?: unknown; message?: unknown } },
+    fallbackMessage: string,
+  ): void {
+    this.loading.set(false);
+    this.saveStatus.set('error');
+
+    let backendError = fallbackMessage;
+    const errorBody = err?.error;
+    if (errorBody?.error) backendError = String(errorBody.error);
+    else if (errorBody?.detail) backendError = String(errorBody.detail);
+    else if (errorBody?.errors) backendError = Object.values(errorBody.errors as object).flat().join('\n');
+    else if (errorBody?.message) backendError = String(errorBody.message);
+
+    if (err?.status === 409 && backendError.includes('URL')) {
+      this.storeUrlConflict.set(backendError);
+      this.sectionsExpanded.update((s) => ({ ...s, url: true }));
+    }
+
+    this.toast.showError(backendError);
   }
 
   async goNext(): Promise<void> {

@@ -5,26 +5,37 @@ using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Payments;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
 public sealed class PaymentService : IPaymentService
 {
+    /// <summary>
+    /// Maximum number of additional attempts after the first loses the optimistic-concurrency race.
+    /// A single retry is sufficient: the fresh attempt gets a future deadline that the mock Pix
+    /// worker will not touch, so a second conflict cannot occur in normal operation.
+    /// </summary>
+    private const int MaxConcurrencyRetries = 1;
+
     private static readonly ConcurrentDictionary<Guid, OrderStartLock> OrderStartLocks = new();
 
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IOrderPaymentStrategyFactory _strategyFactory;
+    private readonly IMockPixClock _clock;
 
     public PaymentService(
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
-        IOrderPaymentStrategyFactory strategyFactory)
+        IOrderPaymentStrategyFactory strategyFactory,
+        IMockPixClock clock)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _strategyFactory = strategyFactory;
+        _clock = clock;
     }
 
     public async Task<CreateOrderPaymentResultDto> CreateOrderPaymentAsync(
@@ -33,9 +44,9 @@ public sealed class PaymentService : IPaymentService
         string? ipAddress,
         CancellationToken cancellationToken = default)
     {
-        // Process-local fast path avoids database round-trips for the common single-instance case.
-        // The PostgreSQL advisory lock below is the cross-process/replica source of truth that
-        // guarantees a single gateway call per order.
+        // The process-local lock serializes the common single-instance case while the PostgreSQL
+        // advisory lock (taken below for relational providers) is the cross-process/replica source of
+        // truth that guarantees a single gateway call per order.
         var orderLock = AcquireOrderStartLock(request.OrderId);
         var lockAcquired = false;
         try
@@ -43,32 +54,61 @@ public sealed class PaymentService : IPaymentService
             await orderLock.Semaphore.WaitAsync(cancellationToken);
             lockAcquired = true;
 
-            if (!_dbContext.Database.IsRelational())
+            for (var attempt = 0; ; attempt++)
             {
-                return await CreateOrderPaymentCoreAsync(customerUserId, request, ipAddress, cancellationToken);
-            }
+                IDbContextTransaction? transaction = null;
+                if (_dbContext.Database.IsRelational())
+                {
+                    transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    await AcquireOrderAdvisoryLockAsync(request.OrderId, cancellationToken);
+                }
 
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-            await AcquireOrderAdvisoryLockAsync(request.OrderId, cancellationToken);
+                try
+                {
+                    var result = await CreateOrderPaymentCoreAsync(customerUserId, request, ipAddress, cancellationToken);
+                    if (transaction is not null)
+                    {
+                        await transaction.CommitAsync(cancellationToken);
+                    }
 
-            try
-            {
-                var result = await CreateOrderPaymentCoreAsync(customerUserId, request, ipAddress, cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                return result;
-            }
-            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-            {
-                // A concurrent request (possibly from another process) persisted the payment for this
-                // order first. The failed INSERT left the transaction aborted, so it must be rolled
-                // back and disposed before the winner can be read on the same connection — otherwise
-                // Npgsql reports "current transaction is aborted". The gateway is not called again.
-                await transaction.RollbackAsync(cancellationToken);
-                await transaction.DisposeAsync();
-                DetachStagedPayment();
+                    return result;
+                }
+                catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+                {
+                    // A concurrent request (possibly from another process) persisted the payment for this
+                    // order first. The failed INSERT left the transaction aborted, so it must be rolled
+                    // back and disposed before the winner can be read on the same connection — otherwise
+                    // Npgsql reports "current transaction is aborted". The gateway is not called again.
+                    await DisposeAbortedTransactionAsync(transaction, cancellationToken);
+                    DetachStagedEntities();
 
-                var winner = await QueryWinnerPaymentAsync(request.OrderId, cancellationToken);
-                return new CreateOrderPaymentResultDto { Payment = ToResponse(winner) };
+                    var winner = await QueryWinnerPaymentAsync(request.OrderId, cancellationToken);
+                    return new CreateOrderPaymentResultDto { Payment = ToResponse(winner) };
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // A worker (mock Pix) finalized the payment while this retry was starting a new
+                    // attempt. Roll back, discard the staged entities, then re-read the committed
+                    // state: when it is retryable (Failed/Cancelled, or a mock Pending whose window
+                    // has elapsed) a fresh attempt is started idempotently; otherwise the committed
+                    // state is returned as-is so NotFound/invalid-state semantics are not masked and
+                    // the gateway is never invoked a second time.
+                    await DisposeAbortedTransactionAsync(transaction, cancellationToken);
+                    DetachStagedEntities();
+
+                    var current = await QueryWinnerPaymentAsync(request.OrderId, cancellationToken);
+                    if (attempt >= MaxConcurrencyRetries || !IsRetryableAfterConcurrentUpdate(current))
+                    {
+                        return new CreateOrderPaymentResultDto { Payment = ToResponse(current) };
+                    }
+                }
+                finally
+                {
+                    if (transaction is not null)
+                    {
+                        await transaction.DisposeAsync();
+                    }
+                }
             }
         }
         finally
@@ -266,6 +306,7 @@ public sealed class PaymentService : IPaymentService
             Amount = payment.Amount,
             CreatedAtUtc = payment.CreatedAtUtc,
             UpdatedAtUtc = payment.UpdatedAtUtc,
+            ExpiresAtUtc = payment.Gateway == PaymentGateway.Mock ? payment.MockExpiresAtUtc : null,
             History = history
         };
     }
@@ -299,12 +340,48 @@ public sealed class PaymentService : IPaymentService
             .ToListAsync(cancellationToken);
     }
 
-    private void DetachStagedPayment()
+    private void DetachStagedEntities()
     {
-        foreach (var entry in _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToArray())
+        foreach (var entry in _dbContext.ChangeTracker.Entries()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified)
+            .ToArray())
         {
             entry.State = EntityState.Detached;
         }
+    }
+
+    private static async Task DisposeAbortedTransactionAsync(
+        IDbContextTransaction? transaction,
+        CancellationToken cancellationToken)
+    {
+        if (transaction is null)
+        {
+            return;
+        }
+
+        await transaction.RollbackAsync(cancellationToken);
+        await transaction.DisposeAsync();
+    }
+
+    private bool IsRetryableAfterConcurrentUpdate(Payment payment)
+    {
+        // Only mock Pix payments may be retried automatically after losing the optimistic-concurrency
+        // race. A real gateway (Mercado Pago) must never be re-executed here: repeating the strategy
+        // would re-invoke the adapter with no idempotency guarantee and could double-charge/duplicate
+        // the checkout.
+        if (payment.Gateway != PaymentGateway.Mock)
+        {
+            return false;
+        }
+
+        if (payment.Status is PaymentStatus.Failed or PaymentStatus.Cancelled)
+        {
+            return true;
+        }
+
+        return payment.Status == PaymentStatus.Pending
+            && payment.MockExpiresAtUtc.HasValue
+            && payment.MockExpiresAtUtc <= _clock.UtcNow;
     }
 
     private static bool IsUniqueViolation(DbUpdateException exception) =>
@@ -323,7 +400,8 @@ public sealed class PaymentService : IPaymentService
             Status = payment.Status,
             Amount = payment.Amount,
             CreatedAtUtc = payment.CreatedAtUtc,
-            UpdatedAtUtc = payment.UpdatedAtUtc
+            UpdatedAtUtc = payment.UpdatedAtUtc,
+            ExpiresAtUtc = payment.Gateway == PaymentGateway.Mock ? payment.MockExpiresAtUtc : null
         };
     }
 }

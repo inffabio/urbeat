@@ -41,6 +41,16 @@ public static class StoreOpeningHoursCalculator
         return new StoreOpeningHoursStatus(false, ToUtc(nextOpening), ToUtc(nextOpening), message);
     }
 
+    /// <summary>
+    /// Current calendar date in the Sao Paulo timezone, used for daily promotions such as
+    /// "frete grátis hoje". Reuses the same timezone resolution as store opening hours.
+    /// </summary>
+    public static DateOnly GetSaoPauloDate(DateTimeOffset utcNow)
+    {
+        var localNow = TimeZoneInfo.ConvertTime(utcNow.ToUniversalTime(), SaoPauloTimeZone);
+        return DateOnly.FromDateTime(localNow.DateTime);
+    }
+
     private static bool IsOpenAt(IReadOnlyCollection<StoreBusinessHour> hours, DateTimeOffset localNow)
     {
         var currentMinute = localNow.Hour * 60 + localNow.Minute;

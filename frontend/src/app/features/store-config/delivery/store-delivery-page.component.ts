@@ -71,6 +71,18 @@ export class StoreDeliveryPageComponent implements OnInit {
   readonly storeLat = signal<number | null>(null);
   readonly storeLon = signal<number | null>(null);
   readonly maxDeliveryRadiusKm = signal<number>(0);
+  readonly radiusInputValue = signal<number | string>('');
+  readonly radiusValidationError = signal(false);
+  readonly radiusPreviewError = signal(false);
+  readonly radiusPreviewErrorMessage = 'Não foi possível atualizar os bairros para o novo raio. Tente novamente.';
+  readonly radiusDescribedBy = computed(() => {
+    const ids = [this.radiusValidationError() ? 'delivery-radius-error' : 'delivery-radius-hint'];
+    if (this.radiusPreviewError()) {
+      ids.push('delivery-radius-preview-error');
+    }
+    return ids.join(' ');
+  });
+  readonly isRadiusUpdating = signal(false);
   readonly isNeighborhoodModalOpen = signal(false);
   readonly isMapModalOpen = signal(false);
   private leafletMap: any = null;
@@ -84,6 +96,9 @@ export class StoreDeliveryPageComponent implements OnInit {
   readonly areaStatusFilter = signal<'all' | 'active' | 'paused'>('all');
   readonly invalidRowIndices = signal<Set<number>>(new Set());
   private areaVersion = signal(0);
+  private radiusRequestVersion = 0;
+  private lastAppliedRadiusKm: number | null = null;
+  private readonly knownGlobalNeighborhoodNames = new Set<string>();
 
   /** Bairros marcados no modal OSM (set de ids). */
   readonly checkedNeighborhoodIds = signal<Set<string>>(new Set());
@@ -156,7 +171,6 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.storeService.getMyStore().subscribe({
       next: (store) => {
         this.storeId.set(store.id);
-        this.maxDeliveryRadiusKm.set(store.maxDeliveryRadiusKm ?? 0);
         this.loadExistingConfig(store);
         this.loadStoreCity(store.id);
         this.loading.set(false);
@@ -182,28 +196,34 @@ export class StoreDeliveryPageComponent implements OnInit {
   }
 
   private loadStoreCity(storeId: string) {
+    // Capture the version before the address request so a radius preview
+    // started while it is in flight supersedes this initial load.
+    const initialLoadVersion = this.radiusRequestVersion;
     this.storeService.getStoreAddress(storeId).subscribe({
       next: (addr) => {
         this.storeCity.set(addr.city || '');
         this.storeUf.set(addr.state || '');
         this.storeLat.set(addr.latitude ?? null);
         this.storeLon.set(addr.longitude ?? null);
-          if (addr.city) {
-            this.loadExistingNeighborhoods(addr.city);
-          }
+        if (addr.city && initialLoadVersion === this.radiusRequestVersion) {
+          this.loadExistingNeighborhoods(addr.city, initialLoadVersion);
+        }
       },
       error: () => this.loading.set(false)
     });
   }
 
-  private loadExistingNeighborhoods(city: string) {
+  private loadExistingNeighborhoods(city: string, requestVersion = this.radiusRequestVersion) {
     const id = this.storeId();
     if (!id) return;
     this.storeService.getDeliveryNeighborhoodsByStore(id).subscribe({
       next: (list) => {
+        if (requestVersion !== this.radiusRequestVersion) return;
+        this.trackKnownGlobalNeighborhoods(list);
         this.deliveryNeighborhoods.set(list);
       },
       error: () => {
+        if (requestVersion !== this.radiusRequestVersion) return;
         this.toast.showError('Erro ao carregar bairros.');
       },
     });
@@ -213,6 +233,13 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.existingMinimumOrder = store.minimumOrderValue ?? 0;
     this.existingDeliveryFee = store.deliveryFee ?? 0;
     this.freeShippingToday.set(store.freeShippingToday ?? false);
+
+    const radius = Number(store.maxDeliveryRadiusKm) || 0;
+    this.maxDeliveryRadiusKm.set(radius);
+    this.lastAppliedRadiusKm = radius > 0 ? radius : null;
+    this.radiusInputValue.set(radius > 0 ? radius : '');
+    this.radiusValidationError.set(false);
+    this.radiusPreviewError.set(false);
 
     if (store.freeShippingThreshold !== undefined && store.freeShippingThreshold !== null) {
       this.form.patchValue({
@@ -236,6 +263,88 @@ export class StoreDeliveryPageComponent implements OnInit {
     }
 
     this.formDirty.set(false);
+  }
+
+  onDeliveryRadiusChange(value: string | number | null): void {
+    const raw = value === null || value === undefined ? '' : String(value).trim();
+    const parsed = typeof value === 'number' ? value : Number(raw);
+    const isValid = raw !== '' && Number.isFinite(parsed) && parsed > 0;
+
+    if (!isValid) {
+      // Invalidate any in-flight preview so its response cannot mutate the
+      // store FormArray, and stop showing a pending preview state.
+      this.radiusRequestVersion++;
+      this.isRadiusUpdating.set(false);
+      this.radiusValidationError.set(true);
+      this.radiusInputValue.set(value ?? '');
+      return;
+    }
+
+    const previousRadiusKm = this.lastAppliedRadiusKm ?? 0;
+
+    this.radiusValidationError.set(false);
+    this.radiusPreviewError.set(false);
+    this.radiusInputValue.set(parsed);
+    this.maxDeliveryRadiusKm.set(parsed);
+    this.formDirty.set(true);
+
+    const id = this.storeId();
+    if (!id) return;
+
+    this.isRadiusUpdating.set(true);
+    const requestVersion = ++this.radiusRequestVersion;
+    this.storeService.getDeliveryNeighborhoodsByStore(id, parsed).subscribe({
+      next: (list) => {
+        if (requestVersion !== this.radiusRequestVersion) return;
+        this.isRadiusUpdating.set(false);
+        this.radiusPreviewError.set(false);
+        this.trackKnownGlobalNeighborhoods(list);
+        this.deliveryNeighborhoods.set(list);
+        // Increasing or keeping the radius must never remove selected store
+        // areas; only a successful reduction may drop out-of-radius areas.
+        if (previousRadiusKm > 0 && parsed < previousRadiusKm) {
+          this.removeAreasOutsideRadius(list);
+        }
+        this.lastAppliedRadiusKm = parsed;
+      },
+      error: () => {
+        if (requestVersion !== this.radiusRequestVersion) return;
+        this.isRadiusUpdating.set(false);
+        this.radiusPreviewError.set(true);
+        this.toast.showError('Erro ao atualizar bairros disponíveis.');
+      },
+    });
+  }
+
+  private trackKnownGlobalNeighborhoods(list: DeliveryNeighborhood[]): void {
+    for (const n of list) {
+      const name = (n.neighborhood || '').trim().toLowerCase();
+      if (name) {
+        this.knownGlobalNeighborhoodNames.add(name);
+      }
+    }
+  }
+
+  private removeAreasOutsideRadius(eligible: DeliveryNeighborhood[]): void {
+    const eligibleNames = new Set(
+      eligible.map(n => (n.neighborhood || '').trim().toLowerCase()).filter(Boolean)
+    );
+
+    let removed = false;
+    for (let i = this.areas.length - 1; i >= 0; i--) {
+      const name = (this.areas.at(i).value.neighborhood || '').trim().toLowerCase();
+      if (!name) continue;
+      // Only known global neighborhoods can be classified as outside the radius.
+      // Manual store-only associations have no global counterpart and are kept.
+      if (this.knownGlobalNeighborhoodNames.has(name) && !eligibleNames.has(name)) {
+        this.areas.removeAt(i);
+        removed = true;
+      }
+    }
+
+    if (removed) {
+      this.areaVersion.update(v => v + 1);
+    }
   }
 
 
@@ -465,6 +574,7 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.storeService.createDeliveryNeighborhood(name, city).subscribe({
       next: (created) => {
         this.isAddingNeighborhood.set(false);
+        this.trackKnownGlobalNeighborhoods([created]);
         this.deliveryNeighborhoods.update(list =>
           [...list, created].sort((a, b) => a.neighborhood.localeCompare(b.neighborhood, 'pt-BR'))
         );
@@ -571,8 +681,9 @@ export class StoreDeliveryPageComponent implements OnInit {
     await alert.present();
   }
 
-  toggleFreeShippingToday(): void {
-    this.freeShippingToday.update(v => !v);
+  toggleFreeShippingToday(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.freeShippingToday.set(input.checked);
     this.formDirty.set(true);
   }
 
@@ -634,6 +745,11 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   private persistConfig(): Promise<boolean> {
     return new Promise((resolve) => {
+      if (this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) {
+        resolve(false);
+        return;
+      }
+
       const id = this.storeId();
       if (!id) {
         resolve(false);
@@ -660,6 +776,7 @@ export class StoreDeliveryPageComponent implements OnInit {
         minimumOrderValue: this.existingMinimumOrder,
         freeShippingThreshold: (numFreeShipping !== null && !isNaN(numFreeShipping)) ? numFreeShipping : undefined,
         freeShippingToday: this.freeShippingToday(),
+        maxDeliveryRadiusKm: this.maxDeliveryRadiusKm() > 0 ? this.maxDeliveryRadiusKm() : undefined,
         deliveryAreas: areasDto.filter(a => a.neighborhood.trim() !== '')
       };
 
@@ -796,12 +913,6 @@ export class StoreDeliveryPageComponent implements OnInit {
     }
     this.invalidRowIndices.set(new Set());
 
-    // Verifica frete grátis
-    const threshold = this.parseBRLToNumber(this.form.value.freeShippingThreshold as string);
-    if (threshold === null || threshold === 0) {
-      this.toast.showWarning('Nenhum valor mínimo definido para frete grátis. Pedidos de qualquer valor terão entrega gratuita.');
-    }
-
     const success = await this.persistConfig();
     if (success) {
       this.router.navigate(['/configurar-loja/produtos']);
@@ -809,6 +920,7 @@ export class StoreDeliveryPageComponent implements OnInit {
   }
 
   async saveDraft(): Promise<void> {
+    if (this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) return;
     this.saveStatus.set('saving');
     const success = await this.persistConfig();
     this.saveStatus.set(success ? 'saved' : 'error');
@@ -822,15 +934,44 @@ export class StoreDeliveryPageComponent implements OnInit {
     const id = this.storeId();
     if (!id || this.isSaving()) return;
 
+    // Invalidate any in-flight radius preview before restoring the persisted
+    // config so a late response/error cannot mutate the restored state.
+    const restoreVersion = ++this.radiusRequestVersion;
+    this.isRadiusUpdating.set(false);
+
     this.storeService.getMyStore().subscribe({
       next: store => {
+        // A newer radius edit (which bumps the request version) must win over
+        // this restore so the late response cannot overwrite it.
+        if (restoreVersion !== this.radiusRequestVersion) return;
         this.loadExistingConfig(store);
         this.formDirty.set(false);
         this.activeRowIndex.set(null);
         this.saveStatus.set('idle');
+        this.reloadPersistedNeighborhoods(restoreVersion);
         this.toast.showInfo('Alterações descartadas.');
       },
-      error: () => this.toast.showError('Não foi possível restaurar a configuração.'),
+      error: () => {
+        if (restoreVersion !== this.radiusRequestVersion) return;
+        this.toast.showError('Não foi possível restaurar a configuração.');
+      },
+    });
+  }
+
+  private reloadPersistedNeighborhoods(requestVersion: number): void {
+    const id = this.storeId();
+    if (!id) return;
+    const radius = this.maxDeliveryRadiusKm();
+    this.storeService.getDeliveryNeighborhoodsByStore(id, radius > 0 ? radius : undefined).subscribe({
+      next: (list) => {
+        if (requestVersion !== this.radiusRequestVersion) return;
+        this.trackKnownGlobalNeighborhoods(list);
+        this.deliveryNeighborhoods.set(list);
+      },
+      error: () => {
+        if (requestVersion !== this.radiusRequestVersion) return;
+        this.toast.showError('Erro ao carregar bairros.');
+      },
     });
   }
 }

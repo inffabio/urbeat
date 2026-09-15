@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -19,6 +19,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../../shared/enums/payment-method.enum';
 import { PaymentStatus } from '../../../shared/enums/payment-status.enum';
+import { PaymentGateway } from '../../../shared/enums/payment-gateway.enum';
 import { OrderStatus } from '../../../shared/enums/order-status.enum';
 
 describe('OnlinePaymentPageComponent', () => {
@@ -243,6 +244,49 @@ describe('OnlinePaymentPageComponent', () => {
     jest.useRealTimers();
   });
 
+  it('does not create duplicate order poll intervals when loadPayment re-arms polling', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 60000).toISOString())));
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(2);
+
+    jest.useRealTimers();
+  });
+
+  it('re-arms order polling when refreshPayment reloads a valid pending attempt', () => {
+    jest.useFakeTimers();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? { ...mockPendingPayment('2026-07-29T00:00:00.000Z'), status: PaymentStatus.Failed }
+        : mockPendingPayment(new Date(Date.now() + 60000).toISOString()));
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+    const callsBeforeRefresh = orderMock.getOrder.mock.calls.length;
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder.mock.calls.length).toBeGreaterThan(callsBeforeRefresh);
+
+    jest.useRealTimers();
+  });
+
   it('cancels order polling when navigating to tracking after payment is paid', () => {
     jest.useFakeTimers();
     paymentMock.getPayment.mockReturnValue(of({
@@ -261,6 +305,356 @@ describe('OnlinePaymentPageComponent', () => {
     jest.advanceTimersByTime(4000);
 
     expect(orderMock.getOrder).toHaveBeenCalledTimes(callsAfterNavigation);
+    jest.useRealTimers();
+  });
+
+  const mockPendingPayment = (expiresAtUtc: string) => ({
+    paymentId: 'pay1',
+    orderId: 'o1',
+    gateway: PaymentGateway.Mock,
+    gatewayTransactionId: 'mock_o1_1',
+    gatewayCheckoutUrl: '/mock-pix-checkout',
+    method: PaymentMethod.PixOnline,
+    status: PaymentStatus.Pending,
+    amount: 20,
+    createdAtUtc: '2026-07-29T00:00:00.000Z',
+    expiresAtUtc,
+  });
+
+  const mockMercadoPagoPending = () => ({
+    paymentId: 'pay1',
+    orderId: 'o1',
+    gateway: PaymentGateway.MercadoPago,
+    gatewayTransactionId: 'mp_pending',
+    gatewayCheckoutUrl: 'https://pay.example/pix',
+    method: PaymentMethod.PixOnline,
+    status: PaymentStatus.Pending,
+    amount: 20,
+    createdAtUtc: '2026-07-29T00:00:00.000Z',
+  });
+
+  it('should render a server-driven countdown starting at 01:00 for a mock Pix payment', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 60000).toISOString())));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    const countdownValue = fixture.debugElement.query(By.css('.countdown-value'));
+    expect(countdownValue.nativeElement.textContent).toBe('01:00');
+
+    jest.advanceTimersByTime(1000);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.countdownLabel()).toBe('00:59');
+
+    jest.useRealTimers();
+  });
+
+  it('should not expose a gateway link for a mock Pix payment', () => {
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 60000).toISOString())));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('a.pix-link'))).toBeNull();
+    expect(fixture.debugElement.nativeElement.textContent).toContain('Pix simulado');
+  });
+
+  it('marks expired and stops polling after a final server confirmation at zero', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 5000).toISOString())));
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalled();
+    const orderCallsAtExpiry = orderMock.getOrder.mock.calls.length;
+    const paymentCallsAtExpiry = paymentMock.getPayment.mock.calls.length;
+
+    jest.advanceTimersByTime(2000);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).not.toBeNull();
+    expect(fixture.debugElement.nativeElement.textContent).toContain('Tempo para pagamento encerrado');
+    expect(paymentMock.getPayment.mock.calls.length).toBe(paymentCallsAtExpiry + 1);
+
+    jest.advanceTimersByTime(8000);
+    expect(orderMock.getOrder.mock.calls.length).toBe(orderCallsAtExpiry);
+
+    jest.useRealTimers();
+  });
+
+  it('navigates to tracking when the final server confirmation returns paid at zero', () => {
+    jest.useFakeTimers();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? mockPendingPayment(new Date(Date.now() + 5000).toISOString())
+        : { ...mockPendingPayment(new Date(Date.now() - 1000).toISOString()), status: PaymentStatus.Paid });
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(5000);
+    fixture.detectChanges();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'pedido', 'o1']);
+    jest.useRealTimers();
+  });
+
+  it('confirms with the server and expires when loading an already-elapsed deadline', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() - 1000).toISOString())));
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+    expect(fixture.componentInstance.remainingSeconds()).toBe(0);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).not.toBeNull();
+    expect(paymentMock.getPayment).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(8000);
+    expect(orderMock.getOrder).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('does not loop or re-query when the final server confirmation errors', () => {
+    jest.useFakeTimers();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      if (getCall === 1) {
+        return of(mockPendingPayment(new Date(Date.now() + 5000).toISOString()));
+      }
+      return throwError(() => new Error('network'));
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(6000);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+    expect(paymentMock.getPayment).toHaveBeenCalledTimes(2);
+
+    const orderCallsAtExpiry = orderMock.getOrder.mock.calls.length;
+    jest.advanceTimersByTime(8000);
+    expect(paymentMock.getPayment).toHaveBeenCalledTimes(2);
+    expect(orderMock.getOrder.mock.calls.length).toBe(orderCallsAtExpiry);
+
+    jest.useRealTimers();
+  });
+
+  it('should show the expired state when the server reports a failed mock payment', () => {
+    paymentMock.getPayment.mockReturnValue(of({
+      ...mockPendingPayment('2026-07-29T00:00:00.000Z'),
+      status: PaymentStatus.Failed,
+    }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).not.toBeNull();
+  });
+
+  it('should not treat a Mercado Pago failed payment as expired/retryable mock Pix', () => {
+    paymentMock.getPayment.mockReturnValue(of({
+      ...mockPendingPayment('2026-07-29T00:00:00.000Z'),
+      gateway: PaymentGateway.MercadoPago,
+      gatewayCheckoutUrl: 'https://pay.example/pix',
+      status: PaymentStatus.Failed,
+    }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('a.pix-link'))).not.toBeNull();
+    expect(fixture.debugElement.nativeElement.textContent).not.toContain('Tempo para pagamento encerrado');
+  });
+
+  it('clears the expired mock state when a later load returns a pending Mercado Pago payment', () => {
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? { ...mockPendingPayment('2026-07-29T00:00:00.000Z'), status: PaymentStatus.Failed }
+        : mockMercadoPagoPending());
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.componentInstance.remainingSeconds()).toBe(0);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.countdown-value'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('a.pix-link'))).not.toBeNull();
+  });
+
+  it('stops the mock countdown timer when a later load returns a pending Mercado Pago payment', () => {
+    jest.useFakeTimers();
+    const mockDeadline = new Date(Date.now() + 5000).toISOString();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? mockPendingPayment(mockDeadline)
+        : mockMercadoPagoPending());
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.remainingSeconds()).toBe(5);
+    expect(fixture.componentInstance.expired()).toBe(false);
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.remainingSeconds()).toBe(0);
+    expect(fixture.componentInstance.expired()).toBe(false);
+
+    jest.advanceTimersByTime(10000);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.countdown-value'))).toBeNull();
+
+    jest.useRealTimers();
+  });
+
+  it('ignores a stale confirmation response when refreshPayment runs during a pending confirmation', () => {
+    jest.useFakeTimers();
+    const confirmSubscribers: ((payment: any) => void)[] = [];
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      if (getCall === 1) {
+        return of(mockPendingPayment(new Date(Date.now() + 5000).toISOString()));
+      }
+      if (getCall === 2) {
+        return new Observable((subscriber) => {
+          confirmSubscribers.push((p) => subscriber.next(p));
+        });
+      }
+      return of(mockMercadoPagoPending());
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(6000);
+    fixture.detectChanges();
+
+    expect(paymentMock.getPayment).toHaveBeenCalledTimes(2);
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(false);
+
+    confirmSubscribers[0]({
+      ...mockPendingPayment(new Date(Date.now() - 1000).toISOString()),
+      status: PaymentStatus.Failed,
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.debugElement.query(By.css('.expired-card'))).toBeNull();
+
+    jest.useRealTimers();
+  });
+
+  it('should retry the mock payment without recreating the order', () => {
+    jest.useFakeTimers();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? { ...mockPendingPayment('2026-07-29T00:00:00.000Z'), status: PaymentStatus.Failed }
+        : mockPendingPayment(new Date(Date.now() + 60000).toISOString()));
+    });
+    paymentMock.createPayment.mockReturnValue(of({}));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.expired()).toBe(true);
+
+    fixture.componentInstance.retryPayment();
+
+    expect(paymentMock.createPayment).toHaveBeenCalledWith('o1');
+    expect(fixture.componentInstance.expired()).toBe(false);
+
+    jest.useRealTimers();
+  });
+
+  it('should request a fresh attempt when retrying right after the countdown reaches zero', () => {
+    jest.useFakeTimers();
+    let getCall = 0;
+    paymentMock.getPayment.mockImplementation(() => {
+      getCall++;
+      return of(getCall === 1
+        ? mockPendingPayment(new Date(Date.now() + 1000).toISOString())
+        : mockPendingPayment(new Date(Date.now() + 60000).toISOString()));
+    });
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(2000);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.expired()).toBe(true);
+
+    paymentMock.createPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 60000).toISOString())));
+
+    fixture.componentInstance.retryPayment();
+    fixture.detectChanges();
+
+    expect(paymentMock.createPayment).toHaveBeenCalledWith('o1');
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.componentInstance.remainingSeconds()).toBe(60);
+
+    jest.useRealTimers();
+  });
+
+  it('should stop the countdown when the component is destroyed', () => {
+    jest.useFakeTimers();
+    paymentMock.getPayment.mockReturnValue(of(mockPendingPayment(new Date(Date.now() + 60000).toISOString())));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.remainingSeconds()).toBe(60);
+
+    fixture.destroy();
+    jest.advanceTimersByTime(3000);
+
+    expect(fixture.componentInstance.remainingSeconds()).toBe(60);
     jest.useRealTimers();
   });
 });

@@ -142,8 +142,8 @@ public sealed class StoreAdditionalsFlowTests : IClassFixture<TestWebApplication
         var storeResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Adicionais",
+            Slug = "loja-adicionais",
             PhoneNumber = "11982221111",
-            Description = "Loja para testes de adicionais",
             CuisineType = "Lanches",
             MaxDeliveryRadiusKm = 5,
         });

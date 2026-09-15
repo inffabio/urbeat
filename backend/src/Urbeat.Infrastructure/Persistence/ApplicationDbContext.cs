@@ -71,6 +71,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<ProductOptionGroup> ProductOptionGroups => Set<ProductOptionGroup>();
     public DbSet<ProductOptionItem> ProductOptionItems => Set<ProductOptionItem>();
+    public DbSet<ProductOptionGroupTemplate> ProductOptionGroupTemplates => Set<ProductOptionGroupTemplate>();
+    public DbSet<ProductOptionItemTemplate> ProductOptionItemTemplates => Set<ProductOptionItemTemplate>();
     public DbSet<StoreAdditionalGroup> StoreAdditionalGroups => Set<StoreAdditionalGroup>();
     public DbSet<StoreAdditional> StoreAdditionals => Set<StoreAdditional>();
     public DbSet<ProductAdditionalAssignment> ProductAdditionalAssignments => Set<ProductAdditionalAssignment>();
@@ -117,13 +119,14 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Document).HasMaxLength(14);
             entity.Property(x => x.PixKey).HasMaxLength(50);
             entity.Property(x => x.WebsiteUrl).HasMaxLength(500);
-            entity.Property(x => x.Description).HasMaxLength(300);
             
             entity.Property(x => x.BannerUrl).HasMaxLength(500);
             entity.Property(x => x.LogoUrl).HasMaxLength(500);
+            entity.Property(x => x.IsPublished).HasDefaultValue(false);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.MinimumOrderValue).HasPrecision(10, 2);
             entity.Property(x => x.FreeShippingThreshold).HasPrecision(10, 2);
+            entity.Property(x => x.FreeShippingTodayDate).HasColumnType("date");
         });
 
         builder.Entity<CuisineType>(entity =>
@@ -321,6 +324,9 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Attempt).HasDefaultValue(1);
             entity.Property(x => x.RawPayload).HasColumnType("text");
             entity.Property(x => x.ConcurrencyStamp).IsConcurrencyToken().HasDefaultValue(Guid.Empty);
+            entity.Property(x => x.MockExpiresAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.MockApprovalAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.MockOutcome).HasMaxLength(20);
             entity.HasOne<Order>()
                 .WithOne()
                 .HasForeignKey<Payment>(x => x.OrderId)
@@ -507,6 +513,37 @@ public sealed class ApplicationDbContext
         builder.Entity<ProductVariation>(entity =>
         {
             entity.Property(x => x.Description).HasMaxLength(150);
+        });
+
+        builder.Entity<ProductOptionGroup>(entity =>
+        {
+            entity.HasOne(x => x.Template)
+                .WithMany()
+                .HasForeignKey(x => x.TemplateId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<ProductOptionGroupTemplate>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.StoreId, x.Name });
+            entity.Property(x => x.Name).HasMaxLength(80).IsRequired();
+            entity.Property(x => x.ChoiceType).HasMaxLength(20).HasDefaultValue("single");
+            entity.HasOne<Store>()
+                .WithMany()
+                .HasForeignKey(x => x.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ProductOptionItemTemplate>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Price).HasPrecision(10, 2);
+            entity.HasOne(x => x.Group)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.GroupId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<SystemParameter>(entity =>

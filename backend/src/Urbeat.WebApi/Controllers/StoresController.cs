@@ -105,9 +105,18 @@ public sealed class StoresController : ControllerBase
     [HttpGet("delivery-neighborhoods-by-store")]
     [Authorize(Roles = "Seller")]
     [ProducesResponseType<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetDeliveryNeighborhoodsByStore([FromQuery] Guid storeId, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetDeliveryNeighborhoodsByStore([FromQuery] Guid storeId, [FromQuery] double? radiusKm, CancellationToken cancellationToken)
     {
-        var neighborhoods = await _storeService.GetActiveDeliveryNeighborhoodsByStoreAsync(storeId, cancellationToken);
+        if (radiusKm.HasValue && (!double.IsFinite(radiusKm.Value) || radiusKm.Value <= 0))
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["radiusKm"] = new[] { "O raio de entrega deve ser maior que zero." }
+            }));
+        }
+
+        var neighborhoods = await _storeService.GetActiveDeliveryNeighborhoodsByStoreAsync(storeId, radiusKm, cancellationToken);
         return Ok(neighborhoods);
     }
 
@@ -154,6 +163,11 @@ public sealed class StoresController : ControllerBase
         if (result.AlreadyExists)
         {
             return Conflict(new { error = "Seller already has a store." });
+        }
+
+        if (result.SlugConflict)
+        {
+            return Conflict(new { error = "O nome ou a URL da loja já está em uso. Escolha outro." });
         }
 
         if (result.InvalidCuisineType)
@@ -228,6 +242,11 @@ public sealed class StoresController : ControllerBase
         if (result.InvalidCuisineType)
         {
             return BadRequest(new { error = "Cuisine type is invalid or inactive." });
+        }
+
+        if (result.SlugConflict)
+        {
+            return Conflict(new { error = "O nome ou a URL da loja já está em uso. Escolha outro." });
         }
 
         return Ok(result.Store);
@@ -439,6 +458,7 @@ public sealed class StoresController : ControllerBase
             request.FreeShippingThreshold,
             request.FreeShippingToday,
             request.DeliveryAreas,
+            request.MaxDeliveryRadiusKm,
             HttpContext.Connection.RemoteIpAddress?.ToString(),
             cancellationToken);
 
@@ -465,13 +485,25 @@ public sealed class StoresController : ControllerBase
     public async Task<IActionResult> UploadImage(
         [FromServices] IImageUploadService imageUploadService,
         IFormFile file,
-        [FromQuery] string type = "store-media",
+        [FromQuery] string? type = null,
         CancellationToken cancellationToken = default)
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "Nenhum arquivo enviado." });
 
-        var validationError = StoreMediaUploadValidator.Validate(file, type);
+        // An omitted type keeps the historical "store-media" default, but an
+        // explicitly empty/whitespace value is invalid and must not silently fall
+        // back to a size limit or a Cloudinary folder.
+        var normalizedType = type?.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(normalizedType))
+        {
+            normalizedType = Request.Query.ContainsKey("type") ? null : "store-media";
+        }
+
+        if (normalizedType is null || !StoreMediaUploadValidator.IsSupportedUploadType(normalizedType))
+            return BadRequest(new { error = StoreMediaUploadValidator.InvalidUploadTypeMessage });
+
+        var validationError = StoreMediaUploadValidator.Validate(file, normalizedType);
         if (validationError is not null)
             return BadRequest(new { error = validationError });
 
@@ -481,8 +513,8 @@ public sealed class StoresController : ControllerBase
         var store = await _storeService.GetByOwnerAsync(userId.Value, cancellationToken);
 
         var folder = store is not null
-            ? $"stores/{store.Slug}/{type}"
-            : $"stores/_pending/{userId}/{type}";
+            ? $"stores/{store.Slug}/{normalizedType}"
+            : $"stores/_pending/{userId}/{normalizedType}";
 
         try
         {

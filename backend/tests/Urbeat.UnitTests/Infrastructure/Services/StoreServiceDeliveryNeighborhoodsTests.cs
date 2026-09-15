@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -313,6 +315,52 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
     }
 
     [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldReturnEmpty_WhenPositiveRadiusHasNoEligibleNeighborhoods()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            Name = "Loja SP Zero",
+            Slug = "loja-sp-zero",
+            MaxDeliveryRadiusKm = 3
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbFar = new DeliveryNeighborhood
+        {
+            Neighborhood = "Itaquera",
+            NormalizedName = "itaquera",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5400,
+            Longitude = -46.4600,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbFar);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id, radiusKm: 2);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldIncludeManualNeighborhoodWithoutCoordinates_WhenRadiusIsSet()
     {
         using var db = CreateDbContext();
@@ -428,5 +476,318 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
 
         result.Should().HaveCount(1);
         result.Single().Neighborhood.Should().Be("Manual SP");
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldUsePreviewRadius_WhenSuppliedWithoutChangingPersistedRadius()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            Name = "Loja SP Preview",
+            Slug = "loja-sp-preview",
+            MaxDeliveryRadiusKm = 10
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbNear = new DeliveryNeighborhood
+        {
+            Neighborhood = "Bela Vista",
+            NormalizedName = "bela vista",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5580,
+            Longitude = -46.6420,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbNear);
+
+        var nbWithinPersistedButOutsidePreview = new DeliveryNeighborhood
+        {
+            Neighborhood = "Vila Mariana",
+            NormalizedName = "vila mariana",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5505,
+            Longitude = -46.5840,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbWithinPersistedButOutsidePreview);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id, radiusKm: 3);
+
+        result.Should().Contain(x => x.Neighborhood == "Bela Vista");
+        result.Should().NotContain(x => x.Neighborhood == "Vila Mariana");
+
+        var persisted = await db.Stores.AsNoTracking().SingleAsync(x => x.Id == store.Id);
+        persisted.MaxDeliveryRadiusKm.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExpandPreviewRadius_WhenSuppliedIsLarger()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            Name = "Loja SP Expand",
+            Slug = "loja-sp-expand",
+            MaxDeliveryRadiusKm = 3
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbWithinPreview = new DeliveryNeighborhood
+        {
+            Neighborhood = "Vila Mariana",
+            NormalizedName = "vila mariana",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = -23.5505,
+            Longitude = -46.5840,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbWithinPreview);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id, radiusKm: 10);
+
+        result.Should().Contain(x => x.Neighborhood == "Vila Mariana");
+    }
+
+    [Fact]
+    public async Task UpdateDeliveryConfigAsync_ShouldKeepStoreOnlyManualArea_WhileRemovingKnownOutOfRadiusArea()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Sao Paulo";
+
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Manual",
+            Slug = "loja-manual",
+            MaxDeliveryRadiusKm = 10
+        };
+        db.Stores.Add(store);
+
+        db.StoreAddresses.Add(new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "SP",
+            Latitude = -23.5505,
+            Longitude = -46.6333
+        });
+
+        db.DeliveryNeighborhoods.AddRange(
+            new DeliveryNeighborhood
+            {
+                Neighborhood = "Bela Vista",
+                NormalizedName = "bela vista",
+                City = storeCity,
+                Latitude = -23.5580,
+                Longitude = -46.6420,
+                IsActive = true,
+                Source = "test"
+            },
+            new DeliveryNeighborhood
+            {
+                Neighborhood = "Vila Mariana",
+                NormalizedName = "vila mariana",
+                City = storeCity,
+                Latitude = -23.5505,
+                Longitude = -46.5840,
+                IsActive = true,
+                Source = "test"
+            });
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        await sut.UpdateDeliveryConfigAsync(
+            store.OwnerUserId,
+            store.Id,
+            deliveryFee: 5m,
+            minimumOrderValue: 20m,
+            freeShippingThreshold: null,
+            freeShippingToday: false,
+            deliveryAreas: new[]
+            {
+                new StoreDeliveryAreaDto { Neighborhood = "Bela Vista", DeliveryFee = 5m, IsActive = true },
+                new StoreDeliveryAreaDto { Neighborhood = "Vila Mariana", DeliveryFee = 6m, IsActive = true },
+                new StoreDeliveryAreaDto { Neighborhood = "Bairro Manual", DeliveryFee = 4m, IsActive = true }
+            },
+            maxDeliveryRadiusKm: 3,
+            ipAddress: "127.0.0.1");
+
+        await db.SaveChangesAsync();
+
+        var storeAreas = await db.Set<StoreDeliveryArea>()
+            .Where(x => x.StoreId == store.Id)
+            .Select(x => x.Neighborhood)
+            .ToListAsync();
+        storeAreas.Should().BeEquivalentTo(new[] { "Bela Vista", "Bairro Manual" });
+
+        var globalNeighborhoods = await db.DeliveryNeighborhoods
+            .Where(x => x.City == storeCity)
+            .Select(x => x.Neighborhood)
+            .ToListAsync();
+        globalNeighborhoods.Should().BeEquivalentTo(new[] { "Bela Vista", "Vila Mariana" });
+    }
+
+    [Fact]
+    public async Task UpdateDeliveryConfigAsync_ShouldPersistMaxDeliveryRadiusKm_WhenSupplied()
+    {
+        using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Raio",
+            Slug = "loja-raio",
+            MaxDeliveryRadiusKm = 5
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        await sut.UpdateDeliveryConfigAsync(
+            store.OwnerUserId,
+            store.Id,
+            deliveryFee: 5m,
+            minimumOrderValue: 20m,
+            freeShippingThreshold: null,
+            freeShippingToday: false,
+            deliveryAreas: null,
+            maxDeliveryRadiusKm: 7.5,
+            ipAddress: "127.0.0.1");
+
+        var saved = await db.Stores.SingleAsync(x => x.Id == store.Id);
+        saved.MaxDeliveryRadiusKm.Should().Be(7.5);
+    }
+
+    [Fact]
+    public async Task UpdateDeliveryConfigAsync_ShouldPreserveMaxDeliveryRadiusKm_WhenOmitted()
+    {
+        using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Raio Preservado",
+            Slug = "loja-raio-preservado",
+            MaxDeliveryRadiusKm = 5
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        await sut.UpdateDeliveryConfigAsync(
+            store.OwnerUserId,
+            store.Id,
+            deliveryFee: 5m,
+            minimumOrderValue: 20m,
+            freeShippingThreshold: null,
+            freeShippingToday: false,
+            deliveryAreas: null,
+            ipAddress: "127.0.0.1");
+
+        var saved = await db.Stores.SingleAsync(x => x.Id == store.Id);
+        saved.MaxDeliveryRadiusKm.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task UpdateDeliveryConfigAsync_ShouldSetSaoPauloDate_WhenFreeShippingTodayEnabled()
+    {
+        using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Frete Hoje",
+            Slug = "loja-frete-hoje"
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        await sut.UpdateDeliveryConfigAsync(
+            store.OwnerUserId,
+            store.Id,
+            deliveryFee: 5m,
+            minimumOrderValue: 20m,
+            freeShippingThreshold: null,
+            freeShippingToday: true,
+            deliveryAreas: null,
+            ipAddress: "127.0.0.1");
+
+        var saved = await db.Stores.SingleAsync(x => x.Id == store.Id);
+        saved.FreeShippingToday.Should().BeTrue();
+        saved.FreeShippingTodayDate.Should().Be(StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow));
+    }
+
+    [Fact]
+    public async Task UpdateDeliveryConfigAsync_ShouldClearDate_WhenFreeShippingTodayDisabled()
+    {
+        using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Frete Desligado",
+            Slug = "loja-frete-desligado",
+            FreeShippingToday = true,
+            FreeShippingTodayDate = StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow)
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        await sut.UpdateDeliveryConfigAsync(
+            store.OwnerUserId,
+            store.Id,
+            deliveryFee: 5m,
+            minimumOrderValue: 20m,
+            freeShippingThreshold: null,
+            freeShippingToday: false,
+            deliveryAreas: null,
+            ipAddress: "127.0.0.1");
+
+        var saved = await db.Stores.SingleAsync(x => x.Id == store.Id);
+        saved.FreeShippingToday.Should().BeFalse();
+        saved.FreeShippingTodayDate.Should().BeNull();
     }
 }

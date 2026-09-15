@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { StoreService } from './store.service';
 import { ApiService } from './api.service';
 import { CuisineTypeDto, StoreResponse } from '../../shared/models/store.model';
+import { ProductOptionGroupTemplate } from '../../shared/models/product.model';
 
 describe('StoreService', () => {
   let service: StoreService;
@@ -97,6 +98,58 @@ describe('StoreService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(createReq);
       req.flush({ ...mockStore, name: 'New Store' });
+    });
+  });
+
+  describe('getProductOptionGroupTemplates', () => {
+    it('loads the reusable option groups for the store', () => {
+      const templates: ProductOptionGroupTemplate[] = [
+        {
+          id: 'tpl-1',
+          name: 'Escolha um molho',
+          isRequired: false,
+          choiceType: 'multiple',
+          minChoices: 0,
+          maxChoices: 2,
+          displayOrder: 1,
+          items: [{ id: 'item-1', name: 'Molho 1', price: 5, displayOrder: 1 }],
+        },
+      ];
+
+      service.getProductOptionGroupTemplates('store-1').subscribe((result) => {
+        expect(result).toEqual(templates);
+      });
+
+      const req = httpMock.expectOne('/api/stores/store-1/products/option-groups');
+      expect(req.request.method).toBe('GET');
+      req.flush(templates);
+    });
+  });
+
+  describe('uploadImage', () => {
+    it('posts the file to upload-image with the media type as a type=logo query param', () => {
+      const file = new File(['svg'], 'logo.svg', { type: 'image/svg+xml' });
+      const formData = new FormData();
+      formData.append('file', file);
+
+      service.uploadImage(file, 'logo').subscribe((res) => {
+        expect(res.url).toBe('https://res.cloudinary.com/demo/image/upload/v1/urbeat/logo.png');
+      });
+
+      const req = httpMock.expectOne('/api/stores/upload-image?type=logo');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body.get('file')).toBe(file);
+      req.flush({ url: 'https://res.cloudinary.com/demo/image/upload/v1/urbeat/logo.png' });
+    });
+
+    it('builds a type=banner query param and URL-encodes the type value', () => {
+      const file = new File(['webp'], 'banner.webp', { type: 'image/webp' });
+
+      service.uploadImage(file, 'banner').subscribe(() => {});
+
+      const req = httpMock.expectOne('/api/stores/upload-image?type=banner');
+      expect(req.request.urlWithParams).toBe('/api/stores/upload-image?type=banner');
+      req.flush({ url: 'https://res.cloudinary.com/demo/image/upload/v1/urbeat/banner.webp' });
     });
   });
 });

@@ -39,7 +39,6 @@ public class StorePublishService : IStorePublishService
         summary.StoreDetails.Name = store.Name;
         summary.StoreDetails.CuisineType = store.CuisineType;
         summary.StoreDetails.PhoneNumber = store.PhoneNumber;
-        summary.StoreDetails.Description = store.Description;
         summary.StoreDetails.LogoUrl = store.LogoUrl;
         summary.StoreDetails.BannerUrl = store.BannerUrl;
 
@@ -104,7 +103,6 @@ public class StorePublishService : IStorePublishService
         summary.Rules.DetailsOk = !string.IsNullOrEmpty(store.Name) &&
                                   !string.IsNullOrEmpty(store.CuisineType) &&
                                   !string.IsNullOrEmpty(store.PhoneNumber) &&
-                                  !string.IsNullOrEmpty(store.Description) &&
                                   address != null;
 
         summary.Rules.HoursOk = summary.BusinessHours.Count > 0;
@@ -137,8 +135,14 @@ public class StorePublishService : IStorePublishService
             return false;
         }
 
-        await _storeService.UpdateStatusAsync(ownerId, storeId, true, null, cancellationToken);
+        var statusResult = await _storeService.UpdateStatusAsync(ownerId, storeId, true, null, cancellationToken);
+        if (statusResult.NotFound || statusResult.Forbidden)
+        {
+            return false;
+        }
 
-        return true;
+        var publishResult = await _storeService.MarkAsPublishedAsync(ownerId, storeId, null, cancellationToken);
+
+        return !publishResult.NotFound && !publishResult.Forbidden;
     }
 }

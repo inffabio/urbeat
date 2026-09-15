@@ -91,3 +91,7 @@ export interface SellerProfileResponse {
   phoneNumber: string | null;
   email: string;
 }
+
+export interface UpdateSellerProfileRequest {
+  fullName: string;
+}

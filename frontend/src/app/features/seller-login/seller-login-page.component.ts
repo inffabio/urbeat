@@ -81,27 +81,19 @@ export class SellerLoginPageComponent {
   }
 
   /**
-   * Após login: se a loja existe e o wizard está completo (publicável),
-   * vai para o dashboard. Se está no meio do wizard ou não tem loja,
-   * continua no wizard (/configurar-loja).
+   * Após login: só vai para o dashboard quando a loja já foi publicada de fato
+   * (isPublished === true). Loja inexistente, incompleta ou ainda não publicada
+   * continua no wizard (/configurar-loja). O resumo de publicação (canPublish)
+   * não representa publicação real e não é usado aqui.
    */
   private redirectAfterLogin(): void {
     this.storeService.getMyStore().subscribe({
       next: (store) => {
-        if (!store?.id) {
+        if (store?.isPublished === true) {
+          this.router.navigate(['/app/dashboard']);
+        } else {
           this.router.navigate(['/configurar-loja']);
-          return;
         }
-        this.storeService.getStorePublishSummary(store.id).subscribe({
-          next: (summary) => {
-            if (summary?.canPublish) {
-              this.router.navigate(['/app/dashboard']);
-            } else {
-              this.router.navigate(['/configurar-loja']);
-            }
-          },
-          error: () => this.router.navigate(['/configurar-loja']),
-        });
       },
       error: () => this.router.navigate(['/configurar-loja']),
     });

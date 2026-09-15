@@ -60,8 +60,8 @@ public sealed class PublicStoresSearchFlowTests : IClassFixture<TestWebApplicati
         await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = $"Loja {cuisineType} {Guid.NewGuid():N}",
+            Slug = $"loja-{cuisineType.ToLowerInvariant()}-{Guid.NewGuid():N}",
             PhoneNumber = "11983334444",
-            Description = "Loja para busca por culinaria",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

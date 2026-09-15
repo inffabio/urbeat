@@ -150,7 +150,6 @@ public sealed class DemoDataSeeder
             Name = data.Name,
             Slug = path,
             PhoneNumber = data.Phone,
-            Description = data.Description,
             CuisineType = _dbContext.CuisineTypes.Single(x => x.Name == data.CuisineType),
             BannerUrl = data.BannerUrl,
             LogoUrl = data.LogoUrl,
@@ -243,7 +242,6 @@ public sealed class DemoDataSeeder
             SellerEmail = "rafa@burguer.com",
             Phone = "(11) 99999-0001",
             CuisineType = "Lanches",
-            Description = "Hambúrgueres artesanais com ingredientes selecionados. O verdadeiro sabor do churrasco em formato de hambúrguer!",
             DeliveryFee = 5.90m,
             MinOrder = 15.00m,
             Street = "Rua Augusta",
@@ -301,7 +299,6 @@ public sealed class DemoDataSeeder
             SellerEmail = "rafa@pizza.com",
             Phone = "(11) 99999-0002",
             CuisineType = "Pizza",
-            Description = "Pizzas tradicionais italianas com massa fina e crocante. Forno a lenha e ingredientes selecionados.",
             DeliveryFee = 6.90m,
             MinOrder = 22.00m,
             Street = "Rua Oscar Freire",
@@ -359,7 +356,6 @@ public sealed class DemoDataSeeder
             SellerEmail = "rafa@sushi.com",
             Phone = "(11) 99999-0003",
             CuisineType = "Japonesa",
-            Description = "Comida japonesa tradicional com toque contemporâneo. Peixes frescos e arroz temperado na medida certa.",
             DeliveryFee = 7.90m,
             MinOrder = 25.00m,
             Street = "Rua Liberdade",
@@ -453,7 +449,6 @@ public sealed class DemoDataSeeder
         public required string SellerEmail { get; init; }
         public required string Phone { get; init; }
         public required string CuisineType { get; init; }
-        public required string Description { get; init; }
         public required decimal DeliveryFee { get; init; }
         public required decimal MinOrder { get; init; }
         public required string Street { get; init; }

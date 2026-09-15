@@ -43,7 +43,6 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
   readonly dirty = signal(false);
   readonly store = signal<StoreResponse | null>(null);
   readonly name = signal('');
-  readonly description = signal('');
   readonly logoPreview = signal('');
   readonly bannerPreview = signal('');
   readonly bannerFile = signal<File | null>(null);
@@ -74,7 +73,6 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
       next: (store) => {
         this.store.set(store);
         this.name.set(store.name);
-        this.description.set(store.description ?? '');
         this.logoPreview.set(store.logoUrl ?? '');
         this.bannerPreview.set(store.bannerUrl ?? '');
         this.dirty.set(false);
@@ -89,11 +87,6 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
 
   updateName(value: string): void {
     this.name.set(value);
-    this.dirty.set(true);
-  }
-
-  updateDescription(value: string): void {
-    this.description.set(value.slice(0, 160));
     this.dirty.set(true);
   }
 
@@ -158,13 +151,23 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
     if (!store || this.saving()) return;
 
     this.saving.set(true);
+    let uploadFailed = false;
 
     const upload = (file: File | null, type: 'logo' | 'banner', message: string): Promise<string | null> => {
       if (!file) return Promise.resolve(null);
       return new Promise((resolve) => {
         this.stores.uploadImage(file, type).subscribe({
           next: (r) => resolve(r.url),
-          error: () => { this.toast.showError(message); resolve(null); },
+          error: (err: unknown) => {
+            uploadFailed = true;
+            if ((err as { status?: number } | null)?.status !== 413) {
+              const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
+              this.toast.showError(
+                typeof backendMessage === 'string' && backendMessage.trim() ? backendMessage : message,
+              );
+            }
+            resolve(null);
+          },
         });
       });
     };
@@ -174,7 +177,6 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
         name: this.name().trim(),
         slug: store.slug,
         phoneNumber: store.phoneNumber,
-        description: this.description().trim(),
         cuisineType: store.cuisineType,
         bannerUrl,
         logoUrl,
@@ -201,6 +203,10 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
       upload(this.logoFile(), 'logo', 'Falha ao enviar logo.'),
       upload(this.bannerFile(), 'banner', 'Falha ao enviar banner.'),
     ]).then(([uploadedLogoUrl, uploadedBannerUrl]) => {
+      if (uploadFailed) {
+        this.saving.set(false);
+        return;
+      }
       doSave(
         uploadedLogoUrl ?? (this.logoPreview() ? this.store()?.logoUrl ?? null : null),
         uploadedBannerUrl ?? (this.bannerPreview() ? this.store()?.bannerUrl ?? null : null),

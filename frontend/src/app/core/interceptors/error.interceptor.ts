@@ -31,6 +31,25 @@ function isCheckoutRequest(req: HttpRequest<unknown>): boolean {
   return req.url.includes('/checkout/preview') || req.url.includes('/checkout/confirm');
 }
 
+function isImageUploadRequest(url: string): boolean {
+  return url.includes('/upload-image');
+}
+
+function isLegacyProductImageUpload(url: string): boolean {
+  return /\/products\/[^/?#]+\/images(?:[?#]|$)/.test(url);
+}
+
+// The API enforces its documented per-type limits (2 MB logo, 5 MB banner,
+// 6 MB product) with HTTP 400, so an HTTP 413 can only be produced by the proxy
+// or host in front of it. A 413 cannot be attributed to a specific file limit
+// and must not claim the file exceeds 2 MB when NGINX rejected the request.
+const UPLOAD_TOO_LARGE_MESSAGE =
+  'Não foi possível enviar o arquivo: ele excede o limite de upload do servidor. Reduza o tamanho da imagem e tente novamente.';
+
+function imageUploadTooLargeMessage(url: string): string | null {
+  return isImageUploadRequest(url) ? UPLOAD_TOO_LARGE_MESSAGE : null;
+}
+
 function onRefreshed(token: string): void {
   const subscribers = refreshSubscribers;
   refreshSubscribers = [];
@@ -131,6 +150,21 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
+      if (err.status === 413) {
+        const uploadMessage = imageUploadTooLargeMessage(req.url);
+        if (uploadMessage) {
+          console.error('[HTTP error]', req.url, err);
+          toastService.showError(uploadMessage);
+          return throwError(() => err);
+        }
+
+        // The legacy product image endpoint owns its own size message, so the
+        // interceptor must not also surface a generic toast for it.
+        if (isLegacyProductImageUpload(req.url)) {
+          return throwError(() => err);
+        }
+      }
+
       console.error('[HTTP error]', req.url, err);
 
       let errorMessage = 'Ocorreu um erro ao processar sua requisição.';
@@ -140,8 +174,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => err);
         }
 
-        // Let product/category endpoint errors be handled by their components
-        if (req.url.includes('/products') || req.url.includes('/categories')) {
+        // Let product/category/upload endpoint errors be handled by their components
+        if (req.url.includes('/products') || req.url.includes('/categories') || isImageUploadRequest(req.url)) {
           return throwError(() => err);
         }
 

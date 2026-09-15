@@ -842,9 +842,61 @@
   &:hover { background: #fff8f5; border-color: #ffd2c4; }
 }
 
+.add-group-btn { margin-top: 12px; }
+
+.saved-groups { margin-bottom: 16px; }
+
+.saved-groups-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #43475b;
+}
+
+.saved-groups-list { display: grid; gap: 8px; }
+
+.saved-group-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid #e7e9f3;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: .2s;
+
+  &:hover { background: #fff8f5; border-color: #ffd2c4; }
+
+  &.selected { background: #fff1ea; border-color: #ff4b1f; }
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: #ff4b1f;
+  }
+}
+
+.saved-group-name {
+  font-size: 14px;
+  font-weight: 750;
+  color: #111426;
+}
+
+.saved-group-meta {
+  margin-left: auto;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 650;
+  color: #7d8298;
+}
+
 @media (max-width: 720px) {
   .og-name-row, .og-settings, .group-item { grid-template-columns: 1fr; }
   .og-settings { gap: 18px; }
+  .saved-group-meta { display: none; }
 }
 
 /* ─── 12. Tags / Organization ───────────────────────────── */

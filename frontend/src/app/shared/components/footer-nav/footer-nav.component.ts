@@ -58,16 +58,13 @@ export interface FooterNavItem {
      :host(.sheet-open) { pointer-events: none; }
 
      .footer-nav-safe-zone {
-       position: fixed;
-       left: 50%;
-       right: auto;
-       transform: translateX(-50%);
-       bottom: 0;
+       position: relative;
         z-index: 70;
        background: var(--app-surface, #fff);
        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
        width: min(430px, 100%);
        max-width: 100%;
+       margin: 0 auto;
        border-radius: 18px 18px 0 0;
      }
 

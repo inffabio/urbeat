@@ -1,6 +1,6 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: 100%;
   background: var(--app-bg);
 
   @media (min-width: 900px) {
@@ -20,7 +20,7 @@
   --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 /* ─── PAGE HEAD ─── */

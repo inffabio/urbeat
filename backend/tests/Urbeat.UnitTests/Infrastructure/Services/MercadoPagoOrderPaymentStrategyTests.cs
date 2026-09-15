@@ -252,6 +252,50 @@ public sealed class MercadoPagoOrderPaymentStrategyTests : IDisposable
         result.Status.Should().Be(PaymentStatus.Pending);
     }
 
+    [Fact]
+    public async Task StartAsync_ShouldClearMockSimulationMetadata_WhenReusingPayment()
+    {
+        var order = CreateOrder();
+        await SeedOrderContextAsync(order);
+        var existingPayment = new Payment
+        {
+            OrderId = order.Id,
+            Gateway = PaymentGateway.MercadoPago,
+            GatewayTransactionId = "pref_failed",
+            GatewayCheckoutUrl = "https://checkout/falhou",
+            Method = PaymentMethod.PixOnline,
+            Amount = order.Total,
+            Status = PaymentStatus.Failed,
+            Attempt = 1,
+            MockExpiresAtUtc = new DateTime(2026, 8, 30, 12, 1, 0, DateTimeKind.Utc),
+            MockApprovalAtUtc = new DateTime(2026, 8, 30, 12, 0, 30, DateTimeKind.Utc),
+            MockOutcome = MockPixOutcome.Approved.ToString()
+        };
+        _db.Payments.Add(existingPayment);
+        await _db.SaveChangesAsync();
+
+        _adapterMock
+            .Setup(x => x.CreateCheckoutAsync(It.IsAny<MercadoPagoCheckoutCreateRequest>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new MercadoPagoCheckoutCreateResponse
+            {
+                TransactionId = "pref_retry",
+                CheckoutUrl = "https://checkout/retry",
+                RawPayload = "{}"
+            });
+
+        var result = await _sut.StartAsync(order, existingPayment, CancellationToken.None);
+        await _db.SaveChangesAsync();
+
+        result.Should().NotBeNull();
+        result.PaymentId.Should().Be(existingPayment.Id);
+        result.ExpiresAtUtc.Should().BeNull();
+
+        var reloaded = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == existingPayment.Id);
+        reloaded.MockExpiresAtUtc.Should().BeNull();
+        reloaded.MockApprovalAtUtc.Should().BeNull();
+        reloaded.MockOutcome.Should().BeNull();
+    }
+
     private async Task SeedOrderContextAsync(Order order)
     {
         _db.Users.Add(new IdentityUser<Guid>

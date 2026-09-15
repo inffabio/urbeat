@@ -4,7 +4,7 @@ namespace Urbeat.Application.Interfaces;
 
 public interface IStoreService
 {
-    Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, StoreResponseDto? Store)> CreateForOwnerAsync(
+    Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, StoreResponseDto? Store)> CreateForOwnerAsync(
         Guid ownerUserId,
         CreateStoreRequestDto request,
         string? ipAddress,
@@ -26,6 +26,12 @@ public interface IStoreService
         string? ipAddress,
         CancellationToken cancellationToken = default);
 
+    Task<UpdateStoreResultDto> MarkAsPublishedAsync(
+        Guid ownerUserId,
+        Guid storeId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     Task<UpdateStoreResultDto> UpdateDeliveryConfigAsync(
         Guid ownerUserId,
         Guid storeId,
@@ -34,7 +40,8 @@ public interface IStoreService
         decimal? freeShippingThreshold,
         bool freeShippingToday,
         IEnumerable<StoreDeliveryAreaDto>? deliveryAreas,
-        string? ipAddress,
+        double? maxDeliveryRadiusKm = null,
+        string? ipAddress = null,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<DeliveryTimeResponseDto>> GetActiveDeliveryTimesAsync(Guid storeId, CancellationToken cancellationToken = default);
@@ -43,7 +50,7 @@ public interface IStoreService
 
     Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsAsync(string city, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsByStoreAsync(Guid storeId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsByStoreAsync(Guid storeId, double? radiusKm = null, CancellationToken cancellationToken = default);
 
     Task<DeliveryNeighborhoodResponseDto?> CreateDeliveryNeighborhoodAsync(string neighborhood, string city, CancellationToken cancellationToken = default);
 }

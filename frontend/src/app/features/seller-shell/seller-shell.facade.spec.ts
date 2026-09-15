@@ -35,6 +35,7 @@ describe('SellerShellFacade', () => {
     printingServiceMock = {
       autoPrintOrder: jest.fn().mockResolvedValue(undefined),
       config: jest.fn(() => ({ autoPrint: true })),
+      setLogoUrl: jest.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -65,7 +66,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -111,7 +111,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -157,7 +156,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -195,7 +193,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -228,7 +225,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -265,7 +261,6 @@ describe('SellerShellFacade', () => {
       name: 'Loja Teste',
       slug: 'loja-teste',
       phoneNumber: '11999999999',
-      description: 'Loja teste',
       cuisineType: 'Pizzaria',
       isOpen: true,
       isSubscriptionBlocked: false,
@@ -300,7 +295,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -340,7 +334,6 @@ describe('SellerShellFacade', () => {
         name: 'Loja Teste',
         slug: 'loja-teste',
         phoneNumber: '11999999999',
-        description: 'Loja teste',
         cuisineType: 'Pizzaria',
         isOpen: true,
         isSubscriptionBlocked: false,
@@ -362,5 +355,59 @@ describe('SellerShellFacade', () => {
     await oldInitPromise;
 
     expect(signalRServiceMock.stopSellerHub).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the store response name beside the logo and falls back to Minha loja without a store', async () => {
+    storeServiceMock.getMyStore.mockReturnValue(
+      of({
+        id: 'store1',
+        ownerUserId: 'owner1',
+        name: 'Loja do Contratante',
+        slug: 'loja-do-contratante',
+        phoneNumber: '11999999999',
+        cuisineType: 'Pizzaria',
+        isOpen: true,
+        isSubscriptionBlocked: false,
+        supportsDelivery: true,
+        supportsPickup: false,
+        minimumOrderValue: 20,
+        deliveryAreas: [],
+        averageRating: 0,
+        totalReviews: 0,
+      }),
+    );
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    await facade.init();
+
+    expect(facade.storeName()).toBe('Loja do Contratante');
+
+    facade.reset();
+
+    expect(facade.storeName()).toBe('Minha loja');
+  });
+
+  it('merges a saved store response so storeName reflects the new name without a reinit', () => {
+    facade.mergeStore({
+      id: 'store1',
+      ownerUserId: 'owner1',
+      name: 'Loja Renomeada',
+      slug: 'loja-renomeada',
+      phoneNumber: '11999999999',
+      cuisineType: 'Pizzaria',
+      isOpen: true,
+      isPublished: false,
+      isSubscriptionBlocked: false,
+      supportsDelivery: true,
+      supportsPickup: false,
+      minimumOrderValue: 20,
+      deliveryAreas: [],
+      averageRating: 0,
+      totalReviews: 0,
+    });
+
+    expect(facade.store()?.id).toBe('store1');
+    expect(facade.storeName()).toBe('Loja Renomeada');
+    expect(storeServiceMock.getMyStore).not.toHaveBeenCalled();
   });
 });

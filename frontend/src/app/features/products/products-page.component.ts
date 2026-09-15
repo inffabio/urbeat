@@ -9,6 +9,7 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProductCategory } from '../../shared/models/product.model';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, PRODUCT_IMAGE_MAX_BYTES, imageSizeError, isAllowedImageFile } from '../../shared/utils/image-upload.utils';
 
 interface ProductAdditionalItem {
   id?: string;
@@ -81,6 +82,7 @@ export class ProductsPageComponent implements OnInit {
 
   // ─── Store ────────────────────────────────────────────────
   readonly storeId = signal<string | null>(null);
+  readonly imageAccept = IMAGE_ACCEPT_ATTRIBUTE;
 
   // ─── Categories ───────────────────────────────────────────
   readonly categories = signal<CategoryItem[]>([]);
@@ -302,8 +304,22 @@ export class ProductsPageComponent implements OnInit {
   }
 
   onImageSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
+
+    if (!isAllowedImageFile(file)) {
+      this.toast.showError(IMAGE_FORMAT_ERROR);
+      input.value = '';
+      return;
+    }
+
+    if (file.size > PRODUCT_IMAGE_MAX_BYTES) {
+      this.toast.showError(imageSizeError('6 MB'));
+      input.value = '';
+      return;
+    }
+
     const sid = this.storeId();
     const pid = this.selectedProduct()?.id;
     if (!sid || !pid) return;
@@ -314,6 +330,18 @@ export class ProductsPageComponent implements OnInit {
       next: (res) => {
         this.productForm.update((p) => ({ ...p, imageUrl: res.imageUrl }));
         this.loadProducts();
+      },
+      error: (err) => {
+        const status = (err as { status?: number } | null)?.status;
+        if (status === 413) {
+          // This legacy endpoint is not matched by the interceptor's upload-image rule,
+          // so the component must surface the size limit itself.
+          this.toast.showError(imageSizeError('6 MB'));
+        } else {
+          const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
+          this.toast.showError(typeof backendMessage === 'string' && backendMessage.trim() ? backendMessage : 'Erro ao enviar imagem.');
+        }
+        input.value = '';
       },
     });
   }

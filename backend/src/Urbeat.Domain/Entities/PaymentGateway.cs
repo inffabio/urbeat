@@ -2,5 +2,6 @@
 
 public enum PaymentGateway
 {
-    MercadoPago = 1
+    MercadoPago = 1,
+    Mock = 2
 }

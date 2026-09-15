@@ -87,6 +87,18 @@ foreach ($script in $scripts) {
         if ($content -notmatch '\$commonParams\s*=\s*@\{') {
             $errors.Add("deploy-all.ps1: must define the @commonParams splat with ServerIP/SSHUser/SSHPort/SSHKeyPath.")
         }
+        if ($content -notmatch '\[switch\]\$AllowDirty') {
+            $errors.Add("deploy-all.ps1: must expose -AllowDirty.")
+        }
+        if ($content -notmatch '\[string\]\$ExpectedCommit') {
+            $errors.Add("deploy-all.ps1: must expose -ExpectedCommit.")
+        }
+        if ($content -notmatch '\$applicationParams') {
+            $errors.Add("deploy-all.ps1: must forward -AllowDirty/-ExpectedCommit to the application step.")
+        }
+        if ($content -notmatch '\-ExtraParams') {
+            $errors.Add("deploy-all.ps1: Run-Step must accept -ExtraParams.")
+        }
     }
 }
 
@@ -95,4 +107,65 @@ if ($errors.Count -gt 0) {
     exit 1
 }
 
-Write-Host "OCI deployment scripts, JSON map, and local paths are valid." -ForegroundColor Green
+# ─────────────────────────────────────────
+# Deploy hardening invariants
+# ─────────────────────────────────────────
+
+$manifestHelper = Join-Path $scriptRoot "deploy-manifest.ps1"
+if (-not (Test-Path -LiteralPath $manifestHelper -PathType Leaf)) {
+    $errors.Add("deploy-manifest.ps1 is missing; deploy source validation and manifests are required.")
+} else {
+    $helperContent = Get-Content -LiteralPath $manifestHelper -Raw
+    foreach ($functionName in @("Assert-DeploySource", "Get-FileSha256", "New-DeploymentManifest", "Write-DeploymentManifest")) {
+        if ($helperContent -notmatch [regex]::Escape("function $functionName")) {
+            $errors.Add("deploy-manifest.ps1: missing function $functionName.")
+        }
+    }
+}
+
+$applicationScript = Join-Path $scriptRoot "04-deploy-application.ps1"
+if (Test-Path -LiteralPath $applicationScript -PathType Leaf) {
+    $applicationContent = Get-Content -LiteralPath $applicationScript -Raw
+    foreach ($invariant in @(
+        @{ Pattern = '\[switch\]\$AllowDirty'; Message = "04-deploy-application.ps1 must expose -AllowDirty." },
+        @{ Pattern = '\[string\]\$ExpectedCommit'; Message = "04-deploy-application.ps1 must expose -ExpectedCommit." },
+        @{ Pattern = 'Assert-DeploySource'; Message = "04-deploy-application.ps1 must validate the deploy source." },
+        @{ Pattern = 'deployment-manifest\.json'; Message = "04-deploy-application.ps1 must upload deployment-manifest.json." }
+    )) {
+        if ($applicationContent -notmatch $invariant.Pattern) {
+            $errors.Add($invariant.Message)
+        }
+    }
+} else {
+    $errors.Add("04-deploy-application.ps1 is missing.")
+}
+
+$internalScript = Join-Path (Split-Path -Parent $scriptRoot) "deploy-internal.ps1"
+if (Test-Path -LiteralPath $internalScript -PathType Leaf) {
+    $internalContent = Get-Content -LiteralPath $internalScript -Raw
+    foreach ($invariant in @(
+        @{ Pattern = '\[switch\]\$AllowDirty'; Message = "deploy-internal.ps1 must expose -AllowDirty." },
+        @{ Pattern = '\[string\]\$ExpectedCommit'; Message = "deploy-internal.ps1 must expose -ExpectedCommit." },
+        @{ Pattern = 'Assert-DeploySource'; Message = "deploy-internal.ps1 must validate the deploy source." },
+        @{ Pattern = 'deployment-manifest\.json'; Message = "deploy-internal.ps1 must write deployment-manifest.json." }
+    )) {
+        if ($internalContent -notmatch $invariant.Pattern) {
+            $errors.Add($invariant.Message)
+        }
+    }
+    if ($internalContent -match 'git push origin master') {
+        $errors.Add("deploy-internal.ps1 must not push to origin during deploy.")
+    }
+    if ($internalContent -match 'git commit') {
+        $errors.Add("deploy-internal.ps1 must not create git commits during deploy.")
+    }
+} else {
+    $errors.Add("scripts/deploy-internal.ps1 is missing.")
+}
+
+if ($errors.Count -gt 0) {
+    $errors | ForEach-Object { Write-Error $_ }
+    exit 1
+}
+
+Write-Host "OCI deployment scripts, JSON map, local paths, and deploy-hardening invariants are valid." -ForegroundColor Green

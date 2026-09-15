@@ -16,6 +16,9 @@ public sealed class UpdateStoreDeliveryConfigRequestDtoValidator : AbstractValid
         RuleFor(x => x.FreeShippingThreshold)
             .GreaterThanOrEqualTo(0).When(x => x.FreeShippingThreshold.HasValue);
 
+        RuleFor(x => x.MaxDeliveryRadiusKm)
+            .GreaterThan(0).When(x => x.MaxDeliveryRadiusKm.HasValue);
+
         RuleForEach(x => x.DeliveryAreas).ChildRules(area =>
         {
             area.RuleFor(x => x.Neighborhood).NotEmpty().MaximumLength(80);

@@ -28,28 +28,7 @@ public sealed class CloudinaryImageUploadService : IImageUploadService
 
     public async Task<string> UploadAsync(Stream fileStream, string fileName, string folder, CancellationToken cancellationToken = default)
     {
-        var uploadParams = new ImageUploadParams
-        {
-            File = new FileDescription(fileName, fileStream),
-            Folder = folder,
-            UseFilename = true,
-            UniqueFilename = true,
-            Overwrite = false,
-            // Automatic image optimization:
-            // - Limit dimensions to 1920x1920 (downscales large images, preserves small ones)
-            // - q_auto for optimal compression without visible loss
-            // - f_auto for WebP/AVIF delivery when browser supports
-            // - dpr_auto for responsive device pixel ratio
-            // - fl_progressive for progressive JPEG loading
-            Transformation = new CloudinaryDotNet.Transformation()
-                .Width(1920)
-                .Height(1920)
-                .Crop("limit")
-                .Quality("auto")
-                .FetchFormat("auto")
-                .Dpr("auto")
-                .Flags("progressive")
-        };
+        var uploadParams = BuildUploadParams(fileStream, fileName, folder);
 
         var uploadResult = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
 
@@ -60,6 +39,43 @@ public sealed class CloudinaryImageUploadService : IImageUploadService
         }
 
         return uploadResult.SecureUrl.ToString();
+    }
+
+    /// <summary>
+    /// Builds the upload parameters without contacting Cloudinary so the configuration can be
+    /// asserted in tests. Kept separate from <see cref="UploadAsync"/> so unit tests never need
+    /// real credentials or network access.
+    /// </summary>
+    internal static ImageUploadParams BuildUploadParams(Stream fileStream, string fileName, string folder)
+    {
+        return new ImageUploadParams
+        {
+            File = new FileDescription(fileName, fileStream),
+            Folder = folder,
+            UseFilename = true,
+            UniqueFilename = true,
+            Overwrite = false,
+            Transformation = BuildIncomingTransformation()
+        };
+    }
+
+    /// <summary>
+    /// Builds the incoming transformation applied to uploaded assets before they are stored.
+    /// It only normalizes resolution and quality, which is the supported use case for incoming
+    /// transformations. An isolated <c>q_auto</c> is allowed here because quality normalization
+    /// can be resolved at upload time. Delivery-only parameters <c>f_auto</c> and <c>dpr_auto</c>
+    /// must NOT be used: format and device-pixel-ratio selection depend on the requesting browser,
+    /// which does not exist during upload. Baking them into the stored asset produces an asset
+    /// whose format/DPR is not resolved, so it renders black in the browser.
+    /// </summary>
+    internal static Transformation BuildIncomingTransformation()
+    {
+        return new Transformation()
+            .Width(1920)
+            .Height(1920)
+            .Crop("limit")
+            .Quality("auto")
+            .Flags("progressive");
     }
 
     public async Task DeleteAsync(string imageUrl, CancellationToken cancellationToken = default)

@@ -4,6 +4,7 @@ using FluentValidation;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
+using Urbeat.WebApi.Uploads;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,18 @@ public sealed class StoreProductsController : ControllerBase
 
         var products = await _productService.ListByStoreAsync(ownerUserId.Value, storeId, cancellationToken);
         return Ok(products);
+    }
+
+    [HttpGet("option-groups")]
+    [ProducesResponseType<IReadOnlyCollection<ProductOptionGroupTemplateDto>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ListOptionGroupTemplates([FromRoute] Guid storeId, CancellationToken cancellationToken)
+    {
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+            return Unauthorized();
+
+        var templates = await _productService.ListOptionGroupTemplatesAsync(ownerUserId.Value, storeId, cancellationToken);
+        return Ok(templates);
     }
 
     [HttpPost]
@@ -171,6 +184,10 @@ public sealed class StoreProductsController : ControllerBase
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "Nenhum arquivo enviado." });
+
+        var validationError = StoreMediaUploadValidator.Validate(file, "products");
+        if (validationError is not null)
+            return BadRequest(new { error = validationError });
 
         var ownerUserId = GetCurrentUserId();
         if (ownerUserId is null)

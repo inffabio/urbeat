@@ -95,8 +95,8 @@ public sealed class StoreAddressFlowTests : IClassFixture<TestWebApplicationFact
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Endereco",
+            Slug = "loja-endereco",
             PhoneNumber = "11987776666",
-            Description = "Loja para teste de endereco",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

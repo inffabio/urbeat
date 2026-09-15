@@ -160,8 +160,8 @@ public sealed class PublicCatalogFlowTests : IClassFixture<TestWebApplicationFac
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Catalogo",
+            Slug = "loja-catalogo",
             PhoneNumber = "11982221111",
-            Description = "Loja para teste de catalogo",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });

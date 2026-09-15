@@ -37,12 +37,12 @@ public sealed class StoreReadRepository : IStoreReadRepository
                      Document = x.Document,
                      PixKey = x.PixKey,
                      WebsiteUrl = x.WebsiteUrl,
-                    Description = x.Description,
                     CuisineType = x.CuisineType != null ? x.CuisineType.Name : string.Empty,
                     BannerUrl = x.BannerUrl,
                     LogoUrl = x.LogoUrl,
                     
                     IsOpen = x.IsOpen,
+                    IsPublished = x.IsPublished,
                     IsSubscriptionBlocked = x.IsSubscriptionBlocked,
                     SupportsDelivery = x.SupportsDelivery,
                     SupportsPickup = x.SupportsPickup,
@@ -56,6 +56,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     TotalReviews = x.TotalReviews,
                     FreeShippingThreshold = x.FreeShippingThreshold,
                     FreeShippingToday = x.FreeShippingToday,
+                    FreeShippingTodayDate = x.FreeShippingTodayDate,
                      DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
                     {
                          Id = a.Id,
@@ -69,6 +70,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
 
             if (store is not null)
             {
+                ApplyFreeShippingToday(store);
                 var hours = await _dbContext.StoreBusinessHours
                     .AsNoTracking()
                     .Include(x => x.Shifts)
@@ -95,11 +97,11 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "Document",
                     "PixKey",
                     "WebsiteUrl",
-                    "Description",
                     (SELECT "Name" FROM "CuisineTypes" WHERE "Id" = "Stores"."CuisineTypeId") AS "CuisineType",
                     "BannerUrl",
                     "LogoUrl",
                     "IsOpen",
+                    "IsPublished",
                     "IsSubscriptionBlocked",
                     "SupportsDelivery",
                     "SupportsPickup",
@@ -112,7 +114,8 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "AverageRating",
                     "TotalReviews",
                     "FreeShippingThreshold",
-                    "FreeShippingToday"
+                    "FreeShippingToday",
+                    "FreeShippingTodayDate"
                 FROM "Stores"
                 WHERE "OwnerUserId" = @OwnerUserId
                 LIMIT 1;
@@ -123,6 +126,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
 
               if (store is not null)
               {
+                  ApplyFreeShippingToday(store);
                   const string areasSql = """
                       SELECT "Id", "Neighborhood", "DeliveryFee", "IsActive", "Notes" FROM "StoreDeliveryAreas" WHERE "StoreId" = @StoreId
                   """;
@@ -157,7 +161,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
                 query = query.Where(x => x.CuisineType != null && x.CuisineType.Name == normalizedCuisineType);
             }
 
-            return await query
+            var items = await query
                 .OrderBy(x => x.Name)
                 .Select(x => new StorePublicListItemDto
                 {
@@ -172,6 +176,8 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     AverageRating = x.AverageRating,
                     TotalReviews = x.TotalReviews,
                     FreeShippingThreshold = x.FreeShippingThreshold,
+                    FreeShippingToday = x.FreeShippingToday,
+                    FreeShippingTodayDate = x.FreeShippingTodayDate,
                      DeliveryAreas = x.DeliveryAreas.Select(a => new StoreDeliveryAreaDto
                     {
                          Id = a.Id,
@@ -182,6 +188,13 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     }).ToList()
                 })
                 .ToListAsync(cancellationToken);
+
+            foreach (var item in items)
+            {
+                ApplyFreeShippingToday(item);
+            }
+
+            return items;
         }
 
         return await _dapperUnitOfWork.ExecuteAsync(async (connection, ct) =>
@@ -199,7 +212,9 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     s."MinimumOrderValue",
                     s."AverageRating",
                     s."TotalReviews",
-                    s."FreeShippingThreshold"
+                    s."FreeShippingThreshold",
+                    s."FreeShippingToday",
+                    s."FreeShippingTodayDate"
                 FROM "Stores" s
                 LEFT JOIN "CuisineTypes" c ON s."CuisineTypeId" = c."Id"
                 WHERE s."IsSubscriptionBlocked" = FALSE
@@ -210,7 +225,13 @@ public sealed class StoreReadRepository : IStoreReadRepository
             var rows = await connection.QueryAsync<StorePublicListItemDto>(
                 new CommandDefinition(sql, new { CuisineType = normalizedCuisineType }, cancellationToken: ct));
 
-            return (IReadOnlyCollection<StorePublicListItemDto>)rows.ToList();
+            var items = rows.ToList();
+            foreach (var item in items)
+            {
+                ApplyFreeShippingToday(item);
+            }
+
+            return (IReadOnlyCollection<StorePublicListItemDto>)items;
         }, cancellationToken);
     }
 
@@ -250,7 +271,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "Slug",
                     "Slug",
                     "PhoneNumber",
-                    "Description",
                     (SELECT "Name" FROM "CuisineTypes" WHERE "Id" = "Stores"."CuisineTypeId") AS "CuisineType",
                     "BannerUrl",
                     "LogoUrl",
@@ -261,6 +281,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "TotalReviews",
                     "FreeShippingThreshold",
                     "FreeShippingToday",
+                    "FreeShippingTodayDate",
                     "SupportsDelivery",
                     "SupportsPickup",
                     "InitialMinute",
@@ -278,6 +299,8 @@ public sealed class StoreReadRepository : IStoreReadRepository
             {
                 return null;
             }
+
+            ApplyFreeShippingToday(store);
 
             const string addressSql = """
                 SELECT
@@ -339,7 +362,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "Slug",
                     "Slug",
                     "PhoneNumber",
-                    "Description",
                     (SELECT "Name" FROM "CuisineTypes" WHERE "Id" = "Stores"."CuisineTypeId") AS "CuisineType",
                     "BannerUrl",
                     "LogoUrl",
@@ -350,6 +372,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "TotalReviews",
                     "FreeShippingThreshold",
                     "FreeShippingToday",
+                    "FreeShippingTodayDate",
                     "SupportsDelivery",
                     "SupportsPickup",
                     "InitialMinute",
@@ -364,6 +387,8 @@ public sealed class StoreReadRepository : IStoreReadRepository
                 new CommandDefinition(storeSql, new { Slug = slug }, cancellationToken: ct));
 
             if (store is null) return null;
+
+            ApplyFreeShippingToday(store);
 
             const string addressSql = """
                 SELECT
@@ -425,7 +450,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "Slug",
                     "Slug",
                     "PhoneNumber",
-                    "Description",
                     (SELECT "Name" FROM "CuisineTypes" WHERE "Id" = "Stores"."CuisineTypeId") AS "CuisineType",
                     "BannerUrl",
                     "LogoUrl",
@@ -436,6 +460,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     "TotalReviews",
                     "FreeShippingThreshold",
                     "FreeShippingToday",
+                    "FreeShippingTodayDate",
                     "SupportsDelivery",
                     "SupportsPickup",
                     "InitialMinute",
@@ -450,6 +475,8 @@ public sealed class StoreReadRepository : IStoreReadRepository
                 new CommandDefinition(storeSql, new { Slug = Slug }, cancellationToken: ct));
 
             if (store is null) return null;
+
+            ApplyFreeShippingToday(store);
 
             const string addressSql = """
                 SELECT
@@ -478,6 +505,27 @@ public sealed class StoreReadRepository : IStoreReadRepository
         }, cancellationToken);
     }
 
+    private static void ApplyFreeShippingToday(StoreResponseDto store)
+    {
+        store.FreeShippingToday = IsFreeShippingTodayActive(store.FreeShippingToday, store.FreeShippingTodayDate);
+    }
+
+    private static void ApplyFreeShippingToday(StorePublicDetailsDto store)
+    {
+        store.FreeShippingToday = IsFreeShippingTodayActive(store.FreeShippingToday, store.FreeShippingTodayDate);
+    }
+
+    private static void ApplyFreeShippingToday(StorePublicListItemDto store)
+    {
+        store.FreeShippingToday = IsFreeShippingTodayActive(store.FreeShippingToday, store.FreeShippingTodayDate);
+    }
+
+    private static bool IsFreeShippingTodayActive(bool freeShippingToday, DateOnly? freeShippingTodayDate)
+    {
+        return freeShippingToday
+            && freeShippingTodayDate == StoreOpeningHoursCalculator.GetSaoPauloDate(DateTimeOffset.UtcNow);
+    }
+
     private static StorePublicDetailsDto BuildStoreDetails(
         Store store,
         StoreAddress? addressEntity,
@@ -491,7 +539,6 @@ public sealed class StoreReadRepository : IStoreReadRepository
             Name = store.Name,
             Slug = store.Slug,
             PhoneNumber = store.PhoneNumber,
-            Description = store.Description,
             CuisineType = store.CuisineType != null ? store.CuisineType.Name : string.Empty,
             BannerUrl = store.BannerUrl,
             LogoUrl = store.LogoUrl,
@@ -505,7 +552,7 @@ public sealed class StoreReadRepository : IStoreReadRepository
             DeliveryFee = store.DeliveryFee,
             MinimumOrderValue = store.MinimumOrderValue,
             FreeShippingThreshold = store.FreeShippingThreshold,
-            FreeShippingToday = store.FreeShippingToday,
+            FreeShippingToday = IsFreeShippingTodayActive(store.FreeShippingToday, store.FreeShippingTodayDate),
             InitialMinute = store.InitialMinute,
             FinalMinute = store.FinalMinute,
             AverageRating = store.AverageRating,

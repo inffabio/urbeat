@@ -1,13 +1,13 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .checkout-content {
   --background: var(--app-bg);
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .back-btn {
