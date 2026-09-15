@@ -39,14 +39,7 @@ public sealed class PublicStoresSearchFlowTests : IClassFixture<TestWebApplicati
         var email = $"store.search.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Seller Search",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11981112222"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Seller Search", "11981112222");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {

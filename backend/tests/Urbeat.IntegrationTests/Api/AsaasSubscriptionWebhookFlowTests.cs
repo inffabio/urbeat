@@ -118,14 +118,7 @@ public sealed class AsaasSubscriptionWebhookFlowTests : IClassFixture<TestWebApp
         var email = $"asaas.seller.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Asaas Seller",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11983334444"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Asaas Seller", "11983334444");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -140,7 +133,7 @@ public sealed class AsaasSubscriptionWebhookFlowTests : IClassFixture<TestWebApp
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Asaas",
-            Slug = "loja-asaas",
+            Slug = $"loja-asaas-{Guid.NewGuid():N}",
             PhoneNumber = "11989990000",
             CuisineType = "Pizza",
             MaxDeliveryRadiusKm = 5,

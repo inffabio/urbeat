@@ -302,14 +302,7 @@ public sealed class CheckoutFlowTests : IClassFixture<TestWebApplicationFactory>
         var email = $"checkout.seller.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Checkout Seller",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11982223333"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Checkout Seller", "11982223333");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -323,7 +316,7 @@ public sealed class CheckoutFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Checkout",
-            Slug = "loja-checkout",
+            Slug = $"loja-checkout-{Guid.NewGuid():N}",
             PhoneNumber = "11987778888",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,

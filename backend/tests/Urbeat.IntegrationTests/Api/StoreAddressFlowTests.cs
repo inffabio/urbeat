@@ -73,14 +73,7 @@ public sealed class StoreAddressFlowTests : IClassFixture<TestWebApplicationFact
         var email = $"store.address.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Seller Address",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11980000000"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Seller Address", "11980000000");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -95,7 +88,7 @@ public sealed class StoreAddressFlowTests : IClassFixture<TestWebApplicationFact
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Endereco",
-            Slug = "loja-endereco",
+            Slug = $"loja-endereco-{Guid.NewGuid():N}",
             PhoneNumber = "11987776666",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,

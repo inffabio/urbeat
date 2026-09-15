@@ -123,14 +123,7 @@ public sealed class StoreAdditionalsFlowTests : IClassFixture<TestWebApplication
         var email = $"additionals.flow.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Seller Additionals",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11984443333",
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Seller Additionals", "11984443333");
         var login = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto { Email = email, Password = password });
         var token = await login.Content.ReadFromJsonAsync<AuthTokenResponseDto>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token!.AccessToken);
@@ -142,7 +135,7 @@ public sealed class StoreAdditionalsFlowTests : IClassFixture<TestWebApplication
         var storeResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Adicionais",
-            Slug = "loja-adicionais",
+            Slug = $"loja-adicionais-{Guid.NewGuid():N}",
             PhoneNumber = "11982221111",
             CuisineType = "Lanches",
             MaxDeliveryRadiusKm = 5,

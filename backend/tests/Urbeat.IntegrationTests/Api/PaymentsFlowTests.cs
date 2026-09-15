@@ -499,14 +499,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         var email = $"payments.seller.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Payments Seller",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11980000001"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Payments Seller", "11980000001");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -520,7 +513,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Payments",
-            Slug = "loja-payments",
+            Slug = $"loja-payments-{Guid.NewGuid():N}",
             PhoneNumber = "11987770000",
             CuisineType = cuisineType
 ,

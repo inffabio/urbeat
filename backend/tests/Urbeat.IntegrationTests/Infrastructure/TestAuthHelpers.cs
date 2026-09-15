@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Net;
+using System.Net.Http.Json;
+using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Urbeat.Application.DTOs;
 
 namespace Urbeat.IntegrationTests.Infrastructure;
 
@@ -41,5 +45,38 @@ public static class TestAuthHelpers
             throw new InvalidOperationException(
                 $"Failed to confirm e-mail for '{normalizedEmail}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
+    }
+
+    /// <summary>
+    /// Registers a seller through the public API, asserts the registration was created (so a
+    /// contractor-name/e-mail conflict cannot be silently ignored), and confirms the e-mail.
+    /// Integration test classes share a single in-memory database, so the supplied
+    /// <paramref name="fullName"/> is made unique per call: otherwise the second test that reuses
+    /// the same base name would receive a 409 contractor-name conflict and the follow-up
+    /// confirmation lookup would fail with a misleading "user not found" error.
+    /// </summary>
+    public static async Task<HttpResponseMessage> RegisterSellerAsync<TFactory>(
+        this TFactory factory,
+        HttpClient client,
+        string email,
+        string password,
+        string fullName,
+        string? phoneNumber = null)
+        where TFactory : WebApplicationFactory<Program>
+    {
+        var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        {
+            FullName = $"{fullName} {Guid.NewGuid():N}",
+            Email = email,
+            Password = password,
+            PhoneNumber = phoneNumber ?? "11988888888"
+        });
+
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            "seller registration must succeed; body: " + await response.Content.ReadAsStringAsync());
+
+        await factory.ConfirmEmailAsync(email);
+        return response;
     }
 }

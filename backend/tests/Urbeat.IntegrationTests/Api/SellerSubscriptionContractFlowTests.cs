@@ -147,14 +147,7 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var email = $"subscription.contract.seller.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Subscription Contract Seller",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11980001111"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Subscription Contract Seller", "11980001111");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -169,7 +162,7 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Contract",
-            Slug = "loja-contract",
+            Slug = $"loja-contract-{Guid.NewGuid():N}",
             PhoneNumber = "11987771111",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,

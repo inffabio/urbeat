@@ -179,14 +179,7 @@ public sealed class StoreCategoriesFlowTests : IClassFixture<TestWebApplicationF
         var email = $"categories.flow.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
 
-        await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = "Seller Categories",
-            Email = email,
-            Password = password,
-            PhoneNumber = "11984443333"
-        });
-        await _factory.ConfirmEmailAsync(email);
+        await _factory.RegisterSellerAsync(client, email, password, "Seller Categories", "11984443333");
 
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login/seller", new LoginRequestDto
         {
@@ -201,7 +194,7 @@ public sealed class StoreCategoriesFlowTests : IClassFixture<TestWebApplicationF
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Categorias",
-            Slug = "loja-categorias",
+            Slug = $"loja-categorias-{Guid.NewGuid():N}",
             PhoneNumber = "11982221111",
             CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
