@@ -239,9 +239,10 @@ public sealed class ProductServiceOptionGroupTemplateTests : IDisposable
 
         update.NotFound.Should().BeFalse();
         var group = update.Product!.OptionGroups.Should().ContainSingle().Subject;
-        group.Name.Should().Be("Bordas premium");
+        group.Name.Should().Be("Bordas");
         group.TemplateId.Should().Be(templateId);
-        group.Items.Should().ContainSingle().Which.Name.Should().Be("Cheddar");
+        group.Items.Should().ContainSingle().Which.Name.Should().Be("Catupiry");
+        group.Items.Single().Price.Should().Be(5m);
 
         // O template permanece intacto.
         var template = await _db.ProductOptionGroupTemplates.Include(t => t.Items).SingleAsync();
@@ -297,7 +298,7 @@ public sealed class ProductServiceOptionGroupTemplateTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAsync_ShouldPreserveClientEdits_WhenTemplateSelected()
+    public async Task CreateAsync_ShouldCopyTemplateValues_WhenTemplateSelected()
     {
         var owner = Guid.NewGuid();
         var store = SeedStore(owner, "loja-a");
@@ -332,14 +333,15 @@ public sealed class ProductServiceOptionGroupTemplateTests : IDisposable
         result.NotFound.Should().BeFalse();
         var group = result.Product!.OptionGroups.Should().ContainSingle().Subject;
         group.TemplateId.Should().Be(template.Id);
-        group.Name.Should().Be("Nome editado");
-        group.ChoiceType.Should().Be("single");
-        group.MinChoices.Should().Be(1);
-        group.MaxChoices.Should().Be(1);
-        group.IsRequired.Should().BeTrue();
-        group.DisplayOrder.Should().Be(7);
-        group.Items.Should().ContainSingle().Which.Name.Should().Be("Item editado");
-        group.Items.Single().Price.Should().Be(99m);
+        group.Name.Should().Be("Escolha um molho");
+        group.ChoiceType.Should().Be("multiple");
+        group.MinChoices.Should().Be(0);
+        group.MaxChoices.Should().Be(2);
+        group.IsRequired.Should().BeFalse();
+        group.DisplayOrder.Should().Be(template.DisplayOrder);
+        group.Items.Should().HaveCount(2);
+        group.Items.Select(i => i.Name).Should().BeEquivalentTo(new[] { "Molho 1", "Molho 2" });
+        group.Items.Select(i => i.Price).Should().BeEquivalentTo(new[] { 5m, 5.5m });
 
         // O template da loja permanece intacto.
         (await _db.ProductOptionGroupTemplates.CountAsync()).Should().Be(1);

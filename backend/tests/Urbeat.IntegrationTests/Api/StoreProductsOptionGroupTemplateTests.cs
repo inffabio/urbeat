@@ -59,8 +59,8 @@ public sealed class StoreProductsOptionGroupTemplateTests : IClassFixture<TestWe
         productC.OptionGroups.Should().BeEmpty();
         (await ListTemplatesAsync(client, storeId)).Should().ContainSingle();
 
-        // 12. Editar o produto B preserva as edições enviadas e mantém o vínculo
-        // com o template selecionado; o template da loja permanece intacto.
+        // 12. O backend copia os dados autoritativos do template e mantém o vínculo;
+        // valores adulterados enviados pelo cliente são ignorados.
         var updateResponse = await client.PutAsJsonAsync($"/api/stores/{storeId}/products/{productB.Id}", new UpdateProductRequestDto
         {
             CategoryId = categoryId,
@@ -74,7 +74,9 @@ public sealed class StoreProductsOptionGroupTemplateTests : IClassFixture<TestWe
         var updatedB = await updateResponse.Content.ReadFromJsonAsync<ProductResponseDto>();
         updatedB!.OptionGroups.Should().ContainSingle();
         updatedB.OptionGroups.Single().TemplateId.Should().Be(template.Id);
-        updatedB.OptionGroups.Single().Name.Should().Be("Escolha um molho premium");
+        updatedB.OptionGroups.Single().Name.Should().Be("Escolha um molho");
+        updatedB.OptionGroups.Single().Items.Select(i => i.Name)
+            .Should().BeEquivalentTo(new[] { "Molho 1", "Molho 2" });
 
         var persistedTemplate = (await ListTemplatesAsync(client, storeId)).Single();
         persistedTemplate.Name.Should().Be("Escolha um molho");

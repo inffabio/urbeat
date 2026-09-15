@@ -580,11 +580,8 @@ public sealed class ProductService : IProductService
     }
 
     /// <summary>
-    /// Valida os templates reutilizáveis informados, monta os snapshots independentes
-    /// do produto e cria um template novo para cada grupo autoral (sem template de origem).
-    /// Quando um template é selecionado, apenas valida-se que ele pertence à loja; o
-    /// snapshot é sempre construído a partir do grupo enviado, preservando as edições
-    /// feitas no produto. Os dados do template servem somente à seleção no frontend.
+    /// Valida os templates reutilizáveis informados, copia os dados autoritativos para
+    /// snapshots independentes do produto e cria um template novo para cada grupo autoral.
     /// Ids repetidos no mesmo request são rejeitados. Grupos autorais sempre geram um
     /// template novo e independente, mesmo quando já existe um com o mesmo nome.
     /// </summary>
@@ -607,30 +604,30 @@ public sealed class ProductService : IProductService
         if (templateIds.Distinct().Count() != templateIds.Length)
             return (false, groups);
 
+        var templatesById = new Dictionary<Guid, ProductOptionGroupTemplate>();
         if (templateIds.Length > 0)
         {
-            // Apenas valida a posse do template pela loja; os dados não são copiados.
-            var ownedTemplateCount = await _dbContext.ProductOptionGroupTemplates
+            var templates = await _dbContext.ProductOptionGroupTemplates
+                .AsNoTracking()
+                .Include(t => t.Items)
                 .Where(t => t.StoreId == storeId && templateIds.Contains(t.Id))
-                .Select(t => t.Id)
-                .Distinct()
-                .CountAsync(cancellationToken);
+                .ToListAsync(cancellationToken);
 
-            if (ownedTemplateCount != templateIds.Length)
+            if (templates.Count != templateIds.Length)
                 return (false, groups);
+
+            templatesById = templates.ToDictionary(t => t.Id);
         }
 
         foreach (var group in optionGroups)
         {
-            var built = BuildOptionGroup(group, productId);
-
             if (group.TemplateId is { } selectedTemplateId && selectedTemplateId != Guid.Empty)
             {
-                built.TemplateId = selectedTemplateId;
-                groups.Add(built);
+                groups.Add(BuildOptionGroupFromTemplate(templatesById[selectedTemplateId], productId));
                 continue;
             }
 
+            var built = BuildOptionGroup(group, productId);
             // Grupos autorais geram sempre um template novo e independente, mesmo
             // quando já existe um template com o mesmo nome na loja.
             var template = BuildOptionGroupTemplate(storeId, built);
@@ -640,6 +637,34 @@ public sealed class ProductService : IProductService
         }
 
         return (true, groups);
+    }
+
+    private static ProductOptionGroup BuildOptionGroupFromTemplate(
+        ProductOptionGroupTemplate template, Guid? productId)
+    {
+        var group = new ProductOptionGroup
+        {
+            ProductId = productId ?? Guid.Empty,
+            TemplateId = template.Id,
+            Name = template.Name,
+            ChoiceType = template.ChoiceType,
+            MinChoices = template.MinChoices,
+            MaxChoices = template.MaxChoices,
+            IsRequired = template.IsRequired,
+            DisplayOrder = template.DisplayOrder,
+        };
+
+        foreach (var item in template.Items.OrderBy(x => x.DisplayOrder))
+        {
+            group.Items.Add(new ProductOptionItem
+            {
+                Name = item.Name,
+                Price = item.Price,
+                DisplayOrder = item.DisplayOrder,
+            });
+        }
+
+        return group;
     }
 
     /// <summary>Cria um template reutilizável a partir de um grupo autoral, com itens independentes.</summary>
