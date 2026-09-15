@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Preserve existing stores and their current category values; never silently map legacy values to another category.
+- Preserve existing stores and their current category values; never silently map legacy values to another category. Unreferenced legacy non-default categories are deleted during migration.
 - The protected defaults are exactly: Açaiteria, Cafeteria, Churrascaria, Comida Árabe, Comida Japonesa, Comida Mexicana, Doceria, Hamburgueria, Lanches, Marmitaria, Padaria, Pastelaria, Pizzaria, Sucos e Vitaminas, Tapiocaria.
 - The new-store category selection starts as `''` and empty values are rejected by both frontend and backend.
 - Store-specific categories must not be visible to another store and default categories cannot be mutated through store flows.
@@ -77,7 +77,7 @@ Run `git add backend/src/Urbeat.Domain/Entities/CuisineType.cs backend/src/Urbea
 
 - [ ] **Step 1: Write migration and seeder tests**
 
-Cover all 15 exact names, alphabetical API ordering, idempotent seeding, and legacy preservation: if two stores reference one old global category, the migration must leave each store pointing to a separate private copy with the same name.
+Cover all 15 exact names, alphabetical API ordering, idempotent seeding, and legacy preservation: if two stores reference one old global category, the migration must leave each store pointing to a separate private copy with the same name; if no store references an old non-default category, the migration must delete it.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -96,7 +96,7 @@ From the repository root run:
 dotnet ef migrations add ScopeCuisineTypesToStores --startup-project src/Urbeat.WebApi --project src/Urbeat.Infrastructure
 ```
 
-The migration must add the columns, preserve the existing `Store.CuisineTypeId`, copy every non-default legacy category once per referencing store, rewire each store, mark the four legacy equivalents as defaults only when their names match the approved defaults, and add the scoped uniqueness constraints. It must be safe when there are no stores or no legacy categories.
+The migration must add the columns, preserve the existing `Store.CuisineTypeId`, copy every non-default legacy category once per referencing store, rewire each store, delete every non-default legacy category with no store reference, mark the 15 approved names as defaults, and add the scoped uniqueness constraints. It must be safe when there are no stores or no legacy categories.
 
 - [ ] **Step 5: Run migration and persistence tests**
 

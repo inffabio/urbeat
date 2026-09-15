@@ -36,6 +36,8 @@ The category selection starts empty for a new store. The backend and frontend bo
 
 Existing stores keep their current category. Existing non-default global categories are copied once per referencing store and each store is rewired to its private copy. Existing values are not silently mapped to a different default.
 
+After those references are rewired, legacy non-default global categories with no store reference are deleted. No unreferenced legacy category remains selectable or stored as a global catalog entry.
+
 ## Data Model
 
 Extend `CuisineType` with:
@@ -43,7 +45,7 @@ Extend `CuisineType` with:
 - `IsDefault`: identifies protected defaults.
 - `StoreId`: nullable foreign key; null means a protected global default, otherwise the category is private to that store.
 
-Add a uniqueness rule for the category name within a store scope, with global defaults protected from duplicates. The migration must seed or normalize the four defaults, copy legacy categories per store, rewire `Store.CuisineTypeId`, and preserve unrelated data.
+Add a uniqueness rule for the category name within a store scope, with global defaults protected from duplicates. The migration must seed or normalize the 15 defaults, copy legacy categories per store, rewire `Store.CuisineTypeId`, delete unreferenced legacy non-default categories, and preserve unrelated data.
 
 ## API and Backend Flow
 
@@ -74,7 +76,7 @@ Backend tests cover:
 - Creation of a private category during store creation.
 - Store-owner authorization and cross-store rejection.
 - Protected default immutability.
-- Legacy category migration and store reference preservation.
+ - Legacy category migration, store reference preservation, and deletion of unreferenced legacy categories.
 
 Frontend tests cover:
 
@@ -91,4 +93,5 @@ Frontend tests cover:
 3. A category created for Store A is not available to Store B.
 4. Existing stores retain their previous category after migration.
 5. No store-specific category operation can mutate the four protected defaults.
-6. All backend and frontend tests pass, including the production build.
+6. Unreferenced legacy non-default categories are removed by migration.
+7. All backend and frontend tests pass, including the production build.
