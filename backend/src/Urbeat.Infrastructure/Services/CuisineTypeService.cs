@@ -132,7 +132,11 @@ public sealed class CuisineTypeService : ICuisineTypeService
         return exception.InnerException is PostgresException
         {
             SqlState: PostgresErrorCodes.UniqueViolation
-        } pg && pg.MessageText.Contains("IX_CuisineTypes_StoreId_NormalizedName", StringComparison.OrdinalIgnoreCase);
+        } pg && (string.Equals(
+            pg.ConstraintName,
+            "IX_CuisineTypes_StoreId_NormalizedName",
+            StringComparison.OrdinalIgnoreCase)
+            || pg.MessageText.Contains("IX_CuisineTypes_StoreId_NormalizedName", StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<DeleteCuisineTypeResultDto> DeleteForStoreAsync(Guid ownerUserId, Guid storeId, Guid cuisineTypeId, CancellationToken cancellationToken = default)
@@ -180,8 +184,30 @@ public sealed class CuisineTypeService : ICuisineTypeService
         }
 
         _dbContext.CuisineTypes.Remove(category);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsStoreCuisineForeignKeyViolation(exception))
+        {
+            // Uma requisição concorrente associou esta categoria à loja (Stores.CuisineTypeId)
+            // entre a verificação e o delete; a FK é a garantia real. Reporta "em uso" em vez de 500.
+            _dbContext.Entry(category).State = EntityState.Unchanged;
+            return new DeleteCuisineTypeResultDto { InUse = true };
+        }
 
         return new DeleteCuisineTypeResultDto { Deleted = true };
+    }
+
+    private static bool IsStoreCuisineForeignKeyViolation(DbUpdateException exception)
+    {
+        // PostgreSQL raises SQLSTATE 23503 when a concurrent request points Stores.CuisineTypeId
+        // at this category between the pre-check and the delete. Only that FK maps to "in use";
+        // any other DbUpdateException propagates.
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.ForeignKeyViolation
+        } pg && pg.MessageText.Contains("FK_Stores_CuisineTypes_CuisineTypeId", StringComparison.OrdinalIgnoreCase);
     }
 }
