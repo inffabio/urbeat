@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make store cuisine categories scoped to the store instead of a mutable global catalog. New store setup must show four protected default categories, start with no selection, require a category, and keep categories created during setup private to that store.
+Make store cuisine categories scoped to the store instead of a mutable global catalog. New store setup must show 15 protected default categories, start with no selection, require a category, and keep categories created during setup private to that store.
 
 ## Scope
 
@@ -49,7 +49,7 @@ Add a uniqueness rule for the category name within a store scope, with global de
 
 ## API and Backend Flow
 
-- Keep the initial category endpoint for the four protected defaults only.
+- Keep the initial category endpoint for the 15 protected defaults only.
 - Add a store-scoped category endpoint for authenticated store owners to list and create categories for their own store.
 - Remove global category creation from the store controller/service.
 - During initial store creation, accept a selected default name or a custom category name and create the custom category in the same transaction as the store.
@@ -59,7 +59,7 @@ Add a uniqueness rule for the category name within a store scope, with global de
 
 ## Frontend Flow
 
-- In the first wizard section, render the four defaults sorted with `localeCompare('pt-BR')`.
+- In the first wizard section, render the 15 defaults sorted with `localeCompare('pt-BR')`.
 - Initialize `cuisineType` to `''` for a new store, even though options are loaded.
 - Show a validation error and prevent next/save when the selection is empty.
 - The add-category modal adds a local pending option during new-store setup; it must not call the old global endpoint.
@@ -71,7 +71,7 @@ Add a uniqueness rule for the category name within a store scope, with global de
 
 Backend tests cover:
 
-- Four default categories and alphabetical ordering.
+- 15 default categories and alphabetical ordering.
 - Empty category rejection.
 - Creation of a private category during store creation.
 - Store-owner authorization and cross-store rejection.
@@ -88,10 +88,10 @@ Frontend tests cover:
 
 ## Acceptance Criteria
 
-1. A new store displays only the four protected defaults plus categories created locally in that setup session.
+1. A new store displays only the 15 protected defaults plus categories created locally in that setup session.
 2. The category field is blank initially and a store cannot proceed or save while it is blank.
 3. A category created for Store A is not available to Store B.
 4. Existing stores retain their previous category after migration.
-5. No store-specific category operation can mutate the four protected defaults.
+5. No store-specific category operation can mutate the 15 protected defaults.
 6. Unreferenced legacy non-default categories are removed by migration.
 7. All backend and frontend tests pass, including the production build.
