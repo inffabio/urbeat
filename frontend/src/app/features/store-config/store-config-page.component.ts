@@ -381,8 +381,14 @@ export class StoreConfigPageComponent implements OnInit {
     this.existingFreeShippingThreshold = store.freeShippingThreshold ?? undefined;
     this.existingFreeShippingToday = store.freeShippingToday ?? undefined;
     this.storeName.set(store.name);
-    this.cuisineType.set(store.cuisineType);
+    // A category created while the store was still unknown is the user's
+    // explicit selection, so it must win over the store's saved category.
+    const selectedPendingName = this.pendingCuisineTypes().some((c) => c.name === this.cuisineType())
+      ? this.cuisineType()
+      : null;
+    this.cuisineType.set(selectedPendingName ?? store.cuisineType);
     this.loadStoreCuisineTypes(store.id);
+    this.promotePendingCuisineTypes(store.id);
     this.whatsapp.set(store.phoneNumber);
     this.onWhatsappInput(store.phoneNumber);
     this.onDocumentInput(store.document ?? '');
@@ -422,6 +428,30 @@ export class StoreConfigPageComponent implements OnInit {
         this.onCepInput(addr.zipCode);
       },
     });
+  }
+
+  // A category added while the store was still unknown lives only locally. Once
+  // getMyStore identifies an existing store it must be persisted through that
+  // store's scoped endpoint, selected, and dropped from the local pending list.
+  // On failure the pending entry is kept so the user can retry, with an error.
+  private promotePendingCuisineTypes(storeId: string): void {
+    const pending = [...this.pendingCuisineTypes()];
+    for (const pendingCat of pending) {
+      this.storeService.createStoreCuisineType(storeId, pendingCat.name).subscribe({
+        next: (created) => {
+          this.pendingCuisineTypes.update((cats) => cats.filter((c) => c.id !== pendingCat.id));
+          this.localCuisineAdds.set(created.id, created);
+          this.localCuisineDeletes.delete(created.id);
+          this.cuisineTypes.update((cats) =>
+            cats.some((c) => c.id === created.id) ? cats : [...cats, created],
+          );
+          if (this.cuisineType() === pendingCat.name) this.cuisineType.set(created.name);
+        },
+        error: () => {
+          this.toast.showError('Não foi possível adicionar a categoria. Tente novamente.');
+        },
+      });
+    }
   }
 
   private loadStoreCuisineTypes(storeId: string): void {

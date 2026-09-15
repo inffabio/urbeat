@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { of, Subject, throwError } from 'rxjs';
-import { CuisineTypeDto } from '../../shared/models/store.model';
+import { CuisineTypeDto, StoreResponse } from '../../shared/models/store.model';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -415,6 +415,74 @@ describe('StoreConfigPageComponent', () => {
       loadSubject.complete();
 
       expect(component.cuisineTypes().some((c) => c.id === 'custom-9')).toBe(false);
+    });
+
+    const existingStore: StoreResponse = {
+      id: 'store-1',
+      name: 'Loja',
+      slug: 'loja',
+      phoneNumber: '11999999999',
+      cuisineType: 'Hamburgueria',
+      isOpen: true,
+      supportsDelivery: true,
+      supportsPickup: true,
+      minimumOrderValue: 25,
+    };
+
+    function mockStoreAddress(): void {
+      mockStoreService.getStoreAddress.mockReturnValue(of({
+        street: 'Rua',
+        number: '1',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'Rio',
+        state: 'RJ',
+        zipCode: '20040-010',
+      }));
+    }
+
+    it('creates a pending category through the store-scoped endpoint when the store load resolves afterwards', () => {
+      jest.clearAllMocks();
+      const storeSubject = new Subject<StoreResponse>();
+      mockStoreService.getMyStore.mockReturnValue(storeSubject.asObservable());
+      mockStoreAddress();
+
+      component.ngOnInit();
+
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+
+      expect(component.pendingCuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+      expect(mockStoreService.createStoreCuisineType).not.toHaveBeenCalled();
+
+      storeSubject.next(existingStore);
+      storeSubject.complete();
+
+      expect(mockStoreService.createStoreCuisineType).toHaveBeenCalledWith('store-1', 'Comida Vegana');
+      expect(component.pendingCuisineTypes().length).toBe(0);
+      expect(component.cuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+      expect(component.cuisineType()).toBe('Comida Vegana');
+    });
+
+    it('keeps the pending category recoverable and shows an error when promoting it after the store load fails', () => {
+      jest.clearAllMocks();
+      const storeSubject = new Subject<StoreResponse>();
+      mockStoreService.getMyStore.mockReturnValue(storeSubject.asObservable());
+      mockStoreService.createStoreCuisineType.mockReturnValue(throwError(() => new Error('failed')));
+      mockStoreAddress();
+
+      component.ngOnInit();
+
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+
+      storeSubject.next(existingStore);
+      storeSubject.complete();
+
+      expect(mockStoreService.createStoreCuisineType).toHaveBeenCalledWith('store-1', 'Comida Vegana');
+      expect(component.pendingCuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+      expect(component.cuisineType()).toBe('Comida Vegana');
+      expect(mockToastService.showError).toHaveBeenCalledWith('Não foi possível adicionar a categoria. Tente novamente.');
     });
 
     it('clears the empty-category error when a category is selected', () => {
