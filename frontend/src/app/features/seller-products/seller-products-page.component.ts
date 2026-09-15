@@ -11,7 +11,7 @@ import { CardapioMenuTabsComponent } from '../../shared/components/cardapio-menu
 import {
   SubscriptionBannerComponent,
 } from '../../shared/components/subscription-banner/subscription-banner.component';
-import { StoreProductsPageComponent } from '../store-config/products/store-products-page.component';
+import { StoreProductsState } from '../../shared/state/store-products.state';
 
 @Component({
   selector: 'app-seller-products-page',
@@ -28,11 +28,11 @@ import { StoreProductsPageComponent } from '../store-config/products/store-produ
   ],
   templateUrl: './seller-products-page.component.html',
   styleUrls: [
-    '../store-config/products/store-products-page.component.scss',
+    '../../shared/styles/store-products.shared.scss',
     './seller-products-page.component.scss',
   ],
 })
-export class SellerProductsPageComponent extends StoreProductsPageComponent {
+export class SellerProductsPageComponent extends StoreProductsState {
   readonly editorOpen = signal(false);
   readonly statusFilter = signal<'all' | 'active' | 'inactive'>('all');
   readonly headerSummary = computed(() => `${this.filteredProducts().length} ${this.filteredProducts().length === 1 ? 'item na lista' : 'itens na lista'}`);

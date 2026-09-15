@@ -1,0 +1,23 @@
+<ion-content [fullscreen]="true" class="account-content">
+  <button type="button" class="circle-btn back-btn" (click)="onBack()" aria-label="Voltar">
+    <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+  </button>
+
+  <h1 class="account-title">Meu cadastro</h1>
+
+  @if (loading()) {
+    <div class="account-loading" role="status">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Carregando seus dados…</p>
+    </div>
+  } @else {
+    <app-customer-profile-form
+      mode="edit"
+      [initialProfile]="formProfile()"
+      [initialAddress]="primaryAddress()"
+      [saving]="saving()"
+      (validSubmit)="onValidSubmit($event)"
+      (dirtyChange)="onDirtyChange($event)"
+    />
+  }
+</ion-content>

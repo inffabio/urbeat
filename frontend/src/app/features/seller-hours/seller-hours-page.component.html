@@ -45,10 +45,19 @@
         <div class="settings-row" [class.closed]="!schedule()[day.id]?.isOpen">
           <div class="day-summary">
             <strong>{{ day.label }}</strong>
-            <label class="switch-line">
-              <span class="switch-app" [class.on]="schedule()[day.id]?.isOpen" (click)="toggleDay(day.id)"></span>
+            <span
+              class="switch-line"
+              role="switch"
+              tabindex="0"
+              [attr.aria-checked]="!!schedule()[day.id]?.isOpen"
+              [attr.aria-label]="(schedule()[day.id]?.isOpen ? 'Fechar ' : 'Abrir ') + day.label"
+              (click)="toggleDay(day.id)"
+              (keydown.enter)="toggleDay(day.id)"
+              (keydown.space)="toggleDay(day.id); $event.preventDefault()"
+            >
+              <span class="switch-app" [class.on]="schedule()[day.id]?.isOpen" aria-hidden="true"></span>
               <span>{{ schedule()[day.id]?.isOpen ? 'Aberto' : 'Fechado' }}</span>
-            </label>
+            </span>
           </div>
 
           @if (schedule()[day.id]?.isOpen) {
@@ -59,17 +68,27 @@
                 }
                 <div class="shift-group">
                   <div class="time-field">
-                    <label class="form-label-app">Abertura</label>
+                    <label class="form-label-app" [attr.for]="'start-' + day.id + '-' + i">Abertura</label>
                     <div class="time-box">
-                      <input type="time" [ngModel]="shift.startTime" (ngModelChange)="updateTime(day.id, i, 'startTime', $event)" />
-                      <ion-icon name="time-outline"></ion-icon>
+                      <input
+                        [id]="'start-' + day.id + '-' + i"
+                        type="time"
+                        [ngModel]="shift.startTime"
+                        (ngModelChange)="updateTime(day.id, i, 'startTime', $event)"
+                        [attr.aria-label]="'Abertura do turno ' + (i + 1) + ' de ' + day.label" />
+                      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
                     </div>
                   </div>
                   <div class="time-field">
-                    <label class="form-label-app">Fechamento</label>
+                    <label class="form-label-app" [attr.for]="'end-' + day.id + '-' + i">Fechamento</label>
                     <div class="time-box">
-                      <input type="time" [ngModel]="shift.endTime" (ngModelChange)="updateTime(day.id, i, 'endTime', $event)" />
-                      <ion-icon name="time-outline"></ion-icon>
+                      <input
+                        [id]="'end-' + day.id + '-' + i"
+                        type="time"
+                        [ngModel]="shift.endTime"
+                        (ngModelChange)="updateTime(day.id, i, 'endTime', $event)"
+                        [attr.aria-label]="'Fechamento do turno ' + (i + 1) + ' de ' + day.label" />
+                      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
                     </div>
                   </div>
                   <button

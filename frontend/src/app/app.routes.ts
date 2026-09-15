@@ -298,7 +298,9 @@ export const routes: Routes = [
         path: 'conta/cadastro',
         canActivate: [customerGuard],
         loadComponent: () =>
-          import('./features/checkout/customer-page.component').then((m) => m.CustomerPageComponent),
+          import('./features/customer-account/customer-account-page.component').then(
+            (m) => m.CustomerAccountPageComponent,
+          ),
       },
       {
         path: 'checkout/confirmar-sms',

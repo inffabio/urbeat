@@ -17,10 +17,23 @@ import { AuthService } from '../../core/services/auth.service';
 import { CustomerAddress } from '../../shared/models/address.model';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { getStorePathFromUrl } from '../../shared/utils/router.utils';
+import {
+  CustomerProfileField,
+  CustomerProfileFields,
+  addressSnapshot as buildAddressSnapshot,
+  customerProfileFieldError,
+  formatCepInput,
+  formatPhoneInput,
+  isValidAddress,
+  isValidEmail,
+  isValidProfile,
+  onlyDigits,
+  profileSnapshot as buildProfileSnapshot,
+} from '../../shared/utils/customer-profile.rules';
 import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
 import { DeliveryCoverageModalComponent } from '../../shared/components/delivery-coverage-modal/delivery-coverage-modal.component';
 
-type CustomerField = 'fullName' | 'phone' | 'email' | 'cep' | 'city' | 'state' | 'neighborhood' | 'street' | 'number';
+type CustomerField = CustomerProfileField;
 
 @Component({
   selector: 'app-customer-page',
@@ -96,35 +109,17 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
 
   readonly canContinue = computed(() => {
     return (
-      this.fullName().trim().length >= 3 &&
-      this.phone().replace(/\D/g, '').length >= 10 &&
-      this.isValidEmail(this.email()) &&
-      this.cep().replace(/\D/g, '').length === 8 &&
-      this.street().trim().length > 0 &&
-      this.number().trim().length > 0 &&
-      this.city().trim().length > 0 &&
-      this.neighborhood().trim().length > 0 &&
-      this.state().trim().length === 2 &&
+      isValidProfile(this.fields()) &&
+      isValidAddress(this.fields()) &&
       !this.cepLoading() &&
       !this.deliveryCheckLoading() &&
       !this.deliveryNotCovered()
     );
   });
 
-  readonly canSaveProfile = computed(() =>
-    this.fullName().trim().length >= 3 &&
-    this.phone().replace(/\D/g, '').length >= 10 &&
-    this.isValidEmail(this.email())
-  );
+  readonly canSaveProfile = computed(() => isValidProfile(this.fields()));
 
-  readonly canSaveAddress = computed(() =>
-    this.cep().replace(/\D/g, '').length === 8 &&
-    this.street().trim().length > 0 &&
-    this.number().trim().length > 0 &&
-    this.city().trim().length > 0 &&
-    this.neighborhood().trim().length > 0 &&
-    this.state().trim().length === 2
-  );
+  readonly canSaveAddress = computed(() => isValidAddress(this.fields()));
 
   readonly canSaveAccount = computed(() => {
     if (this.accountSaving() || this.accountLoading()) return false;
@@ -136,8 +131,19 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     return true;
   });
 
-  private isValidEmail(value: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  private fields(): CustomerProfileFields {
+    return {
+      fullName: this.fullName(),
+      phone: this.phone(),
+      email: this.email(),
+      cep: this.cep(),
+      street: this.street(),
+      number: this.number(),
+      complement: this.complement(),
+      neighborhood: this.neighborhood(),
+      city: this.city(),
+      state: this.state(),
+    };
   }
 
   markTouched(field: CustomerField): void {
@@ -150,27 +156,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   }
 
   fieldError(field: CustomerField): string {
-    switch (field) {
-      case 'fullName':
-        return this.fullName().trim().length >= 3 ? '' : 'Informe seu nome completo.';
-      case 'phone':
-        return this.phone().replace(/\D/g, '').length >= 10 ? '' : 'Informe um telefone com DDD.';
-      case 'email':
-        return this.isValidEmail(this.email()) ? '' : 'Informe um e-mail válido.';
-      case 'cep':
-        if (this.cepError()) return 'CEP não encontrado. Preencha o endereço manualmente.';
-        return this.cep().replace(/\D/g, '').length === 8 ? '' : 'Informe um CEP válido com 8 dígitos.';
-      case 'city':
-        return this.city().trim().length > 0 ? '' : 'Informe a cidade.';
-      case 'state':
-        return this.state().trim().length === 2 ? '' : 'Informe a UF com 2 letras.';
-      case 'neighborhood':
-        return this.neighborhood().trim().length > 0 ? '' : 'Informe o bairro.';
-      case 'street':
-        return this.street().trim().length > 0 ? '' : 'Informe a rua.';
-      case 'number':
-        return this.number().trim().length > 0 ? '' : 'Informe o número.';
-    }
+    return customerProfileFieldError(field, this.fields(), { cepError: this.cepError() });
   }
 
   /** Reúne TODOS os problemas do formulário para exibir numa única mensagem. */
@@ -183,7 +169,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     if (this.phone().replace(/\D/g, '').length < 10) {
       problems.push({ type: 'error', text: 'Informe um telefone com DDD.' });
     }
-    if (!this.isValidEmail(this.email())) {
+    if (!isValidEmail(this.email())) {
       problems.push({ type: 'error', text: 'Informe um e-mail válido.' });
     }
 
@@ -289,23 +275,11 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   }
 
   private accountProfileSnapshot(): string {
-    return JSON.stringify({
-      fullName: this.fullName().trim(),
-      email: this.email().trim().toLowerCase(),
-      phone: this.phone().replace(/\D/g, ''),
-    });
+    return buildProfileSnapshot(this.fields());
   }
 
   private accountAddressSnapshot(): string {
-    return JSON.stringify({
-      cep: this.cep().replace(/\D/g, ''),
-      street: this.street().trim(),
-      number: this.number().trim(),
-      complement: this.complement().trim(),
-      neighborhood: this.neighborhood().trim(),
-      city: this.city().trim(),
-      state: this.state().trim().toUpperCase(),
-    });
+    return buildAddressSnapshot(this.fields());
   }
 
   updateAccountDirty(): void {
@@ -414,17 +388,13 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   }
 
   onPhoneInput(v: string): void {
-    const digits = v.replace(/\D/g, '').slice(0, 11);
-    let formatted = digits;
-    if (digits.length > 2) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length > 6) formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-    this.phone.set(formatted);
+    this.phone.set(formatPhoneInput(v));
     this.updateAccountDirty();
   }
 
   onCepInput(v: string): void {
-    const digits = v.replace(/\D/g, '').slice(0, 8);
-    const formatted = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    const formatted = formatCepInput(v);
+    const digits = onlyDigits(formatted);
     this.cep.set(formatted);
     this.cepError.set(false);
     this.cepValidated.set(false);

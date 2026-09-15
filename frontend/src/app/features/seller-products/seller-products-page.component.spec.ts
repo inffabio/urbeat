@@ -208,3 +208,12 @@ describe('SellerProductsPageComponent', () => {
     });
   });
 });
+
+describe('SellerProductsPageComponent wizard separation', () => {
+  it('does not inherit wizard navigation from the shared state', () => {
+    const component = Object.create(SellerProductsPageComponent.prototype) as unknown as Record<string, unknown>;
+
+    expect(component['goNext']).toBeUndefined();
+    expect(component['goBack']).toBeUndefined();
+  });
+});

@@ -18,11 +18,12 @@ nenhuma lista de municipios e mantida no codigo.
    Aberto nao retorna um par valido, o Cep Aberto e tentado como fallback
    (somente se `CEP_ABERTO_API_TOKEN` estiver configurado), com origem
    `cep_aberto`; sem token, o bairro permanece pendente sem erro. OSM/Nominatim
-   e usado somente como fallback real, com origem `osm_nominatim`, e apenas
-   quando habilitado por opt-in explicito (`URBEAT_ENABLE_NOMINATIM=true`), com
-   atraso minimo configuravel (padrao 1s). A origem da coordenada e registrada
-   em `Source`; nunca e usado centroide do municipio. Sem o opt-in, o bairro
-   permanece pendente e o Nominatim nao e chamado.
+   e usado como ultimo fallback real, com origem `osm_nominatim`, habilitado
+   por padrao, com atraso minimo configuravel (padrao 1s). Para ambientes que
+   nao devem fazer chamadas externas, pode ser desativado com
+   `URBEAT_DISABLE_NOMINATIM=true`; nesse caso o bairro permanece pendente e o
+   Nominatim nao e chamado. A origem da coordenada e registrada em `Source`;
+   nunca e usado centroide do municipio.
 5. Restauracoes usam somente CSV. Restaurar nunca consulta API, e a operacao
    e idempotente.
 
@@ -169,13 +170,29 @@ Sem essas duas condicoes, o importador legado recusa a escrita no banco. O
 fluxo legado permanece disponivel apenas para compatibilidade; o novo fluxo e
 o recomendado.
 
-## Geocodificacao Nominatim por opt-in
+## Cadeia de fallback de coordenadas
 
-O fallback Nominatim em `geocode_via_cep.py` e opt-in explicito
-(`URBEAT_ENABLE_NOMINATIM=true`). Por padrao o Nominatim nao e chamado e os
-bairros permanecem pendentes. Quando habilitado, um atraso minimo configuravel
-via `NOMINATIM_DELAY_SECONDS` (padrao 1s, valor minimo 1s) e aplicado entre as
-chamadas.
+`geocode_via_cep.py` resolve cada bairro pendente na seguinte ordem, sempre
+tratando latitude e longitude como um par e nunca inventando centroides:
+
+1. Primeira rua/CEP do e-DNE (ordem alfabetica) convertida pelo Brasil Aberto,
+   com origem `brasil_aberto_first_street`.
+2. Cep Aberto para o mesmo CEP (`CEP_ABERTO_API_TOKEN`), com origem
+   `cep_aberto`.
+3. Mapbox para o logradouro/CEP (`MAPBOX_API_TOKEN`), com origem
+   `mapbox_geocoding`.
+4. Nominatim pelo bairro, cidade e UF, com origem `osm_nominatim`.
+
+Cada etapa so e tentada quando a anterior nao devolveu um par valido; falhas de
+rede/API nao interrompem a importacao. Quando nenhuma fonte devolve um par
+valido, os dois campos permanecem vazios.
+
+O fallback Nominatim e chamado por padrao, usando bairro, cidade e UF como
+contexto. Um atraso minimo configuravel via `NOMINATIM_DELAY_SECONDS` (padrao
+1s, valor minimo 1s) e aplicado entre as chamadas, e o `User-Agent` existente e
+o timeout de 30s sao respeitados. Para ambientes que nao devem fazer chamadas
+externas, o fallback pode ser desativado explicitamente com
+`URBEAT_DISABLE_NOMINATIM=true`; nesse caso os bairros permanecem pendentes.
 
 ## Reconstrução de bairros por UF no banco (com backup e confirmação)
 
@@ -238,7 +255,7 @@ python restore_neighborhoods.py restore --uf MG --file snapshots/bairros_mg.csv
 # Reparar coordenadas pendentes de um snapshot CSV (Cep Aberto e Mapbox; exige CEP_ABERTO_API_TOKEN)
 python neighborhood_regeocode.py --uf RJ --file snapshots/bairros_rj.csv --output snapshots/bairros_rj.csv
 
-# Geocodificacao por UF (Nominatim e opt-in; sem opt-in deixa pendente)
+# Geocodificacao por UF (e-DNE/Brasil Aberto -> Cep Aberto -> Mapbox -> Nominatim)
 python geocode_via_cep.py --uf ES
 python geocode_via_cep_sp.py            # SP
 
@@ -259,15 +276,15 @@ python neighborhood_candidates.py generate --input raw/ --output candidates/ --u
 Variaveis necessarias para importacao/geocodificacao:
 
 - `BRASIL_ABERTO_API_KEY`
-- `CEP_ABERTO_API_TOKEN` (opcional no importador; obrigatorio em `neighborhood_regeocode.py`)
+- `CEP_ABERTO_API_TOKEN` (opcional no importador; habilita o fallback Cep Aberto em `geocode_via_cep.py` e e obrigatorio em `neighborhood_regeocode.py`)
 - `CEP_ABERTO_DELAY_SECONDS` (opcional; atraso entre chamadas ao Cep Aberto; padrao 0.15s)
-- `MAPBOX_API_TOKEN` (opcional; habilita o fallback Mapbox em `neighborhood_regeocode.py`)
+- `MAPBOX_API_TOKEN` (opcional; habilita o fallback Mapbox em `geocode_via_cep.py` e `neighborhood_regeocode.py`)
 - `MAPBOX_DELAY_SECONDS` (opcional; atraso entre chamadas ao Mapbox; padrao 0.1s)
 - `URBEAT_DB_PASSWORD`
 - `URBEAT_DB_HOST`, `URBEAT_DB_NAME` e `URBEAT_DB_USER` (opcionais)
 - `URBEAT_DNE_DB` (opcional; padrao `/home/dexter/dne.db`)
 - `URBEAT_ALLOW_LEGACY_DB_IMPORT` (`true` para habilitar o importador legado; padrao: bloqueado)
-- `URBEAT_ENABLE_NOMINATIM` (`true` para habilitar o fallback Nominatim; padrao: desabilitado)
+- `URBEAT_DISABLE_NOMINATIM` (`true` para desativar o fallback Nominatim, que e padrao)
 - `NOMINATIM_DELAY_SECONDS` (atraso minimo entre chamadas ao Nominatim; padrao 1s)
 
 Nao registre chaves reais na documentacao ou no repositorio.

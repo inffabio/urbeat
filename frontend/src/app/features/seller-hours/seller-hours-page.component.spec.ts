@@ -1,6 +1,8 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -145,5 +147,71 @@ describe('SellerHoursPageComponent', () => {
     expect(dayLabels.length).toBe(7);
     expect(dayLabels[0].textContent!.trim()).toBe('Segunda-feira');
     expect(dayLabels[dayLabels.length - 1].textContent!.trim()).toBe('Domingo');
+  });
+
+  it('lays each day out as a compact grid with copy in the final column', () => {
+    const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
+    const row = styles.match(/\.settings-row\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(row).toContain('display: grid');
+    expect(row).toMatch(/grid-template-columns:\s*156px minmax\(0, 1fr\) 44px/);
+    expect(styles).toMatch(/\.copy-action\s*\{\s*justify-self:\s*end/);
+  });
+
+  it('keeps desktop time fields between 100 and 112px and 44px touch targets', () => {
+    const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
+    const field = styles.match(/\.time-field\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const width = Number(field.match(/width:\s*(\d+)px/)?.[1]);
+
+    expect(width).toBeGreaterThanOrEqual(100);
+    expect(width).toBeLessThanOrEqual(112);
+
+    const actions = styles.match(/\.remove-shift,\s*\.copy-action\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    expect(actions).toMatch(/height:\s*44px/);
+  });
+
+  it('respects prefers-reduced-motion for the switch and inputs', () => {
+    const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*\.switch-app[\s\S]*transition:\s*none/);
+  });
+
+  it('associates each time input with a label and accessible name', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const inputs = Array.from(
+      fixture.nativeElement.querySelectorAll('input[type="time"]') as NodeListOf<HTMLInputElement>,
+    );
+    expect(inputs.length).toBeGreaterThan(0);
+
+    for (const input of inputs) {
+      expect(input.getAttribute('aria-label')).toBeTruthy();
+      expect(input.id).toBeTruthy();
+      const label = fixture.nativeElement.querySelector(`label[for="${input.id}"]`);
+      expect(label).toBeTruthy();
+    }
+  });
+
+  it('exposes the day switch as an accessible switch control', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const switchEl = fixture.nativeElement.querySelector('.switch-line[role="switch"]') as HTMLElement;
+    expect(switchEl).toBeTruthy();
+    expect(switchEl.getAttribute('tabindex')).toBe('0');
+    expect(switchEl.hasAttribute('aria-checked')).toBe(true);
+    expect(switchEl.getAttribute('aria-label')).toBeTruthy();
+  });
+});
+
+describe('SellerHoursPageComponent wizard separation', () => {
+  it('does not inherit wizard navigation from the shared state', () => {
+    const component = Object.create(SellerHoursPageComponent.prototype) as unknown as Record<string, unknown>;
+
+    expect(component['goNext']).toBeUndefined();
+    expect(component['goBack']).toBeUndefined();
   });
 });

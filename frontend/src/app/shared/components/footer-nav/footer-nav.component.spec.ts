@@ -141,11 +141,11 @@ describe('FooterNavComponent', () => {
     expect(badge.getAttribute('aria-label')).toBe('2 itens');
   });
 
-  it('keeps the footer in the shell flex flow instead of overlaying the viewport and respects the bottom safe area', () => {
+  it('anchors the footer fixed to the viewport bottom on mobile and keeps it in flow on desktop', () => {
     const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
 
-    expect(source).not.toMatch(/\.footer-nav-safe-zone\s*\{[^}]*position:\s*fixed/);
-    expect(source).toMatch(/\.footer-nav-safe-zone\s*\{[^}]*position:\s*relative/);
+    expect(source).toMatch(/:host\s*\{[^}]*position:\s*fixed[^}]*bottom:\s*0/);
+    expect(source).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*:host\s*\{[^}]*position:\s*relative/);
     expect(source).toContain('padding-bottom: max(8px, env(safe-area-inset-bottom, 0px))');
   });
 
@@ -209,6 +209,39 @@ describe('FooterNavComponent height reporting', () => {
 
     expect(safeZone).not.toBeNull();
     expect(lastObserver().observed).toContain(safeZone);
+  });
+
+  it('observes the safe-zone exactly once', () => {
+    expect(lastObserver().observed.length).toBe(1);
+  });
+
+  it('reports every measured entry in a single callback', () => {
+    const emit = jest.spyOn(fixture.componentInstance.heightChange, 'emit');
+
+    lastObserver().callback(
+      [
+        { contentRect: { height: 100 } } as unknown as ResizeObserverEntry,
+        { contentRect: { height: 120 } } as unknown as ResizeObserverEntry,
+      ],
+      lastObserver() as unknown as ResizeObserver,
+    );
+
+    expect(emit).toHaveBeenCalledWith(100);
+    expect(emit).toHaveBeenCalledWith(120);
+  });
+
+  it('does not observe or emit when ResizeObserver is unavailable (legacy WebView)', () => {
+    delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+    const emit = jest.fn();
+    const localFixture = TestBed.createComponent(FooterNavComponent);
+    localFixture.componentRef.setInput('items', [
+      { id: 'cart', icon: 'bag-outline', label: 'Carrinho' } as FooterNavItem,
+    ]);
+    localFixture.componentInstance.heightChange.subscribe(emit);
+
+    expect(() => localFixture.detectChanges()).not.toThrow();
+    expect(emit).not.toHaveBeenCalled();
+    localFixture.destroy();
   });
 
   it('reports a measured safe-zone height through heightChange', () => {

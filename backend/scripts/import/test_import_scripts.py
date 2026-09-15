@@ -1335,18 +1335,18 @@ class ImportScriptsTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "neighborhood_source_import"):
                 brasil_aberto_import.main(["--uf", "RJ", "--confirm", "LEGACY IMPORT RJ"])
 
-    def test_nominatim_requires_explicit_opt_in(self):
+    def test_nominatim_is_default_fallback_with_explicit_opt_out(self):
         import geocode_via_cep
 
         with patch.dict("os.environ", {}, clear=False):
-            os.environ.pop("URBEAT_ENABLE_NOMINATIM", None)
-            self.assertFalse(geocode_via_cep.nominatim_enabled())
-        with patch.dict("os.environ", {"URBEAT_ENABLE_NOMINATIM": "true"}):
+            os.environ.pop("URBEAT_DISABLE_NOMINATIM", None)
             self.assertTrue(geocode_via_cep.nominatim_enabled())
-        with patch.dict("os.environ", {"URBEAT_ENABLE_NOMINATIM": "TRUE"}):
-            self.assertTrue(geocode_via_cep.nominatim_enabled())
-        with patch.dict("os.environ", {"URBEAT_ENABLE_NOMINATIM": "1"}):
+        with patch.dict("os.environ", {"URBEAT_DISABLE_NOMINATIM": "true"}):
             self.assertFalse(geocode_via_cep.nominatim_enabled())
+        with patch.dict("os.environ", {"URBEAT_DISABLE_NOMINATIM": "TRUE"}):
+            self.assertFalse(geocode_via_cep.nominatim_enabled())
+        with patch.dict("os.environ", {"URBEAT_DISABLE_NOMINATIM": "1"}):
+            self.assertTrue(geocode_via_cep.nominatim_enabled())
 
     def test_nominatim_delay_seconds_defaults_and_enforces_minimum(self):
         import geocode_via_cep
@@ -1361,27 +1361,40 @@ class ImportScriptsTests(unittest.TestCase):
         with patch.dict("os.environ", {"NOMINATIM_DELAY_SECONDS": "abc"}):
             self.assertEqual(geocode_via_cep.nominatim_delay_seconds(), 1.0)
 
-    def test_geocode_does_not_call_nominatim_by_default(self):
+    def test_geocode_calls_nominatim_by_default_when_first_street_missing(self):
         import geocode_via_cep
 
         connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
         with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only"}, clear=False), \
                 patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_nominatim", return_value=(-22.9, -43.1)) as nominatim, \
+                patch.object(geocode_via_cep.time, "sleep"):
+            os.environ.pop("URBEAT_DISABLE_NOMINATIM", None)
+            total, missing_cep, missing_coordinates = geocode_via_cep.geocode_uf("RJ", connection)
+        self.assertEqual(nominatim.call_count, 1)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "osm_nominatim", "id-1"))
+        self.assertEqual((total, missing_cep, missing_coordinates), (1, 1, 0))
+
+    def test_geocode_skips_nominatim_when_explicitly_disabled(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only", "URBEAT_DISABLE_NOMINATIM": "true"}), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=(None, None)), \
                 patch.object(geocode_via_cep, "get_coordinates_from_nominatim") as nominatim:
-            os.environ.pop("URBEAT_ENABLE_NOMINATIM", None)
             total, missing_cep, missing_coordinates = geocode_via_cep.geocode_uf("RJ", connection)
         self.assertFalse(nominatim.called)
         self.assertEqual(connection.cursor_instance.updates, [])
         self.assertEqual((total, missing_cep, missing_coordinates), (1, 1, 1))
 
-    def test_geocode_delays_before_nominatim_when_enabled(self):
+    def test_geocode_delays_before_nominatim_fallback(self):
         import geocode_via_cep
 
         connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
         sleeps = []
         with patch.dict("os.environ", {
                 "BRASIL_ABERTO_API_KEY": "test-only",
-                "URBEAT_ENABLE_NOMINATIM": "true",
                 "NOMINATIM_DELAY_SECONDS": "2.0",
             }), \
                 patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=(None, None)), \
@@ -1406,6 +1419,8 @@ class ImportScriptsTests(unittest.TestCase):
         self.assertIn("Latitude` e `Longitude` permanecem vazios", documentation)
         self.assertIn("rua/CEP encontrada", documentation)
         self.assertIn("nunca inventa coordenadas", documentation)
+        self.assertIn("URBEAT_DISABLE_NOMINATIM", documentation)
+        self.assertNotIn("URBEAT_ENABLE_NOMINATIM", documentation)
 
     def _make_dne_db(self, rows):
         handle = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
@@ -1493,9 +1508,58 @@ class ImportScriptsTests(unittest.TestCase):
         import geocode_via_cep
 
         connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
-        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only", "URBEAT_ENABLE_NOMINATIM": "true"}), \
+        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only"}), \
                 patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
                 patch.object(geocode_via_cep, "get_coordinates_from_cep", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_nominatim", return_value=(-22.9, -43.1)) as nominatim, \
+                patch.object(geocode_via_cep.time, "sleep"):
+            geocode_via_cep.geocode_uf("RJ", connection)
+        self.assertEqual(nominatim.call_count, 1)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "osm_nominatim", "id-1"))
+
+    def test_geocode_uses_cep_aberto_when_brasil_aberto_returns_no_pair(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only", "CEP_ABERTO_API_TOKEN": "token"}), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep_aberto", return_value=(-22.9, -43.1)) as cep_aberto, \
+                patch.object(geocode_via_cep, "get_coordinates_from_mapbox") as mapbox, \
+                patch.object(geocode_via_cep, "get_coordinates_from_nominatim") as nominatim:
+            geocode_via_cep.geocode_uf("RJ", connection)
+        self.assertEqual(cep_aberto.call_count, 1)
+        self.assertFalse(mapbox.called)
+        self.assertFalse(nominatim.called)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "cep_aberto", "id-1"))
+
+    def test_geocode_uses_mapbox_when_both_cep_providers_return_no_pair(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only", "CEP_ABERTO_API_TOKEN": "token"}), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep_aberto", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_mapbox", return_value=(-22.9, -43.1)) as mapbox, \
+                patch.object(geocode_via_cep, "get_coordinates_from_nominatim") as nominatim:
+            geocode_via_cep.geocode_uf("RJ", connection)
+        self.assertEqual(mapbox.call_count, 1)
+        self.assertFalse(nominatim.called)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "mapbox_geocoding", "id-1"))
+
+    def test_geocode_uses_nominatim_when_all_structured_sources_fail(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"BRASIL_ABERTO_API_KEY": "test-only", "CEP_ABERTO_API_TOKEN": "token"}), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep_aberto", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_mapbox", return_value=(None, None)), \
                 patch.object(geocode_via_cep, "get_coordinates_from_nominatim", return_value=(-22.9, -43.1)) as nominatim, \
                 patch.object(geocode_via_cep.time, "sleep"):
             geocode_via_cep.geocode_uf("RJ", connection)
@@ -1548,6 +1612,76 @@ class ImportScriptsTests(unittest.TestCase):
             geocode_via_cep.geocode_uf("RJ")
 
         self.assertEqual(events, ["commit", "export"])
+
+    def test_geocode_uf_runs_without_brasil_aberto_when_cep_aberto_is_configured(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"CEP_ABERTO_API_TOKEN": "token", "URBEAT_DISABLE_NOMINATIM": "true"}, clear=True), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep") as brasil_aberto, \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep_aberto", return_value=(-22.9, -43.1)) as cep_aberto, \
+                patch.object(geocode_via_cep.time, "sleep"):
+            total, missing_cep, missing_coordinates = geocode_via_cep.geocode_uf("RJ", connection)
+
+        self.assertTrue(brasil_aberto.called)
+        self.assertEqual(cep_aberto.call_count, 1)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "cep_aberto", "id-1"))
+        self.assertEqual((total, missing_cep, missing_coordinates), (1, 0, 0))
+
+    def test_geocode_uf_runs_without_brasil_aberto_when_mapbox_is_configured(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {"MAPBOX_API_TOKEN": "pk.secret", "URBEAT_DISABLE_NOMINATIM": "true"}, clear=True), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=("Rua A", "24000000")), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_cep_aberto", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_mapbox", return_value=(-22.9, -43.1)) as mapbox, \
+                patch.object(geocode_via_cep.time, "sleep"):
+            total, missing_cep, missing_coordinates = geocode_via_cep.geocode_uf("RJ", connection)
+
+        self.assertEqual(mapbox.call_count, 1)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "mapbox_geocoding", "id-1"))
+        self.assertEqual((total, missing_cep, missing_coordinates), (1, 0, 0))
+
+    def test_geocode_uf_runs_without_brasil_aberto_when_nominatim_is_enabled(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([("id-1", "Centro", "Rio de Janeiro", "RJ", None, None)])
+        with patch.dict("os.environ", {}, clear=True), \
+                patch.object(geocode_via_cep, "get_first_street_from_dne", return_value=(None, None)), \
+                patch.object(geocode_via_cep, "get_coordinates_from_nominatim", return_value=(-22.9, -43.1)) as nominatim, \
+                patch.object(geocode_via_cep.time, "sleep"):
+            total, missing_cep, missing_coordinates = geocode_via_cep.geocode_uf("RJ", connection)
+
+        self.assertEqual(nominatim.call_count, 1)
+        statement, params = connection.cursor_instance.updates[0]
+        self.assertEqual(params, (-22.9, -43.1, "osm_nominatim", "id-1"))
+        self.assertEqual((total, missing_cep, missing_coordinates), (1, 1, 0))
+
+    def test_geocode_uf_requires_a_provider_when_nominatim_is_disabled(self):
+        import geocode_via_cep
+
+        connection = _GeocodeConnection([])
+        with patch.dict("os.environ", {"URBEAT_DISABLE_NOMINATIM": "true"}, clear=True):
+            with self.assertRaises(RuntimeError):
+                geocode_via_cep.geocode_uf("RJ", connection)
+
+    def test_brasil_aberto_geocoder_skips_call_without_api_key(self):
+        import geocode_via_cep
+
+        geocode_via_cep._cep_coordinate_cache.clear()
+        original = geocode_via_cep.fetch_json
+        try:
+            geocode_via_cep.fetch_json = lambda url, headers=None: (_ for _ in ()).throw(AssertionError("fetch"))
+            with patch.dict("os.environ", {}, clear=True):
+                self.assertEqual(get_coordinates_from_cep("24000000"), (None, None))
+        finally:
+            geocode_via_cep.fetch_json = original
+            geocode_via_cep._cep_coordinate_cache.clear()
 
     def test_write_snapshot_is_atomic_and_leaves_no_temporary_file(self):
         rows = [{

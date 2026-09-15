@@ -84,11 +84,18 @@ def brasil_aberto_delay_seconds():
 
 
 def nominatim_enabled():
-    """Indica se o fallback Nominatim esta habilitado por opt-in explicito.
+    """Indica se o fallback Nominatim esta habilitado (padrao controlado).
 
-    O Nominatim nao e chamado por padrao; exige ``URBEAT_ENABLE_NOMINATIM=true``.
+    O Nominatim e o fallback textual padrao quando a primeira rua/CEP do e-DNE
+    nao retorna um par valido, conforme a especificacao de fallback de
+    coordenadas. Pode ser desativado explicitamente com
+    ``URBEAT_DISABLE_NOMINATIM=true`` para ambientes que nao devem fazer
+    chamadas externas; o atraso minimo e o User-Agent existentes continuam
+    valendo para respeitar a politica de uso do servico.
     """
-    return os.environ.get("URBEAT_ENABLE_NOMINATIM", "").strip().lower() == "true"
+    if os.environ.get("URBEAT_DISABLE_NOMINATIM", "").strip().lower() == "true":
+        return False
+    return True
 
 
 def nominatim_delay_seconds():
@@ -173,6 +180,8 @@ def get_coordinates_from_cep(cep):
     if normalized in _cep_coordinate_cache:
         return _cep_coordinate_cache[normalized]
     api_key = os.environ.get("BRASIL_ABERTO_API_KEY")
+    if not api_key:
+        return None, None
     time.sleep(brasil_aberto_delay_seconds())
     data = fetch_json(
         f"https://api.brasilaberto.com/v2/zipcode/{normalized}",
@@ -300,9 +309,33 @@ def pending_coordinate_report(connection, uf):
             pending.setdefault(city, []).append(neighborhood)
     return pending
 
+def available_geocoding_providers():
+    """Lista os provedores de geocodificacao disponiveis no ambiente.
+
+    O Brasil Aberto e o provedor primario; Cep Aberto, Mapbox e Nominatim sao
+    fallbacks. Nominatim e considerado habilitado por padrao (salvo
+    ``URBEAT_DISABLE_NOMINATIM=true``), entao o geocodificador pode rodar sem
+    ``BRASIL_ABERTO_API_KEY`` desde que ao menos um fallback esteja configurado.
+    """
+    providers = []
+    if os.environ.get("BRASIL_ABERTO_API_KEY"):
+        providers.append("brasil_aberto")
+    if cep_aberto_token():
+        providers.append("cep_aberto")
+    if mapbox_token():
+        providers.append("mapbox")
+    if nominatim_enabled():
+        providers.append("nominatim")
+    return providers
+
+
 def geocode_uf(uf, connection=None):
-    if not os.environ.get("BRASIL_ABERTO_API_KEY"):
-        raise RuntimeError("Defina BRASIL_ABERTO_API_KEY antes de executar")
+    if not available_geocoding_providers():
+        raise RuntimeError(
+            "Defina BRASIL_ABERTO_API_KEY ou um provedor de fallback "
+            "(CEP_ABERTO_API_TOKEN, MAPBOX_API_TOKEN ou Nominatim habilitado) "
+            "antes de executar"
+        )
     uf = validate_uf(uf)
     owns_connection = connection is None
     if owns_connection:
@@ -321,18 +354,41 @@ def geocode_uf(uf, connection=None):
     for index, (neighborhood_id, neighborhood, city, row_uf, existing_latitude, existing_longitude) in enumerate(rows, 1):
         source = None
         latitude = longitude = None
+        street = None
+        cep = None
         try:
-            _, cep = get_first_street_from_dne(neighborhood, city)
-            if cep:
+            street, cep = get_first_street_from_dne(neighborhood, city)
+        except Exception:
+            street = cep = None
+        if cep:
+            try:
                 latitude, longitude = get_coordinates_from_cep(cep)
                 if valid_coordinates(latitude, longitude):
                     source = "brasil_aberto_first_street"
                 else:
                     latitude = longitude = None
-            else:
-                missing_cep += 1
-        except Exception:
-            latitude = longitude = None
+            except Exception:
+                latitude = longitude = None
+        else:
+            missing_cep += 1
+        if source is None and cep:
+            try:
+                latitude, longitude = get_coordinates_from_cep_aberto(cep)
+                if valid_coordinates(latitude, longitude):
+                    source = "cep_aberto"
+                else:
+                    latitude = longitude = None
+            except Exception:
+                latitude = longitude = None
+        if source is None and street:
+            try:
+                latitude, longitude = get_coordinates_from_mapbox(street, city, row_uf, cep)
+                if valid_coordinates(latitude, longitude):
+                    source = "mapbox_geocoding"
+                else:
+                    latitude = longitude = None
+            except Exception:
+                latitude = longitude = None
         if source is None and nominatim_enabled():
             time.sleep(nominatim_delay_seconds())
             try:

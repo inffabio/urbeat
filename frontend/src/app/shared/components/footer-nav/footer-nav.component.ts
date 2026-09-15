@@ -54,7 +54,14 @@ export interface FooterNavItem {
     </div>
   `,
   styles: [`
-     :host { display: block; position: relative; z-index: 70; }
+     :host {
+       display: block;
+       position: fixed;
+       left: 0;
+       right: 0;
+       bottom: 0;
+       z-index: 70;
+     }
      :host(.sheet-open) { pointer-events: none; }
 
      .footer-nav-safe-zone {
@@ -66,6 +73,16 @@ export interface FooterNavItem {
        max-width: 100%;
        margin: 0 auto;
        border-radius: 18px 18px 0 0;
+       box-shadow: 0 -8px 24px rgba(0, 0, 0, .08);
+     }
+
+     @media (min-width: 900px) {
+       :host {
+         position: relative;
+         left: auto;
+         right: auto;
+         bottom: auto;
+       }
      }
 
     .footer-nav {

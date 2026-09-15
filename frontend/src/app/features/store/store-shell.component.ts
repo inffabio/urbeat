@@ -62,6 +62,18 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
        flex-direction: column;
      }
 
+    /* The routed storefront content owns the scroll; on mobile the footer is
+       fixed to the viewport bottom and the measured clearance is inherited by
+       each route scrollport. */
+    .store-route {
+      flex: 1 1 0;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
      @media (min-width: 900px) {
        .app-shell {
          width: 100%;
@@ -71,19 +83,13 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
          margin: 0 auto;
          box-shadow: 0 30px 90px rgba(0, 0, 0, .18);
        }
-     }
 
-    /* The routed storefront content owns the scroll; the footer stays the last
-       flex child so it is always rendered inside the visible shell. */
-    .store-route {
-      --store-footer-clearance: 0px;
-      flex: 1 1 0;
-      min-height: 0;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+       /* On desktop the footer returns to the shell flex flow, so the measured
+          clearance is not needed and is reset to avoid double spacing. */
+       .store-route {
+         --store-footer-clearance: 0px;
+       }
+     }
 
      .account-menu-backdrop {
        position: fixed;

@@ -12,7 +12,7 @@
 
 - Accept `image/avif`, `image/png`, `image/svg+xml`, `image/webp`, and `image/jpeg` for both logo and banner.
 - Enforce 2 MB maximum for logo files and 5 MB maximum for banner files.
-- Display `Formatos aceitos: AVIF, PNG, SVG, WEBP e JPG.` inside each upload container.
+- Display `Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.` inside each upload container.
 - Preserve the selected file format; do not convert every image to JPEG in the browser.
 - Use shared Angular UI under `frontend/src/app/shared/components/`.
 - Keep backend validation authoritative; browser `accept` is not security validation.
@@ -91,7 +91,7 @@ Use Angular `input()` and `output()` signals or the existing project decorator s
   } @else {
     <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
     <strong>{{ emptyTitle() }}</strong>
-    <span>Formatos aceitos: AVIF, PNG, SVG, WEBP e JPG.</span>
+    <span>Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.</span>
     <span>Até {{ maxSizeLabel() }}.</span>
   }
 </button>

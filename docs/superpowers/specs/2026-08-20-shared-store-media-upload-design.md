@@ -40,7 +40,7 @@ The component accepts the following MIME types:
 - `image/webp`
 - `image/jpeg`
 
-The visible copy is: `Formatos aceitos: AVIF, PNG, SVG, WEBP e JPG.`
+The visible copy is: `Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.`
 
 ## Data Flow
 

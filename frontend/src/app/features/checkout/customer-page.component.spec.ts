@@ -18,6 +18,7 @@ import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
 import { StoreService } from '../../core/services/store.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
+import { customerProfileFieldError } from '../../shared/utils/customer-profile.rules';
 
 describe('CustomerPageComponent', () => {
   let cart: CartService;
@@ -201,6 +202,33 @@ describe('CustomerPageComponent', () => {
     expect(error.textContent).toContain('Informe seu nome completo.');
     expect(input.getAttribute('aria-invalid')).toBe('true');
     expect(input.getAttribute('aria-describedby')).toBe('fullName-error');
+  });
+
+  it('uses the shared profile rules for every field error so checkout and account cannot diverge', () => {
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    const component = fixture.componentInstance;
+    component.fullName.set('An');
+    component.onPhoneInput('123');
+    component.email.set('bad');
+    component.cep.set('123');
+    component.state.set('R');
+
+    const fields = {
+      fullName: component.fullName(),
+      phone: component.phone(),
+      email: component.email(),
+      cep: component.cep(),
+      street: component.street(),
+      number: component.number(),
+      complement: component.complement(),
+      neighborhood: component.neighborhood(),
+      city: component.city(),
+      state: component.state(),
+    };
+
+    for (const field of ['fullName', 'phone', 'email', 'cep', 'city', 'state', 'neighborhood', 'street', 'number'] as const) {
+      expect(component.fieldError(field)).toBe(customerProfileFieldError(field, fields));
+    }
   });
 
   it('should create a customer session and navigate to payment when form is valid', () => {

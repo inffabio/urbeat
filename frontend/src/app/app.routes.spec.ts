@@ -105,11 +105,11 @@ describe('app routes', () => {
     expect(appRoute?.children?.find((child) => child.path === 'configuracoes/bairros')?.loadComponent?.toString()).toContain('seller-neighborhoods-page.component');
   });
 
-  it('routes storefront account registration to the existing customer page', () => {
+  it('routes storefront account registration to the dedicated account page', () => {
     const storeRoute = routes.find((route) => route.path === ':storePath');
     const accountRoute = storeRoute?.children?.find((child) => child.path === 'conta/cadastro');
 
-    expect(accountRoute?.loadComponent?.toString()).toContain('customer-page.component');
+    expect(accountRoute?.loadComponent?.toString()).toContain('customer-account-page.component');
     expect(accountRoute?.canActivate).toEqual([customerGuard]);
   });
 

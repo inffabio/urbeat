@@ -630,10 +630,12 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(globalStyles).toMatch(/\.store-route\s*>\s*router-outlet\s*\+\s*\*[^{]*\{[^}]*flex:\s*1 1 0/);
   });
 
-  it('does not reserve the in-flow footer height twice inside routed content', () => {
+  it('inherits the measured footer clearance on mobile and only resets it on desktop', () => {
     const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
 
-    expect(source).toMatch(/\.store-route\s*\{[^}]*--store-footer-clearance:\s*0px/);
+    const baseRoute = source.match(/\.store-route\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    expect(baseRoute).not.toContain('--store-footer-clearance: 0px');
+    expect(source).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*\.store-route\s*\{[^}]*--store-footer-clearance:\s*0px/);
   });
 
   it('renders the footer as the last structural element after the routed store content', () => {

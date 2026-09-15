@@ -16,6 +16,10 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidator : AbstractValida
             .Must(items => items.Select(i => i.DayOfWeek).Distinct().Count() == items.Count)
             .WithMessage("Each day of week can be configured only once.");
 
+        RuleFor(x => x.Items)
+            .Must(HaveNoCrossDayOvernightConflicts)
+            .WithMessage("Overnight shifts cannot overlap the next day's shifts.");
+
         RuleForEach(x => x.Items)
             .ChildRules(item =>
             {
@@ -60,6 +64,42 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidator : AbstractValida
                     .Must(shifts => shifts.All(s => s.StartTime != s.EndTime))
                     .WithMessage("Start and end times cannot be equal.");
             });
+    }
+
+    private static bool HaveNoCrossDayOvernightConflicts(
+        IReadOnlyCollection<StoreBusinessHourItemDto> items)
+    {
+        var daysByDayOfWeek = items.ToLookup(item => item.DayOfWeek);
+
+        // Duplicated days are reported by the uniqueness rule. Skip the
+        // cross-day check so a lookup never throws and does not add a
+        // competing error for an already invalid schedule.
+        if (daysByDayOfWeek.Any(group => group.Count() > 1))
+            return true;
+
+        foreach (var item in items)
+        {
+            if (!item.IsOpen) continue;
+
+            var nextDayOfWeek = (DayOfWeek)(((int)item.DayOfWeek + 1) % 7);
+            var nextDay = daysByDayOfWeek[nextDayOfWeek].FirstOrDefault();
+            if (nextDay is null || !nextDay.IsOpen) continue;
+
+            foreach (var shift in item.Shifts)
+            {
+                var start = shift.StartTime.ToTimeSpan().TotalMinutes;
+                var end = shift.EndTime.ToTimeSpan().TotalMinutes;
+                if (end >= start) continue;
+
+                foreach (var nextShift in nextDay.Shifts)
+                {
+                    if (nextShift.StartTime.ToTimeSpan().TotalMinutes < end)
+                        return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private static bool ShiftsOverlap(StoreBusinessHourShiftDto a, StoreBusinessHourShiftDto b)

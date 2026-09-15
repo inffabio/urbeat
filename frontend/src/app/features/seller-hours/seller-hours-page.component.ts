@@ -11,10 +11,8 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
-import { WizardFooterComponent } from '../../shared/components/wizard-footer/wizard-footer.component';
-import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
 import { ConfigSubnavComponent } from '../seller-shell/config-subnav.component';
-import { StoreHoursPageComponent } from '../store-config/hours/store-hours-page.component';
+import { StoreHoursState } from '../../shared/state/store-hours.state';
 
 @Component({
   selector: 'app-seller-hours-page',
@@ -37,7 +35,7 @@ import { StoreHoursPageComponent } from '../store-config/hours/store-hours-page.
     './seller-hours-page.component.scss',
   ],
 })
-export class SellerHoursPageComponent extends StoreHoursPageComponent {
+export class SellerHoursPageComponent extends StoreHoursState {
   openDaysCount(): number {
     return this.weekDays.filter((day) => this.schedule()[day.id]?.isOpen).length;
   }

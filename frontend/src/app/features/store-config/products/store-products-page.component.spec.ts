@@ -154,14 +154,14 @@ describe('StoreProductsPageComponent — option groups', () => {
 
     it('expands the editor layout when a product is selected', () => {
       const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
-      const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+      const styles = readFileSync(resolve(__dirname, '../../../shared/styles/store-products.shared.scss'), 'utf8');
 
       expect(template).toContain('[class.editor-focused]="selectedId() !== null"');
       expect(styles).toContain('.products-layout.editor-focused {\n  grid-template-columns: minmax(0, 1fr) minmax(400px, 440px);');
     });
 
     it('makes the expanded product preview span the full catalog width', () => {
-      const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+      const styles = readFileSync(resolve(__dirname, '../../../shared/styles/store-products.shared.scss'), 'utf8');
 
       expect(styles).toContain('.catalog-preview {\n  grid-column: 1 / -1;');
     });
@@ -556,7 +556,7 @@ describe('StoreProductsPageComponent — option groups', () => {
 
   describe('catalog product row layout', () => {
     const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
-    const styles = readFileSync(resolve(__dirname, 'store-products-page.component.scss'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, '../../../shared/styles/store-products.shared.scss'), 'utf8');
 
     it('shows the price above the product name', () => {
       const priceIdx = template.indexOf('class="catalog-product-price"');

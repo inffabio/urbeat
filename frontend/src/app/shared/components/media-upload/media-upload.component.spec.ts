@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { ACCEPTED_IMAGE_EXTENSIONS, IMAGE_FORMAT_ERROR } from '../../utils/image-upload.utils';
 import { MediaUploadComponent } from './media-upload.component';
 
 describe('MediaUploadComponent', () => {
@@ -96,6 +97,23 @@ describe('MediaUploadComponent', () => {
       expect(selected).not.toHaveBeenCalled();
     }
     expect(component.errorMessage()).toContain('Formato');
+  });
+
+  it('shows the effective accepted-formats copy inside the upload container', () => {
+    fixture.componentRef.setInput('kind', 'logo');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Formatos aceitos: AVIF, PNG, SVG, WEBP, JPG e JPEG.');
+  });
+
+  it('does not advertise a format it rejects nor reject one it advertises', () => {
+    const copy = (fixture.nativeElement.textContent ?? '').toLowerCase();
+    const error = IMAGE_FORMAT_ERROR.toLowerCase();
+
+    for (const extension of ACCEPTED_IMAGE_EXTENSIONS) {
+      expect(copy).toContain(extension);
+      expect(error).toContain(extension);
+    }
   });
 
   it('shows the recommended dimension only for banner uploads', () => {
