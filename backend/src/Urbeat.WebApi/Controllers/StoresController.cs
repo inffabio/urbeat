@@ -21,6 +21,7 @@ public sealed class StoresController : ControllerBase
     private readonly IStoreAddressService _storeAddressService;
     private readonly IStoreBusinessHoursService _storeBusinessHoursService;
     private readonly IValidator<CreateStoreRequestDto> _createValidator;
+    private readonly IValidator<CreateCuisineTypeRequestDto> _createCuisineTypeValidator;
     private readonly IValidator<UpdateStoreRequestDto> _updateValidator;
     private readonly IValidator<UpdateStoreAddressRequestDto> _addressValidator;
     private readonly IValidator<UpsertStoreBusinessHoursRequestDto> _businessHoursValidator;
@@ -33,6 +34,7 @@ public sealed class StoresController : ControllerBase
         IStoreAddressService storeAddressService,
         IStoreBusinessHoursService storeBusinessHoursService,
         IValidator<CreateStoreRequestDto> createValidator,
+        IValidator<CreateCuisineTypeRequestDto> createCuisineTypeValidator,
         IValidator<UpdateStoreRequestDto> updateValidator,
         IValidator<UpdateStoreAddressRequestDto> addressValidator,
         IValidator<UpsertStoreBusinessHoursRequestDto> businessHoursValidator,
@@ -44,6 +46,7 @@ public sealed class StoresController : ControllerBase
         _storeAddressService = storeAddressService;
         _storeBusinessHoursService = storeBusinessHoursService;
         _createValidator = createValidator;
+        _createCuisineTypeValidator = createCuisineTypeValidator;
         _updateValidator = updateValidator;
         _addressValidator = addressValidator;
         _businessHoursValidator = businessHoursValidator;
@@ -60,18 +63,129 @@ public sealed class StoresController : ControllerBase
         return Ok(types);
     }
 
-    [HttpPost("cuisine-types")]
-    [ProducesResponseType<CuisineTypeResponseDto>(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateCuisineType([FromBody] CreateCuisineTypeRequestDto request, CancellationToken cancellationToken)
+    [HttpGet("{storeId:guid}/cuisine-types")]
+    [ProducesResponseType<IReadOnlyCollection<CuisineTypeResponseDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStoreCuisineTypes([FromRoute] Guid storeId, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
         {
-            return BadRequest(new { error = "Cuisine type name is required." });
+            return Unauthorized();
         }
 
-        var result = await _cuisineTypeService.CreateAsync(request.Name.Trim(), cancellationToken);
-        return Created(string.Empty, result);
+        var store = await _storeService.GetByOwnerAsync(ownerUserId.Value, cancellationToken);
+        if (store is null)
+        {
+            return NotFound();
+        }
+
+        if (store.Id != storeId)
+        {
+            return Forbid();
+        }
+
+        var types = await _cuisineTypeService.GetForStoreAsync(ownerUserId.Value, storeId, cancellationToken);
+        return Ok(types);
+    }
+
+    [HttpPost("{storeId:guid}/cuisine-types")]
+    [ProducesResponseType<CuisineTypeResponseDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateStoreCuisineType(
+        [FromRoute] Guid storeId,
+        [FromBody] CreateCuisineTypeRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _createCuisineTypeValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validation.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    keySelector: group => group.Key,
+                    elementSelector: group => group.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var store = await _storeService.GetByOwnerAsync(ownerUserId.Value, cancellationToken);
+        if (store is null)
+        {
+            return NotFound();
+        }
+
+        if (store.Id != storeId)
+        {
+            return Forbid();
+        }
+
+        var created = await _cuisineTypeService.CreateForStoreAsync(ownerUserId.Value, storeId, request.Name, cancellationToken);
+        if (created is null)
+        {
+            return Conflict(new { error = "Categoria inválida, duplicada ou protegida." });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, created);
+    }
+
+    [HttpDelete("{storeId:guid}/cuisine-types/{cuisineTypeId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteStoreCuisineType(
+        [FromRoute] Guid storeId,
+        [FromRoute] Guid cuisineTypeId,
+        CancellationToken cancellationToken)
+    {
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var store = await _storeService.GetByOwnerAsync(ownerUserId.Value, cancellationToken);
+        if (store is null)
+        {
+            return NotFound();
+        }
+
+        if (store.Id != storeId)
+        {
+            return Forbid();
+        }
+
+        var result = await _cuisineTypeService.DeleteForStoreAsync(ownerUserId.Value, storeId, cuisineTypeId, cancellationToken);
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (result.Protected)
+        {
+            return Conflict(new { error = "Categorias padrão não podem ser excluídas." });
+        }
+
+        if (result.InUse)
+        {
+            return Conflict(new { error = "A categoria está em uso pela loja e não pode ser excluída." });
+        }
+
+        return NoContent();
     }
 
     [HttpGet("delivery-times")]

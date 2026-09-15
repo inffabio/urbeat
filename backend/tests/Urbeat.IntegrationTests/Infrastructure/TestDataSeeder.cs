@@ -54,15 +54,17 @@ public sealed class TestDataSeeder : IHostedService
 
         if (!await dbContext.CuisineTypes.AnyAsync(ct))
         {
-            dbContext.CuisineTypes.AddRange(
-                new CuisineType { Name = "Pizza", IsActive = true },
-                new CuisineType { Name = "Lanches", IsActive = true },
-                new CuisineType { Name = "Japonesa", IsActive = true },
-                new CuisineType { Name = "Brasileira", IsActive = true },
-                new CuisineType { Name = "Árabe", IsActive = true },
-                new CuisineType { Name = "Mexicana", IsActive = true },
-                new CuisineType { Name = "Doces", IsActive = true }
-            );
+            foreach (var name in CuisineTypeDefaults.Names)
+            {
+                dbContext.CuisineTypes.Add(new CuisineType
+                {
+                    Name = name,
+                    IsActive = true,
+                    IsDefault = true,
+                    StoreId = null
+                });
+            }
+
             await dbContext.SaveChangesAsync(ct);
         }
     }

@@ -54,14 +54,16 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         cuisineTypesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var cuisineTypes = await cuisineTypesResponse.Content.ReadFromJsonAsync<List<CuisineTypeResponseDto>>();
         cuisineTypes.Should().NotBeNullOrEmpty();
-        cuisineTypes!.Any(x => x.Name == "Pizza").Should().BeTrue();
+        cuisineTypes!.Any(x => x.Name == "Pizzaria").Should().BeTrue();
+        cuisineTypes.Should().OnlyContain(x => x.IsDefault && x.StoreId == null);
 
         var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
             Name = "Loja Teste",
             Slug = "loja-teste",
             PhoneNumber = "11999999999",
-            CuisineType = "Pizza",
+            CuisineType = "Pizzaria"
+,
             MaxDeliveryRadiusKm = 5,
         });
 
@@ -114,7 +116,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
             Name = "Segunda Loja",
             Slug = "segunda-loja",
             PhoneNumber = "11999991111",
-            CuisineType = "Japonesa",
+            CuisineType = "Pizzaria"
+,
             MaxDeliveryRadiusKm = 5,
         });
 
@@ -122,22 +125,142 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Seller_ShouldNotCreateStore_WithInvalidCuisineType()
+    public async Task Seller_ShouldNotCreateStore_WithBlankCuisineType()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.blank-cuisine");
+
+        var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
+        {
+            Name = "Loja Sem Culinaria",
+            Slug = "loja-sem-culinaria",
+            PhoneNumber = "11991112222",
+            CuisineType = string.Empty
+,
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        createStoreResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Seller_ShouldListStoreScopedCuisineTypes_WithDefaultsAndPrivateCategories()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.list");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-list", "Lanches");
+
+        var defaults = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
+        defaults.Should().NotBeNullOrEmpty();
+        defaults!.Should().OnlyContain(x => x.IsDefault && x.StoreId == null);
+
+        var createResponse = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<CuisineTypeResponseDto>();
+        created!.IsDefault.Should().BeFalse();
+        created.StoreId.Should().Be(storeId);
+
+        var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
+        scoped!.Any(x => x.Name == "Comida Baiana").Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Seller_ShouldNotAccessAnotherStoreCuisineTypes()
+    {
+        var ownerClient = await CreateAuthenticatedSellerAsync("store.cuisine.owner");
+        var storeId = await CreateStoreAndGetIdAsync(ownerClient, "cuisine-owner", "Lanches");
+
+        var intruderClient = await CreateAuthenticatedSellerAsync("store.cuisine.intruder");
+        await CreateStoreAndGetIdAsync(intruderClient, "cuisine-intruder", "Lanches");
+
+        var getResponse = await intruderClient.GetAsync($"/api/stores/{storeId}/cuisine-types");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var postResponse = await intruderClient.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        postResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Seller_ShouldNotCreateDuplicateOrProtectedStoreCuisineType()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.duplicate");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-duplicate", "Lanches");
+
+        var first = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        first.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var duplicate = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "comida baiana" });
+        duplicate.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var protectedName = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Pizzaria" });
+        protectedName.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var blank = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "   " });
+        blank.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Seller_ShouldNotDeleteProtectedOrInUseStoreCuisineType()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.delete");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-delete", "Comida Baiana");
+
+        var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
+        var protectedCategory = scoped!.Single(x => x.Name == "Lanches");
+        var inUseCategory = scoped!.Single(x => x.Name == "Comida Baiana");
+
+        var protectedDelete = await client.DeleteAsync($"/api/stores/{storeId}/cuisine-types/{protectedCategory.Id}");
+        protectedDelete.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var inUseDelete = await client.DeleteAsync($"/api/stores/{storeId}/cuisine-types/{inUseCategory.Id}");
+        inUseDelete.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Seller_ShouldDeleteUnusedCustomStoreCuisineType()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.cuisine.delete-ok");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-delete-ok", "Lanches");
+
+        var created = await client.PostAsJsonAsync(
+            $"/api/stores/{storeId}/cuisine-types",
+            new CreateCuisineTypeRequestDto { Name = "Comida Baiana" });
+        var category = await created.Content.ReadFromJsonAsync<CuisineTypeResponseDto>();
+
+        var deleteResponse = await client.DeleteAsync($"/api/stores/{storeId}/cuisine-types/{category!.Id}");
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
+        scoped!.Any(x => x.Id == category.Id).Should().BeFalse();
+    }
+
+    private async Task<HttpClient> CreateAuthenticatedSellerAsync(string prefix)
     {
         var client = _factory.CreateClient(new()
         {
             AllowAutoRedirect = false
         });
 
-        var email = $"store.invalid-cuisine.{Guid.NewGuid():N}@urbeat.local";
+        var email = $"{prefix}.{Guid.NewGuid():N}@urbeat.local";
         const string password = "SenhaForte123";
+        var phoneNumber = $"119{Guid.NewGuid():N}"[..11];
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
-            FullName = "Seller Invalid Cuisine",
+            FullName = $"Seller {prefix}",
             Email = email,
             Password = password,
-            PhoneNumber = "11988776655"
+            PhoneNumber = phoneNumber
         });
         await _factory.ConfirmEmailAsync(email);
 
@@ -149,16 +272,23 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
 
         var token = await loginResponse.Content.ReadFromJsonAsync<AuthTokenResponseDto>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token!.AccessToken);
+        return client;
+    }
 
-        var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
+    private static async Task<Guid> CreateStoreAndGetIdAsync(HttpClient client, string slug, string cuisineType)
+    {
+        var createResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
         {
-            Name = "Loja Sem Culinaria Valida",
-            Slug = "loja-sem-culinaria-valida",
-            PhoneNumber = "11991112222",
-            CuisineType = "NaoExiste",
+            Name = $"Loja {slug}",
+            Slug = slug,
+            PhoneNumber = "11999999999",
+            CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });
 
-        createStoreResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var store = await client.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
+        return store!.Id;
     }
 }

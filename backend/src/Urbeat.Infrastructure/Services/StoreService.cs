@@ -58,19 +58,6 @@ public sealed class StoreService : IStoreService
             return (false, true, false, false, null);
         }
 
-        var normalizedCuisineType = request.CuisineType.Trim().ToLowerInvariant();
-        var cuisine = await _dbContext.CuisineTypes
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                x => x.IsActive && x.Name.ToLower() == normalizedCuisineType,
-                cancellationToken);
-
-        if (cuisine is null)
-        {
-            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
-            return (false, false, true, false, null);
-        }
-
         var slug = string.IsNullOrWhiteSpace(request.Slug)
             ? Slugify(request.Name.Trim())
             : request.Slug.Trim();
@@ -92,7 +79,6 @@ public sealed class StoreService : IStoreService
             Document = NormalizeDocument(request.Document),
             PixKey = NormalizeOptional(request.PixKey, 50),
             WebsiteUrl = NormalizeOptional(request.WebsiteUrl, 500),
-            CuisineTypeId = cuisine.Id,
 
             BannerUrl = request.BannerUrl?.Trim(),
             LogoUrl = request.LogoUrl?.Trim(),
@@ -108,6 +94,46 @@ public sealed class StoreService : IStoreService
             DeliveryFee = 0,
             MinimumOrderValue = 0
         };
+
+        // Um padrão protegido pode ser selecionado; qualquer outro nome gera uma categoria
+        // privada desta loja na mesma unidade de trabalho. Categorias privadas de outra loja
+        // nunca são aceitas nem reutilizadas.
+        var cuisineName = request.CuisineType?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(cuisineName))
+        {
+            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
+            return (false, false, true, false, null);
+        }
+
+        var normalizedCuisineType = CuisineType.NormalizeName(cuisineName);
+        var defaultCuisine = await _dbContext.CuisineTypes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.IsActive && x.IsDefault && x.StoreId == null && x.NormalizedName == normalizedCuisineType,
+                cancellationToken);
+
+        if (defaultCuisine is not null)
+        {
+            store.CuisineTypeId = defaultCuisine.Id;
+        }
+        else if (CuisineTypeDefaults.IsDefaultNormalizedName(normalizedCuisineType))
+        {
+            // Nome de padrão protegido sem registro ativo disponível: não cria cópia privada.
+            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
+            return (false, false, true, false, null);
+        }
+        else
+        {
+            var privateCuisine = new CuisineType
+            {
+                Name = cuisineName,
+                IsActive = true,
+                IsDefault = false,
+                StoreId = store.Id
+            };
+            _dbContext.CuisineTypes.Add(privateCuisine);
+            store.CuisineTypeId = privateCuisine.Id;
+        }
 
         await _dbContext.Stores.AddAsync(store, cancellationToken);
 
@@ -186,12 +212,26 @@ public sealed class StoreService : IStoreService
             };
         }
 
-        var normalizedCuisineType = request.CuisineType.Trim().ToLowerInvariant();
+        // Store update accepts a global protected default or a category owned by this store.
+        // Matching uses the canonical NormalizedName and never selects another store's private category.
+        var cuisineName = request.CuisineType?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(cuisineName))
+        {
+            Serilog.Log.Warning("{EventType} | Store update failed | OwnerUserId={OwnerUserId} | StoreId={StoreId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_UPDATE_FAILED", ownerUserId, storeId, ipAddress);
+            return new UpdateStoreResultDto
+            {
+                InvalidCuisineType = true
+            };
+        }
+
+        var normalizedCuisineType = CuisineType.NormalizeName(cuisineName);
         var cuisine = await _dbContext.CuisineTypes
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                x => x.IsActive && x.Name.ToLower() == normalizedCuisineType,
-                cancellationToken);
+            .Where(x => x.IsActive
+                && x.NormalizedName == normalizedCuisineType
+                && ((x.IsDefault && x.StoreId == null) || x.StoreId == store.Id))
+            .OrderByDescending(x => x.StoreId == store.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (cuisine is null)
         {

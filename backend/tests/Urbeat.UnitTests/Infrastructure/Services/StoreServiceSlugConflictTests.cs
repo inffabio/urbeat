@@ -62,9 +62,9 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 PostgresErrorCodes.UniqueViolation));
     }
 
-    private async Task<CuisineType> SeedActiveCuisineAsync(string name = "Pizza")
+    private async Task<CuisineType> SeedActiveCuisineAsync(string name = "Pizzaria")
     {
-        var cuisine = new CuisineType { Name = name, IsActive = true };
+        var cuisine = new CuisineType { Name = name, IsActive = true, IsDefault = true, StoreId = null };
         _db.CuisineTypes.Add(cuisine);
         await _db.SaveChangesAsync();
         return cuisine;
@@ -90,7 +90,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Minha Loja",
                 Slug = "minha-loja",
                 PhoneNumber = "11888888888",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -121,7 +121,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Minha Loja",
                 Slug = string.Empty,
                 PhoneNumber = "11888888888",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -161,7 +161,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Loja A",
                 Slug = "loja-b",
                 PhoneNumber = "11999999999",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -203,7 +203,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Loja A Renomeada",
                 Slug = "loja-a",
                 PhoneNumber = "11999999999",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -236,7 +236,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Minha Loja",
                 Slug = "minha-loja",
                 PhoneNumber = "11888888888",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -273,7 +273,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Loja A",
                 Slug = "loja-b",
                 PhoneNumber = "11999999999",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
@@ -305,7 +305,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                 Name = "Minha Loja",
                 Slug = "minha-loja",
                 PhoneNumber = "11888888888",
-                CuisineType = "Pizza"
+                CuisineType = "Pizzaria"
             },
             ipAddress: null);
 
