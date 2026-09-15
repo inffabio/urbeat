@@ -13,9 +13,21 @@ This change applies to store cuisine categories only. Product, variation, catego
 The protected default categories are exactly:
 
 - Açaiteria
+- Cafeteria
+- Churrascaria
+- Comida Árabe
+- Comida Brasileira
 - Comida Japonesa
+- Comida Mexicana
+- Doceria
 - Hamburgueria
+- Lanches
+- Marmitaria
+- Padaria
+- Pastelaria
 - Pizzaria
+- Sucos e Vitaminas
+- Tapiocaria
 
 They are stored as global records, are always active, are returned in alphabetical order, and cannot be renamed or deleted through store flows.
 
