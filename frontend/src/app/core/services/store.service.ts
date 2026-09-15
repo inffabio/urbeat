@@ -45,8 +45,16 @@ export class StoreService {
     return this.api.get<CuisineTypeDto[]>('/api/stores/cuisine-types');
   }
 
-  createCuisineType(name: string): Observable<CuisineTypeDto> {
-    return this.api.post<CuisineTypeDto>('/api/stores/cuisine-types', { name });
+  getStoreCuisineTypes(storeId: string): Observable<CuisineTypeDto[]> {
+    return this.api.get<CuisineTypeDto[]>(`/api/stores/${storeId}/cuisine-types`);
+  }
+
+  createStoreCuisineType(storeId: string, name: string): Observable<CuisineTypeDto> {
+    return this.api.post<CuisineTypeDto>(`/api/stores/${storeId}/cuisine-types`, { name });
+  }
+
+  deleteStoreCuisineType(storeId: string, categoryId: string): Observable<void> {
+    return this.api.delete<void>(`/api/stores/${storeId}/cuisine-types/${categoryId}`);
   }
 
   getDeliveryTimeOptions(storeId: string): Observable<DeliveryTimeOption[]> {

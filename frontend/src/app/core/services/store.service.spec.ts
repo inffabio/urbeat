@@ -65,6 +65,37 @@ describe('StoreService', () => {
     });
   });
 
+  describe('store-scoped cuisine types', () => {
+    it('loads the defaults plus the store private categories from the scoped route', () => {
+      service.getStoreCuisineTypes('store-123').subscribe(types => {
+        expect(types).toEqual(mockCuisineTypes);
+      });
+
+      const req = httpMock.expectOne('/api/stores/store-123/cuisine-types');
+      expect(req.request.method).toBe('GET');
+      req.flush(mockCuisineTypes);
+    });
+
+    it('creates a private category through the store-scoped route', () => {
+      service.createStoreCuisineType('store-123', 'Comida Vegana').subscribe(created => {
+        expect(created.name).toBe('Comida Vegana');
+      });
+
+      const req = httpMock.expectOne('/api/stores/store-123/cuisine-types');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ name: 'Comida Vegana' });
+      req.flush({ id: 'custom-1', name: 'Comida Vegana', isDefault: false, storeId: 'store-123' });
+    });
+
+    it('deletes a private category through the store-scoped route', () => {
+      service.deleteStoreCuisineType('store-123', 'custom-1').subscribe();
+
+      const req = httpMock.expectOne('/api/stores/store-123/cuisine-types/custom-1');
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+    });
+  });
+
   describe('getMyStore', () => {
     it('should return the seller store details', () => {
       service.getMyStore().subscribe(store => {

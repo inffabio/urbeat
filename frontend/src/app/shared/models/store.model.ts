@@ -156,6 +156,8 @@ export interface UpdateDeliveryConfigRequest {
 export interface CuisineTypeDto {
   id: string;
   name: string;
+  isDefault?: boolean;
+  storeId?: string | null;
 }
 
 export interface DeliveryTimeOption {

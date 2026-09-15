@@ -16,6 +16,9 @@ describe('SellerStoreInfoPageComponent', () => {
 
   const mockStoreService = {
     getCuisineTypes: jest.fn(),
+    getStoreCuisineTypes: jest.fn(),
+    createStoreCuisineType: jest.fn(),
+    deleteStoreCuisineType: jest.fn(),
     getMyStore: jest.fn(),
     getStoreAddress: jest.fn(),
     updateStore: jest.fn(),
@@ -95,6 +98,11 @@ describe('SellerStoreInfoPageComponent', () => {
     jest.clearAllMocks();
 
     mockStoreService.getCuisineTypes.mockReturnValue(of([{ id: '1', name: 'Hamburgueria' }]));
+    mockStoreService.getStoreCuisineTypes.mockReturnValue(of([{ id: '1', name: 'Hamburgueria', isDefault: true, storeId: null }]));
+    mockStoreService.createStoreCuisineType.mockImplementation((storeId: string, name: string) =>
+      of({ id: 'custom-new', name, isDefault: false, storeId }),
+    );
+    mockStoreService.deleteStoreCuisineType.mockReturnValue(of(undefined));
     mockStoreService.getMyStore.mockReturnValue(throwError(() => new Error('Not found')));
     mockStoreService.getStoreAddress.mockReturnValue(of(buildAddress()));
     mockAuthService.getSellerProfile.mockReturnValue(of({

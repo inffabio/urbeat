@@ -7,18 +7,46 @@ import { AddressService } from '../../core/services/address.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { CuisineTypeDto } from '../../shared/models/store.model';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+// The 15 protected default categories, in the alphabetical order the UI must render.
+const DEFAULT_CUISINE_TYPE_NAMES = [
+  'Açaiteria',
+  'Cafeteria',
+  'Churrascaria',
+  'Comida Árabe',
+  'Comida Japonesa',
+  'Comida Mexicana',
+  'Doceria',
+  'Hamburgueria',
+  'Lanches',
+  'Marmitaria',
+  'Padaria',
+  'Pastelaria',
+  'Pizzaria',
+  'Sucos e Vitaminas',
+  'Tapiocaria',
+];
+
+const DEFAULT_CUISINE_TYPES: CuisineTypeDto[] = DEFAULT_CUISINE_TYPE_NAMES.map((name, index) => ({
+  id: `default-${index}`,
+  name,
+  isDefault: true,
+  storeId: null,
+}));
+
 // Mocks
 const mockStoreService = {
   getCuisineTypes: jest.fn(),
+  getStoreCuisineTypes: jest.fn(),
+  createStoreCuisineType: jest.fn(),
+  deleteStoreCuisineType: jest.fn(),
   getMyStore: jest.fn(),
   getStoreAddress: jest.fn(),
   getDeliveryTimeOptions: jest.fn(),
-  createCuisineType: jest.fn(),
   createStore: jest.fn(),
   updateStore: jest.fn(),
   upsertStoreAddress: jest.fn(),
@@ -70,10 +98,12 @@ describe('StoreConfigPageComponent', () => {
     component = fixture.componentInstance;
     
     // Initialize default state
-    mockStoreService.getCuisineTypes.mockReturnValue(of([
-      { id: '1', name: 'Hamburgueria' },
-      { id: '2', name: 'Pizzaria' }
-    ]));
+    mockStoreService.getCuisineTypes.mockReturnValue(of([...DEFAULT_CUISINE_TYPES].reverse()));
+    mockStoreService.getStoreCuisineTypes.mockReturnValue(of([...DEFAULT_CUISINE_TYPES]));
+    mockStoreService.createStoreCuisineType.mockImplementation((storeId: string, name: string) =>
+      of({ id: 'custom-new', name, isDefault: false, storeId } as CuisineTypeDto),
+    );
+    mockStoreService.deleteStoreCuisineType.mockReturnValue(of(undefined));
     mockStoreService.getMyStore.mockReturnValue(throwError(() => new Error('Not found'))); // Simulate new user
     mockStoreService.getDeliveryTimeOptions.mockReturnValue(of([]));
     mockAuthService.getSellerProfile.mockReturnValue(of({}));
@@ -83,9 +113,6 @@ describe('StoreConfigPageComponent', () => {
       phoneNumber: null,
       email: 'seller@urbeat.local',
     }));
-    mockStoreService.createCuisineType.mockImplementation((name: string) =>
-      of({ id: 'new-id', name } as CuisineTypeDto),
-    );
 
     fixture.detectChanges();
   });
@@ -148,73 +175,254 @@ describe('StoreConfigPageComponent', () => {
     expect(globalStyles).not.toMatch(/\.seller-main\s*\{[^}]*overflow-y\s*:/s);
   });
 
-  describe('addCategory', () => {
-    it('should show error toast if category name is empty', () => {
-      component.newCatName.set('   ');
-      component.addCategory();
-      
-      expect(mockToastService.showError).toHaveBeenCalledWith('O nome da categoria é obrigatório.');
-      expect(component.cuisineTypes().length).toBe(2);
+  describe('cuisine categories', () => {
+    function fillValidForm(): void {
+      component.storeName.set('Minha Loja');
+      component.contractorName.set('Contratante Teste');
+      component.cuisineType.set('Hamburgueria');
+      component.whatsapp.set('(11) 99999-9999');
+      component.cep.set('20040-010');
+      component.street.set('Rua Exemplo');
+      component.number.set('10');
+      component.neighborhood.set('Centro');
+      component.city.set('Rio de Janeiro');
+      component.state.set('RJ');
+      component.initialMinute.set(30);
+      component.finalMinute.set(60);
+      component.maxDeliveryRadiusKm.set(10);
+    }
+
+    beforeEach(() => {
+      global.confirm = jest.fn(() => true) as any;
     });
 
-    it('should show error toast if category already exists (exact match)', () => {
-      component.newCatName.set('Hamburgueria');
-      component.addCategory();
-      
-      expect(mockToastService.showError).toHaveBeenCalledWith('Já existe uma categoria com esse nome.');
-      expect(component.cuisineTypes().length).toBe(2);
+    it('starts a new store with an empty cuisineType even though defaults are loaded', () => {
+      expect(component.cuisineType()).toBe('');
+      expect(component.cuisineTypes().length).toBe(15);
     });
 
-    it('should show error toast if category already exists (case insensitive)', () => {
-      component.newCatName.set('hamburgueria');
-      component.addCategory();
-      
-      expect(mockToastService.showError).toHaveBeenCalledWith('Já existe uma categoria com esse nome.');
-      expect(component.cuisineTypes().length).toBe(2);
+    it('renders the 15 protected defaults sorted with localeCompare pt-BR', () => {
+      expect(component.sortedCuisineTypes().map((c) => c.name)).toEqual(DEFAULT_CUISINE_TYPE_NAMES);
+
+      fixture.detectChanges();
+      const optionNames = [...fixture.nativeElement.querySelectorAll('select[name="cuisineType"] option')]
+        .map((option: HTMLOptionElement) => (option.textContent ?? '').trim())
+        .filter((name: string) => name && name !== 'Selecione...');
+      expect(optionNames).toEqual(DEFAULT_CUISINE_TYPE_NAMES);
     });
 
-    it('should show error toast if category already exists (with accents)', () => {
-      component.newCatName.set('Hambúrgueria');
-      component.addCategory();
-      
-      expect(mockToastService.showError).toHaveBeenCalledWith('Já existe uma categoria com esse nome.');
-      expect(component.cuisineTypes().length).toBe(2);
+    it('blocks goNext and shows an inline error when the category is empty', async () => {
+      mockStoreService.createStore.mockReturnValue(of({ id: 'store-1' }));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      fillValidForm();
+      component.cuisineType.set('');
+
+      await component.goNext();
+
+      expect(mockStoreService.createStore).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.cuisineTypeErrorVisible()).toBe(true);
+      expect(mockToastService.showError).toHaveBeenCalledWith('Por favor, selecione uma categoria para a loja.');
+
+      fixture.detectChanges();
+      const alerts = [...fixture.nativeElement.querySelectorAll('[role="alert"]')]
+        .map((el: HTMLElement) => el.textContent ?? '')
+        .join(' ');
+      expect(alerts).toContain('Selecione uma categoria para a loja.');
     });
 
-    it('should add new category, select it, and show success toast when valid', () => {
-      component.newCatName.set('Doceria');
+    it('blocks saveDraft when the category is empty', async () => {
+      fillValidForm();
+      component.cuisineType.set('');
+
+      await component.saveDraft();
+
+      expect(mockStoreService.createStore).not.toHaveBeenCalled();
+      expect(component.cuisineTypeErrorVisible()).toBe(true);
+    });
+
+    it('adds a category during new setup only to local state without any HTTP call', () => {
+      component.newCatName.set('Comida Vegana');
       component.addCategory();
-      
-      expect(component.cuisineTypes().length).toBe(3);
-      expect(component.cuisineTypes().some(c => c.name === 'Doceria')).toBe(true);
-      expect(component.cuisineType()).toBe('Doceria');
+
+      expect(component.cuisineType()).toBe('Comida Vegana');
+      expect(component.pendingCuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+      expect(component.cuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(false);
+      expect(mockStoreService.createStoreCuisineType).not.toHaveBeenCalled();
       expect(component.newCatName()).toBe('');
       expect(component.isCatModalOpen()).toBe(false);
       expect(mockToastService.showSuccess).toHaveBeenCalledWith('Categoria adicionada com sucesso!');
     });
-  });
 
-  describe('deleteCategory', () => {
-    beforeEach(() => {
-      // Mock window.confirm
-      global.confirm = jest.fn(() => true) as any;
+    it('submits the pending local category as cuisineType when creating the store', async () => {
+      mockStoreService.createStore.mockReturnValue(of({ id: 'store-1' }));
+      mockStoreService.upsertStoreAddress.mockReturnValue(of({}));
+      mockStoreService.updateDeliveryConfig.mockReturnValue(of({}));
+      const router = TestBed.inject(Router);
+      jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      fillValidForm();
+      component.storeUrl.set('minha-loja');
+      component.cuisineType.set('');
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+
+      await component.goNext();
+
+      expect(mockStoreService.createStore).toHaveBeenCalledWith(
+        expect.objectContaining({ cuisineType: 'Comida Vegana' }),
+      );
+      expect(mockStoreService.createStoreCuisineType).not.toHaveBeenCalled();
     });
 
-    it('should remove category from list', () => {
-      const catToDelete = component.cuisineTypes()[0]; // 'Hamburgueria'
-      component.deleteCategory(catToDelete);
+    it('shows an error when the category name is blank', () => {
+      component.newCatName.set('   ');
+      component.addCategory();
 
-      expect(component.cuisineTypes().length).toBe(1);
-      expect(component.cuisineTypes().some(c => c.name === 'Hamburgueria')).toBe(false);
+      expect(mockToastService.showError).toHaveBeenCalledWith('O nome da categoria é obrigatório.');
+      expect(component.pendingCuisineTypes().length).toBe(0);
     });
 
-    it('should clear selected cuisineType if deleted category was selected', () => {
-      const catToDelete = component.cuisineTypes()[0]; // 'Hamburgueria'
-      component.cuisineType.set('Hamburgueria');
+    it('rejects a duplicate name against the defaults without creating anything', () => {
+      component.newCatName.set('hamburgueria');
+      component.addCategory();
 
-      component.deleteCategory(catToDelete);
+      expect(mockToastService.showError).toHaveBeenCalledWith('Já existe uma categoria com esse nome.');
+      expect(component.pendingCuisineTypes().length).toBe(0);
+    });
 
-      expect(component.cuisineType()).toBe('');
+    it('rejects a duplicate name against a pending category', () => {
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+      component.newCatName.set('comida vegana');
+      component.addCategory();
+
+      expect(component.pendingCuisineTypes().length).toBe(1);
+      expect(mockToastService.showError).toHaveBeenCalledWith('Já existe uma categoria com esse nome.');
+    });
+
+    it('does not delete protected default categories', () => {
+      const defaultCat = component.cuisineTypes().find((c) => c.isDefault)!;
+      component.deleteCategory(defaultCat);
+
+      expect(mockStoreService.deleteStoreCuisineType).not.toHaveBeenCalled();
+      expect(component.cuisineTypes().some((c) => c.id === defaultCat.id)).toBe(true);
+    });
+
+    it('loads defaults plus store-scoped categories for an existing store', () => {
+      const storeCuisine: CuisineTypeDto[] = [
+        ...DEFAULT_CUISINE_TYPES,
+        { id: 'custom-9', name: 'Comida Vegana', isDefault: false, storeId: 'store-1' },
+      ];
+      mockStoreService.getMyStore.mockReturnValue(of({
+        id: 'store-1',
+        name: 'Loja',
+        slug: 'loja',
+        phoneNumber: '11999999999',
+        cuisineType: 'Hamburgueria',
+        isOpen: true,
+        supportsDelivery: true,
+        supportsPickup: true,
+        minimumOrderValue: 25,
+      }));
+      mockStoreService.getStoreAddress.mockReturnValue(of({
+        street: 'Rua',
+        number: '1',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'Rio',
+        state: 'RJ',
+        zipCode: '20040-010',
+      }));
+      mockStoreService.getStoreCuisineTypes.mockReturnValue(of(storeCuisine));
+
+      component.ngOnInit();
+
+      expect(mockStoreService.getStoreCuisineTypes).toHaveBeenCalledWith('store-1');
+      expect(component.cuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+      expect(component.cuisineType()).toBe('Hamburgueria');
+    });
+
+    it('creates and deletes store-scoped categories through the store endpoint', () => {
+      component.existingStoreId.set('store-1');
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+
+      expect(mockStoreService.createStoreCuisineType).toHaveBeenCalledWith('store-1', 'Comida Vegana');
+      const created = component.cuisineTypes().find((c) => c.name === 'Comida Vegana')!;
+      expect(created).toBeTruthy();
+
+      component.deleteCategory(created);
+
+      expect(mockStoreService.deleteStoreCuisineType).toHaveBeenCalledWith('store-1', created.id);
+    });
+
+    function mockExistingStore(): void {
+      mockStoreService.getMyStore.mockReturnValue(of({
+        id: 'store-1',
+        name: 'Loja',
+        slug: 'loja',
+        phoneNumber: '11999999999',
+        cuisineType: 'Hamburgueria',
+        isOpen: true,
+        supportsDelivery: true,
+        supportsPickup: true,
+        minimumOrderValue: 25,
+      }));
+      mockStoreService.getStoreAddress.mockReturnValue(of({
+        street: 'Rua',
+        number: '1',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'Rio',
+        state: 'RJ',
+        zipCode: '20040-010',
+      }));
+    }
+
+    it('keeps a category created after the store load started when that load resolves', () => {
+      const loadSubject = new Subject<CuisineTypeDto[]>();
+      mockStoreService.getStoreCuisineTypes.mockReturnValue(loadSubject.asObservable());
+      mockExistingStore();
+
+      component.ngOnInit();
+
+      component.newCatName.set('Comida Vegana');
+      component.addCategory();
+
+      loadSubject.next([...DEFAULT_CUISINE_TYPES]);
+      loadSubject.complete();
+
+      expect(component.cuisineTypes().some((c) => c.name === 'Comida Vegana')).toBe(true);
+    });
+
+    it('keeps a category deleted after the store load started removed when that load resolves', () => {
+      const loadSubject = new Subject<CuisineTypeDto[]>();
+      const custom: CuisineTypeDto = {
+        id: 'custom-9',
+        name: 'Comida Vegana',
+        isDefault: false,
+        storeId: 'store-1',
+      };
+      mockStoreService.getStoreCuisineTypes.mockReturnValue(loadSubject.asObservable());
+      mockExistingStore();
+
+      component.ngOnInit();
+
+      component.deleteCategory(custom);
+
+      loadSubject.next([...DEFAULT_CUISINE_TYPES, custom]);
+      loadSubject.complete();
+
+      expect(component.cuisineTypes().some((c) => c.id === 'custom-9')).toBe(false);
+    });
+
+    it('clears the empty-category error when a category is selected', () => {
+      component.cuisineTypeErrorVisible.set(true);
+      component.onCuisineTypeChange('Pizzaria');
+
+      expect(component.cuisineType()).toBe('Pizzaria');
+      expect(component.cuisineTypeErrorVisible()).toBe(false);
     });
   });
 

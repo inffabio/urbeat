@@ -114,6 +114,20 @@ export class StoreConfigPageComponent implements OnInit {
   readonly saving = signal(false);
   readonly saveStatus = signal<'saved' | 'saving' | 'error' | null>(null);
   readonly cuisineTypes = signal<CuisineTypeDto[]>([]);
+  readonly pendingCuisineTypes = signal<CuisineTypeDto[]>([]);
+  readonly cuisineTypeErrorVisible = signal(false);
+  readonly cuisineTypeError = computed<string | null>(() =>
+    this.cuisineType().trim() ? null : 'Selecione uma categoria para a loja.',
+  );
+  private pendingCuisineId = 0;
+  // Store-scoped category loads are asynchronous, so local creations/deletions
+  // that happen after a load starts must not be overwritten by its response.
+  // The generation discards responses from superseded loads (e.g. store switch)
+  // and the local overrides are reconciled onto the authoritative server list.
+  private cuisineTypesLoadGeneration = 0;
+  private lastCuisineStoreId: string | null = null;
+  private readonly localCuisineAdds = new Map<string, CuisineTypeDto>();
+  private readonly localCuisineDeletes = new Set<string>();
   readonly existingStoreId = signal<string | null>(null);
   readonly existingLogoUrl = signal<string | null | undefined>(undefined);
   readonly existingBannerUrl = signal<string | null | undefined>(undefined);
@@ -175,15 +189,17 @@ export class StoreConfigPageComponent implements OnInit {
   readonly catSearch = signal('');
   readonly newCatName = signal('');
 
+  readonly allCuisineTypes = computed(() => [...this.cuisineTypes(), ...this.pendingCuisineTypes()]);
+
   readonly filteredCategories = computed(() => {
     const s = this.catSearch().toLowerCase().trim();
-    return this.cuisineTypes()
+    return this.allCuisineTypes()
       .filter(c => c.name.toLowerCase().includes(s))
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   });
 
   readonly sortedCuisineTypes = computed(() => {
-    return [...this.cuisineTypes()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    return [...this.allCuisineTypes()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   });
 
   readonly timeRangeError = computed(() => {
@@ -202,14 +218,9 @@ export class StoreConfigPageComponent implements OnInit {
       return;
     }
 
-    const normalizedName = name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
-
-    const isDuplicate = this.cuisineTypes().some(c => 
-      c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normalizedName
+    const normalizedName = this.normalizeCategoryName(name);
+    const isDuplicate = this.allCuisineTypes().some(
+      c => this.normalizeCategoryName(c.name) === normalizedName,
     );
 
     if (isDuplicate) {
@@ -217,30 +228,89 @@ export class StoreConfigPageComponent implements OnInit {
       return;
     }
 
-    this.storeService.createCuisineType(name).subscribe({
-      next: (created) => {
-        this.cuisineTypes.update(cats => [...cats, created]);
-        this.cuisineType.set(created.name);
-        this.newCatName.set('');
-        this.isCatModalOpen.set(false);
-        this.toast.showSuccess('Categoria adicionada com sucesso!');
-      },
-      error: () => {
-        this.toast.showError('Não foi possível adicionar a categoria. Tente novamente.');
-      },
-    });
+    const storeId = this.existingStoreId();
+    if (storeId) {
+      this.storeService.createStoreCuisineType(storeId, name).subscribe({
+        next: (created) => {
+          this.localCuisineAdds.set(created.id, created);
+          this.localCuisineDeletes.delete(created.id);
+          this.cuisineTypes.update(cats =>
+            cats.some(c => c.id === created.id) ? cats : [...cats, created],
+          );
+          this.finishCategoryAdd(created.name);
+        },
+        error: () => {
+          this.toast.showError('Não foi possível adicionar a categoria. Tente novamente.');
+        },
+      });
+      return;
+    }
+
+    const pending: CuisineTypeDto = {
+      id: `pending-${++this.pendingCuisineId}`,
+      name,
+      isDefault: false,
+      storeId: null,
+    };
+    this.pendingCuisineTypes.update(cats => [...cats, pending]);
+    this.finishCategoryAdd(name);
+  }
+
+  private finishCategoryAdd(name: string): void {
+    this.cuisineType.set(name);
+    this.cuisineTypeErrorVisible.set(false);
+    this.newCatName.set('');
+    this.isCatModalOpen.set(false);
+    this.toast.showSuccess('Categoria adicionada com sucesso!');
+  }
+
+  private normalizeCategoryName(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 
   deleteCategory(cat: CuisineTypeDto) {
-    if (confirm('Tem certeza que deseja apagar essa categoria?')) {
-      this.cuisineTypes.update(cats => cats.filter(c => c.id !== cat.id));
-      if (this.cuisineType() === cat.name) this.cuisineType.set('');
+    if (cat.isDefault) {
+      this.toast.showError('Categorias padrão não podem ser excluídas.');
+      return;
     }
+
+    if (!confirm('Tem certeza que deseja apagar essa categoria?')) {
+      return;
+    }
+
+    const storeId = this.existingStoreId();
+    if (storeId && !cat.id.startsWith('pending-')) {
+      this.storeService.deleteStoreCuisineType(storeId, cat.id).subscribe({
+        next: () => this.removeCategory(cat),
+        error: () => this.toast.showError('Não foi possível excluir a categoria. Tente novamente.'),
+      });
+      return;
+    }
+
+    this.removeCategory(cat);
+  }
+
+  private removeCategory(cat: CuisineTypeDto): void {
+    this.localCuisineDeletes.add(cat.id);
+    this.localCuisineAdds.delete(cat.id);
+    this.cuisineTypes.update(cats => cats.filter(c => c.id !== cat.id));
+    this.pendingCuisineTypes.update(cats => cats.filter(c => c.id !== cat.id));
+    if (this.cuisineType() === cat.name) this.cuisineType.set('');
   }
 
   selectCategory(cat: CuisineTypeDto) {
     this.cuisineType.set(cat.name);
+    this.cuisineTypeErrorVisible.set(false);
     this.isCatModalOpen.set(false);
+  }
+
+  onCuisineTypeChange(value: string): void {
+    this.cuisineType.set(value);
+    this.cuisineTypeErrorVisible.set(false);
   }
 
   onCepBlur() {
@@ -268,7 +338,11 @@ export class StoreConfigPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.storeService.getCuisineTypes().subscribe({
-      next: (types) => this.cuisineTypes.set(types),
+      next: (types) => {
+        // The store-scoped request already returns the defaults plus private
+        // categories; never let this older defaults-only response overwrite it.
+        if (!this.existingStoreId()) this.cuisineTypes.set(types);
+      },
       error: () => this.toast.showError('Não foi possível carregar os tipos de cozinha.'),
     });
 
@@ -308,6 +382,7 @@ export class StoreConfigPageComponent implements OnInit {
     this.existingFreeShippingToday = store.freeShippingToday ?? undefined;
     this.storeName.set(store.name);
     this.cuisineType.set(store.cuisineType);
+    this.loadStoreCuisineTypes(store.id);
     this.whatsapp.set(store.phoneNumber);
     this.onWhatsappInput(store.phoneNumber);
     this.onDocumentInput(store.document ?? '');
@@ -347,6 +422,39 @@ export class StoreConfigPageComponent implements OnInit {
         this.onCepInput(addr.zipCode);
       },
     });
+  }
+
+  private loadStoreCuisineTypes(storeId: string): void {
+    if (this.lastCuisineStoreId !== storeId) {
+      // Local overrides belong to the previous store; never leak them into
+      // another store's category list.
+      this.localCuisineAdds.clear();
+      this.localCuisineDeletes.clear();
+      this.lastCuisineStoreId = storeId;
+    }
+
+    const generation = ++this.cuisineTypesLoadGeneration;
+    this.storeService.getStoreCuisineTypes(storeId).subscribe({
+      next: (types) => {
+        // A newer load (e.g. after a store switch) superseded this one.
+        if (generation !== this.cuisineTypesLoadGeneration) return;
+        this.cuisineTypes.set(this.reconcileCuisineTypes(types));
+      },
+      error: () => {},
+    });
+  }
+
+  // The server response is authoritative, but a creation/deletion that happened
+  // after the request started must survive it: drop deleted ids and re-add
+  // locally created categories that the response does not know about yet.
+  private reconcileCuisineTypes(types: CuisineTypeDto[]): CuisineTypeDto[] {
+    const merged = types.filter((type) => !this.localCuisineDeletes.has(type.id));
+    for (const added of this.localCuisineAdds.values()) {
+      if (!merged.some((type) => type.id === added.id)) {
+        merged.push(added);
+      }
+    }
+    return merged;
   }
 
   // ─── WhatsApp mask ───────────────────────────────────────
@@ -641,7 +749,8 @@ export class StoreConfigPageComponent implements OnInit {
       this.toast.showError('Por favor, informe o nome do contratante/lojista.');
       return false;
     }
-    if (!this.cuisineType()) {
+    if (!this.cuisineType().trim()) {
+      this.cuisineTypeErrorVisible.set(true);
       this.toast.showError('Por favor, selecione uma categoria para a loja.');
       return false;
     }
