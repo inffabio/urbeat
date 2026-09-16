@@ -22,6 +22,7 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
 
   readonly email = signal('');
   readonly userId = signal('');
+  readonly emailChangeChallenge = signal('');
   readonly resending = signal(false);
   readonly secondsLeft = signal(120);
   readonly showChangeEmail = signal(false);
@@ -31,9 +32,20 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
   private timerInterval: any;
 
   ngOnInit(): void {
-    this.email.set(this.route.snapshot.queryParamMap.get('email') ?? '');
+    const email = this.route.snapshot.queryParamMap.get('email') ?? '';
+    this.email.set(email);
     this.userId.set(this.route.snapshot.queryParamMap.get('userId') ?? '');
+    this.emailChangeChallenge.set(this.readEmailChangeChallenge(email));
     this.startTimer();
+  }
+
+  private readEmailChangeChallenge(email: string): string {
+    if (!email) return '';
+    try {
+      return sessionStorage.getItem(`urbeat.emailChangeChallenge:${email.trim().toLowerCase()}`) ?? '';
+    } catch {
+      return '';
+    }
   }
 
   ngOnDestroy(): void {
@@ -86,10 +98,15 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
 
     const uid = this.userId();
     const currentE = this.email();
+    const challenge = this.emailChangeChallenge();
     if (!uid || !currentE) return;
+    if (!challenge) {
+      this.toast.showWarning('Não foi possível alterar o e-mail. Refaça o cadastro para receber um novo link.');
+      return;
+    }
 
     this.changingEmail.set(true);
-    this.auth.updateEmail({ userId: uid, currentEmail: currentE, newEmail: newE }).subscribe({
+    this.auth.updateEmail({ userId: uid, currentEmail: currentE, newEmail: newE, emailChangeChallenge: challenge }).subscribe({
       next: () => {
         this.changingEmail.set(false);
         this.email.set(newE);

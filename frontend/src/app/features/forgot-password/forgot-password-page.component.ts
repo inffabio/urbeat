@@ -90,14 +90,12 @@ export class ForgotPasswordPageComponent {
     if (this.form.invalid || this.loading()) return;
     this.loading.set(true);
     this.auth.forgotPassword({ email: this.form.getRawValue().email }).subscribe({
-      next: (res) => {
+      next: () => {
         this.loading.set(false);
-        if (res.found) {
-          const email = this.form.getRawValue().email;
-          this.router.navigate(['/recuperar-senha/email-enviado'], { queryParams: { email } });
-        } else {
-          this.toast.showWarning('E-mail não encontrado em nossa base de dados.');
-        }
+        // The backend returns a uniform response regardless of whether the account exists, so the
+        // user is always sent to the "check your e-mail" step to avoid account enumeration.
+        const email = this.form.getRawValue().email;
+        this.router.navigate(['/recuperar-senha/email-enviado'], { queryParams: { email } });
       },
       error: () => {
         this.loading.set(false);

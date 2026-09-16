@@ -233,6 +233,7 @@ export class SellerRegisterPageComponent {
       next: (res) => {
         this.loading.set(false);
         if (res.emailConfirmationPending) {
+          this.persistEmailChangeChallenge(this.email().trim(), res.emailChangeChallenge);
           this.toastService.showSuccess('Cadastro realizado! Enviamos um link de confirmação para o seu e-mail.');
           this.router.navigate(['/confirmacao-email'], { queryParams: { email: this.email().trim(), userId: res.userId } });
         } else {
@@ -269,5 +270,19 @@ export class SellerRegisterPageComponent {
         }
       },
     });
+  }
+
+  private persistEmailChangeChallenge(email: string, challenge?: string): void {
+    try {
+      const key = `urbeat.emailChangeChallenge:${email.trim().toLowerCase()}`;
+      if (challenge) {
+        sessionStorage.setItem(key, challenge);
+      } else {
+        sessionStorage.removeItem(key);
+      }
+    } catch {
+      // Storage may be unavailable (private mode / SSR); the change-email action will simply be
+      // unavailable until the user re-registers.
+    }
   }
 }

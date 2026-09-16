@@ -108,7 +108,7 @@ public sealed class PaymentWebhookServiceTests : IDisposable
     {
         var order = await SeedOrderAsync(OrderStatus.PendingPayment);
         var payment = await SeedPaymentAsync(order, "txn-approve", PaymentStatus.Pending);
-        SetupAdapter("txn-approve", "approved");
+        SetupAdapter("txn-approve", "approved", isSimulated: true);
 
         var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-approve"), null);
 
@@ -305,7 +305,121 @@ public sealed class PaymentWebhookServiceTests : IDisposable
         result.Processed.Should().BeTrue();
     }
 
-    private void SetupAdapter(string transactionId, string status)
+    [Fact]
+    public async Task ApprovedWebhook_ShouldNotMarkPaid_WhenGatewayAmountMismatchesOrderTotal()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-amount-mismatch", PaymentStatus.Pending);
+        SetupAdapter("txn-amount-mismatch", "approved", amount: order.Total - 1m, currency: "BRL");
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-amount-mismatch"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        (await _db.PaymentStatusHistories.CountAsync(x => x.PaymentId == payment.Id && x.NewStatus == PaymentStatus.Paid)).Should().Be(0);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.PendingPayment);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApprovedWebhook_ShouldNotMarkPaid_WhenGatewayCurrencyIsNotBrl()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-currency-mismatch", PaymentStatus.Pending);
+        SetupAdapter("txn-currency-mismatch", "approved", amount: order.Total, currency: "USD");
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-currency-mismatch"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.PendingPayment);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApprovedWebhook_ShouldNotMarkPaid_WhenGatewayAmountIsMissing()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-amount-missing", PaymentStatus.Pending);
+        SetupAdapter("txn-amount-missing", "approved", amount: null, currency: "BRL");
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-amount-missing"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        (await _db.PaymentStatusHistories.CountAsync(x => x.PaymentId == payment.Id && x.NewStatus == PaymentStatus.Paid)).Should().Be(0);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.PendingPayment);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApprovedWebhook_ShouldNotMarkPaid_WhenGatewayCurrencyIsMissing()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-currency-missing", PaymentStatus.Pending);
+        SetupAdapter("txn-currency-missing", "approved", amount: order.Total, currency: null);
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-currency-missing"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Pending);
+
+        (await _db.PaymentStatusHistories.CountAsync(x => x.PaymentId == payment.Id && x.NewStatus == PaymentStatus.Paid)).Should().Be(0);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.PendingPayment);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApprovedWebhook_ShouldMarkPaid_WhenGatewayIsExplicitlySimulated()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-simulated", PaymentStatus.Pending);
+        SetupAdapter("txn-simulated", "approved", amount: null, currency: null, isSimulated: true);
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-simulated"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Paid);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.Received);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApprovedWebhook_ShouldMarkPaid_WhenGatewayAmountAndCurrencyMatch()
+    {
+        var order = await SeedOrderAsync(OrderStatus.PendingPayment);
+        var payment = await SeedPaymentAsync(order, "txn-amount-match", PaymentStatus.Pending);
+        SetupAdapter("txn-amount-match", "approved", amount: order.Total, currency: "BRL");
+
+        var result = await _sut.ProcessMercadoPagoWebhookAsync(Payload("txn-amount-match"), null);
+
+        var reloadedPayment = await _db.Payments.AsNoTracking().SingleAsync(x => x.Id == payment.Id);
+        reloadedPayment.Status.Should().Be(PaymentStatus.Paid);
+
+        var reloadedOrder = await _db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.Id);
+        reloadedOrder.Status.Should().Be(OrderStatus.Received);
+
+        result.Processed.Should().BeTrue();
+    }
+
+    private void SetupAdapter(string transactionId, string status, decimal? amount = null, string? currency = null, bool isSimulated = false)
     {
         _adapterMock
             .Setup(x => x.GetPaymentDetailsAsync(transactionId, It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
@@ -313,6 +427,9 @@ public sealed class PaymentWebhookServiceTests : IDisposable
             {
                 TransactionId = transactionId,
                 Status = status,
+                Amount = amount,
+                CurrencyId = currency,
+                IsSimulated = isSimulated,
                 RawPayload = "{}"
             });
     }

@@ -68,6 +68,19 @@ public sealed class MercadoPagoOrderPaymentStrategy : IOrderPaymentStrategy
             })
             .ToListAsync(cancellationToken);
 
+        // The authoritative delivery fee is part of the order total and must be charged by the
+        // gateway. It is sent as its own line item so the sum of gateway items equals order.Total;
+        // the client-supplied delivery fee is never used.
+        if (order.DeliveryFee > 0)
+        {
+            items.Add(new MercadoPagoCheckoutItem
+            {
+                Title = "Taxa de entrega",
+                Quantity = 1,
+                UnitPrice = order.DeliveryFee
+            });
+        }
+
         var gatewayCheckout = await _mercadoPagoCheckoutAdapter.CreateCheckoutAsync(new MercadoPagoCheckoutCreateRequest
         {
             ExternalReference = order.Id.ToString(),

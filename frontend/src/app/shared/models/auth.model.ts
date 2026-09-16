@@ -9,6 +9,7 @@ export interface RegisterResponse {
   succeeded: boolean;
   userId: string;
   emailConfirmationPending: boolean;
+  emailChangeChallenge?: string;
 }
 
 export interface LoginRequest {
@@ -60,7 +61,6 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ForgotPasswordResponse {
-  found: boolean;
   message: string;
 }
 
@@ -83,6 +83,7 @@ export interface UpdateEmailRequest {
   userId: string;
   currentEmail: string;
   newEmail: string;
+  emailChangeChallenge: string;
 }
 
 export interface SellerProfileResponse {

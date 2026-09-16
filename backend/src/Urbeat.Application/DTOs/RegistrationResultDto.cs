@@ -14,5 +14,11 @@ public sealed class RegistrationResultDto
 
     public string? ExistingUserEmail { get; init; }
 
+    /// <summary>
+    /// Short-lived signed challenge that authorizes changing the pending e-mail before the account
+    /// is confirmed. Issued at registration/promotion and required by the update-email endpoint.
+    /// </summary>
+    public string? EmailChangeChallenge { get; init; }
+
     public IReadOnlyCollection<string> Errors { get; init; } = [];
 }

@@ -24,5 +24,5 @@ public interface IAuthService
 
     Task<(bool Succeeded, string? Error)> ResetPasswordAsync(ResetPasswordRequestDto request, CancellationToken cancellationToken = default);
 
-    Task<(bool Succeeded, string? Error)> UpdateEmailAsync(Guid userId, UpdateEmailRequestDto request, CancellationToken cancellationToken = default);
+    Task<(bool Succeeded, string? Error)> UpdateEmailAsync(UpdateEmailRequestDto request, CancellationToken cancellationToken = default);
 }

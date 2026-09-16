@@ -208,14 +208,34 @@ public sealed class StoresController : ControllerBase
 
     [HttpPost("delivery-times")]
     [ProducesResponseType<DeliveryTimeResponseDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateDeliveryTime([FromBody] CreateDeliveryTimeRequestDto request, CancellationToken cancellationToken)
     {
-        var result = await _storeService.CreateDeliveryTimeAsync(request.StoreId, request.MinTimeMinutes, request.MaxTimeMinutes, cancellationToken);
-        if (result is null)
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _storeService.CreateDeliveryTimeAsync(
+            ownerUserId.Value,
+            request.StoreId,
+            request.MinTimeMinutes,
+            request.MaxTimeMinutes,
+            cancellationToken);
+
+        if (result.NotFound)
+            return NotFound();
+
+        if (result.Forbidden)
+            return Forbid();
+
+        if (result.Conflict)
             return Conflict(new { error = "Já existe um tempo de entrega com essa faixa." });
 
-        return StatusCode(StatusCodes.Status201Created, result);
+        return StatusCode(StatusCodes.Status201Created, result.DeliveryTime);
     }
 
     [HttpGet("delivery-neighborhoods")]
@@ -246,14 +266,45 @@ public sealed class StoresController : ControllerBase
 
     [HttpPost("delivery-neighborhoods")]
     [ProducesResponseType<DeliveryNeighborhoodResponseDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateDeliveryNeighborhood([FromBody] CreateDeliveryNeighborhoodRequestDto request, CancellationToken cancellationToken)
     {
-        var result = await _storeService.CreateDeliveryNeighborhoodAsync(request.Neighborhood, request.City, cancellationToken);
-        if (result is null)
-            return Conflict(new { error = "Já existe um bairro com esse nome nesta cidade." });
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+        {
+            return Unauthorized();
+        }
 
-        return StatusCode(StatusCodes.Status201Created, result);
+        var result = await _storeService.CreateDeliveryNeighborhoodForOwnerAsync(
+            ownerUserId.Value,
+            request.Neighborhood,
+            request.City,
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (result.CityRequired)
+        {
+            return BadRequest(new { error = "A loja precisa ter uma cidade cadastrada no endereço para criar bairros." });
+        }
+
+        if (result.Conflict)
+        {
+            return Conflict(new { error = "Já existe um bairro com esse nome nesta cidade." });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, result.Neighborhood);
     }
 
     [HttpPost]

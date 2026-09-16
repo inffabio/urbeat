@@ -25,6 +25,7 @@ public sealed class AuthService : IAuthService
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly IEmailChangeChallengeService _emailChangeChallengeService;
 
     public AuthService(
         UserManager<IdentityUser<Guid>> userManager,
@@ -33,7 +34,8 @@ public sealed class AuthService : IAuthService
         RoleManager<IdentityRole<Guid>> roleManager,
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
-        IBackgroundJobClient backgroundJobClient)
+        IBackgroundJobClient backgroundJobClient,
+        IEmailChangeChallengeService emailChangeChallengeService)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
@@ -42,6 +44,7 @@ public sealed class AuthService : IAuthService
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _backgroundJobClient = backgroundJobClient;
+        _emailChangeChallengeService = emailChangeChallengeService;
     }
 
     public Task<RegistrationResultDto> RegisterCustomerAsync(RegisterUserRequestDto request, CancellationToken cancellationToken = default)
@@ -323,10 +326,32 @@ public sealed class AuthService : IAuthService
                     EnqueueConfirmationUserId: null);
             }
 
-            // Promotion path: a non-seller account is being promoted. The contractor name is still
-            // checked against other sellers before the role is added, and the FullName claim is
-            // persisted before the role so a failed claim never leaves a Seller role without FullName
-            // on a non-transactional provider (InMemory). Every IdentityResult is validated.
+            // Promotion path: a non-seller account is being promoted. Ownership of the existing
+            // account must be proven first: the supplied password has to match the account being
+            // promoted. Without this check anyone who learns an e-mail could attach the Seller role
+            // and overwrite the contractor name, taking over the account. The failure is generic so
+            // it does not reveal whether the password or the account was the problem.
+            var promotionPasswordValid = await _userManager.CheckPasswordAsync(userAlreadyExists, request.Password);
+            if (!promotionPasswordValid)
+            {
+                Log.Warning("{EventType} | Registration failed | Email={Email}", "USER_REGISTER_FAILED", normalizedEmail);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = ["An account with this e-mail already exists."]
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: existing account password mismatch.",
+                    EnqueueConfirmationUserId: null);
+            }
+
+            // The contractor name is still checked against other sellers before the role is added,
+            // and the FullName claim is persisted before the role so a failed claim never leaves a
+            // Seller role without FullName on a non-transactional provider (InMemory). Every
+            // IdentityResult is validated.
             if (contractorName is not null)
             {
                 var nameAlreadyRegistered = await IsContractorNameRegisteredBySellerAsync(contractorName, cancellationToken);
@@ -399,6 +424,11 @@ public sealed class AuthService : IAuthService
                     Succeeded = true,
                     UserId = userAlreadyExists.Id,
                     EmailConfirmationPending = confirmationPending,
+                    // A confirmed account has no pending e-mail to change; issuing a challenge there
+                    // would hand out an unnecessary credential.
+                    EmailChangeChallenge = confirmationPending
+                        ? await BuildEmailChangeChallengeAsync(userAlreadyExists, normalizedEmail)
+                        : null
                 },
                 AuditUserId: null,
                 AuditEvent: null,
@@ -452,6 +482,12 @@ public sealed class AuthService : IAuthService
                             EnqueueConfirmationUserId: null);
                     }
 
+                    // The pending account may only be resumed by someone who can prove ownership of
+                    // it, so the e-mail change challenge is issued only when the supplied password
+                    // validates the existing (unconfirmed) account. Otherwise the flow still resends
+                    // the confirmation e-mail to the real owner but never exposes a challenge.
+                    var pendingOwnerPasswordValid = await _userManager.CheckPasswordAsync(existingUser, request.Password);
+
                     return new RegistrationOutcome(
                         Result: new RegistrationResultDto
                         {
@@ -459,6 +495,9 @@ public sealed class AuthService : IAuthService
                             DocumentAlreadyRegistered = true,
                             ExistingUserEmail = existingUser.Email,
                             EmailConfirmationPending = true,
+                            EmailChangeChallenge = pendingOwnerPasswordValid
+                                ? await BuildEmailChangeChallengeAsync(existingUser, existingUser.Email ?? normalizedEmail)
+                                : null,
                             Errors = ["CPF já cadastrado. Mas email ainda não confirmado. Um novo link de confirmação foi enviado para o seu e-mail."]
                         },
                         AuditUserId: null,
@@ -577,12 +616,30 @@ public sealed class AuthService : IAuthService
             {
                 Succeeded = true,
                 UserId = user.Id,
-                EmailConfirmationPending = true
+                EmailConfirmationPending = true,
+                EmailChangeChallenge = await BuildEmailChangeChallengeAsync(user, normalizedEmail)
             },
             AuditUserId: user.Id,
             AuditEvent: auditEvent,
             AuditDescription: $"User {request.FullName} registered as {role} ({normalizedEmail}).",
             EnqueueConfirmationUserId: user.Id);
+    }
+
+    private async Task<string?> BuildEmailChangeChallengeAsync(IdentityUser<Guid> user, string fallbackEmail)
+    {
+        var email = string.IsNullOrWhiteSpace(user.Email) ? fallbackEmail : user.Email;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return null;
+        }
+
+        var securityStamp = await _userManager.GetSecurityStampAsync(user);
+        if (string.IsNullOrWhiteSpace(securityStamp))
+        {
+            return null;
+        }
+
+        return _emailChangeChallengeService.CreateChallenge(user.Id, email, securityStamp);
     }
 
     private async Task<IdentityResult> UpsertFullNameClaimAsync(IdentityUser<Guid> user, string fullName)
@@ -740,31 +797,63 @@ public sealed class AuthService : IAuthService
             return (false, resetResult.Errors.First().Description);
 
         matchedToken.Used = true;
+
+        // A password reset invalidates every existing session: active refresh tokens for the user
+        // are revoked so a stolen/old refresh cookie cannot mint new access tokens after recovery.
+        await _refreshTokenRepository.RevokeAllForUserAsync(matchedUser.Id, DateTime.UtcNow, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
         Log.Information("{EventType} | Password reset completed | UserId={UserId}", "PASSWORD_RESET_COMPLETED", matchedUser.Id);
         return (true, null);
     }
 
-    public async Task<(bool Succeeded, string? Error)> UpdateEmailAsync(Guid userId, UpdateEmailRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<(bool Succeeded, string? Error)> UpdateEmailAsync(UpdateEmailRequestDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        // The signed, expiring, single-use challenge is the credential. UserId/CurrentEmail alone
+        // must never authorize a change, otherwise anyone who learns them (they are exposed in the
+        // onboarding URL) could hijack an unconfirmed account.
+        var validation = _emailChangeChallengeService.ValidateChallenge(request.EmailChangeChallenge);
+        if (!validation.Valid)
+        {
+            Log.Warning("{EventType} | Invalid email change challenge", "EMAIL_UPDATE_CHALLENGE_INVALID");
+            return (false, "Desafio de alteração de e-mail inválido ou expirado.");
+        }
+
+        var user = await _userManager.FindByIdAsync(validation.UserId.ToString());
         if (user is null)
         {
-            Log.Warning("{EventType} | User not found for email update | UserId={UserId}", "EMAIL_UPDATE_USER_NOT_FOUND", userId);
+            Log.Warning("{EventType} | User not found for email update | UserId={UserId}", "EMAIL_UPDATE_USER_NOT_FOUND", validation.UserId);
             return (false, "Usuário não encontrado.");
         }
 
-        if (!string.Equals(user.Email, request.CurrentEmail, StringComparison.OrdinalIgnoreCase))
+        // The challenge is bound to the security stamp captured at issuance; a rotated stamp (for
+        // example after a previous successful change) makes it unusable, enforcing single use.
+        var currentStamp = await _userManager.GetSecurityStampAsync(user);
+        if (!string.Equals(currentStamp, validation.SecurityStamp, StringComparison.Ordinal))
         {
-            Log.Warning("{EventType} | Current email mismatch | UserId={UserId} | Provided={ProvidedEmail} | Actual={ActualEmail}", "EMAIL_UPDATE_MISMATCH", userId, request.CurrentEmail, user.Email);
+            Log.Warning("{EventType} | Email change challenge security stamp mismatch | UserId={UserId}", "EMAIL_UPDATE_CHALLENGE_STALE", user.Id);
+            return (false, "Desafio de alteração de e-mail inválido ou expirado.");
+        }
+
+        var actualEmail = (user.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (!string.Equals(actualEmail, validation.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warning("{EventType} | Email change challenge bound to another email | UserId={UserId}", "EMAIL_UPDATE_CHALLENGE_EMAIL_MISMATCH", user.Id);
+            return (false, "Desafio de alteração de e-mail inválido ou expirado.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.CurrentEmail)
+            && !string.Equals(request.CurrentEmail.Trim(), actualEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            Log.Warning("{EventType} | Current email mismatch | UserId={UserId} | Provided={ProvidedEmail} | Actual={ActualEmail}", "EMAIL_UPDATE_MISMATCH", user.Id, request.CurrentEmail, actualEmail);
             return (false, "E-mail atual não confere.");
         }
 
         var newEmail = request.NewEmail.Trim().ToLowerInvariant();
 
-        if (string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(actualEmail, newEmail, StringComparison.OrdinalIgnoreCase))
         {
+            await ConsumeEmailChangeChallengeAsync(user);
             _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(user.Id));
             Log.Information("{EventType} | Confirmation re-sent for same email | UserId={UserId}", "EMAIL_RESENT_SAME", user.Id);
             return (true, null);
@@ -773,7 +862,7 @@ public sealed class AuthService : IAuthService
         var exists = await _userManager.FindByEmailAsync(newEmail);
         if (exists is not null)
         {
-            Log.Warning("{EventType} | Email already in use | UserId={UserId} | AttemptedEmail={NewEmail} | ExistingUserId={ExistingUserId}", "EMAIL_UPDATE_DUPLICATE", userId, newEmail, exists.Id);
+            Log.Warning("{EventType} | Email already in use | UserId={UserId} | AttemptedEmail={NewEmail} | ExistingUserId={ExistingUserId}", "EMAIL_UPDATE_DUPLICATE", user.Id, newEmail, exists.Id);
             return (false, "Este e-mail já está em uso.");
         }
 
@@ -794,9 +883,18 @@ public sealed class AuthService : IAuthService
         user.EmailConfirmed = false;
         await _userManager.UpdateAsync(user);
 
+        await ConsumeEmailChangeChallengeAsync(user);
+
         _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(user.Id));
 
-        Log.Information("{EventType} | Email updated for confirmation | UserId={UserId} | Old={OldEmail} | New={NewEmail}", "EMAIL_UPDATED", user.Id, request.CurrentEmail, newEmail);
+        Log.Information("{EventType} | Email updated for confirmation | UserId={UserId} | Old={OldEmail} | New={NewEmail}", "EMAIL_UPDATED", user.Id, actualEmail, newEmail);
         return (true, null);
+    }
+
+    private async Task ConsumeEmailChangeChallengeAsync(IdentityUser<Guid> user)
+    {
+        // Rotating the security stamp invalidates the just-used challenge (and any other outstanding
+        // challenge) so it cannot be replayed.
+        await _userManager.UpdateSecurityStampAsync(user);
     }
 }

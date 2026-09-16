@@ -54,6 +54,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<EmailConfirmationOptions>(configuration.GetSection(EmailConfirmationOptions.SectionName));
         services.Configure<CustomerVerificationOptions>(configuration.GetSection(CustomerVerificationOptions.SectionName));
+        services.Configure<EmailChangeChallengeOptions>(configuration.GetSection(EmailChangeChallengeOptions.SectionName));
 
         services.AddDbContextPool<ApplicationDbContext>(options =>
         {
@@ -112,6 +113,8 @@ public static class InfrastructureServiceCollectionExtensions
             options.AddPolicy(AuthorizationPolicies.CustomerOnly, policy => policy.RequireRole("Customer"));
         });
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<IEmailChangeChallengeService, EmailChangeChallengeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICuisineTypeService, CuisineTypeService>();
         services.AddScoped<IPlanService, PlanService>();

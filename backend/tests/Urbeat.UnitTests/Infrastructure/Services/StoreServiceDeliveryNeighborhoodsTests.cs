@@ -790,4 +790,151 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
         saved.FreeShippingToday.Should().BeFalse();
         saved.FreeShippingTodayDate.Should().BeNull();
     }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldCreate_WhenCityMatchesStoreAddress()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store
+        {
+            OwnerUserId = ownerUserId,
+            Name = "Loja Bairro",
+            Slug = "loja-bairro"
+        };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress
+        {
+            StoreId = store.Id,
+            City = "Sao Paulo",
+            State = "SP"
+        });
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "Pinheiros", "Sao Paulo");
+
+        result.NotFound.Should().BeFalse();
+        result.Forbidden.Should().BeFalse();
+        result.CityRequired.Should().BeFalse();
+        result.Conflict.Should().BeFalse();
+        result.Neighborhood.Should().NotBeNull();
+        result.Neighborhood!.Neighborhood.Should().Be("Pinheiros");
+        result.Neighborhood.City.Should().Be("Sao Paulo");
+
+        await db.SaveChangesAsync();
+        var persisted = await db.DeliveryNeighborhoods.SingleAsync(x => x.Id == result.Neighborhood.Id);
+        persisted.City.Should().Be("Sao Paulo");
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldPersistStoreCity_WhenClientUsesDifferentCasing()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = ownerUserId, Name = "Loja Casing", Slug = "loja-casing" };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "Sao Paulo", State = "SP" });
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "Moema", "sao paulo");
+
+        result.Neighborhood.Should().NotBeNull();
+        result.Neighborhood!.City.Should().Be("Sao Paulo");
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldReturnForbidden_WhenCityDiffersFromStoreCity()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = ownerUserId, Name = "Loja SP", Slug = "loja-sp-forbidden" };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "Sao Paulo", State = "SP" });
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "Copacabana", "Rio de Janeiro");
+
+        result.Forbidden.Should().BeTrue();
+        result.Neighborhood.Should().BeNull();
+        (await db.DeliveryNeighborhoods.AnyAsync()).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldReturnCityRequired_WhenStoreHasNoAddress()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = ownerUserId, Name = "Loja Sem Endereco", Slug = "loja-sem-endereco" };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "Centro", "Sao Paulo");
+
+        result.CityRequired.Should().BeTrue();
+        result.Neighborhood.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldReturnCityRequired_WhenStoreAddressCityIsBlank()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = ownerUserId, Name = "Loja Cidade Vazia", Slug = "loja-cidade-vazia" };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "   ", State = "SP" });
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "Centro", "Sao Paulo");
+
+        result.CityRequired.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldReturnNotFound_WhenOwnerHasNoStore()
+    {
+        using var db = CreateDbContext();
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(Guid.NewGuid(), "Centro", "Sao Paulo");
+
+        result.NotFound.Should().BeTrue();
+        result.Neighborhood.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateDeliveryNeighborhoodForOwnerAsync_ShouldReturnConflict_WhenNeighborhoodAlreadyExistsInCity()
+    {
+        using var db = CreateDbContext();
+        var ownerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = ownerUserId, Name = "Loja Duplicada", Slug = "loja-duplicada" };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "Sao Paulo", State = "SP" });
+        db.DeliveryNeighborhoods.Add(new DeliveryNeighborhood
+        {
+            Neighborhood = "Pinheiros",
+            NormalizedName = "pinheiros",
+            City = "Sao Paulo",
+            IsActive = true,
+            Source = "test"
+        });
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.CreateDeliveryNeighborhoodForOwnerAsync(ownerUserId, "pinheiros", "Sao Paulo");
+
+        result.Conflict.Should().BeTrue();
+        result.Neighborhood.Should().BeNull();
+        (await db.DeliveryNeighborhoods.CountAsync()).Should().Be(1);
+    }
 }

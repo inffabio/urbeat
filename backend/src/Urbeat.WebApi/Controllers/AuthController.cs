@@ -3,6 +3,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Urbeat.WebApi.Controllers;
 
@@ -37,6 +38,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("register/customer")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -51,6 +53,18 @@ public sealed class AuthController : ControllerBase
         var result = await _authService.RegisterCustomerAsync(request, cancellationToken);
         if (!result.Succeeded)
         {
+            if (result.DocumentAlreadyRegistered)
+            {
+                Response.ContentType = "application/problem+json";
+                return Conflict(new
+                {
+                    errors = result.Errors,
+                    documentAlreadyRegistered = true,
+                    emailConfirmationPending = result.EmailConfirmationPending,
+                    existingUserEmail = result.ExistingUserEmail,
+                    emailChangeChallenge = result.EmailChangeChallenge
+                });
+            }
             return BuildRegistrationErrorResult(result.Errors);
         }
 
@@ -59,11 +73,13 @@ public sealed class AuthController : ControllerBase
         {
             userId = result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
+            emailChangeChallenge = result.EmailChangeChallenge,
             message = "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
         });
     }
 
     [HttpPost("register/seller")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -95,7 +111,8 @@ public sealed class AuthController : ControllerBase
                     errors = result.Errors,
                     documentAlreadyRegistered = true,
                     emailConfirmationPending = result.EmailConfirmationPending,
-                    existingUserEmail = result.ExistingUserEmail
+                    existingUserEmail = result.ExistingUserEmail,
+                    emailChangeChallenge = result.EmailChangeChallenge
                 });
             }
             return BuildRegistrationErrorResult(result.Errors);
@@ -106,11 +123,13 @@ public sealed class AuthController : ControllerBase
         {
             userId = result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
+            emailChangeChallenge = result.EmailChangeChallenge,
             message = "Cadastro realizado. Verifique seu e-mail para ativar sua loja."
         });
     }
 
     [HttpPost("login/customer")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -122,6 +141,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("login/seller")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -133,6 +153,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("login/admin")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -144,6 +165,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("token")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -200,6 +222,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
@@ -386,18 +409,22 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
             return BadRequest(new { message = "Informe um e-mail válido." });
 
-        var found = await _authService.ForgotPasswordAsync(request, cancellationToken);
-        return Ok(new { found, message = found ? "E-mail de recuperação enviado com sucesso." : "E-mail não encontrado em nossa base de dados." });
+        await _authService.ForgotPasswordAsync(request, cancellationToken);
+
+        // Uniform response regardless of whether the account exists, to prevent user enumeration.
+        return Ok(new { message = "Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação." });
     }
 
     [HttpGet("validate-reset-token")]
     [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ValidateResetToken([FromQuery] string token, CancellationToken cancellationToken)
     {
@@ -410,6 +437,7 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request, CancellationToken cancellationToken)
@@ -431,14 +459,15 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("update-email")]
     [AllowAnonymous]
+    [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmailRequestDto request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.NewEmail) || string.IsNullOrWhiteSpace(request.CurrentEmail))
-            return BadRequest(new { message = "Informe os e-mails." });
+        if (string.IsNullOrWhiteSpace(request.NewEmail) || string.IsNullOrWhiteSpace(request.EmailChangeChallenge))
+            return BadRequest(new { message = "Informe o novo e-mail e o desafio de alteração." });
 
-        var (succeeded, error) = await _authService.UpdateEmailAsync(request.UserId, request, cancellationToken);
+        var (succeeded, error) = await _authService.UpdateEmailAsync(request, cancellationToken);
         if (!succeeded)
             return BadRequest(new { message = error ?? "Não foi possível atualizar o e-mail." });
 

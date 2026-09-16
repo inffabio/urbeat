@@ -662,14 +662,24 @@ public sealed class StoreService : IStoreService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<DeliveryTimeResponseDto?> CreateDeliveryTimeAsync(Guid storeId, int minTimeMinutes, int maxTimeMinutes, CancellationToken cancellationToken = default)
+    public async Task<CreateDeliveryTimeResultDto> CreateDeliveryTimeAsync(Guid ownerUserId, Guid storeId, int minTimeMinutes, int maxTimeMinutes, CancellationToken cancellationToken = default)
     {
+        var store = await _dbContext.Stores
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == storeId, cancellationToken);
+
+        if (store is null)
+            return new CreateDeliveryTimeResultDto { NotFound = true };
+
+        if (store.OwnerUserId != ownerUserId)
+            return new CreateDeliveryTimeResultDto { Forbidden = true };
+
         var exists = await _dbContext.Set<DeliveryTime>()
             .AsNoTracking()
             .AnyAsync(x => x.StoreId == storeId && x.MinTimeMinutes == minTimeMinutes && x.MaxTimeMinutes == maxTimeMinutes && x.IsActive, cancellationToken);
 
         if (exists)
-            return null;
+            return new CreateDeliveryTimeResultDto { Conflict = true };
 
         var dt = new DeliveryTime
         {
@@ -682,12 +692,15 @@ public sealed class StoreService : IStoreService
         await _dbContext.Set<DeliveryTime>().AddAsync(dt, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new DeliveryTimeResponseDto
+        return new CreateDeliveryTimeResultDto
         {
-            Id = dt.Id,
-            MinTimeMinutes = dt.MinTimeMinutes,
-            MaxTimeMinutes = dt.MaxTimeMinutes,
-            FormattedTime = dt.FormattedTime
+            DeliveryTime = new DeliveryTimeResponseDto
+            {
+                Id = dt.Id,
+                MinTimeMinutes = dt.MinTimeMinutes,
+                MaxTimeMinutes = dt.MaxTimeMinutes,
+                FormattedTime = dt.FormattedTime
+            }
         };
     }
 
@@ -881,6 +894,40 @@ public sealed class StoreService : IStoreService
             CityId = dn.CityId,
             IsActive = dn.IsActive
         };
+    }
+
+    public async Task<CreateDeliveryNeighborhoodResultDto> CreateDeliveryNeighborhoodForOwnerAsync(
+        Guid ownerUserId,
+        string neighborhood,
+        string city,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.OwnerUserId == ownerUserId, cancellationToken);
+
+        if (store is null)
+            return new CreateDeliveryNeighborhoodResultDto { NotFound = true };
+
+        var storeAddress = await _dbContext.StoreAddresses
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.StoreId == store.Id, cancellationToken);
+
+        var storeCity = storeAddress?.City?.Trim();
+        if (string.IsNullOrWhiteSpace(storeCity))
+            return new CreateDeliveryNeighborhoodResultDto { CityRequired = true };
+
+        // A seller may only create global neighborhoods for the city of their own store.
+        // The client-supplied city is validated against the persisted store city and is
+        // never trusted to select an arbitrary city; the persisted canonical city is used.
+        if (!string.Equals(NormalizeText(city), NormalizeText(storeCity), StringComparison.Ordinal))
+            return new CreateDeliveryNeighborhoodResultDto { Forbidden = true };
+
+        var created = await CreateDeliveryNeighborhoodAsync(neighborhood, storeCity, cancellationToken);
+        if (created is null)
+            return new CreateDeliveryNeighborhoodResultDto { Conflict = true };
+
+        return new CreateDeliveryNeighborhoodResultDto { Neighborhood = created };
     }
 
     private static string NormalizeText(string text)

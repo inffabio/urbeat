@@ -107,6 +107,63 @@ public sealed class MercadoPagoOrderPaymentStrategyTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_ShouldIncludeDeliveryFeeInGatewayCheckout_WhenOrderHasDeliveryFee()
+    {
+        var order = CreateOrder();
+        await SeedOrderContextAsync(order);
+
+        MercadoPagoCheckoutCreateRequest? captured = null;
+        _adapterMock
+            .Setup(x => x.CreateCheckoutAsync(It.IsAny<MercadoPagoCheckoutCreateRequest>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .Callback<MercadoPagoCheckoutCreateRequest, Guid?, CancellationToken>((request, _, _) => captured = request)
+            .ReturnsAsync(new MercadoPagoCheckoutCreateResponse
+            {
+                TransactionId = "pref_fee",
+                CheckoutUrl = "https://checkout/fee",
+                RawPayload = "{}"
+            });
+
+        await _sut.StartAsync(order, null, CancellationToken.None);
+
+        captured.Should().NotBeNull();
+        captured!.Items.Should().Contain(i => i.Title == "Taxa de entrega" && i.UnitPrice == order.DeliveryFee);
+    }
+
+    [Fact]
+    public async Task StartAsync_ShouldNotIncludeDeliveryFeeItem_WhenOrderHasNoDeliveryFee()
+    {
+        var order = new Order
+        {
+            Code = "124",
+            CustomerUserId = Guid.NewGuid(),
+            StoreId = Guid.NewGuid(),
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.PixOnline,
+            Status = OrderStatus.PendingPayment,
+            Subtotal = 30m,
+            DeliveryFee = 0m,
+            Total = 30m
+        };
+        await SeedOrderContextAsync(order);
+
+        MercadoPagoCheckoutCreateRequest? captured = null;
+        _adapterMock
+            .Setup(x => x.CreateCheckoutAsync(It.IsAny<MercadoPagoCheckoutCreateRequest>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .Callback<MercadoPagoCheckoutCreateRequest, Guid?, CancellationToken>((request, _, _) => captured = request)
+            .ReturnsAsync(new MercadoPagoCheckoutCreateResponse
+            {
+                TransactionId = "pref_no_fee",
+                CheckoutUrl = "https://checkout/no-fee",
+                RawPayload = "{}"
+            });
+
+        await _sut.StartAsync(order, null, CancellationToken.None);
+
+        captured.Should().NotBeNull();
+        captured!.Items.Should().NotContain(i => i.Title == "Taxa de entrega");
+    }
+
+    [Fact]
     public async Task StartAsync_ShouldReturnPaidPayment_WithoutCallingGateway_AndNotRegressToPending()
     {
         var order = CreateOrder();

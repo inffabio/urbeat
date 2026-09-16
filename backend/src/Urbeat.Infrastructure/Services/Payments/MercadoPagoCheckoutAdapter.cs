@@ -46,6 +46,22 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
         return _options.AccessToken;
     }
 
+    /// <summary>
+    /// Guards the fake/simulated gateway paths. When no access token is configured and simulation
+    /// has not been explicitly enabled, the adapter must fail instead of silently returning a fake
+    /// approved payment or checkout, so a production misconfiguration can never be mistaken for a
+    /// real gateway response.
+    /// </summary>
+    private void EnsureSimulationAllowed()
+    {
+        if (!_options.AllowSimulation)
+        {
+            throw new InvalidOperationException(
+                "Mercado Pago access token is not configured. Refusing to simulate a payment response because " +
+                "MercadoPago:AllowSimulation is disabled.");
+        }
+    }
+
     private async Task<string?> ResolveNotificationUrlAsync(Guid? storeId)
     {
         if (storeId.HasValue)
@@ -74,6 +90,8 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
+            EnsureSimulationAllowed();
+
             var fakeId = $"pref_{Guid.NewGuid():N}";
             var fakePayload = JsonSerializer.Serialize(new
             {
@@ -159,6 +177,8 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
+            EnsureSimulationAllowed();
+
             var fakePayload = JsonSerializer.Serialize(new
             {
                 id = transactionId,
@@ -170,6 +190,7 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
             {
                 TransactionId = transactionId,
                 Status = "approved",
+                IsSimulated = true,
                 RawPayload = fakePayload
             };
         }
@@ -199,6 +220,8 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
         {
             TransactionId = payload.Id,
             Status = payload.Status,
+            Amount = payload.TransactionAmount,
+            CurrencyId = payload.CurrencyId,
             RawPayload = rawPayload
         };
     }
@@ -219,5 +242,11 @@ public sealed class MercadoPagoCheckoutAdapter : IMercadoPagoCheckoutAdapter
 
         [JsonPropertyName("status")]
         public string? Status { get; init; }
+
+        [JsonPropertyName("transaction_amount")]
+        public decimal? TransactionAmount { get; init; }
+
+        [JsonPropertyName("currency_id")]
+        public string? CurrencyId { get; init; }
     }
 }

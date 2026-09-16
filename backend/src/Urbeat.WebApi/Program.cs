@@ -7,7 +7,6 @@ using Urbeat.WebApi.DependencyInjection;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Middlewares;
 using Hangfire;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using Serilog;
@@ -87,14 +86,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Atrás de proxy (nginx) — confiar nos cabeçalhos X-Forwarded-*
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    // KnownNetworks/KnownProxies vazios e nginx na mesma rede docker
-    KnownNetworks = { },
-    KnownProxies = { }
-});
+// Atrás de proxy (nginx) — confiar apenas nos cabeçalhos X-Forwarded-* de proxies conhecidos.
+// KnownProxies/KnownNetworks são lidos da configuração; uma configuração vazia não confia em
+// nenhuma origem externa, impedindo o spoofing de X-Forwarded-For para burlar o rate limiting.
+app.UseForwardedHeaders(ForwardedHeadersConfiguration.Create(builder.Configuration));
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -109,6 +104,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
 app.UseStaticFiles();
 app.UseCors();
+app.UseRateLimiter();
 app.UseMetricServer();
 app.UseHttpMetrics();
 app.UseSerilogRequestLogging();

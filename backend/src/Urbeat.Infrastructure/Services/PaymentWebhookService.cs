@@ -128,10 +128,25 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         var orderAllowsPaid = mappedPaymentStatus != PaymentStatus.Paid
             || (order is not null && CanMarkPaid(order.Status));
 
+        // The persisted order total is authoritative. A paid webhook is only accepted when the real
+        // gateway reports the same amount and a BRL currency. Missing amount/currency is treated as a
+        // mismatch so an external payload that omits the financial data can never mark a payment as
+        // paid. Only the explicitly simulated local fake/mock gateway (IsSimulated, set in code by
+        // the adapter and never read from the external payload) may omit them.
+        var authoritativeTotal = order?.Total ?? payment.Amount;
+        var amountMatches = gatewayDetails.Amount is not null
+            && gatewayDetails.Amount.Value == authoritativeTotal;
+        var currencyMatches = !string.IsNullOrWhiteSpace(gatewayDetails.CurrencyId)
+            && string.Equals(gatewayDetails.CurrencyId, "BRL", StringComparison.OrdinalIgnoreCase);
+        var gatewayAmountAllowsPaid = mappedPaymentStatus != PaymentStatus.Paid
+            || gatewayDetails.IsSimulated
+            || (amountMatches && currencyMatches);
+
         var statusChanged = previousPaymentStatus != mappedPaymentStatus
             && canTransition
             && isCurrentAttempt
-            && orderAllowsPaid;
+            && orderAllowsPaid
+            && gatewayAmountAllowsPaid;
 
         if (statusChanged)
         {
@@ -218,12 +233,16 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         await _dbContext.AuditLogs.AddAsync(new AuditLog
         {
             UserId = order?.CustomerUserId,
-            Event = statusChanged ? "MercadoPagoWebhookProcessed" : "MercadoPagoWebhookTerminalStateProtected",
+            Event = statusChanged
+                ? "MercadoPagoWebhookProcessed"
+                : !gatewayAmountAllowsPaid
+                    ? "MercadoPagoWebhookAmountMismatch"
+                    : "MercadoPagoWebhookTerminalStateProtected",
             Entity = nameof(Payment),
             EntityId = payment.Id,
             Description = statusChanged
                 ? $"Webhook processed with status {mappedPaymentStatus} for transaction {gatewayDetails.TransactionId} (attempt {payment.Attempt})."
-                : DescribeIgnoredWebhook(previousPaymentStatus, mappedPaymentStatus, canTransition, isCurrentAttempt, order?.Status),
+                : DescribeIgnoredWebhook(previousPaymentStatus, mappedPaymentStatus, canTransition, isCurrentAttempt, order?.Status, gatewayAmountAllowsPaid, gatewayDetails.Amount, authoritativeTotal, gatewayDetails.CurrencyId),
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -346,7 +365,11 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         PaymentStatus incoming,
         bool canTransition,
         bool isCurrentAttempt,
-        OrderStatus? orderStatus)
+        OrderStatus? orderStatus,
+        bool gatewayAmountAllowsPaid,
+        decimal? gatewayAmount,
+        decimal authoritativeTotal,
+        string? gatewayCurrency)
     {
         if (!isCurrentAttempt)
         {
@@ -356,6 +379,11 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         if (!canTransition)
         {
             return $"Webhook ignored: transition {previous} -> {incoming} is not allowed.";
+        }
+
+        if (!gatewayAmountAllowsPaid)
+        {
+            return $"Webhook ignored: gateway reported amount {gatewayAmount?.ToString() ?? "unknown"} / currency {gatewayCurrency ?? "unknown"} which does not match the persisted order total {authoritativeTotal}.";
         }
 
         return $"Webhook ignored: order status {orderStatus} cannot receive a paid payment from a late {incoming} webhook.";

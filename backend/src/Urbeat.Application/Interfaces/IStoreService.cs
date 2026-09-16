@@ -46,11 +46,22 @@ public interface IStoreService
 
     Task<IReadOnlyCollection<DeliveryTimeResponseDto>> GetActiveDeliveryTimesAsync(Guid storeId, CancellationToken cancellationToken = default);
 
-    Task<DeliveryTimeResponseDto?> CreateDeliveryTimeAsync(Guid storeId, int minTimeMinutes, int maxTimeMinutes, CancellationToken cancellationToken = default);
+    Task<CreateDeliveryTimeResultDto> CreateDeliveryTimeAsync(
+        Guid ownerUserId,
+        Guid storeId,
+        int minTimeMinutes,
+        int maxTimeMinutes,
+        CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsAsync(string city, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetActiveDeliveryNeighborhoodsByStoreAsync(Guid storeId, double? radiusKm = null, CancellationToken cancellationToken = default);
 
     Task<DeliveryNeighborhoodResponseDto?> CreateDeliveryNeighborhoodAsync(string neighborhood, string city, CancellationToken cancellationToken = default);
+
+    Task<CreateDeliveryNeighborhoodResultDto> CreateDeliveryNeighborhoodForOwnerAsync(
+        Guid ownerUserId,
+        string neighborhood,
+        string city,
+        CancellationToken cancellationToken = default);
 }

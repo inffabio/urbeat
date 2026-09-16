@@ -56,4 +56,29 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
         return token.UserId.ToString();
     }
+
+    public async Task RevokeAllForUserAsync(Guid userId, DateTime utcNow, CancellationToken cancellationToken = default)
+    {
+        if (_dbContext.Database.IsRelational())
+        {
+            await _dbContext.RefreshTokens
+                .Where(x => x.UserId == userId && x.RevokedAtUtc == null)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(x => x.RevokedAtUtc, utcNow),
+                    cancellationToken);
+            return;
+        }
+
+        var tokens = await _dbContext.RefreshTokens
+            .Where(x => x.UserId == userId && x.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in tokens)
+        {
+            token.RevokedAtUtc = utcNow;
+            token.MarkAsUpdated();
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }
