@@ -218,30 +218,30 @@
             <ion-reorder-group [disabled]="false" (ionItemReorder)="reorderSizeVariations($any($event))">
               @for (v of sizeVariations(); track v.uid; let idx = $index) {
                 <div class="variation-row size-row">
-                  <ion-reorder class="drag-handle"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
+                  <ion-reorder class="drag-handle" [attr.aria-label]="'Arrastar variação ' + (v.name || (idx + 1))" title="Arraste para reordenar"><ion-icon name="reorder-two-outline"></ion-icon></ion-reorder>
                   <div class="v-cell">
                     <span class="v-cell-label">Nome</span>
-                    <input type="text" class="var-input" [ngModel]="v.name" (ngModelChange)="v.name = $event; markDirty()" placeholder="Ex.: Media" />
+                    <input type="text" class="var-input" [ngModel]="v.name" (ngModelChange)="v.name = $event; markDirty()" placeholder="Ex.: Media" [attr.aria-label]="'Nome da variação ' + (idx + 1)" />
                   </div>
                   <div class="v-cell">
                     <span class="v-cell-label">Descricao</span>
-                    <input type="text" class="var-input" [ngModel]="v.description" (ngModelChange)="v.description = $event; markDirty()" placeholder="Ex.: 30 cm" />
+                    <input type="text" class="var-input" [ngModel]="v.description" (ngModelChange)="v.description = $event; markDirty()" placeholder="Ex.: 30 cm" [attr.aria-label]="'Descrição da variação ' + (idx + 1)" />
                   </div>
                   <div class="v-cell">
                     <span class="v-cell-label">Preco</span>
-                    <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="v.price" (ngModelChange)="v.price = maskMoney($event); markDirty()" placeholder="0,00" /></div>
+                    <div class="money-wrap"><span class="money-prefix">R$</span><input type="text" class="money-input" [ngModel]="v.price" (ngModelChange)="v.price = maskMoney($event); markDirty()" placeholder="0,00" [attr.aria-label]="'Preço da variação ' + (idx + 1)" /></div>
                   </div>
                   <div class="v-cell">
                     <span class="v-cell-label">Padrao</span>
-                    <label class="default-radio"><input type="radio" name="sizeDefault" [checked]="v.isDefault" (change)="setSizeDefault(v.uid)" title="Definir como padrao" /></label>
+                    <label class="default-radio" [title]="v.isActive ? 'Definir como padrão' : 'Ative a variação para defini-la como padrão'"><input type="radio" name="sizeDefault" [checked]="v.isDefault" [disabled]="!v.isActive" (change)="setSizeDefault(v.uid)" [attr.aria-label]="'Definir ' + (v.name || 'variação') + ' como padrão'" /></label>
                   </div>
                   <div class="v-cell">
                     <span class="v-cell-label">Ativo</span>
-                    <label class="switch"><input type="checkbox" [ngModel]="v.isActive" (ngModelChange)="v.isActive = $event; markDirty()" /><span class="slider"></span></label>
+                    <label class="switch"><input type="checkbox" [ngModel]="v.isActive" (ngModelChange)="setSizeActive(v.uid, $event)" [attr.aria-label]="'Ativar variação ' + (v.name || (idx + 1))" /><span class="slider"></span></label>
                   </div>
                   <div class="v-cell v-cell-action">
                     <span class="v-cell-label">Excluir</span>
-                    <button class="icon-btn" (click)="removeSizeVariation(v.uid)" title="Remover">&#128465;</button>
+                    <button type="button" class="icon-btn" (click)="removeSizeVariation(v.uid)" title="Remover" [attr.aria-label]="'Remover variação ' + (v.name || 'sem nome')">&#128465;</button>
                   </div>
                 </div>
               } @empty {

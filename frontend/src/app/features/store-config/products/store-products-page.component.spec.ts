@@ -441,6 +441,134 @@ describe('StoreProductsPageComponent — option groups', () => {
       component.removeSizeVariation(first.uid);
       expect(component.sizeVariations()[0].isDefault).toBe(true);
     });
+
+    it('should ignore an inactive variation when setting the default', () => {
+      component.addSizeVariation();
+      component.addSizeVariation();
+      const [first, second] = component.sizeVariations();
+      component.setSizeActive(first.uid, false);
+
+      component.setSizeDefault(first.uid);
+
+      const list = component.sizeVariations();
+      expect(list.find(v => v.uid === first.uid)?.isDefault).toBe(false);
+      expect(list.find(v => v.uid === second.uid)?.isDefault).toBe(true);
+    });
+
+    it('should promote the first remaining active variation when the default is removed', () => {
+      component.addSizeVariation();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      const [first, second, third] = component.sizeVariations();
+      component.setSizeActive(second.uid, false);
+
+      component.removeSizeVariation(first.uid);
+
+      const list = component.sizeVariations();
+      expect(list.find(v => v.uid === second.uid)?.isDefault).toBe(false);
+      expect(list.find(v => v.uid === third.uid)?.isDefault).toBe(true);
+    });
+
+    it('should leave no default when the removed default has no active remaining variation', () => {
+      component.addSizeVariation();
+      component.addSizeVariation();
+      const [first, second] = component.sizeVariations();
+      component.setSizeActive(second.uid, false);
+
+      component.removeSizeVariation(first.uid);
+
+      const list = component.sizeVariations();
+      expect(list).toHaveLength(1);
+      expect(list[0].uid).toBe(second.uid);
+      expect(list[0].isDefault).toBe(false);
+    });
+
+    it('should expose accessible labels and disable the default radio for inactive variations', () => {
+      const fixture = TestBed.createComponent(StoreProductsPageComponent);
+      const page = fixture.componentInstance;
+      page.setSaleMode('size');
+      page.addSizeVariation();
+      page.addSizeVariation();
+      page.setSizeActive(page.sizeVariations()[1].uid, false);
+      fixture.detectChanges();
+
+      const rows = fixture.nativeElement.querySelectorAll('.variation-row.size-row') as NodeListOf<HTMLElement>;
+      const [nameInput, descriptionInput] = Array.from(rows[0].querySelectorAll('input.var-input')) as HTMLInputElement[];
+      const priceInput = rows[0].querySelector('.money-input') as HTMLInputElement;
+      const activeInput = rows[0].querySelector('.switch input[type="checkbox"]') as HTMLInputElement;
+      const firstRadio = rows[0].querySelector('.default-radio input[type="radio"]') as HTMLInputElement;
+      const secondRadio = rows[1].querySelector('.default-radio input[type="radio"]') as HTMLInputElement;
+
+      expect(nameInput.getAttribute('aria-label')).toBe('Nome da variação 1');
+      expect(descriptionInput.getAttribute('aria-label')).toBe('Descrição da variação 1');
+      expect(priceInput.getAttribute('aria-label')).toBe('Preço da variação 1');
+      expect(activeInput.getAttribute('aria-label')).toBe('Ativar variação 1');
+      expect(firstRadio.disabled).toBe(false);
+      expect(secondRadio.disabled).toBe(true);
+    });
+
+    it('promotes the first active variation when the persisted default is inactive', () => {
+      component.selectProduct(sampleProduct({
+        saleMode: 'size',
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: false, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: false, isActive: true, isRequired: false, displayOrder: 2 },
+        ],
+      }));
+
+      expect(component.sizeVariations()).toEqual([
+        expect.objectContaining({ uid: 'v1', isDefault: false, isActive: false }),
+        expect.objectContaining({ uid: 'v2', isDefault: true, isActive: true }),
+      ]);
+    });
+
+    it('keeps only one active default when the persisted product has multiple defaults', () => {
+      component.selectProduct(sampleProduct({
+        saleMode: 'size',
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 2 },
+        ],
+      }));
+
+      expect(component.sizeVariations().map(v => v.isDefault)).toEqual([true, false]);
+    });
+
+    it('leaves no default when the persisted product has no active variation', () => {
+      component.selectProduct(sampleProduct({
+        saleMode: 'size',
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: false, isRequired: false, displayOrder: 1 },
+        ],
+      }));
+
+      expect(component.sizeVariations().every(v => !v.isDefault)).toBe(true);
+    });
+
+    it('marks the form dirty after reordering variations', () => {
+      component.addSizeVariation();
+      component.addSizeVariation();
+      const complete = jest.fn();
+      component.formDirty.set(false);
+
+      component.reorderSizeVariations({ detail: { from: 0, to: 1, complete } } as unknown as CustomEvent);
+
+      expect(component.formDirty()).toBe(true);
+      expect(complete).toHaveBeenCalled();
+    });
+
+    it('labels the variation reorder handle and delete button for assistive technology', () => {
+      const fixture = TestBed.createComponent(StoreProductsPageComponent);
+      const page = fixture.componentInstance;
+      page.setSaleMode('size');
+      page.addSizeVariation();
+      page.sizeVariations.update(list => list.map(v => ({ ...v, name: 'Família' })));
+      fixture.detectChanges();
+
+      const row = fixture.nativeElement.querySelector('.variation-row.size-row') as HTMLElement;
+      expect((row.querySelector('.drag-handle') as HTMLElement).getAttribute('aria-label')).toBe('Arrastar variação Família');
+      expect((row.querySelector('.v-cell-action button') as HTMLButtonElement).getAttribute('aria-label')).toBe('Remover variação Família');
+    });
   });
 
   describe('sale mode — fixed weight', () => {

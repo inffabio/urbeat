@@ -207,6 +207,341 @@ describe('SellerProductsPageComponent', () => {
       expect(toast.showError).toHaveBeenCalled();
     });
   });
+
+  describe('free-form product variations in the dashboard editor', () => {
+    function renderSizeEditor() {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      component.newProduct();
+      component.setSaleMode('size');
+      component.editorOpen.set(true);
+      fixture.detectChanges();
+      return { fixture, component };
+    }
+
+    it('renders the free-form variation editor with name, description, price, default, active, reorder, remove and add controls', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.variation-card') as HTMLElement;
+      expect(card).not.toBeNull();
+
+      const section = card.closest('.block-section') as HTMLElement;
+      expect(section.textContent).toContain('Variações');
+      expect(section.textContent).toContain('Adicionar variação');
+
+      const row = card.querySelector('.variation-row.size-row') as HTMLElement;
+      expect(row).not.toBeNull();
+      expect(row.querySelector('.drag-handle')).not.toBeNull();
+      expect(row.querySelectorAll('input.var-input')).toHaveLength(2);
+      expect(row.querySelector('.money-wrap .money-input')).not.toBeNull();
+      expect(row.querySelector('.default-radio input[type="radio"]')).not.toBeNull();
+      expect(row.querySelector('.switch input[type="checkbox"]')).not.toBeNull();
+      expect(row.querySelector('.v-cell-action button')).not.toBeNull();
+      expect(card.querySelector('.add-row-btn.block')).not.toBeNull();
+    });
+
+    function existingSizeProduct(overrides: Record<string, unknown> = {}) {
+      return {
+        id: 'product-1',
+        storeId: 'store-1',
+        categoryId: 'cat-1',
+        categoryName: 'Hambúrgueres',
+        name: 'Pizza',
+        description: 'Pizza artesanal',
+        price: 0,
+        imageUrl: 'https://img.test/pizza.png',
+        isAvailable: true,
+        isFeatured: false,
+        displayOrder: 1,
+        saleMode: 'size' as const,
+        additionals: [],
+        choiceOptions: [],
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: false, isActive: true, isRequired: false, displayOrder: 2 },
+        ],
+        optionGroups: [],
+        ...overrides,
+      };
+    }
+
+    it('loads existing product variations for editing with formatted prices and default flag', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.selectProduct(existingSizeProduct());
+      component.editorOpen.set(true);
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()).toEqual([
+        expect.objectContaining({ name: 'Média', description: '30 cm', price: '39,90', isDefault: true, isActive: true }),
+        expect.objectContaining({ name: 'Grande', description: '40 cm', price: '49,90', isDefault: false, isActive: true }),
+      ]);
+
+      const rows = fixture.nativeElement.querySelectorAll('.variation-row.size-row') as NodeListOf<HTMLElement>;
+      expect(rows).toHaveLength(2);
+
+      const radios = fixture.nativeElement.querySelectorAll('.default-radio input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      expect(radios).toHaveLength(2);
+      expect(radios[0].checked).toBe(true);
+      expect(radios[1].checked).toBe(false);
+    });
+
+    it('promotes the first active variation when the persisted default is inactive', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.selectProduct(existingSizeProduct({
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: false, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: false, isActive: true, isRequired: false, displayOrder: 2 },
+        ],
+      }));
+
+      expect(component.sizeVariations()).toEqual([
+        expect.objectContaining({ name: 'Média', isDefault: false, isActive: false }),
+        expect.objectContaining({ name: 'Grande', isDefault: true, isActive: true }),
+      ]);
+    });
+
+    it('keeps only the first active default when the persisted product has multiple defaults', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.selectProduct(existingSizeProduct({
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 2 },
+          { id: 'v3', name: 'Família', description: '50 cm', price: 59.9, isDefault: false, isActive: true, isRequired: false, displayOrder: 3 },
+        ],
+      }));
+
+      expect(component.sizeVariations().map((v) => v.isDefault)).toEqual([true, false, false]);
+    });
+
+    it('leaves every variation non-default when the persisted product has no active variation', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.selectProduct(existingSizeProduct({
+        variations: [
+          { id: 'v1', name: 'Média', description: '30 cm', price: 39.9, isDefault: true, isActive: false, isRequired: false, displayOrder: 1 },
+          { id: 'v2', name: 'Grande', description: '40 cm', price: 49.9, isDefault: false, isActive: false, isRequired: false, displayOrder: 2 },
+        ],
+      }));
+
+      expect(component.sizeVariations().some((v) => v.isDefault)).toBe(false);
+    });
+
+    it('saves edited existing variations through updateProduct', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.selectProduct(existingSizeProduct());
+      component.editorOpen.set(true);
+      component.storeId.set('store-1');
+      fixture.detectChanges();
+
+      const rows = fixture.nativeElement.querySelectorAll('.variation-row.size-row') as NodeListOf<HTMLElement>;
+      const nameInput = rows[1].querySelector('input.var-input') as HTMLInputElement;
+      nameInput.value = 'Família';
+      nameInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      storeServiceMock.updateProduct.mockReturnValue(of({ id: 'product-1', optionGroups: [] }));
+
+      component.saveProduct();
+
+      expect(storeServiceMock.updateProduct).toHaveBeenCalledWith('store-1', 'product-1', expect.objectContaining({
+        saleMode: 'size',
+        variations: [
+          expect.objectContaining({ name: 'Média', price: 39.9, isDefault: true, isActive: true, displayOrder: 1 }),
+          expect.objectContaining({ name: 'Família', price: 49.9, isDefault: false, isActive: true, displayOrder: 2 }),
+        ],
+      }));
+    });
+
+    it('allows only one active variation to be the default', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const radios = fixture.nativeElement.querySelectorAll('.default-radio input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      radios[1].click();
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()[0].isDefault).toBe(false);
+      expect(component.sizeVariations()[1].isDefault).toBe(true);
+    });
+
+    it('disables the default radio for an inactive variation so it cannot become the default', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const activeCheckboxes = fixture.nativeElement.querySelectorAll('.switch input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+      activeCheckboxes[1].checked = false;
+      activeCheckboxes[1].dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      const radios = fixture.nativeElement.querySelectorAll('.default-radio input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      expect(radios[0].disabled).toBe(false);
+      expect(radios[1].disabled).toBe(true);
+
+      radios[1].click();
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()[0].isDefault).toBe(true);
+      expect(component.sizeVariations()[1].isDefault).toBe(false);
+    });
+
+    it('promotes another active variation to default when the current default is deactivated', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()[0].isDefault).toBe(true);
+
+      const activeCheckboxes = fixture.nativeElement.querySelectorAll('.switch input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+      activeCheckboxes[0].checked = false;
+      activeCheckboxes[0].dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()[0].isActive).toBe(false);
+      expect(component.sizeVariations()[0].isDefault).toBe(false);
+      expect(component.sizeVariations()[1].isActive).toBe(true);
+      expect(component.sizeVariations()[1].isDefault).toBe(true);
+    });
+
+    it('leaves no default when every variation is deactivated', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const activeCheckboxes = fixture.nativeElement.querySelectorAll('.switch input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+      activeCheckboxes[0].checked = false;
+      activeCheckboxes[0].dispatchEvent(new Event('change'));
+      activeCheckboxes[1].checked = false;
+      activeCheckboxes[1].dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(component.sizeVariations().some((v) => v.isDefault)).toBe(false);
+      expect(component.sizeVariations().some((v) => v.isActive)).toBe(false);
+    });
+
+    it('labels the variation name, description and price inputs for assistive technology', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const row = fixture.nativeElement.querySelector('.variation-row.size-row') as HTMLElement;
+      const [nameInput, descriptionInput] = Array.from(row.querySelectorAll('input.var-input')) as HTMLInputElement[];
+      const priceInput = row.querySelector('.money-input') as HTMLInputElement;
+
+      expect(nameInput.getAttribute('aria-label')).toBe('Nome da variação 1');
+      expect(descriptionInput.getAttribute('aria-label')).toBe('Descrição da variação 1');
+      expect(priceInput.getAttribute('aria-label')).toBe('Preço da variação 1');
+    });
+
+    it('removes a variation and promotes the first remaining one as default', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const removeButtons = fixture.nativeElement.querySelectorAll('.v-cell-action button') as NodeListOf<HTMLButtonElement>;
+      removeButtons[0].click();
+      fixture.detectChanges();
+
+      expect(component.sizeVariations()).toHaveLength(1);
+      expect(component.sizeVariations()[0].isDefault).toBe(true);
+    });
+
+    it('reorders variations when the reorder event fires and marks the form dirty', () => {
+      const { component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.addSizeVariation();
+      const [first, second] = component.sizeVariations();
+      const complete = jest.fn();
+      component.formDirty.set(false);
+
+      component.reorderSizeVariations({ detail: { from: 0, to: 1, complete } } as unknown as CustomEvent);
+
+      expect(component.sizeVariations().map((v) => v.uid)).toEqual([second.uid, first.uid]);
+      expect(component.formDirty()).toBe(true);
+      expect(complete).toHaveBeenCalled();
+    });
+
+    it('labels each variation reorder handle with the variation name', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.sizeVariations.update((list) => list.map((v) => ({ ...v, name: 'Família' })));
+      fixture.detectChanges();
+
+      const handle = fixture.nativeElement.querySelector('.variation-row.size-row .drag-handle') as HTMLElement;
+      expect(handle.getAttribute('aria-label')).toBe('Arrastar variação Família');
+    });
+
+    it('labels each variation delete button with the variation name', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.addSizeVariation();
+      component.sizeVariations.update((list) => list.map((v) => ({ ...v, name: 'Família' })));
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector('.v-cell-action button') as HTMLButtonElement;
+      expect(button.getAttribute('aria-label')).toBe('Remover variação Família');
+    });
+
+    it('adds a free-form variation named Família and saves it in the create payload', () => {
+      const { fixture, component } = renderSizeEditor();
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.addSizeVariation();
+      fixture.detectChanges();
+
+      const row = fixture.nativeElement.querySelector('.variation-row.size-row') as HTMLElement;
+      const [nameInput, descriptionInput] = Array.from(row.querySelectorAll('input.var-input')) as HTMLInputElement[];
+      nameInput.value = 'Família';
+      nameInput.dispatchEvent(new Event('input'));
+      descriptionInput.value = 'Serve 3 pessoas';
+      descriptionInput.dispatchEvent(new Event('input'));
+      const priceInput = row.querySelector('.money-input') as HTMLInputElement;
+      priceInput.value = '3990';
+      priceInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      storeServiceMock.createProduct.mockReturnValue(of({ id: 'product-new', optionGroups: [] }));
+
+      component.saveProduct();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledWith('store-1', expect.objectContaining({
+        saleMode: 'size',
+        variations: [
+          expect.objectContaining({
+            name: 'Família',
+            description: 'Serve 3 pessoas',
+            price: 39.9,
+            isActive: true,
+            displayOrder: 1,
+          }),
+        ],
+      }));
+    });
+  });
 });
 
 describe('SellerProductsPageComponent wizard separation', () => {

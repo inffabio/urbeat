@@ -532,14 +532,38 @@ export abstract class StoreProductsState implements OnInit {
   removeSizeVariation(uid: string) {
     this.sizeVariations.update(list => {
       const filtered = list.filter(v => v.uid !== uid);
-      if (filtered.length && !filtered.some(v => v.isDefault)) filtered[0].isDefault = true;
+      if (!filtered.some(v => v.isDefault)) {
+        const promoted = filtered.find(v => v.isActive);
+        if (promoted) promoted.isDefault = true;
+      }
       return filtered;
     });
     this.markDirty();
   }
 
   setSizeDefault(uid: string) {
-    this.sizeVariations.update(list => list.map(v => ({ ...v, isDefault: v.uid === uid })));
+    this.sizeVariations.update(list => {
+      const target = list.find(v => v.uid === uid);
+      if (!target || !target.isActive) return list;
+      return list.map(v => ({ ...v, isDefault: v.uid === uid }));
+    });
+    this.markDirty();
+  }
+
+  setSizeActive(uid: string, isActive: boolean) {
+    this.sizeVariations.update(list => {
+      const updated = list.map(v => v.uid === uid ? { ...v, isActive } : { ...v });
+      for (const v of updated) {
+        if (!v.isActive) v.isDefault = false;
+      }
+      if (!updated.some(v => v.isActive && v.isDefault)) {
+        const fallback = isActive
+          ? (updated.find(v => v.uid === uid) ?? updated.find(v => v.isActive))
+          : updated.find(v => v.isActive);
+        if (fallback) fallback.isDefault = true;
+      }
+      return updated;
+    });
     this.markDirty();
   }
 
@@ -551,7 +575,13 @@ export abstract class StoreProductsState implements OnInit {
       copy.splice(to, 0, moved);
       return copy;
     });
+    this.markDirty();
     complete();
+  }
+
+  private normalizeSizeVariationDefaults(list: SizeVariation[]): SizeVariation[] {
+    const defaultUid = (list.find(v => v.isActive && v.isDefault) ?? list.find(v => v.isActive))?.uid ?? null;
+    return list.map(v => ({ ...v, isDefault: v.uid === defaultUid }));
   }
 
   // ── Variações: peso fixo ─────────────────────────────────
@@ -656,14 +686,15 @@ export abstract class StoreProductsState implements OnInit {
     this.saleMode.set(sm);
 
     if (sm === 'size') {
-      this.sizeVariations.set((product.variations ?? []).map(v => ({
+      const loaded = (product.variations ?? []).map(v => ({
         uid: v.id,
         name: v.name,
         description: v.description ?? '',
         price: this.formatBRL(v.price),
         isDefault: v.isDefault ?? false,
         isActive: v.isActive,
-      })));
+      }));
+      this.sizeVariations.set(this.normalizeSizeVariationDefaults(loaded));
     } else {
       this.sizeVariations.set([]);
     }
