@@ -25,6 +25,7 @@ describe('CartPageComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    sessionStorage.clear();
     storeServiceMock = {
       getStoreById: jest.fn().mockReturnValue(of({ id: 's1', name: 'Loja', slug: 'loja', logoUrl: '', isOpenNow: true, supportsDelivery: true, supportsPickup: true })),
       getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', name: 'Loja', slug: 'loja', logoUrl: '' })),

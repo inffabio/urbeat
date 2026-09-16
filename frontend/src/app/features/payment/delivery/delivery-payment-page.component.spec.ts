@@ -20,6 +20,7 @@ import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 describe('DeliveryPaymentPageComponent', () => {
   beforeEach(async () => {
     localStorage.clear();
+    sessionStorage.clear();
 
     await TestBed.configureTestingModule({
       imports: [DeliveryPaymentPageComponent],

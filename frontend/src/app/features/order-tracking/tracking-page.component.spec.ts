@@ -56,6 +56,7 @@ describe('TrackingPageComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    sessionStorage.clear();
 
     getOrderMock = jest.fn().mockReturnValue(of(baseOrder));
     confirmDeliveryMock = jest.fn();

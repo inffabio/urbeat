@@ -48,6 +48,7 @@ describe('CustomerPageComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    sessionStorage.clear();
 
     checkoutServiceMock = {
       fulfillmentType: signal(FulfillmentType.Delivery),

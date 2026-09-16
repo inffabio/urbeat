@@ -136,6 +136,24 @@ describe('errorInterceptor', () => {
       expect(refreshTokenSpy).not.toHaveBeenCalled();
     });
 
+    it('treats a seller 401 as an expired session without refreshing the shared cookie', () => {
+      authServiceMock.getToken.mockReturnValue(encodeTokenPayload({ role: 'Seller' }));
+
+      let caughtError: any;
+      httpClient.get('/api/stores/my-store').subscribe({
+        error: (err) => { caughtError = err; }
+      });
+
+      const req = httpMock.expectOne('/api/stores/my-store');
+      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(refreshTokenSpy).not.toHaveBeenCalled();
+      expect(authServiceMock.logout).toHaveBeenCalled();
+      expect(toastServiceMock.showError).toHaveBeenCalledWith('Sua sessao expirou. Por favor, faca login novamente.');
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
+      expect(caughtError).toBeTruthy();
+    });
+
     it('should attempt refresh and retry on 401 for API endpoints', () => {
       refreshTokenSpy.mockReturnValue(of({ accessToken: 'new-token', refreshToken: 'new-refresh' }));
 

@@ -60,7 +60,7 @@
 .settings-row {
   position: relative;
   display: grid;
-  grid-template-columns: 156px minmax(0, 1fr) 44px;
+  grid-template-columns: 156px minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   min-height: 104px;
@@ -133,7 +133,7 @@
 
 .shift-group {
   display: grid;
-  grid-template-columns: repeat(2, 106px) 44px;
+  grid-template-columns: repeat(2, 106px) 44px 44px;
   align-items: end;
   gap: 10px;
 }
@@ -212,9 +212,10 @@
   font-weight: 700;
 }
 
-.closed-placeholder {
-  width: 106px;
-  flex: none;
+.action-slot {
+  display: block;
+  width: 44px;
+  height: 44px;
 }
 
 .day-error {
@@ -240,7 +241,6 @@
 }
 
 .copy-action {
-  justify-self: end;
   border-color: var(--hours-line);
   background: var(--hours-surface);
 }
@@ -479,8 +479,8 @@
 }
 
 @media (max-width: 1000px) {
-  .settings-row { grid-template-columns: 140px minmax(0, 1fr) 44px; gap: 10px; padding: 16px 0; }
-  .shift-group { grid-template-columns: repeat(2, minmax(100px, 106px)) 44px; }
+  .settings-row { grid-template-columns: 140px minmax(0, 1fr); gap: 10px; padding: 16px 0; }
+  .shift-group { grid-template-columns: repeat(2, minmax(100px, 106px)) 44px 44px; }
   .time-field, .time-box { width: 106px; }
   .hours-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -490,12 +490,11 @@
   .schedule-card-head { display: block; }
   .schedule-card-actions { justify-content: flex-start; margin-top: 12px; }
 
-  .settings-row { grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; padding: 16px; }
+  .settings-row { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
   .day-summary { flex-direction: row; align-items: center; justify-content: space-between; grid-column: 1 / -1; }
   .shifts-column { grid-column: 1 / -1; width: 100%; }
-  .copy-action { grid-column: 2; grid-row: 1; }
 
-  .shift-group { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)) 44px; }
+  .shift-group { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)) 44px 44px; }
   .time-field, .time-box { width: 100%; min-width: 0; }
   .time-box { min-height: 44px; }
 

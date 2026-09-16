@@ -108,10 +108,16 @@ export class CartService {
     this.storeId.set(null);
     this.storeName.set(null);
     this.storeLogoUrl.set(null);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORE_KEY);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage unavailable; in-memory state is already cleared.
+    }
+    this.removeLegacyStorage();
   }
 
+  // The cart is tab-scoped: sessionStorage keeps two storefront tabs from
+  // overwriting each other while surviving a reload of the same tab.
   private persist(): void {
     const data: PersistedCart = {
       storeId: this.storeId(),
@@ -119,12 +125,17 @@ export class CartService {
       storeLogoUrl: this.storeLogoUrl(),
       items: this.items(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // Storage unavailable; the cart still works in-memory.
+    }
   }
 
   private load(): void {
+    this.removeLegacyStorage();
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = sessionStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const data: PersistedCart = JSON.parse(raw);
       this.storeId.set(data.storeId ?? null);
@@ -133,6 +144,17 @@ export class CartService {
       this.items.set(data.items ?? []);
     } catch {
       // ignore
+    }
+  }
+
+  // Legacy global localStorage entries are intentionally discarded rather than
+  // migrated: copying them would leak whichever tab wrote them last.
+  private removeLegacyStorage(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORE_KEY);
+    } catch {
+      // Storage unavailable; nothing to clean up.
     }
   }
 }

@@ -411,21 +411,33 @@ export class CustomerOrderTrackingService {
   private setTrackedIds(ids: string[]): void {
     this.trackedIds.set(ids);
     try {
-      localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(ids));
+      sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(ids));
     } catch {
       // Storage unavailable; tracking still works in-memory.
     }
   }
 
   private readStoredIds(): string[] {
+    this.removeLegacyStorage();
     try {
-      const raw = localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY);
+      const raw = sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
       return [...new Set(parsed.filter((id): id is string => typeof id === 'string' && id.length > 0))];
     } catch {
       return [];
+    }
+  }
+
+  // Tracked ids are tab-scoped so two storefront tabs cannot mix their orders.
+  // The legacy global localStorage entry is discarded instead of migrated to
+  // avoid copying another tab's tracking list.
+  private removeLegacyStorage(): void {
+    try {
+      localStorage.removeItem(TRACKED_ORDER_IDS_STORAGE_KEY);
+    } catch {
+      // Storage unavailable; nothing to clean up.
     }
   }
 }

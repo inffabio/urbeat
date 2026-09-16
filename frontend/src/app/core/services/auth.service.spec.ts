@@ -4,12 +4,17 @@ import { provideHttpClient, HttpBackend } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { ApiService } from './api.service';
 
+function encodeTokenPayload(payload: unknown): string {
+  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify(payload))}.signature`;
+}
+
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
 
     TestBed.configureTestingModule({
       providers: [
@@ -27,6 +32,7 @@ describe('AuthService', () => {
   afterEach(() => {
     httpMock.verify();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
@@ -41,14 +47,16 @@ describe('AuthService', () => {
   });
 
   describe('loginSeller', () => {
-    it('should call login API and save token on success', () => {
+    it('should call login API and save the seller token in the tab session', () => {
       const loginReq = { email: 'test@test.com', password: 'password123' };
-      const mockResponse = { accessToken: 'new-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
+      const accessToken = encodeTokenPayload({ role: 'Seller' });
+      const mockResponse = { accessToken, expiresAtUtc: '2026-08-04T22:30:00.000Z' };
 
       service.loginSeller(loginReq).subscribe(res => {
-        expect(res.accessToken).toBe('new-token');
-        expect(service.getToken()).toBe('new-token');
-        expect(localStorage.getItem('urbeat_token')).toBe('new-token');
+        expect(res.accessToken).toBe(accessToken);
+        expect(service.getToken()).toBe(accessToken);
+        expect(sessionStorage.getItem('urbeat_seller_token')).toBe(accessToken);
+        expect(localStorage.getItem('urbeat_token')).toBeNull();
         expect(localStorage.getItem('urbeat_refresh')).toBeNull();
       });
 
@@ -56,6 +64,84 @@ describe('AuthService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(loginReq);
       req.flush(mockResponse);
+    });
+  });
+
+  describe('seller session isolation', () => {
+    const sellerToken = encodeTokenPayload({ role: 'Seller' });
+
+    const configureFreshService = (): { freshService: AuthService } => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          AuthService,
+          ApiService,
+          provideHttpClient(),
+          provideHttpClientTesting()
+        ]
+      });
+      const freshService = TestBed.inject(AuthService);
+      httpMock = TestBed.inject(HttpTestingController);
+      return { freshService };
+    };
+
+    it('clears a conflicting generic/local token when a seller logs in', () => {
+      localStorage.setItem('urbeat_token', 'legacy-customer-token');
+
+      service.loginSeller({ email: 'a@a.com', password: 'x' }).subscribe();
+
+      const req = httpMock.expectOne('/api/auth/login/seller');
+      req.flush({ accessToken: sellerToken, expiresAtUtc: '' });
+
+      expect(sessionStorage.getItem('urbeat_seller_token')).toBe(sellerToken);
+      expect(localStorage.getItem('urbeat_token')).toBeNull();
+      expect(service.getToken()).toBe(sellerToken);
+    });
+
+    it('restores the seller token from the tab session on reload', () => {
+      sessionStorage.setItem('urbeat_seller_token', sellerToken);
+
+      const { freshService } = configureFreshService();
+
+      expect(freshService.getToken()).toBe(sellerToken);
+      expect(freshService.isLoggedIn()).toBe(true);
+    });
+
+    it('prefers the tab seller session over a legacy customer token in localStorage', () => {
+      sessionStorage.setItem('urbeat_seller_token', sellerToken);
+      localStorage.setItem('urbeat_token', encodeTokenPayload({ role: 'Customer' }));
+
+      const { freshService } = configureFreshService();
+
+      expect(freshService.getToken()).toBe(sellerToken);
+    });
+
+    it('clears only the tab seller session on logout and skips the shared-cookie endpoint', () => {
+      sessionStorage.setItem('urbeat_seller_token', sellerToken);
+      localStorage.setItem('urbeat_token', 'other-tab-customer-token');
+
+      const { freshService } = configureFreshService();
+
+      freshService.logout();
+
+      expect(freshService.getToken()).toBeNull();
+      expect(sessionStorage.getItem('urbeat_seller_token')).toBeNull();
+      expect(localStorage.getItem('urbeat_token')).toBe('other-tab-customer-token');
+      httpMock.expectNone('/api/auth/logout');
+    });
+
+    it('keeps customer sessions in localStorage and clears the tab seller token', () => {
+      sessionStorage.setItem('urbeat_seller_token', sellerToken);
+      const customerToken = encodeTokenPayload({ role: 'Customer' });
+
+      service.login({ email: 'c@c.com', password: 'x' }).subscribe();
+
+      const req = httpMock.expectOne('/api/auth/login/customer');
+      req.flush({ accessToken: customerToken, expiresAtUtc: '' });
+
+      expect(localStorage.getItem('urbeat_token')).toBe(customerToken);
+      expect(sessionStorage.getItem('urbeat_seller_token')).toBeNull();
+      expect(service.getToken()).toBe(customerToken);
     });
   });
 

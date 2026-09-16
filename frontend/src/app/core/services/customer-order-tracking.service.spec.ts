@@ -15,6 +15,24 @@ import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 
+function createMemoryStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    get length() {
+      return store.size;
+    },
+    clear: () => store.clear(),
+    getItem: (key: string) => (store.has(key) ? store.get(key)! : null),
+    key: (index: number) => Array.from(store.keys())[index] ?? null,
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      store.set(key, String(value));
+    },
+  } as Storage;
+}
+
 describe('CustomerOrderTrackingService', () => {
   const baseOrder: OrderDetails = {
     id: 'order1',
@@ -40,22 +58,9 @@ describe('CustomerOrderTrackingService', () => {
   let listeners: Record<string, (data: OrderStatusUpdateEvent) => void>;
   let authTokenSignal: ReturnType<typeof signal<string | null>>;
   let tokenSubject: Subject<string | null>;
+  let originalSessionStorage: Storage;
 
-  beforeEach(() => {
-    localStorage.clear();
-
-    getOrderMock = jest.fn();
-    startCustomerHubMock = jest.fn().mockResolvedValue(undefined);
-    listeners = {};
-    onCustomerEventMock = jest.fn((name: string, cb: (data: OrderStatusUpdateEvent) => void) => {
-      listeners[name] = cb;
-    });
-    removeCustomerListenerMock = jest.fn();
-    stopCustomerHubMock = jest.fn();
-    onCustomerStateChangeMock = jest.fn(() => jest.fn());
-    authTokenSignal = signal<string | null>('customer-token');
-    tokenSubject = new Subject<string | null>();
-
+  const configureTestBed = (): void => {
     TestBed.configureTestingModule({
       providers: [
         { provide: OrderService, useValue: { getOrder: getOrderMock } },
@@ -79,14 +84,43 @@ describe('CustomerOrderTrackingService', () => {
         },
       ],
     });
+  };
+
+  const createService = (): CustomerOrderTrackingService => {
+    TestBed.resetTestingModule();
+    configureTestBed();
+    return TestBed.inject(CustomerOrderTrackingService);
+  };
+
+  beforeEach(() => {
+    originalSessionStorage = window.sessionStorage;
+    localStorage.clear();
+    sessionStorage.clear();
+
+    getOrderMock = jest.fn();
+    startCustomerHubMock = jest.fn().mockResolvedValue(undefined);
+    listeners = {};
+    onCustomerEventMock = jest.fn((name: string, cb: (data: OrderStatusUpdateEvent) => void) => {
+      listeners[name] = cb;
+    });
+    removeCustomerListenerMock = jest.fn();
+    stopCustomerHubMock = jest.fn();
+    onCustomerStateChangeMock = jest.fn(() => jest.fn());
+    authTokenSignal = signal<string | null>('customer-token');
+    tokenSubject = new Subject<string | null>();
+
+    configureTestBed();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    Object.defineProperty(window, 'sessionStorage', { configurable: true, value: originalSessionStorage });
+    localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('restores tracked order ids and loads their details', async () => {
-    localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1', 'order2']));
+    sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1', 'order2']));
     getOrderMock.mockImplementation((id: string) => of({ ...baseOrder, id }));
 
     const service = TestBed.inject(CustomerOrderTrackingService);
@@ -106,11 +140,11 @@ describe('CustomerOrderTrackingService', () => {
 
     expect(getOrderMock).toHaveBeenCalledTimes(1);
     expect(service.trackedOrders().length).toBe(1);
-    expect(JSON.parse(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1']);
+    expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1']);
   });
 
   it('exposes whether any tracked order ids exist, restored synchronously from storage', async () => {
-    localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
+    sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
     getOrderMock.mockReturnValue(of(baseOrder));
 
     const service = TestBed.inject(CustomerOrderTrackingService);
@@ -253,11 +287,11 @@ describe('CustomerOrderTrackingService', () => {
     service.untrackOrder('order1');
 
     expect(service.trackedOrders().length).toBe(0);
-    expect(JSON.parse(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
+    expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
   });
 
   it('deduplicates and filters restored order ids', async () => {
-    localStorage.setItem(
+    sessionStorage.setItem(
       TRACKED_ORDER_IDS_STORAGE_KEY,
       JSON.stringify(['order1', 'order1', '', 'order2', 42, null, 'order2']),
     );
@@ -577,7 +611,7 @@ describe('CustomerOrderTrackingService', () => {
 
   it('keeps recovery polling for a failed initial restore even after the hub connects', async () => {
     jest.useFakeTimers();
-    localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
+    sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
 
     let shouldFail = true;
     getOrderMock.mockImplementation(
@@ -768,7 +802,7 @@ describe('CustomerOrderTrackingService', () => {
     service.reset();
 
     expect(service.trackedOrders()).toEqual([]);
-    expect(JSON.parse(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
+    expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
     expect(stopCustomerHubMock).toHaveBeenCalled();
   });
 
@@ -832,7 +866,7 @@ describe('CustomerOrderTrackingService', () => {
 
   describe('auth gating', () => {
     it('does not load persisted ids or call the API when there is no token', async () => {
-      localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1', 'order2']));
+      sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1', 'order2']));
       getOrderMock.mockImplementation((id: string) => of({ ...baseOrder, id }));
       authTokenSignal.set(null);
 
@@ -845,7 +879,7 @@ describe('CustomerOrderTrackingService', () => {
     });
 
     it('rehydrates persisted ids when the token appears after login', async () => {
-      localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
+      sessionStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['order1']));
       getOrderMock.mockImplementation((id: string) => of({ ...baseOrder, id }));
       authTokenSignal.set(null);
 
@@ -888,8 +922,58 @@ describe('CustomerOrderTrackingService', () => {
       tokenSubject.next(null);
 
       expect(service.trackedOrders()).toEqual([]);
-      expect(JSON.parse(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
+      expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
       expect(stopCustomerHubMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('tab-scoped persistence', () => {
+    it('persists tracked order ids in sessionStorage, not shared localStorage', async () => {
+      getOrderMock.mockReturnValue(of(baseOrder));
+
+      const service = TestBed.inject(CustomerOrderTrackingService);
+      service.trackOrder('order1');
+      await service.start();
+
+      expect(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).toContain('order1');
+      expect(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).toBeNull();
+    });
+
+    it('ignores and removes legacy localStorage tracked ids instead of migrating them', async () => {
+      localStorage.setItem(TRACKED_ORDER_IDS_STORAGE_KEY, JSON.stringify(['legacy-order']));
+      getOrderMock.mockReturnValue(of(baseOrder));
+
+      const service = createService();
+      await service.start();
+
+      expect(getOrderMock).not.toHaveBeenCalledWith('legacy-order');
+      expect(service.trackedOrders()).toEqual([]);
+      expect(localStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).toBeNull();
+    });
+
+    it('keeps tracked orders isolated between two tabs sharing the same key', async () => {
+      const tabAStorage = sessionStorage;
+      getOrderMock.mockImplementation((id: string) => of({ ...baseOrder, id }));
+
+      const serviceA = createService();
+      serviceA.trackOrder('order-a');
+      await serviceA.start();
+
+      const tabBStorage = createMemoryStorage();
+      Object.defineProperty(window, 'sessionStorage', { configurable: true, value: tabBStorage });
+
+      const serviceB = createService();
+      await serviceB.start();
+
+      expect(serviceB.trackedOrders()).toEqual([]);
+      expect(JSON.parse(tabBStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
+
+      serviceB.trackOrder('order-b');
+
+      expect(tabAStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).toContain('order-a');
+      expect(tabAStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).not.toContain('order-b');
+      expect(tabBStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).toContain('order-b');
+      expect(tabBStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)).not.toContain('order-a');
     });
   });
 });

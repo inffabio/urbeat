@@ -62,7 +62,7 @@
 
           @if (schedule()[day.id]?.isOpen) {
             <div class="shifts-column">
-              @for (shift of schedule()[day.id].shifts; track $index; let i = $index) {
+              @for (shift of schedule()[day.id].shifts; track shift.id ?? $index; let i = $index) {
                 @if (i > 0) {
                   <div class="interval-label">Intervalo</div>
                 }
@@ -91,6 +91,20 @@
                       <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
                     </div>
                   </div>
+                  @if (i === 0) {
+                    <button
+                      type="button"
+                      class="btn-icon copy-action"
+                      (click)="openCopyModal(day.id)"
+                      [disabled]="syncAll() || !schedule()[day.id]?.isOpen || schedule()[day.id]?.shifts?.length === 0"
+                      [attr.aria-label]="'Copiar horários de ' + day.label"
+                      title="Copiar horários"
+                    >
+                      <ion-icon name="copy-outline"></ion-icon>
+                    </button>
+                  } @else {
+                    <span class="action-slot" aria-hidden="true"></span>
+                  }
                   <button
                     type="button"
                     class="btn-icon remove-shift"
@@ -113,24 +127,11 @@
             </div>
           } @else {
             <div class="closed-copy">Loja fechada neste dia</div>
-            <div class="closed-placeholder"></div>
-            <div class="closed-placeholder"></div>
           }
 
           @if (validateDay(day.id); as err) {
             <p class="day-error">{{ err }}</p>
           }
-
-          <button
-            type="button"
-            class="btn-icon copy-action"
-            (click)="openCopyModal(day.id)"
-            [disabled]="syncAll() || !schedule()[day.id]?.isOpen || schedule()[day.id]?.shifts?.length === 0"
-            [attr.aria-label]="'Copiar horários de ' + day.label"
-            title="Copiar horários"
-          >
-            <ion-icon name="copy-outline"></ion-icon>
-          </button>
         </div>
       }
 

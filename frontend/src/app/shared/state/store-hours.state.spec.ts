@@ -93,6 +93,77 @@ describe('StoreHoursState', () => {
     expect(component.hasChanges()).toBe(false);
   });
 
+  it('keeps shift indices stable while editing a time so the edited shift is not reordered', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { id: 'shift-a', startTime: '08:00', endTime: '12:00' },
+          { id: 'shift-b', startTime: '13:00', endTime: '18:00' },
+        ],
+      },
+    ]);
+
+    component.updateTime('segunda', 1, 'startTime', '07:00');
+
+    const shifts = component.schedule().segunda.shifts;
+    expect(shifts[0].id).toBe('shift-a');
+    expect(shifts[0].startTime).toBe('08:00');
+    expect(shifts[1].id).toBe('shift-b');
+    expect(shifts[1].startTime).toBe('07:00');
+    expect(shifts[1].endTime).toBe('18:00');
+  });
+
+  it('does not move a shift to the top when its time is cleared', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '12:00' },
+          { startTime: '13:00', endTime: '18:00' },
+        ],
+      },
+    ]);
+
+    component.updateTime('segunda', 1, 'startTime', '');
+
+    const shifts = component.schedule().segunda.shifts;
+    expect(shifts[0].startTime).toBe('08:00');
+    expect(shifts[1].startTime).toBe('');
+    expect(component.validateDay('segunda')).toBe('Preencha início e fim de todos os turnos.');
+  });
+
+  it('persists the edited shift values through saveDraft', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '09:00', endTime: '10:00' },
+          { startTime: '11:00', endTime: '12:00' },
+        ],
+      },
+    ]);
+
+    component.updateTime('segunda', 0, 'endTime', '09:30');
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).toHaveBeenCalledTimes(1);
+    const [storeId, request] = storeServiceMock.upsertStoreBusinessHours.mock.calls[0] as [
+      string,
+      { items: Array<{ dayOfWeek: number; shifts: Array<{ startTime: string; endTime: string }> }> },
+    ];
+    expect(storeId).toBe('store-123');
+    const monday = request.items.find((item) => item.dayOfWeek === 1);
+    expect(monday?.shifts).toEqual([
+      { startTime: '09:00', endTime: '09:30' },
+      { startTime: '11:00', endTime: '12:00' },
+    ]);
+    expect(component.hasChanges()).toBe(false);
+  });
+
   it('marks the schedule dirty when toggling sync all', async () => {
     await load([
       { dayOfWeek: 1, isOpen: true, shifts: [{ startTime: '08:00', endTime: '12:00' }] },

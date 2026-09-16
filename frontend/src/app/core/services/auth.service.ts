@@ -24,6 +24,7 @@ import {
 } from '../../shared/models/auth.model';
 
 const TOKEN_KEY = 'urbeat_token';
+const SELLER_TOKEN_KEY = 'urbeat_seller_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -32,7 +33,9 @@ export class AuthService {
   private readonly rawHttp = new HttpClient(this.httpBackend);
   private readonly baseUrl = environment.apiUrl;
 
-  readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  readonly token = signal<string | null>(
+    sessionStorage.getItem(SELLER_TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY),
+  );
   readonly customerProfile = signal<CustomerProfileResponse | null>(null);
   readonly isAuthenticated = computed(() => !!this.token());
   private readonly tokenSubject = new Subject<string | null>();
@@ -63,7 +66,7 @@ export class AuthService {
   loginSeller(req: LoginRequest): Observable<AuthTokenResponse> {
     return this.api
       .post<AuthTokenResponse>('/api/auth/login/seller', req)
-      .pipe(tap((res) => this.saveToken(res)));
+      .pipe(tap((res) => this.saveSellerToken(res.accessToken)));
   }
 
   loginAdmin(req: LoginRequest): Observable<AuthTokenResponse> {
@@ -85,9 +88,29 @@ export class AuthService {
   }
 
   saveToken(res: AuthTokenResponse): void {
-    localStorage.setItem(TOKEN_KEY, res.accessToken);
-    this.token.set(res.accessToken);
-    this.tokenSubject.next(res.accessToken);
+    this.saveLocalToken(res.accessToken);
+  }
+
+  // Seller sessions are scoped to the tab so two stores can be signed in on the
+  // same machine without overwriting each other. The conflicting generic token
+  // is removed so the tab cannot fall back to another role's identity.
+  private saveSellerToken(accessToken: string): void {
+    sessionStorage.setItem(SELLER_TOKEN_KEY, accessToken);
+    localStorage.removeItem(TOKEN_KEY);
+    this.applyToken(accessToken);
+  }
+
+  // Customer and admin keep the legacy shared localStorage behavior, clearing
+  // any tab-scoped seller token so roles are never mixed within the same tab.
+  private saveLocalToken(accessToken: string): void {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    sessionStorage.removeItem(SELLER_TOKEN_KEY);
+    this.applyToken(accessToken);
+  }
+
+  private applyToken(accessToken: string): void {
+    this.token.set(accessToken);
+    this.tokenSubject.next(accessToken);
   }
 
   getToken(): string | null {
@@ -126,10 +149,21 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
+    // A seller session owns only the tab token; calling the shared-cookie logout
+    // endpoint would revoke the refresh cookie used by other store tabs.
+    const sellerSession = sessionStorage.getItem(SELLER_TOKEN_KEY) !== null;
+
     this.token.set(null);
     this.customerProfile.set(null);
     this.tokenSubject.next(null);
+
+    if (sellerSession) {
+      sessionStorage.removeItem(SELLER_TOKEN_KEY);
+      return;
+    }
+
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(SELLER_TOKEN_KEY);
 
     this.rawHttp
       .post(`${this.baseUrl}/api/auth/logout`, {}, { withCredentials: true })

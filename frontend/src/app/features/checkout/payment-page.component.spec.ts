@@ -28,6 +28,7 @@ describe('PaymentPageComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    sessionStorage.clear();
 
     checkoutMock = {
       fulfillmentType: signal(FulfillmentType.Delivery),

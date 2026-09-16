@@ -199,7 +199,7 @@ export abstract class StoreHoursState implements OnInit {
         const endTotal = (total + 240) % 1440;
         end = `${String(Math.floor(endTotal / 60)).padStart(2, '0')}:${String(endTotal % 60).padStart(2, '0')}`;
       }
-      return { ...s, [dayId]: { ...day, shifts: this.sortShifts([...day.shifts, { startTime: start, endTime: end }]) } };
+      return { ...s, [dayId]: { ...day, shifts: [...day.shifts, { startTime: start, endTime: end }] } };
     });
     this.markDirty();
     if (this.syncAll()) this.syncAllDays(dayId);
@@ -221,7 +221,7 @@ export abstract class StoreHoursState implements OnInit {
       const day = s[dayId];
       const shifts = [...day.shifts];
       shifts[index] = { ...shifts[index], [field]: value };
-      return { ...s, [dayId]: { ...day, shifts: this.sortShifts(shifts) } };
+      return { ...s, [dayId]: { ...day, shifts } };
     });
     this.markDirty();
     if (this.syncAll()) this.syncAllDays(dayId);

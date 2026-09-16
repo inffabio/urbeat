@@ -103,7 +103,7 @@ describe('SellerHoursPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.btn-primary-app').disabled).toBe(false);
   });
 
-  it('segunda-feira aberta com dois turnos exibe dois .shift-group, .remove-shift em cada turno, botão copiar como último filho de .settings-row, e dias de Segunda a Domingo', async () => {
+  it('places the copy button inline on the first shift row before the remove button, without a second line', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -125,7 +125,7 @@ describe('SellerHoursPageComponent', () => {
     const rows = fixture.nativeElement.querySelectorAll('.settings-row');
     expect(rows.length).toBeGreaterThanOrEqual(7);
 
-    const segundaRow = rows[0];
+    const segundaRow = rows[0] as HTMLElement;
     expect(segundaRow).toBeTruthy();
 
     const shiftGroups = segundaRow.querySelectorAll('.shift-group');
@@ -139,9 +139,18 @@ describe('SellerHoursPageComponent', () => {
       expect(removeShift).toBeTruthy();
     }
 
-    const lastChild = segundaRow.lastElementChild;
-    expect(lastChild).toBeTruthy();
-    expect(lastChild!.querySelector('ion-icon[name="copy-outline"]')).toBeTruthy();
+    const firstGroup = shiftGroups[0] as HTMLElement;
+    const firstGroupClasses = Array.from(firstGroup.children).map(child => child.className);
+    const copyIndex = firstGroupClasses.findIndex(className => className.includes('copy-action'));
+    const removeIndex = firstGroupClasses.findIndex(className => className.includes('remove-shift'));
+    expect(copyIndex).toBeGreaterThanOrEqual(0);
+    expect(removeIndex).toBeGreaterThan(copyIndex);
+
+    const directCopyChild = Array.from(segundaRow.children).some(
+      (child: Element) => child.classList.contains('copy-action'),
+    );
+    expect(directCopyChild).toBe(false);
+    expect(segundaRow.querySelectorAll('.copy-action').length).toBe(1);
 
     const dayLabels = fixture.nativeElement.querySelectorAll('.settings-row .day-summary strong');
     expect(dayLabels.length).toBe(7);
@@ -149,13 +158,18 @@ describe('SellerHoursPageComponent', () => {
     expect(dayLabels[dayLabels.length - 1].textContent!.trim()).toBe('Domingo');
   });
 
-  it('lays each day out as a compact grid with copy in the final column', () => {
+  it('lays each day out as a compact grid with copy and remove inline in the shift group', () => {
     const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
     const row = styles.match(/\.settings-row\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
     expect(row).toContain('display: grid');
-    expect(row).toMatch(/grid-template-columns:\s*156px minmax\(0, 1fr\) 44px/);
-    expect(styles).toMatch(/\.copy-action\s*\{\s*justify-self:\s*end/);
+    expect(row).toMatch(/grid-template-columns:\s*156px minmax\(0, 1fr\)/);
+    expect(row).not.toMatch(/grid-template-columns:\s*156px minmax\(0, 1fr\) 44px/);
+
+    const group = styles.match(/\.shift-group\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    expect(group).toMatch(/grid-template-columns:\s*repeat\(2,\s*106px\)\s*44px\s*44px/);
+
+    expect(styles).not.toMatch(/\.copy-action\s*\{\s*justify-self:\s*end/);
   });
 
   it('keeps desktop time fields between 100 and 112px and 44px touch targets', () => {

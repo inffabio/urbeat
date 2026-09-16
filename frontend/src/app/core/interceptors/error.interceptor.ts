@@ -6,7 +6,7 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { CheckoutService } from '../services/checkout.service';
 import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
-import { isCustomer } from '../utils/jwt.helper';
+import { isCustomer, isSeller } from '../utils/jwt.helper';
 
 interface RefreshSubscriber {
   next: (token: string) => void;
@@ -113,6 +113,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (err.status === 401) {
         if (req.url.includes('/auth/login') || req.url.includes('/auth/refresh')) {
           return throwError(() => err);
+        }
+
+        // Seller sessions live in the tab (sessionStorage) and share no refresh
+        // cookie with other tabs, so a 401 must be treated as expired instead of
+        // refreshing a cookie that may belong to a different store session.
+        const currentToken = authService.getToken();
+        if (currentToken && isSeller(currentToken)) {
+          return handleSessionExpired(err);
         }
 
         if (retriedRequests.has(req)) {
