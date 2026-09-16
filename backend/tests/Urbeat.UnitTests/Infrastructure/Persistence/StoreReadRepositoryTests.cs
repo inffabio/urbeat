@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+using FluentAssertions;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Services;
@@ -608,6 +610,33 @@ public sealed class StoreReadRepositoryTests : IDisposable
 
         result.Should().NotBeNull();
         result!.IsOpenNow.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DapperPublicStoreQueries_ShouldProjectSlugExactlyOnce()
+    {
+        var source = File.ReadAllText(ResolveRepositorySourcePath());
+
+        var duplicateSlugProjection = new Regex(
+            "\"Slug\",\\s*\\r?\\n\\s*\"Slug\",|s\\.\"Slug\",\\s*\\r?\\n\\s*s\\.\"Slug\",");
+
+        duplicateSlugProjection.IsMatch(source).Should().BeFalse(
+            "the public storefront Dapper queries must not project Slug twice");
+    }
+
+    private static string ResolveRepositorySourcePath([CallerFilePath] string callerFilePath = "")
+    {
+        var testDirectory = Path.GetDirectoryName(callerFilePath)!;
+        var repositoryRoot = Path.GetFullPath(Path.Combine(testDirectory, "..", "..", "..", "..", ".."));
+
+        return Path.Combine(
+            repositoryRoot,
+            "backend",
+            "src",
+            "Urbeat.Infrastructure",
+            "Persistence",
+            "ReadRepositories",
+            "StoreReadRepository.cs");
     }
 
     private static DayOfWeek CurrentSaoPauloDayOfWeek()

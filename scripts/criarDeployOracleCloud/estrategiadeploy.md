@@ -561,6 +561,20 @@ foreach ($name in $secretNames) {
 
 Write-Host "`n📝 Generating .env files..." -ForegroundColor Yellow
 
+# JwtOptions binds ExpirationMinutes; the Vault secret stays in hours.
+function ConvertTo-JwtExpirationMinutes {
+    param([object]$Hours)
+
+    $parsedHours = 0
+    if ([int]::TryParse(([string]$Hours).Trim(), [ref]$parsedHours) -and $parsedHours -gt 0) {
+        return $parsedHours * 60
+    }
+
+    return 24 * 60
+}
+
+$jwtExpiryMinutes = ConvertTo-JwtExpirationMinutes -Hours $envVars['URBEAT_JWT_EXPIRY_HOURS']
+
 # Main .env file
 $mainEnv = @"
 # ═══════════════════════════════════════════════════════════
