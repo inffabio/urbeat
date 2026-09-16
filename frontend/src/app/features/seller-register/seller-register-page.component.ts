@@ -215,6 +215,10 @@ export class SellerRegisterPageComponent {
 
     this.loading.set(true);
 
+    if (this.auth.isAuthenticated()) {
+      this.auth.logout();
+    }
+
     const req: RegisterCustomerRequest = {
       fullName: this.fullName().trim(),
       email: this.email().trim(),
@@ -233,7 +237,7 @@ export class SellerRegisterPageComponent {
           this.router.navigate(['/confirmacao-email'], { queryParams: { email: this.email().trim(), userId: res.userId } });
         } else {
           this.toastService.showSuccess('Conta de vendedor ativada! Faça login para continuar.');
-          this.router.navigate(['/login']);
+          this.router.navigate(['/login-vendedor']);
         }
       },
       error: (err) => {
@@ -246,7 +250,13 @@ export class SellerRegisterPageComponent {
             this.toastService.showSuccess(
               'CPF já cadastrado. Um novo link de confirmação foi enviado para o seu e-mail.'
             );
-            this.router.navigate(['/confirmar-email']);
+            const userId = err?.error?.userId;
+            this.router.navigate(['/confirmacao-email'], {
+              queryParams: {
+                email: this.email().trim(),
+                ...(userId ? { userId } : {}),
+              },
+            });
           } else {
             this.toastService.showError('CPF já cadastrado.');
           }
