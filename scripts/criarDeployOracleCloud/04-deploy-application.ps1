@@ -174,7 +174,7 @@ services:
       Jwt__Secret: ${JWT_SECRET}
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Audience: ${JWT_AUDIENCE}
-      Jwt__ExpiryHours: ${JWT_EXPIRY_HOURS}
+      Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES}
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
       App__FrontendUrl: ${FRONTEND_URL}
       App__ApiUrl: ${API_URL}

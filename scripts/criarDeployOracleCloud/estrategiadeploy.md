@@ -604,6 +604,7 @@ JWT_SECRET=$($envVars['URBEAT_JWT_SECRET'])
 JWT_ISSUER=$($envVars['URBEAT_JWT_ISSUER'])
 JWT_AUDIENCE=$($envVars['URBEAT_JWT_AUDIENCE'])
 JWT_EXPIRY_HOURS=$($envVars['URBEAT_JWT_EXPIRY_HOURS'])
+JWT_EXPIRY_MINUTES=$jwtExpiryMinutes
 
 # ─── Grafana ─────────────────────────────────────────────────
 GF_SECURITY_ADMIN_USER=$($envVars['URBEAT_GRAFANA_USER'])
@@ -792,7 +793,7 @@ services:
       Jwt__Secret: ${JWT_SECRET}
       Jwt__Issuer: ${JWT_ISSUER}
       Jwt__Audience: ${JWT_AUDIENCE}
-      Jwt__ExpiryHours: ${JWT_EXPIRY_HOURS}
+      Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES}
       App__FrontendUrl: ${FRONTEND_URL}
       App__ApiUrl: ${API_URL}
       App__CorsOrigins: ${CORS_ORIGINS}

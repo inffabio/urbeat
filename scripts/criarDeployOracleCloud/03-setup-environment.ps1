@@ -27,6 +27,7 @@ param(
 )
 
 . (Join-Path $PSScriptRoot "oci-ssh.ps1")
+. (Join-Path $PSScriptRoot "deploy-env.ps1")
 
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
@@ -88,6 +89,9 @@ foreach ($prop in $secretsMap.PSObject.Properties) {
 
 Write-Host "`n📝 Generating .env files..." -ForegroundColor Yellow
 
+# JwtOptions binds ExpirationMinutes; the Vault secret stays in hours.
+$jwtExpiryMinutes = ConvertTo-JwtExpirationMinutes -Hours $envVars['URBEAT_JWT_EXPIRY_HOURS']
+
 # Main .env file
 $mainEnv = @"
 # ═══════════════════════════════════════════════════════════
@@ -133,6 +137,7 @@ JWT_SECRET=$($envVars['URBEAT_JWT_SECRET'])
 JWT_ISSUER=$($envVars['URBEAT_JWT_ISSUER'])
 JWT_AUDIENCE=$($envVars['URBEAT_JWT_AUDIENCE'])
 JWT_EXPIRY_HOURS=$($envVars['URBEAT_JWT_EXPIRY_HOURS'])
+JWT_EXPIRY_MINUTES=$jwtExpiryMinutes
 
 # ─── Grafana ─────────────────────────────────────────────────
 GF_SECURITY_ADMIN_USER=$($envVars['URBEAT_GRAFANA_USER'])
