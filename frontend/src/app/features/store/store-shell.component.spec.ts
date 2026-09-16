@@ -776,3 +776,88 @@ describe('StoreShellComponent footer clearance respects hidden footer routes', (
     expect(shellClearance()).toBe('104px');
   });
 });
+
+describe('StoreShellComponent storefront surface background', () => {
+  let fixture: ComponentFixture<StoreShellComponent>;
+  let urlSpy: jest.SpyInstance;
+
+  function routeTo(url: string): void {
+    urlSpy.mockReturnValue(url);
+    fixture.detectChanges();
+  }
+
+  function shellElement(): HTMLElement {
+    return fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
+  }
+
+  function storeRouteElement(): HTMLElement {
+    return fixture.debugElement.query(By.css('section.store-route')).nativeElement as HTMLElement;
+  }
+
+  function ruleBody(source: string, selector: RegExp): string {
+    return source.match(selector)?.[1] ?? '';
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [StoreShellComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of({ get: () => 'loja' }),
+            snapshot: { paramMap: { get: () => 'loja' } },
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '', isOpenNow: true })),
+          },
+        },
+        { provide: AuthService, useValue: { customerProfile: signal(null), logout: jest.fn() } },
+        { provide: CheckoutService, useValue: { resetCheckout: jest.fn() } },
+        { provide: CustomerOrderTrackingService, useValue: { activeOrders: signal([]), trackedOrders: signal([]), hasTrackedOrders: signal(false), start: jest.fn(), stop: jest.fn(), reset: jest.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(StoreShellComponent);
+    fixture.componentInstance.storeResolved.set(true);
+    (fixture.componentInstance as any).storeSlug.set('loja');
+    urlSpy = jest.spyOn(TestBed.inject(Router), 'url', 'get');
+  });
+
+  it('marks the store home with has-footer and store-home while its routed content owns its own background', () => {
+    routeTo('/loja');
+
+    const route = storeRouteElement();
+    expect(route.classList.contains('has-footer')).toBe(true);
+    expect(route.classList.contains('store-home')).toBe(true);
+
+    const routedContentStyles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+    expect(ruleBody(routedContentStyles, /:host\s*\{([^}]*)\}/)).toMatch(/background:\s*#ede9e3/);
+  });
+
+  it('does not mark the footer-less checkout with has-footer', () => {
+    routeTo('/loja/checkout/cadastro');
+
+    const route = storeRouteElement();
+    expect(route.classList.contains('has-footer')).toBe(false);
+    expect(route.classList.contains('store-home')).toBe(false);
+  });
+
+  it('scopes the surface background to .store-route.has-footer without altering .app-shell or the base route', () => {
+    routeTo('/loja');
+    expect(storeRouteElement().classList.contains('has-footer')).toBe(true);
+    expect(shellElement().classList.contains('has-footer')).toBe(false);
+
+    routeTo('/loja/checkout/cadastro');
+    expect(storeRouteElement().classList.contains('has-footer')).toBe(false);
+
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+    expect(ruleBody(source, /\.store-route\.has-footer\s*\{([^}]*)\}/)).toMatch(/background:\s*var\(--app-surface/);
+    expect(ruleBody(source, /\.app-shell\s*\{([^}]*)\}/)).not.toContain('var(--app-surface');
+    expect(ruleBody(source, /\.store-route\s*\{([^}]*)\}/)).not.toContain('background:');
+  });
+});

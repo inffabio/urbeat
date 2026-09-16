@@ -74,6 +74,14 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
       overflow: hidden;
     }
 
+    /* When the footer is present, the routed storefront surface carries the
+       product surface color so no shell/background gap shows between the last
+       product and the fixed footer. Scoped to .has-footer so footer-less
+       routes and the hero/route canvases keep their own backgrounds. */
+    .store-route.has-footer {
+      background: var(--app-surface, #fff);
+    }
+
      @media (min-width: 900px) {
        .app-shell {
          width: 100%;
