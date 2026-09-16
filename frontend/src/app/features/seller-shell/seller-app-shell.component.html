@@ -2,7 +2,7 @@
   <div class="brand-row">
     <a
       class="storefront-logo-link"
-      [attr.href]="facade.store()?.slug ? '/' + facade.store()?.slug : null"
+      [attr.href]="storefrontUrl()"
       target="_blank"
       rel="noopener noreferrer"
       title="Clique para ir para loja"
@@ -157,7 +157,7 @@
       <div class="mobile-brand">
         <a
           class="storefront-logo-link"
-          [attr.href]="facade.store()?.slug ? '/' + facade.store()?.slug : null"
+          [attr.href]="storefrontUrl()"
           target="_blank"
           rel="noopener noreferrer"
           title="Clique para ir para loja"

@@ -1,9 +1,27 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { Router } from '@angular/router';
+import { provideRouter, Router, Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { routes } from '../../app.routes';
 import { SellerShellFacade } from './seller-shell.facade';
 import { SellerAppShellComponent } from './seller-app-shell.component';
+
+@Component({ standalone: true, template: '' })
+class StubRouteComponent {}
+
+function stubLazyRoutes(routeList: Routes): Routes {
+  return routeList.map((route) => {
+    const stubbed: Routes[number] = { ...route };
+    if (stubbed.loadComponent) {
+      stubbed.component = StubRouteComponent;
+      delete stubbed.loadComponent;
+    }
+    if (stubbed.children) {
+      stubbed.children = stubLazyRoutes(stubbed.children);
+    }
+    return stubbed;
+  });
+}
 
 describe('SellerAppShellComponent', () => {
   let fixture: ComponentFixture<SellerAppShellComponent>;
@@ -30,7 +48,7 @@ describe('SellerAppShellComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SellerAppShellComponent],
       providers: [
-        provideRouter([]),
+        provideRouter(stubLazyRoutes(routes)),
         { provide: SellerShellFacade, useValue: facadeMock },
         { provide: AuthService, useValue: { logout: jest.fn() } },
       ],
@@ -196,6 +214,30 @@ describe('SellerAppShellComponent', () => {
       expect(link.getAttribute('title')).toBe('Clique para ir para loja');
       expect(link.getAttribute('aria-label')).toBe('Clique para ir para loja');
     }
+  });
+
+  it('generates the storefront href through the router and resolves it to the public :storePath route', async () => {
+    const router = TestBed.inject(Router);
+    const serializeSpy = jest.spyOn(router, 'serializeUrl');
+
+    fixture.detectChanges();
+
+    expect(serializeSpy).toHaveBeenCalled();
+    const url = fixture.componentInstance.storefrontUrl();
+    expect(url).toBe('/loja-teste');
+
+    await router.navigateByUrl(url!);
+
+    let storePath: string | null = null;
+    let route = router.routerState.root;
+    while (route.firstChild) {
+      route = route.firstChild;
+      if (route.routeConfig?.path === ':storePath') {
+        storePath = route.snapshot.paramMap.get('storePath');
+      }
+    }
+
+    expect(storePath).toBe('loja-teste');
   });
 
   it('omits the storefront href on every logo variant when the store slug is unavailable', () => {

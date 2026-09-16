@@ -108,6 +108,12 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
     this.mobileMenuOpen.set(false);
   }
 
+  storefrontUrl(): string | null {
+    const slug = this.facade.store()?.slug;
+    if (!slug) return null;
+    return this.router.serializeUrl(this.router.createUrlTree(['/', slug]));
+  }
+
   isDashboardRoute(): boolean {
     return this.router.url === '/app/dashboard' || this.router.url.startsWith('/app/dashboard?');
   }
