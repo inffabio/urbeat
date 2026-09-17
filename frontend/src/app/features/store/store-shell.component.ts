@@ -47,7 +47,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
            </button>
          </nav>
        }
-       <app-cart-sheet [isOpen]="isCartSheetOpen()" (close)="closeCartSheet()" (next)="goToCart()" />
+       <app-cart-sheet [isOpen]="isCartSheetOpen()" [footerHeight]="cartSheetFooterHeight()" (close)="closeCartSheet()" (next)="goToCart()" />
     </main>
   `,
   styles: [`
@@ -270,6 +270,10 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   exposedFooterClearance(): number {
     return this.storeResolved() && this.showFooterNav() ? this.footerClearance() : 0;
+  }
+
+  cartSheetFooterHeight(): string {
+    return `${this.exposedFooterClearance()}px`;
   }
 
   openAccountMenu(): void {

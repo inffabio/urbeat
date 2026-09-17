@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 
 import { StoreShellComponent } from './store-shell.component';
 import { FooterNavComponent } from '../../shared/components/footer-nav/footer-nav.component';
+import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-sheet.component';
 import { StoreService } from '../../core/services/store.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
@@ -702,6 +703,36 @@ describe('StoreShellComponent footer clearance propagation', () => {
 
     const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
     expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('104px');
+  });
+
+  it('passes the measured footer clearance explicitly to the cart sheet', () => {
+    const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
+    const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
+    expect(cartSheet).not.toBeNull();
+    expect(footer).not.toBeNull();
+
+    footer.componentInstance.heightChange.emit(104);
+    fixture.detectChanges();
+
+    expect(cartSheet.componentInstance.footerHeight).toBe('104px');
+  });
+
+  it('passes a concrete pixel clearance to the cart sheet instead of relying on a CSS variable indirection', () => {
+    const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
+    expect(cartSheet).not.toBeNull();
+
+    expect(cartSheet.componentInstance.footerHeight).toBe('72px');
+    expect(cartSheet.componentInstance.footerHeight).not.toContain('var(');
+  });
+
+  it('zeroes the cart sheet clearance when the footer is hidden on a checkout route', () => {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'url', 'get').mockReturnValue('/loja/checkout/cadastro');
+    fixture.detectChanges();
+
+    const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
+
+    expect(cartSheet.componentInstance.footerHeight).toBe('0px');
   });
 });
 

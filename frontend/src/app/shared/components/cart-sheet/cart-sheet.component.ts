@@ -165,6 +165,14 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-next:disabled { background: var(--app-muted-strong, #6f6f6f); opacity: .45; cursor: not-allowed; }
     .cart-sheet-next ion-icon { font-size: 18px; }
     .cart-sheet-empty-hint { margin: 0 0 12px; color: var(--app-text-secondary, #5a5a63); font-size: 12px; text-align: center; }
+    @media (min-width: 900px) {
+      .cart-sheet-backdrop { bottom: calc(var(--footer-height) + 28px); }
+      .cart-sheet {
+        bottom: calc(var(--footer-height) + 28px);
+        height: min(82dvh, calc(100dvh - var(--footer-height) - 28px));
+        max-height: min(82dvh, calc(100dvh - var(--footer-height) - 28px));
+      }
+    }
     @keyframes cart-sheet-fade-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes cart-sheet-rise { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
     @media (prefers-reduced-motion: reduce) { .cart-sheet-backdrop, .cart-sheet { animation: none; } }

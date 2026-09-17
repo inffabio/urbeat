@@ -134,3 +134,45 @@ describe('CartSheetComponent', () => {
     expect(button.getAttribute('aria-disabled')).toBeNull();
   });
 });
+
+describe('CartSheetComponent desktop body gutter', () => {
+  function mediaBlock(source: string, query: string): string {
+    const start = source.indexOf(query);
+    if (start === -1) return '';
+    const open = source.indexOf('{', start);
+    if (open === -1) return '';
+    let depth = 0;
+    for (let index = open; index < source.length; index += 1) {
+      if (source[index] === '{') depth += 1;
+      else if (source[index] === '}') {
+        depth -= 1;
+        if (depth === 0) return source.slice(open + 1, index);
+      }
+    }
+    return '';
+  }
+
+  it('offsets the sheet by the desktop body gutter so it stops above the in-flow footer', () => {
+    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
+    const desktop = mediaBlock(source, '@media (min-width: 900px)');
+
+    expect(desktop).not.toBe('');
+    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*bottom:\s*calc\(var\(--footer-height\)\s*\+\s*28px\)/);
+    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*height:\s*min\(82dvh,\s*calc\(100dvh\s*-\s*var\(--footer-height\)\s*-\s*28px\)\)/);
+    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*max-height:\s*min\(82dvh,\s*calc\(100dvh\s*-\s*var\(--footer-height\)\s*-\s*28px\)\)/);
+  });
+
+  it('also lifts the desktop backdrop to the footer top', () => {
+    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
+    const desktop = mediaBlock(source, '@media (min-width: 900px)');
+
+    expect(desktop).toMatch(/\.cart-sheet-backdrop\s*\{[^}]*bottom:\s*calc\(var\(--footer-height\)\s*\+\s*28px\)/);
+  });
+
+  it('keeps the mobile bottom anchored exactly to the measured footer height', () => {
+    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
+    const base = source.match(/\.cart-sheet\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+
+    expect(base).toMatch(/bottom:\s*var\(--footer-height\);/);
+  });
+});
