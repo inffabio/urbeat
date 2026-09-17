@@ -645,6 +645,12 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(shellSource).toMatch(/<\/section>\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/);
   });
 
+  it('marks the routed store surface inert while the cart sheet is open using a strict-compatible binding', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toContain('[attr.inert]="isCartSheetOpen() ? \'\' : null"');
+  });
+
   it('keeps the footer in document flow instead of anchoring it to a viewport or containing block', () => {
     const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
     const footerSource = readFileSync(resolve(__dirname, '../../shared/components/footer-nav/footer-nav.component.ts'), 'utf8');
@@ -703,6 +709,33 @@ describe('StoreShellComponent footer clearance propagation', () => {
 
     const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
     expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('104px');
+  });
+
+  it('marks the FooterNav host as sheet-open and inert-equivalent while the cart sheet is open', () => {
+    const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
+    expect(footer).not.toBeNull();
+    const host = footer.nativeElement as HTMLElement;
+    const firstButton = host.querySelector('.footer-nav button') as HTMLButtonElement;
+
+    expect(host.classList.contains('sheet-open')).toBe(false);
+    expect(footer.componentInstance.inert).toBe(false);
+    expect(host.getAttribute('inert')).toBeNull();
+
+    fixture.componentInstance.isCartSheetOpen.set(true);
+    fixture.detectChanges();
+
+    expect(host.classList.contains('sheet-open')).toBe(true);
+    expect(footer.componentInstance.inert).toBe(true);
+    expect(host.getAttribute('inert')).toBe('');
+    expect(firstButton.getAttribute('aria-hidden')).toBe('true');
+    expect(firstButton.getAttribute('tabindex')).toBe('-1');
+
+    fixture.componentInstance.isCartSheetOpen.set(false);
+    fixture.detectChanges();
+
+    expect(host.classList.contains('sheet-open')).toBe(false);
+    expect(footer.componentInstance.inert).toBe(false);
+    expect(host.getAttribute('inert')).toBeNull();
   });
 
   it('passes the measured footer clearance explicitly to the cart sheet', () => {
@@ -899,5 +932,18 @@ describe('StoreShellComponent storefront surface background', () => {
     expect(ruleBody(source, /\.store-route\.has-footer\s*\{([^}]*)\}/)).toMatch(/background:\s*var\(--app-surface/);
     expect(ruleBody(source, /\.app-shell\s*\{([^}]*)\}/)).not.toContain('var(--app-surface');
     expect(ruleBody(source, /\.store-route\s*\{([^}]*)\}/)).not.toContain('background:');
+  });
+
+  it('makes the routed store surface inert while the cart sheet is open and restores it when closed', () => {
+    routeTo('/loja');
+    expect(storeRouteElement().getAttribute('inert')).toBeNull();
+
+    fixture.componentInstance.isCartSheetOpen.set(true);
+    fixture.detectChanges();
+    expect(storeRouteElement().getAttribute('inert')).toBe('');
+
+    fixture.componentInstance.isCartSheetOpen.set(false);
+    fixture.detectChanges();
+    expect(storeRouteElement().getAttribute('inert')).toBeNull();
   });
 });

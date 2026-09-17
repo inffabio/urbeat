@@ -21,7 +21,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
      <main
        class="app-shell"
        [style.--store-footer-clearance.px]="exposedFooterClearance()">
-       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()">
+       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()" [attr.inert]="isCartSheetOpen() ? '' : null">
         @if (storeResolved()) {
           <router-outlet />
         }
@@ -30,6 +30,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
          <app-footer-nav
            [class.sheet-open]="isCartSheetOpen() || isAccountMenuOpen()"
            [inert]="isCartSheetOpen() || isAccountMenuOpen()"
+           [attr.inert]="isCartSheetOpen() ? '' : null"
            [items]="footerItems()"
            (select)="onFooterSelect($event)"
            (heightChange)="onFooterHeightChange($event)" />

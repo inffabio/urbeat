@@ -1,4 +1,16 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 
 import { CartService } from '../../../core/services/cart.service';
@@ -16,6 +28,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
         [style.--footer-height]="footerHeight"
         (click)="close.emit()"></div>
       <section
+        #dialog
         class="cart-sheet cart-sheet-above-footer"
         role="dialog"
         aria-modal="true"
@@ -23,10 +36,18 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
         tabindex="-1"
         [style.--footer-height]="footerHeight"
         [style.--cart-sheet-height]="sheetHeight"
-        (click)="$event.stopPropagation()"
-        (keydown.escape)="close.emit()">
-        <button type="button" class="cart-sheet-collapse" aria-label="Recolher sacola" (click)="close.emit()">
-          <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
+        (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="cart-sheet-collapse"
+          data-action="collapse-sheet"
+          aria-label="Recolher sacola"
+          (click)="onHandleClick($event)"
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerCancel($event)">
+          <span class="cart-sheet-handle" aria-hidden="true"></span>
         </button>
 
         <header class="cart-sheet-header">
@@ -89,7 +110,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
       animation: cart-sheet-fade-in .24s ease-out both;
     }
     .cart-sheet {
-      --cart-sheet-height: min(82dvh, calc(100dvh - var(--footer-height)));
+      --cart-sheet-height: min(58dvh, calc(100dvh - var(--footer-height)));
       position: absolute;
       left: 50%;
       bottom: var(--footer-height);
@@ -108,8 +129,10 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
       animation: cart-sheet-rise .38s cubic-bezier(.22, 1, .36, 1) both;
     }
     .cart-sheet-collapse {
+      display: grid;
       flex: 0 0 44px;
       align-self: center;
+      place-items: center;
       width: 44px;
       height: 44px;
       border: 0;
@@ -117,9 +140,21 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
       color: var(--app-text-secondary, #5a5a63);
       cursor: pointer;
       font-size: 22px;
+      touch-action: none;
     }
-    .cart-sheet-collapse:hover,
-    .cart-sheet-collapse:focus-visible { color: var(--app-brand, #D54A51); outline: none; }
+    .cart-sheet-handle {
+      display: block;
+      width: 36px;
+      height: 4px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .cart-sheet-collapse:hover { color: var(--app-brand, #D54A51); }
+    .cart-sheet-collapse:focus-visible {
+      color: var(--app-brand, #D54A51);
+      outline: 3px solid var(--app-brand);
+      outline-offset: 2px;
+    }
     .cart-sheet-header,
     .cart-sheet-footer { padding: 0 20px; }
     .cart-sheet-header {
@@ -171,11 +206,210 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     @media (prefers-reduced-motion: reduce) { .cart-sheet-backdrop, .cart-sheet { animation: none; } }
   `],
 })
-export class CartSheetComponent {
+export class CartSheetComponent implements OnChanges, AfterViewChecked {
   readonly cart = inject(CartService);
   @Input() isOpen = false;
   @Input() footerHeight = 'var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))';
-  @Input() sheetHeight = 'min(82dvh, calc(100dvh - var(--footer-height)))';
+  @Input() sheetHeight = 'min(58dvh, calc(100dvh - var(--footer-height)))';
   @Output() readonly close = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();
+
+  @ViewChild('dialog') private dialogRef?: ElementRef<HTMLElement>;
+
+  private static readonly dragMoveThreshold = 8;
+  private static readonly dragCloseThreshold = 80;
+
+  private pointerStartY: number | null = null;
+  private pointerMoved = false;
+  private activePointerId: number | null = null;
+  private captureTarget: Element | null = null;
+  private suppressNextClick = false;
+  private pendingFocus = false;
+  private restoreFocusTarget: HTMLElement | null = null;
+  private wasOpen = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['isOpen']) {
+      return;
+    }
+
+    if (this.isOpen && !this.wasOpen) {
+      this.restoreFocusTarget = this.currentFocusTarget();
+      this.pendingFocus = true;
+    } else if (!this.isOpen && this.wasOpen) {
+      this.resetPointerGesture();
+      this.scheduleFocusRestore();
+    }
+
+    this.wasOpen = this.isOpen;
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.pendingFocus) {
+      return;
+    }
+
+    this.pendingFocus = false;
+    const dialog = this.dialogRef?.nativeElement;
+
+    if (!dialog) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      if (this.isOpen) {
+        dialog.focus();
+      }
+    });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isOpen) {
+      this.close.emit();
+    }
+  }
+
+  onPointerDown(event: PointerEvent): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
+
+    this.pointerStartY = event.clientY;
+    this.pointerMoved = false;
+    this.suppressNextClick = false;
+    this.activePointerId = typeof event.pointerId === 'number' ? event.pointerId : null;
+    this.captureTarget = event.currentTarget as Element | null;
+    this.capturePointer();
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    if (!this.isActivePointer(event) || this.pointerStartY === null) {
+      return;
+    }
+
+    if (Math.abs(event.clientY - this.pointerStartY) > CartSheetComponent.dragMoveThreshold) {
+      this.pointerMoved = true;
+    }
+  }
+
+  onPointerUp(event: PointerEvent): void {
+    if (!this.isActivePointer(event)) {
+      return;
+    }
+
+    const startY = this.pointerStartY;
+    const dragged =
+      this.pointerMoved ||
+      (startY !== null && Math.abs(event.clientY - startY) > CartSheetComponent.dragMoveThreshold);
+
+    this.pointerStartY = null;
+    this.pointerMoved = false;
+    this.releasePointerCapture();
+
+    if (!dragged) {
+      return;
+    }
+
+    this.suppressNextClick = true;
+
+    if (startY !== null && event.clientY - startY >= CartSheetComponent.dragCloseThreshold) {
+      this.close.emit();
+    }
+  }
+
+  onPointerCancel(event: PointerEvent): void {
+    if (!this.isActivePointer(event)) {
+      return;
+    }
+
+    this.pointerStartY = null;
+    this.pointerMoved = false;
+    this.releasePointerCapture();
+  }
+
+  onHandleClick(event: MouseEvent): void {
+    const suppress = this.suppressNextClick;
+    this.suppressNextClick = false;
+
+    if (suppress && event.detail > 0) {
+      return;
+    }
+
+    this.close.emit();
+  }
+
+  private currentFocusTarget(): HTMLElement | null {
+    const active = document.activeElement;
+
+    if (active instanceof HTMLElement && active !== document.body) {
+      return active;
+    }
+
+    return null;
+  }
+
+  private scheduleFocusRestore(): void {
+    const target = this.restoreFocusTarget;
+    this.restoreFocusTarget = null;
+
+    if (!target) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      if (target.isConnected) {
+        target.focus();
+      }
+    });
+  }
+
+  private isActivePointer(event: PointerEvent): boolean {
+    if (this.activePointerId === null) {
+      return true;
+    }
+
+    return event.pointerId === this.activePointerId;
+  }
+
+  private capturePointer(): void {
+    if (this.activePointerId === null) {
+      return;
+    }
+
+    const target = this.captureTarget as (Element & { setPointerCapture?: (pointerId: number) => void }) | null;
+    target?.setPointerCapture?.(this.activePointerId);
+  }
+
+  private resetPointerGesture(): void {
+    this.releasePointerCapture();
+    this.pointerStartY = null;
+    this.pointerMoved = false;
+    this.suppressNextClick = false;
+  }
+
+  private releasePointerCapture(): void {
+    const target = this.captureTarget as (Element & {
+      hasPointerCapture?: (pointerId: number) => boolean;
+      releasePointerCapture?: (pointerId: number) => void;
+    }) | null;
+    const pointerId = this.activePointerId;
+    this.captureTarget = null;
+    this.activePointerId = null;
+
+    if (pointerId === null || target === null) {
+      return;
+    }
+
+    try {
+      if (target.hasPointerCapture && !target.hasPointerCapture(pointerId)) {
+        return;
+      }
+      target.releasePointerCapture?.(pointerId);
+    } catch {
+      // Pointer capture APIs can reject a stale pointer id; the gesture state is
+      // already cleared above, so a capture-specific failure must not break the
+      // drag or click handling.
+    }
+  }
 }
