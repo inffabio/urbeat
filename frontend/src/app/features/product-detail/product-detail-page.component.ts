@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
@@ -8,27 +8,30 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { Product, ProductVariation, ProductChoiceOption, ProductAdditional, ProductOptionGroup, ProductOptionItem, ProductWeightConfig } from '../../shared/models/product.model';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
-import { BackToMenuLinkComponent } from '../../shared/components/back-to-menu-link/back-to-menu-link.component';
+import { getStorePathFromUrl } from '../../shared/utils/router.utils';
 
 @Component({
   selector: 'app-product-detail-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, BrlCurrencyPipe],
   templateUrl: './product-detail-page.component.html',
   styleUrl: './product-detail-page.component.scss',
 })
-export class ProductDetailPageComponent implements OnInit {
+export class ProductDetailPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly catalog = inject(CatalogService);
   private readonly cart = inject(CartService);
-  private readonly location = inject(Location);
 
   readonly product = signal<Product | null>(null);
   readonly quantity = signal(1);
   readonly notes = signal('');
   readonly loading = signal(true);
   readonly toastVisible = signal(false);
+  readonly addingToCart = signal(false);
+  readonly imageFailed = signal(false);
+
+  private addToCartTimeout?: ReturnType<typeof setTimeout>;
 
   readonly selectedVariation = signal<ProductVariation | null>(null);
   readonly selectedChoice = signal<ProductChoiceOption | null>(null);
@@ -39,6 +42,15 @@ export class ProductDetailPageComponent implements OnInit {
 
   // Peso variável
   readonly selectedWeightGrams = signal<number>(0);
+
+  private static readonly dragMoveThreshold = 8;
+  private static readonly dragCloseThreshold = 80;
+
+  private pointerStartY: number | null = null;
+  private pointerMoved = false;
+  private activePointerId: number | null = null;
+  private captureTarget: Element | null = null;
+  private suppressNextClick = false;
 
   readonly optionGroups = computed<ProductOptionGroup[]>(() => {
     const groups = this.product()?.optionGroups ?? [];
@@ -90,6 +102,8 @@ export class ProductDetailPageComponent implements OnInit {
   private initDefaults(): void {
     const p = this.product();
     if (!p) return;
+
+    this.imageFailed.set(false);
 
     // Pré-seleciona variação padrão
     const def = (p.variations ?? []).find(v => v.isDefault && v.isActive);
@@ -255,10 +269,130 @@ export class ProductDetailPageComponent implements OnInit {
 
   // ── Actions ───────────────────────────────────────────
 
-  onBack(): void { this.location.back(); }
+  onBack(): void { this.goBack(); }
   inc(): void { this.quantity.update((q) => q + 1); }
   dec(): void { this.quantity.update((q) => Math.max(1, q - 1)); }
   onNotesChange(value: string): void { if (value.length <= this.maxNotes) this.notes.set(value); }
+  onImageError(): void { this.imageFailed.set(true); }
+
+  private goBack(): void {
+    const storePath = this.resolveStorePath();
+    this.router.navigate(storePath ? ['/', storePath] : ['/']);
+  }
+
+  private resolveStorePath(): string {
+    const fromUrl = getStorePathFromUrl(this.router);
+    if (fromUrl) return fromUrl;
+    return this.route.parent?.snapshot?.paramMap?.get('storePath') ?? '';
+  }
+
+  onHandleClick(event: MouseEvent): void {
+    const suppress = this.suppressNextClick;
+    this.suppressNextClick = false;
+
+    if (suppress && event.detail > 0) {
+      return;
+    }
+
+    this.onBack();
+  }
+
+  onPointerDown(event: PointerEvent): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
+
+    this.pointerStartY = event.clientY;
+    this.pointerMoved = false;
+    this.suppressNextClick = false;
+    this.activePointerId = typeof event.pointerId === 'number' ? event.pointerId : null;
+    this.captureTarget = event.currentTarget as Element | null;
+    this.capturePointer();
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    if (!this.isActivePointer(event) || this.pointerStartY === null) {
+      return;
+    }
+
+    if (Math.abs(event.clientY - this.pointerStartY) > ProductDetailPageComponent.dragMoveThreshold) {
+      this.pointerMoved = true;
+    }
+  }
+
+  onPointerUp(event: PointerEvent): void {
+    if (!this.isActivePointer(event)) {
+      return;
+    }
+
+    const startY = this.pointerStartY;
+    const dragged =
+      this.pointerMoved ||
+      (startY !== null && Math.abs(event.clientY - startY) > ProductDetailPageComponent.dragMoveThreshold);
+
+    this.pointerStartY = null;
+    this.pointerMoved = false;
+    this.releasePointerCapture();
+
+    if (!dragged) {
+      return;
+    }
+
+    this.suppressNextClick = true;
+
+    if (startY !== null && event.clientY - startY >= ProductDetailPageComponent.dragCloseThreshold) {
+      this.onBack();
+    }
+  }
+
+  onPointerCancel(event: PointerEvent): void {
+    if (!this.isActivePointer(event)) {
+      return;
+    }
+
+    this.pointerStartY = null;
+    this.pointerMoved = false;
+    this.releasePointerCapture();
+  }
+
+  private isActivePointer(event: PointerEvent): boolean {
+    if (this.activePointerId === null) {
+      return true;
+    }
+
+    return event.pointerId === this.activePointerId;
+  }
+
+  private capturePointer(): void {
+    if (this.activePointerId === null) {
+      return;
+    }
+
+    const target = this.captureTarget as (Element & { setPointerCapture?: (pointerId: number) => void }) | null;
+    target?.setPointerCapture?.(this.activePointerId);
+  }
+
+  private releasePointerCapture(): void {
+    const target = this.captureTarget as (Element & {
+      hasPointerCapture?: (pointerId: number) => boolean;
+      releasePointerCapture?: (pointerId: number) => void;
+    }) | null;
+    const pointerId = this.activePointerId;
+    this.captureTarget = null;
+    this.activePointerId = null;
+
+    if (pointerId === null || target === null) {
+      return;
+    }
+
+    try {
+      if (target.hasPointerCapture && !target.hasPointerCapture(pointerId)) {
+        return;
+      }
+      target.releasePointerCapture?.(pointerId);
+    } catch {
+    }
+  }
 
   toggleAdditional(add: ProductAdditional): void {
     this.selectedAdditionals.update(list => {
@@ -274,9 +408,13 @@ export class ProductDetailPageComponent implements OnInit {
   }
 
   addToCart(): void {
+    if (this.addingToCart()) return;
+
     const p = this.product();
     if (!p) return;
     if (!this.isSelectionValid()) return;
+
+    this.addingToCart.set(true);
 
     const selVariation = this.selectedVariation();
     const selChoice = this.selectedChoice();
@@ -314,9 +452,16 @@ export class ProductDetailPageComponent implements OnInit {
     });
 
     this.toastVisible.set(true);
-    setTimeout(() => {
+    this.addToCartTimeout = setTimeout(() => {
       this.toastVisible.set(false);
-      this.location.back();
+      this.goBack();
     }, 900);
+  }
+
+  ngOnDestroy(): void {
+    if (this.addToCartTimeout) {
+      clearTimeout(this.addToCartTimeout);
+      this.addToCartTimeout = undefined;
+    }
   }
 }
