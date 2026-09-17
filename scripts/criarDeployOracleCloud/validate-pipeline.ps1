@@ -140,6 +140,19 @@ if (Test-Path -LiteralPath $applicationScript -PathType Leaf) {
     $errors.Add("04-deploy-application.ps1 is missing.")
 }
 
+$dockerScript = Join-Path $scriptRoot "02-install-docker-aarch64.ps1"
+if (Test-Path -LiteralPath $dockerScript -PathType Leaf) {
+    $dockerContent = Get-Content -LiteralPath $dockerScript -Raw
+    if ($dockerContent -notmatch '\[System\.IO\.File\]::WriteAllText') {
+        $errors.Add("02-install-docker-aarch64.ps1 must write the uploaded bash script as LF via WriteAllText for Linux compatibility.")
+    }
+    if ($dockerContent -match 'Out-File') {
+        $errors.Add("02-install-docker-aarch64.ps1 must not upload a CRLF bash script via Out-File.")
+    }
+} else {
+    $errors.Add("02-install-docker-aarch64.ps1 is missing.")
+}
+
 $internalScript = Join-Path (Split-Path -Parent $scriptRoot) "deploy-internal.ps1"
 if (Test-Path -LiteralPath $internalScript -PathType Leaf) {
     $internalContent = Get-Content -LiteralPath $internalScript -Raw

@@ -140,7 +140,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 # Save script to temp file
 $tempScript = [System.IO.Path]::GetTempFileName() + ".sh"
 $dockerInstallScript = $dockerInstallScript.Replace("__SSH_USER__", $SSHUser)
-$dockerInstallScript | Out-File -FilePath $tempScript -Encoding UTF8 -NoNewline
+# Convert CRLF to LF and write as UTF-8 without BOM for Linux bash compatibility
+$dockerInstallScript = $dockerInstallScript -replace "`r`n", "`n"
+[System.IO.File]::WriteAllText($tempScript, $dockerInstallScript, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "`n📤 Uploading installation script to server..." -ForegroundColor Yellow
 
