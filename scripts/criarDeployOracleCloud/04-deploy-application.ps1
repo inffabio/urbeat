@@ -539,24 +539,29 @@ try {
 
     # Extract on server
     Write-Host "  📂 Extracting source code on server..." -ForegroundColor White
+    $extractCommand = @"
+sudo rm -rf $AppDir/backend $AppDir/frontend
+sudo mkdir -p $AppDir/backend $AppDir/frontend
+sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
+sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
+sudo rm -rf $AppDir/downloads
+sudo tar -xzf /tmp/downloads.tar.gz -C $AppDir
+sudo mv /tmp/deployment-manifest.json $AppDir/deployment-manifest.json
+sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend $AppDir/downloads
+sudo chown ${SSHUser}:${SSHUser} $AppDir/deployment-manifest.json
+rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz /tmp/downloads.tar.gz
+echo '✅ Source code extracted successfully'
+echo '--- deployment manifest ---'
+cat $AppDir/deployment-manifest.json
+echo ''
+echo '---------------------------'
+"@
+    # Normalize CRLF -> LF: the command is sent as a single SSH argument and
+    # remote bash/tar must not receive trailing carriage returns.
+    $extractCommand = $extractCommand -replace "`r`n", "`n"
+
     Send-PortKnock -ServerIP $ServerIP
-    ssh @sshOpts "${SSHUser}@${ServerIP}" "
-        sudo rm -rf $AppDir/backend $AppDir/frontend
-        sudo mkdir -p $AppDir/backend $AppDir/frontend
-        sudo tar -xzf /tmp/backend.tar.gz -C $AppDir
-        sudo tar -xzf /tmp/frontend.tar.gz -C $AppDir
-        sudo rm -rf $AppDir/downloads
-        sudo tar -xzf /tmp/downloads.tar.gz -C $AppDir
-        sudo mv /tmp/deployment-manifest.json $AppDir/deployment-manifest.json
-        sudo chown -R ${SSHUser}:${SSHUser} $AppDir/backend $AppDir/frontend $AppDir/downloads
-        sudo chown ${SSHUser}:${SSHUser} $AppDir/deployment-manifest.json
-        rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz /tmp/downloads.tar.gz
-        echo '✅ Source code extracted successfully'
-        echo '--- deployment manifest ---'
-        cat $AppDir/deployment-manifest.json
-        echo ''
-        echo '---------------------------'
-    "
+    ssh @sshOpts "${SSHUser}@${ServerIP}" $extractCommand
     if ($LASTEXITCODE -ne 0) { throw "Remote extraction failed (ssh exit code $LASTEXITCODE). Aborting deployment." }
 } finally {
     Remove-Item -LiteralPath $backendTar -Force -ErrorAction SilentlyContinue

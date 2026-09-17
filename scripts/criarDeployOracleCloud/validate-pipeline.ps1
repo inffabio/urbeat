@@ -130,7 +130,9 @@ if (Test-Path -LiteralPath $applicationScript -PathType Leaf) {
         @{ Pattern = '\[switch\]\$AllowDirty'; Message = "04-deploy-application.ps1 must expose -AllowDirty." },
         @{ Pattern = '\[string\]\$ExpectedCommit'; Message = "04-deploy-application.ps1 must expose -ExpectedCommit." },
         @{ Pattern = 'Assert-DeploySource'; Message = "04-deploy-application.ps1 must validate the deploy source." },
-        @{ Pattern = 'deployment-manifest\.json'; Message = "04-deploy-application.ps1 must upload deployment-manifest.json." }
+        @{ Pattern = 'deployment-manifest\.json'; Message = "04-deploy-application.ps1 must upload deployment-manifest.json." },
+        @{ Pattern = '\$extractCommand\s*=\s*\$extractCommand\s*-replace\s+"`r`n",\s*"`n"'; Message = "04-deploy-application.ps1 must normalize the remote extraction command from CRLF to LF." },
+        @{ Pattern = 'ssh\s+@sshOpts\s+"\$\{SSHUser\}@\$\{ServerIP\}"\s+\$extractCommand'; Message = "04-deploy-application.ps1 must send the normalized extraction command via SSH." }
     )) {
         if ($applicationContent -notmatch $invariant.Pattern) {
             $errors.Add($invariant.Message)
