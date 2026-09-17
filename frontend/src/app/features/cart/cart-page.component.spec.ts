@@ -79,8 +79,13 @@ describe('CartPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.qty-plus ion-icon')).componentInstance.name).toBe('add');
   });
 
-  it('should render the checkout action as an in-flow action bar above the storefront footer', () => {
-    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+  it('should keep the checkout action fixed above the storefront footer for any item count', () => {
+    cart.items.set([
+      { id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 },
+      { id: 'i2', productId: 'p2', productName: 'Batata frita', quantity: 2, unitPrice: 12 },
+      { id: 'i3', productId: 'p3', productName: 'Refrigerante', quantity: 1, unitPrice: 8 },
+      { id: 'i4', productId: 'p4', productName: 'Sobremesa', quantity: 1, unitPrice: 15 },
+    ]);
 
     const fixture = TestBed.createComponent(CartPageComponent);
     fixture.detectChanges();
@@ -88,7 +93,8 @@ describe('CartPageComponent', () => {
     const actionBar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
 
     expect(actionBar).not.toBeNull();
-    expect(actionBar.componentInstance.placement).toBe('inline');
+    expect(actionBar.componentInstance.placement).toBe('fixed');
+    expect(actionBar.nativeElement.classList.contains('in-flow')).toBe(false);
     expect(fixture.debugElement.query(By.css('.continue-large'))).toBeNull();
     expect(fixture.debugElement.query(By.css('.link-orange'))).toBeNull();
   });
@@ -102,11 +108,37 @@ describe('CartPageComponent', () => {
     expect(content.hasAttribute('fullscreen')).toBe(false);
   });
 
-  it('keeps the cart action in the page flow instead of reserving fixed footer clearance', () => {
+  it('reserves bottom space in the cart scrollport for the fixed action bar', () => {
     const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px 24px/);
-    expect(readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8')).toContain('placement="inline"');
+    expect(styles).toMatch(
+      /\.cart-content\s*\{[\s\S]*--padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 48px \+ 16px\)/,
+    );
+  });
+
+  it('does not opt the cart action bar out of the shared fixed placement', () => {
+    const template = readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8');
+
+    expect(template).not.toContain('placement="inline"');
+  });
+
+  it('uses the available viewport height without a fixed height that breaks scrolling', () => {
+    const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
+    const hostBlock = styles.match(/:host\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    const contentBlock = styles.match(/\.cart-content\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+
+    expect(hostBlock).toContain('flex: 1 1 auto');
+    expect(hostBlock).toContain('min-height: 0');
+    expect(hostBlock).not.toMatch(/(?<!min-)height:\s*(100vh|100dvh|\d+px)/);
+    expect(contentBlock).toContain('flex: 1 1 auto');
+    expect(contentBlock).toContain('min-height: 0');
+    expect(contentBlock).not.toMatch(/(?<!min-)height:\s*(100vh|100dvh|\d+px)/);
+  });
+
+  it('keeps the desktop cart max width at 620px', () => {
+    const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*max-width:\s*620px/);
   });
 
   it('should restore the store context from the route when persisted items have no store id', () => {
