@@ -62,7 +62,7 @@ describe('CartSheetComponent', () => {
     const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
     const sheetBlock = source.match(/\.cart-sheet\s*\{([^}]*)\}/);
     const listBlock = source.match(/\.cart-sheet-list\s*\{([^}]*)\}/);
-    const footerBlock = source.match(/\.cart-sheet-footer\s*\{([^}]*safe-area-inset-bottom[^}]*)\}/);
+    const footerBlock = source.match(/\.cart-sheet-footer\s*\{(?=[^}]*flex-shrink)([^}]*safe-area-inset-bottom[^}]*)\}/);
 
     expect(sheetBlock).not.toBeNull();
     expect(listBlock).not.toBeNull();
