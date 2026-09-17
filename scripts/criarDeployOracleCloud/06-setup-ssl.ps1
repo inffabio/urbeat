@@ -91,7 +91,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 "@
 
 $tempSSL = [System.IO.Path]::GetTempFileName() + ".sh"
-$sslScript | Out-File -FilePath $tempSSL -Encoding UTF8 -NoNewline
+# Convert CRLF to LF and write as UTF-8 without BOM for Linux bash compatibility
+$cleanSSLScript = $sslScript -replace "`r`n", "`n"
+[System.IO.File]::WriteAllText($tempSSL, $cleanSSLScript, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "`n📤 Uploading SSL setup script..." -ForegroundColor Yellow
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")

@@ -149,7 +149,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 '@
 
 $tempVerify = [System.IO.Path]::GetTempFileName() + ".sh"
-$verifyScript | Out-File -FilePath $tempVerify -Encoding UTF8 -NoNewline
+# Convert CRLF to LF and write as UTF-8 without BOM for Linux bash compatibility
+$cleanVerifyScript = $verifyScript -replace "`r`n", "`n"
+[System.IO.File]::WriteAllText($tempVerify, $cleanVerifyScript, [System.Text.UTF8Encoding]::new($false))
 
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")

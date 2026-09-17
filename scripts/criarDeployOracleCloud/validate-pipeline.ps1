@@ -155,6 +155,23 @@ if (Test-Path -LiteralPath $dockerScript -PathType Leaf) {
     $errors.Add("02-install-docker-aarch64.ps1 is missing.")
 }
 
+# Uploaded bash scripts must be written as LF UTF-8 without BOM via WriteAllText,
+# never via Out-File (which emits CRLF/BOM and breaks the Linux shebang).
+foreach ($bashScriptName in @("06-setup-ssl.ps1", "07-verify-deployment.ps1")) {
+    $bashScriptPath = Join-Path $scriptRoot $bashScriptName
+    if (Test-Path -LiteralPath $bashScriptPath -PathType Leaf) {
+        $bashContent = Get-Content -LiteralPath $bashScriptPath -Raw
+        if ($bashContent -notmatch '\[System\.IO\.File\]::WriteAllText') {
+            $errors.Add("$bashScriptName must write the uploaded bash script as LF via WriteAllText for Linux compatibility.")
+        }
+        if ($bashContent -match 'Out-File') {
+            $errors.Add("$bashScriptName must not upload a CRLF bash script via Out-File.")
+        }
+    } else {
+        $errors.Add("$bashScriptName is missing.")
+    }
+}
+
 $internalScript = Join-Path (Split-Path -Parent $scriptRoot) "deploy-internal.ps1"
 if (Test-Path -LiteralPath $internalScript -PathType Leaf) {
     $internalContent = Get-Content -LiteralPath $internalScript -Raw
