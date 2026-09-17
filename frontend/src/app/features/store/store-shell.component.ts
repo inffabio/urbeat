@@ -51,6 +51,16 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
     </main>
   `,
   styles: [`
+     /* Ionic applies layout containment to the routed page (.ion-page). That
+        turns the page box into the containing block for the fixed mobile
+        footer, so on mobile (where the layout viewport can be taller than the
+        visible one) the footer anchors below the fold and its labels are cut.
+        Keep size/style containment, drop layout so the footer tracks the
+        viewport. */
+     :host(.ion-page) {
+       contain: size style;
+     }
+
      .app-shell {
       font-family: var(--app-font);
       overflow-x: hidden;

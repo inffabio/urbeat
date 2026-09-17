@@ -160,6 +160,14 @@ describe('FooterNavComponent', () => {
     expect(fixture.nativeElement.querySelector('.footer-nav-safe-zone')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.footer-nav-safe-zone > footer.footer-nav')).not.toBeNull();
   });
+
+  it('keeps every footer button touch target at or above 44px', () => {
+    const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
+    const buttonRule = source.match(/\.footer-nav button\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    const minHeight = Number(buttonRule.match(/min-height:\s*(\d+)px/)?.[1] ?? 0);
+
+    expect(minHeight).toBeGreaterThanOrEqual(44);
+  });
 });
 
 class FakeResizeObserver {
