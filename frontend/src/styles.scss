@@ -18,11 +18,3 @@ body.store-page-active ion-app {
   display: block !important;
   min-height: 100dvh;
 }
-
-/* The storefront footer is `position: fixed`. Ionic's router outlet also
-   applies layout containment, which would still make the outlet the footer's
-   containing block and push it below the visible mobile viewport. Drop layout
-   containment for storefront routes while keeping size/style containment. */
-body.store-page-active ion-router-outlet {
-  contain: size style !important;
-}

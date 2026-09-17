@@ -644,16 +644,13 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(shellSource).toMatch(/<\/section>\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/);
   });
 
-  it('releases layout containment on the store page so the fixed footer anchors to the viewport', () => {
+  it('keeps the footer in document flow instead of anchoring it to a viewport or containing block', () => {
     const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+    const footerSource = readFileSync(resolve(__dirname, '../../shared/components/footer-nav/footer-nav.component.ts'), 'utf8');
 
-    expect(shellSource).toMatch(/:host\(\.ion-page\)\s*\{[^}]*contain:\s*size style/);
-  });
-
-  it('releases layout containment on the Ionic router outlet so the fixed footer is not trapped below the fold', () => {
-    const rootStyles = readFileSync(resolve(__dirname, '../../../styles.scss'), 'utf8');
-
-    expect(rootStyles).toMatch(/body\.store-page-active\s+ion-router-outlet\s*\{[^}]*contain:\s*size style/);
+    expect(shellSource).not.toMatch(/:host\(\.ion-page\)\s*\{[^}]*contain:/);
+    expect(footerSource).not.toMatch(/:host\s*\{[^}]*position:\s*fixed/);
+    expect(footerSource).not.toMatch(/:host\s*\{[^}]*bottom:\s*0/);
   });
 });
 

@@ -141,11 +141,13 @@ describe('FooterNavComponent', () => {
     expect(badge.getAttribute('aria-label')).toBe('2 itens');
   });
 
-  it('anchors the footer fixed to the viewport bottom on mobile and keeps it in flow on desktop', () => {
+  it('keeps the footer in the shell flex flow on every viewport', () => {
     const source = readFileSync(resolve(__dirname, 'footer-nav.component.ts'), 'utf8');
 
-    expect(source).toMatch(/:host\s*\{[^}]*position:\s*fixed[^}]*bottom:\s*0/);
-    expect(source).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*:host\s*\{[^}]*position:\s*relative/);
+    expect(source).toMatch(/:host\s*\{[^}]*position:\s*relative/);
+    expect(source).toMatch(/:host\s*\{[^}]*flex:\s*0 0 auto/);
+    expect(source).not.toMatch(/:host\s*\{[^}]*position:\s*fixed/);
+    expect(source).not.toMatch(/bottom:\s*0/);
     expect(source).toContain('padding-bottom: max(8px, env(safe-area-inset-bottom, 0px))');
   });
 
