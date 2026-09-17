@@ -33,8 +33,15 @@ describe('StickyActionBarComponent', () => {
     const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
 
     expect(source).toContain("@Input() placement: 'fixed' | 'inline' = 'fixed';");
-    expect(source).toContain('[class.in-flow]="placement === \'inline\'"');
+    expect(source).toMatch(/@HostBinding\('class\.in-flow'\)[\s\S]*return this\.placement === 'inline'/);
     expect(source).toMatch(/:host\(\.in-flow\)\s*\{[\s\S]*position:\s*static/);
+  });
+
+  it('applies the in-flow class to the component host', () => {
+    fixture.componentRef.setInput('placement', 'inline');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('in-flow')).toBe(true);
   });
 
   it('emits the action and forwards disabled state', () => {

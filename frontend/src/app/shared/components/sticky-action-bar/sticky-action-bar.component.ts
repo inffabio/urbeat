@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 
 @Component({
@@ -9,7 +9,6 @@ import { IonIcon } from '@ionic/angular/standalone';
         <button
           type="button"
           class="sticky-action"
-          [class.in-flow]="placement === 'inline'"
           [disabled]="disabled"
       [attr.aria-label]="label"
       (click)="action.emit()"
@@ -124,4 +123,9 @@ export class StickyActionBarComponent {
       @Input() disabled = false;
       @Input() placement: 'fixed' | 'inline' = 'fixed';
       @Output() readonly action = new EventEmitter<void>();
-}
+
+      @HostBinding('class.in-flow')
+      get isInFlow(): boolean {
+        return this.placement === 'inline';
+      }
+    }
