@@ -135,44 +135,95 @@ describe('CartSheetComponent', () => {
   });
 });
 
-describe('CartSheetComponent desktop body gutter', () => {
-  function mediaBlock(source: string, query: string): string {
-    const start = source.indexOf(query);
-    if (start === -1) return '';
-    const open = source.indexOf('{', start);
-    if (open === -1) return '';
-    let depth = 0;
-    for (let index = open; index < source.length; index += 1) {
-      if (source[index] === '{') depth += 1;
-      else if (source[index] === '}') {
-        depth -= 1;
-        if (depth === 0) return source.slice(open + 1, index);
-      }
+function readSource(): string {
+  return readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
+}
+
+function mediaBlock(source: string, query: string): string {
+  const start = source.indexOf(query);
+  if (start === -1) return '';
+  const open = source.indexOf('{', start);
+  if (open === -1) return '';
+  let depth = 0;
+  for (let index = open; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1;
+    else if (source[index] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(open + 1, index);
     }
-    return '';
   }
+  return '';
+}
 
-  it('offsets the sheet by the desktop body gutter so it stops above the in-flow footer', () => {
-    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
-    const desktop = mediaBlock(source, '@media (min-width: 900px)');
+function ruleBlock(source: string, selector: string): string {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = source.match(new RegExp(`${escaped}\\s*\\{([\\s\\S]*?)\\}`));
+  return match?.[1] ?? '';
+}
 
-    expect(desktop).not.toBe('');
-    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*bottom:\s*calc\(var\(--footer-height\)\s*\+\s*28px\)/);
-    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*height:\s*min\(82dvh,\s*calc\(100dvh\s*-\s*var\(--footer-height\)\s*-\s*28px\)\)/);
-    expect(desktop).toMatch(/\.cart-sheet\s*\{[^}]*max-height:\s*min\(82dvh,\s*calc\(100dvh\s*-\s*var\(--footer-height\)\s*-\s*28px\)\)/);
+describe('CartSheetComponent shell anchoring', () => {
+  it('anchors the sheet and backdrop absolutely inside the app shell instead of the viewport', () => {
+    const source = readSource();
+    const sheet = ruleBlock(source, '.cart-sheet');
+    const backdrop = ruleBlock(source, '.cart-sheet-backdrop');
+
+    expect(sheet).not.toBe('');
+    expect(backdrop).not.toBe('');
+    expect(sheet).toMatch(/position:\s*absolute/);
+    expect(sheet).not.toMatch(/position:\s*fixed/);
+    expect(backdrop).toMatch(/position:\s*absolute/);
+    expect(backdrop).not.toMatch(/position:\s*fixed/);
   });
 
-  it('also lifts the desktop backdrop to the footer top', () => {
-    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
+  it('keeps bottom anchored to the measured footer height without a desktop +28px gutter', () => {
+    const source = readSource();
+    const sheet = ruleBlock(source, '.cart-sheet');
+    const backdrop = ruleBlock(source, '.cart-sheet-backdrop');
     const desktop = mediaBlock(source, '@media (min-width: 900px)');
 
-    expect(desktop).toMatch(/\.cart-sheet-backdrop\s*\{[^}]*bottom:\s*calc\(var\(--footer-height\)\s*\+\s*28px\)/);
+    expect(sheet).toMatch(/bottom:\s*var\(--footer-height\);/);
+    expect(backdrop).toMatch(/bottom:\s*var\(--footer-height\);/);
+    expect(source).not.toMatch(/var\(--footer-height\)\s*\+\s*28px/);
+    expect(source).not.toMatch(/var\(--footer-height\)\s*-\s*28px/);
+    expect(desktop).not.toMatch(/bottom:\s*calc\(/);
+  });
+});
+
+describe('CartSheetComponent compact list layout', () => {
+  it('tightens the list rhythm so three items fit without crowding the footer', () => {
+    const source = readSource();
+    const list = ruleBlock(source, '.cart-sheet-list');
+    const item = ruleBlock(source, '.cart-sheet-item');
+    const media = ruleBlock(source, '.cart-sheet-item img,\n    .cart-sheet-item-placeholder');
+
+    expect(list).toMatch(/gap:\s*6px/);
+    expect(item).toMatch(/min-height:\s*56px/);
+    expect(item).toMatch(/padding:\s*4px 0/);
+    expect(media).toMatch(/width:\s*40px/);
+    expect(media).toMatch(/height:\s*40px/);
   });
 
-  it('keeps the mobile bottom anchored exactly to the measured footer height', () => {
-    const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
-    const base = source.match(/\.cart-sheet\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+  it('keeps the list as the only scroll region with contained overscroll and a static footer', () => {
+    const source = readSource();
+    const list = ruleBlock(source, '.cart-sheet-list');
+    const footer = source.match(/\.cart-sheet-footer\s*\{(?=[^}]*flex-shrink)([^}]*safe-area-inset-bottom[^}]*)\}/)?.[1] ?? '';
 
-    expect(base).toMatch(/bottom:\s*var\(--footer-height\);/);
+    expect(list).toMatch(/flex:\s*1 1 auto/);
+    expect(list).toMatch(/min-height:\s*0/);
+    expect(list).toMatch(/overflow-y:\s*auto/);
+    expect(list).toMatch(/overscroll-behavior:\s*contain/);
+    expect(footer).not.toBe('');
+    expect(footer).toMatch(/flex-shrink:\s*0/);
+    expect(footer).not.toMatch(/overflow(-y)?:\s*(auto|scroll)/);
+  });
+
+  it('preserves 44px-plus touch targets on the sheet controls', () => {
+    const source = readSource();
+    const collapse = ruleBlock(source, '.cart-sheet-collapse');
+    const next = ruleBlock(source, '.cart-sheet-next');
+    const nextMinHeight = Number(next.match(/min-height:\s*(\d+)px/)?.[1]);
+
+    expect(collapse).toMatch(/height:\s*44px/);
+    expect(nextMinHeight).toBeGreaterThanOrEqual(44);
   });
 });

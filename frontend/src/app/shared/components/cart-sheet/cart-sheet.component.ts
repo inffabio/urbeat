@@ -81,7 +81,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
   styles: [`
     :host { display: contents; }
     .cart-sheet-backdrop {
-      position: fixed;
+      position: absolute;
       inset: 0;
       bottom: var(--footer-height);
       z-index: 60;
@@ -90,7 +90,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     }
     .cart-sheet {
       --cart-sheet-height: min(82dvh, calc(100dvh - var(--footer-height)));
-      position: fixed;
+      position: absolute;
       left: 50%;
       bottom: var(--footer-height);
       z-index: 80;
@@ -135,22 +135,23 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-list {
       display: grid;
       flex: 1 1 auto;
-      gap: 10px;
+      gap: 6px;
       min-height: 0;
       overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 0 20px 18px;
     }
     .cart-sheet-item {
       display: grid;
-      grid-template-columns: 48px minmax(0, 1fr) auto;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
       align-items: center;
       gap: 10px;
-      min-height: 64px;
-      padding: 8px 0;
+      min-height: 56px;
+      padding: 4px 0;
       border-bottom: 1px solid var(--app-border-light, #eadfd6);
     }
     .cart-sheet-item img,
-    .cart-sheet-item-placeholder { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
+    .cart-sheet-item-placeholder { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; }
     .cart-sheet-item-placeholder { display: grid; place-items: center; background: var(--app-hairline-warm, #f3efe9); color: var(--app-muted-strong, #6f6f6f); font-size: 20px; }
     .cart-sheet-item-copy { display: grid; gap: 3px; min-width: 0; }
     .cart-sheet-item-copy strong { overflow: hidden; color: var(--app-ink, #161616); font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
@@ -165,14 +166,6 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-next:disabled { background: var(--app-muted-strong, #6f6f6f); opacity: .45; cursor: not-allowed; }
     .cart-sheet-next ion-icon { font-size: 18px; }
     .cart-sheet-empty-hint { margin: 0 0 12px; color: var(--app-text-secondary, #5a5a63); font-size: 12px; text-align: center; }
-    @media (min-width: 900px) {
-      .cart-sheet-backdrop { bottom: calc(var(--footer-height) + 28px); }
-      .cart-sheet {
-        bottom: calc(var(--footer-height) + 28px);
-        height: min(82dvh, calc(100dvh - var(--footer-height) - 28px));
-        max-height: min(82dvh, calc(100dvh - var(--footer-height) - 28px));
-      }
-    }
     @keyframes cart-sheet-fade-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes cart-sheet-rise { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
     @media (prefers-reduced-motion: reduce) { .cart-sheet-backdrop, .cart-sheet { animation: none; } }
