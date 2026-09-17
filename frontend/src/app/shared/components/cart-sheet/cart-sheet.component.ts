@@ -14,69 +14,68 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
         class="cart-sheet-backdrop cart-sheet-backdrop-above-footer"
         role="presentation"
         [style.--footer-height]="footerHeight"
-        (click)="close.emit()">
-        <section
-          class="cart-sheet cart-sheet-above-footer"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cart-sheet-title"
-          tabindex="-1"
-          [style.--footer-height]="footerHeight"
-          [style.--cart-sheet-height]="sheetHeight"
-          (click)="$event.stopPropagation()"
-          (keydown.escape)="close.emit()">
-          <button type="button" class="cart-sheet-collapse" aria-label="Recolher sacola" (click)="close.emit()">
-            <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
-          </button>
+        (click)="close.emit()"></div>
+      <section
+        class="cart-sheet cart-sheet-above-footer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-sheet-title"
+        tabindex="-1"
+        [style.--footer-height]="footerHeight"
+        [style.--cart-sheet-height]="sheetHeight"
+        (click)="$event.stopPropagation()"
+        (keydown.escape)="close.emit()">
+        <button type="button" class="cart-sheet-collapse" aria-label="Recolher sacola" (click)="close.emit()">
+          <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
+        </button>
 
-          <header class="cart-sheet-header">
-            <div>
-              <h2 id="cart-sheet-title">Sua sacola</h2>
-              <p>{{ cart.totalItems() }} {{ cart.totalItems() === 1 ? 'item' : 'itens' }}</p>
-            </div>
-            <strong>{{ cart.subtotal() | brl }}</strong>
-          </header>
-
-          <div class="cart-sheet-list">
-            @for (item of cart.items(); track item.id || item.productId || $index) {
-              <article class="cart-sheet-item">
-                @if (item.productImage) {
-                  <img [src]="item.productImage" [alt]="item.productName" />
-                } @else {
-                  <span class="cart-sheet-item-placeholder" aria-hidden="true">
-                    <ion-icon name="restaurant-outline"></ion-icon>
-                  </span>
-                }
-                <div class="cart-sheet-item-copy">
-                  <strong>{{ item.productName }}</strong>
-                  <span>{{ item.quantity }} x {{ item.unitPrice | brl }}</span>
-                </div>
-                <strong class="cart-sheet-item-total">{{ item.quantity * item.unitPrice | brl }}</strong>
-              </article>
-            }
+        <header class="cart-sheet-header">
+          <div>
+            <h2 id="cart-sheet-title">Sua sacola</h2>
+            <p>{{ cart.totalItems() }} {{ cart.totalItems() === 1 ? 'item' : 'itens' }}</p>
           </div>
+          <strong>{{ cart.subtotal() | brl }}</strong>
+        </header>
 
-          <footer class="cart-sheet-footer">
-            <div class="cart-sheet-total">
-              <span>Total dos itens</span>
-              <strong>{{ cart.subtotal() | brl }}</strong>
-            </div>
-            @if (cart.isEmpty()) {
-              <p class="cart-sheet-empty-hint">Adicione itens do cardápio para continuar.</p>
-            }
-            <button
-              type="button"
-              class="cart-sheet-next"
-              data-action="next-step"
-              [disabled]="cart.isEmpty()"
-              [attr.aria-disabled]="cart.isEmpty() ? 'true' : null"
-              (click)="next.emit()">
-              <span>Próxima etapa</span>
-              <ion-icon name="arrow-forward" aria-hidden="true"></ion-icon>
-            </button>
-          </footer>
-        </section>
-      </div>
+        <div class="cart-sheet-list">
+          @for (item of cart.items(); track item.id || item.productId || $index) {
+            <article class="cart-sheet-item">
+              @if (item.productImage) {
+                <img [src]="item.productImage" [alt]="item.productName" />
+              } @else {
+                <span class="cart-sheet-item-placeholder" aria-hidden="true">
+                  <ion-icon name="restaurant-outline"></ion-icon>
+                </span>
+              }
+              <div class="cart-sheet-item-copy">
+                <strong>{{ item.productName }}</strong>
+                <span>{{ item.quantity }} x {{ item.unitPrice | brl }}</span>
+              </div>
+              <strong class="cart-sheet-item-total">{{ item.quantity * item.unitPrice | brl }}</strong>
+            </article>
+          }
+        </div>
+
+        <footer class="cart-sheet-footer">
+          <div class="cart-sheet-total">
+            <span>Total dos itens</span>
+            <strong>{{ cart.subtotal() | brl }}</strong>
+          </div>
+          @if (cart.isEmpty()) {
+            <p class="cart-sheet-empty-hint">Adicione itens do cardápio para continuar.</p>
+          }
+          <button
+            type="button"
+            class="cart-sheet-next"
+            data-action="next-step"
+            [disabled]="cart.isEmpty()"
+            [attr.aria-disabled]="cart.isEmpty() ? 'true' : null"
+            (click)="next.emit()">
+            <span>Próxima etapa</span>
+            <ion-icon name="arrow-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </footer>
+      </section>
     }
   `,
   styles: [`
@@ -90,10 +89,11 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
       animation: cart-sheet-fade-in .24s ease-out both;
     }
     .cart-sheet {
-      --cart-sheet-height: calc(50vh - var(--footer-height));
+      --cart-sheet-height: min(82dvh, calc(100dvh - var(--footer-height)));
       position: fixed;
       left: 50%;
       bottom: var(--footer-height);
+      z-index: 80;
       display: flex;
       flex-direction: column;
       width: min(430px, 100%);
@@ -134,6 +134,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-header > strong { color: var(--app-ink, #161616); font-size: 15px; font-weight: 800; }
     .cart-sheet-list {
       display: grid;
+      flex: 1 1 auto;
       gap: 10px;
       min-height: 0;
       overflow-y: auto;
@@ -155,7 +156,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-item-copy strong { overflow: hidden; color: var(--app-ink, #161616); font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .cart-sheet-item-copy span { color: var(--app-text-secondary, #5a5a63); font-size: 11px; }
     .cart-sheet-item-total { color: var(--app-ink, #161616); font-size: 12px; font-weight: 800; white-space: nowrap; }
-    .cart-sheet-footer { padding-top: 14px; padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); box-shadow: 0 -8px 20px rgba(33, 20, 8, .05); }
+    .cart-sheet-footer { flex-shrink: 0; padding-top: 14px; padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)); box-shadow: 0 -8px 20px rgba(33, 20, 8, .05); }
     .cart-sheet-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; color: var(--app-text-secondary, #5a5a63); font-size: 12px; }
     .cart-sheet-total strong { color: var(--app-ink, #161616); font-size: 18px; font-weight: 800; }
     .cart-sheet-next { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 46px; border: 0; border-radius: 999px; background: var(--app-brand, #D54A51); color: #fff; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
@@ -173,7 +174,7 @@ export class CartSheetComponent {
   readonly cart = inject(CartService);
   @Input() isOpen = false;
   @Input() footerHeight = 'var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))';
-  @Input() sheetHeight = 'calc(50vh - var(--footer-height))';
+  @Input() sheetHeight = 'min(82dvh, calc(100dvh - var(--footer-height)))';
   @Output() readonly close = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();
 }
