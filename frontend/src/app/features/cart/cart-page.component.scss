@@ -1,5 +1,7 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   min-height: 100%;
   background: var(--app-bg);
 
@@ -21,6 +23,8 @@
   --padding-start: 0;
   --padding-end: 0;
   min-height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ─── PAGE HEAD ─── */
@@ -103,7 +107,7 @@
 
 /* ─── SCREEN PADDING ─── */
 .screen-padding {
-  padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 56px);
+  padding: 0 18px 24px;
 }
 
 /* ─── EMPTY ─── */

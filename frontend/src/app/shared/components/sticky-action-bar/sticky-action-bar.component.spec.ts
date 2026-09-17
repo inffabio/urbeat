@@ -29,6 +29,14 @@ describe('StickyActionBarComponent', () => {
     expect(button.query(By.css('.action-divider'))).not.toBeNull();
   });
 
+  it('supports an in-flow placement without viewport anchoring', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).toContain("@Input() placement: 'fixed' | 'inline' = 'fixed';");
+    expect(source).toContain('[class.in-flow]="placement === \'inline\'"');
+    expect(source).toMatch(/:host\(\.in-flow\)\s*\{[\s\S]*position:\s*static/);
+  });
+
   it('emits the action and forwards disabled state', () => {
     const action = jest.fn();
     fixture.componentInstance.action.subscribe(action);

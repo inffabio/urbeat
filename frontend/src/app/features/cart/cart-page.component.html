@@ -233,6 +233,7 @@
     icon="bag-outline"
     label="Continuar"
     detail="Escolha endereço e pagamento"
+    placement="inline"
     [disabled]="belowMinimum() || !storeOpen()"
     (action)="continueCheckout()"
   />

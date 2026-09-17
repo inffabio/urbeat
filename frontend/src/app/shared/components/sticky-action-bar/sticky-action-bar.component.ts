@@ -6,10 +6,11 @@ import { IonIcon } from '@ionic/angular/standalone';
   standalone: true,
   imports: [IonIcon],
   template: `
-    <button
-      type="button"
-      class="sticky-action"
-      [disabled]="disabled"
+        <button
+          type="button"
+          class="sticky-action"
+          [class.in-flow]="placement === 'inline'"
+          [disabled]="disabled"
       [attr.aria-label]="label"
       (click)="action.emit()"
     >
@@ -24,7 +25,7 @@ import { IonIcon } from '@ionic/angular/standalone';
     </button>
   `,
   styles: [`
-    :host {
+      :host {
       display: block;
       position: fixed;
       left: 50%;
@@ -34,8 +35,15 @@ import { IonIcon } from '@ionic/angular/standalone';
       max-width: 100%;
       padding: 0 12px;
       transform: translateX(-50%);
-      box-sizing: border-box;
-    }
+        box-sizing: border-box;
+      }
+
+      :host(.in-flow) {
+        position: static;
+        width: 100%;
+        padding: 0 18px 16px;
+        transform: none;
+      }
 
     .sticky-action {
       position: relative;
@@ -112,7 +120,8 @@ import { IonIcon } from '@ionic/angular/standalone';
 export class StickyActionBarComponent {
   @Input({ required: true }) icon!: string;
   @Input({ required: true }) label!: string;
-  @Input() detail = '';
-  @Input() disabled = false;
-  @Output() readonly action = new EventEmitter<void>();
+      @Input() detail = '';
+      @Input() disabled = false;
+      @Input() placement: 'fixed' | 'inline' = 'fixed';
+      @Output() readonly action = new EventEmitter<void>();
 }

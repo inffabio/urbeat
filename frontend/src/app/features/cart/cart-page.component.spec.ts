@@ -79,13 +79,16 @@ describe('CartPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.qty-plus ion-icon')).componentInstance.name).toBe('add');
   });
 
-  it('should render the checkout action as the shared fixed action bar', () => {
+  it('should render the checkout action as an in-flow action bar above the storefront footer', () => {
     cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
 
     const fixture = TestBed.createComponent(CartPageComponent);
     fixture.detectChanges();
 
-    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).not.toBeNull();
+    const actionBar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+
+    expect(actionBar).not.toBeNull();
+    expect(actionBar.componentInstance.placement).toBe('inline');
     expect(fixture.debugElement.query(By.css('.continue-large'))).toBeNull();
     expect(fixture.debugElement.query(By.css('.link-orange'))).toBeNull();
   });
@@ -99,10 +102,11 @@ describe('CartPageComponent', () => {
     expect(content.hasAttribute('fullscreen')).toBe(false);
   });
 
-  it('keeps the footer and action bar clearance inside the scrolling content', () => {
+  it('keeps the cart action in the page flow instead of reserving fixed footer clearance', () => {
     const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 56px\)/);
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px 24px/);
+    expect(readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8')).toContain('placement="inline"');
   });
 
   it('should restore the store context from the route when persisted items have no store id', () => {
