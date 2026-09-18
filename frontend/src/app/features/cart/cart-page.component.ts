@@ -319,6 +319,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
   confirmClear(): void {
     this.cart.clear();
     this.showClearConfirm.set(false);
+    this.goToMenu();
   }
 
   cancelClear(): void {

@@ -217,11 +217,11 @@
   @if (showClearConfirm()) {
     <div class="modal-overlay" (click)="cancelClear()">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" (click)="$event.stopPropagation()">
-        <h2 id="confirm-title">Limpar carrinho?</h2>
+        <h2 id="confirm-title">Deseja apagar todos os itens do carrinho?</h2>
         <p>Todos os itens serão removidos.</p>
         <div class="modal-actions">
           <button type="button" class="btn-secondary" (click)="cancelClear()">Cancelar</button>
-          <button type="button" class="btn-primary modal-confirm" (click)="confirmClear()">Limpar</button>
+          <button type="button" class="btn-primary modal-confirm" (click)="confirmClear()">Sim</button>
         </div>
       </div>
     </div>

@@ -167,6 +167,61 @@ describe('CartPageComponent', () => {
     expect(modal.getAttribute('aria-modal')).toBe('true');
   });
 
+  it('should show the clear-cart confirmation copy and actions', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.showClearConfirm.set(true);
+    fixture.detectChanges();
+
+    const modalText = (fixture.debugElement.query(By.css('.modal')).nativeElement as HTMLElement).textContent ?? '';
+    const buttonLabels = fixture.debugElement
+      .queryAll(By.css('.modal-actions button'))
+      .map((button) => (button.nativeElement.textContent as string).trim());
+
+    expect(modalText).toContain('Deseja apagar todos os itens do carrinho?');
+    expect(buttonLabels).toContain('Sim');
+    expect(buttonLabels).toContain('Cancelar');
+  });
+
+  it('should keep the cart populated and not navigate when the clear confirmation is cancelled', () => {
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.showClearConfirm.set(true);
+    fixture.detectChanges();
+
+    const cancelButton = fixture.debugElement
+      .queryAll(By.css('.modal-actions button'))
+      .find((button) => (button.nativeElement.textContent as string).trim() === 'Cancelar');
+    cancelButton!.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(cart.items().length).toBe(1);
+    expect(fixture.componentInstance.showClearConfirm()).toBe(false);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('should clear the cart and return to the store menu when the clear confirmation is accepted', () => {
+    routeParentParamGetMock.mockReturnValue('loja');
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.showClearConfirm.set(true);
+    fixture.detectChanges();
+
+    const simButton = fixture.debugElement
+      .queryAll(By.css('.modal-actions button'))
+      .find((button) => (button.nativeElement.textContent as string).trim() === 'Sim');
+    simButton!.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(cart.items()).toEqual([]);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+  });
+
   it('should use backend computed open status for cart availability and estimates', () => {
     const fixture = TestBed.createComponent(CartPageComponent);
     fixture.componentInstance.store.set({ isOpen: true, isOpenNow: false, initialMinute: 30, finalMinute: 60 } as any);
