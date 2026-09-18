@@ -15,7 +15,7 @@ describe('StickyActionBarComponent', () => {
     fixture = TestBed.createComponent(StickyActionBarComponent);
     fixture.componentRef.setInput('icon', 'wallet-outline');
     fixture.componentRef.setInput('label', 'Continuar');
-    fixture.componentRef.setInput('detail', 'Escolha endereço e pagamento');
+    fixture.componentRef.setInput('detail', 'Registrar endereço e pagamento');
     fixture.detectChanges();
   });
 
@@ -25,7 +25,7 @@ describe('StickyActionBarComponent', () => {
     expect(button).not.toBeNull();
     expect(button.query(By.css('.action-icon ion-icon')).componentInstance.name).toBe('wallet-outline');
     expect(button.query(By.css('strong')).nativeElement.textContent).toContain('Continuar');
-    expect(button.query(By.css('.action-detail')).nativeElement.textContent).toContain('Escolha endereço');
+    expect(button.query(By.css('.action-detail')).nativeElement.textContent).toContain('Registrar endereço');
     expect(button.query(By.css('.action-divider'))).not.toBeNull();
   });
 
@@ -79,11 +79,19 @@ describe('StickyActionBarComponent', () => {
 });
 
 describe('StickyActionBarComponent footer clearance', () => {
-  it('anchors the fixed bar above the measured storefront footer with a safe-area fallback', () => {
+  it('keeps an 8px visible gap above the measured storefront footer border with a safe-area fallback', () => {
     const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
 
-    expect(source).toMatch(/:host\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
+    expect(source).toMatch(/:host\s*\{[\s\S]*bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 8px\);/);
+    expect(source).not.toMatch(/bottom:\s*var\(--store-footer-clearance,/);
     expect(source).not.toMatch(/bottom:\s*calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\);/);
+  });
+
+  it('does not float the bar over the footer menu buttons', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).not.toMatch(/bottom:\s*0(?:px)?;/);
+    expect(source).toMatch(/calc\(var\(--store-footer-clearance,[\s\S]*?\) \+ 8px\)/);
   });
 });
 

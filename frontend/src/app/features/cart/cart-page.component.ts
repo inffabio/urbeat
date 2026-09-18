@@ -9,7 +9,11 @@ import { CartService } from '../../core/services/cart.service';
 import { CheckoutService } from '../../core/services/checkout.service';
 import { StoreService } from '../../core/services/store.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
+import {
+  CART_CHECKOUT_DETAIL_ADDRESS,
+  CART_CHECKOUT_DETAIL_PAYMENT,
+  CartCheckoutActionService,
+} from '../../core/services/cart-checkout-action.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { StorePublicDetails } from '../../shared/models/store.model';
 import { CartItem } from '../../shared/models/cart-item.model';
@@ -56,9 +60,13 @@ export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor() {
     this.checkoutActionEffect = effect(() => {
+      const profile = this.auth.customerProfile();
       this.checkoutAction.setState({
         visible: !this.cart.isEmpty(),
         disabled: this.belowMinimum() || !this.storeOpen(),
+        detail: this.auth.isLoggedIn() && profile?.primaryAddressId
+          ? CART_CHECKOUT_DETAIL_PAYMENT
+          : CART_CHECKOUT_DETAIL_ADDRESS,
       });
     });
     this.continueRequestSubscription = this.checkoutAction.continueRequested.subscribe(() => {

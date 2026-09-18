@@ -66,9 +66,13 @@ export class CartService {
   }
 
   removeItem(itemOrId: string | CartItem): void {
-    this.items.update((items) =>
-      items.filter((item) => (typeof itemOrId === 'string' ? item.id !== itemOrId : item !== itemOrId)),
-    );
+    const targetId = typeof itemOrId === 'string' ? itemOrId : itemOrId.id;
+    this.items.update((items) => {
+      if (targetId) {
+        return items.filter((item) => item.id !== targetId);
+      }
+      return items.filter((item) => item !== itemOrId);
+    });
   }
 
   updateQuantity(id: string, quantity: number): void {

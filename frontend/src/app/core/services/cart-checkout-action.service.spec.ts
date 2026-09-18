@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CartCheckoutActionService } from './cart-checkout-action.service';
+import {
+  CART_CHECKOUT_DETAIL_ADDRESS,
+  CART_CHECKOUT_DETAIL_PAYMENT,
+  CartCheckoutActionService,
+} from './cart-checkout-action.service';
 
 describe('CartCheckoutActionService', () => {
   let service: CartCheckoutActionService;
@@ -10,10 +14,15 @@ describe('CartCheckoutActionService', () => {
     service = TestBed.inject(CartCheckoutActionService);
   });
 
-  it('starts hidden and enabled with the checkout detail copy', () => {
+  it('exposes the two conditional checkout detail copies', () => {
+    expect(CART_CHECKOUT_DETAIL_ADDRESS).toBe('Registrar endereço e pagamento');
+    expect(CART_CHECKOUT_DETAIL_PAYMENT).toBe('Pagamento');
+  });
+
+  it('starts hidden and enabled with the registration detail copy', () => {
     expect(service.visible()).toBe(false);
     expect(service.disabled()).toBe(false);
-    expect(service.detail()).toBe('Escolha endereço e pagamento');
+    expect(service.detail()).toBe(CART_CHECKOUT_DETAIL_ADDRESS);
   });
 
   it('publishes visibility and disabled state', () => {
@@ -37,7 +46,13 @@ describe('CartCheckoutActionService', () => {
 
     expect(service.visible()).toBe(false);
     expect(service.disabled()).toBe(false);
-    expect(service.detail()).toBe('Escolha endereço e pagamento');
+    expect(service.detail()).toBe(CART_CHECKOUT_DETAIL_ADDRESS);
+  });
+
+  it('accepts the payment detail copy for the authenticated checkout', () => {
+    service.setState({ visible: true, disabled: false, detail: CART_CHECKOUT_DETAIL_PAYMENT });
+
+    expect(service.detail()).toBe('Pagamento');
   });
 
   it('forwards continue requests to subscribers', () => {

@@ -28,7 +28,7 @@ import { IonIcon } from '@ionic/angular/standalone';
       display: block;
       position: fixed;
       left: 50%;
-      bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
+      bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 8px);
       z-index: 75;
       width: min(430px, 100%);
       max-width: 100%;

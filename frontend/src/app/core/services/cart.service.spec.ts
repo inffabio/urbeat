@@ -182,6 +182,35 @@ describe('CartService tab-scoped persistence', () => {
     expect(cart.items().map((item) => item.productId)).toEqual(['p2', 'p3', 'p4']);
   });
 
+  it('removes the matching entry by its persisted id even when the caller holds a different instance', () => {
+    const cart = createCart();
+    cart.setStore('store-1', 'Loja 1', '');
+    cart.addItem(cartItem({ id: 'persisted-1' }));
+    cart.addItem(cartItem({ id: 'persisted-2', productId: 'p2', productName: 'Suco' }));
+
+    const rehydratedCopy: CartItem = { ...cart.items()[0] };
+    expect(rehydratedCopy).not.toBe(cart.items()[0]);
+
+    cart.removeItem(rehydratedCopy);
+
+    expect(cart.items().map((item) => item.id)).toEqual(['persisted-2']);
+  });
+
+  it('removes the entry by id after a merge replaces the referenced object', () => {
+    const cart = createCart();
+    cart.setStore('store-1', 'Loja 1', '');
+    cart.addItem(cartItem({ id: 'persisted-1' }));
+    const staleReference = cart.items()[0];
+
+    cart.addItem(cartItem({ id: 'persisted-1' }));
+    expect(cart.items()[0]).not.toBe(staleReference);
+    expect(cart.items()[0].quantity).toBe(2);
+
+    cart.removeItem(staleReference);
+
+    expect(cart.items()).toEqual([]);
+  });
+
   it('keeps two tabs of different stores isolated even though they share the cart key', () => {
     const tabAStorage = sessionStorage;
     const cartA = createCart();

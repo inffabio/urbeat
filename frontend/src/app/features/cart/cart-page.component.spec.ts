@@ -110,6 +110,43 @@ describe('CartPageComponent', () => {
     expect(action.disabled()).toBe(false);
   });
 
+  it('publishes the registration detail while no customer profile is loaded', () => {
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+
+    expect(action.detail()).toBe('Registrar endereço e pagamento');
+  });
+
+  it('publishes the registration detail for an authenticated customer without a primary address', () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.customerProfile.mockReturnValue({ primaryAddressId: null });
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+
+    expect(action.detail()).toBe('Registrar endereço e pagamento');
+  });
+
+  it('publishes the payment detail once the authenticated customer profile is loaded', () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.customerProfile.mockReturnValue({ primaryAddressId: 'addr1' });
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+
+    expect(action.detail()).toBe('Pagamento');
+  });
+
   it('marks the shell checkout action disabled while the cart is below the delivery minimum', () => {
     const action = TestBed.inject(CartCheckoutActionService);
     cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 5 }]);
@@ -164,7 +201,7 @@ describe('CartPageComponent', () => {
     const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
 
     expect(styles).toMatch(
-      /\.cart-content\s*\{[\s\S]*--padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 48px \+ 16px\)/,
+      /\.cart-content\s*\{[\s\S]*--padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 8px \+ 48px \+ 16px\)/,
     );
   });
 

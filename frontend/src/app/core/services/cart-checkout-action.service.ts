@@ -1,7 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 
-export const CART_CHECKOUT_DETAIL = 'Escolha endereço e pagamento';
+export const CART_CHECKOUT_DETAIL_ADDRESS = 'Registrar endereço e pagamento';
+export const CART_CHECKOUT_DETAIL_PAYMENT = 'Pagamento';
 
 export interface CartCheckoutActionState {
   visible: boolean;
@@ -13,7 +14,7 @@ export interface CartCheckoutActionState {
 export class CartCheckoutActionService {
   readonly visible = signal(false);
   readonly disabled = signal(false);
-  readonly detail = signal(CART_CHECKOUT_DETAIL);
+  readonly detail = signal(CART_CHECKOUT_DETAIL_ADDRESS);
 
   private readonly continueRequest$ = new Subject<void>();
   readonly continueRequested = this.continueRequest$.asObservable();
@@ -29,7 +30,7 @@ export class CartCheckoutActionService {
   reset(): void {
     this.visible.set(false);
     this.disabled.set(false);
-    this.detail.set(CART_CHECKOUT_DETAIL);
+    this.detail.set(CART_CHECKOUT_DETAIL_ADDRESS);
   }
 
   requestContinue(): void {
