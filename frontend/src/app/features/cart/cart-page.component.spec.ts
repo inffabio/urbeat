@@ -122,6 +122,20 @@ describe('CartPageComponent', () => {
     expect(template).not.toContain('placement="inline"');
   });
 
+  it('uses the primary appearance for the cart checkout action', () => {
+    const template = readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8');
+
+    expect(template).toContain('appearance="primary"');
+
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const actionBar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(actionBar.componentInstance.appearance).toBe('primary');
+    expect(actionBar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+  });
+
   it('uses the available viewport height without a fixed height that breaks scrolling', () => {
     const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
     const hostBlock = styles.match(/:host\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';

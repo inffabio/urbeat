@@ -44,6 +44,26 @@ describe('StickyActionBarComponent', () => {
     expect(fixture.nativeElement.classList.contains('in-flow')).toBe(true);
   });
 
+  it('defaults to the default appearance without the primary class', () => {
+    expect(fixture.nativeElement.classList.contains('sticky-action-primary')).toBe(false);
+  });
+
+  it('applies the primary appearance class to the component host when requested', () => {
+    fixture.componentRef.setInput('appearance', 'primary');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+  });
+
+  it('styles the primary appearance with brand tokens without changing the default bar', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).toContain("appearance: 'default' | 'primary' = 'default'");
+    expect(source).toMatch(/@HostBinding\('class\.sticky-action-primary'\)[\s\S]*return this\.appearance === 'primary'/);
+    expect(source).toMatch(/:host\(\.sticky-action-primary\)\s+\.sticky-action\s*\{[\s\S]*background:\s*var\(--app-brand/);
+    expect(source).toMatch(/:host\(\.sticky-action-primary\)\s+\.sticky-action:hover\s*\{[\s\S]*background:\s*var\(--app-brand-dark/);
+  });
+
   it('emits the action and forwards disabled state', () => {
     const action = jest.fn();
     fixture.componentInstance.action.subscribe(action);

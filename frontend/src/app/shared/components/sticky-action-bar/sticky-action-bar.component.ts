@@ -114,6 +114,27 @@ import { IonIcon } from '@ionic/angular/standalone';
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    :host(.sticky-action-primary) .sticky-action {
+      border-color: var(--app-brand, #D54A51);
+      background: var(--app-brand, #D54A51);
+      color: var(--app-surface, #fff);
+    }
+
+    :host(.sticky-action-primary) .action-icon,
+    :host(.sticky-action-primary) .action-detail,
+    :host(.sticky-action-primary) .action-divider {
+      color: var(--app-surface, #fff);
+    }
+
+    :host(.sticky-action-primary) .action-divider {
+      background: rgba(255, 255, 255, .35);
+    }
+
+    :host(.sticky-action-primary) .sticky-action:hover {
+      border-color: var(--app-brand-dark, #B63A41);
+      background: var(--app-brand-dark, #B63A41);
+    }
   `],
 })
 export class StickyActionBarComponent {
@@ -122,10 +143,16 @@ export class StickyActionBarComponent {
       @Input() detail = '';
       @Input() disabled = false;
       @Input() placement: 'fixed' | 'inline' = 'fixed';
+      @Input() appearance: 'default' | 'primary' = 'default';
       @Output() readonly action = new EventEmitter<void>();
 
       @HostBinding('class.in-flow')
       get isInFlow(): boolean {
         return this.placement === 'inline';
+      }
+
+      @HostBinding('class.sticky-action-primary')
+      get isPrimary(): boolean {
+        return this.appearance === 'primary';
       }
     }
