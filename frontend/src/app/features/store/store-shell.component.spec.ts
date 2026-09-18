@@ -767,6 +767,25 @@ describe('StoreShellComponent footer clearance propagation', () => {
 
     expect(cartSheet.componentInstance.footerHeight).toBe('0px');
   });
+
+  it('clears the bag, dismisses the sheet and returns to the store menu when clearing is confirmed in the sheet', () => {
+    const router = TestBed.inject(Router);
+    const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const cart = TestBed.inject(CartService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    fixture.componentInstance.isCartSheetOpen.set(true);
+    fixture.detectChanges();
+
+    const sheet = fixture.nativeElement.querySelector('app-cart-sheet') as HTMLElement;
+    (sheet.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (sheet.querySelector('.modal-actions .modal-confirm') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(cart.items()).toEqual([]);
+    expect(fixture.componentInstance.isCartSheetOpen()).toBe(false);
+    expect(navigate).toHaveBeenCalledWith(['/', 'loja']);
+  });
 });
 
 describe('StoreShellComponent footer clearance respects hidden footer routes', () => {

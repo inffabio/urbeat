@@ -48,7 +48,7 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
            </button>
          </nav>
        }
-       <app-cart-sheet [isOpen]="isCartSheetOpen()" [footerHeight]="cartSheetFooterHeight()" (close)="closeCartSheet()" (next)="goToCart()" />
+       <app-cart-sheet [isOpen]="isCartSheetOpen()" [footerHeight]="cartSheetFooterHeight()" (close)="closeCartSheet()" (next)="goToCart()" (cleared)="onCartCleared()" />
     </main>
   `,
   styles: [`
@@ -306,6 +306,11 @@ export class StoreShellComponent implements OnInit, OnDestroy {
     if (this.cart.isEmpty()) return;
     this.closeCartSheet();
     this.navigate('carrinho');
+  }
+
+  onCartCleared(): void {
+    this.closeCartSheet();
+    this.navigate('');
   }
 
   closeAccountMenu(): void {

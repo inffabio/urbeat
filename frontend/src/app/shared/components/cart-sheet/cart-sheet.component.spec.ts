@@ -636,3 +636,209 @@ describe('CartSheetComponent compact list layout', () => {
     expect(nextMinHeight).toBeGreaterThanOrEqual(44);
   });
 });
+
+describe('CartSheetComponent cart parity', () => {
+  let fixture: ComponentFixture<CartSheetComponent>;
+  let cart: CartService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CartSheetComponent],
+      providers: [CartService],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(CartSheetComponent);
+    cart = TestBed.inject(CartService);
+    cart.items.set([
+      { id: 'item-1', productId: 'product-1', productName: 'Hot dog', quantity: 2, unitPrice: 18 },
+      { id: 'item-2', productId: 'product-2', productName: 'Refrigerante', quantity: 1, unitPrice: 6 },
+    ]);
+    fixture.componentRef.setInput('isOpen', true);
+    fixture.detectChanges();
+  });
+
+  it('renders an X control per item that removes only that item and recalculates totals', () => {
+    const removeButtons = fixture.nativeElement.querySelectorAll('[data-action="remove-item"]') as NodeListOf<HTMLButtonElement>;
+
+    expect(removeButtons.length).toBe(2);
+
+    removeButtons[0].click();
+    fixture.detectChanges();
+
+    expect(cart.items().map((item) => item.id)).toEqual(['item-2']);
+    expect(cart.subtotal()).toBe(6);
+
+    const sheetText = (fixture.nativeElement.querySelector('.cart-sheet') as HTMLElement).textContent?.replace(/\u00a0/g, ' ') ?? '';
+    expect(sheetText).not.toContain('Hot dog');
+    expect(sheetText).toContain('R$ 6,00');
+  });
+
+  it('removes only the clicked item when persisted entries have no id', () => {
+    cart.items.set([
+      { productId: 'product-1', productName: 'Hot dog', quantity: 1, unitPrice: 18 },
+      { productId: 'product-2', productName: 'Refrigerante', quantity: 1, unitPrice: 6 },
+    ]);
+    fixture.detectChanges();
+
+    const removeButtons = fixture.nativeElement.querySelectorAll('[data-action="remove-item"]') as NodeListOf<HTMLButtonElement>;
+    removeButtons[0].click();
+    fixture.detectChanges();
+
+    expect(cart.items().map((item) => item.productName)).toEqual(['Refrigerante']);
+    expect(cart.subtotal()).toBe(6);
+  });
+
+  it('labels each X control with the product name and keeps a 44px-plus touch target', () => {
+    const remove = fixture.nativeElement.querySelector('[data-action="remove-item"]') as HTMLButtonElement;
+
+    expect(remove.getAttribute('aria-label')).toBe('Remover Hot dog');
+    expect(ruleBlock(readSource(), '.cart-sheet-remove')).toMatch(/height:\s*44px/);
+  });
+
+  it('opens the clear-cart confirmation dialog from the trash action', () => {
+    const trash = fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement;
+
+    expect(trash).not.toBeNull();
+    trash.click();
+    fixture.detectChanges();
+
+    const modal = fixture.nativeElement.querySelector('.modal') as HTMLElement;
+    expect(modal).not.toBeNull();
+    expect(modal.getAttribute('role')).toBe('dialog');
+    expect(modal.getAttribute('aria-modal')).toBe('true');
+    expect(modal.textContent).toContain('Deseja apagar todos os itens do carrinho?');
+
+    const labels = Array.from(modal.querySelectorAll('.modal-actions button')).map((button) => (button.textContent ?? '').trim());
+    expect(labels).toEqual(['Cancelar', 'Sim']);
+  });
+
+  it('makes the underlying sheet inert while the clear confirmation is open and clears it on cancel', () => {
+    const sheet = fixture.nativeElement.querySelector('.cart-sheet') as HTMLElement;
+
+    expect(sheet.hasAttribute('inert')).toBe(false);
+
+    (fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(sheet.hasAttribute('inert')).toBe(true);
+
+    (fixture.nativeElement.querySelector('.modal-actions .btn-secondary') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(sheet.hasAttribute('inert')).toBe(false);
+  });
+
+  it('keeps the items and closes the dialog when the clear is cancelled', () => {
+    (fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.modal-actions .btn-secondary') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(cart.items().length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.modal')).toBeNull();
+  });
+
+  it('cancels the clear confirmation on Escape instead of closing the sheet', () => {
+    const close = jest.spyOn(fixture.componentInstance.close, 'emit');
+
+    (fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(cart.items().length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.modal')).toBeNull();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it('moves focus into the confirmation dialog and gives it a focusable target when opened', async () => {
+    const trash = fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement;
+
+    trash.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.nativeElement.querySelector('.modal') as HTMLElement;
+
+    expect(modal.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(modal);
+  });
+
+  it('restores focus to the trash trigger when the clear is cancelled', async () => {
+    const trash = fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement;
+
+    trash.focus();
+    trash.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.nativeElement.querySelector('.modal') as HTMLElement;
+    expect(modal.contains(document.activeElement)).toBe(true);
+
+    (fixture.nativeElement.querySelector('.modal-actions .btn-secondary') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    expect(document.activeElement).toBe(trash);
+  });
+
+  it('restores focus to the trash trigger when Escape cancels the clear', async () => {
+    const trash = fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement;
+
+    trash.focus();
+    trash.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.nativeElement.querySelector('.modal') as HTMLElement;
+    expect(modal.contains(document.activeElement)).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    expect(document.activeElement).toBe(trash);
+  });
+
+  it('gives the Cancelar and Sim controls a 44px-plus touch target', () => {
+    (fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('.modal-actions button')) as HTMLButtonElement[];
+    const actionRule = ruleBlock(readSource(), '.modal-actions .modal-action');
+
+    expect(buttons.length).toBe(2);
+    expect(buttons.every((button) => button.classList.contains('modal-action'))).toBe(true);
+    expect(actionRule).toMatch(/min-height:\s*44px/);
+  });
+
+  it('clears every item and signals the clear so the host can dismiss and navigate when the clear is confirmed', () => {
+    const cleared = jest.spyOn(fixture.componentInstance.cleared, 'emit');
+    const close = jest.spyOn(fixture.componentInstance.close, 'emit');
+
+    (fixture.nativeElement.querySelector('[data-action="clear-cart"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.modal-actions .modal-confirm') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(cart.items()).toEqual([]);
+    expect(fixture.nativeElement.querySelector('.modal')).toBeNull();
+    expect(cleared).toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it('keeps the red primary next-step action inside the stationary sheet footer', () => {
+    const footer = fixture.nativeElement.querySelector('.cart-sheet-footer') as HTMLElement;
+    const next = footer.querySelector('[data-action="next-step"]') as HTMLButtonElement;
+    const nextRule = ruleBlock(readSource(), '.cart-sheet-next');
+    const footerRule = readSource().match(/\.cart-sheet-footer\s*\{(?=[^}]*flex-shrink)([^}]*safe-area-inset-bottom[^}]*)\}/)?.[1] ?? '';
+
+    expect(next).not.toBeNull();
+    expect(next.textContent).toContain('Próxima etapa');
+    expect(nextRule).toMatch(/background:\s*var\(--app-brand/);
+    expect(footerRule).toMatch(/flex-shrink:\s*0/);
+  });
+});

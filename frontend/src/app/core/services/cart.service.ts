@@ -65,8 +65,10 @@ export class CartService {
     });
   }
 
-  removeItem(id: string): void {
-    this.items.update((items) => items.filter((i) => i.id !== id));
+  removeItem(itemOrId: string | CartItem): void {
+    this.items.update((items) =>
+      items.filter((item) => (typeof itemOrId === 'string' ? item.id !== itemOrId : item !== itemOrId)),
+    );
   }
 
   updateQuantity(id: string, quantity: number): void {
