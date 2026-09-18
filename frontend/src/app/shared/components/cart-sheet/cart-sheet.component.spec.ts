@@ -29,8 +29,7 @@ describe('CartSheetComponent', () => {
     expect(sheet).not.toBeNull();
     expect(sheet.textContent).toContain('Hot dog');
     expect(sheet.textContent?.replace(/\u00a0/g, ' ')).toContain('R$ 36,00');
-    expect(sheet.style.getPropertyValue('--footer-height')).toBe('var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))');
-    expect(sheet.style.getPropertyValue('--cart-sheet-height')).toBe('min(58dvh, calc(100dvh - var(--footer-height)))');
+    expect(sheet.style.getPropertyValue('--cart-sheet-height')).toBe('min(58dvh, 100%)');
     expect(sheet.classList).toContain('cart-sheet-above-footer');
     expect(backdrop.classList).toContain('cart-sheet-backdrop-above-footer');
   });
@@ -39,7 +38,7 @@ describe('CartSheetComponent', () => {
     const sheet = fixture.nativeElement.querySelector('.cart-sheet') as HTMLElement;
     const height = sheet.style.getPropertyValue('--cart-sheet-height');
 
-    expect(height).toBe('min(58dvh, calc(100dvh - var(--footer-height)))');
+    expect(height).toBe('min(58dvh, 100%)');
     expect(height).not.toContain('50vh');
   });
 
@@ -577,14 +576,16 @@ describe('CartSheetComponent shell anchoring', () => {
     expect(backdrop).not.toMatch(/position:\s*fixed/);
   });
 
-  it('keeps bottom anchored to the measured footer height without a desktop +28px gutter', () => {
+  it('anchors to the stage bottom instead of a measured footer height', () => {
     const source = readSource();
     const sheet = ruleBlock(source, '.cart-sheet');
     const backdrop = ruleBlock(source, '.cart-sheet-backdrop');
     const desktop = mediaBlock(source, '@media (min-width: 900px)');
 
-    expect(sheet).toMatch(/bottom:\s*var\(--footer-height\);/);
-    expect(backdrop).toMatch(/bottom:\s*var\(--footer-height\);/);
+    expect(sheet).toMatch(/bottom:\s*0;/);
+    expect(backdrop).toMatch(/inset:\s*0/);
+    expect(backdrop).not.toMatch(/bottom:\s*var\(/);
+    expect(source).not.toMatch(/var\(--footer-height\)/);
     expect(source).not.toMatch(/var\(--footer-height\)\s*\+\s*28px/);
     expect(source).not.toMatch(/var\(--footer-height\)\s*-\s*28px/);
     expect(desktop).not.toMatch(/bottom:\s*calc\(/);
@@ -592,11 +593,12 @@ describe('CartSheetComponent shell anchoring', () => {
 });
 
 describe('CartSheetComponent compact list layout', () => {
-  it('caps the sheet at a compact height above the footer clearance', () => {
+  it('caps the sheet at a compact height within the stage above the footer', () => {
     const sheet = ruleBlock(readSource(), '.cart-sheet');
 
     expect(sheet).toMatch(/min\(58dvh/);
-    expect(sheet).toMatch(/calc\(100dvh - var\(--footer-height\)\)/);
+    expect(sheet).toMatch(/100%/);
+    expect(sheet).not.toMatch(/--footer-height/);
   });
 
   it('tightens the list rhythm so three items fit without crowding the footer', () => {

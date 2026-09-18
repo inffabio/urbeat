@@ -36,11 +36,19 @@ import { FoodDeliverySpinnerComponent } from '../food-delivery-spinner/food-deli
     }
 
     .server-access-panel {
-      width: min(320px, calc(100% - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 32px));
-      max-height: calc(100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px);
-      overflow: auto;
+      display: grid;
+      place-items: center;
+      box-sizing: border-box;
+      width: min(
+        300px,
+        calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 32px),
+        calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)
+      );
+      aspect-ratio: 1;
+      overflow: hidden;
       padding: 8px;
-      border-radius: var(--radius-lg, 18px);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .12);
     }
 
     @media (prefers-reduced-motion: reduce) {

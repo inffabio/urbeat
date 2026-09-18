@@ -641,11 +641,12 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(source).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*\.store-route\s*\{[^}]*--store-footer-clearance:\s*0px/);
   });
 
-  it('renders the footer after the routed content and the cart checkout action', () => {
+  it('renders the footer after the stage that holds the routed content and the cart sheet', () => {
     const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
 
+    expect(shellSource).toMatch(/<div class="store-stage">[\s\S]*<app-cart-sheet/);
     expect(shellSource).toMatch(
-      /<\/section>\s*@if \(showCartCheckoutAction\(\)\)[\s\S]*?\}\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/,
+      /<\/div>\s*@if \(showCartCheckoutAction\(\)\)[\s\S]*?\}\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/,
     );
   });
 
@@ -742,34 +743,28 @@ describe('StoreShellComponent footer clearance propagation', () => {
     expect(host.getAttribute('inert')).toBeNull();
   });
 
-  it('passes the measured footer clearance explicitly to the cart sheet', () => {
+  it('keeps the cart sheet inside the stage that ends at the footer instead of wiring it to the measured clearance', () => {
     const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
+    const stage = fixture.debugElement.query(By.css('.store-stage'));
     const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
     expect(cartSheet).not.toBeNull();
+    expect(stage).not.toBeNull();
+    expect(footer).not.toBeNull();
+
+    expect(stage.nativeElement.contains(cartSheet.nativeElement)).toBe(true);
+    expect(stage.nativeElement.contains(footer.nativeElement)).toBe(false);
+    expect('footerHeight' in cartSheet.componentInstance).toBe(false);
+  });
+
+  it('keeps the measured footer clearance available to the shell for the fixed checkout action', () => {
+    const footer = fixture.debugElement.query(By.directive(FooterNavComponent));
+    const shell = fixture.debugElement.query(By.css('.app-shell')).nativeElement as HTMLElement;
     expect(footer).not.toBeNull();
 
     footer.componentInstance.heightChange.emit(104);
     fixture.detectChanges();
 
-    expect(cartSheet.componentInstance.footerHeight).toBe('104px');
-  });
-
-  it('passes a concrete pixel clearance to the cart sheet instead of relying on a CSS variable indirection', () => {
-    const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
-    expect(cartSheet).not.toBeNull();
-
-    expect(cartSheet.componentInstance.footerHeight).toBe('72px');
-    expect(cartSheet.componentInstance.footerHeight).not.toContain('var(');
-  });
-
-  it('zeroes the cart sheet clearance when the footer is hidden on a checkout route', () => {
-    const router = TestBed.inject(Router);
-    jest.spyOn(router, 'url', 'get').mockReturnValue('/loja/checkout/cadastro');
-    fixture.detectChanges();
-
-    const cartSheet = fixture.debugElement.query(By.directive(CartSheetComponent));
-
-    expect(cartSheet.componentInstance.footerHeight).toBe('0px');
+    expect(shell.style.getPropertyValue('--store-footer-clearance')).toBe('104px');
   });
 
   it('clears the bag, dismisses the sheet and returns to the store menu when clearing is confirmed in the sheet', () => {
@@ -789,6 +784,106 @@ describe('StoreShellComponent footer clearance propagation', () => {
     expect(cart.items()).toEqual([]);
     expect(fixture.componentInstance.isCartSheetOpen()).toBe(false);
     expect(navigate).toHaveBeenCalledWith(['/', 'loja']);
+  });
+});
+
+describe('StoreShellComponent storefront cart sheet flow', () => {
+  let fixture: ComponentFixture<StoreShellComponent>;
+  let navigate: jest.Mock;
+
+  beforeEach(async () => {
+    navigate = jest.fn().mockResolvedValue(true);
+
+    await TestBed.configureTestingModule({
+      imports: [StoreShellComponent],
+      providers: [
+        { provide: Router, useValue: { url: '/loja', navigate } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of({ get: () => 'loja' }),
+            snapshot: { paramMap: { get: () => 'loja' } },
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '', isOpenNow: true })),
+          },
+        },
+        { provide: AuthService, useValue: { customerProfile: signal(null), logout: jest.fn(), isLoggedIn: () => false } },
+        { provide: CheckoutService, useValue: { resetCheckout: jest.fn() } },
+        {
+          provide: CustomerOrderTrackingService,
+          useValue: { activeOrders: signal([]), trackedOrders: signal([]), hasTrackedOrders: signal(false), start: jest.fn(), stop: jest.fn(), reset: jest.fn() },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(StoreShellComponent);
+    fixture.componentInstance.storeResolved.set(true);
+    (fixture.componentInstance as any).storeSlug.set('loja');
+    fixture.detectChanges();
+  });
+
+  function openSheet(): HTMLElement {
+    fixture.componentInstance.onFooterSelect('carrinho');
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('app-cart-sheet') as HTMLElement;
+  }
+
+  it('anchors the sheet inside a stage that sits above the footer instead of relying on a measured footer height', () => {
+    const stage = fixture.nativeElement.querySelector('.store-stage') as HTMLElement | null;
+    const footer = fixture.nativeElement.querySelector('app-footer-nav') as HTMLElement | null;
+
+    expect(stage).not.toBeNull();
+    expect(stage!.querySelector('app-cart-sheet')).not.toBeNull();
+    expect(stage!.querySelector('section.store-route')).not.toBeNull();
+    expect(footer).not.toBeNull();
+    expect(stage!.contains(footer)).toBe(false);
+  });
+
+  it('renders a clickable trash and next action when the sheet is opened from the footer', () => {
+    TestBed.inject(CartService).items.set([
+      { id: 'i1', productId: 'p1', productName: 'Macaribe', quantity: 1, unitPrice: 37.9 },
+      { id: 'i2', productId: 'p2', productName: 'Crepe', quantity: 1, unitPrice: 36 },
+    ]);
+    const sheet = openSheet();
+    const trash = sheet.querySelector('[data-action="clear-cart"]') as HTMLButtonElement;
+    const next = sheet.querySelector('[data-action="next-step"]') as HTMLButtonElement;
+
+    expect(trash).not.toBeNull();
+    expect(trash.disabled).toBe(false);
+    expect(next).not.toBeNull();
+    expect(next.disabled).toBe(false);
+    expect(sheet.querySelectorAll('[data-action="remove-item"]').length).toBe(2);
+  });
+
+  it('removes a single item from the integrated sheet without closing it', () => {
+    const cart = TestBed.inject(CartService);
+    cart.items.set([
+      { id: 'i1', productId: 'p1', productName: 'Macaribe', quantity: 1, unitPrice: 37.9 },
+      { id: 'i2', productId: 'p2', productName: 'Crepe', quantity: 1, unitPrice: 36 },
+    ]);
+    const sheet = openSheet();
+
+    (sheet.querySelectorAll('[data-action="remove-item"]')[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(cart.items().map((item) => item.id)).toEqual(['i2']);
+    expect(fixture.componentInstance.isCartSheetOpen()).toBe(true);
+  });
+
+  it('navigates to the cart and dismisses the sheet from the next action', () => {
+    const cart = TestBed.inject(CartService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'Macaribe', quantity: 1, unitPrice: 37.9 }]);
+    const sheet = openSheet();
+
+    (sheet.querySelector('[data-action="next-step"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(navigate).toHaveBeenCalledWith(['/', 'loja', 'carrinho']);
+    expect(fixture.componentInstance.isCartSheetOpen()).toBe(false);
   });
 });
 
@@ -1023,6 +1118,23 @@ describe('StoreShellComponent cart checkout action', () => {
     expect(structural.length).toBe(2);
     expect(structural[0].tagName.toLowerCase()).toBe('app-sticky-action-bar');
     expect(structural[1].tagName.toLowerCase()).toBe('app-footer-nav');
+  });
+
+  it('makes the sticky checkout action inert while the cart sheet is open and restores it when closed', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
+    fixture.detectChanges();
+
+    const action = fixture.nativeElement.querySelector('app-sticky-action-bar') as HTMLElement;
+    expect(action).not.toBeNull();
+    expect(action.getAttribute('inert')).toBeNull();
+
+    fixture.componentInstance.isCartSheetOpen.set(true);
+    fixture.detectChanges();
+    expect(action.getAttribute('inert')).toBe('');
+
+    fixture.componentInstance.isCartSheetOpen.set(false);
+    fixture.detectChanges();
+    expect(action.getAttribute('inert')).toBeNull();
   });
 
   it('hides the checkout action on non-cart routes even when the action is published', () => {

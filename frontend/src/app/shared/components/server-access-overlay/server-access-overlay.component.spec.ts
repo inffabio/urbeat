@@ -85,11 +85,28 @@ describe('ServerAccessOverlayComponent', () => {
     expect(panel).toMatch(/env\(safe-area-inset-bottom/);
   });
 
-  it('keeps the panel transparent while the overlay remains a pointer-blocking backdrop', () => {
+  it('wraps the spinner in a circular container with a very transparent white background', () => {
+    const panel = ruleBlock('.server-access-panel');
+    const background = panel.match(
+      /background\s*:\s*rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(0?\.\d+)\s*\)/,
+    );
+
+    expect(panel).toMatch(/aspect-ratio:\s*1/);
+    expect(panel).toMatch(/border-radius:\s*50%/);
+    expect(background).not.toBeNull();
+
+    const alpha = Number(background![1]);
+    expect(alpha).toBeGreaterThan(0);
+    expect(alpha).toBeLessThanOrEqual(0.5);
+
+    expect(panel).not.toMatch(/border-radius\s*:\s*var\(/);
+  });
+
+  it('keeps the panel translucent white while the overlay remains a pointer-blocking backdrop', () => {
     const overlay = ruleBlock('.server-access-overlay');
     const panel = ruleBlock('.server-access-panel');
 
-    expect(panel).not.toMatch(/background\s*:/);
+    expect(panel).toMatch(/background\s*:\s*rgba\(\s*255\s*,\s*255\s*,\s*255/);
     expect(panel).not.toMatch(/box-shadow\s*:/);
 
     expect(overlay).toMatch(/position:\s*fixed/);

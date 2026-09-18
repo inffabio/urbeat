@@ -23,16 +23,20 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
      <main
        class="app-shell"
        [style.--store-footer-clearance.px]="exposedFooterClearance()">
-       <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()" [attr.inert]="isCartSheetOpen() ? '' : null">
-        @if (storeResolved()) {
-          <router-outlet />
-        }
-      </section>
+       <div class="store-stage">
+         <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()" [attr.inert]="isCartSheetOpen() ? '' : null">
+           @if (storeResolved()) {
+             <router-outlet />
+           }
+         </section>
+         <app-cart-sheet [isOpen]="isCartSheetOpen()" (close)="closeCartSheet()" (next)="goToCart()" (cleared)="onCartCleared()" />
+       </div>
        @if (showCartCheckoutAction()) {
          <app-sticky-action-bar
            appearance="primary"
            icon="bag-outline"
            label="Continuar"
+           [attr.inert]="isCartSheetOpen() ? '' : null"
            [detail]="cartCheckoutAction.detail()"
            [disabled]="cartCheckoutAction.disabled()"
            (action)="cartCheckoutAction.requestContinue()" />
@@ -59,7 +63,6 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
            </button>
          </nav>
        }
-       <app-cart-sheet [isOpen]="isCartSheetOpen()" [footerHeight]="cartSheetFooterHeight()" (close)="closeCartSheet()" (next)="goToCart()" (cleared)="onCartCleared()" />
     </main>
   `,
   styles: [`
@@ -73,6 +76,18 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
       display: flex;
        flex-direction: column;
      }
+
+     /* The stage owns the area above the footer. The cart sheet is anchored to
+        its bottom, so the sheet can never slide behind the in-flow footer and
+        does not depend on an asynchronously measured footer height. */
+    .store-stage {
+      position: relative;
+      flex: 1 1 0;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
      /* The route owns scrolling; the footer is a real flex item below it. */
     .store-route {
@@ -287,10 +302,6 @@ export class StoreShellComponent implements OnInit, OnDestroy {
 
   exposedFooterClearance(): number {
     return this.storeResolved() && this.showFooterNav() ? this.footerClearance() : 0;
-  }
-
-  cartSheetFooterHeight(): string {
-    return `${this.exposedFooterClearance()}px`;
   }
 
   openAccountMenu(): void {

@@ -27,7 +27,6 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
       <div
         class="cart-sheet-backdrop cart-sheet-backdrop-above-footer"
         role="presentation"
-        [style.--footer-height]="footerHeight"
         (click)="close.emit()"></div>
       <section
         #dialog
@@ -37,7 +36,6 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
         aria-labelledby="cart-sheet-title"
         tabindex="-1"
         [attr.inert]="showClearConfirm() ? '' : null"
-        [style.--footer-height]="footerHeight"
         [style.--cart-sheet-height]="sheetHeight"
         (click)="$event.stopPropagation()">
         <button
@@ -147,16 +145,15 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-backdrop {
       position: absolute;
       inset: 0;
-      bottom: var(--footer-height);
       z-index: 60;
       background: rgba(22, 22, 22, .34);
       animation: cart-sheet-fade-in .24s ease-out both;
     }
     .cart-sheet {
-      --cart-sheet-height: min(58dvh, calc(100dvh - var(--footer-height)));
+      --cart-sheet-height: min(58dvh, 100%);
       position: absolute;
       left: 50%;
-      bottom: var(--footer-height);
+      bottom: 0;
       z-index: 80;
       display: flex;
       flex-direction: column;
@@ -267,8 +264,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
 export class CartSheetComponent implements OnChanges, AfterViewChecked {
   readonly cart = inject(CartService);
   @Input() isOpen = false;
-  @Input() footerHeight = 'var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))))';
-  @Input() sheetHeight = 'min(58dvh, calc(100dvh - var(--footer-height)))';
+  @Input() sheetHeight = 'min(58dvh, 100%)';
   @Output() readonly close = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();
   @Output() readonly cleared = new EventEmitter<void>();
