@@ -133,7 +133,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
             <p>Todos os itens serão removidos.</p>
             <div class="modal-actions">
               <button type="button" class="btn-secondary modal-action" (click)="cancelClear()">Cancelar</button>
-              <button type="button" class="btn-primary modal-action modal-confirm" (click)="confirmClear()">Sim</button>
+              <button type="button" class="btn-primary modal-action modal-confirm" (click)="confirmClear()">Excluir</button>
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@ import { BrlCurrencyPipe } from '../../pipes/brl-currency.pipe';
     .cart-sheet-backdrop {
       position: absolute;
       inset: 0;
-      z-index: 60;
+      z-index: 76;
       background: rgba(22, 22, 22, .34);
       animation: cart-sheet-fade-in .24s ease-out both;
     }

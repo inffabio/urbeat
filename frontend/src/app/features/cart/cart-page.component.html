@@ -1,4 +1,4 @@
-<ion-content class="cart-content">
+<ion-content class="cart-content" [attr.inert]="showClearConfirm() ? '' : null">
   <header class="page-head center">
     <button class="circle-btn" (click)="onBack()" aria-label="Voltar">
       <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
@@ -18,7 +18,7 @@
       }
     </div>
 
-    <button class="circle-btn" [disabled]="cart.isEmpty()" (click)="promptClear()" aria-label="Limpar carrinho">
+    <button #clearTrigger class="circle-btn" [disabled]="cart.isEmpty()" (click)="promptClear()" aria-label="Limpar carrinho">
       <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
     </button>
   </header>
@@ -214,16 +214,24 @@
     </section>
   }
 
-  @if (showClearConfirm()) {
-    <div class="modal-overlay" (click)="cancelClear()">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" (click)="$event.stopPropagation()">
-        <h2 id="confirm-title">Deseja apagar todos os itens do carrinho?</h2>
-        <p>Todos os itens serão removidos.</p>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="cancelClear()">Cancelar</button>
-          <button type="button" class="btn-primary modal-confirm" (click)="confirmClear()">Sim</button>
-        </div>
+</ion-content>
+
+@if (showClearConfirm()) {
+  <div class="modal-overlay" (click)="cancelClear()">
+    <div
+      #clearModal
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()">
+      <h2 id="confirm-title">Deseja apagar todos os itens do carrinho?</h2>
+      <p>Todos os itens serão removidos.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cancelClear()">Cancelar</button>
+        <button type="button" class="btn-primary modal-confirm" (click)="confirmClear()">Excluir</button>
       </div>
     </div>
-  }
-</ion-content>
+  </div>
+}

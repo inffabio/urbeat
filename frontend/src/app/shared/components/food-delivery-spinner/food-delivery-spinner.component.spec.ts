@@ -71,6 +71,13 @@ describe('FoodDeliverySpinnerComponent', () => {
     );
   });
 
+  it('renders only the transparent scene so the outer overlay circle is the sole background', () => {
+    const scene = ruleBlock('.delivery-rider-scene');
+
+    expect(scene).not.toMatch(/background(-color|-image)?\s*:/);
+    expect(scene).not.toMatch(/border-radius\s*:/);
+  });
+
   it('assembles the burger layers with staggered motion and respects reduced motion', () => {
     const styles = componentSource();
 

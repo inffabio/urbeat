@@ -235,8 +235,109 @@ describe('CartPageComponent', () => {
       .map((button) => (button.nativeElement.textContent as string).trim());
 
     expect(modalText).toContain('Deseja apagar todos os itens do carrinho?');
-    expect(buttonLabels).toContain('Sim');
+    expect(buttonLabels).toContain('Excluir');
     expect(buttonLabels).toContain('Cancelar');
+  });
+
+  it('gives the clear-cart confirmation dialog a focusable target and moves focus into it when opened', async () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const trigger = fixture.debugElement.query(By.css('[aria-label="Limpar carrinho"]')).nativeElement as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.debugElement.query(By.css('.modal')).nativeElement as HTMLElement;
+
+    expect(modal.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(modal);
+  });
+
+  it('makes the underlying cart content inert while the clear confirmation is open', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const content = fixture.debugElement.query(By.css('ion-content')).nativeElement as HTMLElement;
+    expect(content.hasAttribute('inert')).toBe(false);
+
+    (fixture.debugElement.query(By.css('[aria-label="Limpar carrinho"]')).nativeElement as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(content.hasAttribute('inert')).toBe(true);
+
+    const cancel = fixture.debugElement
+      .queryAll(By.css('.modal-actions button'))
+      .find((button) => (button.nativeElement.textContent as string).trim() === 'Cancelar')!.nativeElement as HTMLButtonElement;
+    cancel.click();
+    fixture.detectChanges();
+
+    expect(content.hasAttribute('inert')).toBe(false);
+  });
+
+  it('cancels the clear confirmation on Escape without clearing the cart', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.showClearConfirm.set(true);
+    fixture.detectChanges();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showClearConfirm()).toBe(false);
+    expect(cart.items().length).toBe(1);
+    expect(fixture.debugElement.query(By.css('.modal'))).toBeNull();
+  });
+
+  it('restores focus to the clear trigger when the confirmation is cancelled', async () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const trigger = fixture.debugElement.query(By.css('[aria-label="Limpar carrinho"]')).nativeElement as HTMLButtonElement;
+    trigger.focus();
+    trigger.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.debugElement.query(By.css('.modal')).nativeElement as HTMLElement;
+    expect(modal.contains(document.activeElement)).toBe(true);
+
+    const cancel = fixture.debugElement
+      .queryAll(By.css('.modal-actions button'))
+      .find((button) => (button.nativeElement.textContent as string).trim() === 'Cancelar')!.nativeElement as HTMLButtonElement;
+    cancel.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('restores focus to the clear trigger when Escape cancels the confirmation', async () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const trigger = fixture.debugElement.query(By.css('[aria-label="Limpar carrinho"]')).nativeElement as HTMLButtonElement;
+    trigger.focus();
+    trigger.click();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const modal = fixture.debugElement.query(By.css('.modal')).nativeElement as HTMLElement;
+    expect(modal.contains(document.activeElement)).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    expect(document.activeElement).toBe(trigger);
   });
 
   it('should keep the cart populated and not navigate when the clear confirmation is cancelled', () => {
@@ -267,10 +368,10 @@ describe('CartPageComponent', () => {
     fixture.componentInstance.showClearConfirm.set(true);
     fixture.detectChanges();
 
-    const simButton = fixture.debugElement
+    const excluirButton = fixture.debugElement
       .queryAll(By.css('.modal-actions button'))
-      .find((button) => (button.nativeElement.textContent as string).trim() === 'Sim');
-    simButton!.nativeElement.click();
+      .find((button) => (button.nativeElement.textContent as string).trim() === 'Excluir');
+    excluirButton!.nativeElement.click();
     fixture.detectChanges();
 
     expect(cart.items()).toEqual([]);
@@ -463,3 +564,7 @@ describe('CartPageComponent', () => {
     expect(checkoutServiceMock.preview).not.toHaveBeenCalled();
   });
 });
+
+function flushMicrotasks(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}

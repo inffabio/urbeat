@@ -57,6 +57,21 @@ describe('CartSheetComponent', () => {
     expect(backdropZ).toBeLessThan(sheetZ);
   });
 
+  it('stacks the backdrop above the sticky action bar and below the sheet and confirmation modal', () => {
+    const source = readSource();
+    const stickySource = readFileSync(resolve(__dirname, '../sticky-action-bar/sticky-action-bar.component.ts'), 'utf8');
+    const stickyZ = Number(stickySource.match(/:host\s*\{[\s\S]*?z-index:\s*(\d+)/)?.[1]);
+    const backdropZ = Number(ruleBlock(source, '.cart-sheet-backdrop').match(/z-index:\s*(\d+)/)?.[1]);
+    const sheetZ = Number(ruleBlock(source, '.cart-sheet').match(/z-index:\s*(\d+)/)?.[1]);
+    const modalZ = Number(ruleBlock(source, '.modal-overlay').match(/z-index:\s*(\d+)/)?.[1]);
+
+    expect(stickyZ).toBe(75);
+    expect(backdropZ).toBe(76);
+    expect(backdropZ).toBeGreaterThan(stickyZ);
+    expect(backdropZ).toBeLessThan(sheetZ);
+    expect(backdropZ).toBeLessThan(modalZ);
+  });
+
   it('keeps the item list as the only scroll region and the footer stationary', () => {
     const source = readFileSync(resolve(__dirname, 'cart-sheet.component.ts'), 'utf8');
     const sheetBlock = source.match(/\.cart-sheet\s*\{([^}]*)\}/);
@@ -711,7 +726,7 @@ describe('CartSheetComponent cart parity', () => {
     expect(modal.textContent).toContain('Deseja apagar todos os itens do carrinho?');
 
     const labels = Array.from(modal.querySelectorAll('.modal-actions button')).map((button) => (button.textContent ?? '').trim());
-    expect(labels).toEqual(['Cancelar', 'Sim']);
+    expect(labels).toEqual(['Cancelar', 'Excluir']);
   });
 
   it('makes the underlying sheet inert while the clear confirmation is open and clears it on cancel', () => {

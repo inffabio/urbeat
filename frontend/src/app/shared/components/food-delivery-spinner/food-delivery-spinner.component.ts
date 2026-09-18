@@ -49,10 +49,6 @@ import { CommonModule } from '@angular/common';
       aspect-ratio: 280 / 150;
       display: grid;
       place-items: center;
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at 50% 51%, rgba(185, 47, 72, .08), transparent 43%),
-        linear-gradient(135deg, rgba(255,255,255,.94), rgba(255,255,255,.52));
       overflow: hidden;
     }
 

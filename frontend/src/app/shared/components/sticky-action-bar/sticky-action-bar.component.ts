@@ -29,7 +29,7 @@ import { IonIcon } from '@ionic/angular/standalone';
       position: fixed;
       left: 50%;
       bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
-      z-index: 40;
+      z-index: 75;
       width: min(430px, 100%);
       max-width: 100%;
       padding: 0 12px;

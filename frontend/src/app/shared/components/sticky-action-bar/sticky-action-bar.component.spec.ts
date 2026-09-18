@@ -86,3 +86,31 @@ describe('StickyActionBarComponent footer clearance', () => {
     expect(source).not.toMatch(/bottom:\s*calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\);/);
   });
 });
+
+describe('StickyActionBarComponent layering', () => {
+  function ruleZIndex(source: string, selector: string): number {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const block = source.match(new RegExp(`${escaped}\\s*\\{([\\s\\S]*?)\\}`))?.[1] ?? '';
+    return Number(block.match(/z-index:\s*(\d+)/)?.[1]);
+  }
+
+  it('stacks above the storefront footer and below the cart sheet and its confirmation modal', () => {
+    const sticky = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+    const footer = readFileSync(resolve(__dirname, '../footer-nav/footer-nav.component.ts'), 'utf8');
+    const sheet = readFileSync(resolve(__dirname, '../cart-sheet/cart-sheet.component.ts'), 'utf8');
+
+    const stickyZ = ruleZIndex(sticky, ':host');
+    const footerZ = ruleZIndex(footer, ':host');
+    const sheetZ = ruleZIndex(sheet, '.cart-sheet');
+    const modalZ = ruleZIndex(sheet, '.modal-overlay');
+
+    expect(Number.isFinite(stickyZ)).toBe(true);
+    expect(Number.isFinite(footerZ)).toBe(true);
+    expect(Number.isFinite(sheetZ)).toBe(true);
+    expect(Number.isFinite(modalZ)).toBe(true);
+
+    expect(stickyZ).toBeGreaterThan(footerZ);
+    expect(stickyZ).toBeLessThan(sheetZ);
+    expect(stickyZ).toBeLessThan(modalZ);
+  });
+});
