@@ -283,12 +283,25 @@ describe('ProductDetailPageComponent', () => {
     expect(footer).toMatch(/padding:\s*12px 18px/);
   });
 
+  it('preserves the top safe area on the sheet handle while zeroing only the bottom offset', () => {
+    const styles = readStyles();
+    const content = ruleBlock(styles, '.product-detail-content');
+    const handle = ruleBlock(styles, '.product-handle');
+
+    expect(content).toMatch(/--offset-bottom:\s*0px\s*!important/);
+    expect(content).toMatch(/--overflow:\s*hidden/);
+    expect(content).not.toMatch(/--offset-top:\s*0px\s*!important/);
+
+    expect(handle).toMatch(/padding-top:\s*env\(safe-area-inset-top/);
+    expect(handle).toMatch(/min-height:\s*calc\(44px \+ env\(safe-area-inset-top/);
+  });
+
   it('renders a 44px-plus visual handle that dismisses the sheet on click', () => {
     const styles = readStyles();
     const handleRule = ruleBlock(styles, '.product-handle');
     const strokeRule = ruleBlock(styles, '.product-handle-stroke');
 
-    expect(handleRule).toMatch(/height:\s*44px/);
+    expect(handleRule).toMatch(/min-height:\s*calc\(44px \+ env\(safe-area-inset-top/);
     expect(handleRule).toMatch(/touch-action:\s*none/);
     expect(strokeRule).toMatch(/width:\s*36px/);
     expect(strokeRule).toMatch(/height:\s*4px/);
