@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { registerIcons } from './core/icons';
+import { AppUpdateService } from './core/services/app-update.service';
 
 registerIcons();
 
@@ -10,4 +11,10 @@ registerIcons();
   imports: [IonApp, IonRouterOutlet],
   template: `<ion-app><ion-router-outlet /></ion-app>`,
 })
-export class AppComponent {}
+export class AppComponent {
+  private readonly appUpdate = inject(AppUpdateService);
+
+  constructor() {
+    this.appUpdate.init();
+  }
+}
