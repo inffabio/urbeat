@@ -91,7 +91,7 @@
               }
               <strong class="cart-product-price">{{ item.unitPrice * item.quantity | brl }}</strong>
             </div>
-            <button class="cart-remove" aria-label="Remover {{ item.productName }}" (click)="remove(item.id!)">
+            <button class="cart-remove" aria-label="Remover {{ item.productName }}" (click)="remove(item)">
               <ion-icon name="close"></ion-icon>
             </button>
             <div class="cart-qty-pill" aria-label="Quantidade de {{ item.productName }}">
@@ -227,14 +227,3 @@
     </div>
   }
 </ion-content>
-
-@if (!cart.isEmpty()) {
-  <app-sticky-action-bar
-    appearance="primary"
-    icon="bag-outline"
-    label="Continuar"
-    detail="Escolha endereço e pagamento"
-    [disabled]="belowMinimum() || !storeOpen()"
-    (action)="continueCheckout()"
-  />
-}

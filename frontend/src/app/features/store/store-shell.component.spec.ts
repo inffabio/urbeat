@@ -9,6 +9,8 @@ import { resolve } from 'node:path';
 import { StoreShellComponent } from './store-shell.component';
 import { FooterNavComponent } from '../../shared/components/footer-nav/footer-nav.component';
 import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-sheet.component';
+import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { StoreService } from '../../core/services/store.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
@@ -639,10 +641,12 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(source).toMatch(/@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*\.store-route\s*\{[^}]*--store-footer-clearance:\s*0px/);
   });
 
-  it('renders the footer as the last structural element after the routed store content', () => {
+  it('renders the footer after the routed content and the cart checkout action', () => {
     const shellSource = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
 
-    expect(shellSource).toMatch(/<\/section>\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/);
+    expect(shellSource).toMatch(
+      /<\/section>\s*@if \(showCartCheckoutAction\(\)\)[\s\S]*?\}\s*@if \(storeResolved\(\) && showFooterNav\(\)\)\s*\{\s*<app-footer-nav/,
+    );
   });
 
   it('marks the routed store surface inert while the cart sheet is open using a strict-compatible binding', () => {
@@ -964,5 +968,94 @@ describe('StoreShellComponent storefront surface background', () => {
     fixture.componentInstance.isCartSheetOpen.set(false);
     fixture.detectChanges();
     expect(storeRouteElement().getAttribute('inert')).toBeNull();
+  });
+});
+
+describe('StoreShellComponent cart checkout action', () => {
+  let fixture: ComponentFixture<StoreShellComponent>;
+  let urlSpy: jest.SpyInstance;
+
+  function routeTo(url: string): void {
+    urlSpy.mockReturnValue(url);
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [StoreShellComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of({ get: () => 'loja' }),
+            snapshot: { paramMap: { get: () => 'loja' } },
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreByPath: jest.fn().mockReturnValue(of({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '', isOpenNow: true })),
+          },
+        },
+        { provide: AuthService, useValue: { customerProfile: signal(null), logout: jest.fn() } },
+        { provide: CheckoutService, useValue: { resetCheckout: jest.fn() } },
+        { provide: CustomerOrderTrackingService, useValue: { activeOrders: signal([]), trackedOrders: signal([]), hasTrackedOrders: signal(false), start: jest.fn(), stop: jest.fn(), reset: jest.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(StoreShellComponent);
+    fixture.componentInstance.storeResolved.set(true);
+    (fixture.componentInstance as any).storeSlug.set('loja');
+    urlSpy = jest.spyOn(TestBed.inject(Router), 'url', 'get');
+    urlSpy.mockReturnValue('/loja/carrinho');
+    fixture.detectChanges();
+  });
+
+  it('places the checkout action directly before the footer on the cart route', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
+    fixture.detectChanges();
+
+    const structural = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('app-sticky-action-bar, app-footer-nav'),
+    ) as HTMLElement[];
+
+    expect(structural.length).toBe(2);
+    expect(structural[0].tagName.toLowerCase()).toBe('app-sticky-action-bar');
+    expect(structural[1].tagName.toLowerCase()).toBe('app-footer-nav');
+  });
+
+  it('hides the checkout action on non-cart routes even when the action is published', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
+    routeTo('/loja');
+
+    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).toBeNull();
+  });
+
+  it('hides the checkout action when the cart page has not published a visible state', () => {
+    routeTo('/loja/carrinho');
+
+    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).toBeNull();
+  });
+
+  it('binds the disabled condition from the shared checkout action service', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: true });
+    fixture.detectChanges();
+
+    const action = fixture.debugElement.query(By.directive(StickyActionBarComponent));
+    expect(action).not.toBeNull();
+    expect(action.componentInstance.disabled).toBe(true);
+    expect((action.nativeElement.querySelector('.sticky-action') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('forwards the action click to the shared continue request stream', () => {
+    const service = TestBed.inject(CartCheckoutActionService);
+    const requestContinue = jest.spyOn(service, 'requestContinue');
+    service.setState({ visible: true, disabled: false });
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.sticky-action') as HTMLButtonElement).click();
+
+    expect(requestContinue).toHaveBeenCalledTimes(1);
   });
 });

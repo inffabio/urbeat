@@ -41,8 +41,6 @@ import { FoodDeliverySpinnerComponent } from '../food-delivery-spinner/food-deli
       overflow: auto;
       padding: 8px;
       border-radius: var(--radius-lg, 18px);
-      background: var(--app-surface, #fff);
-      box-shadow: var(--shadow-lg, 0 30px 90px rgba(0, 0, 0, .18));
     }
 
     @media (prefers-reduced-motion: reduce) {

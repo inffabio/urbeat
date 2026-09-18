@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { CartPageComponent } from './cart-page.component';
 import { CartService } from '../../core/services/cart.service';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { CheckoutService } from '../../core/services/checkout.service';
 import { StoreService } from '../../core/services/store.service';
 import { Router } from '@angular/router';
@@ -17,7 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
 
 describe('CartPageComponent', () => {
   let cart: CartService;
-  let storeServiceMock: { getStoreById: jest.Mock };
+  let storeServiceMock: { getStoreById: jest.Mock; getStoreByPath: jest.Mock };
   let checkoutServiceMock: { fulfillmentType: ReturnType<typeof signal<FulfillmentType>>; customerAddressId: ReturnType<typeof signal<string | null>>; preview: jest.Mock };
   let routerMock: { navigate: jest.Mock; url: string };
   let routeParentParamGetMock: jest.Mock;
@@ -79,24 +80,75 @@ describe('CartPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.qty-plus ion-icon')).componentInstance.name).toBe('add');
   });
 
-  it('should keep the checkout action fixed above the storefront footer for any item count', () => {
+  it('removes the clicked item from the cart page even when the item has no id', () => {
     cart.items.set([
-      { id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 },
-      { id: 'i2', productId: 'p2', productName: 'Batata frita', quantity: 2, unitPrice: 12 },
-      { id: 'i3', productId: 'p3', productName: 'Refrigerante', quantity: 1, unitPrice: 8 },
-      { id: 'i4', productId: 'p4', productName: 'Sobremesa', quantity: 1, unitPrice: 15 },
+      { productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 },
+      { productId: 'p2', productName: 'Suco', quantity: 1, unitPrice: 5 },
     ]);
 
     const fixture = TestBed.createComponent(CartPageComponent);
     fixture.detectChanges();
 
-    const actionBar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    const removeButtons = fixture.debugElement.queryAll(By.css('.cart-remove'));
+    expect(removeButtons.length).toBe(2);
 
-    expect(actionBar).not.toBeNull();
-    expect(actionBar.componentInstance.placement).toBe('fixed');
-    expect(actionBar.nativeElement.classList.contains('in-flow')).toBe(false);
-    expect(fixture.debugElement.query(By.css('.continue-large'))).toBeNull();
-    expect(fixture.debugElement.query(By.css('.link-orange'))).toBeNull();
+    removeButtons[0].nativeElement.click();
+    fixture.detectChanges();
+
+    expect(cart.items().map((item) => item.productName)).toEqual(['Suco']);
+  });
+
+  it('publishes the checkout action visibility and disabled state for the shell', () => {
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+
+    expect(action.visible()).toBe(true);
+    expect(action.disabled()).toBe(false);
+  });
+
+  it('marks the shell checkout action disabled while the cart is below the delivery minimum', () => {
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 5 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+
+    expect(action.visible()).toBe(true);
+    expect(action.disabled()).toBe(true);
+  });
+
+  it('routes a continue request from the shell action into checkout navigation', () => {
+    const action = TestBed.inject(CartCheckoutActionService);
+    routerMock.url = '/carrinho';
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    action.requestContinue();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'cadastro']);
+  });
+
+  it('resets the shared checkout action state when the cart page is destroyed', () => {
+    const action = TestBed.inject(CartCheckoutActionService);
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+    TestBed.flushEffects();
+    expect(action.visible()).toBe(true);
+
+    fixture.destroy();
+
+    expect(action.visible()).toBe(false);
+    expect(action.disabled()).toBe(false);
   });
 
   it('should keep the cart content out of fullscreen mode so the header is not clipped', () => {
@@ -116,24 +168,13 @@ describe('CartPageComponent', () => {
     );
   });
 
-  it('does not opt the cart action bar out of the shared fixed placement', () => {
-    const template = readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8');
-
-    expect(template).not.toContain('placement="inline"');
-  });
-
-  it('uses the primary appearance for the cart checkout action', () => {
-    const template = readFileSync(resolve(__dirname, 'cart-page.component.html'), 'utf8');
-
-    expect(template).toContain('appearance="primary"');
-
+  it('does not render the checkout action inside the routed cart page', () => {
     cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+
     const fixture = TestBed.createComponent(CartPageComponent);
     fixture.detectChanges();
 
-    const actionBar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
-    expect(actionBar.componentInstance.appearance).toBe('primary');
-    expect(actionBar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).toBeNull();
   });
 
   it('uses the available viewport height without a fixed height that breaks scrolling', () => {
@@ -351,5 +392,74 @@ describe('CartPageComponent', () => {
       .replace(/\u00a0/g, ' ');
     expect(summaryText).toContain('R$ 8,00');
     expect(summaryText).toContain('R$ 28,00');
+  });
+
+  it('does not apply or reschedule a pending store request that resolves after destroy', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-07-28T20:59:59.000Z'));
+    const pending = new Subject<any>();
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    storeServiceMock.getStoreById.mockReturnValue(pending.asObservable());
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    fixture.destroy();
+    pending.next({ id: 's1', isOpenNow: true, nextStatusChangeAt: '2026-07-28T21:00:00.000Z' });
+    jest.advanceTimersByTime(5000);
+
+    expect(fixture.componentInstance.store()).toBeNull();
+    expect(storeServiceMock.getStoreById).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('ignores a pending route store lookup that resolves after destroy', () => {
+    const pending = new Subject<any>();
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    routeParentParamGetMock.mockReturnValue('loja');
+    storeServiceMock.getStoreByPath.mockReturnValue(pending.asObservable());
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    fixture.destroy();
+    pending.next({ id: 's1', name: 'Loja', logoUrl: '' });
+
+    expect(cart.storeId()).toBeNull();
+    expect(storeServiceMock.getStoreById).not.toHaveBeenCalled();
+  });
+
+  it('ignores a pending checkout preview that resolves after destroy', () => {
+    const pending = new Subject<any>();
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    checkoutServiceMock.preview.mockReturnValue(pending.asObservable());
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    fixture.destroy();
+    pending.next({ deliveryFee: 9, minimumOrderValue: 30, freeShippingApplied: true });
+
+    expect(fixture.componentInstance.deliveryFee()).toBe(0);
+    expect(fixture.componentInstance.deliveryFeeKnown()).toBe(false);
+    expect(fixture.componentInstance.minimumOrderValue()).toBe(15);
+  });
+
+  it('ignores a pending customer session restore that resolves after destroy', () => {
+    const pending = new Subject<any>();
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    authServiceMock.restoreCustomerSession.mockReturnValue(pending.asObservable());
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    fixture.destroy();
+    pending.next({ primaryAddressId: 'addr1' });
+
+    expect(checkoutServiceMock.customerAddressId()).toBeNull();
+    expect(checkoutServiceMock.preview).not.toHaveBeenCalled();
   });
 });

@@ -1,22 +1,25 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, DestroyRef, inject, signal, computed, effect, EffectRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { Subscription } from 'rxjs';
 
 import { CartService } from '../../core/services/cart.service';
 import { CheckoutService } from '../../core/services/checkout.service';
 import { StoreService } from '../../core/services/store.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { StorePublicDetails } from '../../shared/models/store.model';
+import { CartItem } from '../../shared/models/cart-item.model';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { BackToMenuLinkComponent } from '../../shared/components/back-to-menu-link/back-to-menu-link.component';
-import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
 @Component({
   selector: 'app-cart-page',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent, StickyActionBarComponent],
+  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.scss',
 })
@@ -28,6 +31,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
   private readonly location = inject(Location);
   private readonly storeService = inject(StoreService);
   private readonly auth = inject(AuthService);
+  private readonly checkoutAction = inject(CartCheckoutActionService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly FulfillmentType = FulfillmentType;
   readonly deliveryFee = signal(0);
@@ -42,6 +47,20 @@ export class CartPageComponent implements OnInit, OnDestroy {
   readonly dataLoading = signal(false);
   private statusRefreshTimer: ReturnType<typeof setTimeout> | null = null;
   private storeId = '';
+  private readonly checkoutActionEffect: EffectRef;
+  private readonly continueRequestSubscription: Subscription;
+
+  constructor() {
+    this.checkoutActionEffect = effect(() => {
+      this.checkoutAction.setState({
+        visible: !this.cart.isEmpty(),
+        disabled: this.belowMinimum() || !this.storeOpen(),
+      });
+    });
+    this.continueRequestSubscription = this.checkoutAction.continueRequested.subscribe(() => {
+      this.continueCheckout();
+    });
+  }
 
   readonly fulfillment = computed(() => this.checkout.fulfillmentType());
   readonly subtotal = this.cart.subtotal;
@@ -101,7 +120,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
       }
 
       this.dataLoading.set(true);
-      this.storeService.getStoreByPath(storePath).subscribe({
+      this.storeService.getStoreByPath(storePath).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (store) => {
           this.cart.setStore(store.id, store.name, store.logoUrl);
           this.storeId = store.id;
@@ -123,12 +142,15 @@ export class CartPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearStatusRefreshTimer();
+    this.checkoutActionEffect.destroy();
+    this.continueRequestSubscription.unsubscribe();
+    this.checkoutAction.reset();
   }
 
   private loadStore(storeId: string): void {
     this.storeLoadError.set(false);
     this.dataLoading.set(true);
-    this.storeService.getStoreById(storeId).subscribe({
+    this.storeService.getStoreById(storeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (store) => {
         this.store.set(store);
         this.scheduleStatusRefresh(store);
@@ -159,6 +181,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
          customerAddressId: this.checkout.customerAddressId() ?? undefined,
          items: this.cart.toCheckoutItems(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.deliveryFee.set(res.deliveryFee);
@@ -221,7 +244,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
   private refreshStoreStatus(): void {
     if (!this.storeId) return;
 
-    this.storeService.getStoreById(this.storeId).subscribe({
+    this.storeService.getStoreById(this.storeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (store) => {
         this.store.set(store);
         this.scheduleStatusRefresh(store);
@@ -257,8 +280,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
     this.cart.updateQuantity(id, item.quantity - 1);
   }
 
-  remove(id: string): void {
-    this.cart.removeItem(id);
+  remove(item: CartItem): void {
+    this.cart.removeItem(item);
   }
 
   setFulfillment(type: FulfillmentType): void {
@@ -303,7 +326,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.auth.restoreCustomerSession().subscribe({
+    this.auth.restoreCustomerSession().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (profile) => {
         if (profile?.primaryAddressId) this.checkout.customerAddressId.set(profile.primaryAddressId);
         this.loadCheckoutPreview(storeId);

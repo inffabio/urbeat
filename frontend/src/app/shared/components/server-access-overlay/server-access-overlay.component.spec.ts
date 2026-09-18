@@ -84,4 +84,17 @@ describe('ServerAccessOverlayComponent', () => {
     expect(panel).toMatch(/env\(safe-area-inset-top/);
     expect(panel).toMatch(/env\(safe-area-inset-bottom/);
   });
+
+  it('keeps the panel transparent while the overlay remains a pointer-blocking backdrop', () => {
+    const overlay = ruleBlock('.server-access-overlay');
+    const panel = ruleBlock('.server-access-panel');
+
+    expect(panel).not.toMatch(/background\s*:/);
+    expect(panel).not.toMatch(/box-shadow\s*:/);
+
+    expect(overlay).toMatch(/position:\s*fixed/);
+    expect(overlay).toMatch(/inset:\s*0/);
+    expect(overlay).toMatch(/touch-action:\s*none/);
+    expect(overlay).toMatch(/background\s*:\s*var\(--app-overlay/);
+  });
 });

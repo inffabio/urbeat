@@ -10,13 +10,15 @@ import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckoutService } from '../../core/services/checkout.service';
 import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { FooterNavComponent, FooterNavItem } from '../../shared/components/footer-nav/footer-nav.component';
 import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-sheet.component';
+import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
 @Component({
   selector: 'app-store-shell',
   standalone: true,
-    imports: [CommonModule, RouterOutlet, IonIcon, FooterNavComponent, CartSheetComponent],
+    imports: [CommonModule, RouterOutlet, IonIcon, FooterNavComponent, CartSheetComponent, StickyActionBarComponent],
   template: `
      <main
        class="app-shell"
@@ -26,6 +28,15 @@ import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-shee
           <router-outlet />
         }
       </section>
+       @if (showCartCheckoutAction()) {
+         <app-sticky-action-bar
+           appearance="primary"
+           icon="bag-outline"
+           label="Continuar"
+           [detail]="cartCheckoutAction.detail()"
+           [disabled]="cartCheckoutAction.disabled()"
+           (action)="cartCheckoutAction.requestContinue()" />
+       }
        @if (storeResolved() && showFooterNav()) {
          <app-footer-nav
            [class.sheet-open]="isCartSheetOpen() || isAccountMenuOpen()"
@@ -155,6 +166,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   readonly storeContext = inject(StoreContextService);
   private readonly checkout = inject(CheckoutService);
   private readonly tracking = inject(CustomerOrderTrackingService);
+  readonly cartCheckoutAction = inject(CartCheckoutActionService);
 
   readonly storeResolved = signal(false);
   readonly isCartSheetOpen = signal(false);
@@ -247,6 +259,10 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   showFooterNav(): boolean {
     const isPayment = this.router.url.includes('/checkout/pagamento');
     return !this.router.url.includes('/checkout/') || isPayment;
+  }
+
+  showCartCheckoutAction(): boolean {
+    return this.cartCheckoutAction.visible() && this.router.url.includes('/carrinho');
   }
 
   navigate(path: string): void {

@@ -45,7 +45,7 @@ export class CartService {
 
   addItem(item: CartItem): void {
     if (!item.id) {
-      item.id = window.crypto.randomUUID ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9);
+      item.id = this.generateItemId();
     }
     this.items.update((current) => {
       const existing = current.find(
@@ -143,10 +143,36 @@ export class CartService {
       this.storeId.set(data.storeId ?? null);
       this.storeName.set(data.storeName ?? null);
       this.storeLogoUrl.set(data.storeLogoUrl ?? null);
-      this.items.set(data.items ?? []);
+      this.items.set(this.normalizePersistedItems(data.items ?? []));
     } catch {
       // ignore
     }
+  }
+
+  // Older persisted carts may not carry the per-entry frontend id; without it
+  // the UI cannot address a single item for removal. Fill missing ids and
+  // replace duplicates with fresh ones so every entry stays individually
+  // addressable, while unique existing ids remain stable across reloads.
+  private normalizePersistedItems(items: CartItem[]): CartItem[] {
+    const usedIds = new Set<string>();
+    return items.map((item) => {
+      if (item.id && !usedIds.has(item.id)) {
+        usedIds.add(item.id);
+        return item;
+      }
+      let id = this.generateItemId();
+      while (usedIds.has(id)) {
+        id = this.generateItemId();
+      }
+      usedIds.add(id);
+      return { ...item, id };
+    });
+  }
+
+  private generateItemId(): string {
+    return window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 9);
   }
 
   // Legacy global localStorage entries are intentionally discarded rather than

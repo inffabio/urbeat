@@ -103,6 +103,85 @@ describe('CartService tab-scoped persistence', () => {
     expect(localStorage.getItem(LEGACY_STORE_KEY)).toBeNull();
   });
 
+  it('assigns stable distinct ids to persisted items missing one so they can be removed', () => {
+    sessionStorage.setItem(
+      CART_KEY,
+      JSON.stringify({
+        storeId: 'store-1',
+        storeName: 'Loja 1',
+        storeLogoUrl: null,
+        items: [
+          { productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 10 },
+          { productId: 'p2', productName: 'Suco', quantity: 1, unitPrice: 5 },
+        ],
+      }),
+    );
+
+    const cart = createCart();
+    const [first, second] = cart.items();
+
+    expect(first.id).toBeTruthy();
+    expect(second.id).toBeTruthy();
+    expect(first.id).not.toBe(second.id);
+
+    cart.removeItem(first);
+
+    expect(cart.items().map((item) => item.productId)).toEqual(['p2']);
+  });
+
+  it('keeps existing persisted ids untouched while filling only the missing ones', () => {
+    sessionStorage.setItem(
+      CART_KEY,
+      JSON.stringify({
+        storeId: 'store-1',
+        storeName: 'Loja 1',
+        storeLogoUrl: null,
+        items: [
+          { id: 'keep-me', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 10 },
+          { productId: 'p2', productName: 'Suco', quantity: 1, unitPrice: 5 },
+        ],
+      }),
+    );
+
+    const cart = createCart();
+    const [first, second] = cart.items();
+
+    expect(first.id).toBe('keep-me');
+    expect(second.id).toBeTruthy();
+    expect(second.id).not.toBe('keep-me');
+  });
+
+  it('replaces duplicate persisted ids with fresh distinct ids while preserving unique ones', () => {
+    sessionStorage.setItem(
+      CART_KEY,
+      JSON.stringify({
+        storeId: 'store-1',
+        storeName: 'Loja 1',
+        storeLogoUrl: null,
+        items: [
+          { id: 'dup', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 10 },
+          { id: 'dup', productId: 'p2', productName: 'Suco', quantity: 1, unitPrice: 5 },
+          { id: 'keep-me', productId: 'p3', productName: 'Batata', quantity: 1, unitPrice: 8 },
+          { productId: 'p4', productName: 'Refri', quantity: 1, unitPrice: 6 },
+        ],
+      }),
+    );
+
+    const cart = createCart();
+    const ids = cart.items().map((item) => item.id);
+
+    expect(ids[0]).toBe('dup');
+    expect(ids[1]).toBeTruthy();
+    expect(ids[1]).not.toBe('dup');
+    expect(ids[2]).toBe('keep-me');
+    expect(ids[3]).toBeTruthy();
+    expect(new Set(ids).size).toBe(4);
+
+    cart.removeItem('dup');
+
+    expect(cart.items().map((item) => item.productId)).toEqual(['p2', 'p3', 'p4']);
+  });
+
   it('keeps two tabs of different stores isolated even though they share the cart key', () => {
     const tabAStorage = sessionStorage;
     const cartA = createCart();
