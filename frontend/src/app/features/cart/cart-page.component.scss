@@ -19,7 +19,7 @@
   --offset-top: 0px !important;
   --offset-bottom: 0px;
   --padding-top: 0;
-  --padding-bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 8px + 48px + 16px);
+  --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
   flex: 1 1 auto;
@@ -625,50 +625,6 @@
 
   strong {
     font-weight: 800;
-  }
-}
-
-/* ─── MODAL ─── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, .45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.modal {
-  background: var(--app-surface);
-  border-radius: 18px;
-  padding: 24px;
-  max-width: 360px;
-  width: 100%;
-
-  h2 {
-    font-size: 16px;
-    margin-bottom: 8px;
-  }
-
-  p {
-    color: var(--app-text-secondary);
-    margin-bottom: 20px;
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 12px;
-
-    .btn-secondary,
-    .btn-primary {
-      flex: 1;
-    }
-  }
-
-  .modal-confirm {
-    background: var(--app-brand);
   }
 }
 

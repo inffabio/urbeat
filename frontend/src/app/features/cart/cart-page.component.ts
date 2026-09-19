@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, OnInit, OnDestroy, DestroyRef, ElementRef, HostListener, ViewChild, inject, signal, computed, effect, EffectRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, DestroyRef, inject, signal, computed, effect, EffectRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -27,7 +27,7 @@ import { BackToMenuLinkComponent } from '../../shared/components/back-to-menu-li
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.scss',
 })
-export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class CartPageComponent implements OnInit, OnDestroy {
   readonly cart = inject(CartService);
   readonly checkout = inject(CheckoutService);
   private readonly router = inject(Router);
@@ -44,7 +44,6 @@ export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
   readonly discount = signal(0);
   readonly freeShippingApplied = signal(false);
   readonly deliveryFeeKnown = signal(false);
-  readonly showClearConfirm = signal(false);
   readonly store = signal<StorePublicDetails | null>(null);
   readonly storeLoadError = signal(false);
   readonly checkoutPreviewError = signal(false);
@@ -53,10 +52,6 @@ export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
   private storeId = '';
   private readonly checkoutActionEffect: EffectRef;
   private readonly continueRequestSubscription: Subscription;
-
-  @ViewChild('clearModal') private clearModalRef?: ElementRef<HTMLElement>;
-  @ViewChild('clearTrigger') private clearTriggerRef?: ElementRef<HTMLButtonElement>;
-  private pendingClearFocus = false;
 
   constructor() {
     this.checkoutActionEffect = effect(() => {
@@ -157,34 +152,6 @@ export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.checkoutActionEffect.destroy();
     this.continueRequestSubscription.unsubscribe();
     this.checkoutAction.reset();
-  }
-
-  ngAfterViewChecked(): void {
-    if (!this.pendingClearFocus) {
-      return;
-    }
-
-    this.pendingClearFocus = false;
-    const modal = this.clearModalRef?.nativeElement;
-
-    if (!modal) {
-      return;
-    }
-
-    queueMicrotask(() => {
-      if (this.showClearConfirm()) {
-        modal.focus();
-      }
-    });
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (!this.showClearConfirm()) {
-      return;
-    }
-
-    this.cancelClear();
   }
 
   private loadStore(storeId: string): void {
@@ -372,36 +339,6 @@ export class CartPageComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.loadCheckoutPreview(storeId);
       },
       error: () => this.loadCheckoutPreview(storeId),
-    });
-  }
-
-  promptClear(): void {
-    this.showClearConfirm.set(true);
-    this.pendingClearFocus = true;
-  }
-
-  confirmClear(): void {
-    this.cart.clear();
-    this.showClearConfirm.set(false);
-    this.goToMenu();
-  }
-
-  cancelClear(): void {
-    this.showClearConfirm.set(false);
-    this.restoreClearFocus();
-  }
-
-  private restoreClearFocus(): void {
-    const trigger = this.clearTriggerRef?.nativeElement;
-
-    if (!trigger) {
-      return;
-    }
-
-    queueMicrotask(() => {
-      if (trigger.isConnected) {
-        trigger.focus();
-      }
     });
   }
 }

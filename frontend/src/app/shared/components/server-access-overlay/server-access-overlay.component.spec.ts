@@ -85,28 +85,21 @@ describe('ServerAccessOverlayComponent', () => {
     expect(panel).toMatch(/env\(safe-area-inset-bottom/);
   });
 
-  it('wraps the spinner in a circular container with a very transparent white background', () => {
+  it('removes the outer circle around the spinner while keeping the spinner visible', () => {
     const panel = ruleBlock('.server-access-panel');
-    const background = panel.match(
-      /background\s*:\s*rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(0?\.\d+)\s*\)/,
-    );
 
-    expect(panel).toMatch(/aspect-ratio:\s*1/);
-    expect(panel).toMatch(/border-radius:\s*50%/);
-    expect(background).not.toBeNull();
-
-    const alpha = Number(background![1]);
-    expect(alpha).toBeGreaterThan(0);
-    expect(alpha).toBeLessThanOrEqual(0.5);
-
-    expect(panel).not.toMatch(/border-radius\s*:\s*var\(/);
+    expect(panel).not.toMatch(/aspect-ratio\s*:/);
+    expect(panel).not.toMatch(/border-radius\s*:/);
+    expect(panel).not.toMatch(/background(-color|-image)?\s*:/);
+    expect(panel).not.toMatch(/box-shadow\s*:/);
+    expect(panel).not.toMatch(/(^|[;{\s])border\s*:/);
   });
 
-  it('keeps the panel translucent white while the overlay remains a pointer-blocking backdrop', () => {
+  it('keeps the overlay as a pointer-blocking backdrop without a panel surface', () => {
     const overlay = ruleBlock('.server-access-overlay');
     const panel = ruleBlock('.server-access-panel');
 
-    expect(panel).toMatch(/background\s*:\s*rgba\(\s*255\s*,\s*255\s*,\s*255/);
+    expect(panel).not.toMatch(/background\s*:/);
     expect(panel).not.toMatch(/box-shadow\s*:/);
 
     expect(overlay).toMatch(/position:\s*fixed/);

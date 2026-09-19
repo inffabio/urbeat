@@ -39,6 +39,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 
       :host(.in-flow) {
         position: static;
+        flex: 0 0 auto;
         width: 100%;
         padding: 0 18px 16px;
         transform: none;

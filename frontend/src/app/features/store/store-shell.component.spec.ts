@@ -1120,6 +1120,35 @@ describe('StoreShellComponent cart checkout action', () => {
     expect(structural[1].tagName.toLowerCase()).toBe('app-footer-nav');
   });
 
+  it('renders the cart checkout action as an in-flow row instead of a fixed overlay', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
+    fixture.detectChanges();
+
+    const action = fixture.nativeElement.querySelector('app-sticky-action-bar') as HTMLElement;
+
+    expect(action).not.toBeNull();
+    expect(action.classList.contains('in-flow')).toBe(true);
+    expect(action.classList.contains('sticky-action-primary')).toBe(true);
+  });
+
+  it('keeps the in-flow checkout action structurally outside the footer nav in its own row', () => {
+    TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
+    fixture.detectChanges();
+
+    const action = fixture.nativeElement.querySelector('app-sticky-action-bar') as HTMLElement;
+    const footer = fixture.nativeElement.querySelector('app-footer-nav') as HTMLElement;
+
+    expect(action.parentElement).toBe(footer.parentElement);
+    expect(action.nextElementSibling).toBe(footer);
+    expect(footer.contains(action)).toBe(false);
+  });
+
+  it('passes the inline placement to the cart checkout action so it owns layout space above the footer', () => {
+    const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+
+    expect(source).toMatch(/<app-sticky-action-bar[\s\S]*?placement="inline"/);
+  });
+
   it('makes the sticky checkout action inert while the cart sheet is open and restores it when closed', () => {
     TestBed.inject(CartCheckoutActionService).setState({ visible: true, disabled: false });
     fixture.detectChanges();

@@ -44,11 +44,7 @@ import { FoodDeliverySpinnerComponent } from '../food-delivery-spinner/food-deli
         calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 32px),
         calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)
       );
-      aspect-ratio: 1;
-      overflow: hidden;
       padding: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, .12);
     }
 
     @media (prefers-reduced-motion: reduce) {

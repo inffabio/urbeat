@@ -33,6 +33,7 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
        </div>
        @if (showCartCheckoutAction()) {
          <app-sticky-action-bar
+           placement="inline"
            appearance="primary"
            icon="bag-outline"
            label="Continuar"
