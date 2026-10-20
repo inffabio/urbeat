@@ -2,7 +2,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
-import { SKIP_SERVER_ACCESS_OVERLAY } from '../interceptors/server-access.context';
+import {
+  SKIP_GLOBAL_ERROR_TOAST,
+  SKIP_SERVER_ACCESS_OVERLAY,
+} from '../interceptors/server-access.context';
 import { ApiService } from './api.service';
 import { OrderService } from './order.service';
 
@@ -122,20 +125,22 @@ describe('OrderService', () => {
     req.flush([{ id: 'order1', code: '123', customerName: 'Cliente', customerPhoneNumber: '11999999999', addressSummary: 'Rua Teste, 10 - Centro', status: OrderStatus.OnDelivery, total: 40, createdAtUtc: '2026-07-29T10:00:00Z' }]);
   });
 
-  it('marks a background getOrder with the skip-overlay context', () => {
+  it('marks a background getOrder with the skip-overlay and silent-error contexts', () => {
     service.getOrder('order1', { background: true }).subscribe();
 
     const req = httpMock.expectOne('/api/orders/order1');
     expect(req.request.method).toBe('GET');
     expect(req.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(true);
+    expect(req.request.context.get(SKIP_GLOBAL_ERROR_TOAST)).toBe(true);
     req.flush({});
   });
 
-  it('does not set the skip-overlay context for a foreground getOrder', () => {
+  it('does not set the background contexts for a foreground getOrder', () => {
     service.getOrder('order1').subscribe();
 
     const req = httpMock.expectOne('/api/orders/order1');
     expect(req.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(false);
+    expect(req.request.context.get(SKIP_GLOBAL_ERROR_TOAST)).toBe(false);
     req.flush({});
   });
 

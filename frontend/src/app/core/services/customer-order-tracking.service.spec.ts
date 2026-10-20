@@ -171,6 +171,9 @@ describe('CustomerOrderTrackingService', () => {
     });
 
     expect(getOrderMock).toHaveBeenCalledTimes(2);
+    // The event already updated the visible status, so the follow-up detail
+    // fetch is automatic and must not surface a transient error toast.
+    expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
     expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
   });
 
@@ -548,6 +551,37 @@ describe('CustomerOrderTrackingService', () => {
 
     jest.advanceTimersByTime(30_000);
     expect(getOrderMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps a pending order unchanged and retries a transient background poll failure', async () => {
+    jest.useFakeTimers();
+    startCustomerHubMock.mockRejectedValue(new Error('unavailable'));
+    getOrderMock
+      .mockReturnValueOnce(of({ ...baseOrder, status: OrderStatus.PendingPayment }))
+      .mockReturnValueOnce(new Observable<OrderDetails>((subscriber) => {
+        subscriber.error({ status: 503, statusText: 'Service Unavailable' });
+      }))
+      .mockReturnValue(of({ ...baseOrder, status: OrderStatus.Received }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    // Waiting for gateway confirmation: the first successful read keeps the
+    // order pending and is not turned into a confirmed state by the UI.
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.PendingPayment);
+
+    jest.advanceTimersByTime(30_000);
+
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.PendingPayment);
+    expect(service.isOrderUnavailable('order1')).toBe(false);
+
+    // The retry succeeds and the server-authoritative status is applied.
+    jest.advanceTimersByTime(30_000);
+
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Received);
+    expect(service.isOrderUnavailable('order1')).toBe(false);
+    expect(service.activeOrders().length).toBe(1);
   });
 
   it('treats a not-found order as a terminable unavailable state instead of recovery polling', async () => {

@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, finalize, interval } from 'rxjs';
 
 import { CartService } from '../../../core/services/cart.service';
 import { CheckoutService } from '../../../core/services/checkout.service';
@@ -16,6 +17,9 @@ import { PaymentGateway } from '../../../shared/enums/payment-gateway.enum';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { PaymentResponse } from '../../../shared/models/payment.model';
 import { StickyActionBarComponent } from '../../../shared/components/sticky-action-bar/sticky-action-bar.component';
+
+const ORDER_POLL_INTERVAL_MS = 4_000;
+const MAX_ORDER_POLL_INTERVAL_MS = 30_000;
 
 @Component({
   selector: 'app-online-payment-page',
@@ -39,6 +43,12 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
   readonly errorMessage = signal<string | null>(null);
   readonly remainingSeconds = signal(0);
   readonly expired = signal(false);
+  // A transient polling failure is not fatal: the page keeps waiting for the
+  // gateway confirmation. This only adds an informative, non-blocking notice.
+  readonly pollingUnstable = signal(false);
+  // A 404 from the order lookup is terminal for this screen: the order cannot
+  // be tracked, so polling stops and the customer gets an explicit exit path.
+  readonly orderUnavailable = signal(false);
 
   readonly isMock = computed(() => this.payment()?.gateway === PaymentGateway.Mock);
   readonly countdownLabel = computed(() => {
@@ -49,16 +59,17 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
   });
   readonly stickyLabel = computed(() => {
     if (this.loading()) return 'Carregando...';
-    if (this.expired()) return 'Tentar novamente';
+    if (this.expired() || this.orderUnavailable()) return 'Tentar novamente';
     return 'Continuar';
   });
 
-  private pollSub?: Subscription;
+  private pollTimer?: ReturnType<typeof setTimeout>;
   private loadPaymentSub?: Subscription;
   private orderPollSub?: Subscription;
   private countdownSub?: Subscription;
   private confirmSub?: Subscription;
   private orderPollInFlight = false;
+  private orderPollFailures = 0;
   private confirmExpiryInFlight = false;
   private destroyed = false;
   private navigatedToTracking = false;
@@ -76,9 +87,8 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.pollSub?.unsubscribe();
+    this.cancelPolling();
     this.loadPaymentSub?.unsubscribe();
-    this.orderPollSub?.unsubscribe();
     this.countdownSub?.unsubscribe();
     this.confirmSub?.unsubscribe();
   }
@@ -143,6 +153,11 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
         this.stopCountdown();
         this.expired.set(false);
         this.remainingSeconds.set(0);
+        // A successful payment read proves connectivity is back: clear any old
+        // reconnecting notice/backoff so the next order poll runs promptly.
+        this.orderPollFailures = 0;
+        this.pollingUnstable.set(false);
+        this.orderUnavailable.set(false);
 
         this.payment.set(payment);
         this.loading.set(false);
@@ -160,7 +175,7 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
 
         // The server status is authoritative. Keep observing the order until the local countdown
         // reaches zero; from there the final server confirmation decides Paid vs. expired.
-        this.startPolling(orderId);
+        this.restartOrderPolling(orderId);
 
         if (this.isMock() && payment.expiresAtUtc) {
           this.startCountdown(payment.expiresAtUtc, orderId);
@@ -216,7 +231,9 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
     if (this.destroyed || this.navigatedToTracking || this.confirmExpiryInFlight) return;
     this.confirmExpiryInFlight = true;
     this.cancelPolling();
-    this.confirmSub = this.payments.getPayment(orderId).subscribe({
+    // Automatic final confirmation: a transient failure must not show the
+    // global server-error toast, the page already owns the expired state.
+    this.confirmSub = this.payments.getPayment(orderId, { background: true }).subscribe({
       next: (payment) => {
         this.confirmExpiryInFlight = false;
         if (this.destroyed) return;
@@ -243,36 +260,141 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
   }
 
   private startPolling(orderId: string): void {
-    if (this.destroyed || this.navigatedToTracking || this.pollSub || this.expired()) return;
+    if (
+      this.destroyed
+      || this.navigatedToTracking
+      || this.pollTimer
+      || this.orderPollInFlight
+      || this.expired()
+      || this.orderUnavailable()
+    ) {
+      return;
+    }
     // A server-confirmed terminal payment can never be approved, so there is nothing left to
     // observe. An expired mock payment has already been settled by the final server confirmation,
     // so polling must not be re-armed.
     const status = this.payment()?.status;
     if (status !== undefined && status !== PaymentStatus.Pending) return;
-    this.pollSub = interval(4000).subscribe(() => {
-      if (this.destroyed || this.orderPollInFlight) return;
-      this.orderPollInFlight = true;
-      this.orderPollSub = this.orders.getOrder(orderId, { background: true }).subscribe({
+    this.scheduleOrderPoll(orderId, ORDER_POLL_INTERVAL_MS);
+  }
+
+  // Only statuses the gateway/order flow can actually produce release the payer
+  // to the tracking screen. An unknown/future value stays in the waiting state
+  // instead of being treated as a confirmed order.
+  private isOrderReleased(status: OrderStatus): boolean {
+    switch (status) {
+      case OrderStatus.Received:
+      case OrderStatus.Preparing:
+      case OrderStatus.Ready:
+      case OrderStatus.OnDelivery:
+      case OrderStatus.Delivered:
+      case OrderStatus.Cancelled:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private restartOrderPolling(orderId: string): void {
+    if (this.pollTimer) {
+      clearTimeout(this.pollTimer);
+      this.pollTimer = undefined;
+    }
+    this.startPolling(orderId);
+  }
+
+  private scheduleOrderPoll(orderId: string, delayMs: number): void {
+    if (this.destroyed || this.navigatedToTracking || this.expired() || this.orderUnavailable()) {
+      return;
+    }
+    this.pollTimer = setTimeout(() => {
+      this.pollTimer = undefined;
+      this.pollOrder(orderId);
+    }, delayMs);
+  }
+
+  private pollOrder(orderId: string): void {
+    if (this.destroyed || this.navigatedToTracking || this.orderPollInFlight) return;
+    this.orderPollInFlight = true;
+    this.orderPollSub = this.orders
+      .getOrder(orderId, { background: true })
+      .pipe(finalize(() => { this.orderPollInFlight = false; }))
+      .subscribe({
         next: (order) => {
           this.orderPollInFlight = false;
+          this.orderPollFailures = 0;
+          this.pollingUnstable.set(false);
           if (this.destroyed) return;
-          if (order.status >= OrderStatus.Received) {
+          if (this.isOrderReleased(order.status)) {
             this.goToTracking(orderId);
+            return;
           }
+          this.scheduleOrderPoll(orderId, ORDER_POLL_INTERVAL_MS);
         },
-        error: () => {
-          this.orderPollInFlight = false;
-        },
+        error: (error: unknown) => this.handleOrderPollError(orderId, error),
       });
-    });
+  }
+
+  private handleOrderPollError(orderId: string, error: unknown): void {
+    this.orderPollInFlight = false;
+    if (this.destroyed || this.navigatedToTracking) return;
+
+    const status = error instanceof HttpErrorResponse ? error.status : 0;
+    if (this.isTransientPollStatus(status)) {
+      // The server status is still unknown: never treat a transient failure as
+      // paid, expired or cancelled. Retry with capped exponential backoff.
+      this.orderPollFailures += 1;
+      if (this.orderPollFailures >= 2) {
+        this.pollingUnstable.set(true);
+      }
+      const backoff = ORDER_POLL_INTERVAL_MS * 2 ** Math.min(this.orderPollFailures - 1, 3);
+      this.scheduleOrderPoll(orderId, Math.min(backoff, MAX_ORDER_POLL_INTERVAL_MS));
+      return;
+    }
+
+    // Permanent failures must stop polling and stay visible without pretending
+    // the order was confirmed. 404 has its own explicit unavailable state.
+    this.cancelPolling();
+    if (status === 404) {
+      this.orderUnavailable.set(true);
+      this.errorMessage.set(null);
+      return;
+    }
+    if (status === 401) {
+      // The global interceptor already expires the session and redirects.
+      this.errorMessage.set(null);
+      return;
+    }
+    this.errorMessage.set(this.terminalPollMessage(status));
+  }
+
+  private isTransientPollStatus(status: number): boolean {
+    return status === 0 || status === 408 || status === 429 || status >= 500;
+  }
+
+  private terminalPollMessage(status: number): string {
+    switch (status) {
+      case 400:
+        return 'Não foi possível consultar este pedido. Volte ao cardápio e tente novamente.';
+      case 403:
+        return 'Você não tem permissão para acompanhar este pedido.';
+      case 409:
+        return 'Este pedido foi alterado e não pode mais ser acompanhado nesta tela. Atualize a página ou volte ao cardápio.';
+      default:
+        return 'Não foi possível acompanhar este pedido. Volte ao cardápio e tente novamente.';
+    }
   }
 
   private cancelPolling(): void {
-    this.pollSub?.unsubscribe();
-    this.pollSub = undefined;
+    if (this.pollTimer) {
+      clearTimeout(this.pollTimer);
+      this.pollTimer = undefined;
+    }
     this.orderPollSub?.unsubscribe();
     this.orderPollSub = undefined;
     this.orderPollInFlight = false;
+    this.orderPollFailures = 0;
+    this.pollingUnstable.set(false);
   }
 
   private goToTracking(orderId: string): void {

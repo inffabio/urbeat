@@ -11,20 +11,29 @@
   </header>
 
   <section class="screen-padding">
-    <div class="order-card card">
-      <div class="order-left">
-        <span class="round-icon" aria-hidden="true"><ion-icon name="qr-code-outline"></ion-icon></span>
-        <div>
-          <p class="order-title">Pedido {{ checkout.lastOrderCode() || checkout.lastOrderId() }}</p>
-          <p class="order-sub">Aguardando confirmação do Pix</p>
+    @if (!orderUnavailable()) {
+      <div class="order-card card">
+        <div class="order-left">
+          <span class="round-icon" aria-hidden="true"><ion-icon name="qr-code-outline"></ion-icon></span>
+          <div>
+            <p class="order-title">Pedido {{ checkout.lastOrderCode() || checkout.lastOrderId() }}</p>
+            <p class="order-sub">Aguardando confirmação do Pix</p>
+          </div>
         </div>
+        @if (payment(); as pay) {
+          <strong class="order-price">{{ pay.amount | brl }}</strong>
+        }
       </div>
-      @if (payment(); as pay) {
-        <strong class="order-price">{{ pay.amount | brl }}</strong>
-      }
-    </div>
+    }
 
-    @if (loading()) {
+    @if (orderUnavailable()) {
+      <section class="pix-card card expired-card" aria-labelledby="order-unavailable-title">
+        <span class="pix-mark expired" aria-hidden="true"><ion-icon name="alert-circle-outline"></ion-icon></span>
+        <h2 id="order-unavailable-title">Pedido indisponível</h2>
+        <p>Não foi possível localizar este pedido. Ele pode ter sido removido ou não pertence mais a esta conta.</p>
+        <button type="button" class="btn-primary" (click)="goToMenu()">VOLTAR AO CARDÁPIO</button>
+      </section>
+    } @else if (loading()) {
       <div class="notice-card" aria-live="polite">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
         <p>Carregando pagamento...</p>
@@ -62,10 +71,19 @@
       </section>
     }
 
-    <div class="notice-card">
-      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-      <p>Estamos escutando a confirmação do gateway. Não feche a página se quiser acompanhar automaticamente.</p>
-    </div>
+    @if (pollingUnstable()) {
+      <div class="notice-card" role="status" aria-live="polite">
+        <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+        <p>Conexão instável. Seu pedido continua aguardando confirmação e vamos tentar novamente automaticamente.</p>
+      </div>
+    }
+
+    @if (!orderUnavailable()) {
+      <div class="notice-card">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <p>Estamos escutando a confirmação do gateway. Não feche a página se quiser acompanhar automaticamente.</p>
+      </div>
+    }
 
     @if (errorMessage()) {
       <div class="notice-card error" role="alert">

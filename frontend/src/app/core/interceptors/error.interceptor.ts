@@ -6,6 +6,7 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { CheckoutService } from '../services/checkout.service';
 import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
+import { SKIP_GLOBAL_ERROR_TOAST } from './server-access.context';
 import { isCustomer, isSeller } from '../utils/jwt.helper';
 
 interface RefreshSubscriber {
@@ -170,6 +171,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             error: (refreshErr) => subscriber.error(refreshErr),
           });
         });
+      }
+
+      // Automatic polling already owns its retry/backoff and temporary state
+      // (order tracking recovery polling, Pix confirmation). A transient
+      // 5xx/timeout there must not become a fatal generic toast; the error is
+      // still rethrown so the caller can retry. 401/session handling stays
+      // above this guard so an expired session is never silently ignored.
+      if (req.context.get(SKIP_GLOBAL_ERROR_TOAST)) {
+        return throwError(() => err);
       }
 
       if (isCheckoutRequest(req) || isDeliveryAreaError(req, err)) {

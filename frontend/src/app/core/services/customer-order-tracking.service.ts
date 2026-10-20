@@ -242,7 +242,9 @@ export class CustomerOrderTrackingService {
       this.orderStatusListener = (data: OrderStatusUpdateEvent) => {
         if (data && this.trackedIds().includes(data.orderId)) {
           this.applyEventStatus(data);
-          this.refresh(data.orderId);
+          // The event already updated the visible status; the follow-up detail
+          // refresh is automatic and must not surface a transient error toast.
+          this.refresh(data.orderId, { background: true });
         }
       };
       this.signalR.onCustomerEvent('OrderStatusUpdated', this.orderStatusListener);

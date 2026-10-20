@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorInterceptor } from './error.interceptor';
 import { authInterceptor } from './auth.interceptor';
@@ -7,6 +7,7 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { CheckoutService } from '../services/checkout.service';
 import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
+import { SKIP_GLOBAL_ERROR_TOAST } from './server-access.context';
 import { Router } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
@@ -328,6 +329,86 @@ describe('errorInterceptor', () => {
     it('should show generic server error message', () => {
       triggerError('/api/crash', 'Internal Server Error', 500);
       expect(toastServiceMock.showError).toHaveBeenCalledWith('Erro interno no servidor. Tente novamente mais tarde.');
+    });
+  });
+
+  describe('background confirmation polling', () => {
+    const backgroundContext = (): HttpContext =>
+      new HttpContext().set(SKIP_GLOBAL_ERROR_TOAST, true);
+
+    const pollOrder = (status: number, statusText = 'Error'): HttpErrorResponse | undefined => {
+      let received: HttpErrorResponse | undefined;
+      httpClient.get('/api/orders/order1', { context: backgroundContext() }).subscribe({
+        error: (error: HttpErrorResponse) => { received = error; },
+      });
+      httpMock
+        .expectOne('/api/orders/order1')
+        .flush({ title: statusText }, { status, statusText });
+      return received;
+    };
+
+    it.each([500, 502, 503, 504])(
+      'does not show the fatal server toast for a transient %s while waiting for confirmation',
+      (status) => {
+        const received = pollOrder(status);
+
+        expect(toastServiceMock.showError).not.toHaveBeenCalled();
+        expect(received?.status).toBe(status);
+      },
+    );
+
+    it('treats a timeout/network failure during polling as retryable without a toast', () => {
+      let received: HttpErrorResponse | undefined;
+      httpClient.get('/api/orders/order1', { context: backgroundContext() }).subscribe({
+        error: (error: HttpErrorResponse) => { received = error; },
+      });
+      httpMock
+        .expectOne('/api/orders/order1')
+        .error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+      expect(received?.status).toBe(0);
+    });
+
+    it('keeps a background not-found order silent so the page owns the unavailable state', () => {
+      const received = pollOrder(404, 'Not Found');
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+      expect(received?.status).toBe(404);
+    });
+
+    it('still shows the fatal server toast for a real foreground order request', () => {
+      triggerError('/api/orders/order1', 'Internal Server Error', 500);
+
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(
+        'Erro interno no servidor. Tente novamente mais tarde.',
+      );
+    });
+
+    it('still shows not-found for a foreground order lookup', () => {
+      triggerError('/api/orders/order1', 'Not Found', 404);
+
+      expect(toastServiceMock.showError).toHaveBeenCalledWith('Recurso não encontrado.');
+    });
+
+    it('still expires the session when a background poll returns 401', () => {
+      authServiceMock.getToken.mockReturnValue(encodeTokenPayload({ role: 'Customer' }));
+      refreshTokenSpy.mockReturnValue(throwError(() => new Error('Refresh failed')));
+      routerMock.url = '/loja/pedido/order1';
+
+      httpClient.get('/api/orders/order1', { context: backgroundContext() }).subscribe({
+        error: () => {},
+      });
+      httpMock
+        .expectOne('/api/orders/order1')
+        .flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(authServiceMock.logout).toHaveBeenCalled();
+      expect(trackingServiceMock.reset).toHaveBeenCalled();
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(
+        'Sua sessao expirou. Por favor, faca login novamente.',
+      );
     });
   });
 

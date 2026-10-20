@@ -2,7 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { SKIP_SERVER_ACCESS_OVERLAY } from '../interceptors/server-access.context';
+import {
+  SKIP_GLOBAL_ERROR_TOAST,
+  SKIP_SERVER_ACCESS_OVERLAY,
+} from '../interceptors/server-access.context';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import {
   OrderDetails,
@@ -21,8 +24,12 @@ export class OrderService {
   private readonly api = inject(ApiService);
 
   getOrder(orderId: string, options?: { background?: boolean }): Observable<OrderDetails> {
+    // Background polls own their retry/backoff, so a transient failure must not
+    // reach the user as the fatal generic server-error toast.
     const context = options?.background
-      ? new HttpContext().set(SKIP_SERVER_ACCESS_OVERLAY, true)
+      ? new HttpContext()
+          .set(SKIP_SERVER_ACCESS_OVERLAY, true)
+          .set(SKIP_GLOBAL_ERROR_TOAST, true)
       : undefined;
     return this.api.get<OrderDetails>(`/api/orders/${orderId}`, undefined, context);
   }

@@ -1,9 +1,10 @@
 import { Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { EMPTY, Observable, of, throwError } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -126,6 +127,212 @@ describe('OnlinePaymentPageComponent', () => {
     jest.advanceTimersByTime(4000);
 
     expect(orderMock.getOrder).toHaveBeenCalledWith('o1', { background: true });
+    jest.useRealTimers();
+  });
+
+  it('keeps waiting and retries after a transient polling failure without a fatal state', () => {
+    jest.useFakeTimers();
+    let call = 0;
+    orderMock.getOrder.mockImplementation(() => {
+      call++;
+      if (call === 1) {
+        return throwError(
+          () => new HttpErrorResponse({ status: 504, statusText: 'Gateway Timeout' }),
+        );
+      }
+      return of({ status: OrderStatus.PendingPayment });
+    });
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+
+    expect(orderMock.getOrder).toHaveBeenCalledWith('o1', { background: true });
+    expect(fixture.componentInstance.pollingUnstable()).toBe(false);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    // The first retry keeps the normal cadence; the order is still pending.
+    jest.advanceTimersByTime(4000);
+
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(2);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('shows an informative reconnecting state after repeated failures and clears it on recovery', () => {
+    jest.useFakeTimers();
+    let call = 0;
+    orderMock.getOrder.mockImplementation(() => {
+      call++;
+      if (call <= 2) {
+        return throwError(
+          () => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }),
+        );
+      }
+      return of({ status: OrderStatus.PendingPayment });
+    });
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000); // first failure
+    expect(fixture.componentInstance.pollingUnstable()).toBe(false);
+
+    jest.advanceTimersByTime(4000); // second failure -> unstable, backoff 8s
+    expect(fixture.componentInstance.pollingUnstable()).toBe(true);
+    expect(fixture.componentInstance.expired()).toBe(false);
+
+    jest.advanceTimersByTime(4000); // still inside backoff
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(4000); // recovered
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(3);
+    expect(fixture.componentInstance.pollingUnstable()).toBe(false);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('stops polling and shows the unavailable state when the order poll returns 404', () => {
+    jest.useFakeTimers();
+    orderMock.getOrder.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.orderUnavailable()).toBe(true);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.componentInstance.errorMessage()).toBeNull();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(fixture.debugElement.query(By.css('#order-unavailable-title'))).not.toBeNull();
+    expect(fixture.debugElement.nativeElement.textContent).toContain('VOLTAR AO CARDÁPIO');
+    expect(fixture.componentInstance.stickyLabel()).toBe('Tentar novamente');
+
+    // Terminal: no endless retry and no confirmation while the order is unknown.
+    jest.advanceTimersByTime(30_000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it.each([
+    [400, 'Não foi possível consultar este pedido. Volte ao cardápio e tente novamente.'],
+    [403, 'Você não tem permissão para acompanhar este pedido.'],
+    [409, 'Este pedido foi alterado e não pode mais ser acompanhado nesta tela. Atualize a página ou volte ao cardápio.'],
+  ])('stops polling and shows a non-transient error for %s', (status, message) => {
+    jest.useFakeTimers();
+    orderMock.getOrder.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status, statusText: 'Error' })),
+    );
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.orderUnavailable()).toBe(false);
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.componentInstance.errorMessage()).toBe(message);
+    expect(fixture.debugElement.nativeElement.textContent).toContain(message);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(30_000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('resets the reconnecting state and backoff when loadPayment succeeds', () => {
+    jest.useFakeTimers();
+    let orderCall = 0;
+    orderMock.getOrder.mockImplementation(() => {
+      orderCall++;
+      if (orderCall <= 2) {
+        return throwError(
+          () => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }),
+        );
+      }
+      return of({ status: OrderStatus.PendingPayment });
+    });
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000); // first failure -> 4s
+    jest.advanceTimersByTime(4000); // second failure -> unstable, 8s backoff
+    expect(fixture.componentInstance.pollingUnstable()).toBe(true);
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.pollingUnstable()).toBe(false);
+
+    // The old 8s timer is discarded and polling is re-armed at the normal 4s.
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(3);
+    expect(fixture.componentInstance.pollingUnstable()).toBe(false);
+
+    jest.useRealTimers();
+  });
+
+  it('releases the in-flight guard when the poll completes without a value', () => {
+    jest.useFakeTimers();
+    let orderCall = 0;
+    orderMock.getOrder.mockImplementation(() => {
+      orderCall++;
+      if (orderCall === 1) {
+        return EMPTY;
+      }
+      return of({ status: OrderStatus.PendingPayment });
+    });
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(1);
+
+    fixture.componentInstance.refreshPayment();
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(2);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
+  });
+
+  it('keeps waiting when the server returns an unknown order status', () => {
+    jest.useFakeTimers();
+    orderMock.getOrder.mockReturnValue(of({ status: 99 as OrderStatus }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.expired()).toBe(false);
+    expect(fixture.componentInstance.errorMessage()).toBeNull();
+
+    jest.advanceTimersByTime(4000);
+    expect(orderMock.getOrder).toHaveBeenCalledTimes(2);
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
     jest.useRealTimers();
   });
 
@@ -394,6 +601,7 @@ describe('OnlinePaymentPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.expired-card'))).not.toBeNull();
     expect(fixture.debugElement.nativeElement.textContent).toContain('Tempo para pagamento encerrado');
     expect(paymentMock.getPayment.mock.calls.length).toBe(paymentCallsAtExpiry + 1);
+    expect(paymentMock.getPayment).toHaveBeenLastCalledWith('o1', { background: true });
 
     jest.advanceTimersByTime(8000);
     expect(orderMock.getOrder.mock.calls.length).toBe(orderCallsAtExpiry);
