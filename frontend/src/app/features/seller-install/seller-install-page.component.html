@@ -133,8 +133,8 @@
 
     <div class="download-priority-row">
       <div class="download-priority-copy">
-        <strong>Windows primeiro, Linux no padrão CUPS</strong>
-        <p>No Windows, instale o driver da POS-58 antes do agent. No Linux, siga o fluxo oficial com CUPS + local-agent.</p>
+        <strong>Windows via MSI, Linux no padrão CUPS</strong>
+        <p>No Windows, instale o driver da POS-58 e use o MSI para instalar o serviço. O ZIP é apenas fallback técnico. No Linux, siga o fluxo oficial com CUPS + local-agent.</p>
       </div>
       <div class="download-priority-actions">
         <a class="seller-dark-button" [href]="pos58DriverHref" download>Driver Windows da POS-58</a>
@@ -164,6 +164,6 @@
       <a class="seller-dark-button" [href]="agentGuideHref" target="_blank" rel="noopener noreferrer">Guia de instalação do agent</a>
       <a class="seller-secondary-link" routerLink="/app/configuracoes/impressao">Ir para configuração de impressão</a>
     </div>
-    <p class="agent-download-note">Windows exige o driver da POS-58 antes do agent. Linux segue o padrão oficial com CUPS + local-agent.</p>
+    <p class="agent-download-note">Windows exige o driver da POS-58 antes do MSI. O MSI instala e inicia o serviço automaticamente; o ZIP/PowerShell fica como fallback. Linux segue o padrão oficial com CUPS + local-agent.</p>
   </div>
 </section>

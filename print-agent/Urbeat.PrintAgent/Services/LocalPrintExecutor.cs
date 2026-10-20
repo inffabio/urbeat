@@ -33,7 +33,13 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
 
         if (!NativeMethods.OpenPrinter(printerName, out var printerHandle, IntPtr.Zero))
         {
-            return new LocalPrintExecutionResult { Outcome = PrintOutcome.Failed, Message = $"Nao foi possivel abrir a impressora '{printerName}'." };
+            return new LocalPrintExecutionResult
+            {
+                Outcome = PrintOutcome.Failed,
+                Message = $"Nao foi possivel abrir a impressora '{printerName}'. "
+                    + "No Windows Service (LocalSystem), instale a impressora para todos os usuarios (machine-wide) "
+                    + "ou execute o agente no contexto do usuario da sessao."
+            };
         }
 
         try
@@ -103,14 +109,18 @@ public sealed class LocalPrintExecutor : ILocalPrintExecutor
 
         try
         {
-            var args = $"-d \"{printerName}\" -o raw \"{tempFile}\"";
-            var startInfo = new ProcessStartInfo("lp", args)
+            var startInfo = new ProcessStartInfo("lp")
             {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
+            startInfo.ArgumentList.Add("-d");
+            startInfo.ArgumentList.Add(printerName);
+            startInfo.ArgumentList.Add("-o");
+            startInfo.ArgumentList.Add("raw");
+            startInfo.ArgumentList.Add(tempFile);
 
             using var process = Process.Start(startInfo);
             if (process is null)

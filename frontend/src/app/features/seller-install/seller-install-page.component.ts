@@ -86,10 +86,18 @@ export class SellerInstallPageComponent {
     {
       label: 'Baixar agent para Windows',
       platform: 'Windows',
-      format: '.zip/.exe',
+      format: '.msi (instala o serviço automaticamente)',
+      href: '/downloads/urbeat-print-agent/windows/Urbeat.PrintAgent-x64.msi',
+      description: 'Recomendado para balcão com PC fixo: self-contained, instala o serviço e a impressão automática sem popup.',
+      badges: ['Recomendado', 'Windows Service', 'Automático'],
+    },
+    {
+      label: 'Baixar ZIP alternativo (Windows)',
+      platform: 'Windows (fallback)',
+      format: '.zip + PowerShell',
       href: '/downloads/urbeat-print-agent/windows/Urbeat.PrintAgent-win-x64.zip',
-      description: 'Recomendado para balcão com PC fixo e impressão automática via local-agent.',
-      badges: ['Recomendado', 'Desktop', 'Automático'],
+      description: 'Fallback técnico de recuperação caso o MSI não possa ser usado.',
+      badges: ['Alternativo', 'Fallback'],
     },
     {
       label: 'Baixar agent para Linux',

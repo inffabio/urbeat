@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 using Urbeat.WebApi.Hubs;
 
@@ -155,9 +156,276 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
         recording.Messages.Where(x => x.Method == "OrderStatusUpdated").Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task UpdateOrderStatus_ShouldEmitSellerPrintingEvent_OnlyOnAcceptance()
+    {
+        var sellerRecording = GetSellerRecordingHub();
+        sellerRecording.Clear();
+
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 4m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 4m } },
+        });
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.StorePrinterConfigs.Add(new StorePrinterConfig
+            {
+                StoreId = storeId,
+                PrinterPresetId = Guid.NewGuid(),
+                PrinterName = "POS-58",
+                AutoPrint = true
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Aceite", 20m);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "30",
+            Street = "Rua Aceite",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.PixOnline,
+            Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
+        });
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        var orderId = created!.OrderId;
+
+        var receivedResponse = await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Received
+        });
+        receivedResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _factory.DispatchOutboxAsync();
+        sellerRecording.Messages.Where(x => x.Method == "OrderAcceptedForPrinting").Should().BeEmpty();
+
+        sellerRecording.Clear();
+
+        var acceptedResponse = await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Preparing
+        });
+        acceptedResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await _factory.DispatchOutboxAsync();
+
+        var message = sellerRecording.Messages
+            .Where(x => x.Method == "OrderAcceptedForPrinting")
+            .Should().ContainSingle().Subject;
+        message.Target.Should().StartWith("user:");
+        ReadPayloadProperty(message.Args.Single(), "orderId").Should().Be(orderId);
+        ReadPayloadProperty(message.Args.Single(), "storeId").Should().Be(storeId);
+        ((int)ReadPayloadProperty(message.Args.Single(), "sequence")!).Should().BeGreaterThan(0);
+        var acceptedAtUtc = (DateTime)ReadPayloadProperty(message.Args.Single(), "acceptedAtUtc")!;
+        acceptedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+    }
+
+    [Fact]
+    public async Task SellerPrintingJobs_should_recover_acceptance_and_only_ack_for_the_owning_store()
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 4m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 4m } },
+        });
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.StorePrinterConfigs.Add(new StorePrinterConfig
+            {
+                StoreId = storeId,
+                PrinterPresetId = Guid.NewGuid(),
+                PrinterName = "POS-58",
+                AutoPrint = true
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Recuperacao", 20m);
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "40",
+            Street = "Rua Recuperacao",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.PixOnline,
+            Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
+        });
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        var orderId = created!.OrderId;
+
+        (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Received
+        })).StatusCode.Should().Be(HttpStatusCode.OK);
+        await _factory.DispatchOutboxAsync();
+
+        (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Preparing
+        })).StatusCode.Should().Be(HttpStatusCode.OK);
+        await _factory.DispatchOutboxAsync();
+
+        var pending = await sellerClient.GetFromJsonAsync<PendingPrintJobsResponseDto>("/api/seller/printing/jobs?afterCursor=0&limit=50");
+        pending.Should().NotBeNull();
+        pending!.Items.Should().ContainSingle();
+        var job = pending.Items.Single();
+        job.OrderId.Should().Be(orderId);
+        job.StoreId.Should().Be(storeId);
+        job.Cursor.Should().BeGreaterThan(0);
+        job.AcceptedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
+        job.LastError.Should().BeNull();
+
+        var otherSellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (otherToken, _) = await RegisterLoginAndCreateStoreAsync(otherSellerClient, "Hamburguer");
+        otherSellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", otherToken);
+
+        var otherPending = await otherSellerClient.GetFromJsonAsync<PendingPrintJobsResponseDto>("/api/seller/printing/jobs?afterCursor=0&limit=50");
+        otherPending!.Items.Should().BeEmpty();
+
+        var forbiddenAck = await otherSellerClient.PostAsJsonAsync($"/api/seller/printing/jobs/{orderId}/result", new RecordPrintJobResultRequestDto
+        {
+            Success = true,
+            OperationKey = "other-key"
+        });
+        forbiddenAck.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var ack = await sellerClient.PostAsJsonAsync($"/api/seller/printing/jobs/{orderId}/result", new RecordPrintJobResultRequestDto
+        {
+            Success = true,
+            OperationKey = "order-key"
+        });
+        ack.StatusCode.Should().Be(HttpStatusCode.OK);
+        var ackResult = await ack.Content.ReadFromJsonAsync<RecordPrintJobResultResponseDto>();
+        ackResult!.Job.Should().NotBeNull();
+
+        var afterAck = await sellerClient.GetFromJsonAsync<PendingPrintJobsResponseDto>("/api/seller/printing/jobs?afterCursor=0&limit=50");
+        afterAck!.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AutoPrint_disabled_should_not_emit_print_event_or_create_print_job()
+    {
+        var sellerRecording = GetSellerRecordingHub();
+        sellerRecording.Clear();
+
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 4m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 4m } },
+        });
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Sem AutoPrint", 20m);
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "50",
+            Street = "Rua Sem AutoPrint",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.PixOnline,
+            Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
+        });
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        var orderId = created!.OrderId;
+
+        (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Received
+        })).StatusCode.Should().Be(HttpStatusCode.OK);
+        await _factory.DispatchOutboxAsync();
+        sellerRecording.Clear();
+
+        (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+        {
+            NewStatus = OrderStatus.Preparing
+        })).StatusCode.Should().Be(HttpStatusCode.OK);
+        await _factory.DispatchOutboxAsync();
+
+        sellerRecording.Messages.Where(x => x.Method == "OrderAcceptedForPrinting").Should().BeEmpty();
+        var pending = await sellerClient.GetFromJsonAsync<PendingPrintJobsResponseDto>("/api/seller/printing/jobs?afterCursor=0&limit=50");
+        pending!.Items.Should().BeEmpty();
+    }
+
     private RecordingHubContext<CustomerNotificationHub> GetCustomerRecordingHub()
     {
         return (RecordingHubContext<CustomerNotificationHub>)_factory.Services.GetRequiredService(typeof(IHubContext<CustomerNotificationHub>));
+    }
+
+    private RecordingHubContext<SellerNotificationHub> GetSellerRecordingHub()
+    {
+        return (RecordingHubContext<SellerNotificationHub>)_factory.Services.GetRequiredService(typeof(IHubContext<SellerNotificationHub>));
     }
 
     private static object? ReadPayloadProperty(object? payload, string name)

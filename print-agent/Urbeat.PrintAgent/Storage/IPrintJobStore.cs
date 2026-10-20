@@ -6,6 +6,8 @@ public interface IPrintJobStore
 {
     void Add(PrintJobRecord job);
 
+    void Update(PrintJobRecord job);
+
     PrintJobRecord? FindByOperationKey(string operationKey);
 
     IReadOnlyList<PrintJobRecord> List();

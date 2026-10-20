@@ -11,7 +11,8 @@ import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { OrderDetails, OrderItem, OrderSummary } from '../../shared/models/order.model';
-import { SellerPrintingService } from '../seller-printing/seller-printing.service';
+import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
+import { OrderAcceptedForPrintingEvent } from '../seller-printing/seller-printing.models';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 
 interface PendingAction {
@@ -25,6 +26,9 @@ interface OrderStatusUpdateEvent {
   orderCode?: string;
   status?: OrderStatus;
   changedAtUtc?: string;
+  storeId?: string;
+  sequence?: number;
+  acceptedAtUtc?: string;
 }
 
 interface BoardColumn {
@@ -46,7 +50,7 @@ type BoardAction =
 export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
   private readonly toast = inject(ToastService);
-  private readonly printing = inject(SellerPrintingService);
+  private readonly automaticPrint = inject(AutomaticPrintQueueService);
   private readonly shell = inject(SellerShellFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly signalR = inject(SignalRService);
@@ -61,10 +65,14 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private selectedOrderTrigger: HTMLElement | null = null;
   private readonly targetOrderId = this.route.snapshot.queryParamMap.get('order');
   private orderStatusListener?: (payload: OrderStatusUpdateEvent) => void;
+  private acceptedForPrintingListener?: (payload: OrderAcceptedForPrintingEvent) => void;
+  private realtimeWasConnected = false;
   private keydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenChangeHandler?: () => void;
 
   readonly isWindows = isWindowsPlatform();
+  readonly automaticPrintStatus = this.automaticPrint.statusMessage;
+  readonly automaticPrintTone = this.automaticPrint.statusTone;
   readonly isFullscreen = signal(false);
   readonly OrderStatus = OrderStatus;
   readonly loading = signal(true);
@@ -169,6 +177,16 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       if (!this.selectedOrderId()) return;
       this.focusOrderDetails();
     });
+
+    effect(() => {
+      const connected = this.signalR.isSellerConnected();
+      if (connected && !this.realtimeWasConnected) {
+        // Reconcile after a reconnect: events are at-least-once and may have been missed while
+        // offline. The print queue deduplicates by the acceptance identity.
+        this.load({ silent: true });
+      }
+      this.realtimeWasConnected = connected;
+    });
   }
 
   ngOnInit(): void {
@@ -181,6 +199,10 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     if (this.orderStatusListener) {
       this.signalR.removeSellerListener('OrderStatusUpdated', this.orderStatusListener);
       this.orderStatusListener = undefined;
+    }
+    if (this.acceptedForPrintingListener) {
+      this.signalR.removeSellerListener('OrderAcceptedForPrinting', this.acceptedForPrintingListener);
+      this.acceptedForPrintingListener = undefined;
     }
     if (this.keydownHandler) {
       document.removeEventListener('keydown', this.keydownHandler);
@@ -246,6 +268,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         this.syncDetailsFromSummaries(items);
         this.loading.set(false);
         this.loadOrderItems(items, sequence);
+        void this.automaticPrint.reconcilePendingJobs();
       },
       error: () => {
         if (sequence !== this.loadSequence) return;
@@ -696,6 +719,12 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       this.load({ silent: true });
     };
     this.signalR.onSellerEvent('OrderStatusUpdated', this.orderStatusListener);
+
+    this.acceptedForPrintingListener = (payload: OrderAcceptedForPrintingEvent) => {
+      if (!payload?.orderId) return;
+      void this.automaticPrint.enqueueAcceptedOrder(payload);
+    };
+    this.signalR.onSellerEvent('OrderAcceptedForPrinting', this.acceptedForPrintingListener);
   }
 
   private sortOrders(orders: OrderSummary[]): OrderSummary[] {
@@ -708,11 +737,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   }
 
   private triggerAcceptedOrderPrint(orderId: string): void {
-    try {
-      void this.printing.printAcceptedOrder(orderId).catch(() => undefined);
-    } catch {
-      // best-effort: printing cannot block the status transition
-    }
+    // The queue enforces AutoPrint and the platform-specific automatic path. Printing failures are
+    // reported in the dashboard and never roll back the accepted status.
+    void this.automaticPrint.enqueueAcceptedOrder({ orderId }).catch(() => undefined);
   }
 
   private focusTargetOrder(orderId: string): void {

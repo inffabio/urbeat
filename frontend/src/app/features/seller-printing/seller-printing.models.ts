@@ -61,6 +61,8 @@ export interface PrintableOrderItem {
 
 export interface PrintableOrder {
   orderId?: string;
+  /** Stable idempotency key shared by dashboard and local print agent. */
+  operationKey?: string;
   code: string;
   customerName?: string;
   customerPhoneNumber?: string;
@@ -80,4 +82,60 @@ export interface PrintResult {
   mode: PrinterConnectionType;
   message: string;
   printedAtUtc: string;
+  /** False when retrying could duplicate physical output (agent ambiguous state). */
+  retryable?: boolean;
+  /** True when the agent crashed around the spooler call and physical output is unknown. */
+  uncertain?: boolean;
+}
+
+/** Payload pushed by the backend only for the Received -> Preparing acceptance transition. */
+export interface OrderAcceptedForPrintingEvent {
+  orderId: string;
+  storeId?: string;
+  orderCode?: string;
+  sequence?: number;
+  acceptedAtUtc?: string;
+}
+
+export interface PendingPrintJob {
+  cursor: number;
+  orderId: string;
+  storeId: string;
+  orderCode: string;
+  acceptanceSequence: number;
+  acceptedAtUtc: string;
+  status: 'pending' | 'ambiguous' | 'completed';
+  attemptCount: number;
+  lastError?: string | null;
+}
+
+export interface PendingPrintJobsResponse {
+  items: PendingPrintJob[];
+  nextCursor: number;
+  hasMore: boolean;
+}
+
+export interface RecordPrintJobResultRequest {
+  success: boolean;
+  ambiguous?: boolean;
+  operationKey: string;
+  message?: string | null;
+}
+
+export type AutomaticPrintStatus = 'queued' | 'printing' | 'retrying' | 'printed' | 'failed';
+
+export interface AutomaticPrintJob {
+  key: string;
+  orderId: string;
+  orderCode: string;
+  acceptanceSequence: number;
+  acceptedAtUtc: string;
+  printerName: string;
+  profileId: string;
+  attempt: number;
+  maxAttempts: number;
+  status: AutomaticPrintStatus;
+  message: string;
+  nextRetryAtUtc?: string;
+  updatedAtUtc: string;
 }

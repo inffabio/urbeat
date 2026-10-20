@@ -131,6 +131,84 @@ public sealed class OutboxHandlerTests
     }
 
     [Fact]
+    public async Task OrderAcceptedForPrintingHandler_ShouldPushSellerAcceptanceEvent()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var acceptedAtUtc = new DateTime(2026, 10, 19, 12, 0, 0, DateTimeKind.Utc);
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.NotifySellerOrderAcceptedForPrintingAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var handler = new OrderAcceptedForPrintingSignalRHandler(
+            notificationService.Object,
+            NullLogger<OrderAcceptedForPrintingSignalRHandler>.Instance);
+
+        var message = MessageOf(OutboxEventTypes.OrderAcceptedForPrinting, new OrderAcceptedForPrintingEvent
+        {
+            OrderId = orderId,
+            StoreId = storeId,
+            SellerUserId = sellerUserId,
+            Code = "URB-ACCEPT",
+            Sequence = 2,
+            AcceptedAtUtc = acceptedAtUtc
+        });
+
+        var result = await handler.HandleAsync(message);
+
+        result.Success.Should().BeTrue();
+        notificationService.Verify(
+            x => x.NotifySellerOrderAcceptedForPrintingAsync(
+                sellerUserId, orderId, storeId, "URB-ACCEPT", 2, acceptedAtUtc, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task OrderAcceptedForPrintingHandler_ShouldRetry_WhenSellerPushFails()
+    {
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.NotifySellerOrderAcceptedForPrintingAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        var handler = new OrderAcceptedForPrintingSignalRHandler(
+            notificationService.Object,
+            NullLogger<OrderAcceptedForPrintingSignalRHandler>.Instance);
+
+        var message = MessageOf(OutboxEventTypes.OrderAcceptedForPrinting, new OrderAcceptedForPrintingEvent
+        {
+            OrderId = Guid.NewGuid(),
+            StoreId = Guid.NewGuid(),
+            SellerUserId = Guid.NewGuid(),
+            Code = "URB-ACCEPT",
+            Sequence = 2,
+            AcceptedAtUtc = DateTime.UtcNow
+        });
+
+        var result = await handler.HandleAsync(message);
+
+        result.Success.Should().BeFalse();
+        result.Retryable.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task OrderAcceptedForPrintingHandler_ShouldFailPermanently_WhenOwnershipIdentifiersAreMissing()
+    {
+        var notificationService = new Mock<INotificationService>();
+        var handler = new OrderAcceptedForPrintingSignalRHandler(
+            notificationService.Object,
+            NullLogger<OrderAcceptedForPrintingSignalRHandler>.Instance);
+
+        var result = await handler.HandleAsync(MessageOf(OutboxEventTypes.OrderAcceptedForPrinting, new OrderAcceptedForPrintingEvent()));
+
+        result.Success.Should().BeFalse();
+        result.Retryable.Should().BeFalse();
+        notificationService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task NotificationHandler_ShouldPushCustomerAndSellerNotifications()
     {
         await using var db = CreateDbContext();

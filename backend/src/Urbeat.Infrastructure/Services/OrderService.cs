@@ -618,6 +618,51 @@ public sealed class OrderService : IOrderService
             aggregateType: nameof(Order),
             cancellationToken);
 
+        if (previousStatus == OrderStatus.Received && request.NewStatus == OrderStatus.Preparing)
+        {
+            // Backend-authoritative recovery record. Only create print work when the store's
+            // authoritative AutoPrint setting is enabled, so enabling it later cannot print old
+            // acceptances retroactively.
+            var autoPrintEnabled = await _dbContext.StorePrinterConfigs
+                .AsNoTracking()
+                .AnyAsync(config => config.StoreId == order.StoreId && config.AutoPrint, cancellationToken);
+
+            if (autoPrintEnabled)
+            {
+                await _dbContext.OrderPrintJobs.AddAsync(new OrderPrintJob
+                {
+                    OrderId = order.Id,
+                    StoreId = order.StoreId,
+                    SellerUserId = sellerUserId,
+                    Code = order.Code,
+                    AcceptanceSequence = order.StatusVersion,
+                    AcceptedAtUtc = changedAtUtc,
+                    Status = OrderPrintJobStatus.Pending
+                }, cancellationToken);
+
+                // Durable print trigger. It is emitted only for the acceptance transition and
+                // only when the store's authoritative AutoPrint setting is enabled. A stale local
+                // dashboard config can never turn printing on by itself.
+                await _outboxWriter.EnqueueAsync(
+                    OutboxEventTypes.OrderAcceptedForPrinting,
+                    order.Id,
+                    new OrderAcceptedForPrintingEvent
+                    {
+                        OrderId = order.Id,
+                        StoreId = order.StoreId,
+                        CustomerUserId = order.CustomerUserId,
+                        SellerUserId = sellerUserId,
+                        Code = order.Code,
+                        AcceptedAtUtc = changedAtUtc,
+                        Sequence = order.StatusVersion
+                    },
+                    changedAtUtc,
+                    sequence: order.StatusVersion,
+                    aggregateType: nameof(Order),
+                    cancellationToken);
+            }
+        }
+
         try
         {
             await _efUnitOfWork.SaveChangesAsync(cancellationToken);

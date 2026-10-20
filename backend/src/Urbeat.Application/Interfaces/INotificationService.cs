@@ -56,5 +56,19 @@ public interface INotificationService
         DateTime changedAtUtc,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Pushes the seller acceptance event used to trigger automatic printing. Delivery is
+    /// best-effort/at-least-once; callers must tolerate duplicates and reconcile through the
+    /// authoritative store orders endpoint.
+    /// </summary>
+    Task<bool> NotifySellerOrderAcceptedForPrintingAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        Guid storeId,
+        string orderCode,
+        int sequence,
+        DateTime acceptedAtUtc,
+        CancellationToken cancellationToken = default);
+
     Task<bool> MarkAsReadAsync(Guid notificationId, Guid recipientUserId, CancellationToken cancellationToken = default);
 }

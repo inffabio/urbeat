@@ -1,9 +1,10 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { SignalRService } from '../../core/services/signalr.service';
-import { SellerPrintingService } from '../seller-printing/seller-printing.service';
+import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
@@ -22,10 +23,19 @@ const isWindowsPlatformMock = isWindowsPlatform as jest.Mock;
 
 describe('SellerOrdersPageComponent', () => {
   let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock; completeOrder: jest.Mock };
-  let printingServiceMock: { printAcceptedOrder: jest.Mock };
+  let automaticPrintMock: {
+    enqueueAcceptedOrder: jest.Mock;
+    reconcilePendingJobs: jest.Mock;
+    statusMessage: ReturnType<typeof signal<string | null>>;
+    statusTone: ReturnType<typeof signal<'info' | 'success' | 'warning' | 'error' | null>>;
+  };
   let toastServiceMock: { showSuccess: jest.Mock; showError: jest.Mock };
   let shellMock: { newOrderPulse: any; notifyOrderChanged: jest.Mock };
-  let signalRServiceMock: { onSellerEvent: jest.Mock; removeSellerListener: jest.Mock };
+  let signalRServiceMock: {
+    onSellerEvent: jest.Mock;
+    removeSellerListener: jest.Mock;
+    isSellerConnected: ReturnType<typeof signal<boolean>>;
+  };
   let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
 
   const buildOrder = (overrides: Partial<any> = {}) => ({
@@ -46,10 +56,15 @@ describe('SellerOrdersPageComponent', () => {
       updateStoreOrderStatus: jest.fn().mockReturnValue(of({})),
       completeOrder: jest.fn().mockReturnValue(of({})),
     };
-    printingServiceMock = { printAcceptedOrder: jest.fn().mockResolvedValue(undefined) };
+    automaticPrintMock = {
+      enqueueAcceptedOrder: jest.fn().mockResolvedValue(undefined),
+      reconcilePendingJobs: jest.fn().mockResolvedValue(undefined),
+      statusMessage: signal<string | null>(null),
+      statusTone: signal<'info' | 'success' | 'warning' | 'error' | null>(null),
+    };
     toastServiceMock = { showSuccess: jest.fn().mockResolvedValue(undefined), showError: jest.fn().mockResolvedValue(undefined) };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
-    signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn() };
+    signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
     activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}) } };
 
     await TestBed.configureTestingModule({
@@ -57,7 +72,7 @@ describe('SellerOrdersPageComponent', () => {
       providers: [
         { provide: OrderService, useValue: orderServiceMock },
         { provide: SignalRService, useValue: signalRServiceMock },
-        { provide: SellerPrintingService, useValue: printingServiceMock },
+        { provide: AutomaticPrintQueueService, useValue: automaticPrintMock },
         { provide: ToastService, useValue: toastServiceMock },
         { provide: SellerShellFacade, useValue: shellMock },
         { provide: ActivatedRoute, useValue: activatedRouteMock },
@@ -177,13 +192,13 @@ describe('SellerOrdersPageComponent', () => {
       OrderStatus.Preparing,
       'Atualizado pelo painel do lojista',
     );
-    expect(printingServiceMock.printAcceptedOrder).toHaveBeenCalledWith('accepted-order');
+    expect(automaticPrintMock.enqueueAcceptedOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 'accepted-order' }),
+    );
   });
 
   it('keeps the acceptance flow running when automatic printing fails', () => {
-    printingServiceMock.printAcceptedOrder.mockImplementation(() => {
-      throw new Error('printer offline');
-    });
+    automaticPrintMock.enqueueAcceptedOrder.mockRejectedValue(new Error('printer offline'));
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
@@ -212,7 +227,7 @@ describe('SellerOrdersPageComponent', () => {
     );
     fixture.componentInstance.executeAdvance();
 
-    expect(printingServiceMock.printAcceptedOrder).not.toHaveBeenCalled();
+    expect(automaticPrintMock.enqueueAcceptedOrder).not.toHaveBeenCalled();
   });
 
   it('optimistically moves an order to the next status before the silent reload, even when reload fails', () => {
@@ -531,6 +546,35 @@ describe('SellerOrdersPageComponent', () => {
     const before = orderServiceMock.getStoreOrders.mock.calls.length;
     listener({ orderId: 'unknown' });
     expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before);
+  });
+
+  it('enqueues automatic printing when the seller acceptance event arrives', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(
+      ([name]: [string]) => name === 'OrderAcceptedForPrinting',
+    )?.[1];
+    expect(listener).toBeDefined();
+
+    listener({ orderId: 'accepted-order', storeId: 'store-1', sequence: 2, acceptedAtUtc: '2026-10-19T12:00:00Z' });
+
+    expect(automaticPrintMock.enqueueAcceptedOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 'accepted-order', sequence: 2 }),
+    );
+  });
+
+  it('reconciles accepted orders after loading the board and after reconnecting', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(automaticPrintMock.reconcilePendingJobs).toHaveBeenCalled();
+
+    automaticPrintMock.reconcilePendingJobs.mockClear();
+    signalRServiceMock.isSellerConnected.set(true);
+    fixture.detectChanges();
+
+    expect(automaticPrintMock.reconcilePendingJobs).toHaveBeenCalled();
   });
 
   it('removes the OrderStatusUpdated listener on destroy', () => {

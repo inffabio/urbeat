@@ -19,4 +19,8 @@ public sealed class PrintJobRecord
     public string CreatedAtUtc { get; set; } = string.Empty;
 
     public string Message { get; set; } = string.Empty;
+
+    public string RawText { get; set; } = string.Empty;
+
+    public int AttemptCount { get; set; } = 1;
 }

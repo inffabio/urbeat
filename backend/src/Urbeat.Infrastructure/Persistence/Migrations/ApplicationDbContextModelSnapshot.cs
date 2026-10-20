@@ -1006,6 +1006,71 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.OrderPrintJob", b =>
+                {
+                    b.Property<long>("Cursor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Cursor"));
+
+                    b.Property<int>("AcceptanceSequence")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("AcceptedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastAttemptAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("LastOperationKey")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Cursor");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.HasIndex("StoreId", "Status", "Cursor")
+                        .HasDatabaseName("IX_OrderPrintJobs_StoreId_Status_Cursor");
+
+                    b.ToTable("OrderPrintJobs", (string)null);
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderReview", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2940,6 +3005,15 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.OrderPrintJob", b =>
                 {
                     b.HasOne("Urbeat.Domain.Entities.Order", null)
                         .WithMany()

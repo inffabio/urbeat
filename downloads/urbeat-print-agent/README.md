@@ -4,7 +4,8 @@ Este diretório representa a estrutura esperada em produção para os downloads 
 
 ## URLs esperadas
 
-- `/downloads/urbeat-print-agent/windows/Urbeat.PrintAgent-win-x64.zip`
+- `/downloads/urbeat-print-agent/windows/Urbeat.PrintAgent-x64.msi` (principal)
+- `/downloads/urbeat-print-agent/windows/Urbeat.PrintAgent-win-x64.zip` (fallback técnico)
 - `/downloads/urbeat-print-agent/windows/install-local-agent.ps1`
 - `/downloads/urbeat-print-agent/windows/urbeat-print-agent-startup.bat`
 - `/downloads/urbeat-print-agent/windows/README.md`
@@ -15,7 +16,10 @@ Este diretório representa a estrutura esperada em produção para os downloads 
 
 ## Observações
 
-- O binário Windows deve conter o executável do agent e os arquivos mínimos de configuração.
+- O MSI Windows é self-contained, instala o agente como serviço de inicialização automática e não
+  exige runtime .NET separado.
+- O ZIP Windows permanece como fallback framework-dependent e contém o executável, configuração e
+  script PowerShell.
 - O pacote Windows deve ser acompanhado por script de instalação e opção de inicialização automática.
 - O pacote Linux deve conter o binário publicado, `appsettings.json` e a documentação de instalação.
 - O arquivo `POSPrinterDriverSetup58mm.exe` é servido no mesmo root de `/downloads/`.

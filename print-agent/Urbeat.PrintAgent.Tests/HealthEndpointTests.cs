@@ -1,11 +1,13 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Urbeat.PrintAgent.Models;
+using Urbeat.PrintAgent.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Urbeat.PrintAgent.Tests;
 
@@ -15,7 +17,7 @@ public class HealthEndpointTests
     public async Task Get_health_returns_ok_with_loopback_health_payload()
     {
         await using var fixture = new PrintAgentApiFactory();
-        var client = fixture.CreateClient();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         var response = await client.GetAsync("/health");
 
@@ -28,10 +30,24 @@ public class HealthEndpointTests
     }
 
     [Fact]
-    public async Task Post_config_persists_pos_58_settings_and_get_config_reads_them_back()
+    public async Task Get_health_is_public_but_reports_console_mode_in_tests()
     {
         await using var fixture = new PrintAgentApiFactory();
         var client = fixture.CreateClient();
+
+        var response = await client.GetAsync("/health");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<HealthResponse>();
+        body!.RunningAsService.Should().BeFalse();
+        body.Version.Should().NotBe("unknown");
+    }
+
+    [Fact]
+    public async Task Post_config_persists_pos_58_settings_and_get_config_reads_them_back()
+    {
+        await using var fixture = new PrintAgentApiFactory();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         var response = await client.PostAsJsonAsync("/config", new SaveConfigRequest
         {
@@ -63,7 +79,7 @@ public class HealthEndpointTests
     public async Task Get_printers_returns_recommended_profiles_with_pos_58_first()
     {
         await using var fixture = new PrintAgentApiFactory();
-        var client = fixture.CreateClient();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         var response = await client.GetAsync("/printers");
 
@@ -80,7 +96,7 @@ public class HealthEndpointTests
     public async Task Post_print_endpoints_return_jobs_with_expected_profile_defaults()
     {
         await using var fixture = new PrintAgentApiFactory();
-        var client = fixture.CreateClient();
+        var client = await fixture.CreateAuthenticatedClientAsync();
 
         var testResponse = await client.PostAsJsonAsync("/print/test", new PrintTestRequest
         {
@@ -98,6 +114,7 @@ public class HealthEndpointTests
 
         var orderResponse = await client.PostAsJsonAsync("/print/order", new PrintOrderRequest
         {
+            PrinterName = "POS-58 Balcao",
             PrinterProfile = "pos-58",
             PaperWidth = "58mm",
             AutoCut = false,
@@ -120,15 +137,20 @@ public class HealthEndpointTests
     private sealed class PrintAgentApiFactory : WebApplicationFactory<Program>
     {
         private readonly string _configPath = Path.Combine(Path.GetTempPath(), $"urbeat-print-agent-{Guid.NewGuid():N}.json");
+        private readonly string _jobsPath = Path.Combine(Path.GetTempPath(), $"urbeat-print-agent-jobs-{Guid.NewGuid():N}.json");
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureTestServices(_ => { });
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddSingleton<ILocalPrinterDiscovery, TestPrinterDiscovery>();
+            });
             builder.ConfigureAppConfiguration((_, config) =>
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Agent:ConfigPath"] = _configPath
+                    ["Agent:ConfigPath"] = _configPath,
+                    ["Agent:JobsPath"] = _jobsPath
                 });
             });
         }
@@ -137,10 +159,8 @@ public class HealthEndpointTests
         {
             base.Dispose(disposing);
 
-            if (File.Exists(_configPath))
-            {
-                File.Delete(_configPath);
-            }
+            if (File.Exists(_configPath)) File.Delete(_configPath);
+            if (File.Exists(_jobsPath)) File.Delete(_jobsPath);
         }
     }
 }

@@ -30,6 +30,7 @@ public class AgentConfigStoreTests
             loaded.Should().NotBeNull();
             loaded!.PrinterName.Should().Be("POS-58 Balcao");
             loaded.AutoCut.Should().BeFalse();
+            loaded.LocalToken.Should().Be("secret-token");
         }
         finally
         {

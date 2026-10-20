@@ -26,6 +26,7 @@ if (-not $resolvedKeyPath) {
 }
 
 $requiredFiles = @(
+    (Join-Path $downloadsRoot "urbeat-print-agent/windows/Urbeat.PrintAgent-x64.msi"),
     (Join-Path $downloadsRoot "urbeat-print-agent/windows/Urbeat.PrintAgent-win-x64.zip"),
     (Join-Path $downloadsRoot "urbeat-print-agent/linux/Urbeat.PrintAgent-linux-x64.tar.gz")
 )
@@ -44,6 +45,7 @@ ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mkdir -p ${RemoteDownloadsDir}/urbea
 if (Test-Path (Join-Path $downloadsRoot "POSPrinterDriverSetup58mm.exe")) {
     scp @sshScpOpts (Join-Path $downloadsRoot "POSPrinterDriverSetup58mm.exe") "${SSHUser}@${ServerIP}:${RemoteDownloadsDir}/"
 }
+scp @sshScpOpts (Join-Path $downloadsRoot "urbeat-print-agent/windows/Urbeat.PrintAgent-x64.msi") "${SSHUser}@${ServerIP}:${RemoteDownloadsDir}/urbeat-print-agent/windows/"
 scp @sshScpOpts (Join-Path $downloadsRoot "urbeat-print-agent/windows/Urbeat.PrintAgent-win-x64.zip") "${SSHUser}@${ServerIP}:${RemoteDownloadsDir}/urbeat-print-agent/windows/"
 scp @sshScpOpts (Join-Path $downloadsRoot "urbeat-print-agent/windows/install-local-agent.ps1") "${SSHUser}@${ServerIP}:${RemoteDownloadsDir}/urbeat-print-agent/windows/"
 scp @sshScpOpts (Join-Path $downloadsRoot "urbeat-print-agent/windows/urbeat-print-agent-startup.bat") "${SSHUser}@${ServerIP}:${RemoteDownloadsDir}/urbeat-print-agent/windows/"

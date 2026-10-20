@@ -4,6 +4,9 @@ import { TestBed } from '@angular/core/testing';
 import { throwError, of } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { OrderService } from '../../core/services/order.service';
+import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
+import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { SellerPrintingService } from './seller-printing.service';
 
 describe('SellerPrintingService', () => {
@@ -13,6 +16,7 @@ describe('SellerPrintingService', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    localStorage.setItem('urbeat:local-agent-token', 'test-local-token');
     apiServiceMock = { get: jest.fn().mockReturnValue(of([])), put: jest.fn().mockReturnValue(of({})) };
     orderServiceMock = { getStoreOrder: jest.fn() };
     TestBed.configureTestingModule({
@@ -29,6 +33,10 @@ describe('SellerPrintingService', () => {
   afterEach(() => {
     httpTesting.verify();
   });
+
+  const flushMicrotasks = async (): Promise<void> => {
+    for (let i = 0; i < 6; i += 1) await Promise.resolve();
+  };
 
   it('loads default config from localStorage fallback', () => {
     const service = TestBed.inject(SellerPrintingService);
@@ -174,13 +182,36 @@ describe('SellerPrintingService', () => {
     }));
   });
 
+  it('pairs with the local agent before calling protected endpoints', async () => {
+    localStorage.removeItem('urbeat:local-agent-token');
+    const service = TestBed.inject(SellerPrintingService);
+    service.platform.set('windows');
+
+    const refresh = service.refreshLocalAgent();
+    httpTesting.expectOne('http://127.0.0.1:43111/health').flush({ status: 'ok', mode: 'local-agent' });
+    const pair = httpTesting.expectOne('http://127.0.0.1:43111/pair');
+    expect(pair.request.headers.get('X-Urbeat-Pair')).toBe('1');
+    pair.flush({ token: 'paired-token' });
+    await flushMicrotasks();
+    const printers = httpTesting.expectOne('http://127.0.0.1:43111/printers');
+    expect(printers.request.headers.get('X-Urbeat-Local-Token')).toBe('paired-token');
+    printers.flush({ recommendedProfiles: [], installedPrinters: ['POS-58 USB'] });
+    await refresh;
+
+    expect(localStorage.getItem('urbeat:local-agent-token')).toBe('paired-token');
+    expect(service.installedPrinters()).toEqual(['POS-58 USB']);
+  });
+
   it('loads installed printers and exposes a platform-filtered catalog from the local agent', async () => {
     const service = TestBed.inject(SellerPrintingService);
     service.platform.set('windows');
 
     const refresh = service.refreshLocalAgent();
     httpTesting.expectOne('http://127.0.0.1:43111/health').flush({ status: 'ok', mode: 'local-agent' });
-    httpTesting.expectOne('http://127.0.0.1:43111/printers').flush({
+    await flushMicrotasks();
+    const printers = httpTesting.expectOne('http://127.0.0.1:43111/printers');
+    expect(printers.request.headers.get('X-Urbeat-Local-Token')).toBe('test-local-token');
+    printers.flush({
       recommendedProfiles: [
         { profileId: 'pos-58', displayName: 'POS-58', paperWidth: '58mm', supportsAutoCut: false, preferredConnection: 'android-bluetooth|wifi' },
       ],
@@ -198,12 +229,50 @@ describe('SellerPrintingService', () => {
 
     const refresh = service.refreshLocalAgent();
     httpTesting.expectOne('http://127.0.0.1:43111/health').flush({ status: 'ok', mode: 'local-agent' });
-    httpTesting.expectOne('http://127.0.0.1:43111/printers').flush({ recommendedProfiles: [], installedPrinters: ['POS-58 USB'] });
+    await flushMicrotasks();
+    const printers = httpTesting.expectOne('http://127.0.0.1:43111/printers');
+    expect(printers.request.headers.get('X-Urbeat-Local-Token')).toBe('test-local-token');
+    printers.flush({ recommendedProfiles: [], installedPrinters: ['POS-58 USB'] });
     await refresh;
 
     expect(service.installedPrinters()).toEqual(['POS-58 USB']);
     expect(service.catalogEntries().some((entry) => entry.source === 'installed')).toBe(false);
     expect(service.catalogEntries().some((entry) => entry.transport === 'android-bluetooth')).toBe(true);
+  });
+
+  it('forwards the idempotency operation key to the local agent', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    service.saveConfig({
+      ...service.config(),
+      connectionType: 'local-agent',
+      adapterId: 'local-agent',
+      printerName: 'POS-58 USB',
+    });
+
+    const print = service.printOrderFromDetails({
+      id: 'order-1',
+      code: 'URB-1',
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Preparing,
+      paymentMethod: PaymentMethod.PixOnline,
+      subtotal: 10,
+      deliveryFee: 0,
+      total: 10,
+      createdAtUtc: '2026-08-20T00:00:00.000Z',
+      items: [],
+      history: [],
+    }, 'order:order-1:accept:2026-10-19T12:00:00Z:seq:2:printer:POS-58-USB:profile:pos-58');
+    await flushMicrotasks();
+
+    const request = httpTesting.expectOne('http://127.0.0.1:43111/print/order');
+    expect(request.request.headers.get('X-Urbeat-Local-Token')).toBe('test-local-token');
+    expect(request.request.body.operationKey).toBe(
+      'order:order-1:accept:2026-10-19T12:00:00Z:seq:2:printer:POS-58-USB:profile:pos-58',
+    );
+    request.flush({ status: 'sent', message: 'ok' });
+
+    await expect(print).resolves.toEqual(expect.objectContaining({ ok: true }));
   });
 
   it('reports a failed local-agent job as a failed print result', async () => {
@@ -220,8 +289,10 @@ describe('SellerPrintingService', () => {
       total: 10,
       createdAtUtc: '2026-08-20T00:00:00.000Z',
     });
+    await flushMicrotasks();
 
     const request = httpTesting.expectOne('http://127.0.0.1:43111/print/order');
+    expect(request.request.headers.get('X-Urbeat-Local-Token')).toBe('test-local-token');
     request.flush({ status: 'failed', message: 'Impressora sem papel' });
 
     await expect(print).resolves.toEqual(expect.objectContaining({

@@ -28,7 +28,9 @@ describe('SellerInstallPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Plataformas recomendadas');
     expect(fixture.nativeElement.textContent).toContain('Baixar agents locais');
     expect(fixture.nativeElement.textContent).toContain('Baixar agent para Windows');
+    expect(fixture.nativeElement.textContent).toContain('Baixar ZIP alternativo (Windows)');
     expect(fixture.nativeElement.textContent).toContain('Baixar agent para Linux');
+    expect(fixture.nativeElement.querySelector('a[href$="Urbeat.PrintAgent-x64.msi"]')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Driver Windows da POS-58');
     expect(fixture.nativeElement.textContent).toContain('Ordem ideal de instalação');
     expect(fixture.nativeElement.textContent).toContain('Plataformas recomendadas');

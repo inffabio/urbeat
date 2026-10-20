@@ -54,6 +54,25 @@ public sealed partial class NotificationService
         }, cancellationToken);
     }
 
+    public async Task<bool> NotifySellerOrderAcceptedForPrintingAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        Guid storeId,
+        string orderCode,
+        int sequence,
+        DateTime acceptedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return await TrySendNotificationAsync(_sellerHub, sellerUserId.ToString(), "OrderAcceptedForPrinting", new
+        {
+            orderId,
+            storeId,
+            orderCode,
+            sequence,
+            acceptedAtUtc
+        }, cancellationToken);
+    }
+
     private static async Task<bool> TrySendNotificationAsync(dynamic? hub, string userId, string method, object arg, CancellationToken ct)
     {
         if (hub is null)

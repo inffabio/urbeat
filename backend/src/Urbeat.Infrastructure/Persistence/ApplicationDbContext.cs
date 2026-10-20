@@ -42,6 +42,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
 
+    public DbSet<OrderPrintJob> OrderPrintJobs => Set<OrderPrintJob>();
+
     public DbSet<Payment> Payments => Set<Payment>();
 
     public DbSet<PaymentWebhookEvent> PaymentWebhookEvents => Set<PaymentWebhookEvent>();
@@ -744,6 +746,7 @@ public sealed class ApplicationDbContext
         });
 
         builder.ApplyConfiguration(new OutboxMessageConfiguration());
+        builder.ApplyConfiguration(new OrderPrintJobConfiguration());
 
         builder.Entity<OutboxDelivery>(entity =>
         {

@@ -695,6 +695,13 @@ public sealed class OrderServiceTests : IDisposable
         };
         _db.Stores.Add(store);
         _db.Orders.Add(order);
+        _db.StorePrinterConfigs.Add(new StorePrinterConfig
+        {
+            StoreId = store.Id,
+            PrinterPresetId = Guid.NewGuid(),
+            PrinterName = "POS-58",
+            AutoPrint = true
+        });
         await _db.SaveChangesAsync();
 
         var sut = new OrderService(_db, new EfUnitOfWork(_db), Mock.Of<INotificationService>(), new OutboxWriter(_db));
@@ -721,6 +728,100 @@ public sealed class OrderServiceTests : IDisposable
         payload.ChangedAtUtc.Should().BeOnOrBefore(after);
         payload.Sequence.Should().Be(1);
         message.Sequence.Should().Be(1);
+
+        var acceptedMessage = _db.OutboxMessages.Single(x => x.Type == OutboxEventTypes.OrderAcceptedForPrinting);
+        acceptedMessage.AggregateId.Should().Be(order.Id);
+        acceptedMessage.Sequence.Should().Be(1);
+        var acceptedPayload = JsonSerializer.Deserialize<OrderAcceptedForPrintingEvent>(acceptedMessage.Payload, JsonOptions);
+        acceptedPayload!.OrderId.Should().Be(order.Id);
+        acceptedPayload.StoreId.Should().Be(store.Id);
+        acceptedPayload.SellerUserId.Should().Be(sellerUserId);
+        acceptedPayload.CustomerUserId.Should().Be(customerUserId);
+        acceptedPayload.Code.Should().Be("URB-123456");
+        acceptedPayload.Sequence.Should().Be(1);
+        acceptedPayload.AcceptedAtUtc.Should().Be(payload.ChangedAtUtc);
+
+        var printJob = _db.OrderPrintJobs.Single();
+        printJob.OrderId.Should().Be(order.Id);
+        printJob.StoreId.Should().Be(store.Id);
+        printJob.SellerUserId.Should().Be(sellerUserId);
+        printJob.Code.Should().Be("URB-123456");
+        printJob.AcceptanceSequence.Should().Be(1);
+        printJob.Status.Should().Be(OrderPrintJobStatus.Pending);
+        printJob.Cursor.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldNotCreatePrintJob_WhenAutoPrintIsDisabled()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-no-auto", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-NOAUTO",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Received,
+            Total = 10m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        _db.StorePrinterConfigs.Add(new StorePrinterConfig
+        {
+            StoreId = store.Id,
+            PrinterPresetId = Guid.NewGuid(),
+            PrinterName = "POS-58",
+            AutoPrint = false
+        });
+        await _db.SaveChangesAsync();
+
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), Mock.Of<INotificationService>(), new OutboxWriter(_db));
+
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing },
+            null);
+
+        result.InvalidTransition.Should().BeFalse();
+        _db.OrderPrintJobs.Should().BeEmpty();
+        _db.OutboxMessages.Should().ContainSingle(x => x.Type == OutboxEventTypes.OrderStatusChanged);
+        _db.OutboxMessages.Should().NotContain(x => x.Type == OutboxEventTypes.OrderAcceptedForPrinting);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldNotEnqueuePrintingEvent_ForNonAcceptanceTransitions()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-print", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-PRINT-2",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Preparing,
+            StatusVersion = 2,
+            Total = 10m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var sut = new OrderService(_db, new EfUnitOfWork(_db), Mock.Of<INotificationService>(), new OutboxWriter(_db));
+
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Ready },
+            null);
+
+        result.InvalidTransition.Should().BeFalse();
+        _db.OutboxMessages.Should().ContainSingle(x => x.Type == OutboxEventTypes.OrderStatusChanged);
+        _db.OutboxMessages.Should().NotContain(x => x.Type == OutboxEventTypes.OrderAcceptedForPrinting);
     }
 
     [Fact]

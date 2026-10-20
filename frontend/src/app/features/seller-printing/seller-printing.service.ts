@@ -1,4 +1,4 @@
-﻿import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { detectPlatform } from '../../core/utils/platform.helper';
@@ -12,6 +12,7 @@ import { buildSelectablePrinters, PrinterCatalogEntry } from './printer-catalog'
 import { LocalAgentStatus, PrintableOrder, PrintableOrderItem, PrintingConfig, PrintResult, PrinterConnectionType, PrinterPaperWidth, PrinterPresetResponse } from './seller-printing.models';
 
 const STORAGE_KEY = 'urbeat:seller-printing-config';
+const LOCAL_AGENT_TOKEN_STORAGE = 'urbeat:local-agent-token';
 const LOCAL_AGENT_BASE_URL = 'http://127.0.0.1:43111';
 
 interface StorePrintingConfigResponse {
@@ -34,8 +35,12 @@ interface LocalAgentHealthResponse {
   mode?: string;
 }
 
+interface LocalAgentPairResponse {
+  token?: string;
+}
+
 interface LocalAgentPrintResponse {
-  status?: 'queued' | 'sent' | 'failed' | 'unknown';
+  status?: 'queued' | 'sent' | 'failed' | 'unknown' | 'ambiguous';
   message?: string;
   jobId?: string;
 }
@@ -70,6 +75,7 @@ export class SellerPrintingService {
   private readonly orderService = inject(OrderService);
   private readonly bt = inject(BluetoothPrinterAdapter);
   private readonly registry = inject(PrinterAdapterRegistry);
+  private localAgentTokenPromise: Promise<string> | null = null;
 
   readonly presets = signal<PrinterPresetResponse[]>([]);
   readonly config = signal<PrintingConfig>(this.loadLocalFallback());
@@ -167,13 +173,80 @@ export class SellerPrintingService {
 
   async loadLocalAgentPrinters(): Promise<string[]> {
     try {
-      const printers = await firstValueFrom(this.http.get<string[] | LocalAgentPrinterCatalogResponse>(`${LOCAL_AGENT_BASE_URL}/printers`));
+      const printers = await this.withLocalAgentAuth((headers) =>
+        firstValueFrom(this.http.get<string[] | LocalAgentPrinterCatalogResponse>(
+          `${LOCAL_AGENT_BASE_URL}/printers`,
+          { headers },
+        )),
+      );
       if (Array.isArray(printers)) {
         return printers;
       }
       return Array.isArray(printers?.installedPrinters) ? printers.installedPrinters : [];
     } catch {
       return [];
+    }
+  }
+
+  private async ensureLocalAgentToken(): Promise<string> {
+    const stored = this.readLocalAgentToken();
+    if (stored) return stored;
+    if (this.localAgentTokenPromise) return this.localAgentTokenPromise;
+
+    this.localAgentTokenPromise = firstValueFrom(this.http.post<LocalAgentPairResponse>(
+      `${LOCAL_AGENT_BASE_URL}/pair`,
+      {},
+      { headers: new HttpHeaders({ 'X-Urbeat-Pair': '1' }) },
+    ))
+      .then((response) => {
+        const token = response?.token?.trim() ?? '';
+        if (!token) {
+          throw new Error('O agente local não retornou um token de pareamento.');
+        }
+        localStorage.setItem(LOCAL_AGENT_TOKEN_STORAGE, token);
+        return token;
+      })
+      .finally(() => {
+        this.localAgentTokenPromise = null;
+      });
+
+    return this.localAgentTokenPromise;
+  }
+
+  private localAgentHeaders(token: string): HttpHeaders {
+    return new HttpHeaders({ 'X-Urbeat-Local-Token': token });
+  }
+
+  private readLocalAgentToken(): string {
+    try {
+      return localStorage.getItem(LOCAL_AGENT_TOKEN_STORAGE)?.trim() ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  private clearLocalAgentToken(): void {
+    try {
+      localStorage.removeItem(LOCAL_AGENT_TOKEN_STORAGE);
+    } catch {
+      // Best-effort; a new pairing attempt follows.
+    }
+  }
+
+  private isUnauthorized(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'status' in error
+      && (error as { status?: number }).status === 401;
+  }
+
+  private async withLocalAgentAuth<T>(call: (headers: HttpHeaders) => Promise<T>): Promise<T> {
+    const token = await this.ensureLocalAgentToken();
+    try {
+      return await call(this.localAgentHeaders(token));
+    } catch (error) {
+      if (!this.isUnauthorized(error)) throw error;
+      this.clearLocalAgentToken();
+      const renewedToken = await this.ensureLocalAgentToken();
+      return call(this.localAgentHeaders(renewedToken));
     }
   }
 
@@ -216,7 +289,7 @@ export class SellerPrintingService {
     }
   }
 
-  printOrderFromDetails(details: OrderDetails): Promise<PrintResult> {
+  printOrderFromDetails(details: OrderDetails, operationKey?: string): Promise<PrintResult> {
     const items: PrintableOrderItem[] = (details.items ?? []).map((item) => ({
       name: item.productName,
       quantity: item.quantity,
@@ -230,6 +303,7 @@ export class SellerPrintingService {
 
     const order: PrintableOrder = {
       orderId: details.id,
+      operationKey,
       code: details.code,
       customerName: details.customerName,
       customerPhoneNumber: details.customerPhoneNumber,
@@ -418,7 +492,8 @@ export class SellerPrintingService {
     return currentAdapterId || 'escpos-bluetooth';
   }
 
-  private localAgentProfile(config: PrintingConfig): string {
+  /** Profile id sent to the local agent and used in the idempotency key. */
+  printerProfile(config: PrintingConfig = this.config()): string {
     if (config.presetId === 'generic-pos-58-usb'
       || config.presetId === 'generic-pos-58-wifi'
       || config.presetId === 'generic-pos-80-wifi'
@@ -441,20 +516,24 @@ export class SellerPrintingService {
 
   private async printTestThroughLocalAgent(config: PrintingConfig): Promise<PrintResult> {
     try {
-      const response = await firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/test`, {
-        printerName: config.printerName,
-        printerProfile: this.localAgentProfile(config),
-        paperWidth: config.paperWidth,
-        autoCut: config.autoCut,
-        copies: config.copies,
-        footerText: config.footerText,
-      }));
+      const response = await this.withLocalAgentAuth((headers) =>
+        firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/test`, {
+          printerName: config.printerName,
+          printerProfile: this.printerProfile(config),
+          paperWidth: config.paperWidth,
+          autoCut: config.autoCut,
+          copies: config.copies,
+          footerText: config.footerText,
+        }, { headers })),
+      );
 
       const result: PrintResult = {
         ok: response.status === 'queued' || response.status === 'sent',
         mode: 'local-agent',
         message: response.message ?? `Teste enviado para ${config.printerName || 'a impressora do agente local'}.`,
         printedAtUtc: new Date().toISOString(),
+        retryable: response.status !== 'ambiguous',
+        uncertain: response.status === 'ambiguous',
       };
       this.lastResult.set(result);
       return result;
@@ -472,25 +551,30 @@ export class SellerPrintingService {
 
   private async printOrderThroughLocalAgent(order: PrintableOrder, config: PrintingConfig): Promise<PrintResult> {
     try {
-      const response = await firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/order`, {
-        printerName: config.printerName,
-        orderId: order.orderId ?? '',
-        printerProfile: this.localAgentProfile(config),
-        paperWidth: config.paperWidth,
-        autoCut: config.autoCut,
-        copies: config.copies,
-        printKitchenCopy: config.printKitchenCopy,
-        printCounterCopy: config.printCounterCopy,
-        printCustomerReceipt: config.printCustomerReceipt,
-        footerText: config.footerText,
-        order,
-      }));
+      const response = await this.withLocalAgentAuth((headers) =>
+        firstValueFrom(this.http.post<LocalAgentPrintResponse>(`${LOCAL_AGENT_BASE_URL}/print/order`, {
+          printerName: config.printerName,
+          orderId: order.orderId ?? '',
+          operationKey: order.operationKey ?? '',
+          printerProfile: this.printerProfile(config),
+          paperWidth: config.paperWidth,
+          autoCut: config.autoCut,
+          copies: config.copies,
+          printKitchenCopy: config.printKitchenCopy,
+          printCounterCopy: config.printCounterCopy,
+          printCustomerReceipt: config.printCustomerReceipt,
+          footerText: config.footerText,
+          order,
+        }, { headers })),
+      );
 
       const result: PrintResult = {
         ok: response.status === 'queued' || response.status === 'sent',
         mode: 'local-agent',
         message: response.message ?? `Pedido #${order.code} enviado para ${config.printerName || 'o agente local'}.`,
         printedAtUtc: new Date().toISOString(),
+        retryable: response.status !== 'ambiguous',
+        uncertain: response.status === 'ambiguous',
       };
       this.lastResult.set(result);
       return result;

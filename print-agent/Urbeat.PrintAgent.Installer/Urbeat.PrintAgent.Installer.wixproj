@@ -1,0 +1,29 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" Version="4.0.5" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildProjectDirectory)\..\out\win-x64-msi</PublishDir>
+    <PublishDirNormalized>$([System.IO.Path]::TrimEndingDirectorySeparator('$(PublishDir)'))</PublishDirNormalized>
+    <DefineConstants>ProductVersion=$(ProductVersion);PublishDir=$(PublishDirNormalized);LicensePath=$(MSBuildProjectDirectory)\License.rtf</DefineConstants>
+    <GeneratedFilesSource>$(MSBuildProjectDirectory)\Generated\Files.wxs</GeneratedFilesSource>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Package.wxs" />
+    <Compile Include="$(GeneratedFilesSource)" />
+  </ItemGroup>
+
+  <Target Name="GenerateWixFileComponents" BeforeTargets="CoreCompile" Condition="Exists('$(PublishDirNormalized)\Urbeat.PrintAgent.exe')">
+    <Exec
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\scripts\print-agent\generate-wix-file-components.ps1&quot; -PublishDir &quot;$(PublishDirNormalized)&quot; -OutputPath &quot;$(GeneratedFilesSource)&quot;" />
+  </Target>
+
+</Project>

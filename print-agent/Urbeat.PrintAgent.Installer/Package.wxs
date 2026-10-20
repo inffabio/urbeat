@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package
+    Name="Urbeat Print Agent"
+    Manufacturer="Urbeat"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="B4B5A1B6-2A8A-4E42-9C58-3A0B8E2C5D71"
+    Scope="perMachine"
+    Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="Uma versão mais nova do Urbeat Print Agent já está instalada." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicensePath)" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Urbeat Print Agent" />
+    </StandardDirectory>
+
+    <Component Id="PrintAgentServiceComponent" Directory="INSTALLFOLDER" Guid="7E2C1E0D-9A62-4A2B-B7F0-6D3B67D4C1A9">
+      <File Id="PrintAgentExe" Source="$(var.PublishDir)\Urbeat.PrintAgent.exe" KeyPath="yes" />
+      <ServiceInstall
+        Id="PrintAgentServiceInstall"
+        Name="UrbeatPrintAgent"
+        DisplayName="Urbeat Print Agent"
+        Description="Serviço local de impressão automática de pedidos do Urbeat. Escuta somente em 127.0.0.1:43111."
+        Type="ownProcess"
+        Start="auto"
+        ErrorControl="normal"
+        Account="LocalSystem">
+        <util:ServiceConfig
+          FirstFailureActionType="restart"
+          SecondFailureActionType="restart"
+          ThirdFailureActionType="restart"
+          RestartServiceDelayInSeconds="5"
+          ResetPeriodInDays="1" />
+      </ServiceInstall>
+      <ServiceControl
+        Id="PrintAgentServiceControl"
+        Name="UrbeatPrintAgent"
+        Start="install"
+        Stop="both"
+        Remove="uninstall"
+        Wait="yes" />
+    </Component>
+
+    <Feature Id="ProductFeature" Title="Urbeat Print Agent" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="PrintAgentServiceComponent" />
+    </Feature>
+
+  </Package>
+</Wix>

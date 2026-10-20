@@ -166,6 +166,7 @@ public static class InfrastructureServiceCollectionExtensions
                 : provider.GetRequiredService<FakeSmsVerificationMessageSender>();
         });
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IOrderPrintingService, OrderPrintingService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
         services.AddScoped<ISubscriptionWebhookService, SubscriptionWebhookService>();
@@ -228,6 +229,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOutboxDeliveryTracker, OutboxDeliveryTracker>();
         services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
         services.AddScoped<IOutboxEventHandler, OrderSignalRHandler>();
+        services.AddScoped<IOutboxEventHandler, OrderAcceptedForPrintingSignalRHandler>();
         services.AddScoped<IOutboxEventHandler, NotificationHandler>();
         services.AddScoped<IOutboxEventHandler, EmailHandler>();
         services.AddScoped<IOutboxEventHandler, PrintHandler>();

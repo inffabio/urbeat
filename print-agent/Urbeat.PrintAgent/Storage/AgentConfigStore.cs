@@ -27,7 +27,9 @@ public sealed class AgentConfigStore
         }
 
         var json = JsonSerializer.Serialize(config, SerializerOptions);
-        await File.WriteAllTextAsync(_filePath, json, cancellationToken);
+        var tempFile = $"{_filePath}.{Guid.NewGuid():N}.tmp";
+        await File.WriteAllTextAsync(tempFile, json, cancellationToken);
+        File.Move(tempFile, _filePath, overwrite: true);
     }
 
     public async Task<AgentPrinterConfig?> LoadAsync(CancellationToken cancellationToken)

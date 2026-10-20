@@ -19,4 +19,6 @@ public sealed class PrintJobResult
     public string RawText { get; set; } = string.Empty;
 
     public string? JobId { get; set; }
+
+    public string OperationKey { get; set; } = string.Empty;
 }

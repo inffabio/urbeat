@@ -57,6 +57,43 @@
   }
 }
 
+.print-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #c7d7f2;
+  border-radius: 14px;
+  background: #eef4ff;
+  color: #183b73;
+  font-size: 13px;
+  font-weight: 700;
+
+  &.is-warning {
+    border-color: #f3d28b;
+    background: #fff7e3;
+    color: #7a4b00;
+  }
+
+  &.is-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  &.is-success {
+    border-color: #b7e3c4;
+    background: #eefaf1;
+    color: #166534;
+  }
+
+  .bi {
+    font-size: 18px;
+    flex: 0 0 auto;
+  }
+}
+
 .new-orders-panel {
   width: 100%;
   min-height: 430px;
