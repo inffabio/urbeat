@@ -44,6 +44,33 @@ describe('StickyActionBarComponent', () => {
     expect(fixture.nativeElement.classList.contains('in-flow')).toBe(true);
   });
 
+  it('adds the safe-area inset only to in-flow bars that ask for it', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).toContain('@Input() safeArea = false;');
+    expect(source).toMatch(/:host\(\.in-flow\.in-flow-safe-area\)\s*\{[\s\S]*padding-bottom:\s*calc\(16px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+
+    expect(fixture.nativeElement.classList.contains('in-flow-safe-area')).toBe(false);
+
+    fixture.componentRef.setInput('safeArea', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.classList.contains('in-flow-safe-area')).toBe(false);
+
+    fixture.componentRef.setInput('placement', 'inline');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.classList.contains('in-flow-safe-area')).toBe(true);
+  });
+
+  it('never squeezes the action label: the label keeps its width and the detail ellipsizes', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+
+    expect(source).toMatch(/grid-template-columns:\s*54px auto 1px minmax\(0, 1fr\);/);
+    expect(source).not.toMatch(/grid-template-columns:\s*54px 1fr 1px auto;/);
+    expect(source).toMatch(/\.action-detail\s*\{[\s\S]*min-width:\s*0;/);
+    // 48px keeps the touch target above the 44px minimum.
+    expect(source).toMatch(/\.sticky-action\s*\{[\s\S]*height:\s*48px;/);
+  });
+
   it('defaults to the default appearance without the primary class', () => {
     expect(fixture.nativeElement.classList.contains('sticky-action-primary')).toBe(false);
   });

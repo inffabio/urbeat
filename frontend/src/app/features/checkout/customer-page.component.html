@@ -269,6 +269,20 @@
       </div>
     }
 
+    @if (!isAccountEdit()) {
+      <app-sticky-action-bar
+        class="checkout-cta"
+        placement="inline"
+        [safeArea]="true"
+        appearance="primary"
+        icon="person-outline"
+        label="Continuar"
+        [detail]="continueDetail()"
+        [disabled]="!canContinue()"
+        (action)="continue()"
+      />
+    }
+
     @if (isAccountEdit()) {
       <div class="account-actions">
         <button
@@ -303,16 +317,5 @@
     [customerAddress]="{ city: city(), state: state(), cep: cep(), neighborhood: neighborhood() }"
     (close)="closeDeliveryCoverageModal()"
     (backToMenu)="goToMenu()"
-  />
-}
-
-@if (!isAccountEdit()) {
-  <app-sticky-action-bar
-    appearance="primary"
-    icon="person-outline"
-    label="Continuar"
-    [detail]="continueDetail()"
-    [disabled]="!canContinue()"
-    (action)="continue()"
   />
 }

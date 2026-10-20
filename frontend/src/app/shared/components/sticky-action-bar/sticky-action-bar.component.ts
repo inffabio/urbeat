@@ -49,13 +49,23 @@ import { IonIcon } from '@ionic/angular/standalone';
         transform: none;
       }
 
+      /* In-flow bars are the last item of a full-height route column, so they
+         must add the device inset themselves instead of relying on a fixed
+         bottom offset. */
+      :host(.in-flow.in-flow-safe-area) {
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+
     .sticky-action {
       position: relative;
       z-index: 1;
       width: 100%;
       height: 48px;
       display: grid;
-      grid-template-columns: 54px 1fr 1px auto;
+      /* The label is the action itself: it keeps its intrinsic width and the
+         detail ellipsizes into whatever is left, so "Continuar" is never
+         reduced to "Co..." on narrow phones. */
+      grid-template-columns: 54px auto 1px minmax(0, 1fr);
       align-items: center;
       gap: 8px;
       padding: 0 18px;
@@ -112,6 +122,7 @@ import { IonIcon } from '@ionic/angular/standalone';
     }
 
     .action-detail {
+      min-width: 0;
       overflow: hidden;
        color: var(--app-text-secondary, #5a5a63);
        font-size: 14px;
@@ -169,11 +180,18 @@ export class StickyActionBarComponent {
       @Input() disabled = false;
       @Input() placement: 'fixed' | 'inline' = 'fixed';
       @Input() appearance: 'default' | 'primary' = 'default';
+      /** Only meaningful with `placement="inline"`: adds the device bottom inset. */
+      @Input() safeArea = false;
       @Output() readonly action = new EventEmitter<void>();
 
       @HostBinding('class.in-flow')
       get isInFlow(): boolean {
         return this.placement === 'inline';
+      }
+
+      @HostBinding('class.in-flow-safe-area')
+      get hasSafeAreaPadding(): boolean {
+        return this.placement === 'inline' && this.safeArea;
       }
 
       @HostBinding('class.sticky-action-primary')

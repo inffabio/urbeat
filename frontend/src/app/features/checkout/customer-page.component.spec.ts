@@ -204,9 +204,11 @@ describe('CustomerPageComponent', () => {
     const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
     expect(bar).not.toBeNull();
     expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
-    // Rendered next to the scroll content (not inside ion-content) so the fixed
-    // bar is never clipped by the form scrollport.
-    expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+    expect(bar.nativeElement.classList.contains('in-flow')).toBe(true);
+    // Rendered inside the form so the CTA follows Número/Complemento instead of
+    // being pinned to the bottom of the layout.
+    const form = fixture.debugElement.query(By.css('.checkout-form')).nativeElement as HTMLElement;
+    expect((bar.nativeElement as HTMLElement).parentElement).toBe(form);
 
     const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
     expect(button.disabled).toBe(true);
@@ -719,6 +721,60 @@ describe('CustomerPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.account-save-btn'))).toBeNull();
   });
 
+  it('renders the Continuar bar inside the form right below Número/Complemento so the CTA follows the fields', () => {
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar')).nativeElement as HTMLElement;
+    const form = fixture.debugElement.query(By.css('.checkout-form')).nativeElement as HTMLElement;
+    const content = fixture.debugElement.query(By.css('ion-content')).nativeElement as HTMLElement;
+    const numberInput = fixture.debugElement.query(By.css('input[name="number"]')).nativeElement as HTMLElement;
+    const complementInput = fixture.debugElement.query(By.css('input[name="complement"]')).nativeElement as HTMLElement;
+
+    // In-flow, not `position: fixed`: the CTA is part of the scroll content.
+    expect(bar.classList.contains('in-flow')).toBe(true);
+    expect(bar.classList.contains('in-flow-safe-area')).toBe(true);
+    expect(bar.classList.contains('checkout-cta')).toBe(true);
+    expect(bar.classList.contains('sticky-action-primary')).toBe(true);
+
+    // The CTA is a child of the form, not the page column's footer, and it stays
+    // reachable inside the scrollport.
+    expect(bar.parentElement).toBe(form);
+    expect(content.contains(form)).toBe(true);
+    expect(content.contains(bar)).toBe(true);
+
+    // DOM order: Número/Complemento first, then the CTA.
+    expect(numberInput.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(complementInput.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bar.previousElementSibling?.classList.contains('field-row')).toBe(true);
+    // Nothing else is rendered after the CTA in checkout mode.
+    expect(form.lastElementChild).toBe(bar);
+
+    const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+    expect(button.textContent).toContain('Continuar');
+    expect(button.getAttribute('aria-label')).toBe('Continuar');
+    // Inside a form the shared bar must never trigger a native submit.
+    expect(button.getAttribute('type')).toBe('button');
+  });
+
+  it('declares the in-flow placement and safe-area inset inside the checkout form, after Número/Complemento', () => {
+    const template = readFileSync(resolve(__dirname, 'customer-page.component.html'), 'utf8');
+
+    expect(template).toMatch(/<app-sticky-action-bar[\s\S]*?placement="inline"[\s\S]*?\[safeArea\]="true"[\s\S]*?appearance="primary"[\s\S]*?label="Continuar"[\s\S]*?\[disabled\]="!canContinue\(\)"[\s\S]*?\(action\)="continue\(\)"/);
+
+    const numberIndex = template.indexOf('name="number"');
+    const complementIndex = template.indexOf('name="complement"');
+    const barIndex = template.indexOf('<app-sticky-action-bar');
+    const formEndIndex = template.indexOf('</form>');
+
+    expect(numberIndex).toBeGreaterThan(-1);
+    expect(complementIndex).toBeGreaterThan(-1);
+    expect(barIndex).toBeGreaterThan(numberIndex);
+    expect(barIndex).toBeGreaterThan(complementIndex);
+    expect(formEndIndex).toBeGreaterThan(barIndex);
+    expect(template).toMatch(/@if \(!isAccountEdit\(\)\) \{\s*<app-sticky-action-bar/);
+  });
+
   it('navigates to payment when the primary Continuar bar is clicked with a valid form', () => {
     cart.setStore('store-1', 'Loja', '');
     const fixture = TestBed.createComponent(CustomerPageComponent);
@@ -772,7 +828,9 @@ describe('CustomerPageComponent', () => {
     const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
     expect(bar).not.toBeNull();
     expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
-    expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+    expect((bar.nativeElement as HTMLElement).parentElement).toBe(
+      fixture.debugElement.query(By.css('.checkout-form')).nativeElement,
+    );
 
     const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
     expect(button.disabled).toBe(false);
@@ -907,7 +965,8 @@ describe('CustomerPageComponent', () => {
       const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
       expect(bar).not.toBeNull();
       expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
-      expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+      const form = fixture.debugElement.query(By.css('.checkout-form')).nativeElement as HTMLElement;
+      expect((bar.nativeElement as HTMLElement).parentElement).toBe(form);
       expect(component.deliveryNotCovered()).toBe(true);
       expect((bar.nativeElement as HTMLElement).textContent).toContain('Bairro fora da área de entrega');
 
@@ -2155,10 +2214,19 @@ describe('CustomerPageComponent footer clearance', () => {
     expect(styles).toMatch(/\.checkout-form--account\s*\{[\s\S]*padding-bottom:\s*calc\(max\(var\(--store-footer-clearance, 0px\), env\(safe-area-inset-bottom, 0px\)\) \+ 24px\)/);
   });
 
-  it('keeps the shared-fixed-action-bar form clear by reserving footer/safe-area clearance plus action-bar space', () => {
+  it('lays the checkout CTA out in the form flow below the last fields instead of reserving room for a fixed overlay', () => {
     const styles = readFileSync(resolve(__dirname, 'customer-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.checkout-form\s*\{[\s\S]*padding:\s*0 18px calc\(max\(var\(--store-footer-clearance, 0px\), env\(safe-area-inset-bottom, 0px\)\) \+ 56px\)/);
+    // The page still bounds the scrollport as a flex column, but the CTA is no
+    // longer a page-level flex item.
+    expect(styles).toMatch(/:host\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-direction:\s*column;[\s\S]*flex:\s*1 1 0;[\s\S]*min-height:\s*0;/);
+    expect(styles).toMatch(/\.checkout-content\s*\{[\s\S]*min-height:\s*0;/);
+    expect(styles).toMatch(/\.checkout-form\s*\{[\s\S]*padding:\s*0 18px 24px;/);
+    // The in-form CTA drops the page-level gutters the bar adds by default, so
+    // the button aligns with Número/Complemento and only adds a small gap.
+    expect(styles).toMatch(/\.checkout-form \.checkout-cta\s*\{[\s\S]*margin-top:\s*2px;[\s\S]*padding-left:\s*0;[\s\S]*padding-right:\s*0;/);
+    // No space is reserved for an overlay that does not exist anymore.
+    expect(styles).not.toMatch(/padding:\s*0 18px calc\(max\(var\(--store-footer-clearance/);
     expect(styles).not.toMatch(/--checkout-action-space/);
   });
 });
