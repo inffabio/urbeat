@@ -226,6 +226,44 @@ describe('CustomerOrderTrackingService', () => {
     expect(getOrderMock).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps the initial load in the foreground and requests fallback polling in the background', async () => {
+    jest.useFakeTimers();
+    startCustomerHubMock.mockRejectedValue(new Error('unavailable'));
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    expect(getOrderMock).toHaveBeenCalledWith('order1');
+
+    getOrderMock.mockClear();
+    jest.advanceTimersByTime(30_000);
+
+    expect(getOrderMock).toHaveBeenCalledWith('order1', { background: true });
+  });
+
+  it('requests recovery polling refreshes in the background', async () => {
+    jest.useFakeTimers();
+    let failing = true;
+    getOrderMock.mockImplementation(() =>
+      failing
+        ? new Observable<OrderDetails>((subscriber) => subscriber.error(new Error('api unavailable')))
+        : of(baseOrder),
+    );
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    expect(getOrderMock).toHaveBeenCalledWith('order1');
+
+    failing = false;
+    jest.advanceTimersByTime(30_000);
+
+    expect(getOrderMock).toHaveBeenCalledWith('order1', { background: true });
+  });
+
   it('stops polling orders that become delivered or cancelled', async () => {
     jest.useFakeTimers();
     startCustomerHubMock.mockRejectedValue(new Error('unavailable'));

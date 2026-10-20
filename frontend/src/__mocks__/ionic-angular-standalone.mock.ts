@@ -1,6 +1,12 @@
 // Mock for @ionic/angular/standalone to prevent ionicons resolution errors in Jest
 import { Component, EventEmitter, Injectable, Input, Output } from '@angular/core';
 
+@Component({ selector: 'ion-app', template: '<ng-content></ng-content>', standalone: true })
+export class IonApp {}
+
+@Component({ selector: 'ion-router-outlet', template: '<ng-content></ng-content>', standalone: true })
+export class IonRouterOutlet {}
+
 @Component({ selector: 'ion-content', template: '<ng-content></ng-content>', standalone: true })
 export class IonContent {
   @Input() fullscreen = false;

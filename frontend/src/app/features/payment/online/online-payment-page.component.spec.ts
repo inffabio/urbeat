@@ -116,6 +116,19 @@ describe('OnlinePaymentPageComponent', () => {
     jest.useRealTimers();
   });
 
+  it('polls the order in the background so the overlay is not dimmed', () => {
+    jest.useFakeTimers();
+    orderMock.getOrder.mockReturnValue(of({ status: OrderStatus.PendingPayment }));
+
+    const fixture = TestBed.createComponent(OnlinePaymentPageComponent);
+    fixture.detectChanges();
+
+    jest.advanceTimersByTime(4000);
+
+    expect(orderMock.getOrder).toHaveBeenCalledWith('o1', { background: true });
+    jest.useRealTimers();
+  });
+
   it('should register the order for tracking when payment releases it', () => {
     jest.useFakeTimers();
     orderMock.getOrder.mockReturnValue(of({ id: 'o1', status: OrderStatus.Received }));

@@ -252,7 +252,7 @@ export class OnlinePaymentPageComponent implements OnInit, OnDestroy {
     this.pollSub = interval(4000).subscribe(() => {
       if (this.destroyed || this.orderPollInFlight) return;
       this.orderPollInFlight = true;
-      this.orderPollSub = this.orders.getOrder(orderId).subscribe({
+      this.orderPollSub = this.orders.getOrder(orderId, { background: true }).subscribe({
         next: (order) => {
           this.orderPollInFlight = false;
           if (this.destroyed) return;

@@ -18,6 +18,9 @@ out/
 
 # Test
 TestResults/
+
+# Generated WiX component harvest
+print-agent/Urbeat.PrintAgent.Installer/Generated/
 coverage/
 
 # Angular

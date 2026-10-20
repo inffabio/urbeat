@@ -18,7 +18,7 @@ This skill describes `scripts/criarDeployOracleCloud/`. It does not authorize a 
 - SSH port: `2208`
 - SSH key: configurable with `-SSHKeyPath` (default `~/.ssh/id_ed25519`, with an `id_rsa` fallback)
 - Every `ssh` call uses `-p $SSHPort`; every `scp` call uses the equivalent `-P $SSHPort` required by OpenSSH.
-- The server may require port knocking before connecting.
+- Before any SSH or SCP connection, run `scripts/criarDeployOracleCloud/port-knock.ps1` with the fixed sequence `1230/tcp`, `5688/udp`, `9112/tcp` in that order. The prerequisites step invokes the helper; standalone connections must invoke it explicitly first.
 
 ## Secrets
 

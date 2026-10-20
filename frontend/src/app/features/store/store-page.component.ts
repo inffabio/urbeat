@@ -19,6 +19,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { StoreMetricsComponent } from '../../shared/components/store-metrics/store-metrics.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CategoryTabsComponent, CategoryTab } from '../../shared/components/category-tabs/category-tabs.component';
+import { FoodDeliverySpinnerComponent } from '../../shared/components/food-delivery-spinner/food-delivery-spinner.component';
 
 @Component({
   selector: 'app-store-page',
@@ -27,6 +28,7 @@ import { CategoryTabsComponent, CategoryTab } from '../../shared/components/cate
     CommonModule, IonIcon,
     ProductCardComponent,
     StoreMetricsComponent, EmptyStateComponent, CategoryTabsComponent,
+    FoodDeliverySpinnerComponent,
   ],
   templateUrl: './store-page.component.html',
   styleUrl: './store-page.component.scss',

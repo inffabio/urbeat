@@ -131,6 +131,28 @@ describe('StorePageComponent — feature logic', () => {
     expect(styles).toMatch(/\.catalog-error-banner\s*\{[\s\S]*margin:\s*20px 0/);
   });
 
+  it('shows the branded food delivery spinner while the storefront is loading from the server', () => {
+    const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
+    const spinner = readFileSync(
+      resolve(__dirname, '../../shared/components/food-delivery-spinner/food-delivery-spinner.component.ts'),
+      'utf8',
+    );
+
+    expect(template).toContain('class="loading-overlay"');
+    expect(template).toContain('<app-food-delivery-spinner');
+    expect(template).toContain('message="Preparando o cardapio..."');
+    expect(spinner).toContain('delivery-rider-scene');
+    expect(spinner).toContain('burger-assembly');
+    expect(spinner).not.toContain('clock-ticks');
+    expect(spinner).toContain('burger-top-bun');
+    expect(spinner).toContain('burger-lettuce');
+    expect(spinner).toContain('burger-tomato');
+    expect(spinner).toContain('burger-cheese');
+    expect(spinner).toContain('burger-patty');
+    expect(spinner).toContain('burger-bottom-bun');
+    expect(spinner).not.toContain('clock-active');
+  });
+
   describe('published hero/banner and logo composition', () => {
     function stylesText(): string {
       return readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');

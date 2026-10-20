@@ -79,7 +79,7 @@ export class CustomerOrderTrackingService {
     this.clearUnavailable(orderId);
   }
 
-  refresh(orderId: string): void {
+  refresh(orderId: string, options?: { background?: boolean }): void {
     if (!this.auth.token()) return;
     const sequence = (this.requestSequence.get(orderId) ?? 0) + 1;
     this.requestSequence.set(orderId, sequence);
@@ -87,7 +87,10 @@ export class CustomerOrderTrackingService {
     const lifecycle = this.lifecycleGeneration;
 
     this.inFlight.add(orderId);
-    this.orders.getOrder(orderId).subscribe({
+    const request$ = options?.background
+      ? this.orders.getOrder(orderId, { background: true })
+      : this.orders.getOrder(orderId);
+    request$.subscribe({
       next: (order) => {
         this.inFlight.delete(orderId);
         if (this.lifecycleGeneration !== lifecycle) return;
@@ -277,7 +280,7 @@ export class CustomerOrderTrackingService {
 
   private pollRefresh(orderId: string): void {
     if (this.inFlight.has(orderId)) return;
-    this.refresh(orderId);
+    this.refresh(orderId, { background: true });
   }
 
   private startRecoveryPolling(orderId: string): void {
@@ -311,7 +314,7 @@ export class CustomerOrderTrackingService {
       this.recoveringOrders.delete(orderId);
       return;
     }
-    this.refresh(orderId);
+    this.refresh(orderId, { background: true });
   }
 
   private clearRecoveryTimer(): void {
