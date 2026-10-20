@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy, computed, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
-import { EMPTY, catchError, filter, Subscription, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, filter, Subscription, switchMap } from 'rxjs';
 
+import { StorePublicDetails } from '../../shared/models/store.model';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { StoreService } from '../../core/services/store.service';
 import { CartService } from '../../core/services/cart.service';
@@ -15,6 +17,8 @@ import { FooterNavComponent, FooterNavItem } from '../../shared/components/foote
 import { CartSheetComponent } from '../../shared/components/cart-sheet/cart-sheet.component';
 import { StickyActionBarComponent } from '../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
+type StoreResolutionError = 'not-found' | 'unavailable' | 'inaccessible';
+
 @Component({
   selector: 'app-store-shell',
   standalone: true,
@@ -25,9 +29,64 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
        [style.--store-footer-clearance.px]="exposedFooterClearance()">
        <div class="store-stage">
          <section class="store-route" [class.has-footer]="storeResolved() && showFooterNav()" [class.store-home]="isStoreHome()" [attr.inert]="isCartSheetOpen() ? '' : null">
-           @if (storeResolved()) {
-             <router-outlet />
-           }
+           @if (storeResolutionError(); as resolutionError) {
+             <div
+               class="store-resolution-error"
+               [class.is-not-found]="resolutionError === 'not-found'"
+               role="alert">
+               @if (resolutionError === 'not-found') {
+                 <div class="store-not-found-art" aria-hidden="true">
+                   <svg viewBox="0 0 220 176" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                     <circle cx="110" cy="96" r="74" fill="var(--app-brand-soft, #FDECEE)" />
+                     <circle cx="42" cy="44" r="3.5" fill="var(--app-brand, #D54A51)" opacity=".18" />
+                     <circle cx="188" cy="126" r="4.5" fill="var(--app-brand, #D54A51)" opacity=".14" />
+                     <ellipse cx="110" cy="158" rx="57" ry="6.5" fill="var(--app-border-light, #eadfd6)" />
+                     <rect x="52" y="76" width="116" height="80" rx="14" fill="var(--app-surface, #fff)" stroke="var(--app-brand, #D54A51)" stroke-width="2.5" />
+                     <path d="M48 62a10 10 0 0 1 9.7-10h104.6a10 10 0 0 1 9.7 10l5.4 16H42.6L48 62Z" fill="var(--app-brand, #D54A51)" />
+                     <path d="M70 54 66 76M90 54 88 76M130 54 132 76M150 54 154 76" stroke="var(--app-surface, #fff)" stroke-width="6" stroke-linecap="round" opacity=".9" />
+                     <rect x="66" y="94" width="24" height="24" rx="6" fill="var(--app-brand-soft, #FDECEE)" stroke="var(--app-brand, #D54A51)" stroke-width="2" />
+                     <rect x="130" y="94" width="24" height="24" rx="6" fill="var(--app-brand-soft, #FDECEE)" stroke="var(--app-brand, #D54A51)" stroke-width="2" />
+                     <path d="M71 112 78 100M135 112 142 100" stroke="var(--app-surface, #fff)" stroke-width="2.5" stroke-linecap="round" />
+                     <path d="M94 104a12 12 0 0 1 12-12h8a12 12 0 0 1 12 12v52H94v-52Z" fill="var(--app-brand-soft, #FDECEE)" stroke="var(--app-brand, #D54A51)" stroke-width="2" />
+                     <circle cx="118" cy="128" r="2.4" fill="var(--app-brand, #D54A51)" />
+                     <g class="art-pin">
+                       <path d="M110 11c-9.4 0-17 7.6-17 17 0 8.4 5.6 15.6 10.9 21.6 2.4 2.7 4.8 4.9 6.1 6.1 1.3-1.2 3.7-3.4 6.1-6.1C121.4 43.6 127 36.4 127 28c0-9.4-7.6-17-17-17Z" fill="var(--app-brand, #D54A51)" />
+                       <circle cx="110" cy="28" r="6.5" fill="var(--app-surface, #fff)" />
+                       <circle cx="110" cy="28" r="2.6" fill="var(--app-brand, #D54A51)" />
+                     </g>
+                   </svg>
+                 </div>
+               } @else {
+                 <ion-icon [name]="storeResolutionIcon()" aria-hidden="true"></ion-icon>
+               }
+               <h1>
+                 @if (resolutionError === 'not-found') {
+                   Loja não encontrada
+                 } @else if (resolutionError === 'unavailable') {
+                   Não foi possível carregar a loja
+                 } @else {
+                   Loja indisponível
+                 }
+               </h1>
+               <p>
+                 @if (resolutionError === 'not-found') {
+                   Este endereço não corresponde a uma loja disponível. Confira o link ou entre em contato com o estabelecimento.
+                 } @else if (resolutionError === 'unavailable') {
+                   Verifique sua conexão e tente novamente.
+                 } @else {
+                   Não foi possível acessar esta loja agora. Volte ao início ou tente novamente mais tarde.
+                 }
+               </p>
+                <div class="store-resolution-actions">
+                  @if (resolutionError === 'unavailable') {
+                    <button type="button" class="btn-retry" (click)="retryStoreResolution()">Tentar novamente</button>
+                  }
+                  <button type="button" class="btn-home" (click)="goHome()">Voltar ao início</button>
+                </div>
+              </div>
+            } @else if (storeResolved()) {
+              <router-outlet />
+            }
          </section>
          <app-cart-sheet [isOpen]="isCartSheetOpen()" (close)="closeCartSheet()" (next)="goToCart()" (cleared)="onCartCleared()" />
        </div>
@@ -108,6 +167,127 @@ import { StickyActionBarComponent } from '../../shared/components/sticky-action-
       background: var(--app-surface, #fff);
     }
 
+    .store-resolution-error {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      justify-content: safe center;
+      gap: 12px;
+      width: 100%;
+      min-height: 0;
+      padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+      background: var(--app-surface, #fff);
+      color: var(--app-ink, #161616);
+      text-align: center;
+    }
+
+    .store-resolution-error ion-icon {
+      font-size: 48px;
+      color: var(--app-brand, #D54A51);
+    }
+
+    /* Personalized 404 artwork: a bordeaux storefront with a floating location
+       pin, built with inline SVG so it follows the theme tokens and never
+       depends on an external asset. */
+    .store-not-found-art {
+      width: clamp(150px, 46vw, 200px);
+      max-width: 100%;
+      margin: 0 auto 2px;
+      line-height: 0;
+    }
+
+    .store-not-found-art svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .store-not-found-art .art-pin {
+      animation: store-pin-float 3.6s ease-in-out infinite;
+    }
+
+    /* Translation only, so the motion never depends on a transform origin
+       inside the SVG view box. */
+    @keyframes store-pin-float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .store-not-found-art .art-pin { animation: none; }
+    }
+
+    /* Short landscape screens: shrink the art so the message and the return
+       action stay visible without forcing a scroll. */
+    @media (max-height: 560px) {
+      .store-not-found-art { width: 124px; }
+    }
+
+    .store-resolution-error h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .store-resolution-error p {
+      max-width: 34ch;
+      margin: 0;
+      color: var(--app-text-secondary, #5a5a63);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .store-resolution-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: min(280px, 100%);
+      margin-top: 8px;
+    }
+
+    .store-resolution-actions button {
+      min-height: 44px;
+      padding: 0 20px;
+      border-radius: var(--radius-full, 999px);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .store-resolution-actions button:focus-visible {
+      outline: 2px solid var(--app-brand, #D54A51);
+      outline-offset: 2px;
+    }
+
+    .btn-retry {
+      border: 0;
+      background: var(--app-brand, #D54A51);
+      color: #fff;
+    }
+
+    .btn-home {
+      border: 1px solid var(--app-border-medium, #d6d0cc);
+      background: transparent;
+      color: var(--app-ink, #161616);
+    }
+
+    /* The 404 state has a single primary action, so its return button carries
+       the bordeaux fill. Transient/inaccessible states keep the retry (when
+       present) as the only bordeaux action. */
+    .store-resolution-error.is-not-found .btn-home {
+      border-color: transparent;
+      background: var(--app-brand, #D54A51);
+      color: #fff;
+    }
+
+    .store-resolution-error.is-not-found .btn-home:active {
+      background: var(--app-brand-dark, #B63A41);
+    }
+
      @media (min-width: 900px) {
        .app-shell {
          width: 100%;
@@ -185,6 +365,10 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   readonly cartCheckoutAction = inject(CartCheckoutActionService);
 
   readonly storeResolved = signal(false);
+  readonly storeResolutionError = signal<StoreResolutionError | null>(null);
+  readonly storeResolutionIcon = computed(() =>
+    this.storeResolutionError() === 'inaccessible' ? 'lock-closed-outline' : 'cloud-offline-outline',
+  );
   readonly isCartSheetOpen = signal(false);
   readonly isAccountMenuOpen = signal(false);
   readonly footerClearance = signal<number>(72);
@@ -193,6 +377,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   private readonly currentUrl = signal(this.router.url);
   private routerEventsSubscription?: Subscription;
   private storeResolutionSubscription?: Subscription;
+  private retrySubscription?: Subscription;
   private trackingStarted = false;
 
   readonly activeOrdersCount = computed(() =>
@@ -229,29 +414,71 @@ export class StoreShellComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((params) => {
           const storePath = params.get('storePath');
+          this.retrySubscription?.unsubscribe();
           this.resetStoreContext();
           if (!storePath) return EMPTY;
-          return this.storeService.getStoreByPath(storePath).pipe(
-            catchError(() => EMPTY),
-          );
+          return this.resolveStore(storePath);
         }),
       )
-      .subscribe((store) => {
-        this.storeSlug.set(store.slug);
-        this.storeContext.storeId.set(store.id);
-        this.storeContext.storeName.set(store.name);
-        this.storeContext.phoneNumber.set(store.phoneNumber);
-        this.storeContext.isOpen.set(store.isOpenNow);
-        this.storeResolved.set(true);
-        if (!this.trackingStarted) {
-          this.trackingStarted = true;
-          void this.tracking.start();
-        }
-      });
+      .subscribe((store) => this.applyResolvedStore(store));
+  }
+
+  private resolveStore(storePath: string): Observable<StorePublicDetails> {
+    return this.storeService.getStoreByPath(storePath).pipe(
+      catchError((error: unknown) => {
+        this.storeResolutionError.set(this.classifyStoreResolutionError(error));
+        return EMPTY;
+      }),
+    );
+  }
+
+  private classifyStoreResolutionError(error: unknown): StoreResolutionError {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'unavailable';
+    }
+    if (error.status === 404) {
+      return 'not-found';
+    }
+    if (error.status === 0 || error.status === 408 || error.status === 429 || error.status >= 500) {
+      return 'unavailable';
+    }
+    return 'inaccessible';
+  }
+
+  private applyResolvedStore(store: StorePublicDetails): void {
+    this.storeSlug.set(store.slug);
+    this.storeContext.storeId.set(store.id);
+    this.storeContext.storeName.set(store.name);
+    this.storeContext.phoneNumber.set(store.phoneNumber);
+    this.storeContext.isOpen.set(store.isOpenNow);
+    this.storeResolved.set(true);
+    if (!this.trackingStarted) {
+      this.trackingStarted = true;
+      void this.tracking.start();
+    }
+  }
+
+  retryStoreResolution(): void {
+    const storePath = this.route.snapshot?.paramMap?.get('storePath') ?? '';
+    this.retrySubscription?.unsubscribe();
+    this.resetStoreContext();
+    if (!storePath) {
+      this.storeResolutionError.set('not-found');
+      return;
+    }
+    this.retrySubscription = this.resolveStore(storePath).subscribe((store) => this.applyResolvedStore(store));
+  }
+
+  goHome(): void {
+    void this.router.navigate(['/']);
   }
 
   private resetStoreContext(): void {
     this.storeResolved.set(false);
+    this.storeResolutionError.set(null);
+    this.cartCheckoutAction.reset();
+    this.isCartSheetOpen.set(false);
+    this.isAccountMenuOpen.set(false);
     this.storeSlug.set('');
     this.storeContext.storeId.set(null);
     this.storeContext.storeName.set(null);
@@ -278,7 +505,9 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   }
 
   showCartCheckoutAction(): boolean {
-    return this.cartCheckoutAction.visible() && this.router.url.includes('/carrinho');
+    return this.storeResolved()
+      && this.cartCheckoutAction.visible()
+      && this.router.url.includes('/carrinho');
   }
 
   navigate(path: string): void {
@@ -360,6 +589,7 @@ export class StoreShellComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routerEventsSubscription?.unsubscribe();
     this.storeResolutionSubscription?.unsubscribe();
+    this.retrySubscription?.unsubscribe();
     if (this.trackingStarted) {
       this.tracking.stop();
     }

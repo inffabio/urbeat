@@ -175,6 +175,13 @@ describe('CustomerPageComponent', () => {
     const fixture = TestBed.createComponent(CustomerPageComponent);
     fixture.detectChanges();
 
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(bar).not.toBeNull();
+    expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+    // Rendered next to the scroll content (not inside ion-content) so the fixed
+    // bar is never clipped by the form scrollport.
+    expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+
     const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
     expect(button.disabled).toBe(true);
 
@@ -681,8 +688,36 @@ describe('CustomerPageComponent', () => {
 
     const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
     expect(bar).not.toBeNull();
+    expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
     expect((bar.nativeElement as HTMLElement).textContent).toContain('Continuar');
     expect(fixture.debugElement.query(By.css('.account-save-btn'))).toBeNull();
+  });
+
+  it('navigates to payment when the primary Continuar bar is clicked with a valid form', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    const component = fixture.componentInstance;
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28000-000');
+    component.city.set('Campos dos Goytacazes');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua Principal');
+    component.number.set('123');
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+
+    const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    button.click();
+
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-1' }));
+    expect(authServiceMock.saveToken).toHaveBeenCalledWith(expect.objectContaining({ accessToken: 'access-token' }));
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
   });
 
   it('submits the account save flow through the Salvar button', () => {
@@ -1015,16 +1050,16 @@ describe('CustomerPageComponent', () => {
 });
 
 describe('CustomerPageComponent footer clearance', () => {
-  it('keeps the account form clear of the fixed footer via the measured variable', () => {
+  it('keeps the account form clear of the fixed footer or the device safe area', () => {
     const styles = readFileSync(resolve(__dirname, 'customer-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.checkout-form--account\s*\{[\s\S]*padding-bottom:\s*calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 24px\)/);
+    expect(styles).toMatch(/\.checkout-form--account\s*\{[\s\S]*padding-bottom:\s*calc\(max\(var\(--store-footer-clearance, 0px\), env\(safe-area-inset-bottom, 0px\)\) \+ 24px\)/);
   });
 
-  it('keeps the shared-fixed-action-bar form clear by reserving footer clearance plus action-bar space', () => {
+  it('keeps the shared-fixed-action-bar form clear by reserving footer/safe-area clearance plus action-bar space', () => {
     const styles = readFileSync(resolve(__dirname, 'customer-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.checkout-form\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 56px\)/);
+    expect(styles).toMatch(/\.checkout-form\s*\{[\s\S]*padding:\s*0 18px calc\(max\(var\(--store-footer-clearance, 0px\), env\(safe-area-inset-bottom, 0px\)\) \+ 56px\)/);
     expect(styles).not.toMatch(/--checkout-action-space/);
   });
 });

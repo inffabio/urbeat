@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -260,15 +261,17 @@ describe('StoreShellComponent store resolution lifecycle', () => {
   let fixture: ComponentFixture<StoreShellComponent>;
   let getStoreByPath: jest.Mock;
   let paramMap$: Subject<{ get: (key: string) => string | null }>;
+  let routerMock: { url: string; navigate: jest.Mock };
 
   beforeEach(async () => {
     getStoreByPath = jest.fn();
     paramMap$ = new Subject();
+    routerMock = { url: '/loja', navigate: jest.fn() };
 
     await TestBed.configureTestingModule({
       imports: [StoreShellComponent],
       providers: [
-        { provide: Router, useValue: { url: '/loja', navigate: jest.fn() } },
+        { provide: Router, useValue: routerMock },
         {
           provide: ActivatedRoute,
           useValue: { paramMap: paramMap$.asObservable(), snapshot: { paramMap: { get: () => 'loja' } } },
@@ -374,6 +377,182 @@ describe('StoreShellComponent store resolution lifecycle', () => {
     failing.error(new Error('loja nao encontrada'));
 
     expect(fixture.componentInstance.storeResolved()).toBe(false);
+  });
+
+  it('renders an explicit not-found state, without a retry, for a 404 on the public store path', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'mixdesabores' });
+    failing.error(new HttpErrorResponse({ status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const text = element.textContent ?? '';
+    expect(fixture.componentInstance.storeResolutionError()).toBe('not-found');
+    expect(fixture.componentInstance.storeResolved()).toBe(false);
+    expect(text).toContain('Loja não encontrada');
+    expect(text).toContain('Este endereço não corresponde a uma loja disponível');
+    expect(element.querySelector('.btn-retry')).toBeNull();
+    expect(element.querySelector('.btn-home')).not.toBeNull();
+  });
+
+  it('renders the personalized 404 artwork hidden from assistive technology instead of the transient icon', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'mixdesabores' });
+    failing.error(new HttpErrorResponse({ status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const art = element.querySelector('.store-not-found-art');
+    const svg = art?.querySelector('svg');
+
+    expect(fixture.componentInstance.storeResolutionError()).toBe('not-found');
+    expect(art).not.toBeNull();
+    expect(art?.getAttribute('aria-hidden')).toBe('true');
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    expect(svg?.querySelectorAll('path').length).toBeGreaterThan(0);
+    expect(element.querySelector('ion-icon')).toBeNull();
+    expect((element.querySelector('.store-resolution-error') as HTMLElement).classList.contains('is-not-found')).toBe(true);
+  });
+
+  it('keeps the cloud icon and the retry action for transient failures, without the 404 artwork', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(fixture.componentInstance.storeResolutionError()).toBe('unavailable');
+    expect(element.querySelector('.store-not-found-art')).toBeNull();
+    expect(element.querySelector('ion-icon')).not.toBeNull();
+    expect(fixture.componentInstance.storeResolutionIcon()).toBe('cloud-offline-outline');
+    expect(element.querySelector('.btn-retry')).not.toBeNull();
+    expect((element.querySelector('.store-resolution-error') as HTMLElement).classList.contains('is-not-found')).toBe(false);
+  });
+
+  it('keeps inaccessible stores on the lock icon without the 404 artwork or a retry', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status: 403, statusText: 'Forbidden' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(fixture.componentInstance.storeResolutionError()).toBe('inaccessible');
+    expect(element.querySelector('.store-not-found-art')).toBeNull();
+    expect(element.querySelector('ion-icon')).not.toBeNull();
+    expect(fixture.componentInstance.storeResolutionIcon()).toBe('lock-closed-outline');
+    expect(element.querySelector('.btn-retry')).toBeNull();
+  });
+
+  it('labels the 404 return action "Voltar ao início" and navigates to the root', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'mixdesabores' });
+    failing.error(new HttpErrorResponse({ status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    const home = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.btn-home');
+
+    expect(home?.textContent?.trim()).toBe('Voltar ao início');
+
+    home?.click();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('navigates to the home page from the resolution error state', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'mixdesabores' });
+    failing.error(new HttpErrorResponse({ status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    const home = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.btn-home');
+    home?.click();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('classifies transient resolution failures as unavailable with a retry action', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.storeResolutionError()).toBe('unavailable');
+    expect(element.textContent).toContain('Não foi possível carregar a loja');
+    expect(element.querySelector('.btn-retry')).not.toBeNull();
+  });
+
+  it.each([0, 408, 429, 500])('treats HTTP %s as a transient resolution failure', (status) => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status, statusText: 'Transient' }));
+
+    expect(fixture.componentInstance.storeResolutionError()).toBe('unavailable');
+  });
+
+  it.each([400, 401, 403])('does not promise a retry for HTTP %s', (status) => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status, statusText: 'Not available' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.storeResolutionError()).toBe('inaccessible');
+    expect(element.textContent).toContain('Loja indisponível');
+    expect(element.querySelector('.btn-retry')).toBeNull();
+    expect(element.querySelector('.btn-home')).not.toBeNull();
+  });
+
+  it('hides a residual cart checkout action when a new store path cannot be resolved', () => {
+    const cartCheckoutAction = TestBed.inject(CartCheckoutActionService);
+    routerMock.url = '/loja/carrinho';
+
+    const first = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    first.next({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '119999', isOpenNow: true });
+    cartCheckoutAction.setState({ visible: true, disabled: false, detail: 'Pagamento' });
+    fixture.componentInstance.isCartSheetOpen.set(true);
+    fixture.componentInstance.isAccountMenuOpen.set(true);
+
+    expect(fixture.componentInstance.showCartCheckoutAction()).toBe(true);
+
+    routerMock.url = '/loja-inexistente/carrinho';
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja-inexistente' });
+    failing.error(new HttpErrorResponse({ status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.storeResolved()).toBe(false);
+    expect(cartCheckoutAction.visible()).toBe(false);
+    expect(fixture.componentInstance.showCartCheckoutAction()).toBe(false);
+    expect(fixture.componentInstance.isCartSheetOpen()).toBe(false);
+    expect(fixture.componentInstance.isAccountMenuOpen()).toBe(false);
+    expect(element.querySelector('app-sticky-action-bar')).toBeNull();
+    expect(element.querySelector('.store-resolution-error')).not.toBeNull();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('offers a retry for transient resolution failures and applies the recovered store', () => {
+    const failing = resolveStore();
+    paramMap$.next({ get: () => 'loja' });
+    failing.error(new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.storeResolutionError()).toBe('unavailable');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Tentar novamente');
+
+    const retry = resolveStore();
+    fixture.componentInstance.retryStoreResolution();
+    retry.next({ id: 's1', slug: 'loja', name: 'Loja', phoneNumber: '119999', isOpenNow: true });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.storeResolutionError()).toBeNull();
+    expect(fixture.componentInstance.storeResolved()).toBe(true);
+    expect(TestBed.inject(StoreContextService).storeId()).toBe('s1');
   });
 
   it('keeps the paramMap stream alive after a failed resolution so another store path can retry', () => {

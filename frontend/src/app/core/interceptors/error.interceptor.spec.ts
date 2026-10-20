@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorInterceptor } from './error.interceptor';
 import { authInterceptor } from './auth.interceptor';
@@ -283,6 +283,44 @@ describe('errorInterceptor', () => {
     it('should NOT show toast for 404 on /stores/my-store (expected for new users)', () => {
       triggerError('/api/stores/my-store', 'Not Found', 404);
       expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
+
+    it('leaves public storefront 404s to the page-level not-found state', () => {
+      let receivedStatus = 0;
+      httpClient.get('/api/public/stores/by-path/mixdesabores').subscribe({
+        error: (error: HttpErrorResponse) => { receivedStatus = error.status; },
+      });
+      const req = httpMock.expectOne('/api/public/stores/by-path/mixdesabores');
+      req.flush({ title: 'Not Found', status: 404 }, { status: 404, statusText: 'Not Found' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+      expect(receivedStatus).toBe(404);
+    });
+
+    it('leaves public storefront by-slug 404s to the page-level not-found state', () => {
+      httpClient.get('/api/public/stores/by-slug/mixdesabores').subscribe({ error: () => {} });
+      const req = httpMock.expectOne('/api/public/stores/by-slug/mixdesabores');
+      req.flush({ title: 'Not Found', status: 404 }, { status: 404, statusText: 'Not Found' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
+
+    it('matches public store resolution on an absolute URL while ignoring the query string', () => {
+      const url = 'https://urbeat.com.br/api/public/stores/by-path/mixdesabores?utm=1';
+      httpClient.get(url).subscribe({ error: () => {} });
+      const req = httpMock.expectOne(url);
+      req.flush({ title: 'Not Found', status: 404 }, { status: 404, statusText: 'Not Found' });
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      '/api/public/stores/by-pathology/loja',
+      '/api/public/stores/by-path/loja/extra',
+      '/v2/api/public/stores/by-path/loja',
+    ])('does not suppress an unrelated 404 for %s', (url) => {
+      triggerError(url, 'Not Found', 404);
+      expect(toastServiceMock.showError).toHaveBeenCalledWith('Recurso não encontrado.');
     });
   });
 

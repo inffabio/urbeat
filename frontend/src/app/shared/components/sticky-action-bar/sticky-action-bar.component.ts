@@ -28,7 +28,11 @@ import { IonIcon } from '@ionic/angular/standalone';
       display: block;
       position: fixed;
       left: 50%;
-      bottom: calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 8px);
+      /* The measured footer clearance already includes the safe area when the
+         footer is rendered. On footer-less routes the shell sets it to 0px, so
+         max() keeps the bar above the iOS home indicator / Android gesture
+         area instead of letting the var() fallback mask the inset. */
+      bottom: calc(max(var(--store-footer-clearance, 0px), env(safe-area-inset-bottom, 0px)) + 8px);
       z-index: 75;
       width: min(430px, 100%);
       max-width: 100%;
@@ -135,6 +139,26 @@ import { IonIcon } from '@ionic/angular/standalone';
     :host(.sticky-action-primary) .sticky-action:hover {
       border-color: var(--app-brand-dark, #B63A41);
       background: var(--app-brand-dark, #B63A41);
+    }
+
+    /* DESIGN.md: primary disabled keeps a border-medium fill and no shadow.
+       Unlike the default bar's opacity, this keeps the label legible instead
+       of washing white text over a translucent bordeaux fill. */
+    :host(.sticky-action-primary) .sticky-action:disabled {
+      border-color: var(--app-border-medium, #d6d0cc);
+      background: var(--app-border-medium, #d6d0cc);
+      color: var(--app-ink, #161616);
+      box-shadow: none;
+      opacity: 1;
+    }
+
+    :host(.sticky-action-primary) .sticky-action:disabled .action-icon,
+    :host(.sticky-action-primary) .sticky-action:disabled .action-detail {
+      color: var(--app-ink, #161616);
+    }
+
+    :host(.sticky-action-primary) .sticky-action:disabled .action-divider {
+      background: rgba(22, 22, 22, .25);
     }
   `],
 })

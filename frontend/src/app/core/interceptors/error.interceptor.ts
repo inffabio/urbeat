@@ -39,6 +39,24 @@ function isLegacyProductImageUpload(url: string): boolean {
   return /\/products\/[^/?#]+\/images(?:[?#]|$)/.test(url);
 }
 
+// Public storefront resolution owns its not-found state in StoreShell/StorePage.
+// A 404 here means the slug is absent or the store is not publicly available, so
+// the generic "Recurso não encontrado" toast would duplicate (and contradict) the
+// page-level message. The error is still rethrown so callers can react to it.
+// Match the exact endpoint path (one slug segment) on relative or absolute URLs,
+// ignoring query strings and fragments.
+const PUBLIC_STORE_RESOLUTION_PATH = /^\/api\/public\/stores\/(?:by-path|by-slug)\/[^/]+$/;
+
+function isPublicStoreResolution(url: string): boolean {
+  let pathname = url;
+  try {
+    pathname = new URL(url, 'http://urbeat.local').pathname;
+  } catch {
+    pathname = url.split(/[?#]/, 1)[0];
+  }
+  return PUBLIC_STORE_RESOLUTION_PATH.test(pathname);
+}
+
 // The API enforces its documented per-type limits (2 MB logo, 5 MB banner,
 // 6 MB product) with HTTP 400, so an HTTP 413 can only be produced by the proxy
 // or host in front of it. A 413 cannot be attributed to a specific file limit
@@ -214,6 +232,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => err);
         }
         if (req.url.includes('/stores/my-store')) {
+          return throwError(() => err);
+        }
+        if (isPublicStoreResolution(req.url)) {
           return throwError(() => err);
         }
         errorMessage = 'Recurso não encontrado.';
