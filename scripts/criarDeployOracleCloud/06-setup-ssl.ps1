@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installs and configures SSL certificates via Let's Encrypt (Certbot)
 .DESCRIPTION
