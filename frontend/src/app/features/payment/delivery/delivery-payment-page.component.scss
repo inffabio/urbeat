@@ -1,7 +1,17 @@
-:host { display: block; }
+:host {
+  /* Keeps the payment route as a bounded flex column so the inline Continuar
+     bar sits in the scroll flow instead of overlaying the viewport. */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
 
 .pay-content {
   --background: var(--app-bg);
+  --offset-top: 0px !important;
+  --offset-bottom: 0px !important;
+  min-height: 0;
 }
 
 .page-head {
@@ -49,7 +59,7 @@
 }
 
 .screen-padding {
-   padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 56px);
+  padding: 0 18px 24px;
 }
 
 .order-card {
@@ -366,24 +376,6 @@
   color: var(--app-brand);
   font-size: 17px;
   font-weight: 800;
-}
-
-.page-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-bottom: 86px;
-}
-
-.sticky-action {
-  position: fixed;
-  left: 50%;
-  bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
-  z-index: 40;
-  width: min(406px, calc(100% - 24px));
-  min-height: 54px;
-  border-radius: 999px;
-  transform: translateX(-50%);
 }
 
 @media (max-width: 400px) {

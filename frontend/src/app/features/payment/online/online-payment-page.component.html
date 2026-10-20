@@ -75,12 +75,15 @@
     }
 
   </section>
-</ion-content>
 
-<app-sticky-action-bar
-  icon="qr-code-outline"
-  [label]="stickyLabel()"
-  detail="Atualize o status do Pix"
-  [disabled]="loading()"
-  (action)="onStickyAction()"
-/>
+  <app-sticky-action-bar
+    placement="inline"
+    [safeArea]="true"
+    appearance="primary"
+    icon="qr-code-outline"
+    [label]="stickyLabel()"
+    detail="Atualize o status do Pix"
+    [disabled]="loading()"
+    (action)="onStickyAction()"
+  />
+</ion-content>

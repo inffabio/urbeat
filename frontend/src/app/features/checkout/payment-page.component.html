@@ -109,6 +109,16 @@
 
    </section>
 
+  <app-sticky-action-bar
+    placement="inline"
+    appearance="primary"
+    icon="wallet-outline"
+    [label]="actionLabel()"
+    detail="Confirme a forma de pagamento"
+    [disabled]="!selected() || processing()"
+    (action)="continue()"
+  />
+
   @if (showDetailsModal()) {
      <div class="modal-overlay" (click)="closeDetails()">
        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="details-title" (click)="$event.stopPropagation()">
@@ -143,11 +153,3 @@
     (backToMenu)="goToMenu()"
   />
 }
-
- <app-sticky-action-bar
-  icon="wallet-outline"
-  [label]="actionLabel()"
-  detail="Confirme a forma de pagamento"
-  [disabled]="!selected() || processing()"
-  (action)="continue()"
-/>

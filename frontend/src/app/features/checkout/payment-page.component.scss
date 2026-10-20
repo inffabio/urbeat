@@ -1,7 +1,19 @@
-:host { display: block; }
+:host {
+  /* The page owns the route column so the scrollport stays bounded by the
+     100dvh shell. The Continuar bar is part of the scroll flow, right below
+     the order summary, instead of being pinned over the content/footer. */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
 
 .payment-content {
   --background: var(--app-bg);
+  --offset-top: 0px !important;
+  --offset-bottom: 0px !important;
+  /* Must be allowed to shrink so the scrollport never overflows the shell. */
+  min-height: 0;
 }
 
 .page-head {
@@ -52,24 +64,9 @@
 }
 
 .screen-padding {
-   padding: 0 18px calc(var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px)))) + 64px);
-}
-
-.sticky-action-bar {
-  position: fixed;
-  left: 50%;
-  bottom: var(--store-footer-clearance, calc(64px + max(8px, env(safe-area-inset-bottom, 0px))));
-  z-index: 40;
-  width: min(430px, 100%);
-  padding: 0 12px;
-  transform: translateX(-50%);
-  box-sizing: border-box;
-}
-
-.sticky-action-bar .btn-primary {
-  width: 100%;
-  min-height: 54px;
-  border-radius: 999px;
+  /* The footer menu is a sibling flex item below the route column, so the
+     content only needs its own breathing room; no footer clearance padding. */
+  padding: 0 18px 24px;
 }
 
 .order-summary {

@@ -91,6 +91,17 @@ describe('StickyActionBarComponent', () => {
     expect(source).toMatch(/:host\(\.sticky-action-primary\)\s+\.sticky-action:hover\s*\{[\s\S]*background:\s*var\(--app-brand-dark/);
   });
 
+  it('never leaves the primary bar white: brand fill replaces the default surface', () => {
+    const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
+    const primaryBlock = source.match(/:host\(\.sticky-action-primary\)\s+\.sticky-action\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+
+    expect(primaryBlock).not.toBe('');
+    expect(primaryBlock).toMatch(/background:\s*var\(--app-brand/);
+    expect(primaryBlock).not.toMatch(/background:\s*var\(--app-surface/);
+    expect(primaryBlock).toMatch(/border-color:\s*var\(--app-brand/);
+    expect(primaryBlock).toMatch(/color:\s*var\(--app-surface/);
+  });
+
   it('keeps the primary disabled state legible instead of fading white text over bordeaux', () => {
     const source = readFileSync(resolve(__dirname, 'sticky-action-bar.component.ts'), 'utf8');
 

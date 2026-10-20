@@ -251,13 +251,75 @@ describe('PaymentPageComponent', () => {
 
     expect(unsubscribed).toBe(true);
   });
+
+  it('renders the Continuar bar as a primary in-flow bar inside the scroll content', () => {
+    const fixture = TestBed.createComponent(PaymentPageComponent);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(bar).not.toBeNull();
+
+    const host = bar.nativeElement as HTMLElement;
+    // Bordeaux primary appearance: never the white default bar.
+    expect(host.classList.contains('sticky-action-primary')).toBe(true);
+    // In flow, not a fixed overlay over the footer menu.
+    expect(host.classList.contains('in-flow')).toBe(true);
+    // The footer nav is a sibling flex item on this route, so the bar must not
+    // duplicate the device inset that the footer safe zone already applies.
+    expect(host.classList.contains('in-flow-safe-area')).toBe(false);
+
+    const content = fixture.debugElement.query(By.css('ion-content')).nativeElement as HTMLElement;
+    const section = fixture.debugElement.query(By.css('.screen-padding')).nativeElement as HTMLElement;
+    expect(content.contains(host)).toBe(true);
+    expect(section.contains(host)).toBe(false);
+    expect(section.compareDocumentPosition(host) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    const button = bar.query(By.css('button.sticky-action')).nativeElement as HTMLButtonElement;
+    expect(button.textContent).toContain('Continuar');
+    expect(button.disabled).toBe(false);
+  });
+
+  it('keeps the payment action wired and disables the bar while processing', () => {
+    const fixture = TestBed.createComponent(PaymentPageComponent);
+    fixture.detectChanges();
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    const button = bar.query(By.css('button.sticky-action')).nativeElement as HTMLButtonElement;
+
+    button.click();
+    expect(checkoutMock.confirm).toHaveBeenCalledWith(expect.objectContaining({
+      paymentMethod: PaymentMethod.CashOnDelivery,
+    }));
+
+    fixture.componentInstance.processing.set(true);
+    fixture.detectChanges();
+    expect(button.disabled).toBe(true);
+  });
 });
 
-describe('PaymentPageComponent footer clearance', () => {
-  it('keeps the scrollport clear of the fixed footer and sticky action bar via the measured variable', () => {
+describe('PaymentPageComponent payment action layout', () => {
+  it('declares the primary inline bar with the existing payment action and disabled rule', () => {
+    const template = readFileSync(resolve(__dirname, 'payment-page.component.html'), 'utf8');
+
+    expect(template).toMatch(
+      /<app-sticky-action-bar[\s\S]*?placement="inline"[\s\S]*?appearance="primary"[\s\S]*?\[label\]="actionLabel\(\)"[\s\S]*?\[disabled\]="!selected\(\) \|\| processing\(\)"[\s\S]*?\(action\)="continue\(\)"/,
+    );
+
+    // The bar lives inside the scroll content, after the order summary section.
+    const barIndex = template.indexOf('<app-sticky-action-bar');
+    expect(barIndex).toBeGreaterThan(template.indexOf('</section>'));
+    expect(barIndex).toBeLessThan(template.indexOf('</ion-content>'));
+  });
+
+  it('bounds the route column and removes the legacy fixed-footer clearance', () => {
     const styles = readFileSync(resolve(__dirname, 'payment-page.component.scss'), 'utf8');
 
-    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px calc\(var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\) \+ 64px\)/);
-    expect(styles).toMatch(/\.sticky-action-bar\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
+    expect(styles).toMatch(
+      /:host\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-direction:\s*column;[\s\S]*flex:\s*1 1 0;[\s\S]*min-height:\s*0;/,
+    );
+    expect(styles).toMatch(/\.payment-content\s*\{[\s\S]*min-height:\s*0;/);
+    expect(styles).toMatch(/\.screen-padding\s*\{[\s\S]*padding:\s*0 18px 24px;/);
+    expect(styles).not.toMatch(/--store-footer-clearance/);
+    expect(styles).not.toMatch(/\.sticky-action-bar\s*\{/);
   });
 });
