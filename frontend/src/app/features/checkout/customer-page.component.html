@@ -260,11 +260,11 @@
     }
 
     @if (deliveryNotCovered()) {
-      <div class="delivery-warning">
+      <div class="delivery-warning" role="alert">
         <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
         <div>
           <strong>Ainda não entregamos neste bairro</strong>
-          <p>O bairro "{{ neighborhood() }}" não está na nossa área de entrega.</p>
+          <p>O bairro "{{ neighborhood() }}" não está na nossa área de entrega. Toque em Continuar para ver as opções.</p>
         </div>
       </div>
     }
@@ -311,7 +311,7 @@
     appearance="primary"
     icon="person-outline"
     label="Continuar"
-    detail="Informe seus dados e endereço"
+    [detail]="continueDetail()"
     [disabled]="!canContinue()"
     (action)="continue()"
   />

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
@@ -45,6 +45,7 @@ describe('CustomerPageComponent', () => {
   let addressServiceMock: { lookupCep: jest.Mock; list: jest.Mock; update: jest.Mock; create: jest.Mock };
   let activatedRouteMock: { snapshot: { routeConfig: { path: string } } };
   let signalRServiceMock: { startCustomerHub: jest.Mock; invokeCustomerMethod: jest.Mock; joinStore: jest.Mock; leaveStore: jest.Mock; onCustomerEvent: jest.Mock; removeCustomerListener: jest.Mock };
+  let apiServiceMock: { get: jest.Mock };
 
   beforeEach(async () => {
     localStorage.clear();
@@ -86,6 +87,7 @@ describe('CustomerPageComponent', () => {
     };
     activatedRouteMock = { snapshot: { routeConfig: { path: 'checkout/cadastro' } } };
     routerMock = { navigate: jest.fn(), url: '/loja/checkout/cadastro' };
+    apiServiceMock = { get: jest.fn().mockReturnValue(of({ covered: true, deliveryFee: 0 })) };
     storeServiceMock = {
       getStoreById: jest.fn().mockReturnValue(of({
         id: 'store-1',
@@ -109,7 +111,7 @@ describe('CustomerPageComponent', () => {
         { provide: AddressService, useValue: addressServiceMock },
         { provide: AuthService, useValue: authServiceMock },
         { provide: StoreService, useValue: storeServiceMock },
-        { provide: ApiService, useValue: { get: jest.fn().mockReturnValue(of({ covered: true, deliveryFee: 0 })) } },
+        { provide: ApiService, useValue: apiServiceMock },
         { provide: SignalRService, useValue: signalRServiceMock },
         { provide: ToastService, useValue: { showWarning: jest.fn(), showGrouped: jest.fn(), showError: jest.fn(), showSuccess: jest.fn() } },
         { provide: Router, useValue: routerMock },
@@ -120,6 +122,30 @@ describe('CustomerPageComponent', () => {
 
     cart = TestBed.inject(CartService);
   });
+
+  /**
+   * Types through the same bindings the user triggers (input event -> ngModelChange),
+   * so the test covers the real setters instead of poking the signals directly.
+   */
+  async function typeInto(
+    fixture: ComponentFixture<CustomerPageComponent>,
+    name: string,
+    value: string,
+  ): Promise<void> {
+    const input = fixture.debugElement.query(By.css(`input[name="${name}"]`)).nativeElement as HTMLInputElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
+  async function fillCheckoutForm(fixture: ComponentFixture<CustomerPageComponent>): Promise<void> {
+    await typeInto(fixture, 'fullName', 'Maria Oliveira');
+    await typeInto(fixture, 'phone', '(22) 99999-9999');
+    await typeInto(fixture, 'email', 'maria@email.com');
+    await typeInto(fixture, 'cep', '28893-000');
+    await typeInto(fixture, 'number', '123');
+  }
 
   it('should render visible labels for customer and address fields', () => {
     const fixture = TestBed.createComponent(CustomerPageComponent);
@@ -720,6 +746,389 @@ describe('CustomerPageComponent', () => {
     expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
   });
 
+  it('keeps the primary Continuar bar rendered and enables it after a callback-driven fill with a covered neighborhood', async () => {
+    cart.setStore('store-1', 'Loja', '');
+    addressServiceMock.lookupCep.mockReturnValue(of({
+      street: 'Rua das Flores',
+      neighborhood: 'Novo Rio das Ostras',
+      city: 'Rio das Ostras',
+      state: 'RJ',
+    }));
+    apiServiceMock.get.mockReturnValue(of({ covered: true, deliveryFee: 5 }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fillCheckoutForm(fixture);
+
+    const component = fixture.componentInstance;
+    expect(component.neighborhood()).toBe('Novo Rio das Ostras');
+    expect(component.deliveryCheckLoading()).toBe(false);
+    expect(component.deliveryNotCovered()).toBe(false);
+    expect(apiServiceMock.get).toHaveBeenCalledWith(
+      expect.stringContaining('/delivery-check?neighborhood=Novo%20Rio%20das%20Ostras'),
+    );
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(bar).not.toBeNull();
+    expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+    expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+
+    const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    expect(bar.nativeElement.textContent).toContain('Ir para o pagamento');
+  });
+
+  it('keeps Continuar actionable when the neighborhood is not covered so the modal explains the block', async () => {
+    cart.setStore('store-1', 'Loja', '');
+    addressServiceMock.lookupCep.mockReturnValue(of({
+      street: 'Rua das Flores',
+      neighborhood: 'Jardim Aurora',
+      city: 'Rio das Ostras',
+      state: 'RJ',
+    }));
+    apiServiceMock.get.mockReturnValue(of({ covered: false, deliveryFee: 5 }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fillCheckoutForm(fixture);
+
+    const component = fixture.componentInstance;
+    expect(component.deliveryNotCovered()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.delivery-warning'))).not.toBeNull();
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    expect(bar).not.toBeNull();
+    expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+    expect((bar.nativeElement as HTMLElement).textContent).toContain('Bairro fora da área de entrega');
+
+    const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    button.click();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).not.toBeNull();
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('resolves delivery coverage for an address restored from the checkout state', () => {
+    cart.setStore('store-1', 'Loja', '');
+    checkoutServiceMock.customerAddress.set({
+      cep: '28893000',
+      street: 'Rua das Flores',
+      number: '123',
+      neighborhood: 'Novo Rio das Ostras',
+      city: 'Rio das Ostras',
+      state: 'RJ',
+      isPrimary: true,
+    });
+    apiServiceMock.get.mockReturnValue(of({ covered: false, deliveryFee: 5 }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+
+    expect(apiServiceMock.get).toHaveBeenCalledWith(
+      expect.stringContaining('/delivery-check?neighborhood=Novo%20Rio%20das%20Ostras'),
+    );
+    expect(fixture.componentInstance.deliveryNotCovered()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.delivery-warning'))).not.toBeNull();
+  });
+
+  it('re-checks delivery coverage after the neighborhood is edited manually', () => {
+    jest.useFakeTimers();
+    try {
+      apiServiceMock.get.mockReturnValue(of({ covered: true, deliveryFee: 5 }));
+      cart.setStore('store-1', 'Loja', '');
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.onAddressFieldChange('neighborhood', 'Novo Rio das Ostras');
+      expect(apiServiceMock.get).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(350);
+
+      expect(apiServiceMock.get).toHaveBeenCalledWith(
+        expect.stringContaining('/delivery-check?neighborhood=Novo%20Rio%20das%20Ostras'),
+      );
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryNotCovered()).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not drop a resolved coverage result when unrelated address fields change', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    const component = fixture.componentInstance;
+    component.deliveryNotCovered.set(true);
+
+    component.onAddressFieldChange('street', 'Rua Nova');
+    component.onAddressFieldChange('number', '456');
+
+    expect(component.deliveryNotCovered()).toBe(true);
+  });
+
+  it('resolves coverage on submit and opens the modal instead of navigating to an uncovered area', () => {
+    cart.setStore('store-1', 'Loja', '');
+    apiServiceMock.get.mockReturnValue(of({ covered: false, deliveryFee: 5 }));
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Jardim Aurora');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+    fixture.detectChanges();
+
+    expect(apiServiceMock.get).toHaveBeenCalledWith(
+      expect.stringContaining('/delivery-check?neighborhood=Jardim%20Aurora'),
+    );
+    expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).not.toBeNull();
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to payment after resolving a covered neighborhood on submit', () => {
+    cart.setStore('store-1', 'Loja', '');
+    apiServiceMock.get.mockReturnValue(of({ covered: true, deliveryFee: 5 }));
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Novo Rio das Ostras');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-1' }));
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+  });
+
+  it('does not start a session when the submit coverage check fails and allows a retry', () => {
+    cart.setStore('store-1', 'Loja', '');
+    apiServiceMock.get.mockReturnValue(throwError(() => new Error('offline')));
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Novo Rio das Ostras');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+    fixture.detectChanges();
+
+    expect(apiServiceMock.get).toHaveBeenCalled();
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(component.deliveryCoverageError()).toBe(true);
+
+    const toast = TestBed.inject(ToastService) as unknown as { showWarning: jest.Mock };
+    expect(toast.showWarning).toHaveBeenCalledWith(expect.stringContaining('Não foi possível confirmar a área de entrega'));
+
+    const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+    const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    expect((bar.nativeElement as HTMLElement).textContent).toContain('Área de entrega não confirmada');
+
+    apiServiceMock.get.mockReturnValue(of({ covered: true, deliveryFee: 5 }));
+    button.click();
+
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-1' }));
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+  });
+
+  it('does not start a session when the submit coverage check times out, but enables a retry', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      apiServiceMock.get.mockReturnValue(new Observable(() => { /* never emits */ }));
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.city.set('Rio das Ostras');
+      component.state.set('RJ');
+      component.neighborhood.set('Novo Rio das Ostras');
+      component.street.set('Rua das Flores');
+      component.number.set('123');
+
+      component.continue();
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryCoverageError()).toBe(true);
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+
+      apiServiceMock.get.mockReturnValue(of({ covered: true, deliveryFee: 5 }));
+      button.click();
+
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalled();
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('ignores a submit coverage response when the neighborhood changed meanwhile', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const pending: ((res: any) => void)[] = [];
+    apiServiceMock.get.mockImplementation(
+      () =>
+        new Observable((subscriber) => {
+          pending.push((res) => subscriber.next(res));
+        }),
+    );
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+    expect(pending.length).toBe(1);
+
+    component.onAddressFieldChange('neighborhood', 'Jardim Aurora');
+    pending[0]({ covered: true, deliveryFee: 0 });
+
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
+  it('releases the CEP loading state when the lookup times out', () => {
+    jest.useFakeTimers();
+    try {
+      addressServiceMock.lookupCep.mockReturnValue(new Observable(() => { /* never emits */ }));
+      cart.setStore('store-1', 'Loja', '');
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.city.set('Rio das Ostras');
+      component.state.set('RJ');
+      component.neighborhood.set('Novo Rio das Ostras');
+      component.street.set('Rua das Flores');
+      component.number.set('123');
+
+      component.onCepInput('28893-000');
+      expect(component.cepLoading()).toBe(true);
+      expect(component.canContinue()).toBe(false);
+
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+
+      expect(component.cepLoading()).toBe(false);
+      expect(component.cepError()).toBe(true);
+      expect(component.canContinue()).toBe(true);
+
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      expect(component.isAccountEdit()).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('releases the delivery coverage loading state when the check times out', () => {
+    jest.useFakeTimers();
+    try {
+      apiServiceMock.get.mockReturnValue(new Observable(() => { /* never emits */ }));
+      addressServiceMock.lookupCep.mockReturnValue(of({
+        street: 'Rua das Flores',
+        neighborhood: 'Novo Rio das Ostras',
+        city: 'Rio das Ostras',
+        state: 'RJ',
+      }));
+      cart.setStore('store-1', 'Loja', '');
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.city.set('Rio das Ostras');
+      component.state.set('RJ');
+      component.neighborhood.set('Novo Rio das Ostras');
+      component.street.set('Rua das Flores');
+      component.number.set('123');
+
+      component.onCepInput('28893-000');
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(component.canContinue()).toBe(false);
+      fixture.detectChanges();
+
+      // The bar is never removed while the coverage request is in flight; it is
+      // only disabled and explains the wait.
+      const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+      expect(bar).not.toBeNull();
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Verificando área de entrega');
+
+      jest.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.canContinue()).toBe(true);
+      expect(component.deliveryCoverageError()).toBe(true);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Área de entrega não confirmada');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('submits the account save flow through the Salvar button', () => {
     activatedRouteMock.snapshot.routeConfig.path = 'conta/cadastro';
     authServiceMock.customerProfile.set({
@@ -970,7 +1379,7 @@ describe('CustomerPageComponent', () => {
     expect(component.deliveryNotCovered()).toBe(false);
   });
 
-  it('discards an in-flight delivery check when the address is manually edited', () => {
+  it('discards an in-flight delivery check when the neighborhood is manually edited', () => {
     const apiServiceMock = TestBed.inject(ApiService) as unknown as { get: jest.Mock };
     const pending: ((res: any) => void)[] = [];
     apiServiceMock.get.mockImplementation(
@@ -986,12 +1395,14 @@ describe('CustomerPageComponent', () => {
 
     component.neighborhood.set('Centro');
     (component as any).checkDeliveryCoverage();
-    component.onAddressFieldChange('street', 'Rua Nova');
+    component.onAddressFieldChange('neighborhood', 'Jardim Aurora');
 
     pending[0]({ covered: false, deliveryFee: 5 });
 
     expect(component.deliveryNotCovered()).toBe(false);
     expect(component.deliveryCheckLoading()).toBe(false);
+
+    fixture.destroy();
   });
 
   it('does not update or navigate after destroy when createCustomerSession resolves', () => {

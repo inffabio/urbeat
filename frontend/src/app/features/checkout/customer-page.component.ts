@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal, computed } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, TimeoutError, timeout } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
@@ -35,6 +35,27 @@ import { DeliveryCoverageModalComponent } from '../../shared/components/delivery
 
 type CustomerField = CustomerProfileField;
 
+/**
+ * A CEP lookup must never keep the checkout page in a loading state forever: while
+ * it runs, the form is covered by the loading overlay and Continuar stays disabled.
+ */
+const CEP_LOOKUP_TIMEOUT_MS = 10_000;
+
+/**
+ * Same rule for the delivery coverage request: an unresponsive delivery-check would
+ * leave `deliveryCheckLoading` true and the primary Continuar bar disabled for good.
+ */
+const DELIVERY_CHECK_TIMEOUT_MS = 8_000;
+
+/** Manual address edits are debounced before asking the store about coverage. */
+const DELIVERY_CHECK_DEBOUNCE_MS = 350;
+
+/** Explicit result of a coverage check, tied to the neighborhood that was verified. */
+interface DeliveryCoverageResult {
+  neighborhood: string;
+  covered: boolean;
+}
+
 @Component({
   selector: 'app-customer-page',
   standalone: true,
@@ -61,6 +82,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   private joinedStoreId: string | null = null;
   private cepLookupGeneration = 0;
   private deliveryCheckGeneration = 0;
+  private deliveryCheckTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly subscriptions = new Subscription();
   readonly FulfillmentType = FulfillmentType;
 
@@ -84,6 +106,10 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   readonly authError = signal('');
   readonly deliveryNotCovered = signal(false);
   readonly deliveryCheckLoading = signal(false);
+  /** Neighborhood whose delivery coverage the last completed check resolved. */
+  private readonly deliveryCoverageResolvedFor = signal<string | null>(null);
+  /** The last coverage check failed/was inconclusive for the current neighborhood. */
+  readonly deliveryCoverageError = signal(false);
   readonly deliveryCoverageModalOpen = signal(false);
   readonly isAccountEdit = signal(false);
   readonly accountLoading = signal(false);
@@ -112,9 +138,21 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       isValidProfile(this.fields()) &&
       isValidAddress(this.fields()) &&
       !this.cepLoading() &&
-      !this.deliveryCheckLoading() &&
-      !this.deliveryNotCovered()
+      !this.deliveryCheckLoading()
     );
+  });
+
+  /**
+   * The bar stays actionable when the neighborhood is known to be outside the delivery
+   * area: `continue()` opens the explanatory modal instead of navigating. Disabling it
+   * here used to leave the customer with a gray bar and no way to understand the block.
+   */
+  readonly continueDetail = computed(() => {
+    if (this.deliveryNotCovered()) return 'Bairro fora da área de entrega';
+    if (this.deliveryCheckLoading()) return 'Verificando área de entrega…';
+    if (this.deliveryCoverageError()) return 'Área de entrega não confirmada';
+    if (this.canContinue()) return 'Ir para o pagamento';
+    return 'Informe seus dados e endereço';
   });
 
   readonly canSaveProfile = computed(() => isValidProfile(this.fields()));
@@ -206,6 +244,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     }
 
     this.loadStoreAddress();
+    this.subscribeStoreDeliveryUpdates();
     // restaura se voltou
     const info = this.checkout.customerInfo();
     if (info) {
@@ -222,6 +261,9 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       this.neighborhood.set(addr.neighborhood);
       this.city.set(addr.city);
       this.state.set(addr.state);
+      // A restored address never ran the CEP lookup, so its coverage was never
+      // resolved. Check it now so the warning/modal reflects the real area.
+      this.checkDeliveryCoverage();
     }
   }
 
@@ -400,6 +442,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     this.cepValidated.set(false);
     this.updateAccountDirty();
     this.invalidateDeliveryCoverage();
+    this.clearDeliveryCheckTimer();
     this.cepLookupGeneration++;
     if (digits.length === 8) {
       this.lookupCep(digits);
@@ -413,6 +456,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       this.onCepInput(value);
       return;
     }
+    const previousNeighborhood = this.neighborhood().trim();
     switch (field) {
       case 'city':
         this.city.set(value);
@@ -431,19 +475,45 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
         break;
     }
     this.updateAccountDirty();
-    this.invalidateDeliveryCoverage();
+
+    // Coverage only depends on the neighborhood, so editing street/number/city must
+    // not discard a resolved result (or the "not covered" warning). When the
+    // neighborhood itself changes, re-resolve it instead of leaving the page in an
+    // unknown state.
+    if (field === 'neighborhood' && this.neighborhood().trim() !== previousNeighborhood) {
+      this.invalidateDeliveryCoverage();
+      this.scheduleDeliveryCoverageCheck();
+    }
+  }
+
+  private scheduleDeliveryCoverageCheck(): void {
+    this.clearDeliveryCheckTimer();
+    if (this.isAccountEdit()) return;
+    this.deliveryCheckTimer = setTimeout(() => {
+      this.deliveryCheckTimer = null;
+      this.checkDeliveryCoverage();
+    }, DELIVERY_CHECK_DEBOUNCE_MS);
+  }
+
+  private clearDeliveryCheckTimer(): void {
+    if (this.deliveryCheckTimer !== null) {
+      clearTimeout(this.deliveryCheckTimer);
+      this.deliveryCheckTimer = null;
+    }
   }
 
   private invalidateDeliveryCoverage(): void {
     this.deliveryCheckGeneration++;
     this.deliveryCheckLoading.set(false);
     this.deliveryNotCovered.set(false);
+    this.deliveryCoverageResolvedFor.set(null);
+    this.deliveryCoverageError.set(false);
   }
 
   private lookupCep(cep: string): void {
     const generation = this.cepLookupGeneration;
     this.cepLoading.set(true);
-    this.subscriptions.add(this.address.lookupCep(cep).subscribe({
+    this.subscriptions.add(this.address.lookupCep(cep).pipe(timeout(CEP_LOOKUP_TIMEOUT_MS)).subscribe({
       next: (res) => {
         if (generation !== this.cepLookupGeneration) return;
         this.street.set(res.street);
@@ -455,13 +525,15 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
         this.updateAccountDirty();
         // Verifica cobertura de entrega após preencher o bairro
         this.checkDeliveryCoverage();
-        this.subscribeStoreDeliveryUpdates();
       },
-      error: () => {
+      error: (err: unknown) => {
         if (generation !== this.cepLookupGeneration) return;
         this.cepError.set(true);
         this.cepValidated.set(false);
         this.cepLoading.set(false);
+        if (err instanceof TimeoutError) {
+          this.toast.showWarning('A busca do CEP demorou demais. Preencha o endereço manualmente.');
+        }
       },
     }));
   }
@@ -501,6 +573,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.active = false;
     this.customerHubGeneration++;
+    this.clearDeliveryCheckTimer();
     this.subscriptions.unsubscribe();
     this.removeDeliveryAreaUpdatedListener();
     if (this.joinedStoreId) {
@@ -511,30 +584,53 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
   }
 
   /** Verifica se o bairro atual está coberto pelas áreas de entrega da loja. */
-  private checkDeliveryCoverage(): void {
+  private checkDeliveryCoverage(onResolved?: (result: DeliveryCoverageResult | null) => void): void {
     const neighborhood = this.neighborhood().trim();
     const storeId = this.cart.storeId();
-    if (!neighborhood || !storeId) return;
+    if (!neighborhood || !storeId) {
+      onResolved?.(null);
+      return;
+    }
     if (this.checkout.fulfillmentType() !== this.FulfillmentType.Delivery) {
       this.deliveryNotCovered.set(false);
       this.deliveryCheckLoading.set(false);
+      this.deliveryCoverageError.set(false);
+      onResolved?.({ neighborhood, covered: true });
       return;
     }
 
     const generation = ++this.deliveryCheckGeneration;
     this.deliveryCheckLoading.set(true);
+    this.deliveryCoverageError.set(false);
     this.subscriptions.add(this.api.get<{ covered: boolean; deliveryFee: number }>(
       `/api/public/stores/${storeId}/delivery-check?neighborhood=${encodeURIComponent(neighborhood)}`,
-    ).subscribe({
+    ).pipe(timeout(DELIVERY_CHECK_TIMEOUT_MS)).subscribe({
       next: (res) => {
-        if (generation !== this.deliveryCheckGeneration) return;
+        if (generation !== this.deliveryCheckGeneration) {
+          onResolved?.(null);
+          return;
+        }
         this.deliveryCheckLoading.set(false);
-        if (this.neighborhood().trim() !== neighborhood) return;
+        if (this.neighborhood().trim() !== neighborhood) {
+          onResolved?.(null);
+          return;
+        }
+        this.deliveryCoverageResolvedFor.set(neighborhood);
         this.deliveryNotCovered.set(!res.covered);
+        this.deliveryCoverageError.set(false);
+        onResolved?.({ neighborhood, covered: res.covered });
       },
       error: () => {
-        if (generation !== this.deliveryCheckGeneration) return;
+        if (generation !== this.deliveryCheckGeneration) {
+          onResolved?.(null);
+          return;
+        }
+        // Failure/timeout is inconclusive: never keep Continuar disabled, but also
+        // never treat it as covered. The next submit must re-check.
         this.deliveryCheckLoading.set(false);
+        this.deliveryCoverageResolvedFor.set(null);
+        this.deliveryCoverageError.set(true);
+        onResolved?.(null);
       },
     }));
   }
@@ -549,7 +645,7 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       return;
     }
     this.attemptedSubmit.set(true);
-    if (this.cepLoading()) return;
+    if (this.cepLoading() || this.deliveryCheckLoading()) return;
 
     // Bairro não coberto para entrega? Exige que o lojista cadastre a área.
     if (this.deliveryNotCovered()) {
@@ -559,9 +655,44 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
 
     const problems = this.validate();
     if (problems.length > 0) {
+      this.toast.showGrouped(problems);
       return;
     }
 
+    const storeId = this.cart.storeId();
+    if (!storeId) {
+      this.toast.showError('Não foi possível identificar a loja. Volte ao cardápio e tente novamente.');
+      return;
+    }
+
+    // Delivery can only move to payment with an explicitly covered neighborhood. An
+    // unknown/errored/stale result keeps the bar actionable for a retry but never
+    // starts the customer session.
+    const neighborhood = this.neighborhood().trim();
+    const needsCoverage = this.checkout.fulfillmentType() === this.FulfillmentType.Delivery
+      && this.deliveryCoverageResolvedFor() !== neighborhood;
+    if (needsCoverage) {
+      this.clearDeliveryCheckTimer();
+      this.checkDeliveryCoverage((result) => {
+        if (!this.active) return;
+        if (!result || result.neighborhood !== neighborhood || this.neighborhood().trim() !== neighborhood) {
+          this.deliveryCoverageError.set(true);
+          this.toast.showWarning('Não foi possível confirmar a área de entrega. Tente novamente.');
+          return;
+        }
+        if (!result.covered) {
+          this.deliveryCoverageModalOpen.set(true);
+          return;
+        }
+        this.startCustomerSession();
+      });
+      return;
+    }
+
+    this.startCustomerSession();
+  }
+
+  private startCustomerSession(): void {
     this.cepLoading.set(true);
     this.cepError.set(false);
 
