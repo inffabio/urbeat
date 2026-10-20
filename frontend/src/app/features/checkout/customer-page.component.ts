@@ -42,8 +42,8 @@ type CustomerField = CustomerProfileField;
 const CEP_LOOKUP_TIMEOUT_MS = 10_000;
 
 /**
- * Same rule for the delivery coverage request: an unresponsive delivery-check would
- * leave `deliveryCheckLoading` true and the primary Continuar bar disabled for good.
+ * The delivery coverage request must always leave the `checking` state. It never owns
+ * the primary action: a tap while it runs simply re-verifies the current neighborhood.
  */
 const DELIVERY_CHECK_TIMEOUT_MS = 8_000;
 
@@ -137,19 +137,23 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     return (
       isValidProfile(this.fields()) &&
       isValidAddress(this.fields()) &&
-      !this.cepLoading() &&
-      !this.deliveryCheckLoading()
+      !this.cepLoading()
     );
   });
 
   /**
-   * The bar stays actionable when the neighborhood is known to be outside the delivery
-   * area: `continue()` opens the explanatory modal instead of navigating. Disabling it
-   * here used to leave the customer with a gray bar and no way to understand the block.
+   * The bar never goes dead while the delivery area is being verified: a gray, disabled
+   * primary action left the customer without any way to move on after fixing the
+   * neighborhood (`continue()` used to drop the tap silently while the check ran). The
+   * action stays enabled and `continue()` re-verifies the current neighborhood, so
+   * coverage is still authoritative. A confirmed uncovered neighborhood keeps the bar
+   * actionable too: `continue()` opens the explanatory modal instead of navigating.
+   * `deliveryCheckLoading` wins over `deliveryNotCovered`: while a re-check runs the old
+   * "not covered" answer is no longer authoritative, so the bar must say it is verifying.
    */
   readonly continueDetail = computed(() => {
-    if (this.deliveryNotCovered()) return 'Bairro fora da área de entrega';
     if (this.deliveryCheckLoading()) return 'Verificando área de entrega…';
+    if (this.deliveryNotCovered()) return 'Bairro fora da área de entrega';
     if (this.deliveryCoverageError()) return 'Área de entrega não confirmada';
     if (this.canContinue()) return 'Ir para o pagamento';
     return 'Informe seus dados e endereço';
@@ -545,9 +549,16 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     this.removeDeliveryAreaUpdatedListener();
 
     const callback = (data: { storeId: string }) => {
-      if (data?.storeId === storeId) {
-        this.checkDeliveryCoverage();
-      }
+      if (data?.storeId !== storeId) return;
+      // A check already in flight owns the state and, when it came from a submit, its
+      // callback. Replacing it with an automatic re-check would silently drop the
+      // customer's tap and let a stale result win.
+      if (this.deliveryCheckLoading()) return;
+      // The previous answer belongs to the old delivery area: clear it before asking
+      // again so the bar is actionable and `continue()` re-verifies instead of
+      // reopening an outdated "not covered" modal.
+      this.invalidateDeliveryCoverage();
+      this.checkDeliveryCoverage();
     };
     this.deliveryAreaUpdatedCallback = callback;
 
@@ -588,6 +599,12 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
     const neighborhood = this.neighborhood().trim();
     const storeId = this.cart.storeId();
     if (!neighborhood || !storeId) {
+      // No address to verify: the coverage state must describe the current
+      // neighborhood, so a previous result can never survive this reset.
+      this.deliveryCheckLoading.set(false);
+      this.deliveryNotCovered.set(false);
+      this.deliveryCoverageResolvedFor.set(null);
+      this.deliveryCoverageError.set(false);
       onResolved?.(null);
       return;
     }
@@ -606,29 +623,26 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       `/api/public/stores/${storeId}/delivery-check?neighborhood=${encodeURIComponent(neighborhood)}`,
     ).pipe(timeout(DELIVERY_CHECK_TIMEOUT_MS)).subscribe({
       next: (res) => {
-        if (generation !== this.deliveryCheckGeneration) {
-          onResolved?.(null);
-          return;
-        }
+        // A newer check (another tap, a manual edit or DeliveryAreaUpdated) owns the
+        // state and the submit callback: a superseded response must stay completely
+        // silent so it can never toast, flag an error or navigate after that winner.
+        if (generation !== this.deliveryCheckGeneration) return;
         this.deliveryCheckLoading.set(false);
-        if (this.neighborhood().trim() !== neighborhood) {
-          onResolved?.(null);
-          return;
-        }
+        if (this.neighborhood().trim() !== neighborhood) return;
         this.deliveryCoverageResolvedFor.set(neighborhood);
         this.deliveryNotCovered.set(!res.covered);
         this.deliveryCoverageError.set(false);
         onResolved?.({ neighborhood, covered: res.covered });
       },
       error: () => {
-        if (generation !== this.deliveryCheckGeneration) {
-          onResolved?.(null);
-          return;
-        }
-        // Failure/timeout is inconclusive: never keep Continuar disabled, but also
-        // never treat it as covered. The next submit must re-check.
+        if (generation !== this.deliveryCheckGeneration) return;
         this.deliveryCheckLoading.set(false);
+        if (this.neighborhood().trim() !== neighborhood) return;
+        // Failure/timeout is inconclusive: never keep Continuar disabled, never treat it
+        // as covered and never leave an old "not covered" modal armed. The next submit
+        // must re-check.
         this.deliveryCoverageResolvedFor.set(null);
+        this.deliveryNotCovered.set(false);
         this.deliveryCoverageError.set(true);
         onResolved?.(null);
       },
@@ -645,7 +659,9 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       return;
     }
     this.attemptedSubmit.set(true);
-    if (this.cepLoading() || this.deliveryCheckLoading()) return;
+    // Only the CEP lookup/session blocks the tap: it is the state that owns the
+    // loading overlay. A coverage check in flight is handled below by re-verifying.
+    if (this.cepLoading()) return;
 
     // Bairro não coberto para entrega? Exige que o lojista cadastre a área.
     if (this.deliveryNotCovered()) {
@@ -665,23 +681,41 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Delivery can only move to payment with an explicitly covered neighborhood. An
-    // unknown/errored/stale result keeps the bar actionable for a retry but never
-    // starts the customer session.
+    // Delivery can only move to payment with an explicitly covered neighborhood for
+    // the current address. A resolved result that is being re-checked (for example
+    // after `DeliveryAreaUpdated`) is not authoritative anymore: `needsCoverage` also
+    // covers the in-flight window so a previous "covered" can never start a session.
     const neighborhood = this.neighborhood().trim();
-    const needsCoverage = this.checkout.fulfillmentType() === this.FulfillmentType.Delivery
-      && this.deliveryCoverageResolvedFor() !== neighborhood;
+    const isDelivery = this.checkout.fulfillmentType() === this.FulfillmentType.Delivery;
+    const needsCoverage = isDelivery
+      && (this.deliveryCoverageResolvedFor() !== neighborhood || this.deliveryCheckLoading());
     if (needsCoverage) {
       this.clearDeliveryCheckTimer();
       this.checkDeliveryCoverage((result) => {
         if (!this.active) return;
-        if (!result || result.neighborhood !== neighborhood || this.neighborhood().trim() !== neighborhood) {
+        // The customer edited the address after this check started: the newest
+        // verification owns the state and this result must stay silent.
+        if (this.neighborhood().trim() !== neighborhood) return;
+        if (!result) {
+          // The current check ended inconclusively (failure/timeout).
           this.deliveryCoverageError.set(true);
           this.toast.showWarning('Não foi possível confirmar a área de entrega. Tente novamente.');
           return;
         }
+        // A result for another neighborhood never resolves this submit.
+        if (result.neighborhood !== neighborhood) return;
         if (!result.covered) {
           this.deliveryCoverageModalOpen.set(true);
+          return;
+        }
+        // The address can change while the request runs (CEP lookup, manual edits).
+        // The server confirmed coverage for the neighborhood, never for a session
+        // started with a half-updated or invalid address.
+        if (this.cepLoading()) return;
+        if (!this.canContinue()) {
+          this.attemptedSubmit.set(true);
+          const problems = this.validate();
+          if (problems.length > 0) this.toast.showGrouped(problems);
           return;
         }
         this.startCustomerSession();

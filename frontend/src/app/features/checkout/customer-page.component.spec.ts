@@ -860,6 +860,690 @@ describe('CustomerPageComponent', () => {
     }
   });
 
+  it('keeps the primary bar actionable while the edited neighborhood is re-verified and only advances after covered', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      addressServiceMock.lookupCep.mockReturnValue(of({
+        street: 'Rua das Flores',
+        neighborhood: 'Jardim Aurora',
+        city: 'Rio das Ostras',
+        state: 'RJ',
+      }));
+
+      // Each delivery-check call is answered by the test so the interleaving is explicit.
+      const pending: { neighborhood: string; next: (res: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation((url: string) => new Observable((subscriber) => {
+        const neighborhood = decodeURIComponent(url.split('neighborhood=')[1] ?? '');
+        pending.push({
+          neighborhood,
+          next: (res) => subscriber.next(res),
+          complete: () => subscriber.complete(),
+        });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      // 1. Valid form, typed through the same callbacks the inputs use.
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.onCepInput('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      fixture.detectChanges();
+
+      // 2. The API answers "not covered" for the CEP neighborhood.
+      expect(pending.length).toBe(1);
+      expect(pending[0].neighborhood).toBe('Jardim Aurora');
+      pending[0].next({ covered: false, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+      expect(bar).not.toBeNull();
+      expect(bar.nativeElement.classList.contains('sticky-action-primary')).toBe(true);
+      expect((bar.nativeElement as HTMLElement).parentElement).toBe(fixture.nativeElement);
+      expect(component.deliveryNotCovered()).toBe(true);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Bairro fora da área de entrega');
+
+      // 3. The customer edits Bairro to a covered neighborhood. The debounced
+      //    verification starts and the bar must not turn into a dead gray bar.
+      component.onAddressFieldChange('neighborhood', 'Centro');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      expect(pending.length).toBe(2);
+      expect(pending[1].neighborhood).toBe('Centro');
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.canContinue()).toBe(true);
+
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Verificando área de entrega');
+
+      // Fields that were already valid stay valid while the coverage is re-checked.
+      expect(component.fieldError('neighborhood')).toBe('');
+      expect(component.fieldError('street')).toBe('');
+
+      // 4. Tapping while the verification runs must re-verify, never advance blind.
+      button.click();
+      fixture.detectChanges();
+      expect(pending.length).toBe(3);
+      expect(pending[2].neighborhood).toBe('Centro');
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      // 5. The explicit covered result enables the advance to payment.
+      pending[2].next({ covered: true, deliveryFee: 0 });
+      pending[2].complete();
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(button.disabled).toBe(false);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Ir para o pagamento');
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-1' }));
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+      pending[1].next({ covered: true, deliveryFee: 0 });
+      pending[1].complete();
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('never advances while the edited neighborhood verification is still inconclusive', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      addressServiceMock.lookupCep.mockReturnValue(of({
+        street: 'Rua das Flores',
+        neighborhood: 'Jardim Aurora',
+        city: 'Rio das Ostras',
+        state: 'RJ',
+      }));
+      const pending: { next: (res: unknown) => void; error: (err: unknown) => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({
+          next: (res) => subscriber.next(res),
+          error: (err) => subscriber.error(err),
+        });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.onCepInput('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      pending[0].next({ covered: false, deliveryFee: 0 });
+      fixture.detectChanges();
+
+      component.onAddressFieldChange('neighborhood', 'Centro');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+
+      // The re-verification fails: the bar stays actionable but never starts the session.
+      button.click();
+      fixture.detectChanges();
+      pending[pending.length - 1].error(new Error('offline'));
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryCoverageError()).toBe(true);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(button.disabled).toBe(false);
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('lets only the newest of two taps conclude the submit and ignores the older answer', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+    apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+      pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+    }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    const component = fixture.componentInstance;
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    // Double tap: both requests are in flight when the first answer arrives.
+    component.continue();
+    component.continue();
+    expect(pending.length).toBe(2);
+
+    // The newest tap is the only one allowed to conclude.
+    pending[1].next({ covered: true, deliveryFee: 0 });
+    pending[1].complete();
+    fixture.detectChanges();
+
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+    // The superseded answer arrives afterwards and must be completely silent.
+    pending[0].next({ covered: true, deliveryFee: 0 });
+    pending[0].complete();
+    fixture.detectChanges();
+
+    const toast = TestBed.inject(ToastService) as unknown as { showWarning: jest.Mock };
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+    expect(toast.showWarning).not.toHaveBeenCalledWith(expect.stringContaining('Não foi possível confirmar'));
+    expect(component.deliveryCoverageError()).toBe(false);
+    expect(component.deliveryNotCovered()).toBe(false);
+
+    fixture.destroy();
+  });
+
+  it('re-verifies when DeliveryAreaUpdated invalidates a resolved coverage before advancing', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      component.onAddressFieldChange('neighborhood', 'Centro');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      // The neighborhood is resolved as covered for the current address.
+      expect(pending.length).toBe(1);
+      pending[0].next({ covered: true, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+      expect(component.deliveryNotCovered()).toBe(false);
+
+      // The store updates its delivery area: the resolved result is re-checked.
+      const deliveryAreaHandler = signalRServiceMock.onCustomerEvent.mock.calls
+        .find(([event]: [string]) => event === 'DeliveryAreaUpdated')?.[1] as (data: { storeId: string }) => void;
+      expect(deliveryAreaHandler).toBeDefined();
+      deliveryAreaHandler({ storeId: 'store-1' });
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(pending.length).toBe(2);
+
+      // Tapping during the re-check must not reuse the previous "covered" result.
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      button.click();
+      fixture.detectChanges();
+
+      expect(pending.length).toBe(3);
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      // Only the explicit covered answer of the newest check advances.
+      pending[2].next({ covered: true, deliveryFee: 0 });
+      pending[2].complete();
+      fixture.detectChanges();
+
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+      // The superseded DeliveryAreaUpdated answer stays silent.
+      pending[1].next({ covered: false, deliveryFee: 0 });
+      pending[1].complete();
+      fixture.detectChanges();
+
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+      expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('re-verifies a previously uncovered neighborhood after DeliveryAreaUpdated instead of reopening the old modal', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      component.onAddressFieldChange('neighborhood', 'Jardim Aurora');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      // The API says the neighborhood is not covered.
+      expect(pending.length).toBe(1);
+      pending[0].next({ covered: false, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(component.deliveryNotCovered()).toBe(true);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Bairro fora da área de entrega');
+
+      // The store updates the delivery area: the old "not covered" answer is discarded
+      // before the new check, so the bar is actionable and reports the verification.
+      const deliveryAreaHandler = signalRServiceMock.onCustomerEvent.mock.calls
+        .find(([event]: [string]) => event === 'DeliveryAreaUpdated')?.[1] as (data: { storeId: string }) => void;
+      deliveryAreaHandler({ storeId: 'store-1' });
+      fixture.detectChanges();
+
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(pending.length).toBe(2);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Verificando área de entrega');
+
+      // Tapping during the request must not open the outdated modal nor navigate.
+      button.click();
+      fixture.detectChanges();
+
+      expect(pending.length).toBe(3);
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      // The explicit covered answer of the newest check advances to payment.
+      pending[2].next({ covered: true, deliveryFee: 0 });
+      pending[2].complete();
+      fixture.detectChanges();
+
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+      // The superseded re-check answer stays silent (no modal, no second navigation).
+      pending[1].next({ covered: false, deliveryFee: 0 });
+      pending[1].complete();
+      fixture.detectChanges();
+
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+      expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps a retry available when the DeliveryAreaUpdated recheck fails', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      const pending: { next: (res: unknown) => void; error: (err: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({
+          next: (res) => subscriber.next(res),
+          error: (err) => subscriber.error(err),
+          complete: () => subscriber.complete(),
+        });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      component.onAddressFieldChange('neighborhood', 'Jardim Aurora');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      pending[0].next({ covered: false, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+      expect(component.deliveryNotCovered()).toBe(true);
+
+      const deliveryAreaHandler = signalRServiceMock.onCustomerEvent.mock.calls
+        .find(([event]: [string]) => event === 'DeliveryAreaUpdated')?.[1] as (data: { storeId: string }) => void;
+      deliveryAreaHandler({ storeId: 'store-1' });
+      fixture.detectChanges();
+      expect(component.deliveryCheckLoading()).toBe(true);
+      expect(pending.length).toBe(2);
+
+      // The re-check fails: the inconclusive state must allow a retry, not a locked modal.
+      pending[1].error(new Error('offline'));
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.deliveryCoverageError()).toBe(true);
+      expect(button.disabled).toBe(false);
+      expect((bar.nativeElement as HTMLElement).textContent).toContain('Área de entrega não confirmada');
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+
+      // The retry verifies again and advances only with a confirmed covered result.
+      button.click();
+      fixture.detectChanges();
+      expect(pending.length).toBe(3);
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+
+      pending[2].next({ covered: true, deliveryFee: 0 });
+      pending[2].complete();
+      fixture.detectChanges();
+
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps a retry available when the DeliveryAreaUpdated recheck times out', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.onAddressFieldChange('city', 'Rio das Ostras');
+      component.onAddressFieldChange('state', 'RJ');
+      component.onAddressFieldChange('street', 'Rua das Flores');
+      component.onAddressFieldChange('number', '123');
+      component.onAddressFieldChange('neighborhood', 'Jardim Aurora');
+      jest.advanceTimersByTime(350);
+      fixture.detectChanges();
+
+      pending[0].next({ covered: false, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+      expect(component.deliveryNotCovered()).toBe(true);
+
+      const deliveryAreaHandler = signalRServiceMock.onCustomerEvent.mock.calls
+        .find(([event]: [string]) => event === 'DeliveryAreaUpdated')?.[1] as (data: { storeId: string }) => void;
+      deliveryAreaHandler({ storeId: 'store-1' });
+      fixture.detectChanges();
+      expect(component.deliveryCheckLoading()).toBe(true);
+
+      // The re-check never answers: the timeout must release the state for a retry.
+      jest.advanceTimersByTime(8_000);
+      fixture.detectChanges();
+
+      expect(component.deliveryCheckLoading()).toBe(false);
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.deliveryCoverageError()).toBe(true);
+      expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).toBeNull();
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      button.click();
+      fixture.detectChanges();
+      expect(pending.length).toBe(3);
+
+      pending[2].next({ covered: true, deliveryFee: 0 });
+      pending[2].complete();
+      fixture.detectChanges();
+
+      expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not replace an in-flight submit check with an automatic DeliveryAreaUpdated recheck', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+    apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+      pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+    }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+    expect(pending.length).toBe(1);
+    expect(component.deliveryCheckLoading()).toBe(true);
+
+    // The store updates the delivery area while the submit check owns the callback.
+    const deliveryAreaHandler = signalRServiceMock.onCustomerEvent.mock.calls
+      .find(([event]: [string]) => event === 'DeliveryAreaUpdated')?.[1] as (data: { storeId: string }) => void;
+    deliveryAreaHandler({ storeId: 'store-1' });
+    fixture.detectChanges();
+
+    expect(pending.length).toBe(1);
+    expect(component.deliveryCheckLoading()).toBe(true);
+
+    // The submit check still concludes the tap.
+    pending[0].next({ covered: true, deliveryFee: 0 });
+    pending[0].complete();
+    fixture.detectChanges();
+
+    const toast = TestBed.inject(ToastService) as unknown as { showWarning: jest.Mock };
+    expect(checkoutServiceMock.createCustomerSession).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).toHaveBeenCalledTimes(1);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+    expect(toast.showWarning).not.toHaveBeenCalledWith(expect.stringContaining('Não foi possível confirmar'));
+    expect(component.deliveryCoverageError()).toBe(false);
+
+    fixture.destroy();
+  });
+
+  it('does not start a session when the form changes while the coverage request runs', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+    apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+      pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+    }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    component.continue();
+    expect(pending.length).toBe(1);
+
+    // The address is edited (street cleared) while the coverage request is in flight.
+    component.onAddressFieldChange('street', '');
+    pending[0].next({ covered: true, deliveryFee: 0 });
+    pending[0].complete();
+    fixture.detectChanges();
+
+    const toast = TestBed.inject(ToastService) as unknown as { showGrouped: jest.Mock };
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+    expect(component.attemptedSubmit()).toBe(true);
+    expect(toast.showGrouped).toHaveBeenCalled();
+    // The bar stays available for the customer to fix the field and retry.
+    expect(fixture.debugElement.query(By.css('app-sticky-action-bar'))).not.toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('does not start a session when the CEP lookup is running while the coverage answer arrives', () => {
+    jest.useFakeTimers();
+    try {
+      cart.setStore('store-1', 'Loja', '');
+      addressServiceMock.lookupCep.mockReturnValue(new Observable(() => { /* lookup stays in flight */ }));
+      const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+      apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+        pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+      }));
+
+      const fixture = TestBed.createComponent(CustomerPageComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      component.fullName.set('Maria Oliveira');
+      component.onPhoneInput('(22) 99999-9999');
+      component.email.set('maria@email.com');
+      component.cep.set('28893-000');
+      component.city.set('Rio das Ostras');
+      component.state.set('RJ');
+      component.neighborhood.set('Centro');
+      component.street.set('Rua das Flores');
+      component.number.set('123');
+
+      component.continue();
+      expect(pending.length).toBe(1);
+
+      // The customer changes the CEP: the lookup takes over the address and the
+      // previous coverage request is no longer authoritative.
+      component.onCepInput('28893-001');
+      expect(component.cepLoading()).toBe(true);
+
+      pending[0].next({ covered: true, deliveryFee: 0 });
+      pending[0].complete();
+      fixture.detectChanges();
+
+      const toast = TestBed.inject(ToastService) as unknown as { showWarning: jest.Mock };
+      expect(component.cepLoading()).toBe(true);
+      expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+      expect(component.deliveryNotCovered()).toBe(false);
+      expect(component.deliveryCoverageError()).toBe(false);
+      // The superseded answer must not claim the area is unconfirmed.
+      expect(toast.showWarning).not.toHaveBeenCalledWith(expect.stringContaining('Não foi possível confirmar'));
+
+      fixture.destroy();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not warn about the delivery area when a newer verification supersedes a pending submit check', () => {
+    cart.setStore('store-1', 'Loja', '');
+    const pending: { next: (res: unknown) => void; complete: () => void }[] = [];
+    apiServiceMock.get.mockImplementation(() => new Observable((subscriber) => {
+      pending.push({ next: (res) => subscriber.next(res), complete: () => subscriber.complete() });
+    }));
+
+    const fixture = TestBed.createComponent(CustomerPageComponent);
+    const component = fixture.componentInstance;
+    component.fullName.set('Maria Oliveira');
+    component.onPhoneInput('(22) 99999-9999');
+    component.email.set('maria@email.com');
+    component.cep.set('28893-000');
+    component.city.set('Rio das Ostras');
+    component.state.set('RJ');
+    component.neighborhood.set('Centro');
+    component.street.set('Rua das Flores');
+    component.number.set('123');
+
+    // A second tap while the first verification runs starts a newer, authoritative check.
+    component.continue();
+    component.continue();
+    expect(pending.length).toBe(2);
+
+    pending[0].next({ covered: true, deliveryFee: 0 });
+    pending[0].complete();
+    fixture.detectChanges();
+
+    const toast = TestBed.inject(ToastService) as unknown as { showWarning: jest.Mock };
+    expect(toast.showWarning).not.toHaveBeenCalledWith(expect.stringContaining('Não foi possível confirmar'));
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(component.deliveryCheckLoading()).toBe(true);
+
+    pending[1].next({ covered: false, deliveryFee: 0 });
+    pending[1].complete();
+    fixture.detectChanges();
+
+    expect(component.deliveryNotCovered()).toBe(true);
+    expect(fixture.debugElement.query(By.css('.delivery-coverage-modal'))).not.toBeNull();
+    expect(checkoutServiceMock.createCustomerSession).not.toHaveBeenCalled();
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
   it('does not drop a resolved coverage result when unrelated address fields change', () => {
     cart.setStore('store-1', 'Loja', '');
     const fixture = TestBed.createComponent(CustomerPageComponent);
@@ -1107,14 +1791,18 @@ describe('CustomerPageComponent', () => {
 
       component.onCepInput('28893-000');
       expect(component.deliveryCheckLoading()).toBe(true);
-      expect(component.canContinue()).toBe(false);
+      // A transient coverage request never owns the primary action: the customer keeps
+      // the bar enabled and the tap re-verifies instead of silently doing nothing.
+      expect(component.canContinue()).toBe(true);
       fixture.detectChanges();
 
-      // The bar is never removed while the coverage request is in flight; it is
-      // only disabled and explains the wait.
+      // The bar is never removed and never turns dead while the coverage request is in
+      // flight; it explains the wait and stays actionable.
       const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));
       expect(bar).not.toBeNull();
       expect((bar.nativeElement as HTMLElement).textContent).toContain('Verificando área de entrega');
+      const button = fixture.debugElement.query(By.css('app-sticky-action-bar button')).nativeElement as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
 
       jest.advanceTimersByTime(8_000);
       fixture.detectChanges();
