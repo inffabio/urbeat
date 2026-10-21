@@ -124,6 +124,115 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('keeps the delivered step inside the timeline as the current step, never as a completed future one', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+    const steps = fixture.debugElement.queryAll(By.css('.status-step'));
+    const last = steps[steps.length - 1];
+
+    expect(scroll.nativeElement.classList).toContain('is-delivered');
+    expect(last.query(By.css('.status-label')).nativeElement.textContent.trim()).toBe('Entregue');
+    expect(last.nativeElement.getAttribute('aria-current')).toBe('step');
+    expect(last.nativeElement.classList).not.toContain('done');
+    expect(fixture.debugElement.queryAll(By.css('.status-step.done')).length).toBe(steps.length - 1);
+
+    fixture.destroy();
+  });
+
+  it('renders a decorative track that stops at the authoritative current step', () => {
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const track = fixture.debugElement.query(By.css('.status-track'));
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+
+    expect(track).not.toBeNull();
+    expect(track.nativeElement.getAttribute('aria-hidden')).toBe('true');
+    expect(track.query(By.css('.status-track-progress'))).not.toBeNull();
+    expect(track.query(By.css('.status-track-sweep'))).not.toBeNull();
+
+    // Preparing is the 2nd of 5 steps: the track runs from 10% to 90% and the
+    // current ratio is 0.25, which drives both the static fill and the sweep.
+    expect(scroll.nativeElement.style.getPropertyValue('--track-inset')).toBe('10%');
+    expect(scroll.nativeElement.style.getPropertyValue('--track-ratio')).toBe('0.25');
+
+    fixture.destroy();
+  });
+
+  it('advances the track with the current status without marking any future step as done', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Ready }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+    const done = fixture.debugElement.queryAll(By.css('.status-step.done'));
+    const current = fixture.debugElement.query(By.css('.status-step[aria-current="step"]'));
+
+    expect(scroll.nativeElement.style.getPropertyValue('--track-ratio')).toBe('0.5');
+    expect(done.length).toBe(2);
+    expect(current.query(By.css('.status-label')).nativeElement.textContent.trim()).toBe('Pronto');
+    expect(fixture.debugElement.queryAll(By.css('.status-step')).at(-1)?.nativeElement.classList).not.toContain('done');
+
+    fixture.destroy();
+  });
+
+  it.each([
+    OrderStatus.Received,
+    OrderStatus.Preparing,
+    OrderStatus.Ready,
+    OrderStatus.OnDelivery,
+  ])('keeps the accordion sweep running while the order is not delivered (status %s)', (status) => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+
+    expect(scroll.nativeElement.classList).not.toContain('is-delivered');
+    expect(scroll.nativeElement.classList).not.toContain('is-cancelled');
+    expect(fixture.debugElement.query(By.css('.status-track-sweep'))).not.toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('marks a delivered order as terminal and keeps the filled track on the last point', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+    const current = fixture.debugElement.query(By.css('.status-step[aria-current="step"]'));
+
+    expect(scroll.nativeElement.classList).toContain('is-delivered');
+    expect(scroll.nativeElement.classList).not.toContain('is-cancelled');
+    // Delivered is the last step, so the static fill covers the whole track.
+    expect(scroll.nativeElement.style.getPropertyValue('--track-ratio')).toBe('1');
+    expect(current.query(By.css('.status-label')).nativeElement.textContent.trim()).toBe('Entregue');
+
+    fixture.destroy();
+  });
+
+  it('does not mark a cancelled order as delivered', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Cancelled }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+
+    expect(scroll.nativeElement.classList).toContain('is-cancelled');
+    expect(scroll.nativeElement.classList).not.toContain('is-delivered');
+
+    fixture.destroy();
+  });
+
   it('omits the delivery step from the sequence for pickup orders', () => {
     getOrderMock.mockReturnValue(of({ ...baseOrder, fulfillmentType: FulfillmentType.PickUp }));
 
@@ -135,6 +244,28 @@ describe('TrackingPageComponent', () => {
       .map((el) => el.nativeElement.textContent.trim());
 
     expect(labels).toEqual(['Recebido', 'Preparando', 'Pronto', 'Entregue']);
+
+    fixture.destroy();
+  });
+
+  it('ends the four-step pickup track at the last dot when the order is delivered', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Delivered,
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
+    const steps = fixture.debugElement.queryAll(By.css('.status-step'));
+
+    expect(steps.length).toBe(4);
+    expect(scroll.nativeElement.style.getPropertyValue('--track-inset')).toBe('12.5%');
+    expect(scroll.nativeElement.style.getPropertyValue('--track-ratio')).toBe('1');
+    expect(scroll.nativeElement.classList).toContain('is-delivered');
+    expect(steps[3].nativeElement.getAttribute('aria-current')).toBe('step');
 
     fixture.destroy();
   });
@@ -202,7 +333,7 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
-  it('wraps the horizontal status list in a focusable, labelled scrollable region that keeps list semantics', () => {
+  it('wraps the status list in a labelled region that keeps list semantics without an inert tab stop', () => {
     const fixture = TestBed.createComponent(TrackingPageComponent);
     fixture.detectChanges();
 
@@ -210,7 +341,7 @@ describe('TrackingPageComponent', () => {
     const list = fixture.debugElement.query(By.css('.status-bar-scroll .status-bar[role="list"]'));
 
     expect(scroll).not.toBeNull();
-    expect(scroll.nativeElement.getAttribute('tabindex')).toBe('0');
+    expect(scroll.nativeElement.hasAttribute('tabindex')).toBe(false);
     expect(scroll.nativeElement.getAttribute('role')).toBe('region');
     expect(scroll.nativeElement.getAttribute('aria-label')).toBe('Acompanhamento do pedido');
     expect(list).not.toBeNull();
@@ -749,6 +880,68 @@ describe('TrackingPageComponent mobile footer clearance', () => {
 
     expect(styles).toMatch(/\.confirm-delivery-fab\s*\{[\s\S]*bottom:\s*var\(--store-footer-clearance, calc\(64px \+ max\(8px, env\(safe-area-inset-bottom, 0px\)\)\)\);/);
     expect(styles).toMatch(/\.confirm-delivery-fab\s*\{[\s\S]*z-index:\s*40/);
+  });
+});
+
+describe('TrackingPageComponent responsive timeline', () => {
+  const styles = readFileSync(resolve(__dirname, 'tracking-page.component.scss'), 'utf8');
+
+  it('distributes the steps in fluid equal-width columns instead of forcing a fixed-width track', () => {
+    expect(styles).toMatch(/\.status-step\s*\{[\s\S]*?flex:\s*1 1 0;/);
+    expect(styles).toMatch(/\.status-step\s*\{[\s\S]*?min-width:\s*0;/);
+    expect(styles).not.toMatch(/min-width:\s*max-content/);
+    expect(styles).not.toMatch(/flex:\s*0 0 76px/);
+    expect(styles).not.toMatch(/min-width:\s*76px/);
+  });
+
+  it('lets the last label wrap at word boundaries so dot and title cannot be clipped', () => {
+    expect(styles).toMatch(/\.status-label\s*\{[\s\S]*?width:\s*100%;/);
+    expect(styles).toMatch(/\.status-label\s*\{[\s\S]*?overflow-wrap:\s*normal;/);
+    expect(styles).toMatch(/\.status-label\s*\{[\s\S]*?hyphens:\s*manual;/);
+    expect(styles).toMatch(/\.status-step:last-child \.status-label\s*\{[^}]*white-space:\s*nowrap;/);
+    expect(styles).toMatch(/\.status-bar-scroll\s*\{[\s\S]*?overflow:\s*visible;/);
+  });
+
+  it('does not expose the non-scrollable region as an inert keyboard stop', () => {
+    expect(styles).not.toMatch(/\.status-bar-scroll:focus-visible/);
+    expect(styles).not.toMatch(/\.status-bar-scroll\s*\{[^}]*overflow-x:\s*auto/);
+  });
+
+  it('draws the track inset from the first and last dot centers', () => {
+    expect(styles).toMatch(/\.status-track::before\s*\{[\s\S]*?inset:\s*0 var\(--track-inset/);
+    expect(styles).toMatch(/\.status-track-progress\s*\{[\s\S]*?left:\s*var\(--track-inset/);
+    expect(styles).toMatch(/\.status-track-progress\s*\{[\s\S]*?transform:\s*scaleX\(var\(--track-ratio/);
+    expect(styles).toMatch(/\.status-track-sweep\s*\{[\s\S]*?right:\s*var\(--track-inset/);
+  });
+
+  it('animates the brand sweep to the end of the line and back to the current point', () => {
+    expect(styles).toMatch(/\.status-track-sweep\s*\{[^}]*animation:\s*tracking-timeline-sweep/);
+    expect(styles).toMatch(/@keyframes tracking-timeline-sweep\s*\{[\s\S]*?scaleX\(1\)/);
+    expect(styles).toMatch(/@keyframes tracking-timeline-sweep\s*\{[\s\S]*?scaleX\(var\(--track-ratio/);
+  });
+
+  it('stops the accordion sweep only for delivered orders while keeping the static fill', () => {
+    expect(styles).toMatch(/\.status-bar-scroll\.is-delivered \.status-track-sweep\s*\{[^}]*animation:\s*none;/);
+    expect(styles).toMatch(/\.status-bar-scroll\.is-delivered \.status-track-sweep\s*\{[^}]*opacity:\s*0;/);
+    // The delivered state must not hide or shrink the authoritative red fill.
+    expect(styles).not.toMatch(/\.status-bar-scroll\.is-delivered \.status-track-progress/);
+  });
+
+  it('keeps the sweep stopped for cancelled orders', () => {
+    expect(styles).toMatch(/\.status-bar-scroll\.is-cancelled \.status-track-sweep\s*\{[^}]*animation:\s*none;/);
+  });
+
+  it('stacks the timeline vertically on narrow phones instead of breaking labels', () => {
+    expect(styles).toMatch(/@media \(max-width: 400px\)\s*\{[\s\S]*?\.status-bar\s*\{[^}]*flex-direction:\s*column/);
+    expect(styles).toMatch(/@media \(max-width: 400px\)\s*\{[\s\S]*?\.status-bar-scroll\s*\{[^}]*padding-block:\s*0/);
+    expect(styles).toMatch(/@media \(max-width: 400px\)\s*\{[\s\S]*?\.status-step\s*\{[^}]*min-height:\s*44px/);
+    expect(styles).toMatch(/@media \(max-width: 400px\)\s*\{[\s\S]*?\.status-track-progress\s*\{[^}]*transform:\s*scaleY\(var\(--track-ratio/);
+    expect(styles).toMatch(/@keyframes tracking-timeline-sweep-y\s*\{[\s\S]*?scaleY\(var\(--track-ratio/);
+  });
+
+  it('keeps the track static at the current point when reduced motion is requested', () => {
+    expect(styles).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.status-track-sweep\s*\{[^}]*animation:\s*none !important/);
+    expect(styles).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.status-track-progress\s*\{[^}]*transition:\s*none/);
   });
 });
 

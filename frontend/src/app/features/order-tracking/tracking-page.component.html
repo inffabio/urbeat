@@ -56,7 +56,18 @@
 
       <div class="card tracking-card">
         <h2>Acompanhe seu pedido</h2>
-        <div class="status-bar-scroll" role="region" aria-label="Acompanhamento do pedido" tabindex="0">
+        <div
+          class="status-bar-scroll"
+          role="region"
+          aria-label="Acompanhamento do pedido"
+          [class.is-cancelled]="cancelled()"
+          [class.is-delivered]="delivered()"
+          [style.--track-inset]="timelineGeometry().inset"
+          [style.--track-ratio]="timelineGeometry().ratio">
+          <span class="status-track" aria-hidden="true">
+            <span class="status-track-progress"></span>
+            <span class="status-track-sweep"></span>
+          </span>
           <ol class="status-bar" role="list" aria-label="Status do pedido">
             @for (step of steps(); track step.status) {
               <li

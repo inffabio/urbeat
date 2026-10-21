@@ -169,40 +169,100 @@
 }
 
 .status-bar-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  position: relative;
+  width: 100%;
+  /* Fluid layout: every step shares the card width, so the last dot and its
+     label stay fully inside the card instead of relying on a clipped scroll. */
+  overflow: visible;
+  border-radius: var(--radius-sm);
+  padding-block: 2px;
+}
+
+/* Decorative line: the insets land exactly on the first and last dot centers. */
+.status-track {
+  position: absolute;
+  top: 13px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  pointer-events: none;
+}
+
+.status-track::before {
+  content: "";
+  position: absolute;
+  inset: 0 var(--track-inset, 10%);
+  border-radius: var(--radius-full);
+  background: var(--app-line);
+}
+
+.status-track-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--track-inset, 10%);
+  right: var(--track-inset, 10%);
+  border-radius: var(--radius-full);
+  background: var(--app-brand);
+  transform: scaleX(var(--track-ratio, 0));
+  transform-origin: left center;
+  transition: transform 320ms ease;
+}
+
+/* Soft accordion sweep: it travels to the end of the line and returns to the
+   current point. It never fills a dot or a label, so no future step reads as
+   completed; the static progress above remains the authoritative position. */
+.status-track-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--track-inset, 10%);
+  right: var(--track-inset, 10%);
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, transparent, var(--app-brand) 88%);
+  transform: scaleX(var(--track-ratio, 0));
+  transform-origin: left center;
+  opacity: 0.5;
+  animation: tracking-timeline-sweep 6.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.status-bar-scroll.is-cancelled .status-track-progress,
+.status-bar-scroll.is-cancelled .status-track-sweep {
+  opacity: 0;
+}
+
+.status-bar-scroll.is-cancelled .status-track-sweep {
+  animation: none;
+}
+
+/* Delivered is terminal: the static fill already reaches the last dot, so the
+   accordion sweep stops instead of implying unfinished progress. Only the
+   decorative sweep is hidden; the red progress and the final dot/label stay. */
+.status-bar-scroll.is-delivered .status-track-sweep {
+  animation: none;
+  opacity: 0;
 }
 
 .status-bar {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
   position: relative;
+  width: 100%;
   padding: 0;
   margin: 0;
   list-style: none;
-  min-width: max-content;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 11px;
-    left: 12px;
-    right: 12px;
-    height: 2px;
-    background: var(--app-line);
-    z-index: 0;
-  }
 }
 
 .status-step {
-  flex: 1 1 76px;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   position: relative;
   z-index: 1;
-  min-width: 76px;
   gap: 8px;
 
   .status-dot {
@@ -224,19 +284,24 @@
   }
 
   .status-label {
+    display: block;
+    width: 100%;
     font-size: 12px;
     line-height: 1.25;
     color: var(--app-text-secondary);
     min-height: 30px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    hyphens: manual;
   }
 
   .status-time {
-    font-size: 11px;
     display: block;
+    font-size: 11px;
+    line-height: 1.2;
     color: var(--app-text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   &.active {
@@ -263,6 +328,36 @@
       background: var(--app-brand);
     }
     .status-label { color: var(--app-text-primary); }
+  }
+}
+
+/* The terminal label is short and must never hyphenate or overflow its dot. */
+.status-step:last-child .status-label {
+  white-space: nowrap;
+  hyphens: manual;
+}
+
+@keyframes tracking-timeline-sweep {
+  0%, 100% {
+    transform: scaleX(var(--track-ratio, 0));
+    opacity: 0.5;
+  }
+
+  48%, 56% {
+    transform: scaleX(1);
+    opacity: 0.62;
+  }
+}
+
+@keyframes tracking-timeline-sweep-y {
+  0%, 100% {
+    transform: scaleY(var(--track-ratio, 0));
+    opacity: 0.5;
+  }
+
+  48%, 56% {
+    transform: scaleY(1);
+    opacity: 0.62;
   }
 }
 
@@ -644,12 +739,6 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* === MOBILE === */
-@media (max-width: 480px) {
-  .status-step {
-    flex: 0 0 76px;
-  }
-}
-
 @media (max-width: 400px) {
   .success-header {
     padding: var(--space-6) var(--space-4) var(--space-5);
@@ -658,10 +747,78 @@
     p { font-size: 13px; }
   }
 
-  .status-step {
-    font-size: 12px;
+  /* Five readable labels cannot share a ~290px card row without breaking
+     words. Stack the timeline so every dot, title and time keeps full width. */
+  .status-bar-scroll {
+    /* The horizontal track compensates the 2px padding with top: 13px. In the
+       vertical axis the line spans the wrapper, so remove it to land exactly
+       on the first and last dot centers. */
+    padding-block: 0;
+  }
 
-    .status-label { font-size: 11px; }
+  .status-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .status-step {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 44px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .status-label {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    font-size: 12px;
+    text-wrap: pretty;
+  }
+
+  .status-time {
+    margin-left: auto;
+    font-size: 12px;
+  }
+
+  .status-track {
+    top: 0;
+    bottom: 0;
+    left: 11px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+
+  .status-track::before {
+    inset: var(--track-inset, 10%) 0;
+  }
+
+  .status-track-progress {
+    top: var(--track-inset, 10%);
+    bottom: var(--track-inset, 10%);
+    left: 0;
+    right: 0;
+    transform: scaleY(var(--track-ratio, 0));
+    transform-origin: top center;
+    transition: transform 320ms ease;
+  }
+
+  .status-track-sweep {
+    top: var(--track-inset, 10%);
+    bottom: var(--track-inset, 10%);
+    left: 0;
+    right: auto;
+    width: 2px;
+    height: auto;
+    background: linear-gradient(180deg, transparent, var(--app-brand) 88%);
+    transform: scaleY(var(--track-ratio, 0));
+    transform-origin: top center;
+    animation-name: tracking-timeline-sweep-y;
   }
 
   .link-orange {
@@ -672,4 +829,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+
+  /* Keep the track still at the authoritative current point. */
+  .status-track-sweep { animation: none !important; opacity: 0; }
+  .status-track-progress { transition: none; }
 }

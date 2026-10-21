@@ -64,6 +64,13 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
 
   readonly cancelled = computed(() => this.order()?.status === OrderStatus.Cancelled);
 
+  /**
+   * Authoritative terminal state used by the timeline decoration. Only an
+   * actual `Delivered` status stops the accordion sweep; intermediate states
+   * can share the same numeric ratio, so ratio is not a valid signal here.
+   */
+  readonly delivered = computed(() => this.order()?.status === OrderStatus.Delivered);
+
   readonly loading = computed(() => this.order() === null && !this.invalidOrder() && !this.unavailable());
 
   readonly FulfillmentType = FulfillmentType;
@@ -120,6 +127,22 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
       else state = 'future';
       return { ...d, time, state };
     });
+  });
+
+  /**
+   * Track geometry derived from the authoritative steps only. The inset keeps
+   * the line between the first and last dot centers; `ratio` is the normalized
+   * position (0..1) of the current step, shared by the static fill and the
+   * decorative accordion sweep. No future step is ever filled.
+   */
+  readonly timelineGeometry = computed(() => {
+    const steps = this.steps();
+    const count = Math.max(steps.length, 1);
+    const currentIndex = steps.findIndex((step) => step.state === 'current');
+    return {
+      inset: `${50 / count}%`,
+      ratio: count > 1 && currentIndex > 0 ? `${currentIndex / (count - 1)}` : '0',
+    };
   });
 
   itemOptionEntries(item: OrderItem): { name: string; price?: number }[] {
