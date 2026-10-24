@@ -375,93 +375,36 @@
   }
 }
 
-.accepted-orders-panel {
-  margin-top: 40px;
+.status-flow {
+  margin-top: 46px;
 }
 
-.accepted-orders-list {
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.status-col {
+  min-width: 0;
+}
+
+.col-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+}
+
+.status-stack {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 900px;
-}
-
-.order-accordion {
-  background: var(--orders-card);
-  border: 1px solid var(--orders-line);
-  border-radius: 12px;
-  overflow: hidden;
-
-  &.is-expanded {
-    border-color: var(--app-border-medium, #d6d0cc);
-  }
-}
-
-.order-accordion-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: 52px;
-  padding: 10px 16px;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  text-align: left;
-  color: var(--orders-text);
-  cursor: pointer;
-
-  &:hover {
-    background: #fbf7f2;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--app-brand, #d54a51);
-    outline-offset: -3px;
-    border-radius: 12px;
-  }
-}
-
-.order-accordion-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  min-width: 0;
-  font-size: 13px;
-
-  strong {
-    font-weight: 800;
-    color: var(--orders-blue);
-    white-space: nowrap;
-  }
-}
-
-.order-accordion-customer {
-  max-width: min(100%, 420px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.order-accordion-chevron {
-  flex: 0 0 auto;
-  color: var(--orders-muted);
-  font-size: 14px;
-}
-
-.order-accordion-panel {
-  padding: 4px 16px 16px;
-  border-top: 1px solid var(--orders-line);
 
   .order-card {
-    height: auto;
-    min-height: 0;
-    padding: 14px 0 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    min-height: 320px;
   }
 }
 
@@ -727,12 +670,13 @@
 @media (max-width: 1199px) {
   .orders-page { padding: 24px; }
   .new-orders-list { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+  .status-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
 }
 
 @media (max-width: 767px) {
   .orders-page { padding: 18px; }
   .new-orders-panel { padding: 22px 18px; }
   .new-orders-list { grid-template-columns: 1fr; }
-  .accepted-orders-panel { margin-top: 28px; }
-  .order-accordion-customer { white-space: normal; }
+  .status-grid { grid-template-columns: 1fr; }
+  .col-title { text-align: left; }
 }

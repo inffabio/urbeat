@@ -132,69 +132,77 @@
   </div>
 </ng-template>
 
-<div class="seller-shell app-shell" [class.is-collapsed]="sidebarCollapsed()">
-  <aside class="sidebar desktop-sidebar" aria-label="Menu do lojista">
-    <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: false }"></ng-container>
-  </aside>
+<div
+  class="seller-shell app-shell"
+  [class.is-collapsed]="sidebarCollapsed()"
+  [class.is-detached-orders]="isDetachedOrdersRoute()"
+>
+  @if (!isDetachedOrdersRoute()) {
+    <aside class="sidebar desktop-sidebar" aria-label="Menu do lojista">
+      <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: false }"></ng-container>
+    </aside>
 
-  <button
-    type="button"
-    class="mobile-sidebar-backdrop"
-    [class.is-open]="mobileMenuOpen()"
-    (click)="closeMobileMenu()"
-    aria-label="Fechar menu lateral"
-  ></button>
+    <button
+      type="button"
+      class="mobile-sidebar-backdrop"
+      [class.is-open]="mobileMenuOpen()"
+      (click)="closeMobileMenu()"
+      aria-label="Fechar menu lateral"
+    ></button>
 
-  <aside class="mobile-sidebar" [class.is-open]="mobileMenuOpen()" aria-label="Menu do lojista no celular">
-    <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: true }"></ng-container>
-  </aside>
+    <aside class="mobile-sidebar" [class.is-open]="mobileMenuOpen()" aria-label="Menu do lojista no celular">
+      <ng-container [ngTemplateOutlet]="sidebarContent" [ngTemplateOutletContext]="{ mobile: true }"></ng-container>
+    </aside>
+  }
 
   <main id="seller-main-content" class="seller-main main">
-    <header class="mobile-topbar">
-      <button type="button" class="mobile-menu-btn" (click)="openMobileMenu()" aria-label="Abrir menu lateral">
-        <ion-icon name="menu-outline"></ion-icon>
-      </button>
-      <div class="mobile-brand">
-        <a
-          class="storefront-logo-link"
-          [attr.href]="storefrontUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Clique para ir para loja"
-          aria-label="Clique para ir para loja"
-        >
-          <div
-            class="mobile-brand-mark"
-            [class.has-logo]="!!facade.store()?.logoUrl"
-            [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
-            aria-hidden="true"
+    @if (!isDetachedOrdersRoute()) {
+      <header class="mobile-topbar">
+        <button type="button" class="mobile-menu-btn" (click)="openMobileMenu()" aria-label="Abrir menu lateral">
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <div class="mobile-brand">
+          <a
+            class="storefront-logo-link"
+            [attr.href]="storefrontUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Clique para ir para loja"
+            aria-label="Clique para ir para loja"
           >
-            @if (!facade.store()?.logoUrl) { H }
-          </div>
-        </a>
-        <span>{{ facade.storeName() }}</span>
-      </div>
-    </header>
-
-    @if (facade.soundNeedsActivation()) {
-      <button type="button" class="activation-banner" (click)="enableSound()">Ativar som de pedidos</button>
-    }
-
-    @if (facade.store()?.isSubscriptionBlocked) {
-      <div class="subscription-banner" role="alert">
-        <div>
-          <strong>Mensalidade bloqueada</strong>
-          <span>Regularize para evitar interrupcoes na operacao da loja.</span>
+            <div
+              class="mobile-brand-mark"
+              [class.has-logo]="!!facade.store()?.logoUrl"
+              [style.background-image]="facade.store()?.logoUrl ? 'url(' + facade.store()?.logoUrl + ')' : null"
+              aria-hidden="true"
+            >
+              @if (!facade.store()?.logoUrl) { H }
+            </div>
+          </a>
+          <span>{{ facade.storeName() }}</span>
         </div>
-        <a routerLink="/app/mensalidade">Regularizar mensalidade</a>
-      </div>
-    }
+      </header>
 
-    @if (!facade.loading() && !facade.realtimeConnected()) {
-      <div class="realtime-fallback" role="status">
-        <strong>Conexao em tempo real instavel</strong>
-        <span>Use Atualizar se um pedido nao aparecer automaticamente.</span>
-      </div>
+      @if (facade.soundNeedsActivation()) {
+        <button type="button" class="activation-banner" (click)="enableSound()">Ativar som de pedidos</button>
+      }
+
+      @if (facade.store()?.isSubscriptionBlocked) {
+        <div class="subscription-banner" role="alert">
+          <div>
+            <strong>Mensalidade bloqueada</strong>
+            <span>Regularize para evitar interrupcoes na operacao da loja.</span>
+          </div>
+          <a routerLink="/app/mensalidade">Regularizar mensalidade</a>
+        </div>
+      }
+
+      @if (!facade.loading() && !facade.realtimeConnected()) {
+        <div class="realtime-fallback" role="status">
+          <strong>Conexao em tempo real instavel</strong>
+          <span>Use Atualizar se um pedido nao aparecer automaticamente.</span>
+        </div>
+      }
     }
 
     <div class="new-order-live" aria-live="polite">

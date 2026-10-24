@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -60,15 +62,38 @@ addIcons({
   styleUrl: './seller-app-shell.component.scss',
 })
 export class SellerAppShellComponent implements OnInit, OnDestroy {
+  private static readonly DETACHED_ORDERS_PATH = '/app/pedidos-separados';
+
   readonly facade = inject(SellerShellFacade);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
+  /**
+   * The dedicated orders window reuses the authenticated seller shell only for
+   * guards and the router outlet; every dashboard chrome element is hidden so
+   * the page fills the whole window.
+   */
+  readonly isDetachedOrdersRoute = signal(
+    SellerAppShellComponent.matchesDetachedOrdersUrl(this.router.url),
+  );
   readonly storeIsOpenNow = computed(() => {
     const store = this.facade.store();
     return store?.isOpenNow ?? store?.isOpen ?? false;
   });
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.isDetachedOrdersRoute.set(
+          SellerAppShellComponent.matchesDetachedOrdersUrl(event.urlAfterRedirects),
+        );
+      });
+  }
 
   readonly menuItems = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline' },
@@ -116,6 +141,11 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
 
   isDashboardRoute(): boolean {
     return this.router.url === '/app/dashboard' || this.router.url.startsWith('/app/dashboard?');
+  }
+
+  private static matchesDetachedOrdersUrl(url: string): boolean {
+    const path = (url.split(/[?#]/)[0] ?? '').replace(/\/+$/, '');
+    return path === SellerAppShellComponent.DETACHED_ORDERS_PATH;
   }
 
   isNavItemActive(item: { route: string }): boolean {

@@ -32,6 +32,11 @@ interface OrderStatusUpdateEvent {
   acceptedAtUtc?: string;
 }
 
+interface BoardColumn {
+  title: string;
+  orders: OrderSummary[];
+}
+
 type BoardAction =
   | { kind: 'advance'; label: string; nextStatus: OrderStatus; css: string }
   | { kind: 'complete'; label: string; css: string };
@@ -65,7 +70,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private orderStatusListener?: (payload: OrderStatusUpdateEvent) => void;
   private acceptedForPrintingListener?: (payload: OrderAcceptedForPrintingEvent) => void;
   private realtimeWasConnected = false;
-  private targetOrderExpansionHandled = false;
   private keydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenChangeHandler?: () => void;
 
@@ -90,7 +94,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly selectedOrderError = signal(false);
   readonly selectedPeriod = signal<DashboardPeriod>('today');
   readonly prefetchingOrderIds = signal<ReadonlySet<string>>(new Set());
-  readonly expandedOrderIds = signal<ReadonlySet<string>>(new Set());
 
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
@@ -134,23 +137,17 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     OrderStatus.Delivered,
   ];
 
-  private readonly acceptedStatuses: readonly OrderStatus[] = [
-    OrderStatus.Preparing,
-    OrderStatus.Ready,
-    OrderStatus.OnDelivery,
-    OrderStatus.Delivered,
-  ];
-
   readonly newOrders = computed(() => this.statusGroups().received);
+
+  readonly boardColumns = computed<BoardColumn[]>(() => [
+    { title: 'Preparando', orders: this.statusGroups().preparing },
+    { title: 'Pronto', orders: this.statusGroups().ready },
+    { title: 'Em entrega', orders: this.statusGroups().onDelivery },
+    { title: 'Concluído', orders: this.statusGroups().delivered },
+  ]);
 
   readonly visibleOrders = computed(() =>
     this.orders().filter((o) => !o.sellerCompletedAtUtc),
-  );
-
-  readonly acceptedOrders = computed(() =>
-    this.sortOrders(
-      this.visibleOrders().filter((order) => this.acceptedStatuses.includes(order.status)),
-    ),
   );
 
   readonly statusGroups = computed(() => {
@@ -180,14 +177,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       const orders = this.orders();
 
       if (!targetOrderId || !orders.some((order) => order.id === targetOrderId)) return;
-
-      if (
-        !this.targetOrderExpansionHandled
-        && this.acceptedOrders().some((order) => order.id === targetOrderId)
-      ) {
-        this.targetOrderExpansionHandled = true;
-        this.expandOrder(targetOrderId);
-      }
 
       this.focusTargetOrder(targetOrderId);
     });
@@ -490,31 +479,6 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
   displayOrderCode(order: Pick<OrderSummary, 'code'>): string {
     return order.code;
-  }
-
-  isOrderExpanded(orderId: string): boolean {
-    return this.expandedOrderIds().has(orderId);
-  }
-
-  toggleOrderExpanded(orderId: string): void {
-    this.expandedOrderIds.update((ids) => {
-      const next = new Set(ids);
-      if (next.has(orderId)) {
-        next.delete(orderId);
-      } else {
-        next.add(orderId);
-      }
-      return next;
-    });
-  }
-
-  private expandOrder(orderId: string): void {
-    if (this.isOrderExpanded(orderId)) return;
-    this.expandedOrderIds.update((ids) => {
-      const next = new Set(ids);
-      next.add(orderId);
-      return next;
-    });
   }
 
   itemOptionEntries(item: OrderItem): { name: string; price?: number }[] {

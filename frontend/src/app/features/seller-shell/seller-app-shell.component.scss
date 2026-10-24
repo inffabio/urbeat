@@ -31,6 +31,18 @@
   grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
 }
 
+/* The detached orders window renders no sidebar, so the routed page owns the
+   full viewport instead of leaving the sidebar column reserved. */
+.seller-shell.is-detached-orders,
+.seller-shell.is-detached-orders.is-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.seller-shell.is-detached-orders .seller-main {
+  width: 100%;
+  height: 100dvh;
+}
+
 .sidebar {
   height: 100dvh;
   padding: 24px 18px;

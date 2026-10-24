@@ -121,51 +121,19 @@
         }
       </section>
 
-      <section class="accepted-orders-panel" aria-labelledby="accepted-orders-title">
-        <h2 id="accepted-orders-title" class="panel-title">Pedidos aceitos</h2>
-        @if (acceptedOrders().length === 0) {
-          <p class="muted">Nenhum pedido aceito no momento.</p>
-        } @else {
-          <div class="accepted-orders-list">
-            @for (order of acceptedOrders(); track order.id) {
-              <article
-                class="order-accordion"
-                [class.is-expanded]="isOrderExpanded(order.id)"
-                [attr.data-accepted-order-id]="order.id"
-              >
-                <button
-                  type="button"
-                  class="order-accordion-header"
-                  [id]="'order-accordion-header-' + order.id"
-                  [attr.aria-expanded]="isOrderExpanded(order.id)"
-                  [attr.aria-controls]="'order-panel-' + order.id"
-                  (click)="toggleOrderExpanded(order.id)"
-                >
-                  <span class="order-accordion-title">
-                    <strong>#{{ displayOrderCode(order) }}</strong>
-                    <span class="order-accordion-customer">{{ order.customerName || 'Cliente não informado' }}</span>
-                  </span>
-                  <i
-                    class="bi order-accordion-chevron"
-                    [class.bi-chevron-down]="!isOrderExpanded(order.id)"
-                    [class.bi-chevron-up]="isOrderExpanded(order.id)"
-                    aria-hidden="true"
-                  ></i>
-                </button>
-                @if (isOrderExpanded(order.id)) {
-                  <div
-                    class="order-accordion-panel"
-                    [id]="'order-panel-' + order.id"
-                    role="region"
-                    [attr.aria-labelledby]="'order-accordion-header-' + order.id"
-                  >
-                    <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
-                  </div>
+      <section class="status-flow">
+        <div class="status-grid">
+          @for (col of boardColumns(); track col.title) {
+            <div class="status-col">
+              <h2 class="col-title">{{ col.title }}</h2>
+              <div class="status-stack">
+                @for (order of col.orders; track order.id) {
+                  <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
                 }
-              </article>
-            }
-          </div>
-        }
+              </div>
+            </div>
+          }
+        </div>
       </section>
     }
   </section>

@@ -26,6 +26,7 @@ function stubLazyRoutes(routeList: Routes): Routes {
 describe('SellerAppShellComponent', () => {
   let fixture: ComponentFixture<SellerAppShellComponent>;
   let facadeMock: any;
+  let authMock: { logout: jest.Mock; getToken: jest.Mock; isLoggedIn: jest.Mock };
 
   beforeEach(async () => {
     facadeMock = {
@@ -44,13 +45,20 @@ describe('SellerAppShellComponent', () => {
       realtimeConnected: jest.fn(() => true),
       printerWarning: jest.fn(() => null),
     };
+    // Seller JWT payload used by authGuard while navigating in the tests.
+    const sellerToken = `header.${btoa(JSON.stringify({ role: 'Seller' }))}.signature`;
+    authMock = {
+      logout: jest.fn(),
+      getToken: jest.fn(() => sellerToken),
+      isLoggedIn: jest.fn(() => true),
+    };
 
     await TestBed.configureTestingModule({
       imports: [SellerAppShellComponent],
       providers: [
         provideRouter(stubLazyRoutes(routes)),
         { provide: SellerShellFacade, useValue: facadeMock },
-        { provide: AuthService, useValue: { logout: jest.fn() } },
+        { provide: AuthService, useValue: authMock },
       ],
     }).compileComponents();
 
@@ -260,5 +268,54 @@ describe('SellerAppShellComponent', () => {
 
     expect(marks).toHaveLength(3);
     expect(Array.from(marks).every((mark: Element) => mark.textContent?.trim() === 'H')).toBe(true);
+  });
+
+  describe('detached orders route', () => {
+    it('keeps the dashboard chrome on regular seller routes', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.seller-shell').classList.contains('is-detached-orders')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.desktop-sidebar')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.mobile-topbar')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
+    });
+
+    it('renders only the routed orders page and its own header on /app/pedidos-separados', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos-separados');
+      fixture.detectChanges();
+
+      const shell = fixture.nativeElement.querySelector('.seller-shell');
+      expect(shell).not.toBeNull();
+      expect(shell.classList.contains('is-detached-orders')).toBe(true);
+      expect(fixture.nativeElement.querySelector('.desktop-sidebar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.mobile-sidebar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.mobile-sidebar-backdrop')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.mobile-topbar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.subscription-banner')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.realtime-fallback')).toBeNull();
+      // The sr-only live region is not visual chrome and keeps announcing new orders from SignalR.
+      expect(fixture.nativeElement.querySelector('.new-order-live')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
+      expect(authMock.logout).not.toHaveBeenCalled();
+    });
+
+    it('restores the dashboard chrome after leaving the detached route', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos-separados');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.desktop-sidebar')).toBeNull();
+
+      await router.navigateByUrl('/app/dashboard');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.seller-shell').classList.contains('is-detached-orders')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.desktop-sidebar')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.mobile-topbar')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
+    });
   });
 });
