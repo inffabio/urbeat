@@ -1,6 +1,8 @@
-﻿using Urbeat.Infrastructure.Outbox;
+﻿using Urbeat.Application.Interfaces;
+using Urbeat.Infrastructure.Outbox;
 using Urbeat.WebApi.Health;
 using Urbeat.WebApi.Infrastructure;
+using Urbeat.WebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,10 @@ public static class WebApiServiceCollectionExtensions
         IWebHostEnvironment environment)
     {
         var signalR = services.AddSignalR();
+
+        // The typed publisher lives in WebApi because it owns the hub contexts; Infrastructure only
+        // depends on the transport-free ILiveNotificationPublisher abstraction.
+        services.AddScoped<ILiveNotificationPublisher, SignalRLiveNotificationPublisher>();
 
         if (SignalRRedisBackplane.ShouldEnable(configuration, environment))
         {

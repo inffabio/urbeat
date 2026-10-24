@@ -35,8 +35,8 @@ public interface INotificationService
     /// <summary>
     /// Pushes a live SignalR notification. Returns <c>false</c> only when a real delivery was
     /// attempted and failed; callers (outbox handlers) use that signal to schedule a retry instead
-    /// of silently dropping the live event. A missing hub context returns <c>true</c> because there
-    /// is no delivery channel to fail (durable notifications remain the fallback).
+    /// of silently dropping the live event. A missing live publisher returns <c>true</c> because
+    /// there is no delivery channel to fail (durable notifications remain the fallback).
     /// </summary>
     Task<bool> PushSellerNotificationAsync(
         Guid sellerUserId,

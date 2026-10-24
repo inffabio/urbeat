@@ -9,14 +9,12 @@ namespace Urbeat.Infrastructure.Services;
 public sealed partial class NotificationService : INotificationService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly dynamic? _sellerHub;
-    private readonly dynamic? _customerHub;
+    private readonly ILiveNotificationPublisher? _livePublisher;
 
-    public NotificationService(ApplicationDbContext dbContext, object? sellerHub = null, object? customerHub = null)
+    public NotificationService(ApplicationDbContext dbContext, ILiveNotificationPublisher? livePublisher = null)
     {
         _dbContext = dbContext;
-        _sellerHub = sellerHub;
-        _customerHub = customerHub;
+        _livePublisher = livePublisher;
     }
 
     public async Task<CustomerNotificationsResponseDto> ListCustomerNotificationsAsync(

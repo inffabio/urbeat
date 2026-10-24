@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
@@ -26,8 +27,8 @@ public sealed class NotificationServiceTests : IDisposable
     [Fact]
     public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldSendOrderStatusUpdatedToCustomerUser()
     {
-        var hub = new FakeCustomerHubContext();
-        var sut = new NotificationService(_db, customerHub: hub);
+        var publisher = new RecordingLiveNotificationPublisher();
+        var sut = new NotificationService(_db, publisher);
 
         var customerUserId = Guid.NewGuid();
         var orderId = Guid.NewGuid();
@@ -42,22 +43,22 @@ public sealed class NotificationServiceTests : IDisposable
             status,
             changedAtUtc);
 
-        var send = hub.Clients.Sends.Should().ContainSingle().Subject;
-        send.UserId.Should().Be(customerUserId.ToString());
+        var send = publisher.Sends.Should().ContainSingle().Subject;
+        send.Channel.Should().Be(LiveChannel.Customer);
+        send.UserId.Should().Be(customerUserId);
         send.Method.Should().Be("OrderStatusUpdated");
 
-        var payload = send.Args.Should().ContainSingle().Subject;
-        ReadPayloadProperty(payload, "orderId").Should().Be(orderId);
-        ReadPayloadProperty(payload, "orderCode").Should().Be(orderCode);
-        ReadPayloadProperty(payload, "status").Should().Be(status);
-        ReadPayloadProperty(payload, "changedAtUtc").Should().Be(changedAtUtc);
+        ReadPayloadProperty(send.Payload, "orderId").Should().Be(orderId);
+        ReadPayloadProperty(send.Payload, "orderCode").Should().Be(orderCode);
+        ReadPayloadProperty(send.Payload, "status").Should().Be(status);
+        ReadPayloadProperty(send.Payload, "changedAtUtc").Should().Be(changedAtUtc);
     }
 
     [Fact]
     public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldNotPersistDurableNotification()
     {
-        var hub = new FakeCustomerHubContext();
-        var sut = new NotificationService(_db, customerHub: hub);
+        var publisher = new RecordingLiveNotificationPublisher();
+        var sut = new NotificationService(_db, publisher);
 
         await sut.NotifyCustomerOrderStatusUpdatedAsync(
             Guid.NewGuid(),
@@ -70,7 +71,96 @@ public sealed class NotificationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldReturnTrue_WhenCustomerHubIsNull()
+    public async Task PushSellerNotificationAsync_ShouldSendReceiveSellerNotificationToSellerUser()
+    {
+        var publisher = new RecordingLiveNotificationPublisher();
+        var sut = new NotificationService(_db, publisher);
+
+        var sellerUserId = Guid.NewGuid();
+        var notification = new Notification
+        {
+            RecipientUserId = sellerUserId,
+            OrderId = Guid.NewGuid(),
+            Type = NotificationType.NewOrder,
+            Title = "Novo pedido recebido",
+            Message = "Novo pedido URB-123456."
+        };
+
+        var delivered = await sut.PushSellerNotificationAsync(sellerUserId, notification);
+
+        delivered.Should().BeTrue();
+        var send = publisher.Sends.Should().ContainSingle().Subject;
+        send.Channel.Should().Be(LiveChannel.Seller);
+        send.UserId.Should().Be(sellerUserId);
+        send.Method.Should().Be("ReceiveSellerNotification");
+        ReadPayloadProperty(send.Payload, "id").Should().Be(notification.Id);
+        ReadPayloadProperty(send.Payload, "orderId").Should().Be(notification.OrderId);
+        ReadPayloadProperty(send.Payload, "type").Should().Be(NotificationType.NewOrder);
+        ReadPayloadProperty(send.Payload, "title").Should().Be(notification.Title);
+        ReadPayloadProperty(send.Payload, "message").Should().Be(notification.Message);
+        ReadPayloadProperty(send.Payload, "createdAtUtc").Should().Be(notification.CreatedAtUtc);
+    }
+
+    [Fact]
+    public async Task PushCustomerNotificationAsync_ShouldSendReceiveCustomerNotificationToCustomerUser()
+    {
+        var publisher = new RecordingLiveNotificationPublisher();
+        var sut = new NotificationService(_db, publisher);
+
+        var customerUserId = Guid.NewGuid();
+        var notification = new Notification
+        {
+            RecipientUserId = customerUserId,
+            OrderId = Guid.NewGuid(),
+            Type = NotificationType.OrderReady,
+            Title = "Pedido pronto",
+            Message = "Seu pedido esta pronto."
+        };
+
+        var delivered = await sut.PushCustomerNotificationAsync(customerUserId, notification);
+
+        delivered.Should().BeTrue();
+        var send = publisher.Sends.Should().ContainSingle().Subject;
+        send.Channel.Should().Be(LiveChannel.Customer);
+        send.UserId.Should().Be(customerUserId);
+        send.Method.Should().Be("ReceiveCustomerNotification");
+        ReadPayloadProperty(send.Payload, "id").Should().Be(notification.Id);
+        ReadPayloadProperty(send.Payload, "type").Should().Be(NotificationType.OrderReady);
+    }
+
+    [Fact]
+    public async Task NotifySellerOrderAcceptedForPrintingAsync_ShouldSendOrderAcceptedForPrintingToSellerUser()
+    {
+        var publisher = new RecordingLiveNotificationPublisher();
+        var sut = new NotificationService(_db, publisher);
+
+        var sellerUserId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+        var storeId = Guid.NewGuid();
+        var acceptedAtUtc = new DateTime(2026, 10, 19, 12, 0, 0, DateTimeKind.Utc);
+
+        var delivered = await sut.NotifySellerOrderAcceptedForPrintingAsync(
+            sellerUserId,
+            orderId,
+            storeId,
+            "URB-ACCEPT",
+            2,
+            acceptedAtUtc);
+
+        delivered.Should().BeTrue();
+        var send = publisher.Sends.Should().ContainSingle().Subject;
+        send.Channel.Should().Be(LiveChannel.Seller);
+        send.UserId.Should().Be(sellerUserId);
+        send.Method.Should().Be("OrderAcceptedForPrinting");
+        ReadPayloadProperty(send.Payload, "orderId").Should().Be(orderId);
+        ReadPayloadProperty(send.Payload, "storeId").Should().Be(storeId);
+        ReadPayloadProperty(send.Payload, "orderCode").Should().Be("URB-ACCEPT");
+        ReadPayloadProperty(send.Payload, "sequence").Should().Be(2);
+        ReadPayloadProperty(send.Payload, "acceptedAtUtc").Should().Be(acceptedAtUtc);
+    }
+
+    [Fact]
+    public async Task LivePush_ShouldReturnTrue_WhenNoLivePublisherIsConfigured()
     {
         var sut = new NotificationService(_db);
 
@@ -81,15 +171,15 @@ public sealed class NotificationServiceTests : IDisposable
             OrderStatus.Preparing,
             DateTime.UtcNow);
 
-        // No hub context means no live channel; durable notifications remain the fallback, so this
-        // is not treated as a delivery failure.
+        // No live channel means no delivery to fail; durable notifications remain the fallback.
         delivered.Should().BeTrue();
     }
 
     [Fact]
-    public async Task NotifyCustomerOrderStatusUpdatedAsync_ShouldReturnFalse_WhenHubSendFails()
+    public async Task LivePush_ShouldReturnFalse_WhenPublisherReportsFailure()
     {
-        var sut = new NotificationService(_db, customerHub: new ThrowingCustomerHubContext());
+        var publisher = new RecordingLiveNotificationPublisher { Result = false };
+        var sut = new NotificationService(_db, publisher);
 
         var delivered = await sut.NotifyCustomerOrderStatusUpdatedAsync(
             Guid.NewGuid(),
@@ -98,7 +188,7 @@ public sealed class NotificationServiceTests : IDisposable
             OrderStatus.Preparing,
             DateTime.UtcNow);
 
-        // A real SignalR send failure must surface (false) so the outbox handler can retry.
+        // A real transport failure must surface (false) so the outbox handler can retry.
         delivered.Should().BeFalse();
     }
 
@@ -107,53 +197,38 @@ public sealed class NotificationServiceTests : IDisposable
         return payload.GetType().GetProperty(name)?.GetValue(payload);
     }
 
-    public sealed class FakeCustomerHubContext
+    public enum LiveChannel
     {
-        public FakeHubClients Clients { get; } = new();
-
-        public sealed class FakeHubClients
-        {
-            public List<RecordedSend> Sends { get; } = new();
-
-            public FakeClientProxy User(string userId) => new(userId, Sends);
-        }
-
-        public sealed class FakeClientProxy
-        {
-            private readonly string _userId;
-            private readonly List<RecordedSend> _sends;
-
-            public FakeClientProxy(string userId, List<RecordedSend> sends)
-            {
-                _userId = userId;
-                _sends = sends;
-            }
-
-            public Task SendCoreAsync(string method, object[] args, CancellationToken cancellationToken)
-            {
-                _sends.Add(new RecordedSend(_userId, method, args));
-                return Task.CompletedTask;
-            }
-        }
+        Seller,
+        Customer
     }
 
-    public sealed class ThrowingCustomerHubContext
-    {
-        public ThrowingHubClients Clients { get; } = new();
+    public sealed record RecordedPublish(LiveChannel Channel, Guid UserId, string Method, object Payload);
 
-        public sealed class ThrowingHubClients
+    private sealed class RecordingLiveNotificationPublisher : ILiveNotificationPublisher
+    {
+        public List<RecordedPublish> Sends { get; } = new();
+
+        public bool Result { get; init; } = true;
+
+        public Task<bool> PublishSellerAsync(
+            Guid userId,
+            string method,
+            object payload,
+            CancellationToken cancellationToken = default)
         {
-            public ThrowingClientProxy User(string userId) => new();
+            Sends.Add(new RecordedPublish(LiveChannel.Seller, userId, method, payload));
+            return Task.FromResult(Result);
         }
 
-        public sealed class ThrowingClientProxy
+        public Task<bool> PublishCustomerAsync(
+            Guid userId,
+            string method,
+            object payload,
+            CancellationToken cancellationToken = default)
         {
-            public Task SendCoreAsync(string method, object[] args, CancellationToken cancellationToken)
-            {
-                throw new InvalidOperationException("SignalR unavailable");
-            }
+            Sends.Add(new RecordedPublish(LiveChannel.Customer, userId, method, payload));
+            return Task.FromResult(Result);
         }
     }
-
-    public sealed record RecordedSend(string UserId, string Method, object[] Args);
 }

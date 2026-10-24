@@ -98,6 +98,86 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
+    public async Task CreateOrder_ShouldEmitSellerAndCustomerNotifications_ThroughOutbox()
+    {
+        var sellerRecording = GetSellerRecordingHub();
+        var customerRecording = GetCustomerRecordingHub();
+        sellerRecording.Clear();
+        customerRecording.Clear();
+
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/status", new UpdateStoreStatusRequestDto { IsOpen = true });
+        await sellerClient.PatchAsJsonAsync($"/api/stores/{storeId}/delivery-config", new UpdateStoreDeliveryConfigRequestDto
+        {
+            DeliveryFee = 4m,
+            MinimumOrderValue = 10m,
+            DeliveryAreas = new[] { new StoreDeliveryAreaDto { Neighborhood = "Centro", DeliveryFee = 4m } },
+        });
+
+        Guid sellerUserId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            sellerUserId = (await db.Stores.FindAsync(storeId))!.OwnerUserId;
+        }
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Pizza Tempo Real", 20m);
+
+        var addressResponse = await customerClient.PostAsJsonAsync("/api/customer/addresses", new UpsertCustomerAddressRequestDto
+        {
+            Cep = "01001000",
+            Number = "20",
+            Street = "Rua Tempo Real",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP",
+            IsPrimary = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<CustomerAddressResponseDto>();
+
+        var createOrderResponse = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = address!.Id,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
+        });
+        createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        var orderId = created!.OrderId;
+
+        var orderDetails = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{orderId}");
+
+        await _factory.DispatchOutboxAsync();
+
+        var sellerMessage = sellerRecording.Messages
+            .Where(x => x.Method == "ReceiveSellerNotification")
+            .Should().ContainSingle().Subject;
+        sellerMessage.Target.Should().Be($"user:{sellerUserId}");
+        sellerMessage.Args.Should().ContainSingle();
+        ReadPayloadProperty(sellerMessage.Args.Single(), "orderId").Should().Be(orderId);
+        ReadPayloadProperty(sellerMessage.Args.Single(), "type").Should().Be(NotificationType.NewOrder);
+        ReadPayloadProperty(sellerMessage.Args.Single(), "title").Should().Be("Novo pedido recebido");
+        ReadPayloadProperty(sellerMessage.Args.Single(), "id").Should().NotBeNull();
+        ReadPayloadProperty(sellerMessage.Args.Single(), "createdAtUtc").Should().BeOfType<DateTime>();
+
+        var customerMessage = customerRecording.Messages
+            .Where(x => x.Method == "ReceiveCustomerNotification")
+            .Should().ContainSingle().Subject;
+        customerMessage.Target.Should().Be($"user:{orderDetails!.CustomerUserId}");
+        ReadPayloadProperty(customerMessage.Args.Single(), "orderId").Should().Be(orderId);
+        ReadPayloadProperty(customerMessage.Args.Single(), "type").Should().Be(NotificationType.OrderReceived);
+    }
+
+    [Fact]
     public async Task UpdateOrderStatus_ShouldNotEmitOrderStatusUpdated_OnInvalidTransition()
     {
         var recording = GetCustomerRecordingHub();

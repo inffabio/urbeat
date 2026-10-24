@@ -104,6 +104,22 @@ public static class InfrastructureServiceCollectionExtensions
                     IssuerSigningKey = signingKey,
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Browser SignalR clients cannot set an Authorization header on the
+                        // WebSocket handshake and send the token on the query string instead. The
+                        // fallback is scoped to the hub path inside the resolver.
+                        var signalRToken = SignalRAccessTokenResolver.Resolve(context.Request);
+                        if (signalRToken is not null)
+                        {
+                            context.Token = signalRToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddAuthorization(options =>
@@ -124,25 +140,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IStoreBusinessHoursService, StoreBusinessHoursService>();
         services.AddScoped<Urbeat.Application.Interfaces.Publish.IStorePublishService, Urbeat.Application.Services.Publish.StorePublishService>();
         services.AddScoped<ICustomerAddressService, CustomerAddressService>();
-        services.AddScoped<INotificationService>(provider =>
-        {
-            var dbContext = provider.GetRequiredService<ApplicationDbContext>();
-            var sellerHubType = Type.GetType("Urbeat.WebApi.Hubs.SellerNotificationHub, Urbeat.WebApi");
-            var customerHubType = Type.GetType("Urbeat.WebApi.Hubs.CustomerNotificationHub, Urbeat.WebApi");
-            object? sellerHub = null;
-            object? customerHub = null;
-            if (sellerHubType != null)
-            {
-                var sellerHubContextType = typeof(Microsoft.AspNetCore.SignalR.IHubContext<>).MakeGenericType(sellerHubType);
-                sellerHub = provider.GetService(sellerHubContextType);
-            }
-            if (customerHubType != null)
-            {
-                var customerHubContextType = typeof(Microsoft.AspNetCore.SignalR.IHubContext<>).MakeGenericType(customerHubType);
-                customerHub = provider.GetService(customerHubContextType);
-            }
-            return (INotificationService)Activator.CreateInstance(typeof(NotificationService), dbContext, sellerHub, customerHub)!;
-        });
+        services.AddScoped<INotificationService>(provider => new NotificationService(
+            provider.GetRequiredService<ApplicationDbContext>(),
+            provider.GetService<ILiveNotificationPublisher>()));
         services.AddScoped<ISellerSubscriptionStatusService, SellerSubscriptionStatusService>();
         services.AddScoped<ISubscriptionNotificationService, SubscriptionNotificationService>();
         services.AddScoped<ICheckoutService, CheckoutService>();

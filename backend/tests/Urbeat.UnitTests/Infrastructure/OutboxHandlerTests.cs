@@ -251,6 +251,156 @@ public sealed class OutboxHandlerTests
     }
 
     [Fact]
+    public async Task NotificationHandler_ShouldPushSellerNewOrder_OnOrderCreated()
+    {
+        await using var db = CreateDbContext();
+        var customerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+
+        db.Notifications.AddRange(
+            new Notification { RecipientUserId = sellerUserId, OrderId = orderId, Type = NotificationType.NewOrder, Title = "Novo pedido", Message = "novo" },
+            new Notification { RecipientUserId = customerUserId, OrderId = orderId, Type = NotificationType.OrderReceived, Title = "Recebido", Message = "ok" });
+        await db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.PushSellerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        notificationService
+            .Setup(x => x.PushCustomerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var handler = new NotificationHandler(notificationService.Object, db);
+
+        var message = MessageOf(OutboxEventTypes.OrderCreated, new OrderCreatedEvent
+        {
+            OrderId = orderId,
+            StoreId = Guid.NewGuid(),
+            CustomerUserId = customerUserId,
+            SellerUserId = sellerUserId,
+            Code = "URB-123456",
+            Status = OrderStatus.Received
+        });
+
+        var result = await handler.HandleAsync(message);
+
+        result.Success.Should().BeTrue();
+        notificationService.Verify(
+            x => x.PushSellerNotificationAsync(sellerUserId, It.Is<Notification>(n => n.OrderId == orderId && n.Type == NotificationType.NewOrder), It.IsAny<CancellationToken>()),
+            Times.Once);
+        notificationService.Verify(
+            x => x.PushCustomerNotificationAsync(customerUserId, It.Is<Notification>(n => n.OrderId == orderId && n.Type == NotificationType.OrderReceived), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task NotificationHandler_ShouldPushCustomerStatusUpdate_OnOrderStatusChanged()
+    {
+        await using var db = CreateDbContext();
+        var customerUserId = Guid.NewGuid();
+        var sellerUserId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+
+        db.Notifications.Add(
+            new Notification { RecipientUserId = customerUserId, OrderId = orderId, Type = NotificationType.OrderPreparing, Title = "Em preparo", Message = "preparando" });
+        await db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.PushCustomerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var handler = new NotificationHandler(notificationService.Object, db);
+
+        var message = MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
+        {
+            OrderId = orderId,
+            CustomerUserId = customerUserId,
+            SellerUserId = sellerUserId,
+            Code = "URB-123456",
+            PreviousStatus = OrderStatus.Received,
+            NewStatus = OrderStatus.Preparing,
+            ChangedAtUtc = new DateTime(2026, 10, 24, 12, 0, 0, DateTimeKind.Utc)
+        });
+
+        var result = await handler.HandleAsync(message);
+
+        result.Success.Should().BeTrue();
+        notificationService.Verify(
+            x => x.PushCustomerNotificationAsync(customerUserId, It.Is<Notification>(n => n.OrderId == orderId && n.Type == NotificationType.OrderPreparing), It.IsAny<CancellationToken>()),
+            Times.Once);
+        notificationService.Verify(
+            x => x.PushSellerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task NotificationHandler_ShouldRetry_WhenLivePushFails()
+    {
+        await using var db = CreateDbContext();
+        var sellerUserId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+
+        db.Notifications.Add(
+            new Notification { RecipientUserId = sellerUserId, OrderId = orderId, Type = NotificationType.NewOrder, Title = "Novo pedido", Message = "novo" });
+        await db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.PushSellerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var handler = new NotificationHandler(notificationService.Object, db);
+
+        var result = await handler.HandleAsync(MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
+        {
+            OrderId = orderId,
+            SellerUserId = sellerUserId,
+            NewStatus = OrderStatus.Received
+        }));
+
+        result.Success.Should().BeFalse();
+        result.Retryable.Should().BeTrue();
+        result.Error.Should().Contain("SignalR");
+    }
+
+    [Fact]
+    public async Task NotificationHandler_ShouldNotDuplicateNotificationRows_WhenTheSameEventIsDeliveredTwice()
+    {
+        await using var db = CreateDbContext();
+        var sellerUserId = Guid.NewGuid();
+        var orderId = Guid.NewGuid();
+
+        db.Notifications.Add(
+            new Notification { RecipientUserId = sellerUserId, OrderId = orderId, Type = NotificationType.NewOrder, Title = "Novo pedido", Message = "novo" });
+        await db.SaveChangesAsync();
+
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.PushSellerNotificationAsync(It.IsAny<Guid>(), It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var handler = new NotificationHandler(notificationService.Object, db);
+        var message = MessageOf(OutboxEventTypes.OrderCreated, new OrderCreatedEvent
+        {
+            OrderId = orderId,
+            SellerUserId = sellerUserId,
+            Status = OrderStatus.Received
+        });
+
+        var first = await handler.HandleAsync(message);
+        var second = await handler.HandleAsync(message);
+
+        first.Success.Should().BeTrue();
+        second.Success.Should().BeTrue();
+        (await db.Notifications.CountAsync()).Should().Be(1);
+        notificationService.Verify(
+            x => x.PushSellerNotificationAsync(sellerUserId, It.Is<Notification>(n => n.OrderId == orderId && n.Type == NotificationType.NewOrder), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
     public async Task EmailHandler_ShouldSendEmail_ForEmailChannel()
     {
         var emailService = new Mock<IEmailService>();
