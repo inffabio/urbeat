@@ -32,8 +32,11 @@ interface OrderStatusUpdateEvent {
   acceptedAtUtc?: string;
 }
 
+type BoardColumnTone = 'preparing' | 'ready' | 'on-delivery' | 'delivered';
+
 interface BoardColumn {
   title: string;
+  tone: BoardColumnTone;
   orders: OrderSummary[];
 }
 
@@ -140,10 +143,10 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly newOrders = computed(() => this.statusGroups().received);
 
   readonly boardColumns = computed<BoardColumn[]>(() => [
-    { title: 'Preparando', orders: this.statusGroups().preparing },
-    { title: 'Pronto', orders: this.statusGroups().ready },
-    { title: 'Em entrega', orders: this.statusGroups().onDelivery },
-    { title: 'Concluído', orders: this.statusGroups().delivered },
+    { title: 'Preparando', tone: 'preparing', orders: this.statusGroups().preparing },
+    { title: 'Pronto', tone: 'ready', orders: this.statusGroups().ready },
+    { title: 'Em entrega', tone: 'on-delivery', orders: this.statusGroups().onDelivery },
+    { title: 'Concluído', tone: 'delivered', orders: this.statusGroups().delivered },
   ]);
 
   readonly visibleOrders = computed(() =>

@@ -250,6 +250,30 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.order-card[data-order-id="done"] .board-action.action-green')).not.toBeNull();
   });
 
+  it('tags each status column with its board tone and keeps a readable title', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.boardColumns().map((column) => column.tone))
+      .toEqual(['preparing', 'ready', 'on-delivery', 'delivered']);
+
+    const columns = Array.from(
+      fixture.nativeElement.querySelectorAll<HTMLElement>('.status-grid .status-col'),
+    );
+
+    expect(columns).toHaveLength(4);
+    expect(columns.map((column) => column.getAttribute('data-status-tone')))
+      .toEqual(['preparing', 'ready', 'on-delivery', 'delivered']);
+    expect(columns.map((column) => column.querySelector('.col-title')?.textContent?.trim()))
+      .toEqual(['Preparando', 'Pronto', 'Em entrega', 'Concluído']);
+
+    columns.forEach((column) => {
+      const title = column.querySelector<HTMLElement>('.col-title');
+      expect(title).not.toBeNull();
+      expect(title!.textContent?.trim().length).toBeGreaterThan(0);
+    });
+  });
+
   it('does not use an accordion as the accepted-orders layout', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {

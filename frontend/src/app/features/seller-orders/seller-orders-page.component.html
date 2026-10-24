@@ -124,7 +124,7 @@
       <section class="status-flow">
         <div class="status-grid">
           @for (col of boardColumns(); track col.title) {
-            <div class="status-col">
+            <div class="status-col" [attr.data-status-tone]="col.tone">
               <h2 class="col-title">{{ col.title }}</h2>
               <div class="status-stack">
                 @for (order of col.orders; track order.id) {

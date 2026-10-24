@@ -7,6 +7,18 @@
   --orders-purple: #9570dc;
   --orders-green: #d8efd2;
   --orders-green-text: #158653;
+  --orders-orange-tint: #fff3e0;
+  --orders-orange-border: #f8d9a8;
+  --orders-orange-ink: #8a4a00;
+  --orders-blue-tint: #eaf2ff;
+  --orders-blue-border: #c9dcf7;
+  --orders-blue-ink: #17458c;
+  --orders-purple-tint: #f2ecff;
+  --orders-purple-border: #d9cbf4;
+  --orders-purple-ink: #5b3ba8;
+  --orders-green-tint: #edf8e9;
+  --orders-green-border: #cfe8cc;
+  --orders-green-ink: #0f6b42;
   --orders-text: #0f172a;
   --orders-muted: #687089;
   --orders-line: #e9edf5;
@@ -387,15 +399,54 @@
 }
 
 .status-col {
+  --col-tint: #f7f8fb;
+  --col-border: var(--orders-line);
+  --col-accent: var(--orders-muted);
+  --col-ink: var(--orders-text);
+
   min-width: 0;
+  padding: 14px 12px 16px;
+  border: 1px solid var(--col-border);
+  border-top: 4px solid var(--col-accent);
+  border-radius: 14px;
+  background: var(--col-tint);
+
+  &[data-status-tone='preparing'] {
+    --col-tint: var(--orders-orange-tint);
+    --col-border: var(--orders-orange-border);
+    --col-accent: var(--orders-orange);
+    --col-ink: var(--orders-orange-ink);
+  }
+
+  &[data-status-tone='ready'] {
+    --col-tint: var(--orders-blue-tint);
+    --col-border: var(--orders-blue-border);
+    --col-accent: var(--orders-blue);
+    --col-ink: var(--orders-blue-ink);
+  }
+
+  &[data-status-tone='on-delivery'] {
+    --col-tint: var(--orders-purple-tint);
+    --col-border: var(--orders-purple-border);
+    --col-accent: var(--orders-purple);
+    --col-ink: var(--orders-purple-ink);
+  }
+
+  &[data-status-tone='delivered'] {
+    --col-tint: var(--orders-green-tint);
+    --col-border: var(--orders-green-border);
+    --col-accent: var(--orders-green-text);
+    --col-ink: var(--orders-green-ink);
+  }
 }
 
 .col-title {
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   text-align: center;
   font-size: 14px;
-  font-weight: 500;
-  color: #111;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--col-ink, var(--orders-text));
 }
 
 .status-stack {
