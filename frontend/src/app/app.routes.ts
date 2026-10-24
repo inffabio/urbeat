@@ -161,6 +161,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'pedidos-separados',
+        loadComponent: () =>
+          import('./features/seller-orders/seller-orders-page.component').then(
+            (m) => m.SellerOrdersPageComponent,
+          ),
+        data: { detachedOrdersWindow: true },
+      },
+      {
         path: 'clientes',
         loadComponent: () =>
           import('./features/seller-customers/seller-customers-page.component').then(

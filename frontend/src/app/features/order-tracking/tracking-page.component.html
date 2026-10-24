@@ -201,12 +201,10 @@
         <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
       </button>
 
-      <button type="button" class="primary-btn" (click)="refresh()">
-        <ion-icon name="bicycle-outline" aria-hidden="true"></ion-icon>
-        ACOMPANHAR PEDIDO
+      <button type="button" class="primary-btn" (click)="goToMenu()">
+        <ion-icon name="storefront-outline" aria-hidden="true"></ion-icon>
+        VOLTAR AO CARDÁPIO
       </button>
-
-      <app-back-to-menu-link class="link-orange" (navigateBack)="goToMenu()" />
     </section>
 
     @if (canConfirmDelivery()) {
@@ -221,6 +219,27 @@
         {{ confirmLoading() ? 'Confirmando...' : 'Confirmar entrega' }}
       </button>
     }
+  }
+
+  @if (deliveredCelebrationOpen()) {
+    <div class="delivered-celebration-overlay" role="presentation">
+      <section
+        class="delivered-celebration-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delivered-celebration-title"
+        aria-describedby="delivered-celebration-description"
+      >
+        <span class="celebration-icon" aria-hidden="true">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </span>
+        <h2 id="delivered-celebration-title">Bom apetite!</h2>
+        <p id="delivered-celebration-description">Obrigado pelo pedido. Quando quiser, volte ao cardápio.</p>
+        <button #celebrationAction type="button" class="celebration-action" (click)="finishDeliveredOrder()">
+          Voltar ao cardápio
+        </button>
+      </section>
+    </div>
   }
 
   @if (loading() && !order()) {

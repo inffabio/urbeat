@@ -7,6 +7,7 @@ import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
+import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
@@ -54,7 +55,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly shell = inject(SellerShellFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly signalR = inject(SignalRService);
+  private readonly ordersWindow = inject(SellerOrdersWindowService);
   private lastPulseId: string | null = null;
+  private wasDetachedHost = false;
   private loadSequence = 0;
   private detailsSequence = 0;
   private readonly detailsVersion = new Map<string, number>();
@@ -74,6 +77,8 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly automaticPrintStatus = this.automaticPrint.statusMessage;
   readonly automaticPrintTone = this.automaticPrint.statusTone;
   readonly isFullscreen = signal(false);
+  readonly isDetachedRoute = this.ordersWindow.isDetachedRoute;
+  readonly isDetachedHost = this.ordersWindow.isDetachedHost;
   readonly OrderStatus = OrderStatus;
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -161,6 +166,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       const pulse = this.shell.newOrderPulse();
       if (!pulse || pulse.id === this.lastPulseId) return;
       this.lastPulseId = pulse.id;
+      // Consume the pulse without loading while the detached window owns the
+      // live board; the restore effect performs one authoritative reload.
+      if (this.ordersWindow.isDetachedHost()) return;
       this.load({ silent: true });
     });
 
@@ -180,17 +188,34 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
     effect(() => {
       const connected = this.signalR.isSellerConnected();
-      if (connected && !this.realtimeWasConnected) {
+      if (connected && !this.realtimeWasConnected && !this.ordersWindow.isDetachedHost()) {
         // Reconcile after a reconnect: events are at-least-once and may have been missed while
         // offline. The print queue deduplicates by the acceptance identity.
         this.load({ silent: true });
       }
       this.realtimeWasConnected = connected;
     });
+
+    effect(() => {
+      // Fixing/closing the secondary window restores the host board with one
+      // authoritative load, recovering orders received while detached.
+      const detachedHost = this.ordersWindow.isDetachedHost();
+      if (this.wasDetachedHost && !detachedHost && !this.ordersWindow.isDetachedRoute()) {
+        this.load({ silent: true });
+      }
+      this.wasDetachedHost = detachedHost;
+    });
   }
 
   ngOnInit(): void {
-    this.load();
+    if (this.route.snapshot.data?.['detachedOrdersWindow'] === true) {
+      this.ordersWindow.markDetachedRoute();
+    }
+    // A dashboard opened while the detached window owns the board does not
+    // load orders until it is restored; the restore effect loads them then.
+    if (!this.ordersWindow.isDetachedHost()) {
+      this.load();
+    }
     this.registerOrderStatusListener();
     this.registerFullscreenListeners();
   }
@@ -211,6 +236,24 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     if (this.fullscreenChangeHandler) {
       document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
       this.fullscreenChangeHandler = undefined;
+    }
+    if (this.ordersWindow.isDetachedRoute()) {
+      // A route change destroys this view without the seller clicking
+      // "Fixar ao Dashboard": tell the host to restore instead of leaving its
+      // board grayed out. The shared service instance and the window survive.
+      this.ordersWindow.releaseDetachedRoute();
+    }
+  }
+
+  toggleOrdersWindow(): void {
+    if (this.ordersWindow.isDetachedRoute()) {
+      this.ordersWindow.closeDetachedWindow();
+      return;
+    }
+
+    const opened = this.ordersWindow.openDetachedWindow();
+    if (!opened) {
+      void this.toast.showError('Não foi possível abrir a janela separada. Verifique o bloqueador de pop-ups.');
     }
   }
 
@@ -715,6 +758,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private registerOrderStatusListener(): void {
     this.orderStatusListener = (payload: OrderStatusUpdateEvent) => {
       if (!payload?.orderId) return;
+      // The detached window owns the live board; the host reloads once on
+      // restore instead of processing status events against a hidden board.
+      if (this.ordersWindow.isDetachedHost()) return;
       if (!this.orders().some((order) => order.id === payload.orderId)) return;
       this.load({ silent: true });
     };

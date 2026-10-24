@@ -509,6 +509,36 @@
       color: #fff !important;
     }
   }
+
+  &.orders-window-toggle {
+    min-height: 44px;
+    gap: 6px;
+  }
+}
+
+.orders-board.is-detached-host {
+  min-height: 430px;
+  margin-bottom: 36px;
+  padding: 28px 36px;
+  border: 1px dashed var(--app-border-medium, #d6d0cc);
+  border-radius: 18px;
+  background: #f1f2f4;
+  color: #6b7280;
+  filter: grayscale(1);
+}
+
+.detached-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+
+  .bi {
+    font-size: 18px;
+  }
 }
 
 .order-details-overlay {

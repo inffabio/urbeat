@@ -127,6 +127,19 @@ describe('app routes', () => {
     expect(ordersRoute?.loadComponent?.toString()).toContain('seller-orders-page.component');
   });
 
+  it('declares the authenticated detached orders route reusing the seller orders page', () => {
+    const appRoute = routes.find((route) => route.path === 'app');
+    const ordersRoute = appRoute?.children?.find((child) => child.path === 'pedidos');
+    const detachedRoute = appRoute?.children?.find((child) => child.path === 'pedidos-separados');
+
+    expect(appRoute?.canActivate).toEqual([authGuard]);
+    expect(appRoute?.canActivateChild).toEqual([authChildGuard]);
+    expect(detachedRoute).toBeDefined();
+    expect(detachedRoute?.data?.['detachedOrdersWindow']).toBe(true);
+    expect(detachedRoute?.loadComponent?.toString()).toContain('seller-orders-page.component');
+    expect(detachedRoute?.loadComponent?.toString()).toEqual(ordersRoute?.loadComponent?.toString());
+  });
+
   it('routes /:storePath/pedidos to the customer orders list before the dynamic order route', () => {
     const storeRoute = routes.find((route) => route.path === ':storePath');
     const children = storeRoute?.children ?? [];

@@ -1,5 +1,5 @@
 <section class="orders-page">
-  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">{{ activePeriodTitle() }}</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions">@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">{{ activePeriodTitle() }}</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><button type="button" class="btn-soft orders-window-toggle" (click)="toggleOrdersWindow()"><i class="bi" [class.bi-pin-angle]="isDetachedRoute()" [class.bi-window-stack]="!isDetachedRoute()"></i> {{ isDetachedRoute() ? 'Fixar ao Dashboard' : 'Separar tela pedidos' }}</button>@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
   <div class="notice"><i class="bi bi-check-circle"></i><span>Pedidos recebidos em tempo real.</span></div>
 
   @if (automaticPrintStatus(); as printStatus) {
@@ -90,42 +90,53 @@
     </article>
   </ng-template>
 
-  @if (loading()) {
-    <p class="muted">Carregando pedidos...</p>
-  } @else if (error()) {
-    <div class="error-banner" role="alert">
-      <strong>Erro ao carregar</strong>
-      <button type="button" (click)="load()">Tentar novamente</button>
-    </div>
-  } @else {
-    <section class="new-orders-panel">
-      <h2 class="panel-title">Novos pedidos</h2>
-      @if (newOrders().length === 0) {
-        <p class="muted">Nenhum pedido novo no momento.</p>
-      } @else {
-        <div class="new-orders-list">
-          @for (order of newOrders(); track order.id) {
-            <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
-          }
-        </div>
-      }
-    </section>
-
-    <section class="status-flow">
-      <div class="status-grid">
-        @for (col of boardColumns(); track col.title) {
-          <div class="status-col">
-            <h2 class="col-title">{{ col.title }}</h2>
-            <div class="status-stack">
-              @for (order of col.orders; track order.id) {
-                <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
-              }
-            </div>
+  <section
+    class="orders-board"
+    [class.is-detached-host]="isDetachedHost()"
+    [attr.aria-disabled]="isDetachedHost() ? 'true' : null"
+  >
+    @if (isDetachedHost()) {
+      <p class="detached-placeholder" role="status">
+        <i class="bi bi-window" aria-hidden="true"></i>
+        <span>Os pedidos estão abertos na janela separada.</span>
+      </p>
+    } @else if (loading()) {
+      <p class="muted">Carregando pedidos...</p>
+    } @else if (error()) {
+      <div class="error-banner" role="alert">
+        <strong>Erro ao carregar</strong>
+        <button type="button" (click)="load()">Tentar novamente</button>
+      </div>
+    } @else {
+      <section class="new-orders-panel">
+        <h2 class="panel-title">Novos pedidos</h2>
+        @if (newOrders().length === 0) {
+          <p class="muted">Nenhum pedido novo no momento.</p>
+        } @else {
+          <div class="new-orders-list">
+            @for (order of newOrders(); track order.id) {
+              <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
+            }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+
+      <section class="status-flow">
+        <div class="status-grid">
+          @for (col of boardColumns(); track col.title) {
+            <div class="status-col">
+              <h2 class="col-title">{{ col.title }}</h2>
+              <div class="status-stack">
+                @for (order of col.orders; track order.id) {
+                  <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  </section>
 </section>
 
 @if (pendingAction(); as pending) {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, effect, inject, signal, computed, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
@@ -6,6 +6,8 @@ import { Subscription } from 'rxjs';
 
 import { OrderService } from '../../core/services/order.service';
 import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
+import { CartService } from '../../core/services/cart.service';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { formatSaoPauloTime } from '../../core/utils/sao-paulo-date.helper';
 import { OrderDetails, OrderItem } from '../../shared/models/order.model';
@@ -13,7 +15,6 @@ import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
-import { BackToMenuLinkComponent } from '../../shared/components/back-to-menu-link/back-to-menu-link.component';
 
 interface TimelineStep {
   status: OrderStatus;
@@ -25,18 +26,22 @@ interface TimelineStep {
 @Component({
   selector: 'app-tracking-page',
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe, BackToMenuLinkComponent],
+  imports: [CommonModule, IonContent, IonIcon, BrlCurrencyPipe],
   templateUrl: './tracking-page.component.html',
   styleUrl: './tracking-page.component.scss',
 })
 export class TrackingPageComponent implements OnInit, OnDestroy {
   private readonly orders = inject(OrderService);
   private readonly tracking = inject(CustomerOrderTrackingService);
+  private readonly cart = inject(CartService);
+  private readonly cartCheckoutAction = inject(CartCheckoutActionService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly storeContext = inject(StoreContextService);
 
   readonly confirmLoading = signal(false);
+  readonly deliveredCelebrationOpen = signal(false);
+  private readonly celebratedOrderId = signal<string | null>(null);
   private readonly currentOrderId = signal<string | null>(null);
   private routeParamSub?: Subscription;
 
@@ -176,6 +181,26 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
       && !o.deliveryConfirmedAtUtc;
   });
 
+  private readonly celebrationAction = viewChild<ElementRef<HTMLButtonElement>>('celebrationAction');
+
+  constructor() {
+    // Celebrate delivery once per tracked order. SignalR reconnections and
+    // detail refreshes keep the same order id, so the guard prevents the modal
+    // from reopening on every realtime update.
+    effect(() => {
+      const order = this.order();
+      if (!order || order.status !== OrderStatus.Delivered) return;
+      if (this.celebratedOrderId() === order.id) return;
+      this.celebratedOrderId.set(order.id);
+      this.deliveredCelebrationOpen.set(true);
+    });
+
+    effect(() => {
+      if (!this.deliveredCelebrationOpen()) return;
+      this.celebrationAction()?.nativeElement.focus();
+    });
+  }
+
   ngOnInit(): void {
     this.routeParamSub = this.route.paramMap.subscribe((params) => {
       const orderId = params.get('orderId');
@@ -210,6 +235,23 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   goToMenu(): void {
     const m = this.router.url.match(/^\/([^/]+)\//);
     this.router.navigate(['/', m?.[1] ?? 'burguer_do_rafa']);
+  }
+
+  /**
+   * Closes the delivered celebration and clears only the local storefront
+   * state: cart, tracked order and temporary checkout action. The customer
+   * session, user account and backend order history are preserved.
+   */
+  finishDeliveredOrder(): void {
+    this.deliveredCelebrationOpen.set(false);
+    this.tracking.reset();
+    this.cart.clearAll();
+    this.cartCheckoutAction.reset();
+    // `reset()` also stops the shared customer hub; the store shell owns that
+    // lifecycle, so restart it to keep realtime updates for future orders in
+    // the same session. No tracked order or remote data is recreated here.
+    void this.tracking.start();
+    this.goToMenu();
   }
 
   refresh(): void {

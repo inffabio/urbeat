@@ -13,6 +13,8 @@ import {
 } from '../../core/services/customer-order-tracking.service';
 import { OrderService } from '../../core/services/order.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CartService } from '../../core/services/cart.service';
+import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
@@ -51,6 +53,7 @@ describe('TrackingPageComponent', () => {
   let stopCustomerHubMock: jest.Mock;
   let onCustomerStateChangeMock: jest.Mock;
   let routerMock: { navigate: jest.Mock; url: string };
+  let logoutMock: jest.Mock;
   let listeners: Record<string, (data: OrderStatusUpdateEvent) => void>;
   let paramMap: BehaviorSubject<ParamMap>;
 
@@ -69,6 +72,7 @@ describe('TrackingPageComponent', () => {
     stopCustomerHubMock = jest.fn();
     onCustomerStateChangeMock = jest.fn(() => jest.fn());
     routerMock = { navigate: jest.fn(), url: '/loja/pedido/order1' };
+    logoutMock = jest.fn();
     paramMap = new BehaviorSubject<ParamMap>(makeParamMap('order1'));
 
     await TestBed.configureTestingModule({
@@ -76,7 +80,7 @@ describe('TrackingPageComponent', () => {
       providers: [
         CustomerOrderTrackingService,
         { provide: OrderService, useValue: { getOrder: getOrderMock, confirmDelivery: confirmDeliveryMock } },
-        { provide: AuthService, useValue: { token: signal('customer-token'), token$: of('customer-token'), getToken: () => 'customer-token' } },
+        { provide: AuthService, useValue: { token: signal('customer-token'), token$: of('customer-token'), getToken: () => 'customer-token', logout: logoutMock } },
         {
           provide: SignalRService,
           useValue: {
@@ -856,6 +860,154 @@ describe('TrackingPageComponent', () => {
       expect(fixture.debugElement.query(By.css('.invalid-order'))).not.toBeNull();
       expect(fixture.debugElement.query(By.css('.order-summary-card'))).toBeNull();
       expect(fixture.debugElement.query(By.css('.loading-overlay'))).toBeNull();
+
+      fixture.destroy();
+    });
+  describe('delivered celebration and local reset', () => {
+    it('renders the single return-to-menu action and no duplicated lower link', () => {
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      const primaryActions = fixture.debugElement.queryAll(By.css('section.screen-padding > button.primary-btn'));
+      expect(primaryActions.length).toBe(1);
+      expect(primaryActions[0].nativeElement.textContent).toContain('VOLTAR AO CARDÁPIO');
+      expect(fixture.debugElement.query(By.css('app-back-to-menu-link'))).toBeNull();
+
+      primaryActions[0].nativeElement.click();
+
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+
+      fixture.destroy();
+    });
+
+    it('does not show the celebration dialog while the order is still in progress', () => {
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+
+      fixture.destroy();
+    });
+
+    it('shows an accessible delivered celebration with the explicit return action', () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      const dialog = fixture.debugElement.query(By.css('[role="dialog"].delivered-celebration-modal'));
+      expect(dialog).not.toBeNull();
+      expect(dialog.nativeElement.getAttribute('aria-modal')).toBe('true');
+      expect(dialog.nativeElement.getAttribute('aria-labelledby')).toBe('delivered-celebration-title');
+
+      const title = dialog.query(By.css('#delivered-celebration-title'));
+      expect(title.nativeElement.textContent.trim()).toBe('Bom apetite!');
+
+      const action = dialog.query(By.css('.celebration-action'));
+      expect(action.nativeElement.textContent.trim()).toBe('Voltar ao cardápio');
+      expect(action.nativeElement.tagName).toBe('BUTTON');
+
+      fixture.destroy();
+    });
+
+    it('clears only local storefront state and returns to the menu without logging out', () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      const cart = TestBed.inject(CartService);
+      const checkoutAction = TestBed.inject(CartCheckoutActionService);
+      const trackingReset = jest.spyOn(tracking, 'reset');
+      const cartClear = jest.spyOn(cart, 'clearAll');
+      const actionReset = jest.spyOn(checkoutAction, 'reset');
+
+      fixture.debugElement
+        .query(By.css('.delivered-celebration-modal .celebration-action'))
+        .nativeElement.click();
+      fixture.detectChanges();
+
+      expect(trackingReset).toHaveBeenCalledTimes(1);
+      expect(cartClear).toHaveBeenCalledTimes(1);
+      expect(actionReset).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+      expect(logoutMock).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(tracking.trackedOrders()).toEqual([]);
+      // The shared hub lifecycle belongs to the store shell; reset stops it,
+      // so the page restarts it without re-tracking the finished order.
+      expect(startCustomerHubMock).toHaveBeenCalled();
+
+      fixture.destroy();
+    });
+
+    it('opens the celebration once and does not reopen it for realtime refreshes of the same order', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of({
+        ...baseOrder,
+        status: OrderStatus.Delivered,
+        history: [
+          ...baseOrder.history,
+          { createdAtUtc: '2026-07-28T12:10:00Z', previousStatus: OrderStatus.OnDelivery, newStatus: OrderStatus.Delivered },
+        ],
+      }));
+
+      listeners['OrderStatusUpdated']({
+        orderId: 'order1',
+        orderCode: 'ABC123',
+        status: OrderStatus.Delivered,
+        changedAtUtc: '2026-07-28T12:10:00Z',
+      });
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      fixture.componentInstance.deliveredCelebrationOpen.set(false);
+      fixture.detectChanges();
+
+      listeners['OrderStatusUpdated']({
+        orderId: 'order1',
+        orderCode: 'ABC123',
+        status: OrderStatus.Delivered,
+        changedAtUtc: '2026-07-28T12:15:00Z',
+      });
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+
+      fixture.destroy();
+    });
+
+    it('celebrates each delivered order once, not only the first one in the session', async () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      fixture.componentInstance.deliveredCelebrationOpen.set(false);
+      fixture.detectChanges();
+
+      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999', status: OrderStatus.Delivered }));
+      paramMap.next(makeParamMap('order2'));
+      fixture.detectChanges();
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.id).toBe('order2');
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
 
       fixture.destroy();
     });

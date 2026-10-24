@@ -1,9 +1,10 @@
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { SignalRService } from '../../core/services/signalr.service';
+import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -36,7 +37,23 @@ describe('SellerOrdersPageComponent', () => {
     removeSellerListener: jest.Mock;
     isSellerConnected: ReturnType<typeof signal<boolean>>;
   };
-  let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
+  let ordersWindowMock: {
+    isDetached: ReturnType<typeof signal<boolean>>;
+    isDetachedRoute: ReturnType<typeof signal<boolean>>;
+    isDetachedHost: ReturnType<typeof computed<boolean>>;
+    secondaryWindowOpen: ReturnType<typeof signal<boolean>>;
+    openDetachedWindow: jest.Mock;
+    closeDetachedWindow: jest.Mock;
+    markDetachedRoute: jest.Mock;
+    releaseDetachedRoute: jest.Mock;
+    dispose: jest.Mock;
+  };
+  let activatedRouteMock: {
+    snapshot: {
+      queryParamMap: ReturnType<typeof convertToParamMap>;
+      data: Record<string, unknown>;
+    };
+  };
 
   const buildOrder = (overrides: Partial<any> = {}) => ({
     id: 'order-1',
@@ -65,7 +82,23 @@ describe('SellerOrdersPageComponent', () => {
     toastServiceMock = { showSuccess: jest.fn().mockResolvedValue(undefined), showError: jest.fn().mockResolvedValue(undefined) };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
     signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
-    activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}) } };
+    const detached = signal(false);
+    const detachedRoute = signal(false);
+    ordersWindowMock = {
+      isDetached: detached,
+      isDetachedRoute: detachedRoute,
+      isDetachedHost: computed(() => detached() && !detachedRoute()),
+      secondaryWindowOpen: signal(false),
+      openDetachedWindow: jest.fn(() => true),
+      closeDetachedWindow: jest.fn(() => detached.set(false)),
+      markDetachedRoute: jest.fn(() => detachedRoute.set(true)),
+      releaseDetachedRoute: jest.fn(() => {
+        detached.set(false);
+        detachedRoute.set(false);
+      }),
+      dispose: jest.fn(),
+    };
+    activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}), data: {} } };
 
     await TestBed.configureTestingModule({
       imports: [SellerOrdersPageComponent],
@@ -75,6 +108,7 @@ describe('SellerOrdersPageComponent', () => {
         { provide: AutomaticPrintQueueService, useValue: automaticPrintMock },
         { provide: ToastService, useValue: toastServiceMock },
         { provide: SellerShellFacade, useValue: shellMock },
+        { provide: SellerOrdersWindowService, useValue: ordersWindowMock },
         { provide: ActivatedRoute, useValue: activatedRouteMock },
       ],
     }).compileComponents();
@@ -2213,5 +2247,195 @@ describe('SellerOrdersPageComponent', () => {
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="a"]');
     expect(card.textContent).not.toContain('Carregando itens');
     expect(card.querySelector('.items-retry')).not.toBeNull();
+  });
+
+  describe('detached orders window', () => {
+    it('renders the split action in the top bar and opens the dedicated window from the click', () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector('.orders-window-toggle') as HTMLButtonElement | null;
+      expect(button).not.toBeNull();
+      expect(button?.textContent).toContain('Separar tela pedidos');
+
+      button?.click();
+
+      expect(ordersWindowMock.openDetachedWindow).toHaveBeenCalledTimes(1);
+      expect(ordersWindowMock.markDetachedRoute).not.toHaveBeenCalled();
+    });
+
+    it('reports a blocked popup and keeps the dashboard in normal mode', () => {
+      ordersWindowMock.openDetachedWindow.mockReturnValue(false);
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      fixture.nativeElement.querySelector('.orders-window-toggle').click();
+
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(
+        expect.stringContaining('janela separada'),
+      );
+      expect(ordersWindowMock.isDetached()).toBe(false);
+    });
+
+    it('registers the dedicated route and turns the action into Fixar ao Dashboard', () => {
+      activatedRouteMock.snapshot.data = { detachedOrdersWindow: true };
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      expect(ordersWindowMock.markDetachedRoute).toHaveBeenCalledTimes(1);
+
+      const button = fixture.nativeElement.querySelector('.orders-window-toggle') as HTMLButtonElement;
+      expect(button.textContent).toContain('Fixar ao Dashboard');
+
+      button.click();
+
+      expect(ordersWindowMock.closeDetachedWindow).toHaveBeenCalledTimes(1);
+      expect(ordersWindowMock.openDetachedWindow).not.toHaveBeenCalled();
+    });
+
+    it('keeps the live board rendered on the dedicated route', () => {
+      activatedRouteMock.snapshot.data = { detachedOrdersWindow: true };
+      orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+        if (status === OrderStatus.Received) {
+          return of({ items: [buildOrder({ id: 'live-order', code: 'LIVE' })], totalItems: 1 });
+        }
+        return of({ items: [], totalItems: 0 });
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      expect(ordersWindowMock.isDetachedHost()).toBe(false);
+      const board = fixture.nativeElement.querySelector('.orders-board');
+      expect(board.classList.contains('is-detached-host')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.order-card[data-order-id="live-order"]')).not.toBeNull();
+    });
+
+    it('grays out the host board without rendering cards and keeps the top controls accessible', () => {
+      isWindowsPlatformMock.mockReturnValue(true);
+      orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+        if (status === OrderStatus.Received) {
+          return of({ items: [buildOrder({ id: 'new-order', code: 'NEW' })], totalItems: 1 });
+        }
+        return of({ items: [], totalItems: 0 });
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.order-card[data-order-id="new-order"]')).not.toBeNull();
+
+      ordersWindowMock.isDetached.set(true);
+      fixture.detectChanges();
+
+      const board = fixture.nativeElement.querySelector('.orders-board');
+      expect(board).not.toBeNull();
+      expect(board.classList.contains('is-detached-host')).toBe(true);
+      expect(board.getAttribute('aria-disabled')).toBe('true');
+      expect(board.textContent).toContain('Os pedidos estão abertos na janela separada.');
+      expect(fixture.nativeElement.querySelector('.order-card')).toBeNull();
+
+      expect(fixture.nativeElement.querySelector('.page-title').textContent).toContain('Pedidos do dia');
+      const topButtons = Array.from(
+        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.top-actions button'),
+      ).map((button) => button.textContent?.trim() ?? '');
+      expect(topButtons).toContain('Separar tela pedidos');
+      expect(topButtons).toContain('Tela cheia');
+      expect(topButtons).toContain('Atualizar');
+    });
+
+    it('skips new-order pulses while detached and reloads once after the host is restored', () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      ordersWindowMock.isDetached.set(true);
+      fixture.detectChanges();
+
+      orderServiceMock.getStoreOrders.mockClear();
+      shellMock.newOrderPulse.mockReturnValue({ id: 'detached-pulse' });
+      fixture.componentInstance['effectScheduler']?.();
+      fixture.detectChanges();
+
+      expect(orderServiceMock.getStoreOrders).not.toHaveBeenCalled();
+
+      ordersWindowMock.isDetached.set(false);
+      fixture.detectChanges();
+
+      expect(orderServiceMock.getStoreOrders).toHaveBeenCalled();
+    });
+
+    it('does not load orders when the host is opened already detached and loads once on restore', () => {
+      ordersWindowMock.isDetached.set(true);
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      expect(orderServiceMock.getStoreOrders).not.toHaveBeenCalled();
+      const board = fixture.nativeElement.querySelector('.orders-board');
+      expect(board.classList.contains('is-detached-host')).toBe(true);
+
+      ordersWindowMock.isDetached.set(false);
+      fixture.detectChanges();
+
+      expect(orderServiceMock.getStoreOrders).toHaveBeenCalled();
+    });
+
+    it('ignores realtime status events while detached and reconciles on restore', () => {
+      orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+        if (status === OrderStatus.Preparing) {
+          return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
+        }
+        return of({ items: [], totalItems: 0 });
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      const listener = signalRServiceMock.onSellerEvent.mock.calls.find(
+        ([name]: [string]) => name === 'OrderStatusUpdated',
+      )?.[1];
+      expect(listener).toBeDefined();
+
+      ordersWindowMock.isDetached.set(true);
+      fixture.detectChanges();
+
+      const before = orderServiceMock.getStoreOrders.mock.calls.length;
+      listener({ orderId: '2', status: OrderStatus.Ready });
+      expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before);
+
+      ordersWindowMock.isDetached.set(false);
+      fixture.detectChanges();
+
+      expect(orderServiceMock.getStoreOrders.mock.calls.length).toBeGreaterThan(before);
+    });
+
+    it('releases the detached route instead of disposing the service on destroy', () => {
+      activatedRouteMock.snapshot.data = { detachedOrdersWindow: true };
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+      expect(ordersWindowMock.markDetachedRoute).toHaveBeenCalledTimes(1);
+      expect(ordersWindowMock.isDetachedRoute()).toBe(true);
+
+      fixture.destroy();
+
+      expect(ordersWindowMock.releaseDetachedRoute).toHaveBeenCalledTimes(1);
+      expect(ordersWindowMock.dispose).not.toHaveBeenCalled();
+      expect(ordersWindowMock.closeDetachedWindow).not.toHaveBeenCalled();
+      expect(ordersWindowMock.isDetachedRoute()).toBe(false);
+      expect(ordersWindowMock.isDetachedHost()).toBe(false);
+    });
+
+    it('does not release the detached route when the dashboard view is destroyed', () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      fixture.destroy();
+
+      expect(ordersWindowMock.releaseDetachedRoute).not.toHaveBeenCalled();
+      expect(ordersWindowMock.dispose).not.toHaveBeenCalled();
+    });
   });
 });
