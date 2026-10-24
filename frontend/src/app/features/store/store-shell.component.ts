@@ -132,7 +132,7 @@ type StoreResolutionError = 'not-found' | 'unavailable' | 'inaccessible';
       position: relative;
       min-height: 100dvh;
       height: 100dvh;
-      background: var(--app-shell-bg);
+      background: var(--app-surface, #fff);
       display: flex;
        flex-direction: column;
      }

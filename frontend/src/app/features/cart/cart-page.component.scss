@@ -3,7 +3,7 @@
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  background: var(--app-bg);
+  background: var(--app-surface, #fff);
 
   @media (min-width: 900px) {
     max-width: 620px;

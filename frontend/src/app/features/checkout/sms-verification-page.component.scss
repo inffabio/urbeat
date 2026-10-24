@@ -4,7 +4,7 @@
 }
 
 .verification-content {
-  --background: var(--app-bg);
+  --background: var(--app-surface, #fff);
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
   min-height: 100%;

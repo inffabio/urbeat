@@ -9,7 +9,7 @@
 }
 
 .checkout-content {
-  --background: var(--app-bg);
+  --background: var(--app-surface, #fff);
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
   /* Must be allowed to shrink so the scrollport never overflows the shell. */

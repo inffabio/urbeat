@@ -723,7 +723,7 @@
 /* === LOADING === */
 .loading-overlay {
   position: fixed; inset: 0;
-  background: var(--app-bg);
+  background: var(--app-surface, #fff);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
 }

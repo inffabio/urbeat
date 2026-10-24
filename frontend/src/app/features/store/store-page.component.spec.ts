@@ -103,6 +103,19 @@ describe('StorePageComponent — feature logic', () => {
     expect(styles).toMatch(/\.store-products-panel[\s\S]*flex:\s*1 0 auto/);
   });
 
+  it('paints the storefront canvas and loading state with the white surface instead of the warm global canvas', () => {
+    const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+    const hostBlock = styles.match(/:host\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const contentBlock = styles.match(/\.store-content\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const loadingBlock = styles.match(/\.loading-overlay\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(hostBlock).toMatch(/background:\s*var\(--app-surface, #fff\)/);
+    expect(contentBlock).toMatch(/background:\s*var\(--app-surface, #fff\)/);
+    expect(loadingBlock).toMatch(/background:\s*var\(--app-surface, #fff\)/);
+    expect(styles).not.toContain('#ede9e3');
+    expect(styles).not.toMatch(/var\(--app-bg[,)]/);
+  });
+
   it('keeps the footer clearance inside the products panel surface, driven by the measured shell variable', () => {
     const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
 

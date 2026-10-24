@@ -1,11 +1,11 @@
 :host {
   display: block;
   width: 100%;
-  background: #ede9e3;
+  background: var(--app-surface, #fff);
 }
 
 .store-content {
-  background: var(--app-bg, #ede9e3);
+  background: var(--app-surface, #fff);
   overflow-x: clip;
   overflow-y: auto;
   flex: 1 1 0;
@@ -202,7 +202,7 @@
 /* ─── Loading / Skeleton ───────────────────── */
 
 .loading-overlay {
-  background: var(--app-bg, #ede9e3);
+  background: var(--app-surface, #fff);
   min-height: 100vh;
 }
 

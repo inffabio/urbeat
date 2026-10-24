@@ -1198,7 +1198,7 @@ describe('StoreShellComponent storefront surface background', () => {
     urlSpy = jest.spyOn(TestBed.inject(Router), 'url', 'get');
   });
 
-  it('marks the store home with has-footer and store-home while its routed content owns its own background', () => {
+  it('marks the store home with has-footer and store-home while its routed content carries the white surface', () => {
     routeTo('/loja');
 
     const route = storeRouteElement();
@@ -1206,7 +1206,9 @@ describe('StoreShellComponent storefront surface background', () => {
     expect(route.classList.contains('store-home')).toBe(true);
 
     const routedContentStyles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
-    expect(ruleBody(routedContentStyles, /:host\s*\{([^}]*)\}/)).toMatch(/background:\s*#ede9e3/);
+    const routedHost = ruleBody(routedContentStyles, /:host\s*\{([^}]*)\}/);
+    expect(routedHost).toMatch(/background:\s*var\(--app-surface, #fff\)/);
+    expect(routedHost).not.toContain('--app-bg');
   });
 
   it('does not mark the footer-less checkout with has-footer', () => {
@@ -1217,7 +1219,7 @@ describe('StoreShellComponent storefront surface background', () => {
     expect(route.classList.contains('store-home')).toBe(false);
   });
 
-  it('scopes the surface background to .store-route.has-footer without altering .app-shell or the base route', () => {
+  it('uses the white surface on the shell and the footer-present route without altering the base route', () => {
     routeTo('/loja');
     expect(storeRouteElement().classList.contains('has-footer')).toBe(true);
     expect(shellElement().classList.contains('has-footer')).toBe(false);
@@ -1226,8 +1228,10 @@ describe('StoreShellComponent storefront surface background', () => {
     expect(storeRouteElement().classList.contains('has-footer')).toBe(false);
 
     const source = readFileSync(resolve(__dirname, 'store-shell.component.ts'), 'utf8');
+    const shell = ruleBody(source, /\.app-shell\s*\{([^}]*)\}/);
     expect(ruleBody(source, /\.store-route\.has-footer\s*\{([^}]*)\}/)).toMatch(/background:\s*var\(--app-surface/);
-    expect(ruleBody(source, /\.app-shell\s*\{([^}]*)\}/)).not.toContain('var(--app-surface');
+    expect(shell).toMatch(/background:\s*var\(--app-surface, #fff\)/);
+    expect(shell).not.toContain('var(--app-shell-bg)');
     expect(ruleBody(source, /\.store-route\s*\{([^}]*)\}/)).not.toContain('background:');
   });
 
