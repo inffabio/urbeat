@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
@@ -65,6 +65,24 @@ describe('SellerOrdersPageComponent', () => {
     ...overrides,
   });
 
+  const expandAcceptedOrder = (
+    fixture: ComponentFixture<SellerOrdersPageComponent>,
+    orderId: string,
+  ): HTMLElement => {
+    const header = fixture.nativeElement.querySelector(
+      `.order-accordion-header[aria-controls="order-panel-${orderId}"]`,
+    ) as HTMLButtonElement | null;
+    expect(header).not.toBeNull();
+    header!.click();
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector(
+      `#order-panel-${orderId}`,
+    ) as HTMLElement | null;
+    expect(panel).not.toBeNull();
+    return panel!;
+  };
+
   beforeEach(async () => {
     isWindowsPlatformMock.mockReturnValue(false);
     orderServiceMock = {
@@ -128,6 +146,120 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Nenhum pedido novo');
   });
 
+  it('keeps Received orders in new orders and moves accepted orders to the compact list', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Received) {
+        return of({ items: [buildOrder({ id: 'received', code: 'RECEIVED', status: OrderStatus.Received })], totalItems: 1 });
+      }
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [
+            buildOrder({ id: 'accepted', code: 'ACCEPTED', status: OrderStatus.Preparing, customerName: 'Ana' }),
+            buildOrder({
+              id: 'completed',
+              code: 'COMPLETED',
+              status: OrderStatus.Preparing,
+              sellerCompletedAtUtc: '2026-08-04T11:00:00Z',
+            }),
+          ],
+          totalItems: 2,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.newOrders().map((order) => order.id)).toEqual(['received']);
+    expect(fixture.componentInstance.acceptedOrders().map((order) => order.id)).toEqual(['accepted']);
+
+    expect(fixture.nativeElement.querySelector('.new-orders-list .order-card[data-order-id="received"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.order-accordion[data-accepted-order-id="received"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.order-accordion[data-accepted-order-id="accepted"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.order-accordion[data-accepted-order-id="completed"]')).toBeNull();
+  });
+
+  it('preserves persisted order codes, including legacy URB prefixes', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Received) {
+        return of({ items: [buildOrder({ id: 'legacy-received', code: 'URB-ABC12345' })], totalItems: 1 });
+      }
+      if (status === OrderStatus.Preparing) {
+        return of({ items: [buildOrder({ id: 'new-code', code: 'A7K92PQL', status: OrderStatus.Preparing })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayOrderCode({ code: 'A7K92PQL' })).toBe('A7K92PQL');
+    expect(fixture.componentInstance.displayOrderCode({ code: 'URB-ABC12345' })).toBe('URB-ABC12345');
+
+    expect(fixture.nativeElement.querySelector('.new-orders-list .ref-code').textContent).toContain('#URB-ABC12345');
+    expect(
+      fixture.nativeElement.querySelector('.order-accordion-header[aria-controls="order-panel-new-code"]').textContent,
+    ).toContain('#A7K92PQL');
+  });
+
+  it('renders an accessible accordion with code, customer, chevron and actions', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [buildOrder({ id: 'acc', code: 'A7K92PQL', status: OrderStatus.Preparing, customerName: 'Ana Souza', total: 42 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const header = fixture.nativeElement.querySelector(
+      '.order-accordion-header[aria-controls="order-panel-acc"]',
+    ) as HTMLButtonElement | null;
+
+    expect(header).not.toBeNull();
+    expect(header!.tagName).toBe('BUTTON');
+    expect(header!.getAttribute('aria-expanded')).toBe('false');
+    expect(header!.textContent).toContain('#A7K92PQL');
+    expect(header!.textContent).toContain('Ana Souza');
+    expect(header!.querySelector('.bi-chevron-down')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#order-panel-acc')).toBeNull();
+
+    header!.click();
+    fixture.detectChanges();
+
+    const expandedHeader = fixture.nativeElement.querySelector(
+      '.order-accordion-header[aria-controls="order-panel-acc"]',
+    ) as HTMLButtonElement;
+    const panel = fixture.nativeElement.querySelector('#order-panel-acc') as HTMLElement | null;
+
+    expect(expandedHeader.getAttribute('aria-expanded')).toBe('true');
+    expect(expandedHeader.querySelector('.bi-chevron-up')).not.toBeNull();
+    expect(panel).not.toBeNull();
+    expect(panel!.textContent).toContain('Marcar como pronto');
+    expect(panel!.textContent!.replace(/\u00a0/g, ' ')).toContain('R$ 42,00');
+    expect(fixture.nativeElement.querySelector('.order-details-dialog')).toBeNull();
+
+    expandedHeader.click();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement
+        .querySelector('.order-accordion-header[aria-controls="order-panel-acc"]')
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
+    expect(fixture.nativeElement.querySelector('#order-panel-acc')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        '.order-accordion-header[aria-controls="order-panel-acc"] .bi-chevron-down',
+      ),
+    ).not.toBeNull();
+  });
+
   it('shows new order cards in the top panel', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Received) {
@@ -144,13 +276,13 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Aceitar pedido');
   });
 
-  it('shows orders in status columns', () => {
+  it('shows accepted orders in the compact accordion list', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {
-        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing, total: 30 })], totalItems: 1 });
+        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing, total: 30, customerName: 'Ana' })], totalItems: 1 });
       }
       if (status === OrderStatus.Ready) {
-        return of({ items: [buildOrder({ id: '3', code: 'GHI', status: OrderStatus.Ready, total: 40 })], totalItems: 1 });
+        return of({ items: [buildOrder({ id: '3', code: 'GHI', status: OrderStatus.Ready, total: 40, customerName: 'Bia' })], totalItems: 1 });
       }
       return of({ items: [], totalItems: 0 });
     });
@@ -158,9 +290,15 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Em preparação');
-    expect(fixture.nativeElement.textContent).toContain('Marcar como pronto');
-    expect(fixture.nativeElement.textContent).toContain('Saiu para entrega');
+    expect(fixture.nativeElement.textContent).toContain('Pedidos aceitos');
+    expect(fixture.nativeElement.querySelectorAll('.order-accordion').length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.status-grid')).toBeNull();
+
+    expandAcceptedOrder(fixture, '2');
+    expect(fixture.nativeElement.querySelector('#order-panel-2').textContent).toContain('Marcar como pronto');
+
+    expandAcceptedOrder(fixture, '3');
+    expect(fixture.nativeElement.querySelector('#order-panel-3').textContent).toContain('Saiu para entrega');
   });
 
   it('shows confirmation modal when advancing status', () => {
@@ -173,6 +311,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, '2');
 
     const btn = fixture.nativeElement.querySelector('.action-orange');
     if (btn) btn.click();
@@ -182,7 +321,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Cancelar');
   });
 
-  it('sorts new orders and status columns by createdAtUtc descending', () => {
+  it('sorts new orders and accepted orders by createdAtUtc descending', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Received) {
         return of({
@@ -197,10 +336,18 @@ describe('SellerOrdersPageComponent', () => {
       if (status === OrderStatus.Preparing) {
         return of({
           items: [
-            buildOrder({ id: 'older-preparing', code: 'P-OLD', status: OrderStatus.Preparing, createdAtUtc: '2026-08-04T09:50:00Z' }),
-            buildOrder({ id: 'newer-preparing', code: 'P-NEW', status: OrderStatus.Preparing, createdAtUtc: '2026-08-04T10:10:00Z' }),
+            buildOrder({ id: 'older-accepted', code: 'P-OLD', status: OrderStatus.Preparing, createdAtUtc: '2026-08-04T10:10:00Z' }),
           ],
-          totalItems: 2,
+          totalItems: 1,
+        });
+      }
+
+      if (status === OrderStatus.Delivered) {
+        return of({
+          items: [
+            buildOrder({ id: 'newer-accepted', code: 'D-NEW', status: OrderStatus.Delivered, createdAtUtc: '2026-08-04T10:20:00Z' }),
+          ],
+          totalItems: 1,
         });
       }
 
@@ -211,7 +358,8 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.newOrders().map((order) => order.id)).toEqual(['newer-received', 'older-received']);
-    expect(fixture.componentInstance.statusGroups().preparing.map((order) => order.id)).toEqual(['newer-preparing', 'older-preparing']);
+    expect(fixture.componentInstance.statusGroups().preparing.map((order) => order.id)).toEqual(['older-accepted']);
+    expect(fixture.componentInstance.acceptedOrders().map((order) => order.id)).toEqual(['newer-accepted', 'older-accepted']);
   });
 
   it('prints the order when acceptance moves it from received to preparing', () => {
@@ -330,6 +478,44 @@ describe('SellerOrdersPageComponent', () => {
     expect(focusSpy).toHaveBeenCalled();
   });
 
+  it('expands and highlights an accepted order targeted by the query param', () => {
+    jest.useFakeTimers();
+    activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ order: 'target-accepted' });
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: jest.fn(),
+    });
+
+    const scrollIntoViewSpy = jest.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(jest.fn());
+    const focusSpy = jest.spyOn(HTMLElement.prototype, 'focus').mockImplementation(jest.fn());
+
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [buildOrder({ id: 'target-accepted', code: 'TARGET', status: OrderStatus.Preparing })],
+          totalItems: 1,
+        });
+      }
+
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('#order-panel-target-accepted');
+    expect(panel).not.toBeNull();
+
+    const targetCard = panel.querySelector('[data-order-id="target-accepted"]');
+    expect(targetCard).not.toBeNull();
+    expect(targetCard.classList.contains('is-target')).toBe(true);
+    expect(scrollIntoViewSpy).toHaveBeenCalled();
+    expect(focusSpy).toHaveBeenCalled();
+  });
+
   it('reloads orders when a new order pulse is emitted', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
@@ -376,6 +562,7 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.statusGroups().delivered.map((o) => o.id)).toEqual(['pending']);
+    expect(fixture.componentInstance.acceptedOrders().map((o) => o.id)).toEqual(['pending']);
   });
 
   it('shows the Concluído action for delivered orders confirmed by the customer', () => {
@@ -388,6 +575,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'done');
 
     expect(fixture.nativeElement.textContent).toContain('Concluído');
   });
@@ -402,6 +590,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'wait');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="wait"]');
     expect(card.querySelector('.board-action.action-green')).toBeNull();
@@ -421,6 +610,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const delivered = fixture.componentInstance.statusGroups().delivered[0];
     expect(fixture.componentInstance.canComplete(delivered)).toBe(true);
+    expandAcceptedOrder(fixture, 'pickup-done');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-done"]');
     expect(card.textContent).toContain('Concluir retirada');
@@ -443,6 +633,7 @@ describe('SellerOrdersPageComponent', () => {
     const action = fixture.componentInstance.cardAction(fixture.componentInstance.statusGroups().delivered[0]);
     expect(action).toEqual({ kind: 'complete', label: 'Concluir retirada', css: 'action-green' });
 
+    expandAcceptedOrder(fixture, 'pickup-done');
     fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-done"] .board-action').click();
     fixture.detectChanges();
 
@@ -475,6 +666,8 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'many');
+    expandAcceptedOrder(fixture, 'one');
 
     for (const id of ['many', 'one']) {
       const card = fixture.nativeElement.querySelector(`.order-card[data-order-id="${id}"]`);
@@ -517,6 +710,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'done');
 
     fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().delivered[0]);
     fixture.detectChanges();
@@ -828,7 +1022,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.pendingAction()).toBeNull();
   });
 
-  it('shows a clickable code in every bottom status column that opens details without advancing', () => {
+  it('shows a clickable code in every accepted accordion that opens details without advancing', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       const items: any[] = [];
       if (status === OrderStatus.Preparing) items.push(buildOrder({ id: 'prep', code: 'PREP', status: OrderStatus.Preparing }));
@@ -852,6 +1046,7 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     for (const [id, code] of [['prep', 'PREP'], ['ready', 'READY'], ['deliv', 'DELIV'], ['done', 'DONE']] as const) {
+      expandAcceptedOrder(fixture, id);
       const codeButton = fixture.nativeElement.querySelector(`.order-card[data-order-id="${id}"] .ref-code`);
       expect(codeButton).not.toBeNull();
       codeButton.click();
@@ -868,7 +1063,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.pendingAction()).toBeNull();
   });
 
-  it('prefetches order items for orders in every status column', () => {
+  it('prefetches order items for accepted orders', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {
         return of({ items: [buildOrder({ id: 'prep-1', code: 'PREP-1', status: OrderStatus.Preparing, customerName: 'Carlos', total: 40 })], totalItems: 1 });
@@ -889,6 +1084,7 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     expect(orderServiceMock.getStoreOrder).toHaveBeenCalledWith('prep-1');
+    expandAcceptedOrder(fixture, 'prep-1');
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"]');
     expect(card.textContent).toContain('Suco');
   });
@@ -1461,6 +1657,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'prep-1');
 
     const codeButton = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"] .ref-code');
     expect(codeButton).not.toBeNull();
@@ -1760,22 +1957,21 @@ describe('SellerOrdersPageComponent', () => {
     expect(text).toContain('R$ 75,00');
   });
 
-  it('renders four status columns starting at Em preparação with no duplicate new-orders column', () => {
+  it('replaces the status columns with a single accepted-orders list', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.boardColumns().map((c) => c.title)).toEqual([
-      'Em preparação',
-      'Pronto para retirada',
-      'Em entrega',
-      'Concluído',
-    ]);
-    const titles = fixture.nativeElement.querySelectorAll('.status-grid .col-title');
-    expect(titles.length).toBe(4);
+    expect(fixture.nativeElement.querySelector('.status-flow')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.status-grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.accepted-orders-list')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Pedidos aceitos');
+    expect(fixture.nativeElement.textContent).toContain('Nenhum pedido aceito');
+    expect(fixture.nativeElement.textContent).not.toContain('Em preparação');
+    expect(fixture.nativeElement.textContent).not.toContain('Pronto para retirada');
     expect(fixture.nativeElement.textContent).not.toContain('Novos Pedidos');
   });
 
-  it('shows detailed items in every evolution column card', () => {
+  it('shows detailed items in the expanded accepted-order card', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {
         return of({ items: [buildOrder({ id: 'prep', code: 'PREP', status: OrderStatus.Preparing, total: 40 })], totalItems: 1 });
@@ -1794,6 +1990,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'prep');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep"]');
     expect(card.textContent).toContain('Suco');
@@ -1893,6 +2090,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'pickup-ready');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-ready"]');
     expect(card.textContent).toContain('Concluir retirada');
@@ -1936,6 +2134,9 @@ describe('SellerOrdersPageComponent', () => {
 
     expect(fixture.componentInstance.orderItems('b')[0].productName).toBe('Suco');
     expect(fixture.componentInstance.hasItemsError('a')).toBe(true);
+
+    expandAcceptedOrder(fixture, 'a');
+    expandAcceptedOrder(fixture, 'b');
 
     const cardB = fixture.nativeElement.querySelector('.order-card[data-order-id="b"]');
     expect(cardB.textContent).toContain('Suco');
@@ -2220,6 +2421,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'prep-1');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"]');
     expect(card.textContent).toContain('Carregando itens');
@@ -2243,6 +2445,7 @@ describe('SellerOrdersPageComponent', () => {
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
+    expandAcceptedOrder(fixture, 'a');
 
     const card = fixture.nativeElement.querySelector('.order-card[data-order-id="a"]');
     expect(card.textContent).not.toContain('Carregando itens');
@@ -2301,6 +2504,9 @@ describe('SellerOrdersPageComponent', () => {
         if (status === OrderStatus.Received) {
           return of({ items: [buildOrder({ id: 'live-order', code: 'LIVE' })], totalItems: 1 });
         }
+        if (status === OrderStatus.Preparing) {
+          return of({ items: [buildOrder({ id: 'live-accepted', code: 'ACCEPTED', status: OrderStatus.Preparing })], totalItems: 1 });
+        }
         return of({ items: [], totalItems: 0 });
       });
 
@@ -2311,6 +2517,7 @@ describe('SellerOrdersPageComponent', () => {
       const board = fixture.nativeElement.querySelector('.orders-board');
       expect(board.classList.contains('is-detached-host')).toBe(false);
       expect(fixture.nativeElement.querySelector('.order-card[data-order-id="live-order"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.order-accordion[data-accepted-order-id="live-accepted"]')).not.toBeNull();
     });
 
     it('grays out the host board without rendering cards and keeps the top controls accessible', () => {

@@ -398,6 +398,6 @@ public sealed class CheckoutService : ICheckoutService
         {
             chars[i] = CodeChars[data[i] % CodeChars.Length];
         }
-        return $"URB-{new string(chars)}";
+        return new string(chars);
     }
 }

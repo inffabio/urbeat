@@ -17,7 +17,7 @@
   <ng-template #boardCard let-order let-items="items" let-action="action">
     <article class="order-card" [class.is-target]="isTargetOrder(order.id)" [attr.data-order-id]="order.id" [attr.tabindex]="isTargetOrder(order.id) ? -1 : null">
       <div class="card-head">
-        <button type="button" class="ref-code" (click)="openOrderDetails(order.id, $event)" [attr.aria-label]="'Ver detalhes do pedido ' + order.code">#{{ order.code }}</button>
+        <button type="button" class="ref-code" (click)="openOrderDetails(order.id, $event)" [attr.aria-label]="'Ver detalhes do pedido ' + displayOrderCode(order)">#{{ displayOrderCode(order) }}</button>
         @if (isPickup(order)) { <span class="pickup-badge"><i class="bi bi-shop"></i> Retirada no balcão</span> }
         <span class="card-time">{{ formatOrderTime(order.createdAtUtc) }}</span>
       </div>
@@ -121,19 +121,51 @@
         }
       </section>
 
-      <section class="status-flow">
-        <div class="status-grid">
-          @for (col of boardColumns(); track col.title) {
-            <div class="status-col">
-              <h2 class="col-title">{{ col.title }}</h2>
-              <div class="status-stack">
-                @for (order of col.orders; track order.id) {
-                  <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
+      <section class="accepted-orders-panel" aria-labelledby="accepted-orders-title">
+        <h2 id="accepted-orders-title" class="panel-title">Pedidos aceitos</h2>
+        @if (acceptedOrders().length === 0) {
+          <p class="muted">Nenhum pedido aceito no momento.</p>
+        } @else {
+          <div class="accepted-orders-list">
+            @for (order of acceptedOrders(); track order.id) {
+              <article
+                class="order-accordion"
+                [class.is-expanded]="isOrderExpanded(order.id)"
+                [attr.data-accepted-order-id]="order.id"
+              >
+                <button
+                  type="button"
+                  class="order-accordion-header"
+                  [id]="'order-accordion-header-' + order.id"
+                  [attr.aria-expanded]="isOrderExpanded(order.id)"
+                  [attr.aria-controls]="'order-panel-' + order.id"
+                  (click)="toggleOrderExpanded(order.id)"
+                >
+                  <span class="order-accordion-title">
+                    <strong>#{{ displayOrderCode(order) }}</strong>
+                    <span class="order-accordion-customer">{{ order.customerName || 'Cliente não informado' }}</span>
+                  </span>
+                  <i
+                    class="bi order-accordion-chevron"
+                    [class.bi-chevron-down]="!isOrderExpanded(order.id)"
+                    [class.bi-chevron-up]="isOrderExpanded(order.id)"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+                @if (isOrderExpanded(order.id)) {
+                  <div
+                    class="order-accordion-panel"
+                    [id]="'order-panel-' + order.id"
+                    role="region"
+                    [attr.aria-labelledby]="'order-accordion-header-' + order.id"
+                  >
+                    <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
+                  </div>
                 }
-              </div>
-            </div>
-          }
-        </div>
+              </article>
+            }
+          </div>
+        }
       </section>
     }
   </section>
@@ -143,7 +175,7 @@
   <div class="confirm-overlay" (click)="dismissConfirm()">
     <div class="confirm-modal" (click)="$event.stopPropagation()">
       <strong>{{ pending.label }}</strong>
-      <p>Confirmar a transição do pedido <strong>#{{ pending.order.code }}</strong>?</p>
+      <p>Confirmar a transição do pedido <strong>#{{ displayOrderCode(pending.order) }}</strong>?</p>
       <div class="confirm-actions">
         <button type="button" class="btn-cancel" (click)="dismissConfirm()">Cancelar</button>
         <button type="button" class="btn-confirm" (click)="executeAdvance()">Confirmar</button>

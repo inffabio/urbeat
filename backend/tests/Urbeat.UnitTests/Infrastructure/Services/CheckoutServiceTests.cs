@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
@@ -43,45 +44,48 @@ public sealed class CheckoutServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ConfirmAsync_ShouldPersistOrderCode_WithUrbPrefix()
+    public async Task ConfirmAsync_ShouldPersistOrderCode_WithoutLegacyPrefix()
     {
+        var (store, product) = await SeedPickupStoreAsync();
         var customerUserId = Guid.NewGuid();
-        var store = new Store
-        {
-            OwnerUserId = Guid.NewGuid(),
-            Name = "Loja Teste",
-            Slug = "loja-teste",
-            PhoneNumber = "11999999999",
-            IsOpen = true,
-            IsSubscriptionBlocked = false
-        };
-        var product = new Product
-        {
-            StoreId = store.Id,
-            CategoryId = Guid.NewGuid(),
-            Name = "Pizza",
-            Price = 40m,
-            SaleMode = "single",
-            IsAvailable = true
-        };
-        _db.Stores.Add(store);
-        _db.Products.Add(product);
-        await _db.SaveChangesAsync();
 
         var result = await _sut.ConfirmAsync(
             customerUserId,
-            new CheckoutRequestDto
-            {
-                StoreId = store.Id,
-                FulfillmentType = FulfillmentType.PickUp,
-                PaymentMethod = PaymentMethod.CashOnDelivery,
-                Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
-            },
+            BuildPickupRequest(store, product),
             "127.0.0.1");
 
         result.Confirmation.Should().NotBeNull();
-        result.Confirmation!.Code.Should().MatchRegex("^URB-[A-Z0-9]{8}$");
-        result.Confirmation.Code.Should().NotStartWith("HAP-");
+        var code = result.Confirmation!.Code;
+        code.Should().MatchRegex("^[A-Z0-9]{8}$");
+        code.Should().NotStartWith("URB-");
+        code.Should().HaveLength(8);
+
+        var persisted = await _db.Orders.SingleAsync(order => order.Id == result.Confirmation.OrderId);
+        persisted.Code.Should().Be(code);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldGenerateUniqueOrderCodes_WhenConfirmingMultipleOrders()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+        var codes = new List<string>();
+
+        for (var i = 0; i < 25; i++)
+        {
+            var result = await _sut.ConfirmAsync(
+                Guid.NewGuid(),
+                BuildPickupRequest(store, product),
+                "127.0.0.1");
+
+            result.Confirmation.Should().NotBeNull();
+            codes.Add(result.Confirmation!.Code);
+        }
+
+        codes.Should().OnlyHaveUniqueItems();
+        codes.Should().OnlyContain(code => Regex.IsMatch(code, "^[A-Z0-9]{8}$"));
+
+        var persistedCodes = await _db.Orders.Select(order => order.Code).ToListAsync();
+        persistedCodes.Should().BeEquivalentTo(codes);
     }
 
     [Fact]
@@ -148,6 +152,45 @@ public sealed class CheckoutServiceTests : IDisposable
         result.Summary.Should().NotBeNull();
         result.Summary!.DeliveryFee.Should().Be(0m);
         result.Summary.FreeShippingApplied.Should().BeFalse();
+    }
+
+    private static CheckoutRequestDto BuildPickupRequest(Store store, Product product)
+    {
+        return new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+    }
+
+    private async Task<(Store Store, Product Product)> SeedPickupStoreAsync()
+    {
+        var store = new Store
+        {
+            OwnerUserId = Guid.NewGuid(),
+            Name = "Loja Teste",
+            Slug = $"loja-teste-{Guid.NewGuid():N}",
+            PhoneNumber = "11999999999",
+            IsOpen = true,
+            IsSubscriptionBlocked = false
+        };
+        var product = new Product
+        {
+            StoreId = store.Id,
+            CategoryId = Guid.NewGuid(),
+            Name = "Pizza",
+            Price = 40m,
+            SaleMode = "single",
+            IsAvailable = true
+        };
+
+        _db.Stores.Add(store);
+        _db.Products.Add(product);
+        await _db.SaveChangesAsync();
+
+        return (store, product);
     }
 
     private Task<CheckoutResultDto> PreviewDeliveryAsync(Store store, Product product, CustomerAddress address)
