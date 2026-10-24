@@ -97,6 +97,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly selectedOrderError = signal(false);
   readonly selectedPeriod = signal<DashboardPeriod>('today');
   readonly prefetchingOrderIds = signal<ReadonlySet<string>>(new Set());
+  readonly expandedOrderIds = signal<ReadonlySet<string>>(new Set());
 
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
@@ -448,6 +449,26 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
   isPrefetchingItems(orderId: string): boolean {
     return this.prefetchingOrderIds().has(orderId);
+  }
+
+  isOrderExpanded(orderId: string): boolean {
+    return this.expandedOrderIds().has(orderId);
+  }
+
+  toggleOrderExpanded(orderId: string): void {
+    this.expandedOrderIds.update((ids) => {
+      const next = new Set(ids);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  }
+
+  orderBodyId(orderId: string): string {
+    return `order-body-${orderId}`;
   }
 
   private syncDetailsFromSummaries(summaries: OrderSummary[]): void {

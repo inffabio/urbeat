@@ -76,6 +76,28 @@ describe('SellerOrdersPageComponent', () => {
     return card!;
   };
 
+  const findOrderToggle = (card: HTMLElement): HTMLButtonElement => {
+    const toggle = card.querySelector<HTMLButtonElement>('.order-card-toggle');
+    expect(toggle).not.toBeNull();
+    return toggle!;
+  };
+
+  const expandOrderCard = (
+    fixture: ComponentFixture<SellerOrdersPageComponent>,
+    orderId: string,
+  ): HTMLElement => {
+    const card = findOrderCard(fixture, orderId);
+    findOrderToggle(card).click();
+    fixture.detectChanges();
+    return card;
+  };
+
+  const orderBody = (card: HTMLElement): HTMLElement => {
+    const body = card.querySelector<HTMLElement>('.order-card-body');
+    expect(body).not.toBeNull();
+    return body!;
+  };
+
   beforeEach(async () => {
     isWindowsPlatformMock.mockReturnValue(false);
     orderServiceMock = {
@@ -195,9 +217,9 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.displayOrderCode({ code: 'A7K92PQL' })).toBe('A7K92PQL');
     expect(fixture.componentInstance.displayOrderCode({ code: 'URB-ABC12345' })).toBe('URB-ABC12345');
 
-    expect(fixture.nativeElement.querySelector('.new-orders-list .ref-code').textContent).toContain('#URB-ABC12345');
+    expect(fixture.nativeElement.querySelector('.new-orders-list .order-code').textContent).toContain('#URB-ABC12345');
     expect(
-      fixture.nativeElement.querySelector('.status-col .order-card[data-order-id="new-code"] .ref-code').textContent,
+      fixture.nativeElement.querySelector('.status-col .order-card[data-order-id="new-code"] .order-code').textContent,
     ).toContain('#A7K92PQL');
   });
 
@@ -242,11 +264,15 @@ describe('SellerOrdersPageComponent', () => {
     expect(columns[3].querySelector('[data-order-id="done"]')).not.toBeNull();
 
     const card = findOrderCard(fixture, 'prep');
-    expect(card.querySelector('.ref-code')?.textContent).toContain('#PREP');
+    expect(card.querySelector('.order-code')?.textContent).toContain('#PREP');
     expect(card.textContent).toContain('Ana Souza');
+
+    expandOrderCard(fixture, 'prep');
     expect(card.textContent).toContain('Marcar como pronto');
     expect(card.textContent!.replace(/\u00a0/g, ' ')).toContain('R$ 42,00');
     expect(fixture.nativeElement.querySelector('.order-details-dialog')).toBeNull();
+
+    expandOrderCard(fixture, 'done');
     expect(fixture.nativeElement.querySelector('.order-card[data-order-id="done"] .board-action.action-green')).not.toBeNull();
   });
 
@@ -274,10 +300,13 @@ describe('SellerOrdersPageComponent', () => {
     });
   });
 
-  it('does not use an accordion as the accepted-orders layout', () => {
+  it('starts each board order collapsed with a compact code and customer header', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {
-        return of({ items: [buildOrder({ id: 'compact', code: 'CPT', status: OrderStatus.Preparing })], totalItems: 1 });
+        return of({
+          items: [buildOrder({ id: 'compact', code: 'CPT', status: OrderStatus.Preparing, customerName: 'Ana Souza', total: 42 })],
+          totalItems: 1,
+        });
       }
       return of({ items: [], totalItems: 0 });
     });
@@ -287,9 +316,177 @@ describe('SellerOrdersPageComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.status-grid')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.accepted-orders-list')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.order-accordion')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.order-accordion-header')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.order-status-sequence')).toBeNull();
+    expect(fixture.componentInstance.isOrderExpanded('compact')).toBe(false);
+    expect(fixture.componentInstance.expandedOrderIds().size).toBe(0);
+
+    const card = findOrderCard(fixture, 'compact');
+    const toggle = findOrderToggle(card);
+    const body = orderBody(card);
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle.getAttribute('aria-controls')).toBe(body.id);
+    expect(toggle.querySelector('.order-code')?.textContent).toContain('#CPT');
+    expect(toggle.querySelector('.order-customer')?.textContent).toContain('Ana Souza');
+    expect(toggle.querySelector('.order-card-chevron')?.classList.contains('bi-chevron-down')).toBe(true);
+    expect(toggle.querySelector('.order-card-chevron')?.classList.contains('bi-chevron-up')).toBe(false);
+    expect(body.hasAttribute('hidden')).toBe(true);
+    expect(body.querySelector('.card-footer')).not.toBeNull();
+  });
+
+  it('toggles an order open to reveal items, totals and the status action, then closes it', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [buildOrder({ id: 'compact', code: 'CPT', status: OrderStatus.Preparing, customerName: 'Ana Souza', total: 42 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockReturnValue(of({
+      id: 'compact',
+      code: 'CPT',
+      customerName: 'Ana Souza',
+      items: [{ productName: 'Suco', quantity: 1, unitPrice: 12, totalPrice: 12 }],
+      subtotal: 42,
+      deliveryFee: 0,
+      total: 42,
+      createdAtUtc: '',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = findOrderCard(fixture, 'compact');
+    const toggle = findOrderToggle(card);
+    const body = orderBody(card);
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isOrderExpanded('compact')).toBe(true);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.querySelector('.order-card-chevron')?.classList.contains('bi-chevron-up')).toBe(true);
+    expect(toggle.querySelector('.order-card-chevron')?.classList.contains('bi-chevron-down')).toBe(false);
+    expect(body.hasAttribute('hidden')).toBe(false);
+    expect(body.textContent).toContain('Suco');
+    expect(body.textContent!.replace(/\u00a0/g, ' ')).toContain('R$ 42,00');
+    expect(body.querySelector('.board-action')?.textContent).toContain('Marcar como pronto');
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isOrderExpanded('compact')).toBe(false);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(body.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('keeps expansion state independent for each order id', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [
+            buildOrder({ id: 'a', code: 'A-1', status: OrderStatus.Preparing, customerName: 'Ana', total: 10 }),
+            buildOrder({ id: 'b', code: 'B-2', status: OrderStatus.Preparing, customerName: 'Bia', total: 20 }),
+          ],
+          totalItems: 2,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockImplementation((id: string) => of({
+      id,
+      code: id === 'a' ? 'A-1' : 'B-2',
+      items: [],
+      subtotal: 0,
+      deliveryFee: 0,
+      total: id === 'a' ? 10 : 20,
+      createdAtUtc: '',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const cardA = expandOrderCard(fixture, 'a');
+    expect(fixture.componentInstance.isOrderExpanded('a')).toBe(true);
+    expect(fixture.componentInstance.isOrderExpanded('b')).toBe(false);
+    expect(orderBody(cardA).hasAttribute('hidden')).toBe(false);
+
+    const cardB = expandOrderCard(fixture, 'b');
+    expect(fixture.componentInstance.isOrderExpanded('a')).toBe(true);
+    expect(fixture.componentInstance.isOrderExpanded('b')).toBe(true);
+    expect(orderBody(cardB).hasAttribute('hidden')).toBe(false);
+
+    findOrderToggle(cardA).click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isOrderExpanded('a')).toBe(false);
+    expect(fixture.componentInstance.isOrderExpanded('b')).toBe(true);
+    expect(orderBody(cardA).hasAttribute('hidden')).toBe(true);
+    expect(orderBody(cardB).hasAttribute('hidden')).toBe(false);
+  });
+
+  it('does not open details or advance the order when the accordion header is toggled', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [buildOrder({ id: 'compact', code: 'CPT', status: OrderStatus.Preparing, customerName: 'Ana Souza', total: 42 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const toggle = findOrderToggle(findOrderCard(fixture, 'compact'));
+    toggle.click();
+    fixture.detectChanges();
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.order-details-dialog')).toBeNull();
+    expect(fixture.componentInstance.pendingAction()).toBeNull();
+    expect(orderServiceMock.updateStoreOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it('opens details from the expanded card without collapsing the accordion', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({
+          items: [buildOrder({ id: 'compact', code: 'CPT', status: OrderStatus.Preparing, customerName: 'Ana Souza', total: 42 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockReturnValue(of({
+      id: 'compact',
+      code: 'CPT',
+      customerName: 'Ana Souza',
+      items: [{ productName: 'Suco', quantity: 1, unitPrice: 12, totalPrice: 12 }],
+      subtotal: 42,
+      deliveryFee: 0,
+      total: 42,
+      createdAtUtc: '',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = expandOrderCard(fixture, 'compact');
+    const detailsButton = card.querySelector<HTMLButtonElement>('.details-trigger');
+    expect(detailsButton).not.toBeNull();
+
+    detailsButton!.click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.order-details-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog.textContent).toContain('#CPT');
+    expect(fixture.componentInstance.isOrderExpanded('compact')).toBe(true);
+    expect(fixture.componentInstance.pendingAction()).toBeNull();
   });
 
   it('shows new order cards in the top panel', () => {
@@ -305,7 +502,9 @@ describe('SellerOrdersPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('ABC');
     expect(fixture.nativeElement.textContent).toContain('Joao');
-    expect(fixture.nativeElement.textContent).toContain('Aceitar pedido');
+
+    const card = expandOrderCard(fixture, '1');
+    expect(card.textContent).toContain('Aceitar pedido');
   });
 
   it('shows accepted orders in their status columns with actions', () => {
@@ -325,8 +524,8 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.status-stack .order-card').length).toBe(2);
     expect(fixture.nativeElement.querySelector('.status-grid')).not.toBeNull();
 
-    expect(findOrderCard(fixture, '2').textContent).toContain('Marcar como pronto');
-    expect(findOrderCard(fixture, '3').textContent).toContain('Saiu para entrega');
+    expect(expandOrderCard(fixture, '2').textContent).toContain('Marcar como pronto');
+    expect(expandOrderCard(fixture, '3').textContent).toContain('Saiu para entrega');
   });
 
   it('shows confirmation modal when advancing status', () => {
@@ -340,8 +539,10 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const btn = fixture.nativeElement.querySelector('.action-orange');
-    if (btn) btn.click();
+    const card = expandOrderCard(fixture, '2');
+    const btn = card.querySelector<HTMLButtonElement>('.action-orange');
+    expect(btn).not.toBeNull();
+    btn!.click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Confirmar');
@@ -568,9 +769,10 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const refCard = fixture.nativeElement.querySelector('.new-orders-list .order-card');
-    expect(refCard.textContent).toContain('#URB-123456');
-    expect(refCard.textContent).toContain('Joao Silva');
+    const refCard = expandOrderCard(fixture, '1');
+    const toggle = findOrderToggle(refCard);
+    expect(toggle.querySelector('.order-code')?.textContent).toContain('#URB-123456');
+    expect(toggle.querySelector('.order-customer')?.textContent).toContain('Joao Silva');
     expect(refCard.textContent).toContain('1199999');
   });
 
@@ -608,7 +810,8 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Concluído');
+    const card = expandOrderCard(fixture, 'done');
+    expect(card.querySelector('.board-action.action-green')?.textContent).toContain('Concluído');
   });
 
   it('does not show Concluído for delivered orders without customer confirmation', () => {
@@ -622,7 +825,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="wait"]');
+    const card = expandOrderCard(fixture, 'wait');
     expect(card.querySelector('.board-action.action-green')).toBeNull();
     expect(card.textContent).not.toContain('Concluído');
   });
@@ -641,7 +844,7 @@ describe('SellerOrdersPageComponent', () => {
     const delivered = fixture.componentInstance.statusGroups().delivered[0];
     expect(fixture.componentInstance.canComplete(delivered)).toBe(true);
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-done"]');
+    const card = expandOrderCard(fixture, 'pickup-done');
     expect(card.textContent).toContain('Concluir retirada');
     expect(card.textContent).not.toContain('Concluído');
     expect(card.querySelector('.board-action.action-green')).not.toBeNull();
@@ -662,7 +865,8 @@ describe('SellerOrdersPageComponent', () => {
     const action = fixture.componentInstance.cardAction(fixture.componentInstance.statusGroups().delivered[0]);
     expect(action).toEqual({ kind: 'complete', label: 'Concluir retirada', css: 'action-green' });
 
-    fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-done"] .board-action').click();
+    const card = expandOrderCard(fixture, 'pickup-done');
+    card.querySelector<HTMLButtonElement>('.board-action')!.click();
     fixture.detectChanges();
 
     expect(orderServiceMock.completeOrder).toHaveBeenCalledWith('pickup-done');
@@ -696,12 +900,14 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     for (const id of ['many', 'one']) {
-      const card = fixture.nativeElement.querySelector(`.order-card[data-order-id="${id}"]`);
-      const children = Array.from(card.children);
-      const last = children[children.length - 1];
-      expect(last.classList.contains('card-footer')).toBe(true);
-      expect(last.querySelector('.total-row')).not.toBeNull();
-      expect(last.querySelector('.board-action')).not.toBeNull();
+      const card = expandOrderCard(fixture, id);
+      expect(card.firstElementChild?.classList.contains('order-card-toggle')).toBe(true);
+      const body = orderBody(card);
+      const last = body.lastElementChild;
+      expect(last?.classList.contains('card-footer')).toBe(true);
+      expect(last!.querySelector('.total-row')).not.toBeNull();
+      expect(last!.querySelector('.board-action')).not.toBeNull();
+      expect(last!.lastElementChild?.classList.contains('board-action')).toBe(true);
     }
   });
 
@@ -737,6 +943,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
+    expandOrderCard(fixture, 'done');
     fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().delivered[0]);
     fixture.detectChanges();
 
@@ -971,7 +1178,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.orders().map((order) => order.id)).toContain('fresh');
   });
 
-  it('opens full order details when the code in the new-orders column is clicked', () => {
+  it('opens full order details from the expanded new-order card', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Received) {
         return of({
@@ -992,9 +1199,10 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const code = fixture.nativeElement.querySelector('.new-orders-list .ref-code');
-    expect(code).not.toBeNull();
-    code.click();
+    const card = expandOrderCard(fixture, '1');
+    const detailsTrigger = card.querySelector<HTMLButtonElement>('.details-trigger');
+    expect(detailsTrigger).not.toBeNull();
+    detailsTrigger!.click();
     fixture.detectChanges();
 
     const dialog = fixture.nativeElement.querySelector('.order-details-dialog');
@@ -1007,7 +1215,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(dialog.textContent).toContain('X-Burger');
   });
 
-  it('opens the same full details modal from the top-panel code without triggering accept', () => {
+  it('opens the same full details modal from the expanded top-panel card without triggering accept', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Received) {
         return of({
@@ -1028,13 +1236,14 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const topPanelCode = fixture.nativeElement.querySelector('.order-card .ref-code');
-    expect(topPanelCode).not.toBeNull();
+    const card = expandOrderCard(fixture, '1');
+    const detailsTrigger = card.querySelector<HTMLButtonElement>('.details-trigger');
+    expect(detailsTrigger).not.toBeNull();
 
-    const acceptBtn = fixture.nativeElement.querySelector('.order-card .board-action');
+    const acceptBtn = card.querySelector('.board-action');
     expect(acceptBtn).not.toBeNull();
 
-    topPanelCode.click();
+    detailsTrigger!.click();
     fixture.detectChanges();
 
     const dialog = fixture.nativeElement.querySelector('.order-details-dialog');
@@ -1047,7 +1256,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.pendingAction()).toBeNull();
   });
 
-  it('shows a clickable code in every status column card that opens details without advancing', () => {
+  it('shows a details trigger in every status column card that opens details without advancing', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       const items: any[] = [];
       if (status === OrderStatus.Preparing) items.push(buildOrder({ id: 'prep', code: 'PREP', status: OrderStatus.Preparing }));
@@ -1071,9 +1280,10 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     for (const [id, code] of [['prep', 'PREP'], ['ready', 'READY'], ['deliv', 'DELIV'], ['done', 'DONE']] as const) {
-      const codeButton = fixture.nativeElement.querySelector(`.order-card[data-order-id="${id}"] .ref-code`);
-      expect(codeButton).not.toBeNull();
-      codeButton.click();
+      const card = expandOrderCard(fixture, id);
+      const detailsButton = card.querySelector<HTMLButtonElement>('.details-trigger');
+      expect(detailsButton).not.toBeNull();
+      detailsButton!.click();
       fixture.detectChanges();
 
       const dialog = fixture.nativeElement.querySelector('.order-details-dialog');
@@ -1108,7 +1318,7 @@ describe('SellerOrdersPageComponent', () => {
     fixture.detectChanges();
 
     expect(orderServiceMock.getStoreOrder).toHaveBeenCalledWith('prep-1');
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"]');
+    const card = expandOrderCard(fixture, 'prep-1');
     expect(card.textContent).toContain('Suco');
   });
 
@@ -1251,10 +1461,12 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const codeButton = fixture.nativeElement.querySelector('.new-orders-list .ref-code');
-    const focusSpy = jest.spyOn(codeButton, 'focus').mockImplementation(jest.fn());
+    const card = expandOrderCard(fixture, '1');
+    const detailsButton = card.querySelector<HTMLButtonElement>('.details-trigger');
+    expect(detailsButton).not.toBeNull();
+    const focusSpy = jest.spyOn(detailsButton!, 'focus').mockImplementation(jest.fn());
 
-    codeButton.click();
+    detailsButton!.click();
     fixture.detectChanges();
 
     fixture.componentInstance.closeOrderDetails();
@@ -1350,7 +1562,8 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('.new-orders-list .ref-code').click();
+    const card = expandOrderCard(fixture, '1');
+    card.querySelector<HTMLButtonElement>('.details-trigger')!.click();
     fixture.detectChanges();
 
     const dialog = fixture.nativeElement.querySelector('.order-details-dialog');
@@ -1681,11 +1894,12 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const codeButton = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"] .ref-code');
-    expect(codeButton).not.toBeNull();
-    const focusSpy = jest.spyOn(codeButton, 'focus').mockImplementation(jest.fn());
+    const card = expandOrderCard(fixture, 'prep-1');
+    const detailsButton = card.querySelector<HTMLButtonElement>('.details-trigger');
+    expect(detailsButton).not.toBeNull();
+    const focusSpy = jest.spyOn(detailsButton!, 'focus').mockImplementation(jest.fn());
 
-    codeButton.click();
+    detailsButton!.click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.btn-retry')).not.toBeNull();
@@ -1857,9 +2071,10 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const badge = fixture.nativeElement.querySelector('.new-orders-list .pickup-badge');
+    const card = expandOrderCard(fixture, '1');
+    const badge = card.querySelector('.pickup-badge');
     expect(badge).not.toBeNull();
-    expect(badge.textContent).toContain('Retirada no balcão');
+    expect(badge!.textContent).toContain('Retirada no balcão');
   });
 
   it('does not show the pickup badge on delivery orders', () => {
@@ -1912,7 +2127,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     const text = card.textContent.replace(/\u00a0/g, ' ');
     expect(text).toContain('2x');
     expect(text).toContain('X-Burger');
@@ -1948,7 +2163,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     expect(card.querySelectorAll('.item-row').length).toBe(2);
     expect(card.textContent).toContain('Coca');
     expect(card.textContent).toContain('Guarana');
@@ -1969,7 +2184,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     const text = card.textContent.replace(/\u00a0/g, ' ');
     expect(text).toContain('Subtotal');
     expect(text).toContain('Taxa de entrega');
@@ -1979,7 +2194,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(text).toContain('R$ 75,00');
   });
 
-  it('renders the status columns with empty groups and without the accepted-orders list', () => {
+  it('renders the status columns with empty groups and without order cards', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
@@ -1987,7 +2202,8 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.status-grid')).not.toBeNull();
     expect(fixture.nativeElement.querySelectorAll('.status-col').length).toBe(4);
     expect(fixture.nativeElement.querySelector('.accepted-orders-list')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.order-accordion')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.order-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.order-card-toggle')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Novos pedidos');
     expect(fixture.nativeElement.textContent).toContain('Nenhum pedido novo');
     expect(fixture.nativeElement.textContent).not.toContain('Pedidos aceitos');
@@ -2017,11 +2233,11 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep"]');
+    const card = expandOrderCard(fixture, 'prep');
     expect(card.textContent).toContain('Suco');
     expect(card.textContent).toContain('Marcar como pronto');
-    const codeButton = card.querySelector('.ref-code');
-    expect(codeButton).not.toBeNull();
+    const detailsButton = card.querySelector('.details-trigger');
+    expect(detailsButton).not.toBeNull();
   });
 
   it('renders optionPrices with individual names and values in the details modal without duplicating legacy names', () => {
@@ -2098,7 +2314,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     const text = card.textContent.replace(/\u00a0/g, ' ');
     expect(text).toContain('Com fritas');
     expect(text).toContain('Bacon, Queijo');
@@ -2116,7 +2332,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="pickup-ready"]');
+    const card = expandOrderCard(fixture, 'pickup-ready');
     expect(card.textContent).toContain('Concluir retirada');
     expect(card.textContent).not.toContain('Saiu para entrega');
 
@@ -2159,10 +2375,10 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.componentInstance.orderItems('b')[0].productName).toBe('Suco');
     expect(fixture.componentInstance.hasItemsError('a')).toBe(true);
 
-    const cardB = fixture.nativeElement.querySelector('.order-card[data-order-id="b"]');
+    const cardB = expandOrderCard(fixture, 'b');
     expect(cardB.textContent).toContain('Suco');
 
-    const cardA = fixture.nativeElement.querySelector('.order-card[data-order-id="a"]');
+    const cardA = expandOrderCard(fixture, 'a');
     expect(cardA.querySelector('.items-retry')).not.toBeNull();
   });
 
@@ -2376,7 +2592,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     expect(card.textContent).toContain('Subtotal');
     expect(card.textContent).toContain('Total');
     expect(card.textContent).not.toContain('Taxa de entrega');
@@ -2424,7 +2640,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.new-orders-list .order-card');
+    const card = expandOrderCard(fixture, '1');
     const text = card.textContent.replace(/\u00a0/g, ' ');
     expect(text).toContain('Taxa de entrega');
     expect(text).toContain('R$ 5,00');
@@ -2443,7 +2659,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="prep-1"]');
+    const card = expandOrderCard(fixture, 'prep-1');
     expect(card.textContent).toContain('Carregando itens');
 
     prefetch.next({ id: 'prep-1', code: 'PREP-1', items: [{ productName: 'Suco', quantity: 1, unitPrice: 12, totalPrice: 12 }], subtotal: 40, deliveryFee: 0, total: 40, createdAtUtc: '' });
@@ -2466,7 +2682,7 @@ describe('SellerOrdersPageComponent', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.order-card[data-order-id="a"]');
+    const card = expandOrderCard(fixture, 'a');
     expect(card.textContent).not.toContain('Carregando itens');
     expect(card.querySelector('.items-retry')).not.toBeNull();
   });

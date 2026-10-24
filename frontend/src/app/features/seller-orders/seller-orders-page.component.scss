@@ -133,12 +133,12 @@
   background: var(--orders-card);
   border: 1px solid #edf0f7;
   border-radius: 2px;
-  padding: 18px 16px 16px;
   box-shadow: 0 18px 36px rgba(18, 24, 40, 0.04);
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 
   &.is-target {
     border-color: var(--app-brand, #d54a51);
@@ -151,11 +151,69 @@
   }
 }
 
-.card-head {
+.order-card-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 14px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--orders-text);
+  cursor: pointer;
+
+  &:hover {
+    background: #f7f8fb;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-brand, #d54a51);
+    outline-offset: -2px;
+  }
+}
+
+.order-card-chevron {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--orders-muted);
+}
+
+.order-card-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.order-code {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--orders-blue);
+  white-space: nowrap;
+}
+
+.order-customer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--orders-text);
+}
+
+.order-card-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid #f1f3f9;
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .card-time {
@@ -170,6 +228,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex: 0 0 auto;
   padding: 2px 8px;
   border-radius: 999px;
   background: #eaf2ff;
@@ -180,7 +239,7 @@
 }
 
 .card-meta {
-  margin-bottom: 18px;
+  margin: 14px 0 18px;
   font-size: 12px;
   line-height: 1.12;
   color: #000;
@@ -188,25 +247,11 @@
   strong { font-weight: 800; }
 }
 
-.card-meta .ref-code {
-  padding: 0;
-  margin: 0 0 0 4px;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-weight: 800;
-  color: var(--orders-blue);
-  cursor: pointer;
+.card-badge-row {
+  margin-top: 14px;
 
-  &:hover {
-    text-decoration: underline;
-    color: var(--app-brand, #d54a51);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--app-brand, #d54a51);
-    outline-offset: 2px;
-    border-radius: 2px;
+  & + .card-meta {
+    margin-top: 8px;
   }
 }
 
@@ -350,7 +395,7 @@
 
 .board-action {
   width: 100%;
-  min-height: 38px;
+  min-height: 44px;
   border: 0;
   border-radius: 7px;
   padding: 0 10px;
@@ -454,21 +499,29 @@
   flex-direction: column;
   gap: 10px;
 
-  .order-card {
+  .order-card.is-expanded {
     min-height: 320px;
   }
 }
 
-.ref-code {
+.details-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: 0 0 6px;
   padding: 0;
-  margin: 0;
   border: 0;
   background: transparent;
   font: inherit;
+  font-size: 12px;
   font-weight: 800;
   color: var(--orders-blue);
   cursor: pointer;
-  text-align: left;
+
+  .bi {
+    font-size: 11px;
+  }
 
   &:hover {
     text-decoration: underline;
