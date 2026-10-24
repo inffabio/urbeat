@@ -864,18 +864,15 @@ describe('TrackingPageComponent', () => {
       fixture.destroy();
     });
   describe('delivered celebration and local reset', () => {
-    it('renders the single return-to-menu action and no duplicated lower link', () => {
+    it('no longer renders the inline return-to-menu button above the closing content', () => {
       const fixture = TestBed.createComponent(TrackingPageComponent);
       fixture.detectChanges();
 
-      const primaryActions = fixture.debugElement.queryAll(By.css('section.screen-padding > button.primary-btn'));
-      expect(primaryActions.length).toBe(1);
-      expect(primaryActions[0].nativeElement.textContent).toContain('VOLTAR AO CARDÁPIO');
+      const content = fixture.debugElement.query(By.css('section.screen-padding'));
+      expect(content).not.toBeNull();
+      expect(content.queryAll(By.css('button.primary-btn'))).toEqual([]);
       expect(fixture.debugElement.query(By.css('app-back-to-menu-link'))).toBeNull();
-
-      primaryActions[0].nativeElement.click();
-
-      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+      expect(content.query(By.css('.help-card'))).not.toBeNull();
 
       fixture.destroy();
     });
