@@ -18,10 +18,11 @@ Simplificar a navegação do acompanhamento do pedido, encerrar visualmente a ex
 ### Quadro de pedidos do lojista
 
 - Adicionar `Separar tela pedidos` ao lado de `Tela cheia` na página `/app/pedidos`.
-- Abrir `/app/pedidos` em nova janela e tentar ativar tela cheia.
+- Abrir a rota dedicada `/app/pedidos-separados` em nova janela, reutilizando o mesmo quadro e os mesmos controles do topo.
+- A janela separada poderá usar o botão `Tela cheia`; para movê-la entre monitores, o lojista usa a barra nativa do navegador antes de ativar fullscreen ou posiciona a janela no monitor desejado antes do fullscreen.
 - Sincronizar o modo entre a janela principal e a janela separada usando `BroadcastChannel`, com fallback por `localStorage`.
 - No modo separado, a instância original mantém controles e navegação, mas apresenta a área de pedidos desabilitada/cinza e não renderiza novos pedidos.
-- Na janela separada, os eventos SignalR e a lista de pedidos permanecem ativos.
+- Na janela separada, os eventos SignalR e a lista de pedidos permanecem ativos; o dashboard original deixa de renderizar novos pedidos na área cinza.
 - Alterar o rótulo para `Fixar ao Dashboard`; ao confirmar, fechar a janela separada e restaurar a área original.
 - Se popup/tela cheia forem bloqueados ou a janela secundária for fechada, restaurar o modo normal sem perder o estado carregado.
 
@@ -29,7 +30,7 @@ Simplificar a navegação do acompanhamento do pedido, encerrar visualmente a ex
 
 O comportamento será implementado no frontend Angular existente, sem exclusão ou alteração de dados no backend. Um serviço/estado compartilhado de modo separado será responsável por:
 
-- identificar a janela controladora e a janela de pedidos;
+- identificar a janela do dashboard e a janela da rota `/app/pedidos-separados`;
 - publicar transições `open`, `close` e `secondary-closed` entre contextos;
 - impedir que a janela original processe/renderize novos pedidos enquanto estiver separada;
 - limpar recursos de `BroadcastChannel`, listeners e referências a `Window` no destroy.
