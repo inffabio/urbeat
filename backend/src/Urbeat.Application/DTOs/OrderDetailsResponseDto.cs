@@ -34,6 +34,20 @@ public sealed class OrderDetailsResponseDto
 
     public DateTime? SellerCompletedAtUtc { get; init; }
 
+    public Guid? DeliveryDriverId { get; init; }
+
+    public string? DeliveryDriverName { get; init; }
+
+    public DateTime? DeliveryStartedAtUtc { get; init; }
+
+    public DateTime? DeliveryPinConfirmedAtUtc { get; init; }
+
+    /// <summary>
+    /// Plain delivery PIN. Populated only by customer-facing reads; seller and driver
+    /// responses always leave it null.
+    /// </summary>
+    public string? DeliveryPin { get; init; }
+
     public string? AddressCep { get; init; }
 
     public string? AddressStreet { get; init; }

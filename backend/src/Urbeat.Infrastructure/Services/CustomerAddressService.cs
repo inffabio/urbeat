@@ -77,7 +77,9 @@ public sealed class CustomerAddressService : ICustomerAddressService
             State = normalized.State,
             Complement = normalized.Complement,
             Reference = normalized.Reference,
-            IsPrimary = normalized.IsPrimary
+            IsPrimary = normalized.IsPrimary,
+            Latitude = normalized.Latitude,
+            Longitude = normalized.Longitude
         };
 
         await _dbContext.CustomerAddresses.AddAsync(entity, cancellationToken);
@@ -122,6 +124,13 @@ public sealed class CustomerAddressService : ICustomerAddressService
         entity.Complement = normalized.Complement;
         entity.Reference = normalized.Reference;
         entity.IsPrimary = normalized.IsPrimary;
+        // The address form is not required to submit coordinates; keep the persisted pair when
+        // the request omits it so editing the street text never wipes the geocode.
+        if (normalized.Latitude.HasValue && normalized.Longitude.HasValue)
+        {
+            entity.Latitude = normalized.Latitude;
+            entity.Longitude = normalized.Longitude;
+        }
         entity.MarkAsUpdated();
 
         await WriteAuditLogAsync(userId, "CustomerAddressUpdated", nameof(CustomerAddress), entity.Id, "Customer address updated.", ipAddress, cancellationToken);
@@ -192,7 +201,9 @@ public sealed class CustomerAddressService : ICustomerAddressService
             State: state,
             Complement: request.Complement?.Trim(),
             Reference: request.Reference?.Trim(),
-            IsPrimary: request.IsPrimary);
+            IsPrimary: request.IsPrimary,
+            Latitude: request.Latitude,
+            Longitude: request.Longitude);
     }
 
     private async Task UnsetCurrentPrimaryAsync(Guid userId, CancellationToken cancellationToken)
@@ -237,5 +248,7 @@ public sealed class CustomerAddressService : ICustomerAddressService
         string State,
         string? Complement,
         string? Reference,
-        bool IsPrimary);
+        bool IsPrimary,
+        double? Latitude,
+        double? Longitude);
 }

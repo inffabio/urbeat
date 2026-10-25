@@ -16,8 +16,10 @@ public sealed class OrdersController : ControllerBase
     private readonly IOrderReportService _orderReportService;
     private readonly ICheckoutService _checkoutService;
     private readonly IOrderService _orderService;
+    private readonly IDeliveryDriverService _deliveryDriverService;
     private readonly IValidator<CheckoutRequestDto> _checkoutValidator;
     private readonly IValidator<UpdateOrderStatusRequestDto> _updateStatusValidator;
+    private readonly IValidator<AssignDeliveryDriverRequestDto> _assignDriverValidator;
 
 
 
@@ -26,13 +28,17 @@ public sealed class OrdersController : ControllerBase
         IOrderService orderService,
         IOrderReportService orderReportService,
         IValidator<CheckoutRequestDto> checkoutValidator,
-        IValidator<UpdateOrderStatusRequestDto> updateStatusValidator)
+        IValidator<UpdateOrderStatusRequestDto> updateStatusValidator,
+        IDeliveryDriverService deliveryDriverService,
+        IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator)
     {
         _checkoutService = checkoutService;
         _orderService = orderService;
         _orderReportService = orderReportService;
         _checkoutValidator = checkoutValidator;
         _updateStatusValidator = updateStatusValidator;
+        _deliveryDriverService = deliveryDriverService;
+        _assignDriverValidator = assignDriverValidator;
     }
     [HttpGet("store/report")]
     [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
@@ -239,6 +245,81 @@ public sealed class OrdersController : ControllerBase
 
         var deliveries = await _orderService.ListStoreDeliveriesAsync(sellerUserId.Value, cancellationToken);
         return Ok(deliveries);
+    }
+
+    [HttpPut("store/{orderId:guid}/delivery-driver")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AssignDeliveryDriver(
+        Guid orderId,
+        [FromBody] AssignDeliveryDriverRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _assignDriverValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validation.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    keySelector: group => group.Key,
+                    elementSelector: group => group.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null) return Unauthorized();
+
+        var result = await _deliveryDriverService.AssignAsync(
+            sellerUserId.Value,
+            orderId,
+            request.DeliveryDriverId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound) return NotFound();
+        if (result.Forbidden) return Forbid();
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = "O pedido não aceita atribuição de entregador neste estado." });
+        }
+        if (result.DriverNotAvailable)
+        {
+            return BadRequest(new { error = "Entregador indisponível ou vinculado a outra loja." });
+        }
+
+        return Ok(result.Order);
+    }
+
+    [HttpDelete("store/{orderId:guid}/delivery-driver")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RemoveDeliveryDriverAssignment(
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null) return Unauthorized();
+
+        var result = await _deliveryDriverService.RemoveAssignmentAsync(
+            sellerUserId.Value,
+            orderId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound) return NotFound();
+        if (result.Forbidden) return Forbid();
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = "A atribuição não pode ser removida depois que a entrega foi iniciada." });
+        }
+
+        return Ok(result.Order);
     }
 
     [HttpPatch("{orderId}/status")]

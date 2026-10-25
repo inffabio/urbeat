@@ -56,3 +56,7 @@ export function isSeller(token: string): boolean {
 export function isCustomer(token: string): boolean {
   return hasRole(token, 'Customer');
 }
+
+export function isDeliveryDriver(token: string): boolean {
+  return hasRole(token, 'DeliveryDriver');
+}

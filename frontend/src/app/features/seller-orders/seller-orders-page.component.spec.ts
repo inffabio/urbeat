@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
+import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
@@ -24,6 +25,11 @@ const isWindowsPlatformMock = isWindowsPlatform as jest.Mock;
 
 describe('SellerOrdersPageComponent', () => {
   let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock; completeOrder: jest.Mock };
+  let deliveryDriverServiceMock: {
+    listStoreDrivers: jest.Mock;
+    assignOrder: jest.Mock;
+    removeAssignment: jest.Mock;
+  };
   let automaticPrintMock: {
     enqueueAcceptedOrder: jest.Mock;
     reconcilePendingJobs: jest.Mock;
@@ -113,6 +119,11 @@ describe('SellerOrdersPageComponent', () => {
       statusTone: signal<'info' | 'success' | 'warning' | 'error' | null>(null),
     };
     toastServiceMock = { showSuccess: jest.fn().mockResolvedValue(undefined), showError: jest.fn().mockResolvedValue(undefined) };
+    deliveryDriverServiceMock = {
+      listStoreDrivers: jest.fn().mockReturnValue(of([])),
+      assignOrder: jest.fn().mockReturnValue(of({ id: 'order-1', code: 'ABC' })),
+      removeAssignment: jest.fn().mockReturnValue(of({ id: 'order-1', code: 'ABC' })),
+    };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
     signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
     const detached = signal(false);
@@ -137,6 +148,7 @@ describe('SellerOrdersPageComponent', () => {
       imports: [SellerOrdersPageComponent],
       providers: [
         { provide: OrderService, useValue: orderServiceMock },
+        { provide: DeliveryDriverService, useValue: deliveryDriverServiceMock },
         { provide: SignalRService, useValue: signalRServiceMock },
         { provide: AutomaticPrintQueueService, useValue: automaticPrintMock },
         { provide: ToastService, useValue: toastServiceMock },

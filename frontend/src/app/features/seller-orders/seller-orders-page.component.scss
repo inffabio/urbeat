@@ -784,3 +784,140 @@
   .status-grid { grid-template-columns: 1fr; }
   .col-title { text-align: left; }
 }
+
+.delivery-driver-panel {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 16px;
+  padding: 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 14px;
+  background: var(--app-surface-soft, #fff8f0);
+}
+
+.delivery-driver-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.delivery-driver-panel h3 {
+  margin: 0;
+  color: var(--app-ink, #161616);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.driver-state-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, .14);
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.driver-state-pill.is-success {
+  background: var(--app-success-green-soft, rgba(17, 148, 65, .14));
+  color: var(--app-success-green, #119441);
+}
+
+.driver-state-pill.is-route {
+  background: rgba(59, 130, 246, .14);
+  color: #1d4ed8;
+}
+
+.assigned-driver {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--app-ink, #161616);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.driver-assignment-hint {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.driver-assignment-hint a {
+  color: var(--app-brand, #d54a51);
+  font-weight: 800;
+}
+
+.driver-assignment-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.driver-assignment-field {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.driver-assignment-field span {
+  color: var(--app-text-muted, #767680);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.driver-assignment-field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--app-ink, #161616);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.driver-assign-button,
+.driver-remove-button {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.driver-assign-button {
+  border: 0;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+}
+
+.driver-remove-button {
+  justify-self: start;
+  border: 1px solid var(--app-line, #eadfd6);
+  background: #fff;
+  color: var(--app-error, #d32f2f);
+}
+
+.driver-assign-button:disabled,
+.driver-remove-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+@media (max-width: 560px) {
+  .driver-assignment-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

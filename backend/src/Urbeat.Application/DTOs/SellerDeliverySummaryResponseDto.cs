@@ -19,4 +19,12 @@ public sealed class SellerDeliverySummaryResponseDto
     public decimal Total { get; init; }
 
     public DateTime CreatedAtUtc { get; init; }
+
+    public Guid? DeliveryDriverId { get; init; }
+
+    public string? DeliveryDriverName { get; init; }
+
+    public DateTime? DeliveryStartedAtUtc { get; init; }
+
+    public DateTime? DeliveryPinConfirmedAtUtc { get; init; }
 }

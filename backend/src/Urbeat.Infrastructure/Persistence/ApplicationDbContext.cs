@@ -80,6 +80,12 @@ public sealed class ApplicationDbContext
     public DbSet<ProductAdditionalAssignment> ProductAdditionalAssignments => Set<ProductAdditionalAssignment>();
     public DbSet<StoreCustomer> StoreCustomers => Set<StoreCustomer>();
 
+    public DbSet<DeliveryDriver> DeliveryDrivers => Set<DeliveryDriver>();
+
+    public DbSet<StoreDeliveryDriver> StoreDeliveryDrivers => Set<StoreDeliveryDriver>();
+
+    public DbSet<OrderDeliveryAssignment> OrderDeliveryAssignments => Set<OrderDeliveryAssignment>();
+
     public DbSet<DeliveryNeighborhood> DeliveryNeighborhoods => Set<DeliveryNeighborhood>();
 
     public DbSet<City> Cities => Set<City>();
@@ -301,6 +307,63 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Total).HasPrecision(10, 2);
             entity.Property(x => x.SellerCompletedAtUtc).IsConcurrencyToken();
             entity.Property(x => x.StatusVersion).IsConcurrencyToken();
+            entity.Property(x => x.DeliveryPinHash).HasMaxLength(500);
+            entity.Property(x => x.DeliveryPinEncrypted).HasMaxLength(500);
+            // A concurrent PIN confirmation must never overwrite another confirmation. The
+            // assignment token below covers attempt/counter races; this one covers the order
+            // when it is already Delivered and no status transition happens.
+            entity.Property(x => x.DeliveryConfirmedAtUtc).IsConcurrencyToken();
+        });
+
+        builder.Entity<DeliveryDriver>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.NormalizedEmail).IsUnique();
+            entity.HasIndex(x => x.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+            entity.Property(x => x.FullName).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.NormalizedEmail).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.PhoneNumber).HasMaxLength(20);
+            entity.HasOne<IdentityUser<Guid>>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<StoreDeliveryDriver>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.StoreId, x.DeliveryDriverId }).IsUnique();
+            entity.HasIndex(x => x.InviteTokenHash).IsUnique().HasFilter("\"InviteTokenHash\" IS NOT NULL");
+            entity.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.PhoneNumber).HasMaxLength(20);
+            entity.Property(x => x.InviteTokenHash).HasMaxLength(64);
+            entity.HasOne<Store>()
+                .WithMany()
+                .HasForeignKey(x => x.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.DeliveryDriver)
+                .WithMany()
+                .HasForeignKey(x => x.DeliveryDriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<OrderDeliveryAssignment>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.OrderId).IsUnique();
+            entity.HasIndex(x => x.StoreId);
+            entity.HasIndex(x => x.DeliveryDriverId);
+            entity.Property(x => x.PinAttemptCount).HasDefaultValue(0);
+            entity.Property(x => x.ConcurrencyVersion).HasDefaultValue(0).IsConcurrencyToken();
+            entity.HasOne<Order>()
+                .WithMany()
+                .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.DeliveryDriver)
+                .WithMany()
+                .HasForeignKey(x => x.DeliveryDriverId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<OrderReview>(entity =>

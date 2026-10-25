@@ -193,6 +193,15 @@
         </div>
       </div>
 
+      @if (!isPickup() && o.deliveryPin) {
+        <div class="card delivery-pin-card">
+          <h2>PIN de entrega</h2>
+          <p>Informe este código ao entregador no momento da entrega. Ele confirma que o pedido chegou ao destino.</p>
+          <strong class="delivery-pin" aria-label="PIN de entrega">{{ o.deliveryPin }}</strong>
+          <small>Não compartilhe o PIN antes de receber o pedido.</small>
+        </div>
+      }
+
       <button type="button" class="card help-card" (click)="openHelp()">
         <div>
           <h3>Precisa de ajuda?</h3>

@@ -1,16 +1,22 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { DashboardPeriod, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange } from '../../core/utils/sao-paulo-date.helper';
 import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
+import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
+import {
+  SellerDeliveryDriver,
+  StoreDeliveryDriverStatus,
+} from '../../shared/models/delivery-driver.model';
 import { OrderDetails, OrderItem, OrderSummary } from '../../shared/models/order.model';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { OrderAcceptedForPrintingEvent } from '../seller-printing/seller-printing.models';
@@ -47,12 +53,13 @@ type BoardAction =
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './seller-orders-page.component.html',
   styleUrl: './seller-orders-page.component.scss',
 })
 export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
+  private readonly deliveryDriverService = inject(DeliveryDriverService);
   private readonly toast = inject(ToastService);
   private readonly automaticPrint = inject(AutomaticPrintQueueService);
   private readonly shell = inject(SellerShellFacade);
@@ -83,6 +90,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly isDetachedRoute = this.ordersWindow.isDetachedRoute;
   readonly isDetachedHost = this.ordersWindow.isDetachedHost;
   readonly OrderStatus = OrderStatus;
+  readonly FulfillmentType = FulfillmentType;
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly updatingOrderId = signal<string | null>(null);
@@ -98,6 +106,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly selectedPeriod = signal<DashboardPeriod>('today');
   readonly prefetchingOrderIds = signal<ReadonlySet<string>>(new Set());
   readonly expandedOrderIds = signal<ReadonlySet<string>>(new Set());
+  readonly deliveryDrivers = signal<SellerDeliveryDriver[]>([]);
+  readonly assignmentSelection = signal<string>('');
+  readonly assignmentSaving = signal(false);
 
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
@@ -117,6 +128,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     const composedAddress = details ? this.composeAddress(details) : '';
 
     return {
+      id: details?.id ?? summary?.id ?? '',
       code: details?.code ?? summary?.code ?? '',
       customerName: details?.customerName ?? summary?.customerName,
       customerPhoneNumber: details?.customerPhoneNumber ?? summary?.customerPhoneNumber,
@@ -130,8 +142,17 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       subtotal: details?.subtotal,
       deliveryFee: details?.deliveryFee,
       total: details?.total ?? summary?.total ?? 0,
+      deliveryDriverId: details?.deliveryDriverId ?? summary?.deliveryDriverId,
+      deliveryDriverName: details?.deliveryDriverName ?? summary?.deliveryDriverName,
+      deliveryStartedAtUtc: details?.deliveryStartedAtUtc ?? summary?.deliveryStartedAtUtc,
+      deliveryPinConfirmedAtUtc: details?.deliveryPinConfirmedAtUtc ?? summary?.deliveryPinConfirmedAtUtc,
+      sellerCompletedAtUtc: details?.sellerCompletedAtUtc ?? summary?.sellerCompletedAtUtc,
     };
   });
+
+  readonly assignableDrivers = computed(() =>
+    this.deliveryDrivers().filter((driver) => driver.status === StoreDeliveryDriverStatus.Active),
+  );
 
   private readonly allStatuses = [
     OrderStatus.Received,
@@ -222,6 +243,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     }
     this.registerOrderStatusListener();
     this.registerFullscreenListeners();
+    this.loadDeliveryDrivers();
   }
 
   ngOnDestroy(): void {
@@ -520,6 +542,10 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   openOrderDetails(orderId: string, event?: Event): void {
     this.selectedOrderId.set(orderId);
     this.selectedOrderError.set(false);
+    const summary = this.orders().find((order) => order.id === orderId);
+    this.assignmentSelection.set(
+      summary?.deliveryDriverId ?? this.orderDetails().get(orderId)?.deliveryDriverId ?? '',
+    );
     const trigger = event?.currentTarget;
     if (trigger instanceof HTMLElement) {
       this.selectedOrderTrigger = trigger;
@@ -654,6 +680,80 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     return order.status === OrderStatus.Delivered
       && !order.sellerCompletedAtUtc
       && (!!order.deliveryConfirmedAtUtc || this.isPickup(order));
+  }
+
+  canAssignDeliveryDriver(order: {
+    fulfillmentType?: FulfillmentType;
+    status?: OrderStatus;
+    deliveryStartedAtUtc?: string;
+    sellerCompletedAtUtc?: string;
+  }): boolean {
+    return order.fulfillmentType === FulfillmentType.Delivery
+      && (order.status === OrderStatus.Ready || order.status === OrderStatus.OnDelivery)
+      && !order.deliveryStartedAtUtc
+      && !order.sellerCompletedAtUtc;
+  }
+
+  assignDeliveryDriver(orderId: string): void {
+    const driverId = this.assignmentSelection();
+    if (!driverId || this.assignmentSaving()) return;
+
+    this.assignmentSaving.set(true);
+    this.deliveryDriverService.assignOrder(orderId, driverId).subscribe({
+      next: (order) => {
+        this.assignmentSaving.set(false);
+        this.patchOrderFromDetails(order);
+        void this.toast.showSuccess('Entregador atribuído.');
+      },
+      error: (err) => {
+        this.assignmentSaving.set(false);
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível atribuir o entregador.');
+      },
+    });
+  }
+
+  removeDeliveryDriver(orderId: string): void {
+    if (this.assignmentSaving()) return;
+
+    this.assignmentSaving.set(true);
+    this.deliveryDriverService.removeAssignment(orderId).subscribe({
+      next: (order) => {
+        this.assignmentSaving.set(false);
+        this.assignmentSelection.set('');
+        this.patchOrderFromDetails(order);
+        void this.toast.showSuccess('Atribuição removida.');
+      },
+      error: (err) => {
+        this.assignmentSaving.set(false);
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível remover a atribuição.');
+      },
+    });
+  }
+
+  private loadDeliveryDrivers(): void {
+    this.deliveryDriverService.listStoreDrivers().subscribe({
+      next: (drivers) => this.deliveryDrivers.set(drivers),
+      error: () => this.deliveryDrivers.set([]),
+    });
+  }
+
+  private patchOrderFromDetails(order: OrderDetails): void {
+    this.orders.update((items) =>
+      items.map((item) => (item.id === order.id ? {
+        ...item,
+        status: order.status,
+        deliveryDriverId: order.deliveryDriverId,
+        deliveryDriverName: order.deliveryDriverName,
+        deliveryStartedAtUtc: order.deliveryStartedAtUtc,
+        deliveryPinConfirmedAtUtc: order.deliveryPinConfirmedAtUtc,
+        deliveryConfirmedAtUtc: order.deliveryConfirmedAtUtc,
+      } : item)),
+    );
+    this.orderDetails.update((details) => {
+      const updated = new Map(details);
+      updated.set(order.id, order);
+      return updated;
+    });
   }
 
   firstName(customerName?: string): string {

@@ -6,7 +6,7 @@ namespace Urbeat.Infrastructure.Identity;
 
 public sealed class AdminUserSeeder
 {
-    private static readonly string[] Roles = ["Admin", "Seller", "Customer"];
+    private static readonly string[] Roles = ["Admin", "Seller", "Customer", "DeliveryDriver"];
 
     private readonly UserManager<IdentityUser<Guid>> _userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;

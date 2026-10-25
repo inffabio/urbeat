@@ -1,0 +1,286 @@
+:host {
+  display: block;
+}
+
+.drivers-page .btn-invite {
+  background: var(--app-brand, #d54a51);
+  border-color: var(--app-brand, #d54a51);
+  color: #fff;
+}
+
+.drivers-table td {
+  vertical-align: middle;
+}
+
+.driver-name {
+  display: block;
+  color: var(--dash-text, #111426);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.driver-email,
+.driver-meta {
+  display: block;
+  color: var(--dash-muted, #7d8298);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.driver-phone {
+  color: var(--app-brand, #d54a51);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.driver-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.driver-action {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--app-text-secondary, #5a5a63);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.driver-action:hover:not(:disabled) {
+  border-color: var(--app-brand, #d54a51);
+  color: var(--app-brand, #d54a51);
+}
+
+.driver-action.is-danger {
+  color: var(--app-error, #d32f2f);
+}
+
+.driver-action:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.driver-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--app-overlay, rgba(0, 0, 0, .45));
+}
+
+.driver-dialog {
+  width: min(100%, 480px);
+  max-height: min(92dvh, 720px);
+  overflow-y: auto;
+  border-radius: 20px;
+  background: var(--app-surface, #fff);
+  box-shadow: var(--shadow-lg, 0 30px 90px rgba(0, 0, 0, .18));
+  padding: 22px;
+}
+
+.driver-dialog:focus-visible {
+  outline: 2px solid var(--app-brand, #d54a51);
+  outline-offset: 3px;
+}
+
+.driver-dialog.is-confirm {
+  max-width: 420px;
+}
+
+.driver-dialog.is-confirm h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--app-ink, #161616);
+}
+
+.driver-dialog.is-confirm p {
+  margin: 0 0 18px;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.driver-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.driver-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--app-ink, #161616);
+}
+
+.dialog-close {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-text-secondary, #5a5a63);
+  cursor: pointer;
+}
+
+.driver-form {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--app-text-secondary, #5a5a63);
+}
+
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-ink, #161616);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--app-brand, #d54a51);
+  box-shadow: 0 0 0 3px var(--app-brand-shadow, rgba(213, 74, 81, .18));
+}
+
+.field-error {
+  color: var(--app-error, #d32f2f);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.driver-form-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-surface-soft, #fff8f0);
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.driver-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.driver-primary-button,
+.driver-danger-button,
+.seller-secondary-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.driver-primary-button {
+  border: 0;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+}
+
+.driver-danger-button {
+  border: 0;
+  background: var(--app-error, #d32f2f);
+  color: #fff;
+}
+
+.driver-primary-button:disabled,
+.driver-danger-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .drivers-page .top-actions {
+    width: 100%;
+  }
+
+  .drivers-page .top-actions .btn-soft {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .drivers-table thead {
+    display: none;
+  }
+
+  .drivers-table,
+  .drivers-table tbody,
+  .drivers-table tr,
+  .drivers-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .drivers-table tr {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--app-line, #eadfd6);
+  }
+
+  .drivers-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    border: 0;
+    text-align: right;
+  }
+
+  .drivers-table td::before {
+    content: attr(data-label);
+    color: var(--app-text-muted, #767680);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .driver-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.drivers-page .seller-status-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--app-surface-soft, #fff8f0);
+  color: var(--app-text-secondary, #5a5a63);
+}
+
+.drivers-page .seller-status-badge.is-warning {
+  background: rgba(245, 158, 11, .16);
+  color: #9a5b00;
+}

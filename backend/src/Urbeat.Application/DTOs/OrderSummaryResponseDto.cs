@@ -35,4 +35,12 @@ public sealed class OrderSummaryResponseDto
     public DateTime? DeliveryConfirmedAtUtc { get; init; }
 
     public DateTime? SellerCompletedAtUtc { get; init; }
+
+    public Guid? DeliveryDriverId { get; init; }
+
+    public string? DeliveryDriverName { get; init; }
+
+    public DateTime? DeliveryStartedAtUtc { get; init; }
+
+    public DateTime? DeliveryPinConfirmedAtUtc { get; init; }
 }

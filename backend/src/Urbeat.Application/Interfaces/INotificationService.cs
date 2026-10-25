@@ -57,6 +57,18 @@ public interface INotificationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Pushes a live order status event to the seller dashboard. Driver-driven transitions use it
+    /// so the board reflects the change without waiting for the next manual refresh.
+    /// </summary>
+    Task<bool> NotifySellerOrderStatusUpdatedAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        string orderCode,
+        Domain.Entities.OrderStatus status,
+        DateTime changedAtUtc,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Pushes the seller acceptance event used to trigger automatic printing. Delivery is
     /// best-effort/at-least-once; callers must tolerate duplicates and reconcile through the
     /// authoritative store orders endpoint.

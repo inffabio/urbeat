@@ -52,6 +52,9 @@
           @if (order.customerPhoneNumber) { <div><strong>Contato:</strong> {{ order.customerPhoneNumber }}</div> }
           @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }
           <div><strong>Pagamento:</strong> {{ paymentLabel(order.paymentMethod) }}</div>
+          @if (!isPickupType(order.fulfillmentType) && order.deliveryDriverName) {
+            <div><strong>Entregador:</strong> {{ order.deliveryDriverName }}</div>
+          }
         </div>
 
         <div class="items-title">Itens do Pedido</div>
@@ -214,7 +217,77 @@
           @if (selected.createdAtUtc) { <div><strong>Data:</strong> {{ formatOrderDate(selected.createdAtUtc) }}</div> }
           @if (selected.notes) { <div><strong>Notas do pedido:</strong> {{ selected.notes }}</div> }
           <div><strong>Pagamento:</strong> {{ paymentLabel(selected.paymentMethod) }}</div>
+          @if (selected.fulfillmentType === FulfillmentType.Delivery) {
+            <div><strong>Entregador:</strong> {{ selected.deliveryDriverName || 'Não atribuído' }}</div>
+          }
         </div>
+
+        @if (selected.fulfillmentType === FulfillmentType.Delivery) {
+          <section class="delivery-driver-panel" aria-label="Entregador do pedido">
+            <div class="delivery-driver-panel-head">
+              <h3>Entregador</h3>
+              @if (selected.deliveryStartedAtUtc) {
+                <span class="driver-state-pill is-route">Entrega iniciada</span>
+              } @else if (selected.deliveryPinConfirmedAtUtc) {
+                <span class="driver-state-pill is-success">PIN confirmado</span>
+              }
+            </div>
+
+            @if (selected.deliveryDriverName) {
+              <p class="assigned-driver">
+                <i class="bi bi-person-check" aria-hidden="true"></i>
+                {{ selected.deliveryDriverName }}
+              </p>
+            }
+
+            @if (canAssignDeliveryDriver(selected)) {
+              @if (assignableDrivers().length === 0) {
+                <p class="driver-assignment-hint">
+                  Nenhum entregador ativo. Cadastre e aguarde o aceite em
+                  <a routerLink="/app/entregadores">Entregadores</a>.
+                </p>
+              } @else {
+                <div class="driver-assignment-controls">
+                  <label class="driver-assignment-field">
+                    <span>Atribuir a</span>
+                    <select
+                      [ngModel]="assignmentSelection()"
+                      (ngModelChange)="assignmentSelection.set($event)"
+                      aria-label="Selecionar entregador"
+                    >
+                      <option value="">Selecione um entregador</option>
+                      @for (driver of assignableDrivers(); track driver.id) {
+                        <option [value]="driver.id">{{ driver.name }}</option>
+                      }
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    class="driver-assign-button"
+                    [disabled]="!assignmentSelection() || assignmentSaving()"
+                    (click)="assignDeliveryDriver(selected.id)"
+                  >
+                    {{ assignmentSaving() ? 'Salvando...' : 'Atribuir' }}
+                  </button>
+                </div>
+                @if (selected.deliveryDriverId) {
+                  <button
+                    type="button"
+                    class="driver-remove-button"
+                    [disabled]="assignmentSaving()"
+                    (click)="removeDeliveryDriver(selected.id)"
+                  >
+                    Remover atribuição
+                  </button>
+                }
+              }
+            } @else if (!selected.deliveryDriverName) {
+              <p class="driver-assignment-hint">
+                A atribuição fica disponível quando o pedido está pronto para entrega.
+              </p>
+            }
+          </section>
+        }
 
         @if (selectedOrderLoading()) {
           <p class="muted">Carregando itens...</p>

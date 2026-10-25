@@ -70,7 +70,8 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
         var orderId = created!.OrderId;
 
         var orderDetails = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{orderId}");
-        orderDetails!.Code.Should().StartWith("URB-");
+        orderDetails!.Code.Should().NotBeNullOrWhiteSpace();
+        orderDetails.Code.Should().NotStartWith("URB-");
 
         recording.Clear();
 

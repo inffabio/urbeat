@@ -54,6 +54,23 @@ public sealed partial class NotificationService
         }, cancellationToken);
     }
 
+    public Task<bool> NotifySellerOrderStatusUpdatedAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        string orderCode,
+        OrderStatus status,
+        DateTime changedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return SendToSellerAsync(sellerUserId, "OrderStatusUpdated", new
+        {
+            orderId,
+            orderCode,
+            status,
+            changedAtUtc
+        }, cancellationToken);
+    }
+
     public Task<bool> NotifySellerOrderAcceptedForPrintingAsync(
         Guid sellerUserId,
         Guid orderId,

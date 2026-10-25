@@ -67,6 +67,60 @@ describe('AuthService', () => {
     });
   });
 
+  describe('loginDriver', () => {
+    it('stores the driver token in the tab session and clears other identities', () => {
+      localStorage.setItem('urbeat_token', 'legacy-customer-token');
+      sessionStorage.setItem('urbeat_seller_token', 'legacy-seller-token');
+      const accessToken = encodeTokenPayload({ role: 'DeliveryDriver' });
+
+      service.loginDriver({ email: 'driver@test.com', password: 'password123' }).subscribe((res) => {
+        expect(res.accessToken).toBe(accessToken);
+        expect(service.getToken()).toBe(accessToken);
+        expect(sessionStorage.getItem('urbeat_driver_token')).toBe(accessToken);
+        expect(sessionStorage.getItem('urbeat_seller_token')).toBeNull();
+        expect(localStorage.getItem('urbeat_token')).toBeNull();
+      });
+
+      const req = httpMock.expectOne('/api/auth/login/driver');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ email: 'driver@test.com', password: 'password123' });
+      req.flush({ accessToken, expiresAtUtc: '2026-08-04T22:30:00.000Z' });
+    });
+
+    it('restores the driver token from the tab session on reload', () => {
+      const accessToken = encodeTokenPayload({ role: 'DeliveryDriver' });
+      sessionStorage.setItem('urbeat_driver_token', accessToken);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [AuthService, ApiService, provideHttpClient(), provideHttpClientTesting()],
+      });
+      const freshService = TestBed.inject(AuthService);
+      httpMock = TestBed.inject(HttpTestingController);
+
+      expect(freshService.getToken()).toBe(accessToken);
+      expect(freshService.isLoggedIn()).toBe(true);
+    });
+
+    it('clears only the tab driver session on logout', () => {
+      const accessToken = encodeTokenPayload({ role: 'DeliveryDriver' });
+      sessionStorage.setItem('urbeat_driver_token', accessToken);
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [AuthService, ApiService, provideHttpClient(), provideHttpClientTesting()],
+      });
+      const freshService = TestBed.inject(AuthService);
+      httpMock = TestBed.inject(HttpTestingController);
+
+      freshService.logout();
+
+      expect(freshService.getToken()).toBeNull();
+      expect(sessionStorage.getItem('urbeat_driver_token')).toBeNull();
+      httpMock.expectNone('/api/auth/logout');
+    });
+  });
+
   describe('seller session isolation', () => {
     const sellerToken = encodeTokenPayload({ role: 'Seller' });
 

@@ -127,6 +127,7 @@ public static class InfrastructureServiceCollectionExtensions
             options.AddPolicy(AuthorizationPolicies.AdminOnly, policy => policy.RequireRole("Admin"));
             options.AddPolicy(AuthorizationPolicies.SellerOnly, policy => policy.RequireRole("Seller"));
             options.AddPolicy(AuthorizationPolicies.CustomerOnly, policy => policy.RequireRole("Customer"));
+            options.AddPolicy(AuthorizationPolicies.DeliveryDriverOnly, policy => policy.RequireRole(DeliveryDriverService.DeliveryDriverRole));
         });
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddSingleton(TimeProvider.System);
@@ -166,6 +167,7 @@ public static class InfrastructureServiceCollectionExtensions
                 : provider.GetRequiredService<FakeSmsVerificationMessageSender>();
         });
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IDeliveryDriverService, DeliveryDriverService>();
         services.AddScoped<IOrderPrintingService, OrderPrintingService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();

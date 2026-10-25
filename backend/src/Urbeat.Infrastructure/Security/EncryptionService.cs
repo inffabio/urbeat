@@ -8,7 +8,7 @@ public sealed class EncryptionService : IEncryptionService
 {
     private readonly byte[] _key;
 
-    private static readonly byte[] Nonce = "UrbeatSalt2026!"u8.ToArray();
+    private static readonly byte[] Nonce = SHA256.HashData("UrbeatSalt2026!"u8).Take(16).ToArray();
 
     public EncryptionService(IOptions<EncryptionOptions> options)
     {

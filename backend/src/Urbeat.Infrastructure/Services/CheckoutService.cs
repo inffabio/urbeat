@@ -10,17 +10,21 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Urbeat.Infrastructure.Helpers;
+using System.Globalization;
 
 namespace Urbeat.Infrastructure.Services;
 
 public sealed class CheckoutService : ICheckoutService
 {
+    private static readonly PasswordHasher<Order> DeliveryPinHasher = new();
+
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly INotificationService _notificationService;
     private readonly IOutboxWriter _outboxWriter;
     private readonly UserManager<IdentityUser<Guid>> _userManager;
     private readonly IPricingService _pricingService;
+    private readonly IEncryptionService? _encryptionService;
 
     public CheckoutService(
         ApplicationDbContext dbContext,
@@ -28,7 +32,8 @@ public sealed class CheckoutService : ICheckoutService
         INotificationService notificationService,
         IOutboxWriter outboxWriter,
         UserManager<IdentityUser<Guid>> userManager,
-        IPricingService pricingService)
+        IPricingService pricingService,
+        IEncryptionService? encryptionService = null)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
@@ -36,6 +41,7 @@ public sealed class CheckoutService : ICheckoutService
         _outboxWriter = outboxWriter;
         _userManager = userManager;
         _pricingService = pricingService;
+        _encryptionService = encryptionService;
     }
 
     public async Task<CheckoutResultDto> PreviewAsync(
@@ -254,10 +260,23 @@ public sealed class CheckoutService : ICheckoutService
             order.AddressState = address.State;
             order.AddressComplement = address.Complement;
             order.AddressReference = address.Reference;
+            // Snapshot of the destination coordinates at checkout. The driver portal reads the
+            // order snapshot, so a later address edit cannot move an order in progress.
+            order.DeliveryLatitude = address.Latitude;
+            order.DeliveryLongitude = address.Longitude;
         }
 
         order.Code = await GenerateOrderCodeAsync(cancellationToken);
         order.StatusVersion = 1;
+
+        if (isDelivery && _encryptionService is not null)
+        {
+            // The PIN is generated server-side. The hash validates the driver entry and the
+            // encrypted copy is only ever returned to the customer tracking endpoint.
+            var pin = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6", CultureInfo.InvariantCulture);
+            order.DeliveryPinHash = DeliveryPinHasher.HashPassword(order, pin);
+            order.DeliveryPinEncrypted = _encryptionService.Encrypt(pin);
+        }
 
         Serilog.Log.Information("{EventType} | Order created | OrderId={OrderId} | Code={Code} | CustomerUserId={CustomerUserId} | StoreId={StoreId} | Total={Total} | PaymentMethod={PaymentMethod} | FulfillmentType={FulfillmentType} | IP={IpAddress}",
             "ORDER_CREATED", order.Id, order.Code, customerUserId, store.Id, summary.Total, request.PaymentMethod, request.FulfillmentType, ipAddress);

@@ -7,4 +7,6 @@ public static class AuthorizationPolicies
     public const string SellerOnly = nameof(SellerOnly);
 
     public const string CustomerOnly = nameof(CustomerOnly);
+
+    public const string DeliveryDriverOnly = nameof(DeliveryDriverOnly);
 }

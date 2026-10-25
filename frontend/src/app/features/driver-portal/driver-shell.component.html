@@ -1,0 +1,19 @@
+<div class="driver-shell">
+  <header class="driver-shell-header">
+    <div class="driver-shell-brand">
+      <span class="brand-mark" aria-hidden="true">urbeat</span>
+      <span class="brand-copy">
+        <strong>Portal do entregador</strong>
+        <small>Entregas atribuídas a você</small>
+      </span>
+    </div>
+    <button type="button" class="logout-button" (click)="logout()">
+      <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+      Sair
+    </button>
+  </header>
+
+  <main class="driver-shell-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

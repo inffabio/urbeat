@@ -1,0 +1,74 @@
+<section class="driver-route" aria-label="Mapa da entrega" [attr.aria-busy]="routeLoading()">
+  @if (!hasMapData()) {
+    <div class="route-fallback" role="status">
+      <strong>Mapa indisponível para este pedido</strong>
+      <p>{{ statusMessage() }}</p>
+    </div>
+  } @else {
+    <div class="driver-map-frame">
+      <div
+        #mapCanvas
+        class="driver-map-canvas"
+        role="region"
+        aria-roledescription="mapa"
+        [attr.aria-label]="'Mapa da rota do pedido ' + order().code"
+      ></div>
+
+      @if (loading()) {
+        <div class="driver-map-loading" role="status">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          <span>Carregando mapa...</span>
+        </div>
+      }
+    </div>
+
+    <div class="route-legend" aria-hidden="true">
+      @if (storePoint()) {
+        <span class="legend-item"><span class="legend-dot is-store"></span>Loja</span>
+      }
+      @if (destinationPoint()) {
+        <span class="legend-item"><span class="legend-dot is-customer"></span>Cliente</span>
+      }
+      @if (locationStatus() === 'granted') {
+        <span class="legend-item"><span class="legend-dot is-driver"></span>Você</span>
+      }
+    </div>
+  }
+
+  <p class="route-status" aria-live="polite">
+    @if (routeLoading()) {
+      <i class="bi bi-arrow-repeat route-status-spinner" aria-hidden="true"></i>
+    }
+    {{ statusMessage() }}
+  </p>
+
+  @if (route(); as plan) {
+    @if (plan.kind === 'road') {
+      <p class="route-note">
+        Rota calculada por ruas. A navegação passo a passo continua disponível no Google Maps.
+      </p>
+    } @else {
+      <p class="route-note route-note-reference">
+        Rota por ruas indisponível agora. A linha exibida é apenas uma referência:
+        <strong>Distância aproximada em linha reta</strong>.
+      </p>
+    }
+  }
+
+  <a
+    class="route-external"
+    [href]="externalMapUrl()"
+    target="_blank"
+    rel="noopener noreferrer"
+    [attr.aria-label]="'Abrir rota do pedido ' + order().code + ' no Google Maps'"
+  >
+    <i class="bi bi-signpost-split" aria-hidden="true"></i>
+    Abrir rota no Google Maps
+  </a>
+
+  @if (tileError()) {
+    <p class="route-tile-warning" role="alert">
+      As imagens do mapa não carregaram. O endereço e a navegação externa continuam disponíveis.
+    </p>
+  }
+</section>

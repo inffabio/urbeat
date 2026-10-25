@@ -44,9 +44,29 @@ internal static class EmailTemplates
         return (subject, html);
     }
 
-    public static (string Subject, string HtmlBody) BuildPasswordReset(string userName, string resetLink)
+    public static (string Subject, string HtmlBody) BuildDeliveryDriverInvite(string storeName, string driverName, string inviteUrl)
     {
-        const string subject = "Recuperação de senha - UrBeat";
+        var subject = $"{storeName} convidou você para entregar no UrBeat";
+        var html = BaseLayout(
+            preheader: "Aceite o convite para começar a receber entregas.",
+            title: "Convite para entregar",
+            greeting: $"Olá, {System.Net.WebUtility.HtmlEncode(driverName)}!",
+            body: $"""
+                <p style="margin:0 0 16px 0;">A loja <strong>{System.Net.WebUtility.HtmlEncode(storeName)}</strong> convidou você para fazer entregas pelo <strong>UrBeat</strong>.</p>
+                <p style="margin:0;">Aceite o convite para acessar o portal do entregador e receber apenas os pedidos atribuídos a você por essa loja.</p>
+                """,
+            buttonText: "Aceitar convite",
+            buttonUrl: inviteUrl,
+            notice: "O convite é de uso único e expira em <strong>7 dias</strong>.",
+            footer: """
+                <p style="margin:0 0 8px 0;">Se você não reconhece este convite, ignore este e-mail. Nenhum acesso será criado.</p>
+                """);
+
+        return (subject, html);
+    }
+
+    public static (string Subject, string HtmlBody) BuildPasswordReset(string userName, string resetLink)
+    {        const string subject = "Recuperação de senha - UrBeat";
         var html = BaseLayout(
             preheader: "Crie uma nova senha para sua conta.",
             title: "Recuperação de senha",

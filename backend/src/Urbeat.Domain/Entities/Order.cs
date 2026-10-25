@@ -28,6 +28,16 @@ public sealed class Order : BaseEntity
 
     public string? AddressReference { get; set; }
 
+    /// <summary>
+    /// Delivery destination coordinates captured at checkout from the customer address.
+    /// They intentionally are a snapshot: editing the address later must not move an order
+    /// that is already being delivered. Null means the address had no geocoded coordinates
+    /// when the order was created.
+    /// </summary>
+    public double? DeliveryLatitude { get; set; }
+
+    public double? DeliveryLongitude { get; set; }
+
     public string? Notes { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
@@ -50,4 +60,20 @@ public sealed class Order : BaseEntity
     public DateTime? DeliveryConfirmedAtUtc { get; set; }
 
     public DateTime? SellerCompletedAtUtc { get; set; }
+
+    /// <summary>
+    /// Delivery PIN, stored as a PBKDF2 hash for authoritative validation. Only delivery
+    /// orders have a PIN; pickup orders keep the existing confirmation flow.
+    /// </summary>
+    public string? DeliveryPinHash { get; set; }
+
+    /// <summary>
+    /// Encrypted copy of the delivery PIN so the customer tracking endpoint can show it.
+    /// It is never returned to seller or driver responses.
+    /// </summary>
+    public string? DeliveryPinEncrypted { get; set; }
+
+    public DateTime? DeliveryPinConfirmedAtUtc { get; set; }
+
+    public Guid? DeliveryPinConfirmedByDriverId { get; set; }
 }

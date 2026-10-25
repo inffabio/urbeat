@@ -1,0 +1,96 @@
+<main class="driver-auth">
+  <section class="driver-auth-card" aria-labelledby="driver-invite-title">
+    <div class="driver-auth-brand" aria-hidden="true">urbeat</div>
+
+    @if (loading()) {
+      <div class="invite-state" role="status">
+        <h1 id="driver-invite-title">Validando convite</h1>
+        <p>Aguarde enquanto verificamos o convite da loja.</p>
+      </div>
+    } @else if (previewError()) {
+      <div class="invite-state" role="alert">
+        <h1 id="driver-invite-title">Convite indisponível</h1>
+        <p>O link é inválido ou já expirou. Peça para a loja reenviar o convite.</p>
+        <button type="button" class="driver-auth-submit" (click)="goToLogin()">Ir para o login</button>
+      </div>
+    } @else if (preview(); as info) {
+      @if (accepted()) {
+        <div class="invite-state is-success" role="status">
+          <span class="invite-icon" aria-hidden="true">
+            <i class="bi bi-check-circle"></i>
+          </span>
+          <h1 id="driver-invite-title">Convite aceito</h1>
+          <p>
+            Você agora faz parte da equipe de entrega
+            @if (acceptedStoreName()) {
+              da loja <strong>{{ acceptedStoreName() }}</strong>
+            }
+            . Entre com seu e-mail e senha para acessar os pedidos atribuídos a você.
+          </p>
+          <button type="button" class="driver-auth-submit" (click)="goToLogin()">Entrar no portal</button>
+        </div>
+      } @else if (info.alreadyAccepted) {
+        <div class="invite-state" role="status">
+          <h1 id="driver-invite-title">Convite já aceito</h1>
+          <p>Este convite da loja <strong>{{ info.storeName }}</strong> já foi utilizado. Entre no portal para continuar.</p>
+          <button type="button" class="driver-auth-submit" (click)="goToLogin()">Entrar no portal</button>
+        </div>
+      } @else if (!info.valid) {
+        <div class="invite-state" role="alert">
+          <h1 id="driver-invite-title">Convite expirado</h1>
+          <p>Este convite não está mais válido. Peça para a loja reenviar.</p>
+          <button type="button" class="driver-auth-submit" (click)="goToLogin()">Ir para o login</button>
+        </div>
+      } @else {
+        <span class="driver-auth-kicker">Convite de entrega</span>
+        <h1 id="driver-invite-title">{{ info.storeName }} convidou você</h1>
+        <p class="driver-auth-copy">
+          Olá, {{ info.driverName }}. Defina ou confirme sua senha para aceitar o convite de
+          <strong>{{ info.maskedEmail }}</strong>.
+        </p>
+
+        <form class="driver-auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <label class="field">
+            <span>Seu nome</span>
+            <input type="text" formControlName="fullName" autocomplete="name" />
+          </label>
+
+          <label class="field">
+            <span>Senha da conta</span>
+            <span class="password-wrap">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="Mínimo de 8 caracteres"
+              />
+              <button type="button" class="password-toggle" (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'">
+                {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            </span>
+            <small class="field-hint">
+              Se você já tem conta no urbeat, informe a senha atual. Se ainda não tem, ela será criada agora.
+            </small>
+          </label>
+
+          <label class="field">
+            <span>Confirmar senha</span>
+            <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            @if (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched) {
+              <small class="field-error">As senhas não conferem.</small>
+            }
+          </label>
+
+          @if (error(); as message) {
+            <p class="driver-auth-error" role="alert">{{ message }}</p>
+          }
+
+          <button type="submit" class="driver-auth-submit" [disabled]="submitting()" [attr.aria-busy]="submitting()">
+            {{ submitting() ? 'Aceitando...' : 'Aceitar convite' }}
+          </button>
+        </form>
+      }
+    }
+  </section>
+</main>

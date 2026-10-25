@@ -5,6 +5,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { callOutline, cashOutline, checkmarkDoneOutline, locationOutline, navigateOutline, refreshOutline, searchOutline, trailSignOutline } from 'ionicons/icons';
 import { OrderService } from '../../core/services/order.service';
+import { formatSaoPauloDateTime } from '../../core/utils/sao-paulo-date.helper';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { SellerDeliverySummary } from '../../shared/models/order.model';
 
@@ -49,7 +50,7 @@ export class SellerDeliveriesPageComponent implements OnInit {
   readonly deliveryRevenue = computed(() => this.deliveries().filter((order) => order.status === OrderStatus.OnDelivery).reduce((sum, order) => sum + order.total, 0));
   readonly latestCreatedAtLabel = computed(() => {
     const latest = [...this.deliveries()].sort((a, b) => Date.parse(b.createdAtUtc) - Date.parse(a.createdAtUtc))[0];
-    return latest ? `Atualizado em ${new Date(latest.createdAtUtc).toLocaleString('pt-BR')}` : 'Sem atualizacao recente';
+    return latest ? `Atualizado em ${formatSaoPauloDateTime(latest.createdAtUtc)}` : 'Sem atualizacao recente';
   });
 
   ngOnInit(): void {
@@ -77,7 +78,7 @@ export class SellerDeliveriesPageComponent implements OnInit {
   }
 
   formatDateTime(value: string): string {
-    return new Date(value).toLocaleString('pt-BR');
+    return formatSaoPauloDateTime(value);
   }
 
   statusLabel(status: OrderStatus): string {

@@ -115,6 +115,7 @@
                 <th>Pedido</th>
                 <th>Cliente</th>
                 <th>Endereco</th>
+                <th>Entregador</th>
                 <th>Status</th>
                 <th>Recebido em</th>
                 <th>Valor</th>
@@ -127,6 +128,7 @@
                   <td class="order-id" data-label="Pedido">#{{ order.code }}</td>
                   <td data-label="Cliente">{{ order.customerName || 'Cliente' }}</td>
                   <td data-label="Endereco">{{ order.addressSummary || 'Nao informado' }}</td>
+                  <td data-label="Entregador">{{ order.deliveryDriverName || 'Nao atribuido' }}</td>
                   <td data-label="Status">
                     <span class="seller-status-badge" [class.is-info]="order.status === OrderStatus.OnDelivery" [class.is-success]="order.status === OrderStatus.Delivered" [class.is-neutral]="order.status !== OrderStatus.OnDelivery && order.status !== OrderStatus.Delivered">{{ statusLabel(order.status) }}</span>
                   </td>

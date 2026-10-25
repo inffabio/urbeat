@@ -648,6 +648,53 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.ToTable("CustomerPhoneVerifications");
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryDriver", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("\"UserId\" IS NOT NULL");
+
+                    b.ToTable("DeliveryDrivers");
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryNeighborhood", b =>
                 {
                     b.Property<Guid>("Id")
@@ -895,11 +942,32 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeliveryConfirmedAtUtc")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("DeliveryFee")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
+
+                    b.Property<double?>("DeliveryLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("DeliveryLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("DeliveryPinConfirmedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeliveryPinConfirmedByDriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DeliveryPinEncrypted")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("DeliveryPinHash")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("FulfillmentType")
                         .HasColumnType("integer");
@@ -948,6 +1016,62 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId", "Status", "CreatedAtUtc");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.OrderDeliveryAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ConcurrencyVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DeliveryDriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeliveryStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastPinAttemptAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PinAttemptCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryDriverId");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("OrderDeliveryAssignments");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderItem", b =>
@@ -2719,6 +2843,73 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.ToTable("StoreDeliveryAreas");
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryDriver", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AcceptedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DeliveryDriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("InviteExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("InviteSentAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InviteTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("InviteVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("InvitedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryDriverId");
+
+                    b.HasIndex("InviteTokenHash")
+                        .IsUnique()
+                        .HasFilter("\"InviteTokenHash\" IS NOT NULL");
+
+                    b.HasIndex("StoreId", "DeliveryDriverId")
+                        .IsUnique();
+
+                    b.ToTable("StoreDeliveryDrivers");
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.StorePaymentGatewayConfig", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2985,6 +3176,14 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryDriver", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<System.Guid>", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryNeighborhood", b =>
                 {
                     b.HasOne("Urbeat.Domain.Entities.City", "CityEntity")
@@ -3002,6 +3201,23 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.OrderDeliveryAssignment", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryDriver", "DeliveryDriver")
+                        .WithMany()
+                        .HasForeignKey("DeliveryDriverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Urbeat.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DeliveryDriver");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderItem", b =>
@@ -3281,6 +3497,23 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryDriver", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryDriver", "DeliveryDriver")
+                        .WithMany()
+                        .HasForeignKey("DeliveryDriverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Urbeat.Domain.Entities.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DeliveryDriver");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StorePaymentGatewayConfig", b =>

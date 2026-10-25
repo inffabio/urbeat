@@ -36,7 +36,8 @@ public sealed class OrderSignalRHandler : IOutboxEventHandler
     {
         var evt = OutboxPayloadSerializer.Deserialize<OrderStatusChangedEvent>(message.Payload);
 
-        if (!string.Equals(evt.Source, "Seller", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(evt.Source, "Seller", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(evt.Source, "Driver", StringComparison.OrdinalIgnoreCase))
         {
             return OutboxProcessingResult.Ok();
         }
@@ -54,6 +55,25 @@ public sealed class OrderSignalRHandler : IOutboxEventHandler
             _logger.LogWarning(
                 "SignalR live push not delivered; skipping as best-effort | CustomerUserId={CustomerUserId} | OrderId={OrderId} | Code={Code} | NewStatus={NewStatus}",
                 evt.CustomerUserId, evt.OrderId, evt.Code, evt.NewStatus);
+        }
+
+        if (string.Equals(evt.Source, "Driver", StringComparison.OrdinalIgnoreCase)
+            && evt.SellerUserId != Guid.Empty)
+        {
+            var sellerDelivered = await _notificationService.NotifySellerOrderStatusUpdatedAsync(
+                evt.SellerUserId,
+                evt.OrderId,
+                evt.Code,
+                evt.NewStatus,
+                evt.ChangedAtUtc,
+                cancellationToken);
+
+            if (!sellerDelivered)
+            {
+                _logger.LogWarning(
+                    "Seller SignalR live push not delivered; skipping as best-effort | SellerUserId={SellerUserId} | OrderId={OrderId}",
+                    evt.SellerUserId, evt.OrderId);
+            }
         }
 
         return OutboxProcessingResult.Ok();

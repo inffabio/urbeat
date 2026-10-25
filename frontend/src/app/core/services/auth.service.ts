@@ -25,6 +25,7 @@ import {
 
 const TOKEN_KEY = 'urbeat_token';
 const SELLER_TOKEN_KEY = 'urbeat_seller_token';
+const DRIVER_TOKEN_KEY = 'urbeat_driver_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -34,7 +35,9 @@ export class AuthService {
   private readonly baseUrl = environment.apiUrl;
 
   readonly token = signal<string | null>(
-    sessionStorage.getItem(SELLER_TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY),
+    sessionStorage.getItem(DRIVER_TOKEN_KEY)
+      ?? sessionStorage.getItem(SELLER_TOKEN_KEY)
+      ?? localStorage.getItem(TOKEN_KEY),
   );
   readonly customerProfile = signal<CustomerProfileResponse | null>(null);
   readonly isAuthenticated = computed(() => !!this.token());
@@ -69,6 +72,12 @@ export class AuthService {
       .pipe(tap((res) => this.saveSellerToken(res.accessToken)));
   }
 
+  loginDriver(req: LoginRequest): Observable<AuthTokenResponse> {
+    return this.api
+      .post<AuthTokenResponse>('/api/auth/login/driver', req)
+      .pipe(tap((res) => this.saveDriverToken(res.accessToken)));
+  }
+
   loginAdmin(req: LoginRequest): Observable<AuthTokenResponse> {
     return this.api
       .post<AuthTokenResponse>('/api/auth/login/admin', req)
@@ -96,15 +105,26 @@ export class AuthService {
   // is removed so the tab cannot fall back to another role's identity.
   private saveSellerToken(accessToken: string): void {
     sessionStorage.setItem(SELLER_TOKEN_KEY, accessToken);
+    sessionStorage.removeItem(DRIVER_TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    this.applyToken(accessToken);
+  }
+
+  // Driver sessions mirror seller sessions: tab-scoped so a driver and a store
+  // can be signed in on the same machine without mixing identities.
+  private saveDriverToken(accessToken: string): void {
+    sessionStorage.setItem(DRIVER_TOKEN_KEY, accessToken);
+    sessionStorage.removeItem(SELLER_TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);
     this.applyToken(accessToken);
   }
 
   // Customer and admin keep the legacy shared localStorage behavior, clearing
-  // any tab-scoped seller token so roles are never mixed within the same tab.
+  // any tab-scoped seller/driver token so roles are never mixed within the same tab.
   private saveLocalToken(accessToken: string): void {
     localStorage.setItem(TOKEN_KEY, accessToken);
     sessionStorage.removeItem(SELLER_TOKEN_KEY);
+    sessionStorage.removeItem(DRIVER_TOKEN_KEY);
     this.applyToken(accessToken);
   }
 
@@ -149,13 +169,20 @@ export class AuthService {
   }
 
   logout(): void {
-    // A seller session owns only the tab token; calling the shared-cookie logout
-    // endpoint would revoke the refresh cookie used by other store tabs.
+    // Tab-scoped seller/driver sessions own only their tab token; calling the
+    // shared-cookie logout endpoint would revoke the refresh cookie used by
+    // other tabs.
+    const driverSession = sessionStorage.getItem(DRIVER_TOKEN_KEY) !== null;
     const sellerSession = sessionStorage.getItem(SELLER_TOKEN_KEY) !== null;
 
     this.token.set(null);
     this.customerProfile.set(null);
     this.tokenSubject.next(null);
+
+    if (driverSession) {
+      sessionStorage.removeItem(DRIVER_TOKEN_KEY);
+      return;
+    }
 
     if (sellerSession) {
       sessionStorage.removeItem(SELLER_TOKEN_KEY);
@@ -164,6 +191,7 @@ export class AuthService {
 
     localStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(SELLER_TOKEN_KEY);
+    sessionStorage.removeItem(DRIVER_TOKEN_KEY);
 
     this.rawHttp
       .post(`${this.baseUrl}/api/auth/logout`, {}, { withCredentials: true })

@@ -1,7 +1,29 @@
 import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
+import { driverChildGuard, driverGuard } from './core/guards/driver.guard';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
+  it('declares the driver portal before the public store slug route and protects it with the driver guard', () => {
+    const driverIndex = routes.findIndex((route) => route.path === 'entregador');
+    const storeIndex = routes.findIndex((route) => route.path === ':storePath');
+    const driverRoute = routes.find((route) => route.path === 'entregador');
+
+    expect(driverIndex).toBeGreaterThanOrEqual(0);
+    expect(driverIndex).toBeLessThan(storeIndex);
+    expect(driverRoute?.canActivate).toEqual([driverGuard]);
+    expect(driverRoute?.canActivateChild).toEqual([driverChildGuard]);
+    expect(driverRoute?.children?.some((child) => child.path === 'pedidos')).toBe(true);
+    expect(routes.some((route) => route.path === 'entregador/login')).toBe(true);
+    expect(routes.some((route) => route.path === 'entregador/convite/:token')).toBe(true);
+  });
+
+  it('routes /app/entregadores to the seller delivery drivers page', () => {
+    const appRoute = routes.find((route) => route.path === 'app');
+    const driversRoute = appRoute?.children?.find((child) => child.path === 'entregadores');
+
+    expect(driversRoute?.loadComponent?.toString()).toContain('seller-delivery-drivers-page.component');
+  });
+
   it('declares /app before the public store slug route', () => {
     const appIndex = routes.findIndex((route) => route.path === 'app');
     const storeIndex = routes.findIndex((route) => route.path === ':storePath');

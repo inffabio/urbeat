@@ -21,6 +21,7 @@ import {
   restaurantOutline,
   settingsOutline,
   timeOutline,
+  bicycleOutline,
   carOutline,
   volumeHighOutline,
   volumeMuteOutline,
@@ -44,6 +45,7 @@ addIcons({
   'restaurant-outline': restaurantOutline,
   'settings-outline': settingsOutline,
   'time-outline': timeOutline,
+  'bicycle-outline': bicycleOutline,
   'car-outline': carOutline,
   'volume-high-outline': volumeHighOutline,
   'volume-mute-outline': volumeMuteOutline,
@@ -99,6 +101,7 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
     { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline' },
     { label: 'Pedidos', route: '/app/pedidos', icon: 'clipboard-outline', badge: true },
     { label: 'Cardápio', route: '/app/cardapio/categorias', icon: 'restaurant-outline' },
+    { label: 'Entregadores', route: '/app/entregadores', icon: 'bicycle-outline' },
     { label: 'Clientes', route: '/app/clientes', icon: 'people-outline' },
   ];
 

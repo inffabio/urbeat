@@ -16,17 +16,20 @@ public sealed class OrderService : IOrderService
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly INotificationService _notificationService;
     private readonly IOutboxWriter _outboxWriter;
+    private readonly IEncryptionService? _encryptionService;
 
     public OrderService(
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
         INotificationService notificationService,
-        IOutboxWriter outboxWriter)
+        IOutboxWriter outboxWriter,
+        IEncryptionService? encryptionService = null)
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
         _notificationService = notificationService;
         _outboxWriter = outboxWriter;
+        _encryptionService = encryptionService;
     }
 
     public async Task<IReadOnlyCollection<OrderSummaryResponseDto>> ListCustomerOrdersAsync(Guid customerUserId, CancellationToken cancellationToken = default)
@@ -57,7 +60,7 @@ public sealed class OrderService : IOrderService
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == orderId && x.CustomerUserId == customerUserId, cancellationToken);
 
-        return order is null ? null : await LoadDetailsAsync(order, cancellationToken);
+        return order is null ? null : await LoadDetailsAsync(order, cancellationToken, includeDeliveryPin: true);
     }
 
     public async Task<PagedOrderSummaryResponseDto> ListStoreOrdersAsync(
@@ -125,25 +128,35 @@ public sealed class OrderService : IOrderService
                 x => x.Key,
                 x => string.Join(", ", x.Select(item => $"{item.Quantity}x {item.ProductName}")));
 
+        var assignments = await LoadAssignmentSummariesAsync(orderIds, cancellationToken);
+
         var items = orderPage
-            .Select(x => new OrderSummaryResponseDto
+            .Select(x =>
             {
-                Id = x.Id,
-                Code = x.Code,
-                StoreId = x.StoreId,
-                CustomerName = names.GetValueOrDefault(x.CustomerUserId),
-                CustomerPhoneNumber = phones.GetValueOrDefault(x.CustomerUserId),
-                FulfillmentType = x.FulfillmentType,
-                PaymentMethod = x.PaymentMethod,
-                AddressSummary = BuildAddressSummary(x),
-                ItemsSummary = itemSummaries.GetValueOrDefault(x.Id),
-                Status = x.Status,
-                Subtotal = x.Subtotal,
-                DeliveryFee = x.DeliveryFee,
-                Total = x.Total,
-                CreatedAtUtc = x.CreatedAtUtc,
-                DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
-                SellerCompletedAtUtc = x.SellerCompletedAtUtc
+                assignments.TryGetValue(x.Id, out var assignment);
+                return new OrderSummaryResponseDto
+                {
+                    Id = x.Id,
+                    Code = x.Code,
+                    StoreId = x.StoreId,
+                    CustomerName = names.GetValueOrDefault(x.CustomerUserId),
+                    CustomerPhoneNumber = phones.GetValueOrDefault(x.CustomerUserId),
+                    FulfillmentType = x.FulfillmentType,
+                    PaymentMethod = x.PaymentMethod,
+                    AddressSummary = BuildAddressSummary(x),
+                    ItemsSummary = itemSummaries.GetValueOrDefault(x.Id),
+                    Status = x.Status,
+                    Subtotal = x.Subtotal,
+                    DeliveryFee = x.DeliveryFee,
+                    Total = x.Total,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
+                    SellerCompletedAtUtc = x.SellerCompletedAtUtc,
+                    DeliveryDriverId = assignment?.DeliveryDriverId,
+                    DeliveryDriverName = assignment?.DeliveryDriverName,
+                    DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
+                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc
+                };
             })
             .ToList();
 
@@ -177,6 +190,39 @@ public sealed class OrderService : IOrderService
         var parts = new[] { streetLine, order.AddressNeighborhood }.Where(x => !string.IsNullOrWhiteSpace(x));
         var summary = string.Join(" - ", parts);
         return string.IsNullOrWhiteSpace(summary) ? null : summary;
+    }
+
+    private sealed record AssignmentSummary(
+        Guid DeliveryDriverId,
+        string DeliveryDriverName,
+        DateTime? DeliveryStartedAtUtc);
+
+    private async Task<Dictionary<Guid, AssignmentSummary>> LoadAssignmentSummariesAsync(
+        IReadOnlyCollection<Guid> orderIds,
+        CancellationToken cancellationToken)
+    {
+        if (orderIds.Count == 0)
+        {
+            return [];
+        }
+
+        var rows = await (
+            from assignment in _dbContext.OrderDeliveryAssignments.AsNoTracking()
+            join driver in _dbContext.DeliveryDrivers.AsNoTracking()
+                on assignment.DeliveryDriverId equals driver.Id
+            where orderIds.Contains(assignment.OrderId)
+            select new
+            {
+                assignment.OrderId,
+                assignment.DeliveryDriverId,
+                DriverName = driver.FullName,
+                assignment.DeliveryStartedAtUtc
+            }
+        ).ToListAsync(cancellationToken);
+
+        return rows.ToDictionary(
+            x => x.OrderId,
+            x => new AssignmentSummary(x.DeliveryDriverId, x.DriverName, x.DeliveryStartedAtUtc));
     }
 
     public async Task<OrderDetailsResponseDto?> GetStoreOrderAsync(Guid sellerUserId, Guid orderId, CancellationToken cancellationToken = default)
@@ -506,17 +552,28 @@ public sealed class OrderService : IOrderService
             .Where(x => customerIds.Contains(x.UserId) && x.ClaimType == "FullName")
             .Select(x => new { x.UserId, x.ClaimValue })
             .ToDictionaryAsync(x => x.UserId, x => x.ClaimValue, cancellationToken);
+        var assignments = await LoadAssignmentSummariesAsync(
+            deliveries.Select(x => x.Id).ToArray(),
+            cancellationToken);
 
-        return deliveries.Select(x => new SellerDeliverySummaryResponseDto
+        return deliveries.Select(x =>
             {
-                Id = x.Id,
-                Code = x.Code,
-                CustomerName = names.GetValueOrDefault(x.CustomerUserId),
-                CustomerPhoneNumber = phones.GetValueOrDefault(x.CustomerUserId),
-                AddressSummary = BuildAddressSummary(x),
-                Status = x.Status,
-                Total = x.Total,
-                CreatedAtUtc = x.CreatedAtUtc
+                assignments.TryGetValue(x.Id, out var assignment);
+                return new SellerDeliverySummaryResponseDto
+                {
+                    Id = x.Id,
+                    Code = x.Code,
+                    CustomerName = names.GetValueOrDefault(x.CustomerUserId),
+                    CustomerPhoneNumber = phones.GetValueOrDefault(x.CustomerUserId),
+                    AddressSummary = BuildAddressSummary(x),
+                    Status = x.Status,
+                    Total = x.Total,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    DeliveryDriverId = assignment?.DeliveryDriverId,
+                    DeliveryDriverName = assignment?.DeliveryDriverName,
+                    DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
+                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc
+                };
             })
             .ToList();
     }
@@ -825,7 +882,10 @@ public sealed class OrderService : IOrderService
         };
     }
 
-    private async Task<OrderDetailsResponseDto> LoadDetailsAsync(Order order, CancellationToken cancellationToken)
+    private async Task<OrderDetailsResponseDto> LoadDetailsAsync(
+        Order order,
+        CancellationToken cancellationToken,
+        bool includeDeliveryPin = false)
     {
         var itemRows = await _dbContext.OrderItems
             .AsNoTracking()
@@ -888,6 +948,40 @@ public sealed class OrderService : IOrderService
             })
             .ToListAsync(cancellationToken);
 
+        var assignment = await (
+            from current in _dbContext.OrderDeliveryAssignments.AsNoTracking()
+            join driver in _dbContext.DeliveryDrivers.AsNoTracking()
+                on current.DeliveryDriverId equals driver.Id
+            where current.OrderId == order.Id
+            select new
+            {
+                current.DeliveryDriverId,
+                DriverName = driver.FullName,
+                current.DeliveryStartedAtUtc
+            }
+        ).SingleOrDefaultAsync(cancellationToken);
+
+        string? deliveryPin = null;
+        if (includeDeliveryPin
+            && order.FulfillmentType == FulfillmentType.Delivery
+            && order.DeliveryConfirmedAtUtc is null
+            && !string.IsNullOrWhiteSpace(order.DeliveryPinEncrypted)
+            && _encryptionService is not null)
+        {
+            try
+            {
+                deliveryPin = _encryptionService.Decrypt(order.DeliveryPinEncrypted);
+            }
+            catch (Exception exception)
+            {
+                // A key rotation can make an old PIN unreadable. The delivery itself stays valid
+                // and the customer keeps the existing manual confirmation flow.
+                Serilog.Log.Warning(exception,
+                    "Could not decrypt delivery PIN | OrderId={OrderId}",
+                    order.Id);
+            }
+        }
+
         return new OrderDetailsResponseDto
         {
             Id = order.Id,
@@ -905,6 +999,11 @@ public sealed class OrderService : IOrderService
             CreatedAtUtc = order.CreatedAtUtc,
             DeliveryConfirmedAtUtc = order.DeliveryConfirmedAtUtc,
             SellerCompletedAtUtc = order.SellerCompletedAtUtc,
+            DeliveryDriverId = assignment?.DeliveryDriverId,
+            DeliveryDriverName = assignment?.DriverName,
+            DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
+            DeliveryPinConfirmedAtUtc = order.DeliveryPinConfirmedAtUtc,
+            DeliveryPin = deliveryPin,
             AddressCep = order.AddressCep,
             AddressStreet = order.AddressStreet,
             AddressNumber = order.AddressNumber,

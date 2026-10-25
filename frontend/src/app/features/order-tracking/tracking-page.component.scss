@@ -889,3 +889,35 @@
   .status-track-sweep { animation: none !important; opacity: 0; }
   .status-track-progress { transition: none; }
 }
+
+.delivery-pin-card {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.delivery-pin-card h2 {
+  margin: 0;
+}
+
+.delivery-pin-card p {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.delivery-pin {
+  display: block;
+  margin: 4px 0;
+  color: var(--app-brand, #d54a51);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: .3em;
+  text-indent: .3em;
+}
+
+.delivery-pin-card small {
+  color: var(--app-text-muted, #767680);
+  font-size: 11px;
+}

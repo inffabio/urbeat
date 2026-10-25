@@ -164,6 +164,18 @@ public sealed class AuthController : ControllerBase
         return LoginByRoleAsync(request, "Admin", cancellationToken);
     }
 
+    [HttpPost("login/driver")]
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status423Locked)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public Task<IActionResult> LoginDriver([FromBody] LoginRequestDto request, CancellationToken cancellationToken)
+    {
+        return LoginByRoleAsync(request, "DeliveryDriver", cancellationToken);
+    }
+
     [HttpPost("token")]
     [EnableRateLimiting("auth")]
     [ProducesResponseType<AuthTokenResponseDto>(StatusCodes.Status200OK)]

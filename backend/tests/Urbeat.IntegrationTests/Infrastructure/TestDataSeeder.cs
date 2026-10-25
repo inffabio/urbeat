@@ -37,7 +37,7 @@ public sealed class TestDataSeeder : IHostedService
     private static async Task SeedRolesAsync(IServiceScope scope, CancellationToken ct)
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-        var roles = new[] { "Admin", "Seller", "Customer" };
+        var roles = new[] { "Admin", "Seller", "Customer", "DeliveryDriver" };
 
         foreach (var roleName in roles)
         {

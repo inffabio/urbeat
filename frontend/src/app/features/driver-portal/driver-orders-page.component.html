@@ -1,0 +1,297 @@
+<section class="driver-orders">
+  <header class="driver-page-header">
+    <div>
+      <h1>Minhas entregas</h1>
+      <p>Pedidos atribuídos a você nesta loja.</p>
+    </div>
+    <button type="button" class="driver-refresh" (click)="loadOrders()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      Atualizar
+    </button>
+  </header>
+
+  @if (storesLoading()) {
+    <div class="driver-state" role="status">
+      <strong>Carregando lojas</strong>
+      <p>Buscando os vínculos de entrega da sua conta.</p>
+    </div>
+  } @else if (storesError()) {
+    <div class="driver-state is-error" role="alert">
+      <strong>Não foi possível carregar suas lojas</strong>
+      <p>Confira sua conexão e tente novamente.</p>
+      <button type="button" class="driver-secondary-button" (click)="loadStores()">Tentar novamente</button>
+    </div>
+  } @else if (!hasStores()) {
+    <div class="driver-state is-empty">
+      <strong>Nenhuma loja vinculada</strong>
+      <p>
+        Sua conta ainda não possui um convite aceito. Abra o link enviado pela loja por e-mail
+        ou peça um novo convite ao lojista.
+      </p>
+    </div>
+  } @else {
+    <label class="store-select">
+      <span>Loja ativa</span>
+      <select
+        [ngModel]="selectedStoreId()"
+        (ngModelChange)="onStoreChange($event)"
+        aria-label="Selecionar loja ativa"
+      >
+        @for (store of stores(); track store.storeId) {
+          <option [value]="store.storeId">{{ store.storeName }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="driver-summary" aria-live="polite">
+      <span class="summary-pill">
+        <i class="bi bi-bicycle" aria-hidden="true"></i>
+        {{ activeCount() }} em rota
+      </span>
+      <span class="summary-pill is-neutral">
+        {{ orders().length }} pedido(s) atribuído(s)
+      </span>
+    </div>
+
+    @if (loading()) {
+      <div class="driver-state" role="status">
+        <strong>Carregando entregas</strong>
+        <p>Buscando os pedidos atribuídos a você.</p>
+      </div>
+    } @else if (error()) {
+      <div class="driver-state is-error" role="alert">
+        <strong>Não foi possível carregar suas entregas</strong>
+        <p>Confira sua conexão ou entre novamente se a sessão expirou.</p>
+        <button type="button" class="driver-secondary-button" (click)="loadOrders()">Tentar novamente</button>
+      </div>
+    } @else if (orders().length === 0) {
+      <div class="driver-state is-empty">
+        <strong>Nenhuma entrega no momento</strong>
+        <p>Quando a loja atribuir um pedido a você, ele aparece aqui automaticamente.</p>
+      </div>
+    } @else {
+      <div class="orders-list">
+        @for (order of orders(); track order.id) {
+          <article class="order-card" [attr.aria-label]="'Pedido ' + order.code">
+            <header class="order-card-header">
+              <div class="order-code-block">
+                <strong>#{{ order.code }}</strong>
+                <small>{{ formatDateTime(order.createdAtUtc) }}</small>
+              </div>
+              <span
+                class="status-pill"
+                [class.is-ready]="order.status === OrderStatus.Ready"
+                [class.is-route]="order.status === OrderStatus.OnDelivery"
+                [class.is-delivered]="order.status === OrderStatus.Delivered"
+              >
+                {{ statusLabel(order.status) }}
+              </span>
+            </header>
+
+            <div class="order-contact">
+              <div>
+                <span class="label">Cliente</span>
+                <strong>{{ order.customerName || 'Cliente' }}</strong>
+              </div>
+              <div class="contact-actions">
+                @if (order.customerPhoneNumber) {
+                  <a class="contact-button" [href]="'tel:' + order.customerPhoneNumber" aria-label="Ligar para o cliente">
+                    <i class="bi bi-telephone" aria-hidden="true"></i>
+                    Ligar
+                  </a>
+                }
+                <a
+                  class="contact-button"
+                  [href]="mapUrl(order)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Abrir rota do pedido no Google Maps"
+                >
+                  <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                  Navegar
+                </a>
+              </div>
+            </div>
+
+            <div class="order-map" [id]="'order-map-' + order.id">
+              <button
+                type="button"
+                class="map-toggle"
+                (click)="toggleMap(order)"
+                [attr.aria-expanded]="activeMapOrderId() === order.id"
+                [attr.aria-controls]="'order-map-panel-' + order.id"
+              >
+                <i class="bi bi-map" aria-hidden="true"></i>
+                {{ activeMapOrderId() === order.id ? 'Ocultar mapa da rota' : 'Ver mapa e rota' }}
+              </button>
+
+              @if (activeMapOrderId() === order.id) {
+                <div [id]="'order-map-panel-' + order.id">
+                  <app-driver-route-map [order]="order" [externalMapUrl]="mapUrl(order)" />
+                </div>
+              }
+            </div>
+
+            <div class="order-address">
+              <span class="label">Endereço</span>
+              <p>{{ addressLine(order) || 'Endereço não informado' }}</p>
+              @if (order.addressReference) {
+                <small>Referência: {{ order.addressReference }}</small>
+              }
+            </div>
+
+            <div class="order-items">
+              <span class="label">Itens</span>
+              <ul>
+                @for (item of order.items; track $index) {
+                  <li>
+                    <span class="item-qty">{{ item.quantity }}x</span>
+                    <span class="item-name">{{ item.productName }}</span>
+                    <span class="item-price">{{ formatCurrency(item.totalPrice) }}</span>
+                  </li>
+                  @if (item.variationName || item.choiceOptionName || item.additionalNames) {
+                    <li class="item-options">
+                      {{ item.variationName || item.choiceOptionName || item.additionalNames }}
+                    </li>
+                  }
+                  @if (item.notes) {
+                    <li class="item-options">Obs.: {{ item.notes }}</li>
+                  }
+                }
+              </ul>
+            </div>
+
+            @if (order.notes) {
+              <div class="order-notes">
+                <span class="label">Observações do pedido</span>
+                <p>{{ order.notes }}</p>
+              </div>
+            }
+
+            <div class="order-total">
+              <span>Total a receber/entregar</span>
+              <strong>{{ formatCurrency(order.total) }}</strong>
+            </div>
+
+            <div class="order-actions">
+              @if (order.canStartDelivery) {
+                <button type="button" class="driver-primary-button" (click)="requestStart(order, $event)">
+                  <i class="bi bi-truck" aria-hidden="true"></i>
+                  Iniciar entrega
+                </button>
+              }
+              @if (order.canConfirmPin) {
+                <button type="button" class="driver-secondary-button" (click)="openPinDialog(order, $event)">
+                  <i class="bi bi-shield-check" aria-hidden="true"></i>
+                  Confirmar PIN
+                </button>
+              }
+              @if (!order.canStartDelivery && !order.canConfirmPin) {
+                <span class="order-done">
+                  <i class="bi bi-check-circle" aria-hidden="true"></i>
+                  Entrega concluída
+                </span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
+
+@if (startTarget(); as order) {
+  <div class="driver-modal-overlay" (click)="cancelStart()">
+    <section
+      #startDialog
+      id="start-delivery-dialog"
+      class="driver-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="start-delivery-title"
+      aria-describedby="start-delivery-description"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <h2 id="start-delivery-title">Iniciar entrega</h2>
+      <p id="start-delivery-description">
+        Confirmar que você está saindo para entregar o pedido <strong>#{{ order.code }}</strong>?
+      </p>
+      <div class="driver-modal-actions">
+        <button type="button" class="driver-secondary-button" (click)="cancelStart()">Cancelar</button>
+        <button
+          type="button"
+          class="driver-primary-button"
+          (click)="confirmStart()"
+          [disabled]="actionOrderId() === order.id"
+        >
+          {{ actionOrderId() === order.id ? 'Iniciando...' : 'Iniciar entrega' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (pinTarget(); as order) {
+  <div class="driver-modal-overlay" (click)="cancelPin()">
+    <section
+      #pinDialog
+      id="pin-delivery-dialog"
+      class="driver-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pin-title"
+      aria-describedby="pin-delivery-description"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <h2 id="pin-title">Confirmar entrega com PIN</h2>
+      <p id="pin-delivery-description">
+        Peça ao cliente o PIN de 6 dígitos do pedido <strong>#{{ order.code }}</strong>.
+        O PIN não aparece para você por segurança.
+      </p>
+
+      <label class="pin-field">
+        <span>PIN do cliente</span>
+        <input
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="6"
+          [ngModel]="pinValue()"
+          (ngModelChange)="updatePin($event)"
+          placeholder="000000"
+          aria-label="PIN de entrega"
+          [attr.aria-describedby]="pinError() ? 'pin-delivery-description pin-error-message' : 'pin-delivery-description'"
+          [attr.aria-invalid]="pinError() ? 'true' : null"
+        />
+      </label>
+
+      @if (pinError(); as message) {
+        <p id="pin-error-message" class="pin-error" role="alert">{{ message }}</p>
+      }
+
+      <div class="driver-modal-actions">
+        <button type="button" class="driver-secondary-button" (click)="cancelPin()">
+          {{ pinConflict() ? 'Fechar' : 'Cancelar' }}
+        </button>
+        @if (pinConflict()) {
+          <button type="button" class="driver-primary-button" (click)="refreshPinOrder()">
+            Atualizar pedido
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="driver-primary-button"
+            (click)="submitPin()"
+            [disabled]="pinSubmitting() || pinValue().length !== 6"
+          >
+            {{ pinSubmitting() ? 'Confirmando...' : 'Confirmar entrega' }}
+          </button>
+        }
+      </div>
+    </section>
+  </div>
+}

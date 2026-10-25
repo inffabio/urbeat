@@ -1,0 +1,174 @@
+:host {
+  display: block;
+}
+
+.driver-route {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.driver-map-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 16px;
+  background: var(--app-surface-soft, #fff8f0);
+}
+
+.driver-map-canvas {
+  width: 100%;
+  height: clamp(220px, 46vw, 280px);
+  background: #e9e5df;
+}
+
+.driver-map-canvas:focus-visible {
+  outline: 3px solid var(--app-brand, #d54a51);
+  outline-offset: 2px;
+}
+
+.driver-map-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--app-overlay-loading, rgba(255, 255, 255, .85));
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.driver-map-loading i {
+  color: var(--app-brand, #d54a51);
+  font-size: 22px;
+  animation: route-loading 1.1s linear infinite;
+}
+
+.route-fallback {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px dashed var(--app-line, #eadfd6);
+  border-radius: 16px;
+  background: var(--app-surface-soft, #fff8f0);
+}
+
+.route-fallback strong {
+  color: var(--app-ink, #161616);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.route-fallback p {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.route-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--app-line, #eadfd6);
+  background: var(--app-brand-dark, #b63a41);
+}
+
+.legend-dot.is-store {
+  background: var(--app-brown, #6c4634);
+}
+
+.legend-dot.is-customer {
+  background: var(--app-brand-dark, #b63a41);
+}
+
+.legend-dot.is-driver {
+  background: #1d4ed8;
+}
+
+.route-status {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.route-status-spinner {
+  margin-right: 6px;
+  color: var(--app-brand, #d54a51);
+  animation: route-loading 1.1s linear infinite;
+}
+
+.route-note {
+  margin: 0;
+  color: var(--app-text-muted, #767680);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.route-note-reference {
+  color: var(--app-text-secondary, #5a5a63);
+}
+
+.route-external {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-brand-dark, #b63a41);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.route-external:hover {
+  border-color: var(--app-brand, #d54a51);
+}
+
+.route-tile-warning {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--app-error-soft, #fef2f2);
+  color: var(--app-error, #d32f2f);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@keyframes route-loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .driver-map-loading i,
+  .route-status-spinner {
+    animation: none;
+  }
+}

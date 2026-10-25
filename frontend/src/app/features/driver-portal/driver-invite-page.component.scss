@@ -1,0 +1,190 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--app-shell-bg, linear-gradient(180deg, #fffdf9 0%, #fbf6ef 100%));
+}
+
+.driver-auth {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.driver-auth-card {
+  width: min(100%, 460px);
+  padding: 30px 24px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 24px;
+  background: var(--app-surface, #fff);
+  box-shadow: var(--shadow-md, 0 14px 34px rgba(33, 20, 8, .09));
+}
+
+.driver-auth-brand {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.driver-auth-kicker {
+  display: block;
+  margin-top: 20px;
+  color: var(--app-brand, #d54a51);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.driver-auth-card h1 {
+  margin: 10px 0 10px;
+  color: var(--app-ink, #161616);
+  font-size: clamp(23px, 5vw, 29px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.14;
+}
+
+.driver-auth-copy {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.driver-auth-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > span:first-child {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--app-text-secondary, #5a5a63);
+}
+
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-ink, #161616);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--app-brand, #d54a51);
+  box-shadow: 0 0 0 3px var(--app-brand-shadow, rgba(213, 74, 81, .18));
+}
+
+.password-wrap {
+  position: relative;
+  display: block;
+}
+
+.password-wrap input {
+  padding-right: 86px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 76px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--app-brand-soft, #fdecee);
+  color: var(--app-brand-dark, #b63a41);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.field-hint {
+  color: var(--app-text-muted, #767680);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.field-error {
+  color: var(--app-error, #d32f2f);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.driver-auth-error {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--app-error-border, #fecaca);
+  border-radius: 12px;
+  background: var(--app-error-soft, #fef2f2);
+  color: var(--app-error, #d32f2f);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.driver-auth-submit {
+  min-height: 50px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.driver-auth-submit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.invite-state {
+  display: grid;
+  gap: 10px;
+  padding-top: 20px;
+}
+
+.invite-state h1 {
+  margin: 0;
+}
+
+.invite-state p {
+  margin: 0;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.invite-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--app-success-green-soft, rgba(17, 148, 65, .14));
+  color: var(--app-success-green, #119441);
+  font-size: 28px;
+}

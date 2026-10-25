@@ -7,7 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { CheckoutService } from '../services/checkout.service';
 import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
 import { SKIP_GLOBAL_ERROR_TOAST } from './server-access.context';
-import { isCustomer, isSeller } from '../utils/jwt.helper';
+import { isCustomer, isDeliveryDriver, isSeller } from '../utils/jwt.helper';
 
 interface RefreshSubscriber {
   next: (token: string) => void;
@@ -107,11 +107,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const handleSessionExpired = (error: unknown): Observable<never> => {
     const token = authService.getToken();
     const customerSession = !!token && isCustomer(token);
+    const driverSession = !!token && isDeliveryDriver(token);
 
     authService.logout();
     toastService.showError('Sua sessao expirou. Por favor, faca login novamente.');
 
-    if (customerSession) {
+    if (driverSession) {
+      router.navigate(['/entregador/login']);
+    } else if (customerSession) {
       checkoutService.resetCheckout();
       trackingService.reset();
       const storePath = router.url.match(/^\/([^/]+)\//)?.[1];
@@ -134,11 +137,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => err);
         }
 
-        // Seller sessions live in the tab (sessionStorage) and share no refresh
-        // cookie with other tabs, so a 401 must be treated as expired instead of
-        // refreshing a cookie that may belong to a different store session.
+        // Seller/driver sessions live in the tab (sessionStorage) and share no
+        // refresh cookie with other tabs, so a 401 must be treated as expired
+        // instead of refreshing a cookie that may belong to another identity.
         const currentToken = authService.getToken();
-        if (currentToken && isSeller(currentToken)) {
+        if (currentToken && (isSeller(currentToken) || isDeliveryDriver(currentToken))) {
           return handleSessionExpired(err);
         }
 
@@ -183,6 +186,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (isCheckoutRequest(req) || isDeliveryAreaError(req, err)) {
+        return throwError(() => err);
+      }
+
+      // Delivery driver and invite screens own their error copy (wrong PIN, revoked link,
+      // expired invite), so the global toast must not duplicate or contradict them.
+      if (req.url.includes('/api/driver/') || req.url.includes('/api/delivery-drivers/')) {
         return throwError(() => err);
       }
 
