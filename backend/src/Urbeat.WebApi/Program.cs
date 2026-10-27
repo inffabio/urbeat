@@ -107,7 +107,22 @@ app.UseCors();
 app.UseRateLimiter();
 app.UseMetricServer();
 app.UseHttpMetrics();
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+{
+    // The public route token is a bearer secret. The default request log writes the path,
+    // so it must be replaced with a stable placeholder for that endpoint.
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {SanitizedRequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        var path = httpContext.Request.Path.Value ?? string.Empty;
+        diagnosticContext.Set(
+            "SanitizedRequestPath",
+            path.StartsWith("/api/public/delivery-routes/", StringComparison.OrdinalIgnoreCase)
+                ? "/api/public/delivery-routes/{token}"
+                : path);
+    };
+});
 app.UseMiddleware<ProblemDetailsMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 

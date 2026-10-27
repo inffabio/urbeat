@@ -371,6 +371,16 @@ public sealed class OrdersController : ControllerBase
             return BadRequest(new { error = "Invalid order status transition." });
         }
 
+        if (result.DriverRequired)
+        {
+            return BadRequest(new { error = "Selecione um motoboy ativo da loja para iniciar a entrega." });
+        }
+
+        if (result.DriverNotAvailable)
+        {
+            return BadRequest(new { error = "Motoboy indisponível, inativo ou vinculado a outra loja." });
+        }
+
         if (result.ConcurrentUpdate)
         {
             return Conflict(new { error = "The order status changed concurrently; reload and retry." });

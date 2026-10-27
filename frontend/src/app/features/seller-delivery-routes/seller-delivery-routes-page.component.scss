@@ -1,0 +1,415 @@
+:host {
+  display: block;
+}
+
+.routes-page .btn-primary-soft {
+  background: var(--app-brand, #d54a51);
+  border-color: var(--app-brand, #d54a51);
+  color: #fff;
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.route-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 18px;
+  background: var(--app-surface, #fff);
+  box-shadow: var(--shadow-sm, 0 8px 22px rgba(33, 20, 8, .07));
+}
+
+.route-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-driver {
+  display: block;
+  color: var(--app-ink, #161616);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.route-meta {
+  display: block;
+  margin: 0;
+  color: var(--app-text-muted, #767680);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.route-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--app-hairline-warm, #f3efe9);
+  overflow: hidden;
+}
+
+.route-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--app-success-green, #119441);
+  transition: width .25s ease;
+}
+
+.route-stops {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route-stop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--app-surface-soft, #fff8f0);
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+}
+
+.route-stop.is-delivered {
+  opacity: .72;
+}
+
+.route-stop-sequence {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--app-brand, #d54a51);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.route-stop-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.route-stop-body strong {
+  color: var(--app-ink, #161616);
+  font-size: 12px;
+}
+
+.route-stop-body small {
+  color: var(--app-text-muted, #767680);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.route-stop .bi-check-circle-fill {
+  color: var(--app-success-green, #119441);
+}
+
+.route-stop .bi-clock {
+  color: var(--app-brand, #d54a51);
+}
+
+.route-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--app-hairline-warm, #f3efe9);
+}
+
+.route-actions .driver-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.route-actions .route-share {
+  background: rgba(37, 211, 102, .12);
+  border-color: rgba(37, 211, 102, .35);
+  color: #128c4a;
+}
+
+.route-dialog {
+  max-width: 560px;
+}
+
+.route-form {
+  display: grid;
+  gap: 14px;
+}
+
+.route-form .field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-ink, #161616);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.route-orders {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.route-orders legend {
+  margin-bottom: 4px;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.route-order-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.route-order-option.is-selected {
+  border-color: var(--app-brand, #d54a51);
+  background: var(--app-brand-soft, #fdecee);
+}
+
+.route-order-option input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--app-brand, #d54a51);
+}
+
+.route-order-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.route-order-body strong {
+  color: var(--app-ink, #161616);
+  font-size: 13px;
+}
+
+.route-order-body small {
+  color: var(--app-text-muted, #767680);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.route-order-position {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.driver-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--app-overlay, rgba(0, 0, 0, .45));
+}
+
+.driver-dialog {
+  width: min(100%, 480px);
+  max-height: min(92dvh, 760px);
+  overflow-y: auto;
+  border-radius: 20px;
+  background: var(--app-surface, #fff);
+  box-shadow: var(--shadow-lg, 0 30px 90px rgba(0, 0, 0, .18));
+  padding: 22px;
+}
+
+.driver-dialog.is-confirm {
+  max-width: 440px;
+}
+
+.driver-dialog.is-confirm h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--app-ink, #161616);
+}
+
+.driver-dialog.is-confirm p {
+  margin: 0 0 18px;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.driver-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.driver-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--app-ink, #161616);
+}
+
+.dialog-close {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-text-secondary, #5a5a63);
+  cursor: pointer;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--app-text-secondary, #5a5a63);
+}
+
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--app-ink, #161616);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.driver-form-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-surface-soft, #fff8f0);
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.driver-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.driver-primary-button,
+.driver-danger-button,
+.seller-secondary-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.driver-primary-button {
+  border: 0;
+  background: var(--app-brand, #d54a51);
+  color: #fff;
+}
+
+.driver-danger-button {
+  border: 0;
+  background: var(--app-error, #d32f2f);
+  color: #fff;
+}
+
+.driver-primary-button:disabled,
+.driver-danger-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.driver-action {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--app-text-secondary, #5a5a63);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.driver-action:hover:not(:disabled) {
+  border-color: var(--app-brand, #d54a51);
+  color: var(--app-brand, #d54a51);
+}
+
+.driver-action.is-danger {
+  color: var(--app-error, #d32f2f);
+}
+
+.driver-action:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .routes-page .top-actions {
+    width: 100%;
+  }
+
+  .routes-page .top-actions .btn-soft {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .routes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .route-actions .driver-action {
+    flex: 1 1 100%;
+  }
+}

@@ -1,22 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { DashboardPeriod, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange } from '../../core/utils/sao-paulo-date.helper';
 import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
+import { DeliveryRouteService } from '../../core/services/delivery-route.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
-import {
-  SellerDeliveryDriver,
-  StoreDeliveryDriverStatus,
-} from '../../shared/models/delivery-driver.model';
+import { SellerDeliveryDriver } from '../../shared/models/delivery-driver.model';
+import { DeliveryRouteStatus } from '../../shared/models/delivery-route.model';
 import { OrderDetails, OrderItem, OrderSummary } from '../../shared/models/order.model';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { OrderAcceptedForPrintingEvent } from '../seller-printing/seller-printing.models';
@@ -26,6 +25,7 @@ interface PendingAction {
   order: OrderSummary;
   nextStatus: OrderStatus;
   label: string;
+  deliveryDriverId?: string;
 }
 
 interface OrderStatusUpdateEvent {
@@ -53,13 +53,14 @@ type BoardAction =
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './seller-orders-page.component.html',
   styleUrl: './seller-orders-page.component.scss',
 })
 export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
   private readonly deliveryDriverService = inject(DeliveryDriverService);
+  private readonly deliveryRouteService = inject(DeliveryRouteService);
   private readonly toast = inject(ToastService);
   private readonly automaticPrint = inject(AutomaticPrintQueueService);
   private readonly shell = inject(SellerShellFacade);
@@ -91,6 +92,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly isDetachedHost = this.ordersWindow.isDetachedHost;
   readonly OrderStatus = OrderStatus;
   readonly FulfillmentType = FulfillmentType;
+  readonly DeliveryRouteStatus = DeliveryRouteStatus;
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly updatingOrderId = signal<string | null>(null);
@@ -146,12 +148,25 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       deliveryDriverName: details?.deliveryDriverName ?? summary?.deliveryDriverName,
       deliveryStartedAtUtc: details?.deliveryStartedAtUtc ?? summary?.deliveryStartedAtUtc,
       deliveryPinConfirmedAtUtc: details?.deliveryPinConfirmedAtUtc ?? summary?.deliveryPinConfirmedAtUtc,
+      deliveryRouteId: details?.deliveryRouteId ?? summary?.deliveryRouteId,
+      deliveryRouteStatus: details?.deliveryRouteStatus ?? summary?.deliveryRouteStatus,
       sellerCompletedAtUtc: details?.sellerCompletedAtUtc ?? summary?.sellerCompletedAtUtc,
     };
   });
 
   readonly assignableDrivers = computed(() =>
-    this.deliveryDrivers().filter((driver) => driver.status === StoreDeliveryDriverStatus.Active),
+    this.deliveryDrivers().filter((driver) => driver.isActive),
+  );
+
+  readonly pendingRequiresDriver = computed(() => {
+    const pending = this.pendingAction();
+    return !!pending
+      && pending.nextStatus === OrderStatus.OnDelivery
+      && pending.order.fulfillmentType === FulfillmentType.Delivery;
+  });
+
+  readonly canConfirmPending = computed(() =>
+    !this.pendingRequiresDriver() || !!this.pendingAction()?.deliveryDriverId,
   );
 
   private readonly allStatuses = [
@@ -622,7 +637,25 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
   confirmAdvance(order: OrderSummary, nextStatus: OrderStatus, label: string): void {
     if (this.updatingOrderId()) return;
-    this.pendingAction.set({ order, nextStatus, label });
+
+    const requiresDriver = nextStatus === OrderStatus.OnDelivery
+      && order.fulfillmentType === FulfillmentType.Delivery;
+    const existingDriver = requiresDriver
+      ? this.assignableDrivers().find((driver) => driver.deliveryDriverId === order.deliveryDriverId)
+      : undefined;
+
+    this.pendingAction.set({
+      order,
+      nextStatus,
+      label,
+      deliveryDriverId: existingDriver?.id,
+    });
+  }
+
+  setPendingDriver(driverId: string): void {
+    const pending = this.pendingAction();
+    if (!pending) return;
+    this.pendingAction.set({ ...pending, deliveryDriverId: driverId || undefined });
   }
 
   dismissConfirm(): void {
@@ -633,17 +666,39 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     const pending = this.pendingAction();
     if (!pending || this.updatingOrderId()) return;
 
+    const requiresDriver = pending.nextStatus === OrderStatus.OnDelivery
+      && pending.order.fulfillmentType === FulfillmentType.Delivery;
+    if (requiresDriver && !pending.deliveryDriverId) {
+      void this.toast.showError('Selecione um motoboy ativo para iniciar a entrega.');
+      return;
+    }
+
     const orderId = pending.order.id;
+    const driverId = requiresDriver ? pending.deliveryDriverId : undefined;
     this.updatingOrderId.set(orderId);
     this.pendingAction.set(null);
 
-    this.orderService.updateStoreOrderStatus(orderId, pending.nextStatus, 'Atualizado pelo painel do lojista').subscribe({
-      next: () => {
+    this.orderService.updateStoreOrderStatus(
+      orderId,
+      pending.nextStatus,
+      'Atualizado pelo painel do lojista',
+      driverId,
+    ).subscribe({
+      next: (updated) => {
         this.updatingOrderId.set(null);
         this.orders.update((items) =>
-          items.map((order) => (order.id === orderId ? { ...order, status: pending.nextStatus } : order)),
+          items.map((order) => (order.id === orderId ? {
+            ...order,
+            status: updated.status ?? pending.nextStatus,
+            deliveryDriverId: updated.deliveryDriverId ?? order.deliveryDriverId,
+            deliveryDriverName: updated.deliveryDriverName ?? order.deliveryDriverName,
+            deliveryStartedAtUtc: updated.deliveryStartedAtUtc ?? order.deliveryStartedAtUtc,
+            deliveryRouteId: updated.deliveryRouteId ?? order.deliveryRouteId,
+            deliveryRouteStatus: updated.deliveryRouteStatus ?? order.deliveryRouteStatus,
+          } : order)),
         );
         this.patchDetailStatus(orderId, pending.nextStatus);
+        this.patchOrderFromDetails(updated);
         void this.toast.showSuccess('Pedido atualizado.');
         if (pending.order.status === OrderStatus.Received && pending.nextStatus === OrderStatus.Preparing) {
           this.triggerAcceptedOrderPrint(orderId);
@@ -651,9 +706,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         this.shell.notifyOrderChanged(orderId);
         this.load({ silent: true });
       },
-      error: () => {
+      error: (err) => {
         this.updatingOrderId.set(null);
-        void this.toast.showError('Não foi possível atualizar o pedido.');
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível atualizar o pedido.');
       },
     });
   }
@@ -730,6 +785,73 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  orderDriver(deliveryDriverId?: string | null): SellerDeliveryDriver | null {
+    if (!deliveryDriverId) return null;
+    return this.deliveryDrivers().find((driver) => driver.deliveryDriverId === deliveryDriverId) ?? null;
+  }
+
+  driverWhatsAppUrl(deliveryDriverId?: string | null): string | null {
+    const driver = this.orderDriver(deliveryDriverId);
+    if (!driver) return null;
+    const phone = (driver.whatsAppPhoneNumber || driver.phoneNumber || '').replace(/\D/g, '');
+    if (!phone) return null;
+    return `https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}`;
+  }
+
+  routeStatusLabel(status?: number | null): string {
+    switch (status) {
+      case DeliveryRouteStatus.Active: return 'Rota ativa';
+      case DeliveryRouteStatus.Completed: return 'Rota concluída';
+      case DeliveryRouteStatus.Revoked: return 'Rota revogada';
+      case DeliveryRouteStatus.Expired: return 'Rota expirada';
+      default: return 'Sem rota';
+    }
+  }
+
+  shareOrderRoute(): void {
+    const order = this.selectedOrder();
+    if (!order?.deliveryRouteId) return;
+
+    this.deliveryRouteService.shareRoute(order.deliveryRouteId).subscribe({
+      next: (result) => {
+        if (!result.shareUrl) {
+          void this.toast.showError('Não foi possível gerar o link da rota.');
+          return;
+        }
+
+        const driver = this.deliveryDrivers().find(
+          (item) => item.id === result.route?.deliveryDriverId,
+        );
+        const phone = (driver?.whatsAppPhoneNumber || driver?.phoneNumber || '').replace(/\D/g, '');
+        if (!phone) {
+          void this.toast.showError('Cadastre o WhatsApp do motoboy para compartilhar a rota.');
+          return;
+        }
+
+        const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
+        const message = encodeURIComponent(
+          `Rota de entregas: ${result.shareUrl}`,
+        );
+        window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener,noreferrer');
+        this.patchRouteInfoFromResult(result.route);
+      },
+      error: (err) => {
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível compartilhar a rota.');
+      },
+    });
+  }
+
+  private patchRouteInfoFromResult(route?: { id: string; status: DeliveryRouteStatus } | null): void {
+    if (!route) return;
+    const order = this.selectedOrder();
+    if (!order) return;
+    this.orders.update((items) => items.map((item) =>
+      item.id === order.id
+        ? { ...item, deliveryRouteId: route.id, deliveryRouteStatus: route.status }
+        : item,
+    ));
+  }
+
   private loadDeliveryDrivers(): void {
     this.deliveryDriverService.listStoreDrivers().subscribe({
       next: (drivers) => this.deliveryDrivers.set(drivers),
@@ -738,6 +860,8 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   }
 
   private patchOrderFromDetails(order: OrderDetails): void {
+    if (!order?.id) return;
+
     this.orders.update((items) =>
       items.map((item) => (item.id === order.id ? {
         ...item,
@@ -746,6 +870,8 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         deliveryDriverName: order.deliveryDriverName,
         deliveryStartedAtUtc: order.deliveryStartedAtUtc,
         deliveryPinConfirmedAtUtc: order.deliveryPinConfirmedAtUtc,
+        deliveryRouteId: order.deliveryRouteId,
+        deliveryRouteStatus: order.deliveryRouteStatus,
         deliveryConfirmedAtUtc: order.deliveryConfirmedAtUtc,
       } : item)),
     );

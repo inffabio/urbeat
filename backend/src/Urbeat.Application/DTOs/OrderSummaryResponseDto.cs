@@ -43,4 +43,8 @@ public sealed class OrderSummaryResponseDto
     public DateTime? DeliveryStartedAtUtc { get; init; }
 
     public DateTime? DeliveryPinConfirmedAtUtc { get; init; }
+
+    public Guid? DeliveryRouteId { get; init; }
+
+    public DeliveryRouteStatus? DeliveryRouteStatus { get; init; }
 }

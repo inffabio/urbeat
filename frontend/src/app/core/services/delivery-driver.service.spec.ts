@@ -28,10 +28,44 @@ describe('DeliveryDriverService', () => {
     req.flush([{ id: 'driver-1', name: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999', status: 2, canResendInvite: false }]);
   });
 
-  it('invites a delivery driver', () => {
+  it('creates and updates a simple motoboy without e-mail', () => {
+    service.createDriver({
+      name: 'Ana',
+      phoneNumber: '11999999999',
+      whatsAppPhoneNumber: '11988887777',
+      isActive: true,
+    }).subscribe();
+    const create = httpMock.expectOne('/api/delivery-drivers');
+    expect(create.request.method).toBe('POST');
+    expect(create.request.body).toEqual({
+      name: 'Ana',
+      phoneNumber: '11999999999',
+      whatsAppPhoneNumber: '11988887777',
+      isActive: true,
+    });
+    create.flush({ id: 'link-1', deliveryDriverId: 'driver-1', name: 'Ana', isActive: true });
+
+    service.updateDriver('link-1', {
+      name: 'Ana Atualizada',
+      phoneNumber: '11999999999',
+      whatsAppPhoneNumber: null,
+      isActive: false,
+    }).subscribe();
+    const update = httpMock.expectOne('/api/delivery-drivers/link-1');
+    expect(update.request.method).toBe('PUT');
+    update.flush({ id: 'link-1', deliveryDriverId: 'driver-1', name: 'Ana Atualizada', isActive: false });
+
+    service.setDriverActive('link-1', true).subscribe();
+    const status = httpMock.expectOne('/api/delivery-drivers/link-1/status');
+    expect(status.request.method).toBe('PATCH');
+    expect(status.request.body).toEqual({ isActive: true });
+    status.flush({ id: 'link-1', deliveryDriverId: 'driver-1', name: 'Ana', isActive: true });
+  });
+
+  it('keeps the legacy invite endpoint for already sent links', () => {
     service.invite({ fullName: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999' }).subscribe();
 
-    const req = httpMock.expectOne('/api/delivery-drivers/store');
+    const req = httpMock.expectOne('/api/delivery-drivers/store/invite');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       fullName: 'Ana',

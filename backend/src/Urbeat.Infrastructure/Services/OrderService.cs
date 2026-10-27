@@ -155,7 +155,9 @@ public sealed class OrderService : IOrderService
                     DeliveryDriverId = assignment?.DeliveryDriverId,
                     DeliveryDriverName = assignment?.DeliveryDriverName,
                     DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
-                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc
+                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc,
+                    DeliveryRouteId = assignment?.DeliveryRouteId,
+                    DeliveryRouteStatus = assignment?.DeliveryRouteStatus
                 };
             })
             .ToList();
@@ -195,7 +197,9 @@ public sealed class OrderService : IOrderService
     private sealed record AssignmentSummary(
         Guid DeliveryDriverId,
         string DeliveryDriverName,
-        DateTime? DeliveryStartedAtUtc);
+        DateTime? DeliveryStartedAtUtc,
+        Guid? DeliveryRouteId,
+        DeliveryRouteStatus? DeliveryRouteStatus);
 
     private async Task<Dictionary<Guid, AssignmentSummary>> LoadAssignmentSummariesAsync(
         IReadOnlyCollection<Guid> orderIds,
@@ -220,9 +224,49 @@ public sealed class OrderService : IOrderService
             }
         ).ToListAsync(cancellationToken);
 
+        var routeRows = await (
+            from stop in _dbContext.DeliveryRouteOrders.AsNoTracking()
+            join route in _dbContext.DeliveryRoutes.AsNoTracking() on stop.DeliveryRouteId equals route.Id
+            where orderIds.Contains(stop.OrderId)
+            orderby route.CreatedAtUtc descending
+            select new
+            {
+                stop.OrderId,
+                RouteId = route.Id,
+                route.RevokedAtUtc,
+                route.CompletedAtUtc,
+                route.ExpiresAtUtc
+            }
+        ).ToListAsync(cancellationToken);
+
+        var routes = routeRows
+            .GroupBy(x => x.OrderId)
+            .ToDictionary(x => x.Key, x => x.First());
+        var now = DateTime.UtcNow;
+
         return rows.ToDictionary(
             x => x.OrderId,
-            x => new AssignmentSummary(x.DeliveryDriverId, x.DriverName, x.DeliveryStartedAtUtc));
+            x =>
+            {
+                routes.TryGetValue(x.OrderId, out var route);
+                return new AssignmentSummary(
+                    x.DeliveryDriverId,
+                    x.DriverName,
+                    x.DeliveryStartedAtUtc,
+                    route?.RouteId,
+                    route is null ? null : GetRouteStatus(route.RevokedAtUtc, route.CompletedAtUtc, route.ExpiresAtUtc, now));
+            });
+    }
+
+    private static DeliveryRouteStatus GetRouteStatus(
+        DateTime? revokedAtUtc,
+        DateTime? completedAtUtc,
+        DateTime expiresAtUtc,
+        DateTime utcNow)
+    {
+        if (revokedAtUtc is not null) return DeliveryRouteStatus.Revoked;
+        if (completedAtUtc is not null) return DeliveryRouteStatus.Completed;
+        return expiresAtUtc <= utcNow ? DeliveryRouteStatus.Expired : DeliveryRouteStatus.Active;
     }
 
     public async Task<OrderDetailsResponseDto?> GetStoreOrderAsync(Guid sellerUserId, Guid orderId, CancellationToken cancellationToken = default)
@@ -572,7 +616,9 @@ public sealed class OrderService : IOrderService
                     DeliveryDriverId = assignment?.DeliveryDriverId,
                     DeliveryDriverName = assignment?.DeliveryDriverName,
                     DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
-                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc
+                    DeliveryPinConfirmedAtUtc = x.DeliveryPinConfirmedAtUtc,
+                    DeliveryRouteId = assignment?.DeliveryRouteId,
+                    DeliveryRouteStatus = assignment?.DeliveryRouteStatus
                 };
             })
             .ToList();
@@ -617,6 +663,38 @@ public sealed class OrderService : IOrderService
         if (!OrderStatusStateMachine.CanTransition(order.Status, request.NewStatus))
         {
             return new UpdateOrderStatusResultDto { InvalidTransition = true };
+        }
+
+        if (request.NewStatus == OrderStatus.OnDelivery)
+        {
+            var driverResult = await PrepareOnDeliveryAsync(
+                order,
+                sellerUserId,
+                request.DeliveryDriverId,
+                cancellationToken);
+            if (driverResult is not null)
+            {
+                return driverResult;
+            }
+        }
+
+        if (request.NewStatus == OrderStatus.Delivered
+            && order.FulfillmentType == FulfillmentType.Delivery)
+        {
+            // No "own delivery" path: a delivery can only be concluded after a motoboy actually
+            // started it. This closes the Ready -> Delivered shortcut left by the state machine.
+            var started = await _dbContext.OrderDeliveryAssignments
+                .AsNoTracking()
+                .AnyAsync(
+                    x => x.OrderId == order.Id
+                        && x.StoreId == order.StoreId
+                        && x.DeliveryStartedAtUtc != null,
+                    cancellationToken);
+
+            if (!started)
+            {
+                return new UpdateOrderStatusResultDto { DriverRequired = true };
+            }
         }
 
         var previousStatus = order.Status;
@@ -746,6 +824,117 @@ public sealed class OrderService : IOrderService
         {
             Order = details
         };
+    }
+
+    /// <summary>
+    /// Moving a delivery order to OnDelivery is only valid with an active driver from the same
+    /// store. The method authoritatively creates/updates the assignment and the delivery PIN
+    /// before the status change is persisted by the caller.
+    /// </summary>
+    private async Task<UpdateOrderStatusResultDto?> PrepareOnDeliveryAsync(
+        Order order,
+        Guid sellerUserId,
+        Guid? requestedDriverId,
+        CancellationToken cancellationToken)
+    {
+        if (order.FulfillmentType != FulfillmentType.Delivery || order.SellerCompletedAtUtc is not null)
+        {
+            return new UpdateOrderStatusResultDto { InvalidTransition = true };
+        }
+
+        var assignment = await _dbContext.OrderDeliveryAssignments
+            .SingleOrDefaultAsync(x => x.OrderId == order.Id, cancellationToken);
+
+        StoreDeliveryDriver? link;
+        if (requestedDriverId is { } driverId && driverId != Guid.Empty)
+        {
+            link = await _dbContext.StoreDeliveryDrivers
+                .Include(x => x.DeliveryDriver)
+                .SingleOrDefaultAsync(
+                    x => x.Id == driverId
+                        && x.StoreId == order.StoreId
+                        && x.Status == StoreDeliveryDriverStatus.Active,
+                    cancellationToken);
+
+            if (link is null)
+            {
+                return new UpdateOrderStatusResultDto { DriverNotAvailable = true };
+            }
+        }
+        else if (assignment is not null)
+        {
+            link = await _dbContext.StoreDeliveryDrivers
+                .Include(x => x.DeliveryDriver)
+                .SingleOrDefaultAsync(
+                    x => x.StoreId == order.StoreId
+                        && x.DeliveryDriverId == assignment.DeliveryDriverId
+                        && x.Status == StoreDeliveryDriverStatus.Active,
+                    cancellationToken);
+
+            if (link is null)
+            {
+                return new UpdateOrderStatusResultDto { DriverRequired = true };
+            }
+        }
+        else
+        {
+            return new UpdateOrderStatusResultDto { DriverRequired = true };
+        }
+
+        if (assignment is not null
+            && assignment.DeliveryStartedAtUtc is not null
+            && assignment.DeliveryDriverId != link.DeliveryDriverId)
+        {
+            return new UpdateOrderStatusResultDto { InvalidTransition = true };
+        }
+
+        if (string.IsNullOrWhiteSpace(order.DeliveryPinHash))
+        {
+            var pin = DeliveryPinCode.Generate();
+            order.DeliveryPinHash = DeliveryPinCode.Hash(order, pin);
+            order.DeliveryPinEncrypted = _encryptionService?.Encrypt(pin);
+        }
+
+        var now = DateTime.UtcNow;
+        if (assignment is null)
+        {
+            assignment = new OrderDeliveryAssignment
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId,
+                DeliveryDriverId = link.DeliveryDriverId,
+                AssignedByUserId = sellerUserId,
+                AssignedAtUtc = now,
+                DeliveryStartedAtUtc = now
+            };
+            await _dbContext.OrderDeliveryAssignments.AddAsync(assignment, cancellationToken);
+        }
+        else
+        {
+            if (assignment.DeliveryDriverId != link.DeliveryDriverId)
+            {
+                assignment.PinAttemptCount = 0;
+                assignment.LastPinAttemptAtUtc = null;
+            }
+
+            assignment.DeliveryDriverId = link.DeliveryDriverId;
+            assignment.AssignedByUserId = sellerUserId;
+            assignment.AssignedAtUtc = now;
+            assignment.DeliveryStartedAtUtc ??= now;
+            assignment.AdvanceConcurrency();
+            assignment.MarkAsUpdated();
+        }
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "OrderDeliveryDriverAssigned",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = $"Pedido {order.Code} atribuído ao motoboy {link.DeliveryDriver?.FullName ?? link.DisplayName} ao sair para entrega."
+        }, cancellationToken);
+
+        return null;
     }
 
     public async Task<UpdateOrderConfirmationResultDto> ConfirmDeliveryAsync(
@@ -961,6 +1150,20 @@ public sealed class OrderService : IOrderService
             }
         ).SingleOrDefaultAsync(cancellationToken);
 
+        var routeInfo = await (
+            from stop in _dbContext.DeliveryRouteOrders.AsNoTracking()
+            join route in _dbContext.DeliveryRoutes.AsNoTracking() on stop.DeliveryRouteId equals route.Id
+            where stop.OrderId == order.Id
+            orderby route.CreatedAtUtc descending
+            select new
+            {
+                RouteId = route.Id,
+                route.RevokedAtUtc,
+                route.CompletedAtUtc,
+                route.ExpiresAtUtc
+            }
+        ).FirstOrDefaultAsync(cancellationToken);
+
         string? deliveryPin = null;
         if (includeDeliveryPin
             && order.FulfillmentType == FulfillmentType.Delivery
@@ -1003,6 +1206,14 @@ public sealed class OrderService : IOrderService
             DeliveryDriverName = assignment?.DriverName,
             DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
             DeliveryPinConfirmedAtUtc = order.DeliveryPinConfirmedAtUtc,
+            DeliveryRouteId = routeInfo?.RouteId,
+            DeliveryRouteStatus = routeInfo is null
+                ? null
+                : GetRouteStatus(
+                    routeInfo.RevokedAtUtc,
+                    routeInfo.CompletedAtUtc,
+                    routeInfo.ExpiresAtUtc,
+                    DateTime.UtcNow),
             DeliveryPin = deliveryPin,
             AddressCep = order.AddressCep,
             AddressStreet = order.AddressStreet,

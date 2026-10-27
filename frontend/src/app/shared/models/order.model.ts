@@ -49,6 +49,8 @@ export interface OrderDetails {
   deliveryDriverName?: string;
   deliveryStartedAtUtc?: string;
   deliveryPinConfirmedAtUtc?: string;
+  deliveryRouteId?: string | null;
+  deliveryRouteStatus?: number | null;
   deliveryPin?: string;
   addressCep?: string;
   addressStreet?: string;
@@ -84,6 +86,8 @@ export interface OrderSummary {
   deliveryDriverName?: string;
   deliveryStartedAtUtc?: string;
   deliveryPinConfirmedAtUtc?: string;
+  deliveryRouteId?: string | null;
+  deliveryRouteStatus?: number | null;
 }
 
 export interface StoreOrdersReport {
@@ -142,6 +146,8 @@ export interface SellerDeliverySummary {
   deliveryDriverName?: string;
   deliveryStartedAtUtc?: string;
   deliveryPinConfirmedAtUtc?: string;
+  deliveryRouteId?: string | null;
+  deliveryRouteStatus?: number | null;
 }
 
 export interface PagedOrderSummary {

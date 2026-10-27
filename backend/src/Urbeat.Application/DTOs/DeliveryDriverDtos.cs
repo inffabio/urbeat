@@ -13,13 +13,23 @@ public sealed class InviteDeliveryDriverRequestDto
 
 public sealed class SellerDeliveryDriverResponseDto
 {
+    /// <summary>Store-scoped link id used by seller assignment and route endpoints.</summary>
     public Guid Id { get; init; }
+
+    /// <summary>Global driver id used by order assignment summaries.</summary>
+    public Guid DeliveryDriverId { get; init; }
 
     public string Name { get; init; } = string.Empty;
 
     public string Email { get; init; } = string.Empty;
 
     public string PhoneNumber { get; init; } = string.Empty;
+
+    public string? WhatsAppPhoneNumber { get; init; }
+
+    public bool IsActive { get; init; }
+
+    public bool HasAccount { get; init; }
 
     public StoreDeliveryDriverStatus Status { get; init; }
 
@@ -226,4 +236,29 @@ public sealed class SellerDeliveryDriverOperationResultDto
     public string? Error { get; init; }
 
     public SellerDeliveryDriverResponseDto? Driver { get; init; }
+}
+
+public sealed class SetStoreDeliveryDriverStatusRequestDto
+{
+    public bool IsActive { get; init; }
+}
+
+/// <summary>
+/// Compatibility payload for POST /api/delivery-drivers/store. New clients send the simple
+/// motoboy fields; clients of the removed invite UI still send FullName/Email and are routed
+/// to the legacy invite flow instead of being silently ignored.
+/// </summary>
+public sealed class CreateStoreDeliveryDriverRequestDto
+{
+    public string? Name { get; init; }
+
+    public string? FullName { get; init; }
+
+    public string? Email { get; init; }
+
+    public string? PhoneNumber { get; init; }
+
+    public string? WhatsAppPhoneNumber { get; init; }
+
+    public bool IsActive { get; init; } = true;
 }

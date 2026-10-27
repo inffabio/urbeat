@@ -12,11 +12,9 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { ToastService } from '../../core/services/toast.service';
-import { formatSaoPauloDate, formatSaoPauloDateTime } from '../../core/utils/sao-paulo-date.helper';
 import {
-  InviteDeliveryDriverRequest,
   SellerDeliveryDriver,
-  StoreDeliveryDriverStatus,
+  UpsertStoreDeliveryDriverRequest,
 } from '../../shared/models/delivery-driver.model';
 
 @Component({
@@ -31,36 +29,31 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
 
-  @ViewChild('inviteDialog') private inviteDialogRef?: ElementRef<HTMLElement>;
-  @ViewChild('revokeDialog') private revokeDialogRef?: ElementRef<HTMLElement>;
+  @ViewChild('driverDialog') private driverDialogRef?: ElementRef<HTMLElement>;
+  @ViewChild('statusDialog') private statusDialogRef?: ElementRef<HTMLElement>;
 
-  private inviteTrigger: HTMLElement | null = null;
-  private revokeTrigger: HTMLElement | null = null;
+  private driverTrigger: HTMLElement | null = null;
+  private statusTrigger: HTMLElement | null = null;
 
-  readonly StoreDeliveryDriverStatus = StoreDeliveryDriverStatus;
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly submitting = signal(false);
-  readonly inviteDialogOpen = signal(false);
-  readonly revokeTarget = signal<SellerDeliveryDriver | null>(null);
+  readonly driverDialogOpen = signal(false);
+  readonly editingDriver = signal<SellerDeliveryDriver | null>(null);
+  readonly statusTarget = signal<SellerDeliveryDriver | null>(null);
   readonly actionDriverId = signal<string | null>(null);
   readonly drivers = signal<SellerDeliveryDriver[]>([]);
 
-  readonly inviteForm = this.fb.nonNullable.group({
-    fullName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
-    email: ['', [Validators.required, Validators.email]],
+  readonly driverForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
     phoneNumber: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(20)]],
+    whatsAppPhoneNumber: ['', [Validators.minLength(8), Validators.maxLength(20)]],
+    isActive: [true],
   });
 
-  readonly activeCount = computed(
-    () => this.drivers().filter((driver) => driver.status === StoreDeliveryDriverStatus.Active).length,
-  );
-  readonly pendingCount = computed(
-    () => this.drivers().filter((driver) => driver.status === StoreDeliveryDriverStatus.Pending).length,
-  );
-  readonly revokedCount = computed(
-    () => this.drivers().filter((driver) => driver.status === StoreDeliveryDriverStatus.Revoked).length,
-  );
+  readonly activeCount = computed(() => this.drivers().filter((driver) => driver.isActive).length);
+  readonly inactiveCount = computed(() => this.drivers().filter((driver) => !driver.isActive).length);
+  readonly dialogTitle = computed(() => (this.editingDriver() ? 'Editar motoboy' : 'Novo motoboy'));
 
   ngOnInit(): void {
     this.load();
@@ -72,7 +65,7 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
 
     this.driversApi.listStoreDrivers().subscribe({
       next: (drivers) => {
-        this.drivers.set(drivers);
+        this.drivers.set(this.sortDrivers(drivers));
         this.loading.set(false);
       },
       error: () => {
@@ -82,112 +75,137 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     });
   }
 
-  openInviteDialog(event?: Event): void {
-    this.inviteTrigger = this.resolveTrigger(event);
-    this.inviteForm.reset();
-    this.inviteDialogOpen.set(true);
-    this.focusDialog('invite');
+  openCreateDialog(event?: Event): void {
+    this.driverTrigger = this.resolveTrigger(event);
+    this.editingDriver.set(null);
+    this.driverForm.reset({ isActive: true });
+    this.driverDialogOpen.set(true);
+    this.focusDialog('driver');
   }
 
-  closeInviteDialog(): void {
-    const trigger = this.inviteTrigger;
-    this.inviteTrigger = null;
-    this.inviteDialogOpen.set(false);
+  openEditDialog(driver: SellerDeliveryDriver, event?: Event): void {
+    this.driverTrigger = this.resolveTrigger(event);
+    this.editingDriver.set(driver);
+    this.driverForm.reset({
+      name: driver.name,
+      phoneNumber: driver.phoneNumber,
+      whatsAppPhoneNumber: driver.whatsAppPhoneNumber ?? '',
+      isActive: driver.isActive,
+    });
+    this.driverDialogOpen.set(true);
+    this.focusDialog('driver');
+  }
+
+  closeDriverDialog(): void {
+    const trigger = this.driverTrigger;
+    this.driverTrigger = null;
+    this.driverDialogOpen.set(false);
+    this.editingDriver.set(null);
     this.submitting.set(false);
     this.restoreFocus(trigger);
   }
 
-  submitInvite(): void {
-    if (this.inviteForm.invalid || this.submitting()) {
-      this.inviteForm.markAllAsTouched();
+  submitDriver(): void {
+    if (this.driverForm.invalid || this.submitting()) {
+      this.driverForm.markAllAsTouched();
       return;
     }
 
-    const request: InviteDeliveryDriverRequest = {
-      fullName: this.inviteForm.controls.fullName.value.trim(),
-      email: this.inviteForm.controls.email.value.trim(),
-      phoneNumber: this.inviteForm.controls.phoneNumber.value.trim(),
+    const value = this.driverForm.getRawValue();
+    const request: UpsertStoreDeliveryDriverRequest = {
+      name: value.name.trim(),
+      phoneNumber: value.phoneNumber.trim(),
+      whatsAppPhoneNumber: (value.whatsAppPhoneNumber ?? '').trim() || null,
+      isActive: value.isActive,
     };
+    const editing = this.editingDriver();
 
     this.submitting.set(true);
-    this.driversApi.invite(request).subscribe({
+    const operation = editing
+      ? this.driversApi.updateDriver(editing.id, request)
+      : this.driversApi.createDriver(request);
+
+    operation.subscribe({
       next: (driver) => {
         this.submitting.set(false);
-        this.drivers.update((items) => [driver, ...items.filter((item) => item.id !== driver.id)]);
-        this.closeInviteDialog();
-        void this.toast.showSuccess('Convite enviado para o entregador.');
+        this.drivers.update((items) => this.sortDrivers([
+          driver,
+          ...items.filter((item) => item.id !== driver.id),
+        ]));
+        this.closeDriverDialog();
+        void this.toast.showSuccess(editing ? 'Motoboy atualizado.' : 'Motoboy cadastrado.');
       },
       error: (err) => {
         this.submitting.set(false);
-        const message = err?.error?.error ?? 'Não foi possível enviar o convite.';
-        void this.toast.showError(message);
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível salvar o motoboy.');
       },
     });
   }
 
-  resendInvite(driver: SellerDeliveryDriver): void {
+  requestStatusChange(driver: SellerDeliveryDriver, event?: Event): void {
     if (this.actionDriverId()) return;
-    this.actionDriverId.set(driver.id);
-
-    this.driversApi.resendInvite(driver.id).subscribe({
-      next: (updated) => {
-        this.actionDriverId.set(null);
-        this.replaceDriver(updated);
-        void this.toast.showSuccess('Convite reenviado.');
-      },
-      error: () => {
-        this.actionDriverId.set(null);
-        void this.toast.showError('Não foi possível reenviar o convite.');
-      },
-    });
+    this.statusTrigger = this.resolveTrigger(event);
+    this.statusTarget.set(driver);
+    this.focusDialog('status');
   }
 
-  revoke(driver: SellerDeliveryDriver, event?: Event): void {
-    if (this.actionDriverId()) return;
-    this.revokeTrigger = this.resolveTrigger(event);
-    this.revokeTarget.set(driver);
-    this.focusDialog('revoke');
+  cancelStatusChange(): void {
+    this.closeStatus();
   }
 
-  cancelRevoke(): void {
-    this.closeRevoke();
-  }
-
-  confirmRevoke(): void {
-    const driver = this.revokeTarget();
+  confirmStatusChange(): void {
+    const driver = this.statusTarget();
     if (!driver || this.actionDriverId()) return;
 
     this.actionDriverId.set(driver.id);
-    this.driversApi.revoke(driver.id).subscribe({
+    this.driversApi.setDriverActive(driver.id, !driver.isActive).subscribe({
       next: (updated) => {
         this.actionDriverId.set(null);
-        this.closeRevoke();
-        this.replaceDriver(updated);
-        void this.toast.showSuccess('Acesso revogado.');
+        this.closeStatus();
+        this.drivers.update((items) => this.sortDrivers(
+          items.map((item) => (item.id === updated.id ? updated : item)),
+        ));
+        void this.toast.showSuccess(updated.isActive ? 'Motoboy ativado.' : 'Motoboy inativado.');
       },
       error: (err) => {
         this.actionDriverId.set(null);
-        this.closeRevoke();
-        void this.toast.showError(err?.error?.error ?? 'Não foi possível revogar o acesso.');
+        this.closeStatus();
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível alterar o status.');
       },
     });
+  }
+
+  whatsAppUrl(driver: SellerDeliveryDriver): string | null {
+    const phone = (driver.whatsAppPhoneNumber || driver.phoneNumber || '').replace(/\D/g, '');
+    if (!phone) return null;
+
+    const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
+    return `https://wa.me/${withCountry}`;
+  }
+
+  phoneHref(driver: SellerDeliveryDriver): string {
+    return `tel:${driver.phoneNumber.replace(/[^\d+]/g, '')}`;
+  }
+
+  statusLabel(driver: SellerDeliveryDriver): string {
+    return driver.isActive ? 'Ativo' : 'Inativo';
   }
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape(event?: Event): void {
-    if (this.revokeTarget()) {
+    if (this.statusTarget()) {
       event?.preventDefault();
-      this.closeRevoke();
+      this.closeStatus();
       return;
     }
 
-    if (this.inviteDialogOpen()) {
+    if (this.driverDialogOpen()) {
       event?.preventDefault();
-      this.closeInviteDialog();
+      this.closeDriverDialog();
     }
   }
 
-  /** Keeps Tab/Shift+Tab inside the open dialog, matching the seller orders and driver dialogs. */
+  /** Keeps Tab/Shift+Tab inside the open dialog. */
   onDialogKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -228,35 +246,10 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     }
   }
 
-  statusLabel(status: StoreDeliveryDriverStatus): string {
-    switch (status) {
-      case StoreDeliveryDriverStatus.Active:
-        return 'Ativo';
-      case StoreDeliveryDriverStatus.Pending:
-        return 'Convite pendente';
-      case StoreDeliveryDriverStatus.Revoked:
-        return 'Revogado';
-      default:
-        return '';
-    }
-  }
-
-  formatDateTime(value?: string | null): string {
-    return value ? formatSaoPauloDateTime(value) : '-';
-  }
-
-  formatDate(value?: string | null): string {
-    return value ? formatSaoPauloDate(value) : '-';
-  }
-
-  private replaceDriver(updated: SellerDeliveryDriver): void {
-    this.drivers.update((items) => items.map((item) => (item.id === updated.id ? updated : item)));
-  }
-
-  private closeRevoke(): void {
-    const trigger = this.revokeTrigger;
-    this.revokeTrigger = null;
-    this.revokeTarget.set(null);
+  private closeStatus(): void {
+    const trigger = this.statusTrigger;
+    this.statusTrigger = null;
+    this.statusTarget.set(null);
     this.restoreFocus(trigger);
   }
 
@@ -265,12 +258,11 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     return target instanceof HTMLElement ? target : null;
   }
 
-  private focusDialog(kind: 'invite' | 'revoke'): void {
-    // The dialog is rendered by the signal update, so focus must wait for change detection.
+  private focusDialog(kind: 'driver' | 'status'): void {
     setTimeout(() => {
-      const dialog = kind === 'invite'
-        ? this.inviteDialogRef?.nativeElement
-        : this.revokeDialogRef?.nativeElement;
+      const dialog = kind === 'driver'
+        ? this.driverDialogRef?.nativeElement
+        : this.statusDialogRef?.nativeElement;
       dialog?.focus();
     });
   }
@@ -280,6 +272,13 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
 
     setTimeout(() => {
       if (trigger.isConnected) trigger.focus();
+    });
+  }
+
+  private sortDrivers(drivers: SellerDeliveryDriver[]): SellerDeliveryDriver[] {
+    return [...drivers].sort((a, b) => {
+      if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+      return a.name.localeCompare(b.name, 'pt-BR');
     });
   }
 }

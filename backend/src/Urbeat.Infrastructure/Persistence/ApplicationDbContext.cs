@@ -86,6 +86,10 @@ public sealed class ApplicationDbContext
 
     public DbSet<OrderDeliveryAssignment> OrderDeliveryAssignments => Set<OrderDeliveryAssignment>();
 
+    public DbSet<DeliveryRoute> DeliveryRoutes => Set<DeliveryRoute>();
+
+    public DbSet<DeliveryRouteOrder> DeliveryRouteOrders => Set<DeliveryRouteOrder>();
+
     public DbSet<DeliveryNeighborhood> DeliveryNeighborhoods => Set<DeliveryNeighborhood>();
 
     public DbSet<City> Cities => Set<City>();
@@ -318,12 +322,17 @@ public sealed class ApplicationDbContext
         builder.Entity<DeliveryDriver>(entity =>
         {
             entity.HasKey(x => x.Id);
-            entity.HasIndex(x => x.NormalizedEmail).IsUnique();
+            // Simple store drivers have no e-mail; the legacy invite flow still needs a unique
+            // normalized e-mail when it exists.
+            entity.HasIndex(x => x.NormalizedEmail)
+                .IsUnique()
+                .HasFilter("\"NormalizedEmail\" IS NOT NULL AND \"NormalizedEmail\" <> ''");
             entity.HasIndex(x => x.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
             entity.Property(x => x.FullName).HasMaxLength(120).IsRequired();
-            entity.Property(x => x.Email).HasMaxLength(255).IsRequired();
-            entity.Property(x => x.NormalizedEmail).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(255);
+            entity.Property(x => x.NormalizedEmail).HasMaxLength(255);
             entity.Property(x => x.PhoneNumber).HasMaxLength(20);
+            entity.Property(x => x.WhatsAppPhoneNumber).HasMaxLength(20);
             entity.HasOne<IdentityUser<Guid>>()
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
@@ -337,6 +346,7 @@ public sealed class ApplicationDbContext
             entity.HasIndex(x => x.InviteTokenHash).IsUnique().HasFilter("\"InviteTokenHash\" IS NOT NULL");
             entity.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
             entity.Property(x => x.PhoneNumber).HasMaxLength(20);
+            entity.Property(x => x.WhatsAppPhoneNumber).HasMaxLength(20);
             entity.Property(x => x.InviteTokenHash).HasMaxLength(64);
             entity.HasOne<Store>()
                 .WithMany()
@@ -364,6 +374,44 @@ public sealed class ApplicationDbContext
                 .WithMany()
                 .HasForeignKey(x => x.DeliveryDriverId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<DeliveryRoute>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            entity.HasIndex(x => new { x.StoreId, x.CreatedAtUtc });
+            entity.HasIndex(x => new { x.StoreId, x.DeliveryDriverId, x.RevokedAtUtc });
+            entity.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.ConcurrencyVersion).HasDefaultValue(0).IsConcurrencyToken();
+            entity.HasOne<Store>()
+                .WithMany()
+                .HasForeignKey(x => x.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<DeliveryDriver>()
+                .WithMany()
+                .HasForeignKey(x => x.DeliveryDriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<StoreDeliveryDriver>()
+                .WithMany()
+                .HasForeignKey(x => x.StoreDeliveryDriverId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<DeliveryRouteOrder>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.DeliveryRouteId, x.OrderId }).IsUnique();
+            entity.HasIndex(x => new { x.DeliveryRouteId, x.Sequence });
+            entity.HasIndex(x => x.OrderId);
+            entity.HasOne(x => x.DeliveryRoute)
+                .WithMany(x => x.Orders)
+                .HasForeignKey(x => x.DeliveryRouteId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Order)
+                .WithMany()
+                .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<OrderReview>(entity =>

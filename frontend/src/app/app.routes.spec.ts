@@ -24,6 +24,24 @@ describe('app routes', () => {
     expect(driversRoute?.loadComponent?.toString()).toContain('seller-delivery-drivers-page.component');
   });
 
+  it('routes /app/rotas to the seller delivery routes page', () => {
+    const appRoute = routes.find((route) => route.path === 'app');
+    const routesRoute = appRoute?.children?.find((child) => child.path === 'rotas');
+
+    expect(routesRoute?.loadComponent?.toString()).toContain('seller-delivery-routes-page.component');
+  });
+
+  it('declares the public tokenized route page before the store slug route and without guards', () => {
+    const publicRouteIndex = routes.findIndex((route) => route.path === 'rota/:token');
+    const storeIndex = routes.findIndex((route) => route.path === ':storePath');
+    const publicRoute = routes.find((route) => route.path === 'rota/:token');
+
+    expect(publicRouteIndex).toBeGreaterThanOrEqual(0);
+    expect(publicRouteIndex).toBeLessThan(storeIndex);
+    expect(publicRoute?.canActivate).toBeUndefined();
+    expect(publicRoute?.loadComponent?.toString()).toContain('public-delivery-route-page.component');
+  });
+
   it('declares /app before the public store slug route', () => {
     const appIndex = routes.findIndex((route) => route.path === 'app');
     const storeIndex = routes.findIndex((route) => route.path === ':storePath');

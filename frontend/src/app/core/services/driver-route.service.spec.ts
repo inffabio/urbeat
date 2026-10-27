@@ -3,7 +3,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environments/environment';
 import { GeoPoint, haversineDistanceKm } from '../utils/geo.helper';
-import { DriverRoutePlan, DriverRouteService } from './driver-route.service';
+import {
+  DriverRoutePlan,
+  DriverRouteService,
+  DriverRouteStopsPlan,
+} from './driver-route.service';
 
 const osrmResponse = (
   coordinates: ReadonlyArray<readonly [number, number]>,
@@ -166,6 +170,86 @@ describe('DriverRouteService', () => {
     expect(missingOrigin).toBeNull();
     expect(everythingMissing).toBeNull();
     httpMock.expectNone((req) => req.url.startsWith(environment.routingUrl));
+  });
+
+  it('requests the whole remaining route in a single ordered multi-waypoint call', () => {
+    const stops = [
+      { sequence: 3, point: { lat: -23.57, lng: -46.64 }, isNext: false },
+      { sequence: 1, point: { lat: -23.561414, lng: -46.655881 }, isNext: true },
+      { sequence: 2, point: { lat: -23.566, lng: -46.645 }, isNext: false },
+    ];
+
+    let result: DriverRouteStopsPlan | null | undefined;
+    service.stopsPlan(store, stops).subscribe((value) => (result = value));
+
+    const request = httpMock.expectOne((req) => req.url.startsWith(environment.routingUrl));
+    expect(request.request.url).toBe(
+      `${environment.routingUrl}/${store.lng},${store.lat}`
+      + `;${stops[1].point.lng},${stops[1].point.lat}`
+      + `;${stops[2].point.lng},${stops[2].point.lat}`
+      + `;${stops[0].point.lng},${stops[0].point.lat}`,
+    );
+    expect(request.request.urlWithParams).not.toContain('pin');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+
+    request.flush(osrmResponse([
+      [store.lng, store.lat],
+      [stops[1].point.lng, stops[1].point.lat],
+      [stops[2].point.lng, stops[2].point.lat],
+      [stops[0].point.lng, stops[0].point.lat],
+    ], 8_700));
+
+    expect(result).not.toBeUndefined();
+    expect(result!.kind).toBe('road');
+    expect(result!.source).toBe('store');
+    expect(result!.stops.map((stop) => stop.sequence)).toEqual([1, 2, 3]);
+    expect(result!.path).toEqual([
+      store,
+      stops[1].point,
+      stops[2].point,
+      stops[0].point,
+    ]);
+    expect(result!.distanceKm).toBeCloseTo(8.7, 5);
+  });
+
+  it('starts the multi-stop route from the current location and falls back to the first stop', () => {
+    const stops = [
+      { sequence: 1, point: customer, isNext: true },
+      { sequence: 2, point: mid, isNext: false },
+    ];
+
+    let fromCurrent: DriverRouteStopsPlan | null | undefined;
+    service.stopsPlan(store, stops, current).subscribe((value) => (fromCurrent = value));
+    const request = httpMock.expectOne((req) => req.url.startsWith(environment.routingUrl));
+    expect(request.request.url).toBe(
+      `${environment.routingUrl}/${current.lng},${current.lat};${customer.lng},${customer.lat};${mid.lng},${mid.lat}`,
+    );
+    request.flush(osrmResponse([
+      [current.lng, current.lat],
+      [customer.lng, customer.lat],
+      [mid.lng, mid.lat],
+    ], 4_000));
+    expect(fromCurrent!.source).toBe('current-location');
+
+    const withoutOrigin = service.referenceStopsPlan(null, stops, null);
+    expect(withoutOrigin).not.toBeNull();
+    expect(withoutOrigin!.source).toBe('first-stop');
+    expect(withoutOrigin!.path).toEqual([customer, mid]);
+    expect(withoutOrigin!.kind).toBe('straight-line');
+    expect(withoutOrigin!.distanceKm).toBeCloseTo(haversineDistanceKm(customer, mid), 6);
+  });
+
+  it('builds a reference plan only when two distinct points exist', () => {
+    const plan = service.referenceStopsPlan(store, [
+      { sequence: 1, point: customer, isNext: true },
+    ]);
+
+    expect(plan).not.toBeNull();
+    expect(plan!.path).toEqual([store, customer]);
+    expect(service.referenceStopsPlan(null, [])).toBeNull();
+    expect(service.referenceStopsPlan(null, [
+      { sequence: 1, point: customer, isNext: true },
+    ])).toBeNull();
   });
 
   it('exposes a synchronous straight-line reference used by unexpected error paths', () => {

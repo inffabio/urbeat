@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
+import { DeliveryRouteService } from '../../core/services/delivery-route.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { SellerOrdersWindowService } from '../../core/services/seller-orders-window.service';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
@@ -37,6 +38,7 @@ describe('SellerOrdersPageComponent', () => {
     statusTone: ReturnType<typeof signal<'info' | 'success' | 'warning' | 'error' | null>>;
   };
   let toastServiceMock: { showSuccess: jest.Mock; showError: jest.Mock };
+  let deliveryRouteServiceMock: { shareRoute: jest.Mock };
   let shellMock: { newOrderPulse: any; notifyOrderChanged: jest.Mock };
   let signalRServiceMock: {
     onSellerEvent: jest.Mock;
@@ -124,6 +126,9 @@ describe('SellerOrdersPageComponent', () => {
       assignOrder: jest.fn().mockReturnValue(of({ id: 'order-1', code: 'ABC' })),
       removeAssignment: jest.fn().mockReturnValue(of({ id: 'order-1', code: 'ABC' })),
     };
+    deliveryRouteServiceMock = {
+      shareRoute: jest.fn().mockReturnValue(of({ route: null, shareUrl: null })),
+    };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
     signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
     const detached = signal(false);
@@ -149,6 +154,7 @@ describe('SellerOrdersPageComponent', () => {
       providers: [
         { provide: OrderService, useValue: orderServiceMock },
         { provide: DeliveryDriverService, useValue: deliveryDriverServiceMock },
+        { provide: DeliveryRouteService, useValue: deliveryRouteServiceMock },
         { provide: SignalRService, useValue: signalRServiceMock },
         { provide: AutomaticPrintQueueService, useValue: automaticPrintMock },
         { provide: ToastService, useValue: toastServiceMock },
@@ -617,6 +623,7 @@ describe('SellerOrdersPageComponent', () => {
       'accepted-order',
       OrderStatus.Preparing,
       'Atualizado pelo painel do lojista',
+      undefined,
     );
     expect(automaticPrintMock.enqueueAcceptedOrder).toHaveBeenCalledWith(
       expect.objectContaining({ orderId: 'accepted-order' }),
@@ -636,6 +643,7 @@ describe('SellerOrdersPageComponent', () => {
       'accepted-order',
       OrderStatus.Preparing,
       'Atualizado pelo painel do lojista',
+      undefined,
     );
     expect(shellMock.notifyOrderChanged).toHaveBeenCalledWith('accepted-order');
     expect(orderServiceMock.getStoreOrders).toHaveBeenCalled();
@@ -2360,7 +2368,12 @@ describe('SellerOrdersPageComponent', () => {
     );
     fixture.componentInstance.executeAdvance();
 
-    expect(orderServiceMock.updateStoreOrderStatus).toHaveBeenCalledWith('pickup-ready', OrderStatus.Delivered, 'Atualizado pelo painel do lojista');
+    expect(orderServiceMock.updateStoreOrderStatus).toHaveBeenCalledWith(
+      'pickup-ready',
+      OrderStatus.Delivered,
+      'Atualizado pelo painel do lojista',
+      undefined,
+    );
   });
 
   it('keeps other order details when a single prefetch fails and exposes a retry state', () => {
@@ -2891,5 +2904,43 @@ describe('SellerOrdersPageComponent', () => {
       expect(ordersWindowMock.releaseDetachedRoute).not.toHaveBeenCalled();
       expect(ordersWindowMock.dispose).not.toHaveBeenCalled();
     });
+  });
+
+  it('requires an active motoboy before moving a delivery order to OnDelivery', () => {
+    deliveryDriverServiceMock.listStoreDrivers.mockReturnValue(of([{
+      id: 'link-1',
+      deliveryDriverId: 'driver-1',
+      name: 'Ana Motoboy',
+      email: '',
+      phoneNumber: '11999999999',
+      whatsAppPhoneNumber: '11988887777',
+      isActive: true,
+      hasAccount: false,
+      status: 2,
+      canResendInvite: false,
+    }]));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const order = buildOrder({ id: 'ready', code: 'READY', status: OrderStatus.Ready, fulfillmentType: FulfillmentType.Delivery });
+
+    component.confirmAdvance(order, OrderStatus.OnDelivery, 'Saiu para entrega');
+    expect(component.pendingRequiresDriver()).toBe(true);
+    expect(component.canConfirmPending()).toBe(false);
+
+    component.executeAdvance();
+    expect(orderServiceMock.updateStoreOrderStatus).not.toHaveBeenCalled();
+
+    component.setPendingDriver('link-1');
+    expect(component.canConfirmPending()).toBe(true);
+    component.executeAdvance();
+
+    expect(orderServiceMock.updateStoreOrderStatus).toHaveBeenCalledWith(
+      'ready',
+      OrderStatus.OnDelivery,
+      'Atualizado pelo painel do lojista',
+      'link-1',
+    );
   });
 });

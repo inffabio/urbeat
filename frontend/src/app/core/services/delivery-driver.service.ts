@@ -12,6 +12,7 @@ import {
   DriverOrdersResponse,
   InviteDeliveryDriverRequest,
   SellerDeliveryDriver,
+  UpsertStoreDeliveryDriverRequest,
 } from '../../shared/models/delivery-driver.model';
 import { OrderDetails } from '../../shared/models/order.model';
 
@@ -23,8 +24,27 @@ export class DeliveryDriverService {
     return this.api.get<SellerDeliveryDriver[]>('/api/delivery-drivers/store');
   }
 
+  createDriver(request: UpsertStoreDeliveryDriverRequest): Observable<SellerDeliveryDriver> {
+    return this.api.post<SellerDeliveryDriver>('/api/delivery-drivers', request);
+  }
+
+  updateDriver(
+    storeDriverId: string,
+    request: UpsertStoreDeliveryDriverRequest,
+  ): Observable<SellerDeliveryDriver> {
+    return this.api.put<SellerDeliveryDriver>(`/api/delivery-drivers/${storeDriverId}`, request);
+  }
+
+  setDriverActive(storeDriverId: string, isActive: boolean): Observable<SellerDeliveryDriver> {
+    return this.api.patch<SellerDeliveryDriver>(
+      `/api/delivery-drivers/${storeDriverId}/status`,
+      { isActive },
+    );
+  }
+
+  /** Legacy invite flow, kept for compatibility with links already sent. */
   invite(request: InviteDeliveryDriverRequest): Observable<SellerDeliveryDriver> {
-    return this.api.post<SellerDeliveryDriver>('/api/delivery-drivers/store', request);
+    return this.api.post<SellerDeliveryDriver>('/api/delivery-drivers/store/invite', request);
   }
 
   resendInvite(storeDriverId: string): Observable<SellerDeliveryDriver> {

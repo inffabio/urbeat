@@ -2,35 +2,44 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { ToastService } from '../../core/services/toast.service';
-import { SellerDeliveryDriver, StoreDeliveryDriverStatus } from '../../shared/models/delivery-driver.model';
+import {
+  SellerDeliveryDriver,
+  StoreDeliveryDriverStatus,
+} from '../../shared/models/delivery-driver.model';
 import { SellerDeliveryDriversPageComponent } from './seller-delivery-drivers-page.component';
 
-const pendingDriver: SellerDeliveryDriver = {
+const activeDriver: SellerDeliveryDriver = {
   id: 'link-1',
-  name: 'Ana Entregadora',
-  email: 'ana@example.com',
+  deliveryDriverId: 'driver-1',
+  name: 'Ana Motoboy',
+  email: '',
   phoneNumber: '11999999999',
-  status: StoreDeliveryDriverStatus.Pending,
-  inviteSentAtUtc: '2026-10-24T12:00:00Z',
-  inviteExpiresAtUtc: '2026-10-31T12:00:00Z',
-  canResendInvite: true,
+  whatsAppPhoneNumber: '11988887777',
+  isActive: true,
+  hasAccount: false,
+  status: StoreDeliveryDriverStatus.Active,
+  canResendInvite: false,
 };
 
 describe('SellerDeliveryDriversPageComponent', () => {
   let serviceMock: {
     listStoreDrivers: jest.Mock;
-    invite: jest.Mock;
-    resendInvite: jest.Mock;
-    revoke: jest.Mock;
+    createDriver: jest.Mock;
+    updateDriver: jest.Mock;
+    setDriverActive: jest.Mock;
   };
   let toastMock: { showSuccess: jest.Mock; showError: jest.Mock };
 
   beforeEach(async () => {
     serviceMock = {
-      listStoreDrivers: jest.fn().mockReturnValue(of([pendingDriver])),
-      invite: jest.fn().mockReturnValue(of(pendingDriver)),
-      resendInvite: jest.fn().mockReturnValue(of(pendingDriver)),
-      revoke: jest.fn().mockReturnValue(of({ ...pendingDriver, status: StoreDeliveryDriverStatus.Revoked, canResendInvite: false })),
+      listStoreDrivers: jest.fn().mockReturnValue(of([activeDriver])),
+      createDriver: jest.fn().mockReturnValue(of(activeDriver)),
+      updateDriver: jest.fn().mockReturnValue(of(activeDriver)),
+      setDriverActive: jest.fn().mockReturnValue(of({
+        ...activeDriver,
+        isActive: false,
+        status: StoreDeliveryDriverStatus.Revoked,
+      })),
     };
     toastMock = {
       showSuccess: jest.fn().mockResolvedValue(undefined),
@@ -50,186 +59,106 @@ describe('SellerDeliveryDriversPageComponent', () => {
     jest.useRealTimers();
   });
 
-  it('lists store drivers with status and invite actions', () => {
+  it('lists motoboys with phone, WhatsApp action and status', () => {
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
 
     expect(serviceMock.listStoreDrivers).toHaveBeenCalled();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Ana Entregadora');
-    expect(text).toContain('ana@example.com');
-    expect(text).toContain('Convite pendente');
-    expect(text).toContain('Reenviar convite');
-    expect(text).toContain('Revogar');
+    expect(text).toContain('Ana Motoboy');
+    expect(text).toContain('11999999999');
+    expect(text).toContain('Ativo');
+    expect(text).not.toContain('Convidar entregador');
+
+    const whatsApp: HTMLAnchorElement | null = fixture.nativeElement.querySelector('.driver-whatsapp');
+    expect(whatsApp).not.toBeNull();
+    expect(whatsApp!.href).toBe('https://wa.me/5511988887777');
   });
 
-  it('shows the empty state and opens the invite dialog', () => {
+  it('shows the empty state and opens the create dialog', () => {
     serviceMock.listStoreDrivers.mockReturnValue(of([]));
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Nenhum entregador cadastrado');
-    fixture.componentInstance.openInviteDialog();
+    expect(fixture.nativeElement.textContent).toContain('Nenhum motoboy cadastrado');
+    fixture.componentInstance.openCreateDialog();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Convidar entregador');
-    expect(fixture.nativeElement.querySelector('#invite-driver-title')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#driver-dialog-title')?.textContent)
+      .toContain('Novo motoboy');
+    expect(fixture.nativeElement.querySelector('input[formcontrolname="email"]')).toBeNull();
   });
 
-  it('validates and submits the invite form', () => {
+  it('validates and creates a motoboy without e-mail', () => {
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component.openInviteDialog();
-    component.submitInvite();
-    expect(serviceMock.invite).not.toHaveBeenCalled();
-    expect(component.inviteForm.controls.email.touched).toBe(true);
+    component.openCreateDialog();
+    component.submitDriver();
+    expect(serviceMock.createDriver).not.toHaveBeenCalled();
+    expect(component.driverForm.controls.name.touched).toBe(true);
 
-    component.inviteForm.setValue({
-      fullName: 'Novo Entregador',
-      email: 'novo@example.com',
+    component.driverForm.setValue({
+      name: 'Novo Motoboy',
       phoneNumber: '11988887777',
+      whatsAppPhoneNumber: '',
+      isActive: true,
     });
-    component.submitInvite();
+    component.submitDriver();
 
-    expect(serviceMock.invite).toHaveBeenCalledWith({
-      fullName: 'Novo Entregador',
-      email: 'novo@example.com',
+    expect(serviceMock.createDriver).toHaveBeenCalledWith({
+      name: 'Novo Motoboy',
       phoneNumber: '11988887777',
+      whatsAppPhoneNumber: null,
+      isActive: true,
     });
     expect(toastMock.showSuccess).toHaveBeenCalled();
   });
 
-  it('resends an invite', () => {
-    const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
-    fixture.detectChanges();
-
-    fixture.componentInstance.resendInvite(pendingDriver);
-    expect(serviceMock.resendInvite).toHaveBeenCalledWith('link-1');
-    expect(toastMock.showSuccess).toHaveBeenCalled();
-  });
-
-  it('revokes access after confirmation', () => {
+  it('edits a motoboy', () => {
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    component.revoke(pendingDriver);
-    expect(component.revokeTarget()?.id).toBe('link-1');
-    component.confirmRevoke();
+    component.openEditDialog(activeDriver);
+    component.driverForm.controls.name.setValue('Ana Atualizada');
+    component.submitDriver();
 
-    expect(serviceMock.revoke).toHaveBeenCalledWith('link-1');
-    expect(component.drivers()[0].status).toBe(StoreDeliveryDriverStatus.Revoked);
+    expect(serviceMock.updateDriver).toHaveBeenCalledWith(
+      'link-1',
+      expect.objectContaining({ name: 'Ana Atualizada', whatsAppPhoneNumber: '11988887777' }),
+    );
   });
 
-  it('shows the error state when loading fails', () => {
-    serviceMock.listStoreDrivers.mockReturnValue(throwError(() => new Error('network')));
+  it('inactivates after confirmation', () => {
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
+    const component = fixture.componentInstance;
 
-    expect(fixture.nativeElement.textContent).toContain('Não foi possível carregar os entregadores');
+    component.requestStatusChange(activeDriver);
+    expect(component.statusTarget()?.id).toBe('link-1');
+    component.confirmStatusChange();
+
+    expect(serviceMock.setDriverActive).toHaveBeenCalledWith('link-1', false);
+    expect(component.statusTarget()).toBeNull();
   });
 
-  it('focuses the invite dialog, wires aria-describedby and restores focus on cancel', () => {
-    jest.useFakeTimers();
+  it('keeps the list available when saving fails', () => {
+    serviceMock.createDriver.mockReturnValue(throwError(() => new Error('fail')));
     const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
     fixture.detectChanges();
-    const element = fixture.nativeElement as HTMLElement;
-    const trigger = element.querySelector<HTMLButtonElement>('.btn-invite');
-    expect(trigger).not.toBeNull();
+    const component = fixture.componentInstance;
 
-    trigger!.focus();
-    trigger!.click();
-    fixture.detectChanges();
-    jest.advanceTimersByTime(0);
+    component.openCreateDialog();
+    component.driverForm.setValue({
+      name: 'Novo Motoboy',
+      phoneNumber: '11988887777',
+      whatsAppPhoneNumber: null,
+      isActive: true,
+    });
+    component.submitDriver();
 
-    const dialog = element.querySelector<HTMLElement>('#invite-driver-dialog');
-    expect(dialog).not.toBeNull();
-    expect(dialog!.getAttribute('tabindex')).toBe('-1');
-    expect(document.activeElement).toBe(dialog);
-    expect(dialog!.getAttribute('aria-labelledby')).toBe('invite-driver-title');
-    expect(dialog!.getAttribute('aria-describedby')).toBe('invite-driver-description');
-    expect(element.querySelector('#invite-driver-description')?.textContent).toContain('7 dias');
-
-    fixture.componentInstance.closeInviteDialog();
-    fixture.detectChanges();
-    jest.advanceTimersByTime(0);
-
-    expect(fixture.componentInstance.inviteDialogOpen()).toBe(false);
-    expect(document.activeElement).toBe(trigger);
-
-    fixture.destroy();
-  });
-
-  it('traps Tab and Shift+Tab inside the invite dialog', () => {
-    jest.useFakeTimers();
-    const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
-    fixture.detectChanges();
-    const element = fixture.nativeElement as HTMLElement;
-
-    fixture.componentInstance.openInviteDialog();
-    fixture.detectChanges();
-    jest.advanceTimersByTime(0);
-
-    const dialog = element.querySelector<HTMLElement>('#invite-driver-dialog')!;
-    const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>('button, input, [tabindex]:not([tabindex="-1"])'),
-    ).filter((node) => !node.hasAttribute('disabled'));
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    last.focus();
-    const tabForward = {
-      key: 'Tab',
-      shiftKey: false,
-      currentTarget: dialog,
-      preventDefault: jest.fn(),
-    } as unknown as KeyboardEvent;
-    fixture.componentInstance.onDialogKeydown(tabForward);
-    expect(tabForward.preventDefault).toHaveBeenCalled();
-    expect(document.activeElement).toBe(first);
-
-    first.focus();
-    const tabBackward = {
-      key: 'Tab',
-      shiftKey: true,
-      currentTarget: dialog,
-      preventDefault: jest.fn(),
-    } as unknown as KeyboardEvent;
-    fixture.componentInstance.onDialogKeydown(tabBackward);
-    expect(tabBackward.preventDefault).toHaveBeenCalled();
-    expect(document.activeElement).toBe(last);
-
-    fixture.destroy();
-  });
-
-  it('closes the revoke dialog with Escape and restores focus to its trigger', () => {
-    jest.useFakeTimers();
-    const fixture = TestBed.createComponent(SellerDeliveryDriversPageComponent);
-    fixture.detectChanges();
-    const element = fixture.nativeElement as HTMLElement;
-    const trigger = Array.from(element.querySelectorAll<HTMLButtonElement>('button'))
-      .find((button) => button.textContent?.trim() === 'Revogar');
-    expect(trigger).toBeDefined();
-
-    trigger!.focus();
-    trigger!.click();
-    fixture.detectChanges();
-    jest.advanceTimersByTime(0);
-
-    const dialog = element.querySelector<HTMLElement>('#revoke-driver-dialog');
-    expect(dialog).not.toBeNull();
-    expect(dialog!.getAttribute('tabindex')).toBe('-1');
-    expect(document.activeElement).toBe(dialog);
-    expect(dialog!.getAttribute('aria-describedby')).toBe('revoke-driver-description');
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    fixture.detectChanges();
-    jest.advanceTimersByTime(0);
-
-    expect(fixture.componentInstance.revokeTarget()).toBeNull();
-    expect(document.activeElement).toBe(trigger);
-
-    fixture.destroy();
+    expect(toastMock.showError).toHaveBeenCalled();
+    expect(component.submitting()).toBe(false);
   });
 });

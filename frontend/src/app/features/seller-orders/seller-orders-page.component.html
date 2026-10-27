@@ -53,7 +53,10 @@
           @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }
           <div><strong>Pagamento:</strong> {{ paymentLabel(order.paymentMethod) }}</div>
           @if (!isPickupType(order.fulfillmentType) && order.deliveryDriverName) {
-            <div><strong>Entregador:</strong> {{ order.deliveryDriverName }}</div>
+            <div><strong>Motoboy:</strong> {{ order.deliveryDriverName }}</div>
+          }
+          @if (!isPickupType(order.fulfillmentType) && order.deliveryRouteId) {
+            <div><strong>Rota:</strong> {{ routeStatusLabel(order.deliveryRouteStatus) }}</div>
           }
         </div>
 
@@ -179,12 +182,44 @@
 
 @if (pendingAction(); as pending) {
   <div class="confirm-overlay" (click)="dismissConfirm()">
-    <div class="confirm-modal" (click)="$event.stopPropagation()">
-      <strong>{{ pending.label }}</strong>
+    <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-advance-title" (click)="$event.stopPropagation()">
+      <strong id="confirm-advance-title">{{ pending.label }}</strong>
       <p>Confirmar a transição do pedido <strong>#{{ displayOrderCode(pending.order) }}</strong>?</p>
+
+      @if (pendingRequiresDriver()) {
+        <label class="driver-assignment-field confirm-driver-field">
+          <span>Motoboy da entrega</span>
+          @if (assignableDrivers().length === 0) {
+            <p class="driver-assignment-hint">
+              Nenhum motoboy ativo. Cadastre ou ative um motoboy em
+              <a routerLink="/app/entregadores">Motoboys</a> antes de iniciar a entrega.
+            </p>
+          } @else {
+            <select
+              [ngModel]="pending.deliveryDriverId ?? ''"
+              (ngModelChange)="setPendingDriver($event)"
+              aria-label="Selecionar motoboy da entrega"
+            >
+              <option value="">Selecione um motoboy ativo</option>
+              @for (driver of assignableDrivers(); track driver.id) {
+                <option [value]="driver.id">{{ driver.name }}</option>
+              }
+            </select>
+            <small class="driver-assignment-hint">A seleção é obrigatória: o pedido não sai para entrega sem motoboy.</small>
+          }
+        </label>
+      }
+
       <div class="confirm-actions">
         <button type="button" class="btn-cancel" (click)="dismissConfirm()">Cancelar</button>
-        <button type="button" class="btn-confirm" (click)="executeAdvance()">Confirmar</button>
+        <button
+          type="button"
+          class="btn-confirm"
+          (click)="executeAdvance()"
+          [disabled]="!canConfirmPending() || updatingOrderId() === pending.order.id"
+        >
+          Confirmar
+        </button>
       </div>
     </div>
   </div>
@@ -237,7 +272,39 @@
               <p class="assigned-driver">
                 <i class="bi bi-person-check" aria-hidden="true"></i>
                 {{ selected.deliveryDriverName }}
+                @if (driverWhatsAppUrl(selected.deliveryDriverId); as whatsAppUrl) {
+                  <a
+                    class="assigned-driver-whatsapp"
+                    [href]="whatsAppUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.aria-label]="'Abrir WhatsApp de ' + selected.deliveryDriverName"
+                  >
+                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                  </a>
+                }
               </p>
+            }
+
+            @if (selected.status === OrderStatus.OnDelivery || selected.deliveryRouteId) {
+              <div class="order-route-row">
+                <span class="driver-state-pill" [class.is-route]="selected.deliveryRouteStatus === DeliveryRouteStatus.Active">
+                  <i class="bi bi-signpost-split" aria-hidden="true"></i>
+                  {{ routeStatusLabel(selected.deliveryRouteStatus) }}
+                </span>
+                @if (selected.deliveryRouteId) {
+                  <button
+                    type="button"
+                    class="driver-action route-share-button"
+                    (click)="shareOrderRoute()"
+                  >
+                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                    Compartilhar rota
+                  </button>
+                } @else {
+                  <a class="driver-action route-manage-link" routerLink="/app/rotas">Criar rota</a>
+                }
+              </div>
             }
 
             @if (canAssignDeliveryDriver(selected)) {

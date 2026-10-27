@@ -2,67 +2,67 @@
   <header class="topbar">
     <div>
       <div class="page-title-wrap">
-        <h1 class="page-title">Entregadores</h1>
+        <h1 class="page-title">Motoboys</h1>
       </div>
-      <p class="page-subtitle">Convide entregadores, acompanhe o vínculo e revogue acessos da sua loja.</p>
+      <p class="page-subtitle">Cadastre os motoboys da sua loja, mantenha o WhatsApp atualizado e controle quem pode receber entregas.</p>
     </div>
     <div class="top-actions">
       <button type="button" class="btn-soft" (click)="load()" [disabled]="loading()">
         <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Atualizar
       </button>
-      <button type="button" class="btn-soft btn-invite" (click)="openInviteDialog($event)">
-        <i class="bi bi-person-plus" aria-hidden="true"></i> Convidar entregador
+      <button type="button" class="btn-soft btn-invite" (click)="openCreateDialog($event)">
+        <i class="bi bi-person-plus" aria-hidden="true"></i> Novo motoboy
       </button>
     </div>
   </header>
 
   @if (loading()) {
-    <div class="seller-state-card is-loading" role="status" aria-label="Carregando entregadores">
-      <strong class="seller-state-title">Carregando entregadores</strong>
-      <p class="seller-state-copy">Buscando os vínculos de entrega desta loja.</p>
+    <div class="seller-state-card is-loading" role="status" aria-label="Carregando motoboys">
+      <strong class="seller-state-title">Carregando motoboys</strong>
+      <p class="seller-state-copy">Buscando os motoboys cadastrados nesta loja.</p>
     </div>
   } @else if (error()) {
     <div class="seller-state-card is-error" role="alert">
-      <strong class="seller-state-title">Não foi possível carregar os entregadores</strong>
+      <strong class="seller-state-title">Não foi possível carregar os motoboys</strong>
       <p class="seller-state-copy">Confira sua conexão e tente novamente.</p>
       <div class="seller-state-actions">
         <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
       </div>
     </div>
   } @else {
-    <section class="seller-kpi-grid" aria-label="Resumo de entregadores">
+    <section class="seller-kpi-grid" aria-label="Resumo de motoboys">
       <div class="seller-kpi-card">
         <span class="seller-kpi-label">Ativos</span>
         <strong class="seller-kpi-value">{{ activeCount() }}</strong>
-        <span class="seller-kpi-meta">Entregadores que já aceitaram o convite.</span>
+        <span class="seller-kpi-meta">Disponíveis para receber pedidos em entrega.</span>
       </div>
       <div class="seller-kpi-card">
-        <span class="seller-kpi-label">Convites pendentes</span>
-        <strong class="seller-kpi-value">{{ pendingCount() }}</strong>
-        <span class="seller-kpi-meta">Aguardando aceite do entregador.</span>
+        <span class="seller-kpi-label">Inativos</span>
+        <strong class="seller-kpi-value">{{ inactiveCount() }}</strong>
+        <span class="seller-kpi-meta">Não aparecem na seleção de entrega.</span>
       </div>
       <div class="seller-kpi-card">
-        <span class="seller-kpi-label">Revogados</span>
-        <strong class="seller-kpi-value">{{ revokedCount() }}</strong>
-        <span class="seller-kpi-meta">Sem acesso ao portal desta loja.</span>
+        <span class="seller-kpi-label">Total</span>
+        <strong class="seller-kpi-value">{{ drivers().length }}</strong>
+        <span class="seller-kpi-meta">Cadastros desta loja.</span>
       </div>
     </section>
 
     <div class="content-card seller-panel">
       <div class="content-head seller-panel-header">
         <div>
-          <h2>Vínculos de entrega</h2>
-          <p class="section-copy">O mesmo e-mail pode ser convidado por várias lojas, mas cada vínculo é independente.</p>
+          <h2>Motoboys cadastrados</h2>
+          <p class="section-copy">O WhatsApp à direita do telefone abre a conversa do motoboy em um toque.</p>
         </div>
-        <span class="seller-status-badge is-info">{{ drivers().length }} vínculo(s)</span>
+        <span class="seller-status-badge is-info">{{ drivers().length }} cadastro(s)</span>
       </div>
 
       @if (drivers().length === 0) {
         <div class="seller-state-card is-empty">
-          <strong class="seller-state-title">Nenhum entregador cadastrado</strong>
-          <p class="seller-state-copy">Convide o primeiro entregador para começar a atribuir pedidos de entrega.</p>
+          <strong class="seller-state-title">Nenhum motoboy cadastrado</strong>
+          <p class="seller-state-copy">Cadastre o primeiro motoboy para começar a atribuir pedidos de entrega.</p>
           <div class="seller-state-actions">
-            <button type="button" class="seller-secondary-button" (click)="openInviteDialog($event)">Convidar entregador</button>
+            <button type="button" class="seller-secondary-button" (click)="openCreateDialog($event)">Novo motoboy</button>
           </div>
         </div>
       } @else {
@@ -70,67 +70,64 @@
           <table class="table drivers-table">
             <thead>
               <tr>
-                <th>Entregador</th>
-                <th>Contato</th>
+                <th>Motoboy</th>
+                <th>Telefone</th>
+                <th>WhatsApp</th>
                 <th>Status</th>
-                <th>Convite</th>
-                <th>Aceite</th>
                 <th class="text-end">Ações</th>
               </tr>
             </thead>
             <tbody>
               @for (driver of drivers(); track driver.id) {
                 <tr>
-                  <td data-label="Entregador">
+                  <td data-label="Motoboy">
                     <strong class="driver-name">{{ driver.name }}</strong>
-                    <span class="driver-email">{{ driver.email }}</span>
+                    @if (driver.hasAccount) {
+                      <span class="driver-email">Também possui acesso ao portal legado.</span>
+                    }
                   </td>
-                  <td data-label="Contato">
-                    @if (driver.phoneNumber) {
-                      <a class="driver-phone" [href]="'tel:' + driver.phoneNumber">{{ driver.phoneNumber }}</a>
+                  <td data-label="Telefone">
+                    <a class="driver-phone" [href]="phoneHref(driver)">{{ driver.phoneNumber }}</a>
+                  </td>
+                  <td data-label="WhatsApp">
+                    @if (whatsAppUrl(driver); as url) {
+                      <a
+                        class="driver-whatsapp"
+                        [href]="url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [attr.aria-label]="'Abrir WhatsApp de ' + driver.name"
+                        [attr.title]="'Abrir WhatsApp de ' + driver.name"
+                      >
+                        <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                      </a>
                     } @else {
-                      <span>-</span>
+                      <span class="driver-meta">Sem número</span>
                     }
                   </td>
                   <td data-label="Status">
                     <span
                       class="seller-status-badge"
-                      [class.is-success]="driver.status === StoreDeliveryDriverStatus.Active"
-                      [class.is-warning]="driver.status === StoreDeliveryDriverStatus.Pending"
-                      [class.is-neutral]="driver.status === StoreDeliveryDriverStatus.Revoked"
+                      [class.is-success]="driver.isActive"
+                      [class.is-neutral]="!driver.isActive"
                     >
-                      {{ statusLabel(driver.status) }}
+                      {{ statusLabel(driver) }}
                     </span>
                   </td>
-                  <td data-label="Convite">
-                    <span class="driver-meta">{{ formatDate(driver.inviteSentAtUtc) }}</span>
-                    @if (driver.status === StoreDeliveryDriverStatus.Pending && driver.inviteExpiresAtUtc) {
-                      <span class="driver-meta">Expira em {{ formatDateTime(driver.inviteExpiresAtUtc) }}</span>
-                    }
-                  </td>
-                  <td data-label="Aceite">{{ formatDateTime(driver.acceptedAtUtc) }}</td>
                   <td class="text-end" data-label="Ações">
                     <span class="driver-actions">
-                      @if (driver.canResendInvite) {
-                        <button
-                          type="button"
-                          class="driver-action"
-                          (click)="resendInvite(driver)"
-                          [disabled]="actionDriverId() === driver.id"
-                        >
-                          {{ actionDriverId() === driver.id ? 'Enviando...' : 'Reenviar convite' }}
-                        </button>
-                      }
-                      @if (driver.status !== StoreDeliveryDriverStatus.Revoked) {
-                        <button
-                          type="button"
-                          class="driver-action is-danger"
-                          (click)="revoke(driver, $event)"
-                          [disabled]="actionDriverId() === driver.id"
-                        >
-                          Revogar
-                        </button>
-                      }
+                      <button type="button" class="driver-action" (click)="openEditDialog(driver, $event)">
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="driver-action"
+                        [class.is-danger]="driver.isActive"
+                        (click)="requestStatusChange(driver, $event)"
+                        [disabled]="actionDriverId() === driver.id"
+                      >
+                        {{ driver.isActive ? 'Inativar' : 'Ativar' }}
+                      </button>
                     </span>
                   </td>
                 </tr>
@@ -143,60 +140,66 @@
   }
 </section>
 
-@if (inviteDialogOpen()) {
-  <div class="driver-dialog-overlay" (click)="closeInviteDialog()">
+@if (driverDialogOpen()) {
+  <div class="driver-dialog-overlay" (click)="closeDriverDialog()">
     <section
-      #inviteDialog
-      id="invite-driver-dialog"
+      #driverDialog
+      id="driver-dialog"
       class="driver-dialog"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="invite-driver-title"
-      aria-describedby="invite-driver-description"
+      aria-labelledby="driver-dialog-title"
+      aria-describedby="driver-dialog-description"
       tabindex="-1"
       (click)="$event.stopPropagation()"
       (keydown)="onDialogKeydown($event)"
     >
       <header class="driver-dialog-header">
-        <h2 id="invite-driver-title">Convidar entregador</h2>
-        <button type="button" class="dialog-close" (click)="closeInviteDialog()" aria-label="Fechar convite">
+        <h2 id="driver-dialog-title">{{ dialogTitle() }}</h2>
+        <button type="button" class="dialog-close" (click)="closeDriverDialog()" aria-label="Fechar cadastro de motoboy">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </header>
 
-      <form class="driver-form" [formGroup]="inviteForm" (ngSubmit)="submitInvite()">
+      <form class="driver-form" [formGroup]="driverForm" (ngSubmit)="submitDriver()">
         <label class="field">
           <span>Nome</span>
-          <input type="text" formControlName="fullName" autocomplete="name" placeholder="Nome do entregador" />
-          @if (inviteForm.controls.fullName.touched && inviteForm.controls.fullName.invalid) {
+          <input type="text" formControlName="name" autocomplete="name" placeholder="Nome do motoboy" />
+          @if (driverForm.controls.name.touched && driverForm.controls.name.invalid) {
             <small class="field-error">Informe um nome com pelo menos 3 caracteres.</small>
           }
         </label>
 
         <label class="field">
-          <span>E-mail</span>
-          <input type="email" formControlName="email" autocomplete="email" placeholder="entregador@exemplo.com" />
-          @if (inviteForm.controls.email.touched && inviteForm.controls.email.invalid) {
-            <small class="field-error">Informe um e-mail válido.</small>
-          }
-        </label>
-
-        <label class="field">
-          <span>Telefone</span>
+          <span>Telefone principal</span>
           <input type="tel" formControlName="phoneNumber" autocomplete="tel" placeholder="(11) 99999-9999" />
-          @if (inviteForm.controls.phoneNumber.touched && inviteForm.controls.phoneNumber.invalid) {
+          @if (driverForm.controls.phoneNumber.touched && driverForm.controls.phoneNumber.invalid) {
             <small class="field-error">Informe um telefone válido.</small>
           }
         </label>
 
-        <p class="driver-form-note" id="invite-driver-description">
-          O entregador recebe um convite por e-mail válido por 7 dias. O acesso só é criado depois do aceite.
+        <label class="field">
+          <span>WhatsApp</span>
+          <input type="tel" formControlName="whatsAppPhoneNumber" autocomplete="tel" placeholder="(11) 99999-9999" />
+          <small class="field-hint">Se ficar vazio, o botão de WhatsApp usa o telefone principal.</small>
+          @if (driverForm.controls.whatsAppPhoneNumber.touched && driverForm.controls.whatsAppPhoneNumber.invalid) {
+            <small class="field-error">Informe um WhatsApp válido.</small>
+          }
+        </label>
+
+        <label class="field-check">
+          <input type="checkbox" formControlName="isActive" />
+          <span>Motoboy ativo para receber entregas</span>
+        </label>
+
+        <p class="driver-form-note" id="driver-dialog-description">
+          Não é necessário e-mail, convite ou senha. O motoboy recebe apenas o link da rota pelo WhatsApp.
         </p>
 
         <div class="driver-dialog-actions">
-          <button type="button" class="seller-secondary-button" (click)="closeInviteDialog()">Cancelar</button>
+          <button type="button" class="seller-secondary-button" (click)="closeDriverDialog()">Cancelar</button>
           <button type="submit" class="driver-primary-button" [disabled]="submitting()">
-            {{ submitting() ? 'Enviando...' : 'Enviar convite' }}
+            {{ submitting() ? 'Salvando...' : 'Salvar motoboy' }}
           </button>
         </div>
       </form>
@@ -204,29 +207,39 @@
   </div>
 }
 
-@if (revokeTarget(); as target) {
-  <div class="driver-dialog-overlay" (click)="cancelRevoke()">
+@if (statusTarget(); as target) {
+  <div class="driver-dialog-overlay" (click)="cancelStatusChange()">
     <section
-      #revokeDialog
-      id="revoke-driver-dialog"
+      #statusDialog
+      id="driver-status-dialog"
       class="driver-dialog is-confirm"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="revoke-driver-title"
-      aria-describedby="revoke-driver-description"
+      aria-labelledby="driver-status-title"
+      aria-describedby="driver-status-description"
       tabindex="-1"
       (click)="$event.stopPropagation()"
       (keydown)="onDialogKeydown($event)"
     >
-      <h2 id="revoke-driver-title">Revogar acesso</h2>
-      <p id="revoke-driver-description">
-        O entregador <strong>{{ target.name }}</strong> deixa de acessar os pedidos desta loja.
-        Pedidos já atribuídos continuam visíveis no painel para você reatribuir.
+      <h2 id="driver-status-title">{{ target.isActive ? 'Inativar motoboy' : 'Ativar motoboy' }}</h2>
+      <p id="driver-status-description">
+        @if (target.isActive) {
+          <strong>{{ target.name }}</strong> deixa de aparecer na seleção de entrega desta loja.
+          Pedidos já em rota continuam disponíveis até a conclusão.
+        } @else {
+          <strong>{{ target.name }}</strong> volta a poder receber pedidos em entrega.
+        }
       </p>
       <div class="driver-dialog-actions">
-        <button type="button" class="seller-secondary-button" (click)="cancelRevoke()">Cancelar</button>
-        <button type="button" class="driver-danger-button" (click)="confirmRevoke()" [disabled]="actionDriverId() === target.id">
-          {{ actionDriverId() === target.id ? 'Revogando...' : 'Revogar acesso' }}
+        <button type="button" class="seller-secondary-button" (click)="cancelStatusChange()">Cancelar</button>
+        <button
+          type="button"
+          class="driver-primary-button"
+          [class.driver-danger-button]="target.isActive"
+          (click)="confirmStatusChange()"
+          [disabled]="actionDriverId() === target.id"
+        >
+          {{ actionDriverId() === target.id ? 'Salvando...' : (target.isActive ? 'Inativar' : 'Ativar') }}
         </button>
       </div>
     </section>

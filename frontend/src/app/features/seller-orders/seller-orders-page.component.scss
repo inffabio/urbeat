@@ -555,7 +555,7 @@
   background: #fff;
   border-radius: 18px;
   padding: 24px 28px;
-  width: min(440px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
   min-width: 0;
   box-sizing: border-box;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.18);
@@ -835,6 +835,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   margin: 0;
   color: var(--app-ink, #161616);
   font-size: 13px;
@@ -857,6 +858,58 @@
   display: flex;
   align-items: flex-end;
   gap: 10px;
+}
+
+.assigned-driver-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, .12);
+  color: #128c4a;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.assigned-driver-whatsapp:hover,
+.assigned-driver-whatsapp:focus-visible {
+  background: rgba(37, 211, 102, .22);
+  outline: none;
+}
+
+.order-route-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 2px;
+}
+
+.route-share-button,
+.route-manage-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.confirm-driver-field {
+  margin: 14px 0 4px;
+}
+
+.driver-assignment-field .driver-assignment-hint {
+  margin: 4px 0 0;
+  color: var(--app-text-muted, #767680);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.driver-assignment-field .driver-assignment-hint a {
+  color: var(--app-brand, #d54a51);
+  font-weight: 700;
 }
 
 .driver-assignment-field {

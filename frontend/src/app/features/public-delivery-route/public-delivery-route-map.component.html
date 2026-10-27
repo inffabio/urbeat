@@ -1,0 +1,84 @@
+<section
+  class="public-route-map"
+  aria-label="Mapa da rota completa"
+  [attr.aria-busy]="routeLoading()"
+>
+  @if (!hasMapData()) {
+    <div class="map-fallback" role="status">
+      <strong>Mapa indisponível para esta rota</strong>
+      <p>{{ statusMessage() }}</p>
+    </div>
+  } @else {
+    <div class="map-frame">
+      <div
+        #mapCanvas
+        class="map-canvas"
+        role="region"
+        aria-roledescription="mapa"
+        [attr.aria-label]="'Mapa da rota completa com ' + locatedStops().length + ' parada(s) geolocalizada(s)'"
+      ></div>
+
+      @if (loading()) {
+        <div class="map-loading" role="status">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          <span>Carregando mapa...</span>
+        </div>
+      }
+    </div>
+
+    <div class="map-legend" aria-hidden="true">
+      @if (storePoint()) {
+        <span class="legend-item"><span class="legend-dot is-store"></span>Loja</span>
+      }
+      @if (nextStop()) {
+        <span class="legend-item"><span class="legend-dot is-next"></span>Próxima parada</span>
+      }
+      @if (deliveredStops().length > 0) {
+        <span class="legend-item"><span class="legend-dot is-delivered"></span>Entregue</span>
+      }
+      @if (locationStatus() === 'granted') {
+        <span class="legend-item"><span class="legend-dot is-driver"></span>Você</span>
+      }
+    </div>
+  }
+
+  <p class="map-status" aria-live="polite">
+    @if (routeLoading()) {
+      <i class="bi bi-arrow-repeat map-status-spinner" aria-hidden="true"></i>
+    }
+    {{ statusMessage() }}
+  </p>
+
+  @if (route(); as plan) {
+    @if (plan.kind === 'road') {
+      <p class="map-note">
+        Rota completa calculada por ruas, na sequência das {{ plan.stops.length }} parada(s) pendente(s).
+      </p>
+    } @else {
+      <p class="map-note map-note-reference">
+        <strong>Rota aproximada</strong> — o roteador por ruas não respondeu. A linha tracejada é
+        apenas uma referência em linha reta entre as paradas; use a navegação externa para seguir
+        pelas ruas.
+      </p>
+    }
+  }
+
+  @if (externalMapUrl()) {
+    <a
+      class="map-external"
+      [href]="externalMapUrl()"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Abrir a próxima parada no Google Maps"
+    >
+      <i class="bi bi-signpost-split" aria-hidden="true"></i>
+      Abrir próxima parada no Google Maps
+    </a>
+  }
+
+  @if (tileError()) {
+    <p class="map-tile-warning" role="alert">
+      As imagens do mapa não carregaram. O endereço e a navegação externa continuam disponíveis.
+    </p>
+  }
+</section>

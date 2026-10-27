@@ -185,6 +185,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
+      // The public route link owns its invalid/expired/revoked copy.
+      if (req.url.includes('/api/public/delivery-routes/')) {
+        return throwError(() => err);
+      }
+
+      // The seller route screens own their optimistic/concurrency messages.
+      if (req.url.includes('/api/delivery-routes/')) {
+        return throwError(() => err);
+      }
+
       if (isCheckoutRequest(req) || isDeliveryAreaError(req, err)) {
         return throwError(() => err);
       }

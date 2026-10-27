@@ -61,3 +61,58 @@ public sealed class ConfirmDeliveryPinRequestDtoValidator : AbstractValidator<Co
             .WithMessage("O PIN deve ter 6 dígitos.");
     }
 }
+
+public sealed class UpsertStoreDeliveryDriverRequestDtoValidator : AbstractValidator<UpsertStoreDeliveryDriverRequestDto>
+{
+    public UpsertStoreDeliveryDriverRequestDtoValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .MinimumLength(3)
+            .MaximumLength(120);
+
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty()
+            .MinimumLength(8)
+            .MaximumLength(20)
+            .Matches(@"^[0-9+()\-\s]+$")
+            .WithMessage("Informe um telefone válido.");
+
+        RuleFor(x => x.WhatsAppPhoneNumber)
+            .MinimumLength(8)
+            .MaximumLength(20)
+            .Matches(@"^[0-9+()\-\s]+$")
+            .WithMessage("Informe um WhatsApp válido.")
+            .When(x => !string.IsNullOrWhiteSpace(x.WhatsAppPhoneNumber));
+    }
+}
+
+public sealed class CreateDeliveryRouteRequestDtoValidator : AbstractValidator<CreateDeliveryRouteRequestDto>
+{
+    public CreateDeliveryRouteRequestDtoValidator()
+    {
+        RuleFor(x => x.DeliveryDriverId).NotEmpty();
+        RuleFor(x => x.OrderIds)
+            .NotEmpty()
+            .WithMessage("Selecione ao menos um pedido para a rota.");
+        RuleFor(x => x.OrderIds)
+            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .WithMessage("A rota não pode conter pedidos duplicados.")
+            .When(x => x.OrderIds.Count > 0);
+    }
+}
+
+public sealed class UpdateDeliveryRouteRequestDtoValidator : AbstractValidator<UpdateDeliveryRouteRequestDto>
+{
+    public UpdateDeliveryRouteRequestDtoValidator()
+    {
+        RuleFor(x => x.DeliveryDriverId).NotEmpty();
+        RuleFor(x => x.OrderIds)
+            .NotEmpty()
+            .WithMessage("Selecione ao menos um pedido para a rota.");
+        RuleFor(x => x.OrderIds)
+            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .WithMessage("A rota não pode conter pedidos duplicados.")
+            .When(x => x.OrderIds.Count > 0);
+    }
+}

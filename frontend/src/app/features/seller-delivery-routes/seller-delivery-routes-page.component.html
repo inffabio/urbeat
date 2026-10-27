@@ -1,0 +1,245 @@
+<section class="dashboard-surface routes-page">
+  <header class="topbar">
+    <div>
+      <div class="page-title-wrap">
+        <h1 class="page-title">Rotas de entrega</h1>
+      </div>
+      <p class="page-subtitle">Agrupe pedidos em entrega por motoboy e compartilhe um link temporário pelo WhatsApp.</p>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn-soft" (click)="load()" [disabled]="loading()">
+        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Atualizar
+      </button>
+      <button type="button" class="btn-soft btn-primary-soft" (click)="openCreateDialog($event)">
+        <i class="bi bi-signpost-split" aria-hidden="true"></i> Nova rota
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="seller-state-card is-loading" role="status">
+      <strong class="seller-state-title">Carregando rotas</strong>
+      <p class="seller-state-copy">Buscando as rotas ativas e os pedidos em entrega.</p>
+    </div>
+  } @else if (error()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Não foi possível carregar as rotas</strong>
+      <p class="seller-state-copy">Confira sua conexão e tente novamente.</p>
+      <div class="seller-state-actions">
+        <button type="button" class="seller-secondary-button" (click)="load()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <section class="seller-kpi-grid" aria-label="Resumo de rotas">
+      <div class="seller-kpi-card">
+        <span class="seller-kpi-label">Rotas ativas</span>
+        <strong class="seller-kpi-value">{{ activeRoutes().length }}</strong>
+        <span class="seller-kpi-meta">Links válidos para o motoboy.</span>
+      </div>
+      <div class="seller-kpi-card">
+        <span class="seller-kpi-label">Entregas pendentes</span>
+        <strong class="seller-kpi-value">{{ pendingStops() }}</strong>
+        <span class="seller-kpi-meta">Paradas ainda não confirmadas com PIN.</span>
+      </div>
+    </section>
+
+    @if (routes().length === 0) {
+      <div class="seller-state-card is-empty">
+        <strong class="seller-state-title">Nenhuma rota criada</strong>
+        <p class="seller-state-copy">Selecione um motoboy e os pedidos em entrega para montar a primeira rota.</p>
+        <div class="seller-state-actions">
+          <button type="button" class="seller-secondary-button" (click)="openCreateDialog($event)">Nova rota</button>
+        </div>
+      </div>
+    } @else {
+      <div class="routes-grid">
+        @for (route of routes(); track route.id) {
+          <article class="route-card" [attr.data-route-id]="route.id">
+            <header class="route-card-head">
+              <div>
+                <strong class="route-driver">{{ route.driverName }}</strong>
+                <span class="route-meta">{{ route.deliveredStops }}/{{ route.totalStops }} entregue(s)</span>
+              </div>
+              <span
+                class="seller-status-badge"
+                [class.is-success]="route.status === DeliveryRouteStatus.Active"
+                [class.is-neutral]="route.status !== DeliveryRouteStatus.Active"
+              >
+                {{ statusLabel(route) }}
+              </span>
+            </header>
+
+            <div class="route-progress" aria-hidden="true">
+              <span
+                class="route-progress-fill"
+                [style.width.%]="route.totalStops > 0 ? (route.deliveredStops / route.totalStops) * 100 : 0"
+              ></span>
+            </div>
+
+            <p class="route-meta">
+              Criada em {{ formatDateTime(route.createdAtUtc) }} · expira em {{ formatDateTime(route.expiresAtUtc) }}
+            </p>
+
+            <ol class="route-stops">
+              @for (order of route.orders; track order.orderId) {
+                <li class="route-stop" [class.is-delivered]="order.isDelivered">
+                  <span class="route-stop-sequence">{{ order.sequence }}</span>
+                  <span class="route-stop-body">
+                    <strong>#{{ order.code }}</strong>
+                    @if (order.customerName) { <span>{{ order.customerName }}</span> }
+                    @if (order.addressSummary) { <small>{{ order.addressSummary }}</small> }
+                  </span>
+                  <i
+                    class="bi"
+                    [class.bi-check-circle-fill]="order.isDelivered"
+                    [class.bi-clock]="!order.isDelivered"
+                    aria-hidden="true"
+                  ></i>
+                </li>
+              }
+            </ol>
+
+            <div class="route-actions">
+              @if (route.status === DeliveryRouteStatus.Active) {
+                <button
+                  type="button"
+                  class="driver-action route-share"
+                  (click)="shareRoute(route)"
+                  [disabled]="actionRouteId() === route.id"
+                >
+                  <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                  Compartilhar no WhatsApp
+                </button>
+                <button type="button" class="driver-action" (click)="openEditDialog(route, $event)">Editar</button>
+                <button
+                  type="button"
+                  class="driver-action is-danger"
+                  (click)="requestRevoke(route, $event)"
+                  [disabled]="actionRouteId() === route.id"
+                >
+                  Revogar link
+                </button>
+              } @else {
+                <span class="route-meta">Link encerrado. Crie uma nova rota para os pedidos ainda pendentes.</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
+
+@if (dialogOpen()) {
+  <div class="driver-dialog-overlay" (click)="closeDialog()">
+    <section
+      #routeDialog
+      class="driver-dialog route-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="route-dialog-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <header class="driver-dialog-header">
+        <h2 id="route-dialog-title">{{ editingRoute() ? 'Editar rota' : 'Nova rota' }}</h2>
+        <button type="button" class="dialog-close" (click)="closeDialog()" aria-label="Fechar rota">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="route-form">
+        <label class="field">
+          <span>Motoboy</span>
+          <select
+            [value]="selectedDriverId()"
+            (change)="selectDriver($any($event.target).value)"
+            [disabled]="!!editingRoute()"
+          >
+            <option value="">Selecione um motoboy ativo</option>
+            @for (driver of activeDrivers(); track driver.id) {
+              <option [value]="driver.id">{{ driver.name }}</option>
+            }
+          </select>
+        </label>
+
+        @if (!selectedDriverId()) {
+          <p class="driver-form-note">Selecione o motoboy para listar os pedidos atribuídos a ele.</p>
+        } @else if (eligibleOrders().length === 0) {
+          <p class="driver-form-note">
+            Nenhum pedido em entrega atribuído a este motoboy. Mova um pedido para “Em entrega” na tela de pedidos.
+          </p>
+        } @else {
+          <fieldset class="route-orders">
+            <legend>Pedidos da rota (na ordem de entrega)</legend>
+            @for (order of eligibleOrders(); track order.id) {
+              <label class="route-order-option" [class.is-selected]="isOrderSelected(order.id)">
+                <input
+                  type="checkbox"
+                  [checked]="isOrderSelected(order.id)"
+                  (change)="toggleOrder(order.id)"
+                />
+                <span class="route-order-body">
+                  <strong>{{ orderLabel(order) }}</strong>
+                  <small>{{ order.addressSummary || 'Endereço não informado' }}</small>
+                </span>
+                <span class="route-order-position" aria-hidden="true">
+                  {{ isOrderSelected(order.id) ? (selectedOrderIds().indexOf(order.id) + 1) : '' }}
+                </span>
+              </label>
+            }
+          </fieldset>
+        }
+
+        <p class="driver-form-note">
+          O link da rota é temporário, pode ser revogado e só mostra os pedidos deste motoboy nesta loja.
+        </p>
+
+        <div class="driver-dialog-actions">
+          <button type="button" class="seller-secondary-button" (click)="closeDialog()">Cancelar</button>
+          <button
+            type="button"
+            class="driver-primary-button"
+            (click)="submitRoute()"
+            [disabled]="submitting() || !selectedDriverId() || selectedOrderIds().length === 0"
+          >
+            {{ submitting() ? 'Salvando...' : 'Salvar rota' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+}
+
+@if (revokeTarget(); as target) {
+  <div class="driver-dialog-overlay" (click)="cancelRevoke()">
+    <section
+      #revokeDialog
+      class="driver-dialog is-confirm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="revoke-route-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <h2 id="revoke-route-title">Revogar link da rota</h2>
+      <p>
+        O link compartilhado com <strong>{{ target.driverName }}</strong> deixa de funcionar imediatamente.
+        As entregas já confirmadas permanecem registradas.
+      </p>
+      <div class="driver-dialog-actions">
+        <button type="button" class="seller-secondary-button" (click)="cancelRevoke()">Cancelar</button>
+        <button
+          type="button"
+          class="driver-danger-button"
+          (click)="confirmRevoke()"
+          [disabled]="actionRouteId() === target.id"
+        >
+          {{ actionRouteId() === target.id ? 'Revogando...' : 'Revogar link' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

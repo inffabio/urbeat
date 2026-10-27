@@ -33,9 +33,13 @@ const MIN_GEOMETRY_POINTS = 2;
  * configurable per environment. The public demo has no SLA and strict fair-use limits, so
  * production must point `routingUrl` to an owned/proxied service with an adequate quota.
  *
- * Only the two coordinate pairs travel in the URL. No PIN, order code, customer name,
+ * Only coordinate pairs travel in the URL. No PIN, order code, customer name,
  * phone or address text is sent. Failures (HTTP error, timeout, invalid/empty geometry)
  * resolve to `null` so the caller can explicitly fall back to a straight reference line.
+ *
+ * `fetchRouteThrough` sends every waypoint in a single OSRM request, preserving the order the
+ * caller supplies (the delivery sequence). OSRM never reorders waypoints unless asked to, so
+ * one request yields the continuous street geometry for the whole route.
  */
 @Injectable({ providedIn: 'root' })
 export class DriverRoutingProvider {
@@ -45,15 +49,25 @@ export class DriverRoutingProvider {
   private readonly http = new HttpClient(inject(HttpBackend));
 
   fetchRoute(origin: GeoPoint, destination: GeoPoint): Observable<RoutingGeometry | null> {
+    return this.fetchRouteThrough([origin, destination]);
+  }
+
+  /**
+   * Requests the road geometry that visits every waypoint in order.
+   *
+   * Returns `null` (without a request) when the endpoint is missing, any waypoint is invalid, or
+   * fewer than two distinct waypoints remain after consecutive duplicates are collapsed.
+   */
+  fetchRouteThrough(points: readonly GeoPoint[]): Observable<RoutingGeometry | null> {
     const endpoint = environment.routingUrl?.trim();
     if (!endpoint) return of(null);
 
-    const from = toGeoPoint(origin.lat, origin.lng);
-    const to = toGeoPoint(destination.lat, destination.lng);
-    if (!from || !to) return of(null);
+    const waypoints = this.normalizeWaypoints(points);
+    if (!waypoints) return of(null);
 
-    // OSRM expects `{longitude},{latitude};{longitude},{latitude}`.
-    const url = `${endpoint.replace(/\/+$/, '')}/${from.lng},${from.lat};${to.lng},${to.lat}`;
+    // OSRM expects `{longitude},{latitude};{longitude},{latitude};...` in visit order.
+    const coordinates = waypoints.map((point) => `${point.lng},${point.lat}`).join(';');
+    const url = `${endpoint.replace(/\/+$/, '')}/${coordinates}`;
     const params = new HttpParams()
       .set('overview', 'full')
       .set('geometries', 'geojson')
@@ -67,6 +81,23 @@ export class DriverRoutingProvider {
         map((response) => this.parseRoadGeometry(response)),
         catchError(() => of(null)),
       );
+  }
+
+  private normalizeWaypoints(points: readonly GeoPoint[]): GeoPoint[] | null {
+    if (points.length < 2) return null;
+
+    const waypoints: GeoPoint[] = [];
+    for (const point of points) {
+      const normalized = toGeoPoint(point?.lat, point?.lng);
+      if (!normalized) return null;
+
+      // Consecutive duplicates make OSRM return an invalid/empty leg, so collapse them.
+      const previous = waypoints[waypoints.length - 1];
+      if (previous && previous.lat === normalized.lat && previous.lng === normalized.lng) continue;
+      waypoints.push(normalized);
+    }
+
+    return waypoints.length >= 2 ? waypoints : null;
   }
 
   private parseRoadGeometry(response: OsrmResponse | null): RoutingGeometry | null {

@@ -100,6 +100,15 @@ public static class WebApiServiceCollectionExtensions
                     Window = TimeSpan.FromSeconds(rateLimitingOptions.PasswordRecoveryWindowSeconds),
                     QueueLimit = 0
                 }));
+
+            options.AddPolicy("public-route", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = rateLimitingOptions.PublicRoutePermitLimit,
+                    Window = TimeSpan.FromSeconds(rateLimitingOptions.PublicRouteWindowSeconds),
+                    QueueLimit = 0
+                }));
         });
 
         services.AddOpenTelemetry()

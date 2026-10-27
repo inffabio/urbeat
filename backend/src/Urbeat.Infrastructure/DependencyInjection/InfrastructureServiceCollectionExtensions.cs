@@ -53,6 +53,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<AsaasSubscriptionOptions>(configuration.GetSection(AsaasSubscriptionOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<EmailConfirmationOptions>(configuration.GetSection(EmailConfirmationOptions.SectionName));
+        services.Configure<DeliveryRouteOptions>(configuration.GetSection(DeliveryRouteOptions.SectionName));
         services.Configure<CustomerVerificationOptions>(configuration.GetSection(CustomerVerificationOptions.SectionName));
         services.Configure<EmailChangeChallengeOptions>(configuration.GetSection(EmailChangeChallengeOptions.SectionName));
 
@@ -168,6 +169,7 @@ public static class InfrastructureServiceCollectionExtensions
         });
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IDeliveryDriverService, DeliveryDriverService>();
+        services.AddScoped<IDeliveryRouteService, DeliveryRouteService>();
         services.AddScoped<IOrderPrintingService, OrderPrintingService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();

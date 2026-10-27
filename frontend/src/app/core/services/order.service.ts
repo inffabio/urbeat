@@ -110,7 +110,12 @@ export class OrderService {
     orderId: string,
     newStatus: OrderStatus,
     notes?: string,
+    deliveryDriverId?: string,
   ): Observable<OrderDetails> {
-    return this.api.patch<OrderDetails>(`/api/orders/${orderId}/status`, { newStatus, notes });
+    return this.api.patch<OrderDetails>(`/api/orders/${orderId}/status`, {
+      newStatus,
+      notes,
+      deliveryDriverId,
+    });
   }
 }

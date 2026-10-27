@@ -1,8 +1,10 @@
 namespace Urbeat.Domain.Entities;
 
 /// <summary>
-/// Store-scoped link between a store and the global delivery driver identity.
-/// Only one link may exist per (store, driver); the invite is single-use and expires.
+/// Store-scoped link between a store and its motoboy contact record.
+/// Only one link may exist per (store, driver). New records are created directly as
+/// <see cref="StoreDeliveryDriverStatus.Active"/> or <see cref="StoreDeliveryDriverStatus.Revoked"/>;
+/// the pending/invite lifecycle is kept only for links created by the legacy invite flow.
 /// The raw invite token is never persisted — only its SHA-256 hash.
 /// </summary>
 public sealed class StoreDeliveryDriver : BaseEntity
@@ -18,6 +20,9 @@ public sealed class StoreDeliveryDriver : BaseEntity
     public string DisplayName { get; set; } = string.Empty;
 
     public string PhoneNumber { get; set; } = string.Empty;
+
+    /// <summary>WhatsApp number used by the seller grid. Null uses the main phone number.</summary>
+    public string? WhatsAppPhoneNumber { get; set; }
 
     public string? InviteTokenHash { get; set; }
 

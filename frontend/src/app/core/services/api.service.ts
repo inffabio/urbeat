@@ -12,8 +12,8 @@ export class ApiService {
     return this.http.get<T>(`${this.baseUrl}${path}`, { params, context });
   }
 
-  post<T>(path: string, body: unknown): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}${path}`, body);
+  post<T>(path: string, body: unknown, context?: HttpContext): Observable<T> {
+    return this.http.post<T>(`${this.baseUrl}${path}`, body, { context });
   }
 
   put<T>(path: string, body: unknown): Observable<T> {

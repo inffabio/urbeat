@@ -16,6 +16,7 @@ import {
   logOutOutline,
   menuOutline,
   logoWhatsapp,
+  mapOutline,
   peopleOutline,
   printOutline,
   restaurantOutline,
@@ -40,6 +41,7 @@ addIcons({
   'log-out-outline': logOutOutline,
   'menu-outline': menuOutline,
   'logo-whatsapp': logoWhatsapp,
+  'map-outline': mapOutline,
   'people-outline': peopleOutline,
   'print-outline': printOutline,
   'restaurant-outline': restaurantOutline,
@@ -101,7 +103,8 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
     { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline' },
     { label: 'Pedidos', route: '/app/pedidos', icon: 'clipboard-outline', badge: true },
     { label: 'Cardápio', route: '/app/cardapio/categorias', icon: 'restaurant-outline' },
-    { label: 'Entregadores', route: '/app/entregadores', icon: 'bicycle-outline' },
+    { label: 'Motoboys', route: '/app/entregadores', icon: 'bicycle-outline' },
+    { label: 'Rotas', route: '/app/rotas', icon: 'map-outline' },
     { label: 'Clientes', route: '/app/clientes', icon: 'people-outline' },
   ];
 

@@ -1,0 +1,230 @@
+<main class="public-route-page">
+  @if (loading()) {
+    <section class="route-state" role="status">
+      <i class="bi bi-arrow-repeat route-state-spin" aria-hidden="true"></i>
+      <h1>Carregando rota</h1>
+      <p>Validando o link de entrega.</p>
+    </section>
+  } @else if (error() === 'invalid') {
+    <section class="route-state is-error" role="alert">
+      <i class="bi bi-link-45deg" aria-hidden="true"></i>
+      <h1>Link inválido</h1>
+      <p>Este link de rota não existe. Peça um novo link para a loja.</p>
+    </section>
+  } @else if (error() === 'expired') {
+    <section class="route-state is-error" role="alert">
+      <i class="bi bi-clock-history" aria-hidden="true"></i>
+      <h1>Link expirado ou revogado</h1>
+      <p>Esta rota não está mais disponível. Peça um novo link para a loja.</p>
+    </section>
+  } @else if (error() === 'network') {
+    <section class="route-state is-error" role="alert">
+      <i class="bi bi-wifi-off" aria-hidden="true"></i>
+      <h1>Não foi possível carregar</h1>
+      <p>Confira sua conexão e tente novamente.</p>
+      <button type="button" class="route-primary-button" (click)="load()">Tentar novamente</button>
+    </section>
+  } @else if (routeData(); as route) {
+    <header class="route-hero">
+      <div class="route-hero-top">
+        <span class="route-brand">Urbeat</span>
+        <span
+          class="route-status-pill"
+          [class.is-done]="route.status === DeliveryRouteStatus.Completed"
+        >
+          {{ routeStatusLabel(route.status) }}
+        </span>
+      </div>
+      <h1>{{ route.storeName }}</h1>
+      <p class="route-driver-line">
+        <i class="bi bi-bicycle" aria-hidden="true"></i>
+        {{ route.driverName }}
+      </p>
+      <div class="route-progress" aria-label="Progresso da rota">
+        <span class="route-progress-fill" [style.width.%]="progressPercent()"></span>
+      </div>
+      <p class="route-progress-copy">
+        {{ route.deliveredStops }} de {{ route.totalStops }} entregues
+        @if (route.expiresAtUtc) {
+          <span>· link válido até {{ formatDateTime(route.expiresAtUtc) }}</span>
+        }
+      </p>
+    </header>
+
+    @if (successMessage(); as message) {
+      <div class="route-success" role="status">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        <span>{{ message }}</span>
+      </div>
+    }
+
+    @if (nextStop(); as next) {
+      <section class="next-stop-card" aria-labelledby="next-stop-title">
+        <span class="next-stop-kicker">Próximo cliente</span>
+        <h2 id="next-stop-title">{{ next.customerName || 'Cliente' }}</h2>
+        <p class="next-stop-address">{{ addressLine(next) || 'Endereço não informado' }}</p>
+        @if (next.notes) {
+          <p class="next-stop-notes"><strong>Observações:</strong> {{ next.notes }}</p>
+        }
+
+        <div class="next-stop-actions">
+          @if (next.customerPhoneNumber) {
+            <a class="route-secondary-action" [href]="'tel:' + next.customerPhoneNumber">
+              <i class="bi bi-telephone" aria-hidden="true"></i>
+              Ligar
+            </a>
+          }
+          <a
+            class="route-secondary-action"
+            [href]="mapUrl(next)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            Navegar
+          </a>
+        </div>
+
+        @if (next.canDeliver) {
+          <button type="button" class="route-primary-button route-deliver-button" (click)="openPinDialog(next, $event)">
+            <i class="bi bi-check2-circle" aria-hidden="true"></i>
+            Entreguei
+          </button>
+          <p class="route-hint">Peça o PIN de 6 dígitos ao cliente antes de confirmar.</p>
+        } @else {
+          <p class="route-hint is-waiting">
+            Esta entrega ainda não saiu para rota. Aguarde a loja liberar o pedido.
+          </p>
+        }
+      </section>
+    } @else {
+      <section class="route-complete" role="status">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        <h2>Rota concluída</h2>
+        <p>Todas as entregas foram confirmadas. Obrigado!</p>
+      </section>
+    }
+
+    @if (route.stops.length > 0) {
+      <section class="route-map-panel" aria-labelledby="route-map-title">
+        <div class="route-stops-head">
+          <h2 id="route-map-title">Rota completa</h2>
+          <span>{{ pendingStops().length }} restante(s)</span>
+        </div>
+        <app-public-delivery-route-map
+          [stops]="mapStops()"
+          [originLatitude]="route.originLatitude"
+          [originLongitude]="route.originLongitude"
+          [externalMapUrl]="mapExternalUrl()"
+        />
+      </section>
+    }
+
+    <section class="route-stops-panel" aria-labelledby="route-stops-title">
+      <div class="route-stops-head">
+        <h2 id="route-stops-title">Sequência de entregas</h2>
+        <span>{{ route.stops.length }} parada(s)</span>
+      </div>
+
+      <ol class="route-stops-list">
+        @for (stop of route.stops; track stop.sequence) {
+          <li
+            class="route-stop-card"
+            [class.is-next]="stop.isNext"
+            [class.is-delivered]="!!stop.deliveryConfirmedAtUtc"
+            [attr.aria-current]="stop.isNext ? 'step' : null"
+          >
+            <span class="route-stop-number">{{ stop.sequence }}</span>
+            <div class="route-stop-content">
+              <div class="route-stop-title">
+                <strong>{{ stop.customerName || 'Cliente' }}</strong>
+                <span class="route-stop-status">{{ statusLabel(stop.status) }}</span>
+              </div>
+              <p class="route-stop-code">Pedido #{{ stop.orderCode }}</p>
+              <p class="route-stop-address">{{ stop.addressSummary || addressLine(stop) || 'Endereço não informado' }}</p>
+              @if (stop.deliveryConfirmedAtUtc) {
+                <p class="route-stop-confirmed">
+                  <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                  Entregue em {{ formatDateTime(stop.deliveryConfirmedAtUtc) }}
+                </p>
+              }
+            </div>
+            @if (stop.isNext && stop.canDeliver) {
+              <button
+                type="button"
+                class="route-mini-deliver"
+                (click)="openPinDialog(stop, $event)"
+                [attr.aria-label]="'Confirmar entrega do pedido ' + stop.orderCode"
+              >
+                Entreguei
+              </button>
+            }
+          </li>
+        }
+      </ol>
+    </section>
+  }
+</main>
+
+@if (pinTarget(); as target) {
+  <div class="route-dialog-overlay" (click)="closePinDialog()">
+    <section
+      #pinDialog
+      class="route-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pin-dialog-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <header class="route-dialog-head">
+        <div>
+          <span class="next-stop-kicker">Confirmar entrega</span>
+          <h2 id="pin-dialog-title">Pedido #{{ target.orderCode }}</h2>
+        </div>
+        <button type="button" class="route-dialog-close" (click)="closePinDialog()" aria-label="Fechar confirmação">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <p class="route-dialog-copy">
+        Digite o PIN de 6 dígitos informado pelo cliente. O pedido só será concluído com o PIN correto.
+      </p>
+
+      <input
+        class="route-pin-input"
+        type="text"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        placeholder="000000"
+        [ngModel]="pinValue()"
+        (ngModelChange)="updatePin($event)"
+        aria-label="PIN de entrega"
+      />
+
+      @if (pinError(); as message) {
+        <p class="route-pin-error" role="alert">{{ message }}</p>
+      }
+
+      @if (pinConflict()) {
+        <button type="button" class="route-secondary-button" (click)="refreshAfterConflict()">
+          Atualizar rota
+        </button>
+      }
+
+      <div class="route-dialog-actions">
+        <button type="button" class="route-secondary-button" (click)="closePinDialog()">Cancelar</button>
+        <button
+          type="button"
+          class="route-primary-button"
+          (click)="submitPin()"
+          [disabled]="pinSubmitting() || pinValue().length !== 6"
+        >
+          {{ pinSubmitting() ? 'Confirmando...' : 'Confirmar entrega' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

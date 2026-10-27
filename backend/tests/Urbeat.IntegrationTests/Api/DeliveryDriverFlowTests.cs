@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.WebUtilities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -464,6 +466,278 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         assign.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task StoreDriverCrud_ShouldWorkWithoutEmailOrInvite_AndExposeWhatsApp()
+    {
+        var (sellerClient, _) = await CreateStoreAsync("CRUD");
+
+        var created = await CreateSimpleDriverAsync(
+            sellerClient,
+            "Motoboy Simples",
+            "11999990011",
+            "11999990012",
+            isActive: true);
+
+        created.Email.Should().BeEmpty();
+        created.HasAccount.Should().BeFalse();
+        created.IsActive.Should().BeTrue();
+        created.WhatsAppPhoneNumber.Should().Be("11999990012");
+
+        var list = await sellerClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        list.Should().NotBeNull();
+        list!.Should().ContainSingle(x => x.Id == created.Id && x.WhatsAppPhoneNumber == "11999990012");
+
+        var update = await sellerClient.PutAsJsonAsync(
+            $"/api/delivery-drivers/{created.Id}",
+            new UpsertStoreDeliveryDriverRequestDto
+            {
+                Name = "Motoboy Atualizado",
+                PhoneNumber = "11999990013",
+                WhatsAppPhoneNumber = "11999990014",
+                IsActive = true
+            });
+        update.StatusCode.Should().Be(HttpStatusCode.OK, await update.Content.ReadAsStringAsync());
+        var updated = await update.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>();
+        updated!.Name.Should().Be("Motoboy Atualizado");
+        updated.PhoneNumber.Should().Be("11999990013");
+        updated.WhatsAppPhoneNumber.Should().Be("11999990014");
+
+        var deactivate = await sellerClient.PatchAsJsonAsync(
+            $"/api/delivery-drivers/{created.Id}/status",
+            new SetStoreDeliveryDriverStatusRequestDto { IsActive = false });
+        deactivate.StatusCode.Should().Be(HttpStatusCode.OK, await deactivate.Content.ReadAsStringAsync());
+        var inactive = await deactivate.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>();
+        inactive!.IsActive.Should().BeFalse();
+        inactive.Status.Should().Be(StoreDeliveryDriverStatus.Revoked);
+
+        var reactivate = await sellerClient.PatchAsJsonAsync(
+            $"/api/delivery-drivers/{created.Id}/status",
+            new SetStoreDeliveryDriverStatusRequestDto { IsActive = true });
+        reactivate.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await reactivate.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>())!
+            .IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task OnDeliveryTransition_ShouldRequireActiveDriverFromTheSameStore()
+    {
+        var (sellerAClient, storeAId) = await CreateStoreAsync("TRANSITION-A");
+        var (sellerBClient, storeBId) = await CreateStoreAsync("TRANSITION-B");
+
+        var order = await CreateDeliveryOrderAsync(sellerAClient, storeAId);
+        var inactiveDriver = await CreateSimpleDriverAsync(
+            sellerAClient, "Motoboy Inativo", "11999990021", null, isActive: false);
+        var otherStoreDriver = await CreateSimpleDriverAsync(
+            sellerBClient, "Motoboy Outra Loja", "11999990022", null, isActive: true);
+        var activeDriver = await CreateSimpleDriverAsync(
+            sellerAClient, "Motoboy Ativo", "11999990023", "11999990024", isActive: true);
+
+        var noDriver = await sellerAClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.OnDelivery });
+        noDriver.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var inactive = await sellerAClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = inactiveDriver.Id
+            });
+        inactive.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var crossStore = await sellerAClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = otherStoreDriver.Id
+            });
+        crossStore.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var started = await sellerAClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = activeDriver.Id
+            });
+        started.StatusCode.Should().Be(HttpStatusCode.OK, await started.Content.ReadAsStringAsync());
+        var details = await started.Content.ReadFromJsonAsync<OrderDetailsResponseDto>();
+        details!.Status.Should().Be(OrderStatus.OnDelivery);
+        details.DeliveryDriverName.Should().Be("Motoboy Ativo");
+        details.DeliveryStartedAtUtc.Should().NotBeNull();
+        details.DeliveryDriverId.Should().Be(activeDriver.DeliveryDriverId);
+
+        // A second store cannot create a route for this order/driver combination.
+        var foreignRoute = await sellerBClient.PostAsJsonAsync(
+            "/api/delivery-routes/store",
+            new CreateDeliveryRouteRequestDto
+            {
+                DeliveryDriverId = otherStoreDriver.Id,
+                OrderIds = [order.OrderId]
+            });
+        foreignRoute.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeliveryRoute_ShouldSharePublicLink_AdvanceWithPin_AndBlockAfterRevoke()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("ROUTE");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Rota", "11999990031", "11999990032", isActive: true);
+
+        var first = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var second = await CreateDeliveryOrderAsync(sellerClient, storeId);
+
+        foreach (var order in new[] { first, second })
+        {
+            var start = await sellerClient.PatchAsJsonAsync(
+                $"/api/orders/{order.OrderId}/status",
+                new UpdateOrderStatusRequestDto
+                {
+                    NewStatus = OrderStatus.OnDelivery,
+                    DeliveryDriverId = driver.Id
+                });
+            start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        }
+
+        var create = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store",
+            new CreateDeliveryRouteRequestDto
+            {
+                DeliveryDriverId = driver.Id,
+                OrderIds = [second.OrderId, first.OrderId]
+            });
+        create.StatusCode.Should().Be(HttpStatusCode.Created, await create.Content.ReadAsStringAsync());
+        var created = await create.Content.ReadFromJsonAsync<DeliveryRouteOperationResultDto>();
+        created!.Route.Should().NotBeNull();
+        created.Route!.TotalStops.Should().Be(2);
+        created.Route.Orders.Select(x => x.OrderId).Should().Equal([second.OrderId, first.OrderId]);
+        created.ShareUrl.Should().NotBeNullOrWhiteSpace();
+
+        var share = await sellerClient.PostAsync($"/api/delivery-routes/store/{created.Route.Id}/share", null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var shared = await share.Content.ReadFromJsonAsync<DeliveryRouteOperationResultDto>();
+        shared!.ShareUrl.Should().Contain("/rota/");
+        var token = ExtractRouteToken(shared.ShareUrl);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var publicRoute = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/delivery-routes/{token}");
+        publicRoute.Should().NotBeNull();
+        publicRoute!.StoreName.Should().Be("Loja Delivery ROUTE");
+        publicRoute.DriverName.Should().Be("Motoboy Rota");
+        publicRoute.Stops.Should().HaveCount(2);
+        publicRoute.NextSequence.Should().Be(1);
+        publicRoute.Stops.Single(x => x.Sequence == 1).OrderCode.Should().Be(
+            created.Route.Orders.Single(x => x.Sequence == 1).Code);
+
+        var secondPin = (await second.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{second.OrderId}"))!.DeliveryPin!;
+        var wrongPin = secondPin == "000000" ? "000001" : "000000";
+        var wrong = await publicClient.PostAsJsonAsync(
+            $"/api/public/delivery-routes/{token}/stops/1/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = wrongPin });
+        wrong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var pending = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/delivery-routes/{token}");
+        pending!.DeliveredStops.Should().Be(0);
+        pending.NextSequence.Should().Be(1);
+
+        var confirmFirst = await publicClient.PostAsJsonAsync(
+            $"/api/public/delivery-routes/{token}/stops/1/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = secondPin });
+        confirmFirst.StatusCode.Should().Be(HttpStatusCode.OK, await confirmFirst.Content.ReadAsStringAsync());
+
+        var afterFirst = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/delivery-routes/{token}");
+        afterFirst!.DeliveredStops.Should().Be(1);
+        afterFirst.NextSequence.Should().Be(2);
+        afterFirst.Stops.Single(x => x.Sequence == 2).CanDeliver.Should().BeTrue();
+
+        var repeated = await publicClient.PostAsJsonAsync(
+            $"/api/public/delivery-routes/{token}/stops/1/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = secondPin });
+        repeated.StatusCode.Should().Be(HttpStatusCode.OK, "repeating a confirmed stop is idempotent");
+
+        var updateAfterDelivery = await sellerClient.PutAsJsonAsync(
+            $"/api/delivery-routes/store/{created.Route.Id}",
+            new UpdateDeliveryRouteRequestDto
+            {
+                DeliveryDriverId = driver.Id,
+                OrderIds = [second.OrderId, first.OrderId]
+            });
+        updateAfterDelivery.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            "a delivered stop must stay editable as route history");
+
+        var firstPin = (await first.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{first.OrderId}"))!.DeliveryPin!;
+        var confirmSecond = await publicClient.PostAsJsonAsync(
+            $"/api/public/delivery-routes/{token}/stops/2/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = firstPin });
+        confirmSecond.StatusCode.Should().Be(HttpStatusCode.OK, await confirmSecond.Content.ReadAsStringAsync());
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var storedFirst = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == second.OrderId);
+            storedFirst.Status.Should().Be(OrderStatus.Delivered);
+            storedFirst.DeliveryConfirmedAtUtc.Should().NotBeNull();
+            storedFirst.DeliveryConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+
+            var route = await dbContext.DeliveryRoutes.AsNoTracking().SingleAsync(x => x.Id == created.Route.Id);
+            route.CompletedAtUtc.Should().NotBeNull();
+        }
+
+        var revoke = await sellerClient.PostAsync(
+            $"/api/delivery-routes/store/{created.Route.Id}/revoke", null);
+        revoke.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var revoked = await publicClient.GetAsync($"/api/public/delivery-routes/{token}");
+        revoked.StatusCode.Should().Be(HttpStatusCode.Gone);
+
+        var revokedAction = await publicClient.PostAsJsonAsync(
+            $"/api/public/delivery-routes/{token}/stops/1/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = secondPin });
+        revokedAction.StatusCode.Should().Be(HttpStatusCode.Gone);
+
+        var invalid = await publicClient.GetAsync(
+            $"/api/public/delivery-routes/{WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32))}");
+        invalid.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static async Task<SellerDeliveryDriverResponseDto> CreateSimpleDriverAsync(
+        HttpClient sellerClient,
+        string name,
+        string phone,
+        string? whatsApp,
+        bool isActive)
+    {
+        var response = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-drivers",
+            new UpsertStoreDeliveryDriverRequestDto
+            {
+                Name = name,
+                PhoneNumber = phone,
+                WhatsAppPhoneNumber = whatsApp,
+                IsActive = isActive
+            });
+        response.StatusCode.Should().Be(HttpStatusCode.Created, await response.Content.ReadAsStringAsync());
+        var driver = await response.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>();
+        driver.Should().NotBeNull();
+        return driver!;
+    }
+
+    private static string ExtractRouteToken(string shareUrl)
+    {
+        var uri = new Uri(shareUrl);
+        return Uri.UnescapeDataString(uri.Segments[^1].Trim('/'));
+    }
+
     private async Task<(HttpClient Client, Guid StoreId)> CreateStoreAsync(string suffix)
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
@@ -509,7 +783,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         string name,
         string phone)
     {
-        var response = await sellerClient.PostAsJsonAsync("/api/delivery-drivers/store", new InviteDeliveryDriverRequestDto
+        var response = await sellerClient.PostAsJsonAsync("/api/delivery-drivers/store/invite", new InviteDeliveryDriverRequestDto
         {
             FullName = name,
             Email = email,

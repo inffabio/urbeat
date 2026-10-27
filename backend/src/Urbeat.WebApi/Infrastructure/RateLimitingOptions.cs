@@ -19,4 +19,10 @@ public sealed class RateLimitingOptions
 
     /// <summary>Window, in seconds, for the password recovery limit.</summary>
     public int PasswordRecoveryWindowSeconds { get; set; } = 300;
+
+    /// <summary>Permit limit for the public tokenized route endpoints.</summary>
+    public int PublicRoutePermitLimit { get; set; } = 120;
+
+    /// <summary>Window, in seconds, for the public route limit.</summary>
+    public int PublicRouteWindowSeconds { get; set; } = 60;
 }

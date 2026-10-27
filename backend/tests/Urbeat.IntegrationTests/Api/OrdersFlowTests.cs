@@ -313,10 +313,32 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
     private static async Task AdvanceOrderStatusToAsync(HttpClient sellerClient, Guid orderId, OrderStatus targetStatus)
     {
         var sequence = new[] { OrderStatus.Received, OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.OnDelivery, OrderStatus.Delivered };
+        Guid? deliveryDriverId = null;
         foreach (var status in sequence)
         {
-            var response = await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto { NewStatus = status });
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            if (status == OrderStatus.OnDelivery)
+            {
+                // Starting a delivery now requires an active motoboy from the same store.
+                var driverResponse = await sellerClient.PostAsJsonAsync(
+                    "/api/delivery-drivers",
+                    new UpsertStoreDeliveryDriverRequestDto
+                    {
+                        Name = "Motoboy Fluxo Pedidos",
+                        PhoneNumber = "11999990099",
+                        WhatsAppPhoneNumber = "11999990099",
+                        IsActive = true
+                    });
+                driverResponse.StatusCode.Should().Be(HttpStatusCode.Created, await driverResponse.Content.ReadAsStringAsync());
+                var driver = await driverResponse.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>();
+                deliveryDriverId = driver!.Id;
+            }
+
+            var response = await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
+            {
+                NewStatus = status,
+                DeliveryDriverId = status == OrderStatus.OnDelivery ? deliveryDriverId : null
+            });
+            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
             if (status == targetStatus)
             {
                 return;

@@ -33,6 +33,31 @@
   text-decoration: none;
 }
 
+.driver-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, .12);
+  color: #128c4a;
+  font-size: 20px;
+  text-decoration: none;
+  transition: background-color .16s ease, transform .16s ease;
+}
+
+.driver-whatsapp:hover,
+.driver-whatsapp:focus-visible {
+  background: rgba(37, 211, 102, .22);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.driver-whatsapp:focus-visible {
+  box-shadow: 0 0 0 3px var(--app-brand-shadow, rgba(213, 74, 81, .18));
+}
+
 .driver-actions {
   display: inline-flex;
   flex-wrap: wrap;
@@ -175,6 +200,32 @@
   font-weight: 700;
 }
 
+.field-hint {
+  color: var(--app-text-muted, #767680);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-line, #eadfd6);
+  border-radius: 12px;
+  color: var(--app-text-secondary, #5a5a63);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.field-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--app-brand, #d54a51);
+}
+
 .driver-form-note {
   margin: 0;
   padding: 12px 14px;
@@ -283,4 +334,9 @@
 .drivers-page .seller-status-badge.is-warning {
   background: rgba(245, 158, 11, .16);
   color: #9a5b00;
+}
+
+.drivers-page .seller-status-badge.is-success {
+  background: var(--app-success-green-soft, rgba(17, 148, 65, .14));
+  color: var(--app-success-green, #119441);
 }

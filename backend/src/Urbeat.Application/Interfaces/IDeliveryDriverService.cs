@@ -8,6 +8,27 @@ public interface IDeliveryDriverService
         Guid sellerUserId,
         CancellationToken cancellationToken = default);
 
+    Task<SellerDeliveryDriverOperationResultDto> CreateStoreDriverAsync(
+        Guid sellerUserId,
+        UpsertStoreDeliveryDriverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<SellerDeliveryDriverOperationResultDto> UpdateStoreDriverAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        UpsertStoreDeliveryDriverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<SellerDeliveryDriverOperationResultDto> SetStoreDriverActiveAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        bool isActive,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Legacy invite flow, kept for compatibility with links already sent.</summary>
     Task<SellerDeliveryDriverOperationResultDto> InviteAsync(
         Guid sellerUserId,
         InviteDeliveryDriverRequestDto request,

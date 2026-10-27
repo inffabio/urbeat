@@ -10,16 +10,29 @@ export enum StoreDeliveryDriverStatus {
 }
 
 export interface SellerDeliveryDriver {
+  /** Store-scoped link id used for assignment and route APIs. */
   id: string;
+  /** Global driver id exposed by order assignment summaries. */
+  deliveryDriverId: string;
   name: string;
   email: string;
   phoneNumber: string;
+  whatsAppPhoneNumber?: string | null;
+  isActive: boolean;
+  hasAccount: boolean;
   status: StoreDeliveryDriverStatus;
   inviteSentAtUtc?: string | null;
   inviteExpiresAtUtc?: string | null;
   acceptedAtUtc?: string | null;
   revokedAtUtc?: string | null;
   canResendInvite: boolean;
+}
+
+export interface UpsertStoreDeliveryDriverRequest {
+  name: string;
+  phoneNumber: string;
+  whatsAppPhoneNumber?: string | null;
+  isActive: boolean;
 }
 
 export interface InviteDeliveryDriverRequest {

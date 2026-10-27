@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +28,6 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
     private const int MaxPinAttempts = 5;
     private static readonly TimeSpan PinLockoutCooldown = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(7);
-    private static readonly PasswordHasher<Order> PinHasher = new();
 
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _unitOfWork;
@@ -90,6 +88,249 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         return rows.Select(x => MapSellerDriver(x.link, x.driver)).ToList();
     }
 
+    public async Task<SellerDeliveryDriverOperationResultDto> CreateStoreDriverAsync(
+        Guid sellerUserId,
+        UpsertStoreDeliveryDriverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (store is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { Forbidden = true };
+        }
+
+        var name = request.Name.Trim();
+        var phone = NormalizePhone(request.PhoneNumber);
+        var whatsApp = NormalizePhoneOrNull(request.WhatsAppPhoneNumber);
+
+        var driver = new DeliveryDriver
+        {
+            FullName = name,
+            PhoneNumber = phone,
+            WhatsAppPhoneNumber = whatsApp,
+            Email = null,
+            NormalizedEmail = null,
+            UserId = null
+        };
+
+        var link = new StoreDeliveryDriver
+        {
+            StoreId = store.Id,
+            DeliveryDriverId = driver.Id,
+            DeliveryDriver = driver,
+            DisplayName = name,
+            PhoneNumber = phone,
+            WhatsAppPhoneNumber = whatsApp,
+            Status = request.IsActive ? StoreDeliveryDriverStatus.Active : StoreDeliveryDriverStatus.Revoked,
+            AcceptedAtUtc = request.IsActive ? DateTime.UtcNow : null,
+            RevokedAtUtc = request.IsActive ? null : DateTime.UtcNow,
+            InvitedByUserId = sellerUserId
+        };
+
+        await _dbContext.DeliveryDrivers.AddAsync(driver, cancellationToken);
+        await _dbContext.StoreDeliveryDrivers.AddAsync(link, cancellationToken);
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "DeliveryDriverCreated",
+            Entity = nameof(StoreDeliveryDriver),
+            EntityId = link.Id,
+            Description = $"Motoboy {name} cadastrado na loja {store.Id}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new SellerDeliveryDriverOperationResultDto
+        {
+            Driver = MapSellerDriver(link, driver)
+        };
+    }
+
+    public async Task<SellerDeliveryDriverOperationResultDto> UpdateStoreDriverAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        UpsertStoreDeliveryDriverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (store is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { Forbidden = true };
+        }
+
+        var link = await _dbContext.StoreDeliveryDrivers
+            .Include(x => x.DeliveryDriver)
+            .SingleOrDefaultAsync(
+                x => x.Id == storeDriverId && x.StoreId == store.Id,
+                cancellationToken);
+
+        if (link?.DeliveryDriver is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { NotFound = true };
+        }
+
+        var name = request.Name.Trim();
+        var phone = NormalizePhone(request.PhoneNumber);
+        var whatsApp = NormalizePhoneOrNull(request.WhatsAppPhoneNumber);
+
+        if (link.Status == StoreDeliveryDriverStatus.Active && !request.IsActive)
+        {
+            var blocked = await HasDeliveryPendingCompletionAsync(link, store.Id, cancellationToken);
+            if (blocked is not null)
+            {
+                return blocked;
+            }
+        }
+
+        link.DisplayName = name;
+        link.PhoneNumber = phone;
+        link.WhatsAppPhoneNumber = whatsApp;
+        ApplyActiveState(link, request.IsActive);
+        link.MarkAsUpdated();
+
+        link.DeliveryDriver.FullName = name;
+        link.DeliveryDriver.PhoneNumber = phone;
+        link.DeliveryDriver.WhatsAppPhoneNumber = whatsApp;
+        link.DeliveryDriver.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "DeliveryDriverUpdated",
+            Entity = nameof(StoreDeliveryDriver),
+            EntityId = link.Id,
+            Description = $"Motoboy {name} atualizado na loja {store.Id}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new SellerDeliveryDriverOperationResultDto
+        {
+            Driver = MapSellerDriver(link, link.DeliveryDriver)
+        };
+    }
+
+    public async Task<SellerDeliveryDriverOperationResultDto> SetStoreDriverActiveAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        bool isActive,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (store is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { Forbidden = true };
+        }
+
+        var link = await _dbContext.StoreDeliveryDrivers
+            .Include(x => x.DeliveryDriver)
+            .SingleOrDefaultAsync(
+                x => x.Id == storeDriverId && x.StoreId == store.Id,
+                cancellationToken);
+
+        if (link?.DeliveryDriver is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { NotFound = true };
+        }
+
+        if (!isActive)
+        {
+            var blocked = await HasDeliveryPendingCompletionAsync(link, store.Id, cancellationToken);
+            if (blocked is not null)
+            {
+                return blocked;
+            }
+        }
+
+        ApplyActiveState(link, isActive);
+        link.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = isActive ? "DeliveryDriverActivated" : "DeliveryDriverDeactivated",
+            Entity = nameof(StoreDeliveryDriver),
+            EntityId = link.Id,
+            Description = isActive
+                ? $"Motoboy {link.DisplayName} ativado na loja {store.Id}."
+                : $"Motoboy {link.DisplayName} inativado na loja {store.Id}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new SellerDeliveryDriverOperationResultDto
+        {
+            Driver = MapSellerDriver(link, link.DeliveryDriver)
+        };
+    }
+
+    /// <summary>
+    /// A driver cannot be deactivated while an assigned order still depends on the link to finish
+    /// (delivery started or delivered awaiting PIN). Revoked access would strand the order.
+    /// </summary>
+    private async Task<SellerDeliveryDriverOperationResultDto?> HasDeliveryPendingCompletionAsync(
+        StoreDeliveryDriver link,
+        Guid storeId,
+        CancellationToken cancellationToken)
+    {
+        var hasDeliveryPendingCompletion = await (
+            from assignment in _dbContext.OrderDeliveryAssignments.AsNoTracking()
+            join order in _dbContext.Orders.AsNoTracking() on assignment.OrderId equals order.Id
+            where assignment.DeliveryDriverId == link.DeliveryDriverId
+                && assignment.StoreId == storeId
+                && (order.Status == OrderStatus.OnDelivery
+                    || (order.Status == OrderStatus.Delivered && order.DeliveryConfirmedAtUtc == null))
+            select assignment.Id
+        ).AnyAsync(cancellationToken);
+
+        if (!hasDeliveryPendingCompletion)
+        {
+            return null;
+        }
+
+        return new SellerDeliveryDriverOperationResultDto
+        {
+            Conflict = true,
+            Error = "Este motoboy possui entrega em andamento ou aguardando confirmação de PIN. Conclua esses pedidos antes de inativar."
+        };
+    }
+
+    private static void ApplyActiveState(StoreDeliveryDriver link, bool isActive)
+    {
+        if (isActive)
+        {
+            link.Status = StoreDeliveryDriverStatus.Active;
+            link.RevokedAtUtc = null;
+            link.AcceptedAtUtc ??= DateTime.UtcNow;
+            link.InviteTokenHash = null;
+            link.InviteExpiresAtUtc = null;
+            return;
+        }
+
+        link.Status = StoreDeliveryDriverStatus.Revoked;
+        link.RevokedAtUtc = DateTime.UtcNow;
+        link.InviteTokenHash = null;
+        link.InviteExpiresAtUtc = null;
+    }
+
+    private static string NormalizePhone(string phone) => phone.Trim();
+
+    private static string? NormalizePhoneOrNull(string? phone)
+        => string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+
     public async Task<SellerDeliveryDriverOperationResultDto> InviteAsync(
         Guid sellerUserId,
         InviteDeliveryDriverRequestDto request,
@@ -119,7 +360,8 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
                 Email = email,
                 NormalizedEmail = normalizedEmail,
                 FullName = fullName,
-                PhoneNumber = phone
+                PhoneNumber = phone,
+                WhatsAppPhoneNumber = phone
             };
             await _dbContext.DeliveryDrivers.AddAsync(driver, cancellationToken);
         }
@@ -151,6 +393,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
 
         link.DisplayName = fullName;
         link.PhoneNumber = phone;
+        link.WhatsAppPhoneNumber = phone;
         link.Status = StoreDeliveryDriverStatus.Pending;
         link.RevokedAtUtc = null;
         link.AcceptedAtUtc = null;
@@ -223,7 +466,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             Event = "DeliveryDriverInviteResent",
             Entity = nameof(StoreDeliveryDriver),
             EntityId = link.Id,
-            Description = $"Delivery driver invite resent to {link.DeliveryDriver.Email}.",
+            Description = $"Delivery driver invite resent to {link.DeliveryDriver.Email ?? link.DisplayName}.",
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -296,7 +539,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
                 Event = "DeliveryDriverRevoked",
                 Entity = nameof(StoreDeliveryDriver),
                 EntityId = link.Id,
-                Description = $"Delivery driver access revoked for {link.DeliveryDriver.Email} in store {store.Id}.",
+                Description = $"Delivery driver access revoked for {link.DeliveryDriver.Email ?? link.DisplayName} in store {store.Id}.",
                 IpAddress = ipAddress
             }, cancellationToken);
 
@@ -372,6 +615,15 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         }
 
         var driver = link.DeliveryDriver;
+        if (string.IsNullOrWhiteSpace(driver.Email))
+        {
+            return new AcceptDeliveryDriverInviteResultDto
+            {
+                InvalidInvite = true,
+                Error = "Convite inválido ou expirado."
+            };
+        }
+
         var email = driver.Email.Trim().ToLowerInvariant();
         var user = await _userManager.FindByEmailAsync(email);
 
@@ -442,6 +694,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         driver.UserId = user.Id;
         driver.FullName = string.IsNullOrWhiteSpace(request.FullName) ? driver.FullName : request.FullName.Trim();
         driver.PhoneNumber = string.IsNullOrWhiteSpace(user.PhoneNumber) ? driver.PhoneNumber : user.PhoneNumber!;
+        driver.WhatsAppPhoneNumber ??= driver.PhoneNumber;
         driver.MarkAsUpdated();
 
         link.Status = StoreDeliveryDriverStatus.Active;
@@ -656,7 +909,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             Event = "DeliveryStarted",
             Entity = nameof(Order),
             EntityId = order.Id,
-            Description = $"Delivery driver {driver.Email} started delivery for order {order.Code}.",
+            Description = $"Delivery driver {driver.FullName} started delivery for order {order.Code}.",
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -768,8 +1021,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             assignment.MarkAsUpdated();
         }
 
-        var verification = PinHasher.VerifyHashedPassword(order, order.DeliveryPinHash, pin);
-        var verified = verification is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded;
+        var verified = DeliveryPinCode.Verify(order, order.DeliveryPinHash, pin);
 
         if (!verified)
         {
@@ -834,7 +1086,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             Event = "DeliveryPinConfirmed",
             Entity = nameof(Order),
             EntityId = order.Id,
-            Description = $"Delivery PIN confirmed by driver {driver.Email} for order {order.Code}.",
+            Description = $"Delivery PIN confirmed by driver {driver.FullName} for order {order.Code}.",
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -991,7 +1243,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
                 x => x.Id == deliveryDriverId && x.StoreId == store.Id,
                 cancellationToken);
 
-        if (link?.DeliveryDriver is null || link.DeliveryDriver.UserId is null)
+        if (link?.DeliveryDriver is null)
         {
             return new AssignDeliveryDriverResultDto { DriverNotAvailable = true };
         }
@@ -1053,7 +1305,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             Event = "OrderDeliveryDriverAssigned",
             Entity = nameof(Order),
             EntityId = order.Id,
-            Description = $"Order {order.Code} assigned to delivery driver {link.DeliveryDriver.Email}.",
+            Description = $"Order {order.Code} assigned to delivery driver {link.DeliveryDriver.FullName}.",
             IpAddress = ipAddress
         }, cancellationToken);
 
@@ -1162,7 +1414,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             new OutboundMessageRequestedEvent
             {
                 Channel = "Email",
-                Recipient = driver.Email,
+                Recipient = driver.Email ?? string.Empty,
                 ToName = link.DisplayName,
                 Subject = subject,
                 Body = body,
@@ -1392,22 +1644,28 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         return new SellerDeliveryDriverResponseDto
         {
             Id = link.Id,
+            DeliveryDriverId = driver.Id,
             Name = string.IsNullOrWhiteSpace(link.DisplayName) ? driver.FullName : link.DisplayName,
-            Email = driver.Email,
+            Email = driver.Email ?? string.Empty,
             PhoneNumber = string.IsNullOrWhiteSpace(link.PhoneNumber) ? driver.PhoneNumber : link.PhoneNumber,
+            WhatsAppPhoneNumber = string.IsNullOrWhiteSpace(link.WhatsAppPhoneNumber)
+                ? driver.WhatsAppPhoneNumber ?? (string.IsNullOrWhiteSpace(link.PhoneNumber) ? driver.PhoneNumber : link.PhoneNumber)
+                : link.WhatsAppPhoneNumber,
+            IsActive = link.Status == StoreDeliveryDriverStatus.Active,
+            HasAccount = driver.UserId is not null,
             Status = link.Status,
             InviteSentAtUtc = link.InviteSentAtUtc,
             InviteExpiresAtUtc = link.InviteExpiresAtUtc,
             AcceptedAtUtc = link.AcceptedAtUtc,
             RevokedAtUtc = link.RevokedAtUtc,
-            CanResendInvite = link.Status != StoreDeliveryDriverStatus.Active
+            CanResendInvite = link.Status == StoreDeliveryDriverStatus.Pending && driver.Email is not null
         };
     }
 
     internal (string Hash, string Encrypted) GenerateDeliveryPin(Order order)
     {
-        var pin = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6", CultureInfo.InvariantCulture);
-        var hash = PinHasher.HashPassword(order, pin);
+        var pin = DeliveryPinCode.Generate();
+        var hash = DeliveryPinCode.Hash(order, pin);
         return (hash, _encryptionService.Encrypt(pin));
     }
 
@@ -1416,8 +1674,13 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token))).ToLowerInvariant();
     }
 
-    private static string MaskEmail(string email)
+    private static string MaskEmail(string? email)
     {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return "***";
+        }
+
         var at = email.IndexOf('@');
         if (at <= 0)
         {
