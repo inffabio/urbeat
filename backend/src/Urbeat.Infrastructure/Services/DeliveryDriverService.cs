@@ -326,10 +326,108 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         link.InviteExpiresAtUtc = null;
     }
 
-    private static string NormalizePhone(string phone) => phone.Trim();
+    /// <summary>
+    /// Removes only the link owned by the authenticated seller's store. A driver that already
+    /// appears in any order assignment or delivery route is kept for history and must be
+    /// deactivated instead. The global identity is removed only when no other store still uses it.
+    /// </summary>
+    public async Task<SellerDeliveryDriverOperationResultDto> DeleteStoreDriverAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (store is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { Forbidden = true };
+        }
+
+        var link = await _dbContext.StoreDeliveryDrivers
+            .Include(x => x.DeliveryDriver)
+            .SingleOrDefaultAsync(
+                x => x.Id == storeDriverId && x.StoreId == store.Id,
+                cancellationToken);
+
+        if (link?.DeliveryDriver is null)
+        {
+            return new SellerDeliveryDriverOperationResultDto { NotFound = true };
+        }
+
+        var driver = link.DeliveryDriver;
+
+        var hasOrders = await _dbContext.OrderDeliveryAssignments
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.DeliveryDriverId == driver.Id && x.StoreId == store.Id,
+                cancellationToken);
+
+        if (hasOrders)
+        {
+            return new SellerDeliveryDriverOperationResultDto
+            {
+                Conflict = true,
+                Error = "Este motoboy possui pedidos vinculados e não pode ser excluído. Inative-o para impedir novas entregas."
+            };
+        }
+
+        var hasRoutes = await _dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .AnyAsync(x => x.StoreDeliveryDriverId == link.Id, cancellationToken);
+
+        if (hasRoutes)
+        {
+            return new SellerDeliveryDriverOperationResultDto
+            {
+                Conflict = true,
+                Error = "Este motoboy possui rotas vinculadas e não pode ser excluído. Inative-o para impedir novas entregas."
+            };
+        }
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "DeliveryDriverDeleted",
+            Entity = nameof(StoreDeliveryDriver),
+            EntityId = link.Id,
+            Description = $"Motoboy {link.DisplayName} excluído da loja {store.Id}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        _dbContext.StoreDeliveryDrivers.Remove(link);
+
+        // The legacy invite flow may share one global driver between stores. Removing the link
+        // must never delete an identity still used elsewhere.
+        var hasOtherLinks = await _dbContext.StoreDeliveryDrivers
+            .AsNoTracking()
+            .AnyAsync(x => x.DeliveryDriverId == driver.Id && x.Id != link.Id, cancellationToken);
+
+        var hasOtherOrders = await _dbContext.OrderDeliveryAssignments
+            .AsNoTracking()
+            .AnyAsync(x => x.DeliveryDriverId == driver.Id, cancellationToken);
+
+        var hasOtherRoutes = await _dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.DeliveryDriverId == driver.Id && x.StoreDeliveryDriverId != link.Id,
+                cancellationToken);
+
+        if (!hasOtherLinks && !hasOtherOrders && !hasOtherRoutes)
+        {
+            _dbContext.DeliveryDrivers.Remove(driver);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new SellerDeliveryDriverOperationResultDto();
+    }
+
+    private static string NormalizePhone(string phone) => BrazilianMobilePhone.Normalize(phone);
 
     private static string? NormalizePhoneOrNull(string? phone)
-        => string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        => string.IsNullOrWhiteSpace(phone) ? null : BrazilianMobilePhone.Normalize(phone);
 
     public async Task<SellerDeliveryDriverOperationResultDto> InviteAsync(
         Guid sellerUserId,
@@ -348,7 +446,7 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         var email = request.Email.Trim().ToLowerInvariant();
         var normalizedEmail = email.ToUpperInvariant();
         var fullName = request.FullName.Trim();
-        var phone = request.PhoneNumber.Trim();
+        var phone = BrazilianMobilePhone.Normalize(request.PhoneNumber);
 
         var driver = await _dbContext.DeliveryDrivers
             .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);

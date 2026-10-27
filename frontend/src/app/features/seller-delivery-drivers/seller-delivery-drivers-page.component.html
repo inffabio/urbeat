@@ -87,7 +87,7 @@
                     }
                   </td>
                   <td data-label="Telefone">
-                    <a class="driver-phone" [href]="phoneHref(driver)">{{ driver.phoneNumber }}</a>
+                    <a class="driver-phone" [href]="phoneHref(driver)">{{ formatPhone(driver.phoneNumber) }}</a>
                   </td>
                   <td data-label="WhatsApp">
                     @if (whatsAppUrl(driver); as url) {
@@ -127,6 +127,15 @@
                         [disabled]="actionDriverId() === driver.id"
                       >
                         {{ driver.isActive ? 'Inativar' : 'Ativar' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="driver-action is-delete"
+                        (click)="requestDelete(driver, $event)"
+                        [disabled]="actionDriverId() === driver.id"
+                        [attr.aria-label]="'Excluir motoboy ' + driver.name"
+                      >
+                        Excluir
                       </button>
                     </span>
                   </td>
@@ -172,18 +181,39 @@
 
         <label class="field">
           <span>Telefone principal</span>
-          <input type="tel" formControlName="phoneNumber" autocomplete="tel" placeholder="(11) 99999-9999" />
+          <input
+            type="tel"
+            inputmode="tel"
+            formControlName="phoneNumber"
+            autocomplete="tel"
+            placeholder="(11) 99999-9999"
+            aria-label="Telefone principal do motoboy"
+            (input)="onPhoneInput('phoneNumber', $event)"
+            [attr.aria-invalid]="driverForm.controls.phoneNumber.touched && driverForm.controls.phoneNumber.invalid"
+          />
           @if (driverForm.controls.phoneNumber.touched && driverForm.controls.phoneNumber.invalid) {
-            <small class="field-error">Informe um telefone válido.</small>
+            <small class="field-error">Informe um celular com DDD no formato (##) #####-####.</small>
           }
         </label>
 
         <label class="field">
           <span>WhatsApp</span>
-          <input type="tel" formControlName="whatsAppPhoneNumber" autocomplete="tel" placeholder="(11) 99999-9999" />
+          <input
+            type="tel"
+            inputmode="tel"
+            formControlName="whatsAppPhoneNumber"
+            autocomplete="tel"
+            placeholder="(11) 99999-9999"
+            aria-label="WhatsApp do motoboy"
+            (input)="onPhoneInput('whatsAppPhoneNumber', $event)"
+            [attr.aria-invalid]="
+              driverForm.controls.whatsAppPhoneNumber.touched
+                && driverForm.controls.whatsAppPhoneNumber.invalid
+            "
+          />
           <small class="field-hint">Se ficar vazio, o botão de WhatsApp usa o telefone principal.</small>
           @if (driverForm.controls.whatsAppPhoneNumber.touched && driverForm.controls.whatsAppPhoneNumber.invalid) {
-            <small class="field-error">Informe um WhatsApp válido.</small>
+            <small class="field-error">Informe um WhatsApp com DDD no formato (##) #####-####.</small>
           }
         </label>
 
@@ -240,6 +270,41 @@
           [disabled]="actionDriverId() === target.id"
         >
           {{ actionDriverId() === target.id ? 'Salvando...' : (target.isActive ? 'Inativar' : 'Ativar') }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (deleteTarget(); as target) {
+  <div class="driver-dialog-overlay" (click)="cancelDelete()">
+    <section
+      #deleteDialog
+      id="driver-delete-dialog"
+      class="driver-dialog is-confirm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="driver-delete-title"
+      aria-describedby="driver-delete-description"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+    >
+      <h2 id="driver-delete-title">Excluir motoboy</h2>
+      <p id="driver-delete-description">
+        <strong>{{ target.name }}</strong> será removido desta loja.
+        Só é possível excluir um motoboy que nunca foi associado a um pedido; caso contrário,
+        inative-o para impedir novas entregas.
+      </p>
+      <div class="driver-dialog-actions">
+        <button type="button" class="seller-secondary-button" (click)="cancelDelete()">Cancelar</button>
+        <button
+          type="button"
+          class="driver-primary-button driver-danger-button"
+          (click)="confirmDelete()"
+          [disabled]="actionDriverId() === target.id"
+        >
+          {{ actionDriverId() === target.id ? 'Excluindo...' : 'Excluir' }}
         </button>
       </div>
     </section>

@@ -474,13 +474,14 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var created = await CreateSimpleDriverAsync(
             sellerClient,
             "Motoboy Simples",
-            "11999990011",
-            "11999990012",
+            "(11) 99999-0011",
+            "(11) 99999-0012",
             isActive: true);
 
         created.Email.Should().BeEmpty();
         created.HasAccount.Should().BeFalse();
         created.IsActive.Should().BeTrue();
+        created.PhoneNumber.Should().Be("11999990011", "the mask is never persisted");
         created.WhatsAppPhoneNumber.Should().Be("11999990012");
 
         var list = await sellerClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
@@ -493,8 +494,8 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             new UpsertStoreDeliveryDriverRequestDto
             {
                 Name = "Motoboy Atualizado",
-                PhoneNumber = "11999990013",
-                WhatsAppPhoneNumber = "11999990014",
+                PhoneNumber = "(11) 99999-0013",
+                WhatsAppPhoneNumber = "(11) 99999-0014",
                 IsActive = true
             });
         update.StatusCode.Should().Be(HttpStatusCode.OK, await update.Content.ReadAsStringAsync());
@@ -517,6 +518,155 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         reactivate.StatusCode.Should().Be(HttpStatusCode.OK);
         (await reactivate.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>())!
             .IsActive.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("1199999888")]
+    [InlineData("(00) 99999-8888")]
+    [InlineData("(11) 89999-8888")]
+    [InlineData("(11) 99999-8888x")]
+    public async Task CreateStoreDriver_ShouldRejectNonMobilePhone(string phone)
+    {
+        var (sellerClient, _) = await CreateStoreAsync("INVALID-PHONE");
+
+        var response = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-drivers",
+            new UpsertStoreDeliveryDriverRequestDto
+            {
+                Name = "Motoboy Inválido",
+                PhoneNumber = phone,
+                WhatsAppPhoneNumber = "(11) 99999-8888",
+                IsActive = true
+            });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task DeleteStoreDriver_ShouldRemoveLinkAndOrphanDriver_WhenNoOrderAssigned()
+    {
+        var (sellerClient, _) = await CreateStoreAsync("DELETE-OK");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Excluir", "11999990051", "11999990052", isActive: true);
+
+        var delete = await sellerClient.DeleteAsync($"/api/delivery-drivers/{driver.Id}");
+
+        delete.StatusCode.Should().Be(HttpStatusCode.NoContent, await delete.Content.ReadAsStringAsync());
+
+        var list = await sellerClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        list.Should().NotBeNull();
+        list!.Should().NotContain(x => x.Id == driver.Id);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.StoreDeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == driver.Id))
+            .Should().BeFalse();
+        (await dbContext.DeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == driver.DeliveryDriverId))
+            .Should().BeFalse("a driver used only by this store is removed together with the link");
+        (await dbContext.AuditLogs.AsNoTracking().AnyAsync(x =>
+                x.Event == "DeliveryDriverDeleted" && x.EntityId == driver.Id))
+            .Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteStoreDriver_ShouldReturnConflict_ForActiveAndHistoricalAssignments()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("DELETE-BLOCK");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Com Pedido", "11999990053", "11999990054", isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var blockedActive = await sellerClient.DeleteAsync($"/api/delivery-drivers/{driver.Id}");
+        blockedActive.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await blockedActive.Content.ReadAsStringAsync()).Should().Contain("Inative");
+
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var delivered = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
+        delivered.StatusCode.Should().Be(HttpStatusCode.OK, await delivered.Content.ReadAsStringAsync());
+
+        var blockedHistorical = await sellerClient.DeleteAsync($"/api/delivery-drivers/{driver.Id}");
+        blockedHistorical.StatusCode.Should().Be(HttpStatusCode.Conflict,
+            "historical order assignments must keep the driver available for inactivating only");
+
+        var list = await sellerClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        list!.Should().ContainSingle(x => x.Id == driver.Id);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.StoreDeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == driver.Id))
+            .Should().BeTrue();
+        (await dbContext.DeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == driver.DeliveryDriverId))
+            .Should().BeTrue();
+        (await dbContext.OrderDeliveryAssignments.AsNoTracking().AnyAsync(x => x.OrderId == order.OrderId))
+            .Should().BeTrue("deleting a driver must never cascade to order assignments");
+    }
+
+    [Fact]
+    public async Task DeleteStoreDriver_ShouldNotAcceptDriverFromAnotherStoreOrUnknownId()
+    {
+        var (sellerAClient, _) = await CreateStoreAsync("DELETE-CROSS-A");
+        var (sellerBClient, _) = await CreateStoreAsync("DELETE-CROSS-B");
+        var driver = await CreateSimpleDriverAsync(
+            sellerAClient, "Motoboy Loja A", "11999990055", null, isActive: true);
+
+        var crossStore = await sellerBClient.DeleteAsync($"/api/delivery-drivers/{driver.Id}");
+        crossStore.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var unknown = await sellerAClient.DeleteAsync($"/api/delivery-drivers/{Guid.NewGuid()}");
+        unknown.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var list = await sellerAClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        list!.Should().ContainSingle(x => x.Id == driver.Id);
+    }
+
+    [Fact]
+    public async Task DeleteStoreDriver_ShouldKeepSharedLegacyIdentity_UsedByAnotherStore()
+    {
+        var (sellerAClient, _) = await CreateStoreAsync("DELETE-SHARED-A");
+        var (sellerBClient, _) = await CreateStoreAsync("DELETE-SHARED-B");
+        var email = $"driver.shared.delete.{Guid.NewGuid():N}@urbeat.local";
+
+        var inviteA = await InviteDriverAsync(sellerAClient, email, "Entregador Compartilhado", "11999990001");
+        var inviteB = await InviteDriverAsync(sellerBClient, email, "Entregador Compartilhado", "11999990001");
+        await AcceptInviteAndLoginAsync(inviteA.Id, email);
+        await AcceptInviteAndLoginAsync(inviteB.Id, email);
+
+        inviteB.DeliveryDriverId.Should().Be(inviteA.DeliveryDriverId,
+            "the legacy invite flow shares one global driver between stores");
+
+        var delete = await sellerAClient.DeleteAsync($"/api/delivery-drivers/{inviteA.Id}");
+        delete.StatusCode.Should().Be(HttpStatusCode.NoContent, await delete.Content.ReadAsStringAsync());
+
+        var storeAList = await sellerAClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        storeAList!.Should().NotContain(x => x.Id == inviteA.Id);
+
+        var storeBList = await sellerBClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
+            "/api/delivery-drivers/store");
+        storeBList!.Should().ContainSingle(x => x.Id == inviteB.Id && x.Email == email);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.DeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == inviteA.DeliveryDriverId))
+            .Should().BeTrue("the identity is still used by the other store");
     }
 
     [Fact]

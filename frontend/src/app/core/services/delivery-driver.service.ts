@@ -42,6 +42,10 @@ export class DeliveryDriverService {
     );
   }
 
+  deleteDriver(storeDriverId: string): Observable<void> {
+    return this.api.delete<void>(`/api/delivery-drivers/${storeDriverId}`);
+  }
+
   /** Legacy invite flow, kept for compatibility with links already sent. */
   invite(request: InviteDeliveryDriverRequest): Observable<SellerDeliveryDriver> {
     return this.api.post<SellerDeliveryDriver>('/api/delivery-drivers/store/invite', request);

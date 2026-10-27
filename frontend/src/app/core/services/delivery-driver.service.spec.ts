@@ -62,6 +62,14 @@ describe('DeliveryDriverService', () => {
     status.flush({ id: 'link-1', deliveryDriverId: 'driver-1', name: 'Ana', isActive: true });
   });
 
+  it('deletes a store driver by its store-scoped id', () => {
+    service.deleteDriver('link-1').subscribe();
+
+    const req = httpMock.expectOne('/api/delivery-drivers/link-1');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
   it('keeps the legacy invite endpoint for already sent links', () => {
     service.invite({ fullName: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999' }).subscribe();
 

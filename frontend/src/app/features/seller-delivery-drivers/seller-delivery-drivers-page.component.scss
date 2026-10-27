@@ -83,7 +83,17 @@
   color: var(--app-brand, #d54a51);
 }
 
-.driver-action.is-danger {
+.driver-action.is-danger,
+.driver-action.is-delete {
+  color: var(--app-error, #d32f2f);
+}
+
+.driver-action.is-delete {
+  border-color: rgba(211, 47, 47, .28);
+}
+
+.driver-action.is-delete:hover:not(:disabled) {
+  border-color: var(--app-error, #d32f2f);
   color: var(--app-error, #d32f2f);
 }
 

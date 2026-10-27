@@ -1,5 +1,6 @@
 using FluentValidation;
 using Urbeat.Application.DTOs;
+using Urbeat.Domain.Services;
 
 namespace Urbeat.Application.Validators;
 
@@ -73,16 +74,15 @@ public sealed class UpsertStoreDeliveryDriverRequestDtoValidator : AbstractValid
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
-            .MinimumLength(8)
+            .WithMessage("Informe o telefone principal do motoboy.")
             .MaximumLength(20)
-            .Matches(@"^[0-9+()\-\s]+$")
-            .WithMessage("Informe um telefone válido.");
+            .Must(BrazilianMobilePhone.IsValid)
+            .WithMessage("Informe um celular com DDD, no formato (##) #####-####.");
 
         RuleFor(x => x.WhatsAppPhoneNumber)
-            .MinimumLength(8)
             .MaximumLength(20)
-            .Matches(@"^[0-9+()\-\s]+$")
-            .WithMessage("Informe um WhatsApp válido.")
+            .Must(BrazilianMobilePhone.IsValid)
+            .WithMessage("Informe um WhatsApp com DDD, no formato (##) #####-####.")
             .When(x => !string.IsNullOrWhiteSpace(x.WhatsAppPhoneNumber));
     }
 }

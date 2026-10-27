@@ -9,13 +9,36 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
   SellerDeliveryDriver,
   UpsertStoreDeliveryDriverRequest,
 } from '../../shared/models/delivery-driver.model';
+import {
+  formatBrazilianPhone,
+  isValidBrazilianMobile,
+  normalizeBrazilianMobile,
+  onlyPhoneDigits,
+  phoneCaretPosition,
+} from '../../shared/utils/brazilian-phone.utils';
+
+type PhoneField = 'phoneNumber' | 'whatsAppPhoneNumber';
+
+/** Optional-friendly mobile validator; requiredness is enforced by the control itself. */
+function brazilianMobileValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (typeof value !== 'string' || value.trim().length === 0) return null;
+
+  return isValidBrazilianMobile(value) ? null : { mobilePhone: true };
+}
 
 @Component({
   selector: 'app-seller-delivery-drivers-page',
@@ -31,9 +54,11 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
 
   @ViewChild('driverDialog') private driverDialogRef?: ElementRef<HTMLElement>;
   @ViewChild('statusDialog') private statusDialogRef?: ElementRef<HTMLElement>;
+  @ViewChild('deleteDialog') private deleteDialogRef?: ElementRef<HTMLElement>;
 
   private driverTrigger: HTMLElement | null = null;
   private statusTrigger: HTMLElement | null = null;
+  private deleteTrigger: HTMLElement | null = null;
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -41,13 +66,14 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
   readonly driverDialogOpen = signal(false);
   readonly editingDriver = signal<SellerDeliveryDriver | null>(null);
   readonly statusTarget = signal<SellerDeliveryDriver | null>(null);
+  readonly deleteTarget = signal<SellerDeliveryDriver | null>(null);
   readonly actionDriverId = signal<string | null>(null);
   readonly drivers = signal<SellerDeliveryDriver[]>([]);
 
   readonly driverForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
-    phoneNumber: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(20)]],
-    whatsAppPhoneNumber: ['', [Validators.minLength(8), Validators.maxLength(20)]],
+    phoneNumber: ['', [Validators.required, brazilianMobileValidator]],
+    whatsAppPhoneNumber: ['', [brazilianMobileValidator]],
     isActive: [true],
   });
 
@@ -88,8 +114,8 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     this.editingDriver.set(driver);
     this.driverForm.reset({
       name: driver.name,
-      phoneNumber: driver.phoneNumber,
-      whatsAppPhoneNumber: driver.whatsAppPhoneNumber ?? '',
+      phoneNumber: formatBrazilianPhone(driver.phoneNumber),
+      whatsAppPhoneNumber: formatBrazilianPhone(driver.whatsAppPhoneNumber),
       isActive: driver.isActive,
     });
     this.driverDialogOpen.set(true);
@@ -112,10 +138,11 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     }
 
     const value = this.driverForm.getRawValue();
+    const whatsApp = normalizeBrazilianMobile(value.whatsAppPhoneNumber);
     const request: UpsertStoreDeliveryDriverRequest = {
       name: value.name.trim(),
-      phoneNumber: value.phoneNumber.trim(),
-      whatsAppPhoneNumber: (value.whatsAppPhoneNumber ?? '').trim() || null,
+      phoneNumber: normalizeBrazilianMobile(value.phoneNumber),
+      whatsAppPhoneNumber: whatsApp || null,
       isActive: value.isActive,
     };
     const editing = this.editingDriver();
@@ -140,6 +167,24 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
         void this.toast.showError(err?.error?.error ?? 'Não foi possível salvar o motoboy.');
       },
     });
+  }
+
+  /** Applies the visual mobile mask while preserving the caret position. */
+  onPhoneInput(field: PhoneField, event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+
+    const caret = input.selectionStart ?? input.value.length;
+    const typedDigits = onlyPhoneDigits(input.value.slice(0, caret)).length;
+    const formatted = formatBrazilianPhone(input.value);
+
+    const control = this.driverForm.controls[field];
+    control.setValue(formatted, { emitEvent: false });
+    control.markAsDirty();
+
+    input.value = formatted;
+    const position = phoneCaretPosition(formatted, typedDigits);
+    input.setSelectionRange(position, position);
   }
 
   requestStatusChange(driver: SellerDeliveryDriver, event?: Event): void {
@@ -175,8 +220,43 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     });
   }
 
+  requestDelete(driver: SellerDeliveryDriver, event?: Event): void {
+    if (this.actionDriverId()) return;
+    this.deleteTrigger = this.resolveTrigger(event);
+    this.deleteTarget.set(driver);
+    this.focusDialog('delete');
+  }
+
+  cancelDelete(): void {
+    this.closeDelete();
+  }
+
+  confirmDelete(): void {
+    const driver = this.deleteTarget();
+    if (!driver || this.actionDriverId()) return;
+
+    this.actionDriverId.set(driver.id);
+    this.driversApi.deleteDriver(driver.id).subscribe({
+      next: () => {
+        this.actionDriverId.set(null);
+        this.closeDelete();
+        this.drivers.update((items) => items.filter((item) => item.id !== driver.id));
+        void this.toast.showSuccess('Motoboy excluído.');
+      },
+      error: (err) => {
+        this.actionDriverId.set(null);
+        this.closeDelete();
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível excluir o motoboy.');
+      },
+    });
+  }
+
+  formatPhone(value: string | null | undefined): string {
+    return formatBrazilianPhone(value);
+  }
+
   whatsAppUrl(driver: SellerDeliveryDriver): string | null {
-    const phone = (driver.whatsAppPhoneNumber || driver.phoneNumber || '').replace(/\D/g, '');
+    const phone = normalizeBrazilianMobile(driver.whatsAppPhoneNumber || driver.phoneNumber);
     if (!phone) return null;
 
     const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
@@ -184,7 +264,7 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
   }
 
   phoneHref(driver: SellerDeliveryDriver): string {
-    return `tel:${driver.phoneNumber.replace(/[^\d+]/g, '')}`;
+    return `tel:${normalizeBrazilianMobile(driver.phoneNumber)}`;
   }
 
   statusLabel(driver: SellerDeliveryDriver): string {
@@ -193,6 +273,12 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
 
   @HostListener('document:keydown.escape', ['$event'])
   onEscape(event?: Event): void {
+    if (this.deleteTarget()) {
+      event?.preventDefault();
+      this.closeDelete();
+      return;
+    }
+
     if (this.statusTarget()) {
       event?.preventDefault();
       this.closeStatus();
@@ -253,16 +339,25 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
     this.restoreFocus(trigger);
   }
 
+  private closeDelete(): void {
+    const trigger = this.deleteTrigger;
+    this.deleteTrigger = null;
+    this.deleteTarget.set(null);
+    this.restoreFocus(trigger);
+  }
+
   private resolveTrigger(event?: Event): HTMLElement | null {
     const target = event?.currentTarget;
     return target instanceof HTMLElement ? target : null;
   }
 
-  private focusDialog(kind: 'driver' | 'status'): void {
+  private focusDialog(kind: 'driver' | 'status' | 'delete'): void {
     setTimeout(() => {
       const dialog = kind === 'driver'
         ? this.driverDialogRef?.nativeElement
-        : this.statusDialogRef?.nativeElement;
+        : kind === 'status'
+          ? this.statusDialogRef?.nativeElement
+          : this.deleteDialogRef?.nativeElement;
       dialog?.focus();
     });
   }

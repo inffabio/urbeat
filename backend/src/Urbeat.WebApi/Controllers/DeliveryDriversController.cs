@@ -176,6 +176,30 @@ public sealed class DeliveryDriversController : ControllerBase
         return ToDriverResult(result);
     }
 
+    [HttpDelete("{storeDriverId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(Guid storeDriverId, CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null) return Unauthorized();
+
+        var result = await _deliveryDriverService.DeleteStoreDriverAsync(
+            sellerUserId.Value,
+            storeDriverId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound) return NotFound();
+        if (result.Forbidden) return Forbid();
+        if (result.Conflict) return Conflict(new { error = result.Error });
+
+        return NoContent();
+    }
+
     /// <summary>Legacy invite endpoint kept for links created before the simple registration flow.</summary>
     [HttpPost("store/invite")]
     [Authorize(Policy = AuthorizationPolicies.SellerOnly)]

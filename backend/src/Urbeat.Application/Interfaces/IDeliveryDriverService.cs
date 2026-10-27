@@ -28,6 +28,16 @@ public interface IDeliveryDriverService
         string? ipAddress,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Deletes the store link only when the driver has no order assignment or route history.
+    /// Otherwise the caller must be told to deactivate the driver instead.
+    /// </summary>
+    Task<SellerDeliveryDriverOperationResultDto> DeleteStoreDriverAsync(
+        Guid sellerUserId,
+        Guid storeDriverId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Legacy invite flow, kept for compatibility with links already sent.</summary>
     Task<SellerDeliveryDriverOperationResultDto> InviteAsync(
         Guid sellerUserId,
