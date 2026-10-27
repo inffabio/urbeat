@@ -139,10 +139,10 @@ describe('DeliveryDriverService', () => {
     expect(start.request.method).toBe('POST');
     start.flush({ status: OrderStatus.OnDelivery });
 
-    service.confirmPin('order-1', '123456').subscribe();
+    service.confirmPin('order-1', '1234').subscribe();
     const pin = httpMock.expectOne('/api/driver/orders/order-1/confirm-pin');
     expect(pin.request.method).toBe('POST');
-    expect(pin.request.body).toEqual({ pin: '123456' });
+    expect(pin.request.body).toEqual({ pin: '1234' });
     pin.flush({ status: OrderStatus.Delivered });
   });
 });

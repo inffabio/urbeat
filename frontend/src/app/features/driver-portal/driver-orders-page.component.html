@@ -249,7 +249,7 @@
     >
       <h2 id="pin-title">Confirmar entrega com PIN</h2>
       <p id="pin-delivery-description">
-        Peça ao cliente o PIN de 6 dígitos do pedido <strong>#{{ order.code }}</strong>.
+        Peça ao cliente os últimos 4 dígitos do celular dele para o pedido <strong>#{{ order.code }}</strong>.
         O PIN não aparece para você por segurança.
       </p>
 
@@ -259,10 +259,10 @@
           type="text"
           inputmode="numeric"
           autocomplete="one-time-code"
-          maxlength="6"
+          maxlength="4"
           [ngModel]="pinValue()"
           (ngModelChange)="updatePin($event)"
-          placeholder="000000"
+          placeholder="0000"
           aria-label="PIN de entrega"
           [attr.aria-describedby]="pinError() ? 'pin-delivery-description pin-error-message' : 'pin-delivery-description'"
           [attr.aria-invalid]="pinError() ? 'true' : null"
@@ -286,7 +286,7 @@
             type="button"
             class="driver-primary-button"
             (click)="submitPin()"
-            [disabled]="pinSubmitting() || pinValue().length !== 6"
+            [disabled]="pinSubmitting() || pinValue().length !== 4"
           >
             {{ pinSubmitting() ? 'Confirmando...' : 'Confirmar entrega' }}
           </button>

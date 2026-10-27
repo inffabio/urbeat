@@ -108,6 +108,23 @@ public sealed class ShareDeliveryRouteResultDto
     public DeliveryRouteResponseDto Route { get; init; } = new();
 }
 
+/// <summary>
+/// Result of sharing a single delivery link. The raw token is only present in <see cref="ShareUrl"/>;
+/// it is never persisted and never echoed by public endpoints.
+/// </summary>
+public sealed class ShareIndividualDeliveryResultDto
+{
+    public bool NotFound { get; init; }
+
+    public bool Forbidden { get; init; }
+
+    public bool InvalidState { get; init; }
+
+    public string? Error { get; init; }
+
+    public string? ShareUrl { get; init; }
+}
+
 public sealed class PublicDeliveryRouteStopDto
 {
     /// <summary>Opaque positional identifier; the order id is never exposed publicly.</summary>

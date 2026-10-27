@@ -985,12 +985,43 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
 
         var previousStatus = order.Status;
         var changedAtUtc = DateTime.UtcNow;
+
+        // Starting the delivery is the authoritative transition to OnDelivery. The PIN is the
+        // last four digits of the customer's phone; without that deterministic value the delivery
+        // cannot start.
+        var customerPhone = await _dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Id == order.CustomerUserId)
+            .Select(x => x.PhoneNumber)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (!DeliveryPinCode.TryFromCustomerPhone(customerPhone, out var pin))
+        {
+            return new DeliveryDriverActionResultDto { CustomerPhoneRequired = true };
+        }
+
+        order.DeliveryPinHash = DeliveryPinCode.Hash(order, pin);
+        order.DeliveryPinEncrypted = _encryptionService.Encrypt(pin);
+        order.DeliveryPinConfirmedAtUtc = null;
+        order.DeliveryPinConfirmedByDriverId = null;
+
         order.Status = OrderStatus.OnDelivery;
         order.StatusVersion += 1;
         order.MarkAsUpdated();
         assignment.DeliveryStartedAtUtc = changedAtUtc;
+        assignment.PinAttemptCount = 0;
+        assignment.LastPinAttemptAtUtc = null;
         assignment.AdvanceConcurrency();
         assignment.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = driverUserId,
+            Event = "OrderDeliveryPinIssued",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = $"PIN de entrega emitido para o pedido {order.Code} ao iniciar a entrega."
+        }, cancellationToken);
 
         await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
         {
@@ -1119,7 +1150,10 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             assignment.MarkAsUpdated();
         }
 
-        var verified = DeliveryPinCode.Verify(order, order.DeliveryPinHash, pin);
+        var verified = pin is not null
+            && pin.Length == DeliveryPinCode.Length
+            && pin.All(char.IsAsciiDigit)
+            && DeliveryPinCode.Verify(order, order.DeliveryPinHash, pin);
 
         if (!verified)
         {
@@ -1361,15 +1395,6 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         }
 
         var assignedAtUtc = DateTime.UtcNow;
-
-        if (order.DeliveryPinHash is null)
-        {
-            // Legacy delivery orders created before the PIN feature get a PIN on first assignment,
-            // so the driver workflow works without a data backfill migration.
-            var (hash, encrypted) = GenerateDeliveryPin(order);
-            order.DeliveryPinHash = hash;
-            order.DeliveryPinEncrypted = encrypted;
-        }
 
         if (assignment is null)
         {
@@ -1758,13 +1783,6 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             RevokedAtUtc = link.RevokedAtUtc,
             CanResendInvite = link.Status == StoreDeliveryDriverStatus.Pending && driver.Email is not null
         };
-    }
-
-    internal (string Hash, string Encrypted) GenerateDeliveryPin(Order order)
-    {
-        var pin = DeliveryPinCode.Generate();
-        var hash = DeliveryPinCode.Hash(order, pin);
-        return (hash, _encryptionService.Encrypt(pin));
     }
 
     private static string HashInviteToken(string token)

@@ -128,6 +128,40 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('shows the 4-digit delivery PIN with the motoboy instruction while the order is on delivery', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.OnDelivery,
+      deliveryPin: '1234',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.css('.delivery-pin-card'));
+    expect(card).not.toBeNull();
+    expect(card.nativeElement.textContent).toContain('1234');
+    expect(card.nativeElement.textContent).toContain('Informe este código ao motoboy');
+    expect(card.nativeElement.textContent).toContain('últimos 4 dígitos do seu celular');
+
+    fixture.destroy();
+  });
+
+  it('never shows the delivery PIN before the order enters OnDelivery', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Ready,
+      deliveryPin: '1234',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.delivery-pin-card'))).toBeNull();
+
+    fixture.destroy();
+  });
+
   it('keeps the delivered step inside the timeline as the current step, never as a completed future one', () => {
     getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
 

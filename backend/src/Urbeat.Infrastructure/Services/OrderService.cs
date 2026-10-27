@@ -888,12 +888,24 @@ public sealed class OrderService : IOrderService
             return new UpdateOrderStatusResultDto { InvalidTransition = true };
         }
 
-        if (string.IsNullOrWhiteSpace(order.DeliveryPinHash))
+        // The transition to OnDelivery is the authoritative moment to issue the PIN. The PIN is
+        // always the last four digits of the customer's phone: without that deterministic value
+        // the customer could not share it with the motoboy, so the transition is rejected.
+        var customerPhone = await _dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Id == order.CustomerUserId)
+            .Select(x => x.PhoneNumber)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (!DeliveryPinCode.TryFromCustomerPhone(customerPhone, out var pin))
         {
-            var pin = DeliveryPinCode.Generate();
-            order.DeliveryPinHash = DeliveryPinCode.Hash(order, pin);
-            order.DeliveryPinEncrypted = _encryptionService?.Encrypt(pin);
+            return new UpdateOrderStatusResultDto { CustomerPhoneRequired = true };
         }
+
+        order.DeliveryPinHash = DeliveryPinCode.Hash(order, pin);
+        order.DeliveryPinEncrypted = _encryptionService?.Encrypt(pin);
+        order.DeliveryPinConfirmedAtUtc = null;
+        order.DeliveryPinConfirmedByDriverId = null;
 
         var now = DateTime.UtcNow;
         if (assignment is null)
@@ -905,18 +917,15 @@ public sealed class OrderService : IOrderService
                 DeliveryDriverId = link.DeliveryDriverId,
                 AssignedByUserId = sellerUserId,
                 AssignedAtUtc = now,
-                DeliveryStartedAtUtc = now
+                DeliveryStartedAtUtc = now,
+                PinAttemptCount = 0
             };
             await _dbContext.OrderDeliveryAssignments.AddAsync(assignment, cancellationToken);
         }
         else
         {
-            if (assignment.DeliveryDriverId != link.DeliveryDriverId)
-            {
-                assignment.PinAttemptCount = 0;
-                assignment.LastPinAttemptAtUtc = null;
-            }
-
+            assignment.PinAttemptCount = 0;
+            assignment.LastPinAttemptAtUtc = null;
             assignment.DeliveryDriverId = link.DeliveryDriverId;
             assignment.AssignedByUserId = sellerUserId;
             assignment.AssignedAtUtc = now;
@@ -924,6 +933,15 @@ public sealed class OrderService : IOrderService
             assignment.AdvanceConcurrency();
             assignment.MarkAsUpdated();
         }
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "OrderDeliveryPinIssued",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = $"PIN de entrega emitido para o pedido {order.Code} ao sair para entrega."
+        }, cancellationToken);
 
         await _dbContext.AuditLogs.AddAsync(new AuditLog
         {
@@ -1167,6 +1185,7 @@ public sealed class OrderService : IOrderService
         string? deliveryPin = null;
         if (includeDeliveryPin
             && order.FulfillmentType == FulfillmentType.Delivery
+            && order.Status == OrderStatus.OnDelivery
             && order.DeliveryConfirmedAtUtc is null
             && !string.IsNullOrWhiteSpace(order.DeliveryPinEncrypted)
             && _encryptionService is not null)

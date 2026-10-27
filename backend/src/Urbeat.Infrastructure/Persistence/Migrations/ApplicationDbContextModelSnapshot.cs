@@ -1048,6 +1048,13 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<double?>("DeliveryLatitude")
                         .HasColumnType("double precision");
 
+                    b.Property<DateTime?>("DeliveryLinkExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeliveryLinkTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<double?>("DeliveryLongitude")
                         .HasColumnType("double precision");
 
@@ -1106,6 +1113,10 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("CustomerUserId");
+
+                    b.HasIndex("DeliveryLinkTokenHash")
+                        .IsUnique()
+                        .HasFilter("\"DeliveryLinkTokenHash\" IS NOT NULL");
 
                     b.HasIndex("StoreId");
 

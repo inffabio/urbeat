@@ -76,4 +76,15 @@ public sealed class Order : BaseEntity
     public DateTime? DeliveryPinConfirmedAtUtc { get; set; }
 
     public Guid? DeliveryPinConfirmedByDriverId { get; set; }
+
+    /// <summary>
+    /// SHA-256 hash of the temporary public token used to share a single delivery with the
+    /// motoboy without creating a route. The raw token is never persisted.
+    /// </summary>
+    public string? DeliveryLinkTokenHash { get; set; }
+
+    /// <summary>
+    /// Expiration of the individual delivery link. A null value means no link was shared.
+    /// </summary>
+    public DateTime? DeliveryLinkExpiresAtUtc { get; set; }
 }

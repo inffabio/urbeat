@@ -170,6 +170,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IDeliveryDriverService, DeliveryDriverService>();
         services.AddScoped<IDeliveryRouteService, DeliveryRouteService>();
+        services.AddScoped<IIndividualDeliveryLinkService, IndividualDeliveryLinkService>();
         services.AddScoped<IOrderPrintingService, OrderPrintingService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();

@@ -326,6 +326,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'entrega/:token',
+    data: { individual: true },
+    loadComponent: () =>
+      import('./features/public-delivery-route/public-delivery-route-page.component').then(
+        (m) => m.PublicDeliveryRoutePageComponent,
+      ),
+  },
+  {
     path: ':storePath',
     loadComponent: () =>
       import('./features/store/store-shell.component').then((m) => m.StoreShellComponent),

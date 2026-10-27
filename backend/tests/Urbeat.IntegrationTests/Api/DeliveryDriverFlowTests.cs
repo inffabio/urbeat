@@ -5,9 +5,11 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
+using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
@@ -244,9 +246,14 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
 
         var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
+        customerDetails!.DeliveryPin.Should().BeNull("the PIN must not be exposed before OnDelivery");
 
         var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
         start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        customerDetails!.DeliveryPin.Should().NotBeNullOrWhiteSpace();
 
         var revokeOnDelivery = await sellerClient.PostAsync(
             $"/api/delivery-drivers/store/{invite.Id}/revoke", null);
@@ -287,12 +294,13 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
         var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
         start.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var wrongPin = customerDetails!.DeliveryPin == "000000" ? "000001" : "000000";
+        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+
+        var wrongPin = customerDetails!.DeliveryPin == "0000" ? "0001" : "0000";
         for (var attempt = 1; attempt <= 5; attempt++)
         {
             var response = await driverClient.PostAsJsonAsync(
@@ -337,11 +345,8 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
         customerDetails.Should().NotBeNull();
-        customerDetails!.DeliveryPin.Should().MatchRegex(@"^\d{6}$");
-
-        var sellerDetails = await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/store/{order.OrderId}");
-        sellerDetails!.DeliveryPin.Should().BeNull("the PIN must never be exposed to the seller");
+        customerDetails!.DeliveryPin.Should().BeNull(
+            "the customer only sees the PIN after the order enters OnDelivery");
 
         var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
         start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
@@ -349,22 +354,30 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var action = await start.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
         action!.Status.Should().Be(OrderStatus.OnDelivery);
 
+        customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        customerDetails!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+
+        var sellerDetails = await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/store/{order.OrderId}");
+        sellerDetails!.DeliveryPin.Should().BeNull("the PIN must never be exposed to the seller");
+
         var wrongPin = await driverClient.PostAsJsonAsync(
             $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = "000000" });
-        // A generated PIN can legitimately be 000000; retry with another wrong value if so.
+            new ConfirmDeliveryPinRequestDto { Pin = "0000" });
+        // A generated PIN can legitimately be 0000; retry with another wrong value if so.
         if (wrongPin.StatusCode == HttpStatusCode.OK)
         {
-            customerDetails.DeliveryPin.Should().Be("000000");
+            customerDetails.DeliveryPin.Should().Be("0000");
             wrongPin = await driverClient.PostAsJsonAsync(
                 $"/api/driver/orders/{order.OrderId}/confirm-pin",
-                new ConfirmDeliveryPinRequestDto { Pin = "111111" });
+                new ConfirmDeliveryPinRequestDto { Pin = "1111" });
         }
 
         wrongPin.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         var locked = false;
-        foreach (var attempt in new[] { "999998", "999997", "999996", "999995", "999994" })
+        foreach (var attempt in new[] { "9998", "9997", "9996", "9995", "9994" })
         {
             var response = await driverClient.PostAsJsonAsync(
                 $"/api/driver/orders/{order.OrderId}/confirm-pin",
@@ -415,11 +428,11 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-
         var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
         start.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
 
         var confirm = await driverClient.PostAsJsonAsync(
             $"/api/driver/orders/{order.OrderId}/confirm-pin",
@@ -777,6 +790,8 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var publicRoute = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
             $"/api/public/delivery-routes/{token}");
         publicRoute.Should().NotBeNull();
+        var publicRouteJson = await publicClient.GetStringAsync($"/api/public/delivery-routes/{token}");
+        publicRouteJson.Should().NotContain("deliveryPin", "the public route never exposes the PIN");
         publicRoute!.StoreName.Should().Be("Loja Delivery ROUTE");
         publicRoute.DriverName.Should().Be("Motoboy Rota");
         publicRoute.Stops.Should().HaveCount(2);
@@ -786,7 +801,8 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
 
         var secondPin = (await second.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{second.OrderId}"))!.DeliveryPin!;
-        var wrongPin = secondPin == "000000" ? "000001" : "000000";
+        secondPin.Should().Be("8888", "the PIN comes from the customer's phone, not a random value");
+        var wrongPin = secondPin == "0000" ? "0001" : "0000";
         var wrong = await publicClient.PostAsJsonAsync(
             $"/api/public/delivery-routes/{token}/stops/1/deliver",
             new ConfirmDeliveryPinRequestDto { Pin = wrongPin });
@@ -858,6 +874,383 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var invalid = await publicClient.GetAsync(
             $"/api/public/delivery-routes/{WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32))}");
         invalid.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Pin_ShouldBeGeneratedOnlyOnOnDelivery_WithExactlyFourDigits()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PIN-GEN");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy PIN", "11999990041", "11999990042", isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+
+        var beforeAssignment = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        beforeAssignment!.DeliveryPin.Should().BeNull("the PIN must not exist before OnDelivery");
+
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var beforeDelivery = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        beforeDelivery!.DeliveryPin.Should().BeNull("the PIN is issued only by the OnDelivery transition");
+
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var afterDelivery = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        afterDelivery!.Status.Should().Be(OrderStatus.OnDelivery);
+        afterDelivery.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+
+        var sellerDetails = await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/store/{order.OrderId}");
+        sellerDetails!.DeliveryPin.Should().BeNull("the PIN is never exposed to the seller");
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+        var customerPhone = await dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Id == stored.CustomerUserId)
+            .Select(x => x.PhoneNumber)
+            .SingleAsync();
+        var expectedPin = customerPhone![^4..];
+        afterDelivery.DeliveryPin.Should().Be(
+            expectedPin,
+            "the PIN is always the last four digits of the customer's phone");
+        stored.DeliveryPinHash.Should().NotBeNullOrWhiteSpace();
+        stored.DeliveryPinHash.Should().NotBe(afterDelivery.DeliveryPin);
+        stored.DeliveryPinEncrypted.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Pin_ShouldPreserveLeadingZeros_WhenPhoneHasExactlyFourDigits()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PIN-ZERO");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Zero", "11999990049", null, isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await SetCustomerPhoneAsync(order.OrderId, "0000");
+
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        details!.DeliveryPin.Should().Be("0000", "the PIN stays a 4-digit string, leading zeros included");
+    }
+
+    [Fact]
+    public async Task OnDeliveryTransition_ShouldRejectCustomerWithoutValidPhone_AndUseTheLastFourDigitsAfterFix()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PIN-PHONE");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Telefone", "11999990047", null, isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await SetCustomerPhoneAsync(order.OrderId, "123");
+
+        var rejected = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        rejected.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await rejected.Content.ReadAsStringAsync()).Should().Contain("telefone");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.Status.Should().Be(OrderStatus.Ready);
+            stored.DeliveryPinHash.Should().BeNull("no PIN can be issued without a customer phone");
+        }
+
+        await SetCustomerPhoneAsync(order.OrderId, "(11) 99876-5432");
+
+        var accepted = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        accepted.StatusCode.Should().Be(HttpStatusCode.OK, await accepted.Content.ReadAsStringAsync());
+
+        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        details!.DeliveryPin.Should().Be("5432");
+    }
+
+    [Fact]
+    public async Task DriverStart_ShouldRejectCustomerWithoutValidPhone()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PIN-DRIVER-PHONE");
+        var email = $"driver.phone.{Guid.NewGuid():N}@urbeat.local";
+        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Telefone", "11999990048");
+        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        await SetCustomerPhoneAsync(order.OrderId, null);
+
+        var rejected = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        rejected.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await rejected.Content.ReadAsStringAsync()).Should().Contain("telefone");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.Status.Should().Be(OrderStatus.Ready);
+            stored.DeliveryPinHash.Should().BeNull();
+        }
+
+        await SetCustomerPhoneAsync(order.OrderId, "11912345678");
+
+        var started = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        started.StatusCode.Should().Be(HttpStatusCode.OK, await started.Content.ReadAsStringAsync());
+
+        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        details!.DeliveryPin.Should().Be("5678");
+    }
+
+    [Fact]
+    public async Task PinConfirmation_ShouldRejectNonFourDigitPayload_WithoutChangingTheOrder()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PIN-LENGTH");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy PIN Tamanho", "11999990043", null, isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var pin = (await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}"))!.DeliveryPin!;
+        pin.Should().Be("8888", "the PIN is the last four digits of the customer's phone");
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        foreach (var invalidPin in new[] { "123", "12345", "123456", "12a4" })
+        {
+            var invalid = await publicClient.PostAsJsonAsync(
+                $"/api/public/deliveries/{token}/deliver",
+                new ConfirmDeliveryPinRequestDto { Pin = invalidPin });
+            invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.Status.Should().Be(OrderStatus.OnDelivery);
+            stored.DeliveryConfirmedAtUtc.Should().BeNull("invalid input never confirms the delivery");
+        }
+
+        var valid = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = pin });
+        valid.StatusCode.Should().Be(HttpStatusCode.OK, await valid.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task IndividualDeliveryLink_ShouldConfirmWithoutRoute_AndNeverExposeThePin()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("INDIVIDUAL");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Individual", "11999990044", "11999990045", isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var pin = (await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}"))!.DeliveryPin!;
+        pin.Should().Be("8888", "the PIN is the last four digits of the customer's phone");
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var shared = await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>();
+        shared!.ShareUrl.Should().Contain("/entrega/");
+        var token = ExtractRouteToken(shared.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var publicDetails = await publicClient.GetStringAsync($"/api/public/deliveries/{token}");
+        publicDetails.Should().NotContain("deliveryPin", "the public link never exposes the PIN");
+        publicDetails.Should().NotContain("\"pin\"", "the public link never exposes the PIN");
+
+        var publicDelivery = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/deliveries/{token}");
+        publicDelivery.Should().NotBeNull();
+        publicDelivery!.TotalStops.Should().Be(1);
+        publicDelivery.Stops.Should().ContainSingle();
+        publicDelivery.Stops.Single().OrderCode.Should().Be(
+            (await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+                $"/api/orders/store/{order.OrderId}"))!.Code);
+        publicDelivery.Stops.Single().CanDeliver.Should().BeTrue();
+
+        var wrongPin = pin == "0000" ? "0001" : "0000";
+        var wrong = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = wrongPin });
+        wrong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            (await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId))
+                .Status.Should().Be(OrderStatus.OnDelivery, "a wrong PIN never concludes the order");
+            (await dbContext.DeliveryRoutes.AsNoTracking().AnyAsync(x => x.StoreId == storeId))
+                .Should().BeFalse("sharing an individual delivery never creates a route");
+        }
+
+        var confirm = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = pin });
+        confirm.StatusCode.Should().Be(HttpStatusCode.OK, await confirm.Content.ReadAsStringAsync());
+        var confirmed = await confirm.Content.ReadFromJsonAsync<PublicDeliveryRoutePinResultDto>();
+        confirmed!.Succeeded.Should().BeTrue();
+        confirmed.OrderStatus.Should().Be(OrderStatus.Delivered);
+        confirmed.DeliveryConfirmedAtUtc.Should().NotBeNull();
+        confirmed.DeliveryConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+
+        var repeated = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = pin });
+        repeated.StatusCode.Should().Be(HttpStatusCode.OK, "repeating the confirmation is idempotent");
+
+        var completed = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/deliveries/{token}");
+        completed!.DeliveredStops.Should().Be(1);
+        completed.Stops.Single().CanDeliver.Should().BeFalse();
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.Status.Should().Be(OrderStatus.Delivered);
+            stored.DeliveryConfirmedAtUtc.Should().NotBeNull();
+            stored.DeliveryConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+            stored.DeliveryPinConfirmedByDriverId.Should().Be(driver.DeliveryDriverId);
+            stored.DeliveryLinkTokenHash.Should().NotBe(token);
+            stored.DeliveryLinkTokenHash.Should().HaveLength(64);
+        }
+    }
+
+    [Fact]
+    public async Task LegacySixDigitPin_ShouldBeReplacedWhenTheOrderEntersOnDelivery()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("LEGACY-PIN");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Legado", "11999990046", null, isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        using (var seedScope = _factory.Services.CreateScope())
+        {
+            var dbContext = seedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var encryption = seedScope.ServiceProvider.GetRequiredService<IEncryptionService>();
+            var stored = await dbContext.Orders.SingleAsync(x => x.Id == order.OrderId);
+            stored.DeliveryPinHash = new PasswordHasher<Order>().HashPassword(stored, "123456");
+            stored.DeliveryPinEncrypted = encryption.Encrypt("123456");
+            await dbContext.SaveChangesAsync();
+        }
+
+        var start = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = driver.Id
+            });
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        details!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+        details.DeliveryPin.Should().Be("8888", "the legacy PIN is replaced by the customer's phone suffix");
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var legacyConfirm = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = "123456" });
+        legacyConfirm.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "the public contract only accepts the current 4-digit format");
+
+        var currentConfirm = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = details.DeliveryPin! });
+        currentConfirm.StatusCode.Should().Be(HttpStatusCode.OK, await currentConfirm.Content.ReadAsStringAsync());
+    }
+
+    private async Task SetCustomerPhoneAsync(Guid orderId, string? phoneNumber)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var customerUserId = await dbContext.Orders
+            .AsNoTracking()
+            .Where(x => x.Id == orderId)
+            .Select(x => x.CustomerUserId)
+            .SingleAsync();
+        var customer = await dbContext.Users.SingleAsync(x => x.Id == customerUserId);
+        customer.PhoneNumber = phoneNumber;
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task<SellerDeliveryDriverResponseDto> CreateSimpleDriverAsync(

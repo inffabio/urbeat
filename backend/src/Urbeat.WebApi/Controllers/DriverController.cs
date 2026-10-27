@@ -158,6 +158,13 @@ public sealed class DriverController : ControllerBase
     {
         if (result.NotFound) return NotFound();
         if (result.Forbidden) return Forbid();
+        if (result.CustomerPhoneRequired)
+        {
+            return BadRequest(new
+            {
+                error = "O cliente não possui telefone válido com pelo menos 4 dígitos. Peça à loja para atualizar o cadastro antes de iniciar a entrega."
+            });
+        }
         if (result.InvalidState) return Conflict(new { error = invalidStateMessage });
 
         return Ok(result);

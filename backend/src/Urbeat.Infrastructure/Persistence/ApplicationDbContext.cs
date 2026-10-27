@@ -313,6 +313,10 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.StatusVersion).IsConcurrencyToken();
             entity.Property(x => x.DeliveryPinHash).HasMaxLength(500);
             entity.Property(x => x.DeliveryPinEncrypted).HasMaxLength(500);
+            entity.Property(x => x.DeliveryLinkTokenHash).HasMaxLength(64);
+            entity.HasIndex(x => x.DeliveryLinkTokenHash)
+                .IsUnique()
+                .HasFilter("\"DeliveryLinkTokenHash\" IS NOT NULL");
             // A concurrent PIN confirmation must never overwrite another confirmation. The
             // assignment token below covers attempt/counter races; this one covers the order
             // when it is already Delivered and no status transition happens.

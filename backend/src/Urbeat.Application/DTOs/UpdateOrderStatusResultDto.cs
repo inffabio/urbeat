@@ -16,5 +16,11 @@ public sealed class UpdateOrderStatusResultDto
     /// <summary>The supplied driver is inactive, from another store or otherwise unavailable.</summary>
     public bool DriverNotAvailable { get; init; }
 
+    /// <summary>
+    /// The customer has no phone number with at least four digits. The delivery PIN is derived from
+    /// that phone, so the transition to OnDelivery is rejected until the phone is fixed.
+    /// </summary>
+    public bool CustomerPhoneRequired { get; init; }
+
     public OrderDetailsResponseDto? Order { get; init; }
 }

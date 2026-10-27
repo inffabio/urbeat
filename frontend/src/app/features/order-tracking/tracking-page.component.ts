@@ -79,6 +79,7 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   readonly loading = computed(() => this.order() === null && !this.invalidOrder() && !this.unavailable());
 
   readonly FulfillmentType = FulfillmentType;
+  readonly OrderStatus = OrderStatus;
   readonly PaymentMethod = PaymentMethod;
 
   readonly itemsCount = computed(() => {

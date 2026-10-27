@@ -158,13 +158,13 @@ describe('DriverOrdersPageComponent', () => {
     component.openPinDialog(buildOrder({ status: OrderStatus.OnDelivery, canStartDelivery: false, canConfirmPin: true }));
     component.pinValue.set('12');
     component.submitPin();
-    expect(component.pinError()).toContain('6 dígitos');
+    expect(component.pinError()).toContain('4 dígitos');
     expect(deliveryDriverServiceMock.confirmPin).not.toHaveBeenCalled();
 
     deliveryDriverServiceMock.confirmPin.mockReturnValueOnce(
       throwError(() => ({ status: 400, error: { error: 'PIN incorreto. Tentativas restantes: 4.' } })),
     );
-    component.pinValue.set('123456');
+    component.pinValue.set('1234');
     component.submitPin();
     expect(component.pinError()).toContain('Tentativas restantes');
     fixture.destroy();
@@ -188,7 +188,7 @@ describe('DriverOrdersPageComponent', () => {
     fixture.detectChanges();
     jest.advanceTimersByTime(0);
 
-    component.pinValue.set('123456');
+    component.pinValue.set('1234');
     component.submitPin();
     fixture.detectChanges();
     jest.advanceTimersByTime(0);
@@ -221,10 +221,10 @@ describe('DriverOrdersPageComponent', () => {
     const component = fixture.componentInstance;
 
     component.openPinDialog(buildOrder({ status: OrderStatus.OnDelivery, canStartDelivery: false, canConfirmPin: true }));
-    component.pinValue.set('123456');
+    component.pinValue.set('1234');
     component.submitPin();
 
-    expect(deliveryDriverServiceMock.confirmPin).toHaveBeenCalledWith('order-1', '123456');
+    expect(deliveryDriverServiceMock.confirmPin).toHaveBeenCalledWith('order-1', '1234');
     expect(toastMock.showSuccess).toHaveBeenCalled();
     fixture.destroy();
   });

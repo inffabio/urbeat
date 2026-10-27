@@ -111,6 +111,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly deliveryDrivers = signal<SellerDeliveryDriver[]>([]);
   readonly assignmentSelection = signal<string>('');
   readonly assignmentSaving = signal(false);
+  readonly sharingIndividualLink = signal(false);
 
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
@@ -148,6 +149,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       deliveryDriverName: details?.deliveryDriverName ?? summary?.deliveryDriverName,
       deliveryStartedAtUtc: details?.deliveryStartedAtUtc ?? summary?.deliveryStartedAtUtc,
       deliveryPinConfirmedAtUtc: details?.deliveryPinConfirmedAtUtc ?? summary?.deliveryPinConfirmedAtUtc,
+      deliveryConfirmedAtUtc: details?.deliveryConfirmedAtUtc ?? summary?.deliveryConfirmedAtUtc,
       deliveryRouteId: details?.deliveryRouteId ?? summary?.deliveryRouteId,
       deliveryRouteStatus: details?.deliveryRouteStatus ?? summary?.deliveryRouteStatus,
       sellerCompletedAtUtc: details?.sellerCompletedAtUtc ?? summary?.sellerCompletedAtUtc,
@@ -850,6 +852,52 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         ? { ...item, deliveryRouteId: route.id, deliveryRouteStatus: route.status }
         : item,
     ));
+  }
+
+  canShareIndividualDelivery(order: {
+    status?: OrderStatus;
+    deliveryStartedAtUtc?: string;
+    deliveryDriverId?: string;
+    deliveryConfirmedAtUtc?: string;
+    sellerCompletedAtUtc?: string;
+  }): boolean {
+    return order.status === OrderStatus.OnDelivery
+      && !!order.deliveryStartedAtUtc
+      && !!order.deliveryDriverId
+      && !order.deliveryConfirmedAtUtc
+      && !order.sellerCompletedAtUtc;
+  }
+
+  shareIndividualDelivery(): void {
+    const order = this.selectedOrder();
+    if (!order || this.sharingIndividualLink()) return;
+
+    this.sharingIndividualLink.set(true);
+    this.deliveryRouteService.shareIndividualDelivery(order.id).subscribe({
+      next: (result) => {
+        this.sharingIndividualLink.set(false);
+        if (!result.shareUrl) {
+          void this.toast.showError(result.error ?? 'Não foi possível gerar o link da entrega.');
+          return;
+        }
+
+        const driver = this.orderDriver(order.deliveryDriverId);
+        const phone = (driver?.whatsAppPhoneNumber || driver?.phoneNumber || '').replace(/\D/g, '');
+        if (!phone) {
+          void this.toast.showError('Cadastre o WhatsApp do motoboy antes de compartilhar.');
+          return;
+        }
+
+        const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
+        const message = encodeURIComponent(`Entrega do pedido #${order.code}: ${result.shareUrl}`);
+        window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener,noreferrer');
+        void this.toast.showSuccess('Link individual da entrega gerado.');
+      },
+      error: (err) => {
+        this.sharingIndividualLink.set(false);
+        void this.toast.showError(err?.error?.error ?? 'Não foi possível compartilhar a entrega.');
+      },
+    });
   }
 
   private loadDeliveryDrivers(): void {

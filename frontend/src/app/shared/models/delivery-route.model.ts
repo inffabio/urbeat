@@ -46,6 +46,14 @@ export interface DeliveryRouteOperationResult {
   route?: DeliveryRoute | null;
 }
 
+export interface ShareIndividualDeliveryResult {
+  notFound: boolean;
+  forbidden: boolean;
+  invalidState: boolean;
+  error?: string | null;
+  shareUrl?: string | null;
+}
+
 export interface CreateDeliveryRouteRequest {
   deliveryDriverId: string;
   orderIds: string[];

@@ -213,6 +213,12 @@ public sealed class DeliveryDriverActionResultDto
     public bool PinUnavailable { get; init; }
 
     /// <summary>
+    /// The customer has no phone number with at least four digits. The PIN is derived from that
+    /// phone, so the delivery cannot be started.
+    /// </summary>
+    public bool CustomerPhoneRequired { get; init; }
+
+    /// <summary>
     /// A concurrent PIN request won the optimistic concurrency check. The client must refresh
     /// the order state before retrying; the final attempt count never exceeds the limit.
     /// </summary>

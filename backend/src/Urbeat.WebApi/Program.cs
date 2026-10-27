@@ -120,7 +120,9 @@ app.UseSerilogRequestLogging(options =>
             "SanitizedRequestPath",
             path.StartsWith("/api/public/delivery-routes/", StringComparison.OrdinalIgnoreCase)
                 ? "/api/public/delivery-routes/{token}"
-                : path);
+                : path.StartsWith("/api/public/deliveries/", StringComparison.OrdinalIgnoreCase)
+                    ? "/api/public/deliveries/{token}"
+                    : path);
     };
 });
 app.UseMiddleware<ProblemDetailsMiddleware>();

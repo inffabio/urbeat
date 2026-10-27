@@ -38,7 +38,7 @@ describe('SellerOrdersPageComponent', () => {
     statusTone: ReturnType<typeof signal<'info' | 'success' | 'warning' | 'error' | null>>;
   };
   let toastServiceMock: { showSuccess: jest.Mock; showError: jest.Mock };
-  let deliveryRouteServiceMock: { shareRoute: jest.Mock };
+  let deliveryRouteServiceMock: { shareRoute: jest.Mock; shareIndividualDelivery: jest.Mock };
   let shellMock: { newOrderPulse: any; notifyOrderChanged: jest.Mock };
   let signalRServiceMock: {
     onSellerEvent: jest.Mock;
@@ -128,6 +128,12 @@ describe('SellerOrdersPageComponent', () => {
     };
     deliveryRouteServiceMock = {
       shareRoute: jest.fn().mockReturnValue(of({ route: null, shareUrl: null })),
+      shareIndividualDelivery: jest.fn().mockReturnValue(of({
+        notFound: false,
+        forbidden: false,
+        invalidState: false,
+        shareUrl: 'https://urbeat.test/entrega/token',
+      })),
     };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
     signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
@@ -2942,5 +2948,45 @@ describe('SellerOrdersPageComponent', () => {
       'Atualizado pelo painel do lojista',
       'link-1',
     );
+  });
+
+  it('shares an individual delivery link without requiring a route', () => {
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.orders.set([buildOrder({
+      id: 'order-1',
+      code: 'ABC123',
+      status: OrderStatus.OnDelivery,
+      fulfillmentType: FulfillmentType.Delivery,
+      deliveryDriverId: 'driver-1',
+      deliveryStartedAtUtc: '2026-10-27T18:00:00Z',
+    })]);
+    component.deliveryDrivers.set([{
+      id: 'link-1',
+      deliveryDriverId: 'driver-1',
+      name: 'Ana Motoboy',
+      email: '',
+      phoneNumber: '11999999999',
+      whatsAppPhoneNumber: '11988887777',
+      isActive: true,
+      hasAccount: false,
+      status: 2,
+      canResendInvite: false,
+    }]);
+    component.selectedOrderId.set('order-1');
+
+    component.shareIndividualDelivery();
+
+    expect(deliveryRouteServiceMock.shareIndividualDelivery).toHaveBeenCalledWith('order-1');
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.stringContaining('https://wa.me/5511988887777'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('https://urbeat.test/entrega/token'));
+    expect(toastServiceMock.showSuccess).toHaveBeenCalled();
   });
 });

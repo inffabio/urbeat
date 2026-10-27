@@ -55,6 +55,8 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
   readonly pinConflict = signal(false);
   readonly successMessage = signal<string | null>(null);
   readonly DeliveryRouteStatus = DeliveryRouteStatus;
+  /** Individual links use the same UI but only one order and no route sequence. */
+  readonly isIndividualDelivery = this.route.snapshot.data?.['individual'] === true;
 
   readonly nextStop = computed(() =>
     this.routeData()?.stops.find((stop) => stop.isNext) ?? null,
@@ -110,7 +112,11 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
       this.error.set(null);
     }
 
-    this.routeService.getPublicRoute(this.token()).subscribe({
+    const request = this.isIndividualDelivery
+      ? this.routeService.getPublicIndividualDelivery(this.token())
+      : this.routeService.getPublicRoute(this.token());
+
+    request.subscribe({
       next: (route) => {
         this.routeData.set(route);
         this.loading.set(false);
@@ -160,7 +166,7 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
   }
 
   updatePin(value: string): void {
-    this.pinValue.set(value.replace(/\D/g, '').slice(0, 6));
+    this.pinValue.set(value.replace(/\D/g, '').slice(0, 4));
     this.pinError.set(null);
   }
 
@@ -169,8 +175,8 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
     const pin = this.pinValue();
     if (!stop || this.pinSubmitting()) return;
 
-    if (!/^\d{6}$/.test(pin)) {
-      this.pinError.set('Informe os 6 dígitos do PIN recebido do cliente.');
+    if (!/^\d{4}$/.test(pin)) {
+      this.pinError.set('Informe os 4 dígitos do PIN recebido do cliente.');
       return;
     }
 
@@ -178,12 +184,16 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
     this.pinError.set(null);
     this.pinConflict.set(false);
 
-    this.routeService.confirmPublicDelivery(this.token(), stop.sequence, pin).subscribe({
+    const request = this.isIndividualDelivery
+      ? this.routeService.confirmPublicIndividualDelivery(this.token(), pin)
+      : this.routeService.confirmPublicDelivery(this.token(), stop.sequence, pin);
+
+    request.subscribe({
       next: (result) => {
         this.pinSubmitting.set(false);
         if (result.route) this.routeData.set(result.route);
         this.closePinDialog();
-        this.successMessage.set(`Pedido #${stop.orderCode} entregue. Próximo cliente atualizado.`);
+        this.successMessage.set(`Pedido #${stop.orderCode} entregue. Obrigado!`);
       },
       error: (err) => {
         this.pinSubmitting.set(false);
@@ -280,6 +290,16 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
   }
 
   routeStatusLabel(status: DeliveryRouteStatus): string {
+    if (this.isIndividualDelivery) {
+      switch (status) {
+        case DeliveryRouteStatus.Active: return 'Entrega ativa';
+        case DeliveryRouteStatus.Completed: return 'Entrega concluída';
+        case DeliveryRouteStatus.Revoked: return 'Entrega revogada';
+        case DeliveryRouteStatus.Expired: return 'Entrega expirada';
+        default: return '';
+      }
+    }
+
     switch (status) {
       case DeliveryRouteStatus.Active: return 'Rota ativa';
       case DeliveryRouteStatus.Completed: return 'Rota concluída';

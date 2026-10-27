@@ -17,6 +17,7 @@ public sealed class OrdersController : ControllerBase
     private readonly ICheckoutService _checkoutService;
     private readonly IOrderService _orderService;
     private readonly IDeliveryDriverService _deliveryDriverService;
+    private readonly IIndividualDeliveryLinkService _individualDeliveryLinkService;
     private readonly IValidator<CheckoutRequestDto> _checkoutValidator;
     private readonly IValidator<UpdateOrderStatusRequestDto> _updateStatusValidator;
     private readonly IValidator<AssignDeliveryDriverRequestDto> _assignDriverValidator;
@@ -30,6 +31,7 @@ public sealed class OrdersController : ControllerBase
         IValidator<CheckoutRequestDto> checkoutValidator,
         IValidator<UpdateOrderStatusRequestDto> updateStatusValidator,
         IDeliveryDriverService deliveryDriverService,
+        IIndividualDeliveryLinkService individualDeliveryLinkService,
         IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator)
     {
         _checkoutService = checkoutService;
@@ -38,6 +40,7 @@ public sealed class OrdersController : ControllerBase
         _checkoutValidator = checkoutValidator;
         _updateStatusValidator = updateStatusValidator;
         _deliveryDriverService = deliveryDriverService;
+        _individualDeliveryLinkService = individualDeliveryLinkService;
         _assignDriverValidator = assignDriverValidator;
     }
     [HttpGet("store/report")]
@@ -322,6 +325,39 @@ public sealed class OrdersController : ControllerBase
         return Ok(result.Order);
     }
 
+    /// <summary>
+    /// Shares a single delivery with the assigned motoboy through a temporary public link.
+    /// Sharing never creates a route and never returns the delivery PIN.
+    /// </summary>
+    [HttpPost("store/{orderId:guid}/delivery-link")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<ShareIndividualDeliveryResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ShareIndividualDelivery(
+        Guid orderId,
+        CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null) return Unauthorized();
+
+        var result = await _individualDeliveryLinkService.ShareAsync(
+            sellerUserId.Value,
+            orderId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound) return NotFound();
+        if (result.Forbidden) return Forbid();
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = result.Error ?? "A entrega não pode ser compartilhada neste estado." });
+        }
+
+        return Ok(result);
+    }
+
     [HttpPatch("{orderId}/status")]
     [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
@@ -374,6 +410,14 @@ public sealed class OrdersController : ControllerBase
         if (result.DriverRequired)
         {
             return BadRequest(new { error = "Selecione um motoboy ativo da loja para iniciar a entrega." });
+        }
+
+        if (result.CustomerPhoneRequired)
+        {
+            return BadRequest(new
+            {
+                error = "O cliente não possui telefone válido com pelo menos 4 dígitos. Atualize o cadastro do cliente antes de iniciar a entrega."
+            });
         }
 
         if (result.DriverNotAvailable)

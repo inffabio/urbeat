@@ -13,6 +13,9 @@ public sealed class DeliveryRouteOptions
 
     public string PublicPath { get; set; } = "/rota";
 
+    /// <summary>Frontend path of the individual delivery link (no route/batch).</summary>
+    public string IndividualPublicPath { get; set; } = "/entrega";
+
     public int MinExpirationHours { get; set; } = 1;
 
     public int MaxExpirationHours { get; set; } = 48;

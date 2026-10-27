@@ -257,7 +257,7 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
   }
 
   updatePin(value: string): void {
-    const digits = value.replace(/\D/g, '').slice(0, 6);
+    const digits = value.replace(/\D/g, '').slice(0, 4);
     this.pinValue.set(digits);
   }
 
@@ -266,8 +266,8 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
     const pin = this.pinValue();
     if (!order || this.pinSubmitting()) return;
 
-    if (!/^\d{6}$/.test(pin)) {
-      this.pinError.set('Informe os 6 dígitos do PIN recebido do cliente.');
+    if (!/^\d{4}$/.test(pin)) {
+      this.pinError.set('Informe os 4 dígitos do PIN recebido do cliente.');
       return;
     }
 

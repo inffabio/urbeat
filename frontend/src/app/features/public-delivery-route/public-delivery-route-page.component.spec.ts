@@ -57,13 +57,22 @@ const buildRoute = (overrides: Partial<PublicDeliveryRoute> = {}): PublicDeliver
 describe('PublicDeliveryRoutePageComponent', () => {
   let routeServiceMock: {
     getPublicRoute: jest.Mock;
+    getPublicIndividualDelivery: jest.Mock;
     confirmPublicDelivery: jest.Mock;
+    confirmPublicIndividualDelivery: jest.Mock;
   };
   let httpMock: HttpTestingController;
+  let routeData: Record<string, unknown>;
 
   beforeEach(async () => {
+    routeData = {};
     routeServiceMock = {
       getPublicRoute: jest.fn().mockReturnValue(of(buildRoute())),
+      getPublicIndividualDelivery: jest.fn().mockReturnValue(of(buildRoute({
+        totalStops: 1,
+        nextSequence: 1,
+        stops: [buildRoute().stops[0]],
+      }))),
       confirmPublicDelivery: jest.fn().mockReturnValue(of({
         succeeded: true,
         notFound: false,
@@ -83,6 +92,31 @@ describe('PublicDeliveryRoutePageComponent', () => {
             : { ...stop, isNext: true, canDeliver: true }),
         }),
       })),
+      confirmPublicIndividualDelivery: jest.fn().mockReturnValue(of({
+        succeeded: true,
+        notFound: false,
+        gone: false,
+        invalidState: false,
+        pinInvalid: false,
+        pinLocked: false,
+        pinUnavailable: false,
+        concurrentUpdate: false,
+        remainingAttempts: 5,
+        orderStatus: OrderStatus.Delivered,
+        route: buildRoute({
+          status: DeliveryRouteStatus.Completed,
+          totalStops: 1,
+          nextSequence: null,
+          deliveredStops: 1,
+          stops: [{
+            ...buildRoute().stops[0],
+            isNext: false,
+            canDeliver: false,
+            status: OrderStatus.Delivered,
+            deliveryConfirmedAtUtc: '2026-10-27T18:00:00Z',
+          }],
+        }),
+      })),
     };
 
     await TestBed.configureTestingModule({
@@ -91,7 +125,12 @@ describe('PublicDeliveryRoutePageComponent', () => {
         { provide: DeliveryRouteService, useValue: routeServiceMock },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ token: 'public-token' }) } },
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ token: 'public-token' }),
+              data: routeData,
+            },
+          },
         },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -127,11 +166,11 @@ describe('PublicDeliveryRoutePageComponent', () => {
     const component = fixture.componentInstance;
 
     component.openPinDialog(component.routeData()!.stops[0]);
-    component.updatePin('12345');
+    component.updatePin('123');
     component.submitPin();
 
     expect(routeServiceMock.confirmPublicDelivery).not.toHaveBeenCalled();
-    expect(component.pinError()).toContain('6 dígitos');
+    expect(component.pinError()).toContain('4 dígitos');
   });
 
   it('shows the remaining attempts when the backend rejects the PIN', () => {
@@ -145,7 +184,7 @@ describe('PublicDeliveryRoutePageComponent', () => {
     const component = fixture.componentInstance;
 
     component.openPinDialog(component.routeData()!.stops[0]);
-    component.updatePin('000000');
+    component.updatePin('0000');
     component.submitPin();
 
     expect(component.pinError()).toContain('3');
@@ -157,10 +196,10 @@ describe('PublicDeliveryRoutePageComponent', () => {
     const component = fixture.componentInstance;
 
     component.openPinDialog(component.routeData()!.stops[0]);
-    component.updatePin('123456');
+    component.updatePin('1234');
     component.submitPin();
 
-    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '123456');
+    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '1234');
     expect(component.routeData()!.nextSequence).toBe(2);
     expect(component.successMessage()).toContain('ABC');
     expect(component.pinTarget()).toBeNull();
@@ -235,5 +274,26 @@ describe('PublicDeliveryRoutePageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Link inválido');
+  });
+
+  it('uses the individual delivery endpoint, hides the route sections and confirms with 4 digits', () => {
+    routeData['individual'] = true;
+
+    const fixture = TestBed.createComponent(PublicDeliveryRoutePageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(routeServiceMock.getPublicRoute).not.toHaveBeenCalled();
+    expect(routeServiceMock.getPublicIndividualDelivery).toHaveBeenCalledWith('public-token');
+    expect(fixture.nativeElement.textContent).toContain('Entrega ativa');
+    expect(fixture.nativeElement.textContent).not.toContain('Sequência de entregas');
+    expect(fixture.nativeElement.textContent).toContain('últimos 4 dígitos do celular');
+
+    component.openPinDialog(component.routeData()!.stops[0]);
+    component.updatePin('1234');
+    component.submitPin();
+
+    expect(routeServiceMock.confirmPublicIndividualDelivery).toHaveBeenCalledWith('public-token', '1234');
+    expect(routeServiceMock.confirmPublicDelivery).not.toHaveBeenCalled();
   });
 });

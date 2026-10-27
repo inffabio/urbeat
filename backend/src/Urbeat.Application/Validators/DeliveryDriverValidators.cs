@@ -58,8 +58,8 @@ public sealed class ConfirmDeliveryPinRequestDtoValidator : AbstractValidator<Co
     {
         RuleFor(x => x.Pin)
             .NotEmpty()
-            .Matches(@"^\d{6}$")
-            .WithMessage("O PIN deve ter 6 dígitos.");
+            .Matches(@"^\d{4}$")
+            .WithMessage("O PIN deve ter 4 dígitos.");
     }
 }
 

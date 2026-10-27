@@ -28,8 +28,8 @@ namespace Urbeat.UnitTests.Infrastructure.Services;
 /// </summary>
 public sealed class DeliveryDriverServicePinConcurrencyTests
 {
-    private const string Pin = "123456";
-    private const string WrongPin = "654321";
+    private const string Pin = "1234";
+    private const string WrongPin = "4321";
 
     [Fact]
     public async Task ConfirmPin_ShouldPersistAtMostOneAttemptPerVersion_WhenTwoWrongAttemptsRace()

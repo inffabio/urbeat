@@ -302,6 +302,17 @@
                     Compartilhar rota
                   </button>
                 } @else {
+                  @if (canShareIndividualDelivery(selected)) {
+                    <button
+                      type="button"
+                      class="driver-action route-share-button"
+                      (click)="shareIndividualDelivery()"
+                      [disabled]="sharingIndividualLink()"
+                    >
+                      <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                      {{ sharingIndividualLink() ? 'Gerando link...' : 'Compartilhar entrega' }}
+                    </button>
+                  }
                   <a class="driver-action route-manage-link" routerLink="/app/rotas">Criar rota</a>
                 }
               </div>

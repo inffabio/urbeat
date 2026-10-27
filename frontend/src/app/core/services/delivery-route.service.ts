@@ -12,6 +12,7 @@ import {
   DeliveryRouteOperationResult,
   PublicDeliveryRoute,
   PublicDeliveryRoutePinResult,
+  ShareIndividualDeliveryResult,
   UpdateDeliveryRouteRequest,
 } from '../../shared/models/delivery-route.model';
 
@@ -51,9 +52,24 @@ export class DeliveryRouteService {
     );
   }
 
+  shareIndividualDelivery(orderId: string): Observable<ShareIndividualDeliveryResult> {
+    return this.api.post<ShareIndividualDeliveryResult>(
+      `/api/orders/store/${orderId}/delivery-link`,
+      {},
+    );
+  }
+
   getPublicRoute(token: string): Observable<PublicDeliveryRoute> {
     return this.api.get<PublicDeliveryRoute>(
       `/api/public/delivery-routes/${encodeURIComponent(token)}`,
+      undefined,
+      this.publicContext(),
+    );
+  }
+
+  getPublicIndividualDelivery(token: string): Observable<PublicDeliveryRoute> {
+    return this.api.get<PublicDeliveryRoute>(
+      `/api/public/deliveries/${encodeURIComponent(token)}`,
       undefined,
       this.publicContext(),
     );
@@ -66,6 +82,17 @@ export class DeliveryRouteService {
   ): Observable<PublicDeliveryRoutePinResult> {
     return this.api.post<PublicDeliveryRoutePinResult>(
       `/api/public/delivery-routes/${encodeURIComponent(token)}/stops/${sequence}/deliver`,
+      { pin },
+      this.publicContext(),
+    );
+  }
+
+  confirmPublicIndividualDelivery(
+    token: string,
+    pin: string,
+  ): Observable<PublicDeliveryRoutePinResult> {
+    return this.api.post<PublicDeliveryRoutePinResult>(
+      `/api/public/deliveries/${encodeURIComponent(token)}/deliver`,
       { pin },
       this.publicContext(),
     );

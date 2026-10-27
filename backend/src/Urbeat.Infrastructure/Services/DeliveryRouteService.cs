@@ -550,7 +550,10 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             assignment.MarkAsUpdated();
         }
 
-        if (!DeliveryPinCode.Verify(order, order.DeliveryPinHash, pin))
+        if (pin is null
+            || pin.Length != DeliveryPinCode.Length
+            || !pin.All(char.IsAsciiDigit)
+            || !DeliveryPinCode.Verify(order, order.DeliveryPinHash, pin))
         {
             assignment.PinAttemptCount = Math.Min(assignment.PinAttemptCount + 1, MaxPinAttempts);
             assignment.LastPinAttemptAtUtc = attemptAtUtc;
