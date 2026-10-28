@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
 using FluentAssertions;
@@ -877,6 +878,344 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
+    public async Task SendDeliveryRoutes_ShouldGroupByDriver_AndReturnOneAbsoluteLinkPerMotoboy()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("SEND");
+        var driverA = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Envio A", "11999990201", "11999990202", isActive: true);
+        var driverB = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Envio B", "11999990203", null, isActive: true);
+
+        var firstA = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var secondA = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var firstB = await CreateDeliveryOrderAsync(sellerClient, storeId);
+
+        await StartDeliveryAsync(sellerClient, firstA.OrderId, driverA.Id);
+        await StartDeliveryAsync(sellerClient, secondA.OrderId, driverA.Id);
+        await StartDeliveryAsync(sellerClient, firstB.OrderId, driverB.Id);
+
+        var send = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [firstA.OrderId, firstB.OrderId, secondA.OrderId],
+                PhysicalConfirmation = true
+            });
+        send.StatusCode.Should().Be(HttpStatusCode.OK, await send.Content.ReadAsStringAsync());
+
+        var result = await send.Content.ReadFromJsonAsync<SendDeliveryRoutesResultDto>();
+        result.Should().NotBeNull();
+        result!.Groups.Should().HaveCount(2);
+
+        var groupA = result.Groups.Single(x => x.DeliveryDriverId == driverA.DeliveryDriverId);
+        var groupB = result.Groups.Single(x => x.DeliveryDriverId == driverB.DeliveryDriverId);
+
+        groupA.DriverName.Should().Be("Motoboy Envio A");
+        groupA.OrderCount.Should().Be(2);
+        groupA.TotalStops.Should().Be(2);
+        groupA.Route.Orders.Select(x => x.OrderId).Should().BeEquivalentTo(
+            [firstA.OrderId, secondA.OrderId]);
+        groupA.Route.Orders.Select(x => x.OrderId).Should().NotContain(firstB.OrderId);
+        groupA.Route.Orders.Should().OnlyContain(x => x.CustomerName == "Cliente Delivery");
+        groupA.Route.Orders.Should().OnlyContain(
+            x => x.AddressSummary == "Rua Entrega, 100 - Centro");
+        new Uri(groupA.ShareUrl).IsAbsoluteUri.Should().BeTrue();
+        groupA.ShareUrl.Should().Contain("/rota/");
+        groupA.Message.Should().Contain(groupA.ShareUrl);
+        groupA.WhatsAppUrl.Should().NotBeNull();
+        groupA.WhatsAppUrl.Should().Contain("https://wa.me/5511999990202");
+
+        groupB.OrderCount.Should().Be(1);
+        groupB.Route.Orders.Select(x => x.OrderId).Should().Equal([firstB.OrderId]);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var publicA = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/delivery-routes/{ExtractRouteToken(groupA.ShareUrl)}");
+        publicA.Should().NotBeNull();
+        publicA!.DriverName.Should().Be("Motoboy Envio A");
+        publicA.Stops.Should().HaveCount(2);
+        publicA.Stops.Select(x => x.OrderCode).Should().NotContain(
+            groupB.Route.Orders.Single().Code);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .CountAsync(x => x.StoreId == storeId && x.StoreDeliveryDriverId == driverA.Id))
+            .Should().Be(1);
+        (await dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .CountAsync(x => x.StoreId == storeId && x.StoreDeliveryDriverId == driverB.Id))
+            .Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SendDeliveryRoutes_ShouldReuseRouteAndRotateToken_WithoutDuplicatingStops()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("RESEND");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Reenvio", "11999990301", "11999990302", isActive: true);
+
+        var first = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var second = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await StartDeliveryAsync(sellerClient, first.OrderId, driver.Id);
+        await StartDeliveryAsync(sellerClient, second.OrderId, driver.Id);
+
+        var firstSend = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [first.OrderId],
+                PhysicalConfirmation = true
+            });
+        firstSend.StatusCode.Should().Be(HttpStatusCode.OK, await firstSend.Content.ReadAsStringAsync());
+        var firstResult = await firstSend.Content.ReadFromJsonAsync<SendDeliveryRoutesResultDto>();
+        var firstGroup = firstResult!.Groups.Single();
+        var oldToken = ExtractRouteToken(firstGroup.ShareUrl);
+
+        var secondSend = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [first.OrderId, second.OrderId],
+                PhysicalConfirmation = true
+            });
+        secondSend.StatusCode.Should().Be(HttpStatusCode.OK, await secondSend.Content.ReadAsStringAsync());
+        var secondResult = await secondSend.Content.ReadFromJsonAsync<SendDeliveryRoutesResultDto>();
+        var secondGroup = secondResult!.Groups.Single();
+
+        secondGroup.Route.Id.Should().Be(firstGroup.Route.Id, "an active route is reused per motoboy");
+        secondGroup.OrderCount.Should().Be(1);
+        secondGroup.TotalStops.Should().Be(2);
+        secondGroup.ShareUrl.Should().NotBe(firstGroup.ShareUrl, "resharing rotates the public token");
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var oldLink = await publicClient.GetAsync($"/api/public/delivery-routes/{oldToken}");
+        oldLink.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var newRoute = await publicClient.GetFromJsonAsync<PublicDeliveryRouteResponseDto>(
+            $"/api/public/delivery-routes/{ExtractRouteToken(secondGroup.ShareUrl)}");
+        newRoute!.Stops.Should().HaveCount(2);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .CountAsync(x => x.StoreId == storeId && x.StoreDeliveryDriverId == driver.Id))
+            .Should().Be(1);
+        (await dbContext.DeliveryRouteOrders
+            .AsNoTracking()
+            .CountAsync(x => x.DeliveryRouteId == firstGroup.Route.Id))
+            .Should().Be(2, "the same order must not be added twice");
+    }
+
+    [Fact]
+    public async Task SendDeliveryRoutes_ShouldRejectCrossStore_InvalidStatusAndOrderWithoutDriver()
+    {
+        var (sellerAClient, storeAId) = await CreateStoreAsync("SEND-A");
+        var (sellerBClient, storeBId) = await CreateStoreAsync("SEND-B");
+        var driver = await CreateSimpleDriverAsync(
+            sellerAClient, "Motoboy Envio Validação", "11999990401", "11999990402", isActive: true);
+
+        var orderA = await CreateDeliveryOrderAsync(sellerAClient, storeAId);
+        var orderB = await CreateDeliveryOrderAsync(sellerBClient, storeBId);
+        await StartDeliveryAsync(sellerAClient, orderA.OrderId, driver.Id);
+
+        var crossStoreByA = await sellerAClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [orderB.OrderId],
+                PhysicalConfirmation = true
+            });
+        crossStoreByA.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var crossStoreByB = await sellerBClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [orderA.OrderId],
+                PhysicalConfirmation = true
+            });
+        crossStoreByB.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var readyOrder = await CreateDeliveryOrderAsync(sellerAClient, storeAId);
+        var invalidStatus = await sellerAClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [readyOrder.OrderId],
+                PhysicalConfirmation = true
+            });
+        invalidStatus.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await ReadApiErrorAsync(invalidStatus)).Should().Contain("não está em entrega");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var withoutDriver = await dbContext.Orders.SingleAsync(x => x.Id == orderB.OrderId);
+            withoutDriver.Status = OrderStatus.OnDelivery;
+            withoutDriver.StatusVersion += 1;
+            await dbContext.SaveChangesAsync();
+        }
+
+        var noDriver = await sellerBClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [orderB.OrderId],
+                PhysicalConfirmation = true
+            });
+        noDriver.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await ReadApiErrorAsync(noDriver)).Should().Contain("sem motoboy");
+    }
+
+    [Fact]
+    public async Task SendDeliveryRoutes_ShouldRejectOrderAlreadyInAnotherDriverActiveRoute()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("SEND-CONFLICT");
+        var driverA = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Conflito A", "11999990501", "11999990502", isActive: true);
+        var driverB = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Conflito B", "11999990503", "11999990504", isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await StartDeliveryAsync(sellerClient, order.OrderId, driverA.Id);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var route = new DeliveryRoute
+            {
+                StoreId = storeId,
+                DeliveryDriverId = driverB.DeliveryDriverId,
+                StoreDeliveryDriverId = driverB.Id,
+                CreatedByUserId = Guid.NewGuid(),
+                TokenHash = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant(),
+                ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
+            };
+            await dbContext.DeliveryRoutes.AddAsync(route);
+            await dbContext.DeliveryRouteOrders.AddAsync(new DeliveryRouteOrder
+            {
+                DeliveryRouteId = route.Id,
+                OrderId = order.OrderId,
+                Sequence = 1
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
+        var send = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [order.OrderId],
+                PhysicalConfirmation = true
+            });
+
+        send.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await ReadApiErrorAsync(send)).Should().Contain("outro motoboy");
+    }
+
+    [Fact]
+    public async Task SendDeliveryRoutes_ShouldRequireExplicitPhysicalConfirmation()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("SEND-CONFIRM");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Conferência", "11999990601", "11999990602", isActive: true);
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
+
+        var explicitFalse = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [order.OrderId],
+                PhysicalConfirmation = false
+            });
+        explicitFalse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await explicitFalse.Content.ReadAsStringAsync()).Should().Contain("fisicamente");
+
+        var absent = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new { orderIds = new[] { order.OrderId } });
+        absent.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await absent.Content.ReadAsStringAsync()).Should().Contain("fisicamente");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            (await dbContext.DeliveryRoutes
+                .AsNoTracking()
+                .CountAsync(x => x.StoreId == storeId && x.StoreDeliveryDriverId == driver.Id))
+                .Should().Be(0, "an unconfirmed request must not create a route");
+        }
+
+        var confirmed = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [order.OrderId],
+                PhysicalConfirmation = true
+            });
+        confirmed.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            await confirmed.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task SendDeliveryRoutes_ShouldNotCreateDuplicateActiveRoutesForConcurrentRequests()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("SEND-CONCURRENT");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy Concorrência", "11999990701", "11999990702", isActive: true);
+
+        var first = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        var second = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await StartDeliveryAsync(sellerClient, first.OrderId, driver.Id);
+        await StartDeliveryAsync(sellerClient, second.OrderId, driver.Id);
+
+        var payload = new SendDeliveryRoutesRequestDto
+        {
+            OrderIds = [first.OrderId, second.OrderId],
+            PhysicalConfirmation = true
+        };
+
+        var responses = await Task.WhenAll(
+            sellerClient.PostAsJsonAsync("/api/delivery-routes/store/send", payload),
+            sellerClient.PostAsJsonAsync("/api/delivery-routes/store/send", payload));
+
+        foreach (var response in responses)
+        {
+            response.StatusCode.Should().Be(
+                HttpStatusCode.OK,
+                await response.Content.ReadAsStringAsync());
+        }
+
+        var results = await Task.WhenAll(
+            responses.Select(response =>
+                response.Content.ReadFromJsonAsync<SendDeliveryRoutesResultDto>()));
+        var routeIds = results
+            .Select(result => result!.Groups.Single().Route.Id)
+            .Distinct()
+            .ToArray();
+        routeIds.Should().HaveCount(1, "both requests must reuse the same active route");
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.DeliveryRoutes
+            .AsNoTracking()
+            .CountAsync(x => x.StoreId == storeId
+                && x.StoreDeliveryDriverId == driver.Id
+                && x.RevokedAtUtc == null
+                && x.CompletedAtUtc == null))
+            .Should().Be(1);
+        (await dbContext.DeliveryRouteOrders
+            .AsNoTracking()
+            .CountAsync(x => x.DeliveryRouteId == routeIds[0]))
+            .Should().Be(2, "concurrent sends must not duplicate stops");
+    }
+
+    [Fact]
     public async Task Pin_ShouldBeGeneratedOnlyOnOnDelivery_WithExactlyFourDigits()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("PIN-GEN");
@@ -1275,10 +1614,42 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         return driver!;
     }
 
+    private static async Task StartDeliveryAsync(
+        HttpClient sellerClient,
+        Guid orderId,
+        Guid storeDeliveryDriverId)
+    {
+        var response = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{orderId}/status",
+            new UpdateOrderStatusRequestDto
+            {
+                NewStatus = OrderStatus.OnDelivery,
+                DeliveryDriverId = storeDeliveryDriverId
+            });
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            await response.Content.ReadAsStringAsync());
+    }
+
     private static string ExtractRouteToken(string shareUrl)
     {
         var uri = new Uri(shareUrl);
         return Uri.UnescapeDataString(uri.Segments[^1].Trim('/'));
+    }
+
+    private static async Task<string> ReadApiErrorAsync(HttpResponseMessage response)
+    {
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        foreach (var propertyName in new[] { "detail", "error" })
+        {
+            if (document.RootElement.TryGetProperty(propertyName, out var property)
+                && property.ValueKind == JsonValueKind.String)
+            {
+                return property.GetString() ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
     }
 
     private async Task<(HttpClient Client, Guid StoreId)> CreateStoreAsync(string suffix)

@@ -18,3 +18,153 @@ body.store-page-active ion-app {
   display: block !important;
   min-height: 100dvh;
 }
+
+/**
+ * Manifests of "Enviar entregas" are rendered in a temporary portal on <body> so the print
+ * layout is never clipped by the modal overlay. It is invisible on screen, and each motoboy
+ * starts on a new page when the seller prints every manifest.
+ */
+.send-manifests-print-portal {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  html {
+    overflow: visible !important;
+    height: auto !important;
+    background: #fff;
+  }
+
+  body.printing-send-manifests {
+    background: #fff;
+    overflow: visible !important;
+    height: auto !important;
+
+    > * {
+      display: none !important;
+    }
+
+    .send-manifests-print-portal {
+      display: block !important;
+      color: #000;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+    }
+  }
+
+  .send-manifests-print-portal {
+    .send-manifest {
+      padding: 0;
+      margin: 0;
+      border: 0;
+      background: #fff;
+
+      & + .send-manifest {
+        break-before: page;
+        page-break-before: always;
+      }
+    }
+
+    .send-manifest-header {
+      padding-bottom: 8pt;
+      margin-bottom: 10pt;
+      border-bottom: 2pt solid #000;
+    }
+
+    .send-manifest-title {
+      margin: 0 0 4pt;
+      font-size: 13pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .send-manifest-driver {
+      margin: 0;
+      font-size: 18pt;
+      font-weight: 700;
+    }
+
+    .send-manifest-phone,
+    .send-manifest-total {
+      margin: 2pt 0 0;
+      font-size: 11pt;
+    }
+
+    .send-manifest-orders {
+      margin: 0 0 10pt;
+      padding: 0;
+      list-style: none;
+    }
+
+    .send-manifest-order {
+      padding: 8pt 0;
+      border-bottom: 1pt dashed #555;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .send-manifest-order-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8pt;
+    }
+
+    .send-manifest-code {
+      font-size: 20pt;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .send-manifest-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 4pt;
+      font-size: 10pt;
+      font-weight: 700;
+      text-transform: uppercase;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 12pt;
+        height: 12pt;
+        border: 1pt solid #000;
+        text-align: center;
+        line-height: 12pt;
+      }
+
+      &.is-checked::before {
+        content: 'X';
+        font-size: 9pt;
+      }
+    }
+
+    .send-manifest-customer {
+      margin: 4pt 0 0;
+      font-size: 12pt;
+      font-weight: 700;
+    }
+
+    .send-manifest-address {
+      margin: 2pt 0 0;
+      font-size: 10.5pt;
+    }
+
+    .send-manifest-footer {
+      margin-top: 14pt;
+      font-size: 10pt;
+    }
+
+    .send-manifest-signature {
+      margin: 8pt 0 0;
+    }
+  }
+}

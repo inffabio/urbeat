@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Urbeat.Application.DTOs;
@@ -22,6 +24,13 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
 {
     private const int MaxPinAttempts = 5;
     private static readonly TimeSpan PinLockoutCooldown = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// One async gate per store for the batch send. It keeps concurrent requests inside a single
+    /// process from racing; the PostgreSQL advisory lock covers multiple instances/replicas.
+    /// Entries are bounded by the number of stores that ever sent a batch, not by request volume.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> StoreSendLocks = new();
 
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _unitOfWork;
@@ -403,6 +412,412 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
         {
             Route = updated.Route,
             ShareUrl = BuildShareUrl(rawToken)
+        };
+    }
+
+    public async Task<SendDeliveryRoutesResultDto> SendBatchesAsync(
+        Guid sellerUserId,
+        SendDeliveryRoutesRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var storeId = await FindStoreIdAsync(sellerUserId, cancellationToken);
+        if (storeId is null)
+        {
+            return new SendDeliveryRoutesResultDto { Forbidden = true };
+        }
+
+        if (!request.PhysicalConfirmation)
+        {
+            return new SendDeliveryRoutesResultDto
+            {
+                PhysicalConfirmationRequired = true,
+                Error = "Confirme fisicamente os pedidos antes de preparar os links de entrega."
+            };
+        }
+
+        var orderIds = request.OrderIds.Distinct().ToArray();
+        if (orderIds.Length == 0)
+        {
+            return new SendDeliveryRoutesResultDto
+            {
+                OrderNotEligible = true,
+                Error = "Selecione ao menos um pedido em entrega para enviar."
+            };
+        }
+
+        // The in-process gate serializes the common single-instance case; the PostgreSQL
+        // advisory lock below is the cross-process/replica guarantee. Both key on the store so
+        // two requests can never create two active routes for the same motoboy.
+        var gate = StoreSendLocks.GetOrAdd(storeId.Value, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            IDbContextTransaction? transaction = null;
+            try
+            {
+                if (_dbContext.Database.IsRelational())
+                {
+                    transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    await AcquireStoreAdvisoryLockAsync(storeId.Value, cancellationToken);
+                }
+
+                var result = await SendBatchesCoreAsync(
+                    storeId.Value,
+                    sellerUserId,
+                    orderIds,
+                    ipAddress,
+                    cancellationToken);
+
+                if (transaction is not null)
+                {
+                    // A conflict means a write failed (or no write should be committed); rolling
+                    // back leaves the committed state untouched for the retry/reuse path.
+                    if (result.Conflict)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                    }
+                    else
+                    {
+                        await transaction.CommitAsync(cancellationToken);
+                    }
+                }
+
+                return result;
+            }
+            catch
+            {
+                if (transaction is not null)
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync(CancellationToken.None);
+                    }
+                    catch
+                    {
+                        // Best effort: the finally below always disposes/releases the transaction.
+                    }
+                }
+
+                throw;
+            }
+            finally
+            {
+                if (transaction is not null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task<SendDeliveryRoutesResultDto> SendBatchesCoreAsync(
+        Guid storeId,
+        Guid sellerUserId,
+        Guid[] orderIds,
+        string? ipAddress,
+        CancellationToken cancellationToken)
+    {
+        var orders = await _dbContext.Orders
+            .Where(x => orderIds.Contains(x.Id) && x.StoreId == storeId)
+            .ToListAsync(cancellationToken);
+
+        if (orders.Count != orderIds.Length)
+        {
+            return new SendDeliveryRoutesResultDto
+            {
+                OrderNotEligible = true,
+                Error = "A seleção contém pedidos de outra loja ou pedidos inexistentes."
+            };
+        }
+
+        var assignments = await _dbContext.OrderDeliveryAssignments
+            .AsNoTracking()
+            .Where(x => orderIds.Contains(x.OrderId))
+            .ToDictionaryAsync(x => x.OrderId, cancellationToken);
+
+        var links = await _dbContext.StoreDeliveryDrivers
+            .Include(x => x.DeliveryDriver)
+            .Where(x => x.StoreId == storeId && x.Status == StoreDeliveryDriverStatus.Active)
+            .ToListAsync(cancellationToken);
+
+        var linksByDriver = links
+            .GroupBy(x => x.DeliveryDriverId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.OrderByDescending(link => link.CreatedAtUtc).First());
+
+        var orderPositions = orderIds
+            .Select((id, index) => new { Id = id, Index = index })
+            .ToDictionary(x => x.Id, x => x.Index);
+
+        foreach (var order in orders)
+        {
+            if (order.FulfillmentType != FulfillmentType.Delivery
+                || order.SellerCompletedAtUtc is not null)
+            {
+                return new SendDeliveryRoutesResultDto
+                {
+                    OrderNotEligible = true,
+                    Error = $"O pedido {order.Code} não é uma entrega em andamento."
+                };
+            }
+
+            if (order.DeliveryConfirmedAtUtc is not null)
+            {
+                return new SendDeliveryRoutesResultDto
+                {
+                    OrderNotEligible = true,
+                    Error = $"O pedido {order.Code} já foi entregue e não pode ser enviado."
+                };
+            }
+
+            if (order.Status != OrderStatus.OnDelivery)
+            {
+                return new SendDeliveryRoutesResultDto
+                {
+                    OrderNotEligible = true,
+                    Error = $"O pedido {order.Code} não está em entrega."
+                };
+            }
+
+            if (!assignments.TryGetValue(order.Id, out var assignment)
+                || assignment.StoreId != storeId)
+            {
+                return new SendDeliveryRoutesResultDto
+                {
+                    OrderNotEligible = true,
+                    Error = $"O pedido {order.Code} está sem motoboy. Atribua um motoboy antes de enviar."
+                };
+            }
+
+            if (!linksByDriver.ContainsKey(assignment.DeliveryDriverId))
+            {
+                return new SendDeliveryRoutesResultDto
+                {
+                    DriverNotAvailable = true,
+                    Error = $"O motoboy do pedido {order.Code} está inativo ou indisponível."
+                };
+            }
+        }
+
+        var now = DateTime.UtcNow;
+        var activeRoutes = await _dbContext.DeliveryRoutes
+            .Include(x => x.Orders)
+            .Where(x => x.StoreId == storeId
+                && x.RevokedAtUtc == null
+                && x.CompletedAtUtc == null
+                && x.ExpiresAtUtc > now)
+            .ToListAsync(cancellationToken);
+
+        // An order already shared with another motoboy cannot be regrouped silently: the seller
+        // must revoke the previous route first. Routes of the same motoboy are consolidated below.
+        var activeRouteByOrder = activeRoutes
+            .SelectMany(route => route.Orders.Select(stop => new { stop.OrderId, Route = route }))
+            .GroupBy(x => x.OrderId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(x => x.Route).Distinct().ToList());
+
+        var groupedOrders = orders
+            .Select(order => new
+            {
+                Order = order,
+                Link = linksByDriver[assignments[order.Id].DeliveryDriverId]
+            })
+            .GroupBy(x => x.Link.Id)
+            .OrderBy(group => group.Min(x => orderPositions[x.Order.Id]))
+            .Select(group => new
+            {
+                Link = group.First().Link,
+                Orders = group
+                    .Select(x => x.Order)
+                    .OrderBy(x => orderPositions[x.Id])
+                    .ToList()
+            })
+            .ToList();
+
+        foreach (var group in groupedOrders)
+        {
+            foreach (var order in group.Orders)
+            {
+                if (activeRouteByOrder.TryGetValue(order.Id, out var routes)
+                    && routes.Any(route => route.StoreDeliveryDriverId != group.Link.Id))
+                {
+                    return new SendDeliveryRoutesResultDto
+                    {
+                        Conflict = true,
+                        Error = $"O pedido {order.Code} já está em uma rota ativa de outro motoboy. "
+                            + "Revogue a rota anterior antes de reenviá-lo."
+                    };
+                }
+            }
+        }
+
+        var batch = new List<(
+            DeliveryRoute Route,
+            StoreDeliveryDriver Link,
+            int SelectedOrderCount,
+            int TotalStops,
+            string RawToken)>();
+
+        foreach (var group in groupedOrders)
+        {
+            var driverRoutes = activeRoutes
+                .Where(x => x.StoreDeliveryDriverId == group.Link.Id)
+                .OrderByDescending(x => x.CreatedAtUtc)
+                .ToList();
+
+            DeliveryRoute route;
+            var routeOrderIds = new HashSet<Guid>();
+            var totalStops = 0;
+            int nextSequence;
+
+            if (driverRoutes.Count == 0)
+            {
+                route = new DeliveryRoute
+                {
+                    StoreId = storeId,
+                    DeliveryDriverId = group.Link.DeliveryDriverId,
+                    StoreDeliveryDriverId = group.Link.Id,
+                    CreatedByUserId = sellerUserId
+                };
+                await _dbContext.DeliveryRoutes.AddAsync(route, cancellationToken);
+                nextSequence = 1;
+            }
+            else
+            {
+                route = driverRoutes[0];
+                routeOrderIds = route.Orders.Select(x => x.OrderId).ToHashSet();
+                totalStops = route.Orders.Count;
+                nextSequence = route.Orders.Count == 0 ? 1 : route.Orders.Max(x => x.Sequence) + 1;
+
+                // Legacy data may contain more than one active route for the same motoboy.
+                // Consolidate the newer one and revoke the older links so a driver never has
+                // two public links for the same shift.
+                foreach (var older in driverRoutes.Skip(1))
+                {
+                    foreach (var stop in older.Orders.OrderBy(x => x.Sequence))
+                    {
+                        if (!routeOrderIds.Add(stop.OrderId)) continue;
+
+                        await _dbContext.DeliveryRouteOrders.AddAsync(new DeliveryRouteOrder
+                        {
+                            DeliveryRouteId = route.Id,
+                            OrderId = stop.OrderId,
+                            Sequence = nextSequence++
+                        }, cancellationToken);
+                        totalStops += 1;
+                    }
+
+                    older.RevokedAtUtc = now;
+                    older.AdvanceConcurrency();
+                    older.MarkAsUpdated();
+                }
+
+                route.DeliveryDriverId = group.Link.DeliveryDriverId;
+                route.StoreDeliveryDriverId = group.Link.Id;
+            }
+
+            var selectedOrderCount = 0;
+            foreach (var order in group.Orders)
+            {
+                if (!routeOrderIds.Add(order.Id)) continue;
+
+                await _dbContext.DeliveryRouteOrders.AddAsync(new DeliveryRouteOrder
+                {
+                    DeliveryRouteId = route.Id,
+                    OrderId = order.Id,
+                    Sequence = nextSequence++
+                }, cancellationToken);
+                totalStops += 1;
+                selectedOrderCount += 1;
+            }
+
+            var rawToken = GenerateToken();
+            route.TokenHash = HashToken(rawToken);
+            route.ExpiresAtUtc = now.Add(GetExpiration());
+            route.AdvanceConcurrency();
+            route.MarkAsUpdated();
+
+            await _dbContext.AuditLogs.AddAsync(new AuditLog
+            {
+                UserId = sellerUserId,
+                Event = "DeliveryRoutesSent",
+                Entity = nameof(DeliveryRoute),
+                EntityId = route.Id,
+                Description = $"Entregas enviadas para {ResolveDriverName(group.Link)}: "
+                    + $"{selectedOrderCount} novo(s), {totalStops} parada(s) na rota.",
+                IpAddress = ipAddress
+            }, cancellationToken);
+
+            batch.Add((route, group.Link, selectedOrderCount, totalStops, rawToken));
+        }
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _dbContext.ChangeTracker.Clear();
+            return new SendDeliveryRoutesResultDto
+            {
+                Conflict = true,
+                Error = "Uma das rotas foi alterada ao mesmo tempo. Atualize e tente novamente."
+            };
+        }
+        catch (DbUpdateException)
+        {
+            _dbContext.ChangeTracker.Clear();
+            return new SendDeliveryRoutesResultDto
+            {
+                Conflict = true,
+                Error = "Um dos pedidos foi alterado ao mesmo tempo. Atualize e tente novamente."
+            };
+        }
+
+        var routeIds = batch.Select(x => x.Route.Id).ToArray();
+        var routeDtos = (await LoadRouteDtosAsync(storeId, routeIds, cancellationToken))
+            .ToDictionary(x => x.Id);
+        var storeName = await _dbContext.Stores
+            .AsNoTracking()
+            .Where(x => x.Id == storeId)
+            .Select(x => x.Name)
+            .SingleOrDefaultAsync(cancellationToken) ?? string.Empty;
+
+        return new SendDeliveryRoutesResultDto
+        {
+            Groups = batch.Select(item =>
+            {
+                var route = routeDtos[item.Route.Id];
+                var shareUrl = BuildShareUrl(item.RawToken);
+                var pendingStops = Math.Max(route.TotalStops - route.DeliveredStops, 0);
+                var message = BuildSendMessage(
+                    storeName,
+                    ResolveDriverName(item.Link),
+                    pendingStops,
+                    shareUrl);
+                var whatsAppPhone = ResolveDriverWhatsApp(item.Link);
+
+                return new SendDeliveryRouteGroupDto
+                {
+                    StoreDeliveryDriverId = item.Link.Id,
+                    DeliveryDriverId = item.Link.DeliveryDriverId,
+                    DriverName = ResolveDriverName(item.Link),
+                    WhatsAppPhoneNumber = whatsAppPhone,
+                    WhatsAppUrl = BuildWhatsAppUrl(whatsAppPhone, message),
+                    ShareUrl = shareUrl,
+                    Message = message,
+                    OrderCount = item.SelectedOrderCount,
+                    TotalStops = item.TotalStops,
+                    Route = route
+                };
+            }).ToList()
         };
     }
 
@@ -953,6 +1368,13 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             }
         ).ToListAsync(cancellationToken);
 
+        var customerIds = stops.Select(x => x.Order.CustomerUserId).Distinct().ToArray();
+        var customerNames = await _dbContext.UserClaims
+            .AsNoTracking()
+            .Where(x => customerIds.Contains(x.UserId) && x.ClaimType == "FullName")
+            .Select(x => new { x.UserId, x.ClaimValue })
+            .ToDictionaryAsync(x => x.UserId, x => x.ClaimValue, cancellationToken);
+
         var now = DateTime.UtcNow;
         return routes.Select(route =>
         {
@@ -980,6 +1402,7 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
                     OrderId = x.Order.Id,
                     Sequence = x.Sequence,
                     Code = x.Order.Code,
+                    CustomerName = customerNames.GetValueOrDefault(x.Order.CustomerUserId),
                     AddressSummary = BuildAddressSummary(x.Order),
                     Status = x.Order.Status,
                     DeliveryConfirmedAtUtc = x.Order.DeliveryConfirmedAtUtc,
@@ -1161,6 +1584,28 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    private async Task AcquireStoreAdvisoryLockAsync(Guid storeId, CancellationToken cancellationToken)
+    {
+        // pg_advisory_xact_lock is transaction-scoped and released automatically at commit/rollback.
+        // Two 32-bit keys derived from the store id form a 64-bit lock key, serializing route
+        // creation for the same store across concurrent requests and replicas. Other relational
+        // providers (e.g. the in-memory test database) have no advisory lock support.
+        if (_dbContext.Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            return;
+        }
+
+        var bytes = storeId.ToByteArray();
+        var key1 = BitConverter.ToInt32(bytes, 0);
+        var key2 = BitConverter.ToInt32(bytes, 4);
+
+        await _dbContext.Database.ExecuteSqlRawAsync(
+            "SELECT pg_advisory_xact_lock({0}, {1})",
+            cancellationToken,
+            key1,
+            key2);
+    }
+
     private static string? BuildAddressSummary(Order order)
     {
         var streetLine = string.Join(", ", new[] { order.AddressStreet, order.AddressNumber }
@@ -1169,5 +1614,61 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             .Where(x => !string.IsNullOrWhiteSpace(x));
         var summary = string.Join(" - ", parts);
         return string.IsNullOrWhiteSpace(summary) ? null : summary;
+    }
+
+    private static string ResolveDriverName(StoreDeliveryDriver link)
+    {
+        if (!string.IsNullOrWhiteSpace(link.DisplayName))
+        {
+            return link.DisplayName;
+        }
+
+        return string.IsNullOrWhiteSpace(link.DeliveryDriver?.FullName)
+            ? "Motoboy"
+            : link.DeliveryDriver.FullName;
+    }
+
+    private static string? ResolveDriverWhatsApp(StoreDeliveryDriver link)
+    {
+        if (!string.IsNullOrWhiteSpace(link.WhatsAppPhoneNumber))
+        {
+            return link.WhatsAppPhoneNumber;
+        }
+
+        if (!string.IsNullOrWhiteSpace(link.DeliveryDriver?.WhatsAppPhoneNumber))
+        {
+            return link.DeliveryDriver.WhatsAppPhoneNumber;
+        }
+
+        return string.IsNullOrWhiteSpace(link.PhoneNumber) ? null : link.PhoneNumber;
+    }
+
+    private static string BuildSendMessage(
+        string storeName,
+        string driverName,
+        int pendingStops,
+        string shareUrl)
+    {
+        var store = string.IsNullOrWhiteSpace(storeName) ? "sua loja" : storeName;
+        var orderLabel = pendingStops == 1 ? "entrega pendente" : "entregas pendentes";
+        return $"Olá, {driverName}! Você tem {pendingStops} {orderLabel} de {store}. "
+            + $"Abra a rota: {shareUrl}";
+    }
+
+    private static string? BuildWhatsAppUrl(string? phoneNumber, string message)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            return null;
+        }
+
+        var digits = new string(phoneNumber.Where(char.IsAsciiDigit).ToArray());
+        if (digits.Length == 0)
+        {
+            return null;
+        }
+
+        var withCountry = digits.StartsWith("55", StringComparison.Ordinal) ? digits : $"55{digits}";
+        return $"https://wa.me/{withCountry}?text={Uri.EscapeDataString(message)}";
     }
 }

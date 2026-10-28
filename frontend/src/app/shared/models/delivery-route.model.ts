@@ -64,6 +64,34 @@ export interface UpdateDeliveryRouteRequest {
   orderIds: string[];
 }
 
+export interface SendDeliveryRoutesRequest {
+  orderIds: string[];
+  /** Operational declaration that the seller physically checked the selected volumes. */
+  physicalConfirmation: boolean;
+}
+
+export interface SendDeliveryRouteGroup {
+  storeDeliveryDriverId: string;
+  deliveryDriverId: string;
+  driverName: string;
+  whatsAppPhoneNumber?: string | null;
+  whatsAppUrl?: string | null;
+  shareUrl: string;
+  message: string;
+  orderCount: number;
+  totalStops: number;
+  route: DeliveryRoute;
+}
+
+export interface SendDeliveryRoutesResult {
+  forbidden: boolean;
+  orderNotEligible: boolean;
+  driverNotAvailable: boolean;
+  conflict: boolean;
+  error?: string | null;
+  groups: SendDeliveryRouteGroup[];
+}
+
 export interface PublicDeliveryRouteStop {
   sequence: number;
   orderCode: string;

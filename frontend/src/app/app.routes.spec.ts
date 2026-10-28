@@ -24,11 +24,10 @@ describe('app routes', () => {
     expect(driversRoute?.loadComponent?.toString()).toContain('seller-delivery-drivers-page.component');
   });
 
-  it('routes /app/rotas to the seller delivery routes page', () => {
+  it('does not expose the seller delivery routes management screen', () => {
     const appRoute = routes.find((route) => route.path === 'app');
-    const routesRoute = appRoute?.children?.find((child) => child.path === 'rotas');
 
-    expect(routesRoute?.loadComponent?.toString()).toContain('seller-delivery-routes-page.component');
+    expect(appRoute?.children?.some((child) => child.path === 'rotas')).toBe(false);
   });
 
   it('declares the public tokenized route page before the store slug route and without guards', () => {

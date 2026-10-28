@@ -12,6 +12,8 @@ import {
   DeliveryRouteOperationResult,
   PublicDeliveryRoute,
   PublicDeliveryRoutePinResult,
+  SendDeliveryRoutesRequest,
+  SendDeliveryRoutesResult,
   ShareIndividualDeliveryResult,
   UpdateDeliveryRouteRequest,
 } from '../../shared/models/delivery-route.model';
@@ -42,6 +44,17 @@ export class DeliveryRouteService {
     return this.api.post<DeliveryRouteOperationResult>(
       `/api/delivery-routes/store/${routeId}/share`,
       {},
+    );
+  }
+
+  sendDeliveryRoutes(
+    orderIds: string[],
+    physicalConfirmation: boolean,
+  ): Observable<SendDeliveryRoutesResult> {
+    const request: SendDeliveryRoutesRequest = { orderIds, physicalConfirmation };
+    return this.api.post<SendDeliveryRoutesResult>(
+      '/api/delivery-routes/store/send',
+      request,
     );
   }
 

@@ -276,13 +276,6 @@ export const routes: Routes = [
             (m) => m.SellerDeliveryDriversPageComponent,
           ),
       },
-      {
-        path: 'rotas',
-        loadComponent: () =>
-          import('./features/seller-delivery-routes/seller-delivery-routes-page.component').then(
-            (m) => m.SellerDeliveryRoutesPageComponent,
-          ),
-      },
     ],
   },
   {

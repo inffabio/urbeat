@@ -38,7 +38,11 @@ describe('SellerOrdersPageComponent', () => {
     statusTone: ReturnType<typeof signal<'info' | 'success' | 'warning' | 'error' | null>>;
   };
   let toastServiceMock: { showSuccess: jest.Mock; showError: jest.Mock };
-  let deliveryRouteServiceMock: { shareRoute: jest.Mock; shareIndividualDelivery: jest.Mock };
+  let deliveryRouteServiceMock: {
+    shareRoute: jest.Mock;
+    shareIndividualDelivery: jest.Mock;
+    sendDeliveryRoutes: jest.Mock;
+  };
   let shellMock: { newOrderPulse: any; notifyOrderChanged: jest.Mock };
   let signalRServiceMock: {
     onSellerEvent: jest.Mock;
@@ -72,6 +76,48 @@ describe('SellerOrdersPageComponent', () => {
     createdAtUtc: '2026-08-04T10:00:00Z',
     ...overrides,
   });
+
+  const buildDriver = (overrides: Partial<any> = {}) => ({
+    id: 'link-ana',
+    deliveryDriverId: 'driver-ana',
+    name: 'Ana Motoboy',
+    email: '',
+    phoneNumber: '11999999999',
+    whatsAppPhoneNumber: '11988887777',
+    isActive: true,
+    hasAccount: false,
+    status: 2,
+    canResendInvite: false,
+    ...overrides,
+  });
+
+  const buildDeliveryOrder = (overrides: Partial<any> = {}) => buildOrder({
+    status: OrderStatus.OnDelivery,
+    fulfillmentType: FulfillmentType.Delivery,
+    deliveryDriverId: 'driver-ana',
+    deliveryDriverName: 'Ana Motoboy',
+    ...overrides,
+  });
+
+  const stubSendDeliveriesData = (orders: any[], drivers: any[] = []): void => {
+    deliveryDriverServiceMock.listStoreDrivers.mockReturnValue(of(drivers));
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) =>
+      status === OrderStatus.OnDelivery
+        ? of({ items: orders, totalItems: orders.length })
+        : of({ items: [], totalItems: 0 }),
+    );
+  };
+
+  /**
+   * Mirrors the seller flow: every selected order is physically checked before the global
+   * confirmation, which is what unlocks the final "Preparar links" action.
+   */
+  const checkAllSendOrders = (component: SellerOrdersPageComponent): void => {
+    for (const orderId of component.sendDeliveriesOrderIds()) {
+      component.setSendOrderChecked(orderId, true);
+    }
+    component.setSendDeliveriesConfirmed(true);
+  };
 
   const findOrderCard = (
     fixture: ComponentFixture<SellerOrdersPageComponent>,
@@ -134,6 +180,13 @@ describe('SellerOrdersPageComponent', () => {
         invalidState: false,
         shareUrl: 'https://urbeat.test/entrega/token',
       })),
+      sendDeliveryRoutes: jest.fn().mockReturnValue(of({
+        forbidden: false,
+        orderNotEligible: false,
+        driverNotAvailable: false,
+        conflict: false,
+        groups: [],
+      })),
     };
     shellMock = { newOrderPulse: jest.fn(() => null), notifyOrderChanged: jest.fn() };
     signalRServiceMock = { onSellerEvent: jest.fn(), removeSellerListener: jest.fn(), isSellerConnected: signal(false) };
@@ -175,6 +228,8 @@ describe('SellerOrdersPageComponent', () => {
     jest.useRealTimers();
     jest.restoreAllMocks();
     isWindowsPlatformMock.mockReturnValue(false);
+    document.body.classList.remove('printing-send-manifests');
+    document.querySelectorAll('.send-manifests-print-portal').forEach((node) => node.remove());
   });
 
   it('shows empty new orders panel when no orders exist', () => {
@@ -2988,5 +3043,706 @@ describe('SellerOrdersPageComponent', () => {
     );
     expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('https://urbeat.test/entrega/token'));
     expect(toastServiceMock.showSuccess).toHaveBeenCalled();
+  });
+
+  it('groups on-delivery orders by motoboy in the send deliveries confirmation', () => {
+    deliveryDriverServiceMock.listStoreDrivers.mockReturnValue(of([
+      {
+        id: 'link-ana',
+        deliveryDriverId: 'driver-ana',
+        name: 'Ana Motoboy',
+        email: '',
+        phoneNumber: '11999999999',
+        whatsAppPhoneNumber: '11988887777',
+        isActive: true,
+        hasAccount: false,
+        status: 2,
+        canResendInvite: false,
+      },
+      {
+        id: 'link-bruno',
+        deliveryDriverId: 'driver-bruno',
+        name: 'Bruno Motoboy',
+        email: '',
+        phoneNumber: '11999999998',
+        whatsAppPhoneNumber: '11988887778',
+        isActive: true,
+        hasAccount: false,
+        status: 2,
+        canResendInvite: false,
+      },
+    ]));
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) =>
+      status === OrderStatus.OnDelivery
+        ? of({
+            items: [
+              buildOrder({
+                id: 'ana-1',
+                code: 'ANA1',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-ana',
+                deliveryDriverName: 'Ana Motoboy',
+                createdAtUtc: '2026-08-04T12:00:00Z',
+              }),
+              buildOrder({
+                id: 'ana-2',
+                code: 'ANA2',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-ana',
+                deliveryDriverName: 'Ana Motoboy',
+                createdAtUtc: '2026-08-04T11:00:00Z',
+              }),
+              buildOrder({
+                id: 'bruno-1',
+                code: 'BRU1',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-bruno',
+                deliveryDriverName: 'Bruno Motoboy',
+                createdAtUtc: '2026-08-04T10:00:00Z',
+              }),
+              buildOrder({
+                id: 'no-driver',
+                code: 'NODR',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                createdAtUtc: '2026-08-04T09:00:00Z',
+              }),
+            ],
+            totalItems: 4,
+          })
+        : of({ items: [], totalItems: 0 }),
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.sendDeliveriesGroups().map((group) => group.deliveryDriverId))
+      .toEqual(['driver-ana', 'driver-bruno']);
+    expect(component.pendingSendOrderCount()).toBe(3);
+    expect(component.unassignedOnDeliveryOrders().map((order) => order.id))
+      .toEqual(['no-driver']);
+
+    fixture.nativeElement.querySelector<HTMLButtonElement>('.send-deliveries-trigger')!.click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.send-deliveries-dialog') as HTMLElement;
+    expect(dialog).not.toBeNull();
+    expect(dialog.textContent).toContain('Ana Motoboy');
+    expect(dialog.textContent).toContain('2 pedido(s)');
+    expect(dialog.textContent).toContain('Bruno Motoboy');
+    expect(dialog.textContent).toContain('1 pedido(s) em entrega sem motoboy');
+
+    (dialog.querySelector('.btn-cancel') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(component.sendDeliveriesDialogOpen()).toBe(false);
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes).not.toHaveBeenCalled();
+  });
+
+  it('sends only pending orders by default and includes already shared orders only when requested', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) =>
+      status === OrderStatus.OnDelivery
+        ? of({
+            items: [
+              buildOrder({
+                id: 'pending',
+                code: 'PEND',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-ana',
+                deliveryDriverName: 'Ana Motoboy',
+                createdAtUtc: '2026-08-04T12:00:00Z',
+              }),
+              buildOrder({
+                id: 'sent',
+                code: 'SENT',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-ana',
+                deliveryDriverName: 'Ana Motoboy',
+                deliveryRouteId: 'route-1',
+                deliveryRouteStatus: 1,
+                createdAtUtc: '2026-08-04T11:00:00Z',
+              }),
+            ],
+            totalItems: 2,
+          })
+        : of({ items: [], totalItems: 0 }),
+    );
+    deliveryRouteServiceMock.sendDeliveryRoutes.mockReturnValue(of({
+      forbidden: false,
+      orderNotEligible: false,
+      driverNotAvailable: false,
+      conflict: false,
+      groups: [],
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    expect(component.sendDeliveriesOrderIds()).toEqual(['pending']);
+    expect(component.alreadySentOrderCount()).toBe(1);
+
+    component.setSendOrderChecked('pending', true);
+    component.setSendDeliveriesConfirmed(true);
+    expect(component.canSendDeliveries()).toBe(true);
+
+    component.toggleIncludeAlreadySent(true);
+    expect(component.sendDeliveriesOrderIds()).toEqual(['pending', 'sent']);
+    expect(component.canSendDeliveries()).toBe(false);
+
+    component.setSendOrderChecked('sent', true);
+    component.setSendDeliveriesConfirmed(true);
+    component.confirmSendDeliveries();
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes)
+      .toHaveBeenCalledWith(['pending', 'sent'], true);
+  });
+
+  it('shows one result group per motoboy and handles blocked WhatsApp popups', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) =>
+      status === OrderStatus.OnDelivery
+        ? of({
+            items: [
+              buildOrder({
+                id: 'ana-1',
+                code: 'ANA1',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-ana',
+                deliveryDriverName: 'Ana Motoboy',
+                createdAtUtc: '2026-08-04T12:00:00Z',
+              }),
+              buildOrder({
+                id: 'bruno-1',
+                code: 'BRU1',
+                status: OrderStatus.OnDelivery,
+                fulfillmentType: FulfillmentType.Delivery,
+                deliveryDriverId: 'driver-bruno',
+                deliveryDriverName: 'Bruno Motoboy',
+                createdAtUtc: '2026-08-04T11:00:00Z',
+              }),
+            ],
+            totalItems: 2,
+          })
+        : of({ items: [], totalItems: 0 }),
+    );
+    deliveryRouteServiceMock.sendDeliveryRoutes.mockReturnValue(of({
+      forbidden: false,
+      orderNotEligible: false,
+      driverNotAvailable: false,
+      conflict: false,
+      groups: [
+        {
+          storeDeliveryDriverId: 'link-ana',
+          deliveryDriverId: 'driver-ana',
+          driverName: 'Ana Motoboy',
+          whatsAppPhoneNumber: '11988887777',
+          whatsAppUrl: 'https://wa.me/5511988887777?text=rota-ana',
+          shareUrl: 'https://urbeat.test/rota/ana',
+          message: 'Rota da Ana',
+          orderCount: 1,
+          totalStops: 1,
+          route: {
+            id: 'route-ana',
+            deliveryDriverId: 'driver-ana',
+            driverName: 'Ana Motoboy',
+            status: 1,
+            createdAtUtc: '2026-10-27T12:00:00Z',
+            expiresAtUtc: '2026-10-28T00:00:00Z',
+            totalStops: 1,
+            deliveredStops: 0,
+            orders: [{
+              orderId: 'ana-1',
+              sequence: 1,
+              code: 'ANA1',
+              status: OrderStatus.OnDelivery,
+              isDelivered: false,
+              canDeliver: true,
+            }],
+          },
+        },
+        {
+          storeDeliveryDriverId: 'link-bruno',
+          deliveryDriverId: 'driver-bruno',
+          driverName: 'Bruno Motoboy',
+          whatsAppPhoneNumber: '11988887778',
+          whatsAppUrl: 'https://wa.me/5511988887778?text=rota-bruno',
+          shareUrl: 'https://urbeat.test/rota/bruno',
+          message: 'Rota do Bruno',
+          orderCount: 1,
+          totalStops: 1,
+          route: {
+            id: 'route-bruno',
+            deliveryDriverId: 'driver-bruno',
+            driverName: 'Bruno Motoboy',
+            status: 1,
+            createdAtUtc: '2026-10-27T12:00:00Z',
+            expiresAtUtc: '2026-10-28T00:00:00Z',
+            totalStops: 1,
+            deliveredStops: 0,
+            orders: [{
+              orderId: 'bruno-1',
+              sequence: 1,
+              code: 'BRU1',
+              status: OrderStatus.OnDelivery,
+              isDelivered: false,
+              canDeliver: true,
+            }],
+          },
+        },
+      ],
+    }));
+
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    checkAllSendOrders(component);
+    component.confirmSendDeliveries();
+    fixture.detectChanges();
+
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes)
+      .toHaveBeenCalledWith(['ana-1', 'bruno-1'], true);
+    expect(component.orders().find((order) => order.id === 'ana-1')?.deliveryRouteId)
+      .toBe('route-ana');
+
+    const resultDialog = fixture.nativeElement.querySelector('.send-result-dialog') as HTMLElement;
+    expect(resultDialog).not.toBeNull();
+    const whatsAppButtons = Array.from(
+      resultDialog.querySelectorAll<HTMLButtonElement>('.btn-whatsapp'),
+    );
+    expect(whatsAppButtons).toHaveLength(2);
+    expect(whatsAppButtons[0].textContent).toContain('Abrir WhatsApp para Ana Motoboy');
+
+    whatsAppButtons[0].click();
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://wa.me/5511988887777?text=rota-ana',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(toastServiceMock.showError).toHaveBeenCalledWith(
+      expect.stringContaining('bloqueou a abertura do WhatsApp'),
+    );
+  });
+
+  it('shows driver, phone, volumes and an identifiable order list before sending', () => {
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({
+          id: 'ana-1',
+          code: 'ANA1',
+          customerName: 'Maria Silva',
+          addressSummary: 'Rua das Flores, 100 - Centro',
+          createdAtUtc: '2026-08-04T12:00:00Z',
+        }),
+        buildDeliveryOrder({
+          id: 'ana-2',
+          code: 'ANA2',
+          customerName: 'João Souza',
+          addressSummary: 'Av. Central, 250 - Jardim',
+          createdAtUtc: '2026-08-04T11:00:00Z',
+        }),
+      ],
+      [buildDriver()],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    fixture.detectChanges();
+
+    const group = fixture.nativeElement.querySelector(
+      '.send-deliveries-group',
+    ) as HTMLElement;
+    expect(group.textContent).toContain('Ana Motoboy');
+    expect(group.textContent).toContain('(11) 98888-7777');
+    expect(group.textContent).toContain('2 pedido(s) · 2 volume(s)');
+
+    const rows = Array.from(group.querySelectorAll<HTMLElement>('.send-deliveries-order'));
+    expect(rows).toHaveLength(2);
+    expect(rows[0].querySelector('.send-deliveries-order-code')!.textContent).toContain('#ANA1');
+    expect(rows[0].textContent).toContain('Maria Silva');
+    expect(rows[0].textContent).toContain('Rua das Flores, 100 - Centro');
+    expect(rows[1].textContent).toContain('João Souza');
+
+    const check = rows[0].querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+    expect(check.checked).toBe(false);
+    expect(rows[0].querySelector('label')!.textContent)
+      .toContain('Pedido separado e identificado para este motoboy');
+  });
+
+  it('keeps the final action disabled until every order and the physical confirmation are checked', () => {
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({ id: 'ana-1', code: 'ANA1', createdAtUtc: '2026-08-04T12:00:00Z' }),
+        buildDeliveryOrder({ id: 'ana-2', code: 'ANA2', createdAtUtc: '2026-08-04T11:00:00Z' }),
+        buildDeliveryOrder({
+          id: 'bruno-1',
+          code: 'BRU1',
+          deliveryDriverId: 'driver-bruno',
+          deliveryDriverName: 'Bruno Motoboy',
+          createdAtUtc: '2026-08-04T10:00:00Z',
+        }),
+      ],
+      [
+        buildDriver(),
+        buildDriver({
+          id: 'link-bruno',
+          deliveryDriverId: 'driver-bruno',
+          name: 'Bruno Motoboy',
+          whatsAppPhoneNumber: '11988887778',
+        }),
+      ],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.send-deliveries-dialog') as HTMLElement;
+    const confirmButton = dialog.querySelector<HTMLButtonElement>(
+      '.confirm-actions .btn-confirm',
+    )!;
+    const status = dialog.querySelector<HTMLElement>('#send-deliveries-check-status')!;
+
+    expect(confirmButton.disabled).toBe(true);
+    expect(confirmButton.getAttribute('aria-disabled')).toBe('true');
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.textContent).toContain('0 de 3 pedido(s) conferido(s)');
+
+    component.setSendOrderChecked('ana-1', true);
+    fixture.detectChanges();
+    expect(confirmButton.disabled).toBe(true);
+
+    // The global confirmation is ignored while any order is still unchecked.
+    component.setSendDeliveriesConfirmed(true);
+    expect(component.sendDeliveriesConfirmed()).toBe(false);
+    expect(confirmButton.disabled).toBe(true);
+
+    component.setSendOrderChecked('ana-2', true);
+    component.setSendOrderChecked('bruno-1', true);
+    fixture.detectChanges();
+    expect(confirmButton.disabled).toBe(true);
+    expect(status.textContent).toContain('Marque a confirmação física');
+
+    component.setSendDeliveriesConfirmed(true);
+    fixture.detectChanges();
+    expect(confirmButton.disabled).toBe(false);
+    expect(confirmButton.getAttribute('aria-disabled')).toBeNull();
+
+    confirmButton.click();
+    fixture.detectChanges();
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes)
+      .toHaveBeenCalledWith(['ana-1', 'ana-2', 'bruno-1'], true);
+  });
+
+  it('prints a single motoboy manifest and clears the temporary print portal', () => {
+    const printSpy = jest.spyOn(window, 'print').mockImplementation(() => undefined);
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({
+          id: 'ana-1',
+          code: 'ANA1',
+          customerName: 'Maria Silva',
+          addressSummary: 'Rua das Flores, 100 - Centro',
+          createdAtUtc: '2026-08-04T12:00:00Z',
+        }),
+        buildDeliveryOrder({
+          id: 'ana-2',
+          code: 'ANA2',
+          customerName: 'João Souza',
+          addressSummary: 'Av. Central, 250 - Jardim',
+          createdAtUtc: '2026-08-04T11:00:00Z',
+        }),
+        buildDeliveryOrder({
+          id: 'bruno-1',
+          code: 'BRU1',
+          deliveryDriverId: 'driver-bruno',
+          deliveryDriverName: 'Bruno Motoboy',
+          createdAtUtc: '2026-08-04T10:00:00Z',
+        }),
+      ],
+      [
+        buildDriver(),
+        buildDriver({
+          id: 'link-bruno',
+          deliveryDriverId: 'driver-bruno',
+          name: 'Bruno Motoboy',
+          whatsAppPhoneNumber: '11988887778',
+        }),
+      ],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    component.setSendOrderChecked('ana-1', true);
+    fixture.detectChanges();
+
+    const groupButtons = fixture.nativeElement.querySelectorAll<HTMLButtonElement>(
+      '.send-deliveries-group .btn-print-manifest',
+    );
+    expect(groupButtons).toHaveLength(2);
+    groupButtons[0].click();
+
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    expect(document.body.classList.contains('printing-send-manifests')).toBe(true);
+
+    const manifests = document.querySelectorAll<HTMLElement>(
+      '.send-manifests-print-portal .send-manifest',
+    );
+    expect(manifests).toHaveLength(1);
+    const manifest = manifests[0];
+    expect(manifest.querySelector('.send-manifest-driver')!.textContent).toContain('Ana Motoboy');
+    expect(manifest.querySelector('.send-manifest-phone')!.textContent)
+      .toContain('(11) 98888-7777');
+    expect(manifest.querySelector('.send-manifest-total')!.textContent)
+      .toContain('2 pedido(s)');
+    expect(manifest.textContent).toContain('#ANA1');
+    expect(manifest.textContent).toContain('#ANA2');
+    expect(manifest.textContent).not.toContain('#BRU1');
+    expect(manifest.textContent).toContain('Maria Silva');
+    expect(manifest.textContent).toContain('Rua das Flores, 100 - Centro');
+    expect(manifest.querySelectorAll('.send-manifest-check')).toHaveLength(2);
+    expect(manifest.querySelector('.send-manifest-check.is-checked')).not.toBeNull();
+    expect(manifest.textContent).toContain('Conferido');
+
+    window.dispatchEvent(new Event('afterprint'));
+    expect(document.querySelector('.send-manifests-print-portal')).toBeNull();
+    expect(document.body.classList.contains('printing-send-manifests')).toBe(false);
+  });
+
+  it('prints every motoboy manifest in its own section without mixing orders', () => {
+    const printSpy = jest.spyOn(window, 'print').mockImplementation(() => undefined);
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({ id: 'ana-1', code: 'ANA1', createdAtUtc: '2026-08-04T12:00:00Z' }),
+        buildDeliveryOrder({ id: 'ana-2', code: 'ANA2', createdAtUtc: '2026-08-04T11:00:00Z' }),
+        buildDeliveryOrder({
+          id: 'bruno-1',
+          code: 'BRU1',
+          deliveryDriverId: 'driver-bruno',
+          deliveryDriverName: 'Bruno Motoboy',
+          createdAtUtc: '2026-08-04T10:00:00Z',
+        }),
+      ],
+      [
+        buildDriver(),
+        buildDriver({
+          id: 'link-bruno',
+          deliveryDriverId: 'driver-bruno',
+          name: 'Bruno Motoboy',
+          whatsAppPhoneNumber: '11988887778',
+        }),
+      ],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    fixture.detectChanges();
+
+    const printAll = fixture.nativeElement.querySelector<HTMLButtonElement>(
+      '.send-deliveries-actions .btn-print-all',
+    )!;
+    printAll.click();
+
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    const manifests = Array.from(
+      document.querySelectorAll<HTMLElement>('.send-manifests-print-portal .send-manifest'),
+    );
+    expect(manifests).toHaveLength(2);
+    expect(manifests[0].textContent).toContain('Ana Motoboy');
+    expect(manifests[0].textContent).toContain('#ANA1');
+    expect(manifests[0].textContent).not.toContain('#BRU1');
+    expect(manifests[1].textContent).toContain('Bruno Motoboy');
+    expect(manifests[1].textContent).toContain('#BRU1');
+    expect(manifests[1].textContent).not.toContain('#ANA1');
+  });
+
+  it('requires a new physical confirmation before resending already shared orders', () => {
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({ id: 'pending', code: 'PEND', createdAtUtc: '2026-08-04T12:00:00Z' }),
+        buildDeliveryOrder({
+          id: 'sent',
+          code: 'SENT',
+          deliveryRouteId: 'route-1',
+          deliveryRouteStatus: 1,
+          createdAtUtc: '2026-08-04T11:00:00Z',
+        }),
+      ],
+      [buildDriver()],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    component.setSendOrderChecked('pending', true);
+    component.setSendDeliveriesConfirmed(true);
+    expect(component.canSendDeliveries()).toBe(true);
+
+    component.toggleIncludeAlreadySent(true);
+    expect(component.sendDeliveriesOrderIds()).toEqual(['pending', 'sent']);
+    expect(component.sendDeliveriesConfirmed()).toBe(false);
+    expect(component.isSendOrderChecked('sent')).toBe(false);
+    expect(component.isSendOrderChecked('pending')).toBe(true);
+    expect(component.canSendDeliveries()).toBe(false);
+
+    component.setSendOrderChecked('sent', true);
+    expect(component.canSendDeliveries()).toBe(false);
+
+    component.setSendDeliveriesConfirmed(true);
+    expect(component.canSendDeliveries()).toBe(true);
+  });
+
+  it('keeps per-driver printing and WhatsApp actions in the result dialog', () => {
+    jest.spyOn(window, 'print').mockImplementation(() => undefined);
+    stubSendDeliveriesData(
+      [buildDeliveryOrder({ id: 'ana-1', code: 'ANA1' })],
+      [buildDriver()],
+    );
+    deliveryRouteServiceMock.sendDeliveryRoutes.mockReturnValue(of({
+      forbidden: false,
+      orderNotEligible: false,
+      driverNotAvailable: false,
+      conflict: false,
+      groups: [{
+        storeDeliveryDriverId: 'link-ana',
+        deliveryDriverId: 'driver-ana',
+        driverName: 'Ana Motoboy',
+        whatsAppPhoneNumber: '11988887777',
+        whatsAppUrl: 'https://wa.me/5511988887777?text=rota-ana',
+        shareUrl: 'https://urbeat.test/rota/ana',
+        message: 'Rota da Ana',
+        orderCount: 1,
+        totalStops: 1,
+        route: {
+          id: 'route-ana',
+          deliveryDriverId: 'driver-ana',
+          driverName: 'Ana Motoboy',
+          status: 1,
+          createdAtUtc: '2026-10-27T12:00:00Z',
+          expiresAtUtc: '2026-10-28T00:00:00Z',
+          totalStops: 1,
+          deliveredStops: 0,
+          orders: [{
+            orderId: 'ana-1',
+            sequence: 1,
+            code: 'ANA1',
+            customerName: 'Maria Silva',
+            addressSummary: 'Rua das Flores, 100 - Centro',
+            status: OrderStatus.OnDelivery,
+            isDelivered: false,
+            canDeliver: true,
+          }],
+        },
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    checkAllSendOrders(component);
+    component.confirmSendDeliveries();
+    fixture.detectChanges();
+
+    const resultGroup = fixture.nativeElement.querySelector('.send-result-group') as HTMLElement;
+    expect(resultGroup.textContent).toContain('Ana Motoboy');
+    expect(resultGroup.textContent).toContain('(11) 98888-7777');
+    const resultOrder = resultGroup.querySelector<HTMLElement>('.send-result-order')!;
+    expect(resultOrder.textContent).toContain('#ANA1');
+    expect(resultOrder.textContent).toContain('Maria Silva');
+    expect(resultOrder.textContent).toContain('Rua das Flores, 100 - Centro');
+    expect(resultGroup.textContent).toContain('1 novo(s) · 1 volume(s) na rota');
+    expect(resultGroup.querySelector('.btn-whatsapp')).not.toBeNull();
+
+    const printButton = resultGroup.querySelector<HTMLButtonElement>('.btn-print-manifest')!;
+    expect(printButton.getAttribute('aria-label')).toBe('Imprimir manifesto de Ana Motoboy');
+    printButton.click();
+
+    const manifest = document.querySelector<HTMLElement>(
+      '.send-manifests-print-portal .send-manifest',
+    );
+    expect(manifest).not.toBeNull();
+    expect(manifest!.textContent).toContain('#ANA1');
+    expect(manifest!.textContent).toContain('Maria Silva');
+    expect(manifest!.textContent).toContain('Rua das Flores, 100 - Centro');
+    expect(window.print).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads every OnDelivery page so more than 50 orders are never omitted from the send batch', () => {
+    const pageSize = 50;
+    const orders = Array.from({ length: 120 }, (_, index) => buildDeliveryOrder({
+      id: `order-${index + 1}`,
+      code: `C${String(index + 1).padStart(3, '0')}`,
+      deliveryDriverId: index < 60 ? 'driver-ana' : 'driver-bruno',
+      deliveryDriverName: index < 60 ? 'Ana Motoboy' : 'Bruno Motoboy',
+      createdAtUtc: new Date(Date.UTC(2026, 7, 4, 12, 0, 0) - index * 60_000).toISOString(),
+    }));
+    const requestedPages: number[] = [];
+
+    orderServiceMock.getStoreOrders.mockImplementation(({ status, page = 1 }: any) => {
+      if (status !== OrderStatus.OnDelivery) {
+        return of({ page, pageSize, totalItems: 0, totalPages: 0, items: [] });
+      }
+
+      requestedPages.push(page);
+      return of({
+        page,
+        pageSize,
+        totalItems: orders.length,
+        totalPages: Math.ceil(orders.length / pageSize),
+        items: orders.slice((page - 1) * pageSize, page * pageSize),
+      });
+    });
+    deliveryRouteServiceMock.sendDeliveryRoutes.mockReturnValue(of({
+      forbidden: false,
+      orderNotEligible: false,
+      driverNotAvailable: false,
+      conflict: false,
+      groups: [],
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(requestedPages).toEqual([1, 2, 3]);
+    expect(component.orders()).toHaveLength(120);
+    expect(component.sendDeliveriesGroups().map((group) => group.deliveryDriverId))
+      .toEqual(['driver-ana', 'driver-bruno']);
+
+    component.openSendDeliveries();
+    checkAllSendOrders(component);
+    component.confirmSendDeliveries();
+
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes).toHaveBeenCalledTimes(1);
+    const [sentOrderIds, physicalConfirmation] =
+      deliveryRouteServiceMock.sendDeliveryRoutes.mock.calls[0];
+    expect(physicalConfirmation).toBe(true);
+    expect(sentOrderIds).toHaveLength(120);
+    expect([...sentOrderIds].sort()).toEqual(orders.map((order) => order.id).sort());
   });
 });

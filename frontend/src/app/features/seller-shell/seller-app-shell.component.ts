@@ -104,7 +104,6 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
     { label: 'Pedidos', route: '/app/pedidos', icon: 'clipboard-outline', badge: true },
     { label: 'Cardápio', route: '/app/cardapio/categorias', icon: 'restaurant-outline' },
     { label: 'Motoboys', route: '/app/entregadores', icon: 'bicycle-outline' },
-    { label: 'Rotas', route: '/app/rotas', icon: 'map-outline' },
     { label: 'Clientes', route: '/app/clientes', icon: 'people-outline' },
   ];
 

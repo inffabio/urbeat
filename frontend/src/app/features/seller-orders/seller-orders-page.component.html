@@ -1,5 +1,5 @@
 <section class="orders-page">
-  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">{{ activePeriodTitle() }}</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><button type="button" class="btn-soft orders-window-toggle" (click)="toggleOrdersWindow()"><i class="bi" [class.bi-pin-angle]="isDetachedRoute()" [class.bi-window-stack]="!isDetachedRoute()"></i> {{ isDetachedRoute() ? 'Fixar ao Dashboard' : 'Separar tela pedidos' }}</button>@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
+  <header class="topbar"><div><div class="page-title-wrap"><h1 class="page-title">{{ activePeriodTitle() }}</h1></div><p class="page-subtitle">Acompanhe e atualize os pedidos da sua loja.</p></div><div class="top-actions"><button type="button" class="btn-soft send-deliveries-trigger" (click)="openSendDeliveries($event)" [disabled]="pendingSendOrderCount() === 0"><i class="bi bi-send" aria-hidden="true"></i> Enviar entregas @if (pendingSendOrderCount() > 0) {<span class="send-deliveries-count">{{ pendingSendOrderCount() }}</span>}</button><button type="button" class="btn-soft orders-window-toggle" (click)="toggleOrdersWindow()"><i class="bi" [class.bi-pin-angle]="isDetachedRoute()" [class.bi-window-stack]="!isDetachedRoute()"></i> {{ isDetachedRoute() ? 'Fixar ao Dashboard' : 'Separar tela pedidos' }}</button>@if (isWindows) {<button type="button" class="btn-soft kiosk-toggle" (click)="toggleFullscreen()" [attr.aria-pressed]="isFullscreen()" [attr.aria-label]="isFullscreen() ? 'Sair do modo tela cheia' : 'Ativar modo tela cheia'"><i class="bi" [class.bi-fullscreen-exit]="isFullscreen()" [class.bi-arrows-fullscreen]="!isFullscreen()"></i> {{ isFullscreen() ? 'Sair da tela cheia' : 'Tela cheia' }}</button>}<button type="button" class="btn-soft" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div></header>
   <div class="notice"><i class="bi bi-check-circle"></i><span>Pedidos recebidos em tempo real.</span></div>
 
   @if (automaticPrintStatus(); as printStatus) {
@@ -225,6 +225,284 @@
   </div>
 }
 
+@if (sendDeliveriesDialogOpen()) {
+  <div class="confirm-overlay send-deliveries-overlay" (click)="closeSendDeliveries()">
+    <div
+      class="confirm-modal send-deliveries-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="send-deliveries-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+      (keydown.escape)="closeSendDeliveries()"
+    >
+      <div class="send-deliveries-header">
+        <h2 id="send-deliveries-title">Enviar entregas</h2>
+        <button type="button" class="details-close" (click)="closeSendDeliveries()" aria-label="Fechar envio de entregas">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <p class="send-deliveries-intro">
+        Confira fisicamente cada pedido antes de preparar os links. Cada motoboy recebe um link
+        único e o WhatsApp exige que você confirme o envio de cada mensagem.
+      </p>
+
+      @if (includedSendGroups().length === 0) {
+        <p class="send-deliveries-empty">Nenhum pedido em entrega aguardando envio.</p>
+      } @else {
+        <ul class="send-deliveries-groups">
+          @for (group of includedSendGroups(); track group.deliveryDriverId) {
+            <li class="send-deliveries-group" [attr.data-driver-id]="group.deliveryDriverId">
+              <div class="send-deliveries-group-head">
+                <div class="send-deliveries-driver">
+                  <strong>{{ group.driverName }}</strong>
+                  @if (sendGroupPhone(group); as phone) {
+                    <span class="send-deliveries-driver-phone">
+                      <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                      <span>WhatsApp {{ phone }}</span>
+                    </span>
+                  } @else {
+                    <span class="send-deliveries-driver-phone is-missing">
+                      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                      <span>WhatsApp não cadastrado</span>
+                    </span>
+                  }
+                </div>
+                <span class="send-deliveries-volume">
+                  {{ group.selectedOrders.length }} pedido(s) · {{ group.selectedOrders.length }} volume(s)
+                </span>
+              </div>
+
+              <ul class="send-deliveries-order-list">
+                @for (order of group.selectedOrders; track order.id) {
+                  <li class="send-deliveries-order" [attr.data-order-id]="order.id">
+                    <div class="send-deliveries-order-info" [id]="'send-order-info-' + order.id">
+                      <span class="send-deliveries-order-code">#{{ order.code }}</span>
+                      <span class="send-deliveries-order-customer">{{ sendOrderCustomer(order) }}</span>
+                      <span class="send-deliveries-order-address">{{ sendOrderAddress(order) }}</span>
+                    </div>
+                    <label class="send-deliveries-check">
+                      <input
+                        type="checkbox"
+                        [id]="'send-check-' + order.id"
+                        [checked]="isSendOrderChecked(order.id)"
+                        [attr.aria-describedby]="'send-order-info-' + order.id"
+                        (change)="setSendOrderChecked(order.id, $any($event.target).checked)"
+                      />
+                      <span>Pedido separado e identificado para este motoboy</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+
+              <div class="send-deliveries-group-actions">
+                <button
+                  type="button"
+                  class="btn-print-manifest"
+                  (click)="printSendDeliveriesManifest(group)"
+                  [attr.aria-label]="'Imprimir manifesto de ' + group.driverName"
+                >
+                  <i class="bi bi-printer" aria-hidden="true"></i>
+                  Imprimir manifesto
+                </button>
+              </div>
+
+              @if (!includeAlreadySent() && group.alreadySentOrders.length > 0) {
+                <small class="send-deliveries-hint">
+                  {{ group.alreadySentOrders.length }} pedido(s) deste motoboy já estão em um link ativo.
+                </small>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (alreadySentOrderCount() > 0) {
+        <label class="send-deliveries-resend" for="send-deliveries-resend">
+          <input
+            id="send-deliveries-resend"
+            type="checkbox"
+            [checked]="includeAlreadySent()"
+            (change)="toggleIncludeAlreadySent($any($event.target).checked)"
+          />
+          <span>Reenviar também os {{ alreadySentOrderCount() }} pedido(s) já compartilhado(s)</span>
+        </label>
+      }
+
+      @if (unassignedOnDeliveryOrders().length > 0) {
+        <p class="send-deliveries-warning" role="status">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          {{ unassignedOnDeliveryOrders().length }} pedido(s) em entrega sem motoboy não serão enviados.
+          <a routerLink="/app/entregadores">Cadastrar motoboy</a>
+        </p>
+      }
+
+      @if (includedSendGroups().length > 0) {
+        <div class="send-deliveries-conference">
+          <label class="send-deliveries-confirm" for="send-deliveries-confirm">
+            <input
+              id="send-deliveries-confirm"
+              type="checkbox"
+              [checked]="sendDeliveriesConfirmed()"
+              (change)="setSendDeliveriesConfirmed($any($event.target).checked)"
+              aria-describedby="send-deliveries-check-status"
+            />
+            <span>
+              Conferi fisicamente todos os pedidos e confirmei que estão separados para o motoboy correto
+            </span>
+          </label>
+          <p
+            id="send-deliveries-check-status"
+            class="send-deliveries-check-status"
+            role="status"
+            aria-live="polite"
+          >
+            {{ sendDeliveriesConferenceStatus() }}
+          </p>
+        </div>
+      }
+
+      <div class="confirm-actions send-deliveries-actions">
+        <button
+          type="button"
+          class="btn-print-all"
+          (click)="printAllSendDeliveriesManifests()"
+          [disabled]="includedSendGroups().length === 0"
+        >
+          <i class="bi bi-printer" aria-hidden="true"></i>
+          Imprimir todos os manifestos
+        </button>
+        <button type="button" class="btn-cancel" (click)="closeSendDeliveries()">Cancelar</button>
+        <button
+          type="button"
+          class="btn-confirm"
+          (click)="confirmSendDeliveries()"
+          [disabled]="!canSendDeliveries()"
+          [attr.aria-disabled]="!canSendDeliveries() ? 'true' : null"
+          aria-describedby="send-deliveries-check-status"
+        >
+          {{ sendingDeliveries() ? 'Preparando links...' : 'Preparar links e abrir WhatsApp' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (sendDeliveriesResult(); as result) {
+  <div class="confirm-overlay send-result-overlay" (click)="closeSendDeliveriesResult()">
+    <div
+      class="confirm-modal send-result-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="send-result-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onDialogKeydown($event)"
+      (keydown.escape)="closeSendDeliveriesResult()"
+    >
+      <div class="send-deliveries-header">
+        <h2 id="send-result-title">Links prontos para envio</h2>
+        <button type="button" class="details-close" (click)="closeSendDeliveriesResult()" aria-label="Fechar links prontos">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <p class="send-deliveries-intro">
+        Cada motoboy recebeu um link único com os pedidos dele. Abra o WhatsApp e confirme o envio.
+      </p>
+
+      @if (result.groups.length === 0) {
+        <p class="send-deliveries-empty">{{ result.error || 'Nenhum link de entrega foi preparado.' }}</p>
+      } @else {
+        <ul class="send-result-groups">
+          @for (group of result.groups; track group.storeDeliveryDriverId) {
+            <li class="send-result-group" [attr.data-driver-id]="group.deliveryDriverId">
+              <div class="send-deliveries-group-head">
+                <div class="send-deliveries-driver">
+                  <strong>{{ group.driverName }}</strong>
+                  @if (resultGroupPhone(group); as phone) {
+                    <span class="send-deliveries-driver-phone">
+                      <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                      <span>WhatsApp {{ phone }}</span>
+                    </span>
+                  } @else {
+                    <span class="send-deliveries-driver-phone is-missing">
+                      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                      <span>WhatsApp não cadastrado</span>
+                    </span>
+                  }
+                </div>
+                <span class="send-deliveries-volume">
+                  {{ group.orderCount }} novo(s) · {{ group.totalStops }} volume(s) na rota
+                </span>
+              </div>
+
+              @if (group.route.orders.length > 0) {
+                <ul class="send-result-orders">
+                  @for (stop of group.route.orders; track stop.orderId) {
+                    <li class="send-result-order" [attr.data-order-id]="stop.orderId">
+                      <span class="send-result-order-code">#{{ stop.code }}</span>
+                      <span class="send-result-order-customer">
+                        {{ stop.customerName || 'Cliente não identificado' }}
+                      </span>
+                      <span class="send-result-order-address">
+                        {{ stop.addressSummary || 'Endereço no detalhe do pedido' }}
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (group.message) {
+                <p class="send-deliveries-message">{{ group.message }}</p>
+              }
+
+              <div class="send-result-actions">
+                @if (group.whatsAppUrl) {
+                  <button type="button" class="btn-whatsapp" (click)="openWhatsAppForGroup(group)">
+                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                    Abrir WhatsApp para {{ group.driverName }}
+                  </button>
+                } @else {
+                  <p class="send-deliveries-warning">
+                    Sem WhatsApp cadastrado. Copie o link e envie manualmente.
+                  </p>
+                }
+                <button
+                  type="button"
+                  class="btn-print-manifest"
+                  (click)="printSendResultManifest(group)"
+                  [attr.aria-label]="'Imprimir manifesto de ' + group.driverName"
+                >
+                  <i class="bi bi-printer" aria-hidden="true"></i>
+                  Imprimir manifesto
+                </button>
+                <button type="button" class="btn-copy-link" (click)="copyDeliveryRouteLink(group)">
+                  Copiar link
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="confirm-actions send-deliveries-actions">
+        <button
+          type="button"
+          class="btn-print-all"
+          (click)="printAllSendResultManifests()"
+          [disabled]="result.groups.length === 0"
+        >
+          <i class="bi bi-printer" aria-hidden="true"></i>
+          Imprimir todos os manifestos
+        </button>
+        <button type="button" class="btn-confirm" (click)="closeSendDeliveriesResult()">Fechar</button>
+      </div>
+    </div>
+  </div>
+}
+
 @if (selectedOrder(); as selected) {
   <div class="order-details-overlay" (click)="closeOrderDetails()">
     <div
@@ -313,7 +591,6 @@
                       {{ sharingIndividualLink() ? 'Gerando link...' : 'Compartilhar entrega' }}
                     </button>
                   }
-                  <a class="driver-action route-manage-link" routerLink="/app/rotas">Criar rota</a>
                 }
               </div>
             }

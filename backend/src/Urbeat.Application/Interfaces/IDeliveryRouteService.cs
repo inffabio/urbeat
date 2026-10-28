@@ -43,6 +43,17 @@ public interface IDeliveryRouteService
         string? ipAddress,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Groups the selected orders by their assigned motoboy, creates or reuses one active route per
+    /// motoboy and rotates the public token, returning one absolute link and WhatsApp message per
+    /// driver. Orders from different drivers are never mixed in the same link.
+    /// </summary>
+    Task<SendDeliveryRoutesResultDto> SendBatchesAsync(
+        Guid sellerUserId,
+        SendDeliveryRoutesRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     Task<PublicDeliveryRouteAccessResultDto> GetPublicRouteAsync(
         string token,
         CancellationToken cancellationToken = default);

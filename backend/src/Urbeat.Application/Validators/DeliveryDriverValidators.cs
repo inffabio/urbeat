@@ -116,3 +116,21 @@ public sealed class UpdateDeliveryRouteRequestDtoValidator : AbstractValidator<U
             .When(x => x.OrderIds.Count > 0);
     }
 }
+
+public sealed class SendDeliveryRoutesRequestDtoValidator
+    : AbstractValidator<SendDeliveryRoutesRequestDto>
+{
+    public SendDeliveryRoutesRequestDtoValidator()
+    {
+        RuleFor(x => x.OrderIds)
+            .NotEmpty()
+            .WithMessage("Selecione ao menos um pedido em entrega para enviar.");
+        RuleFor(x => x.OrderIds)
+            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .WithMessage("A seleção não pode conter pedidos duplicados.")
+            .When(x => x.OrderIds.Count > 0);
+        RuleFor(x => x.PhysicalConfirmation)
+            .Equal(true)
+            .WithMessage("Confirme fisicamente os pedidos antes de preparar os links de entrega.");
+    }
+}

@@ -29,6 +29,28 @@ describe('DeliveryRouteService', () => {
     request.flush({ shareUrl: 'https://urbeat.test/entrega/token' });
   });
 
+  it('sends a batch of orders and returns one share link per motoboy', () => {
+    service.sendDeliveryRoutes(['order-1', 'order-2'], true).subscribe((result) => {
+      expect(result.groups).toHaveLength(1);
+      expect(result.groups[0].shareUrl).toContain('/rota/token');
+    });
+
+    const request = httpMock.expectOne('/api/delivery-routes/store/send');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      orderIds: ['order-1', 'order-2'],
+      physicalConfirmation: true,
+    });
+    request.flush({
+      groups: [{
+        shareUrl: 'https://urbeat.test/rota/token',
+        driverName: 'Ana',
+        orderCount: 2,
+        totalStops: 2,
+      }],
+    });
+  });
+
   it('loads and confirms an individual public delivery link', () => {
     service.getPublicIndividualDelivery('token/1').subscribe();
     const load = httpMock.expectOne('/api/public/deliveries/token%2F1');

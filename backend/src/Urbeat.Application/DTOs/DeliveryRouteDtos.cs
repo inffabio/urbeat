@@ -101,6 +101,67 @@ public sealed class DeliveryRouteOperationResultDto
     public DeliveryRouteResponseDto? Route { get; init; }
 }
 
+/// <summary>
+/// Seller batch request to share every assigned delivery with the respective motoboy.
+/// The server groups the selected orders by their authoritative assignment; the caller never
+/// sends a driver id, so a driver from another store can never be targeted.
+/// </summary>
+public sealed class SendDeliveryRoutesRequestDto
+{
+    public IReadOnlyCollection<Guid> OrderIds { get; init; } = [];
+
+    /// <summary>
+    /// Operational declaration that the seller physically checked the selected volumes.
+    /// This is not a security proof; the server still requires it to be explicitly true so a
+    /// direct API call cannot skip the conference step by omitting the field.
+    /// </summary>
+    public bool PhysicalConfirmation { get; init; }
+}
+
+public sealed class SendDeliveryRouteGroupDto
+{
+    public Guid StoreDeliveryDriverId { get; init; }
+
+    public Guid DeliveryDriverId { get; init; }
+
+    public string DriverName { get; init; } = string.Empty;
+
+    public string? WhatsAppPhoneNumber { get; init; }
+
+    /// <summary>Absolute WhatsApp URL with the prepared message; null when no phone is configured.</summary>
+    public string? WhatsAppUrl { get; init; }
+
+    /// <summary>Absolute public route URL. Only this link is shared with the motoboy.</summary>
+    public string ShareUrl { get; init; } = string.Empty;
+
+    public string Message { get; init; } = string.Empty;
+
+    /// <summary>Orders newly included in this batch (excludes orders already in the route).</summary>
+    public int OrderCount { get; init; }
+
+    /// <summary>Total stops in the public link, including orders already shared before.</summary>
+    public int TotalStops { get; init; }
+
+    public DeliveryRouteResponseDto Route { get; init; } = new();
+}
+
+public sealed class SendDeliveryRoutesResultDto
+{
+    public bool Forbidden { get; init; }
+
+    public bool PhysicalConfirmationRequired { get; init; }
+
+    public bool OrderNotEligible { get; init; }
+
+    public bool DriverNotAvailable { get; init; }
+
+    public bool Conflict { get; init; }
+
+    public string? Error { get; init; }
+
+    public IReadOnlyCollection<SendDeliveryRouteGroupDto> Groups { get; init; } = [];
+}
+
 public sealed class ShareDeliveryRouteResultDto
 {
     public string ShareUrl { get; init; } = string.Empty;

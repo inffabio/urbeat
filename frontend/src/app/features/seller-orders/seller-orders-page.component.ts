@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { EMPTY, Observable, catchError, expand, forkJoin, map, of, toArray } from 'rxjs';
 import { DashboardPeriod, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange } from '../../core/utils/sao-paulo-date.helper';
 import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
@@ -15,8 +15,18 @@ import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { SellerDeliveryDriver } from '../../shared/models/delivery-driver.model';
-import { DeliveryRouteStatus } from '../../shared/models/delivery-route.model';
-import { OrderDetails, OrderItem, OrderSummary } from '../../shared/models/order.model';
+import {
+  DeliveryRouteStatus,
+  SendDeliveryRouteGroup,
+  SendDeliveryRoutesResult,
+} from '../../shared/models/delivery-route.model';
+import {
+  OrderDetails,
+  OrderItem,
+  OrderSummary,
+  PagedOrderSummary,
+} from '../../shared/models/order.model';
+import { formatBrazilianPhone } from '../../shared/utils/brazilian-phone.utils';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { OrderAcceptedForPrintingEvent } from '../seller-printing/seller-printing.models';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -50,6 +60,35 @@ type BoardAction =
   | { kind: 'advance'; label: string; nextStatus: OrderStatus; css: string }
   | { kind: 'complete'; label: string; css: string };
 
+interface SendDeliveriesGroup {
+  deliveryDriverId: string;
+  driverName: string;
+  orders: OrderSummary[];
+  pendingOrders: OrderSummary[];
+  alreadySentOrders: OrderSummary[];
+}
+
+interface SendDeliveriesSelection extends SendDeliveriesGroup {
+  selectedOrders: OrderSummary[];
+}
+
+/** Printable manifest row. Only the fields the seller needs for a physical hand-off. */
+interface SendDeliveriesManifestOrder {
+  orderId: string;
+  code: string;
+  customerName: string;
+  addressSummary: string;
+  checked: boolean;
+}
+
+/** One manifest per motoboy; printing several starts each driver on a new page. */
+interface SendDeliveriesManifest {
+  key: string;
+  driverName: string;
+  driverPhone: string;
+  orders: SendDeliveriesManifestOrder[];
+}
+
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
@@ -77,12 +116,15 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly prefetchSequence = new Map<string, number>();
   private retrySequence = 0;
   private selectedOrderTrigger: HTMLElement | null = null;
+  private sendDeliveriesTrigger: HTMLElement | null = null;
   private readonly targetOrderId = this.route.snapshot.queryParamMap.get('order');
   private orderStatusListener?: (payload: OrderStatusUpdateEvent) => void;
   private acceptedForPrintingListener?: (payload: OrderAcceptedForPrintingEvent) => void;
   private realtimeWasConnected = false;
   private keydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenChangeHandler?: () => void;
+  private printCleanupTimer?: ReturnType<typeof setTimeout>;
+  private readonly onAfterPrint = () => this.removePrintPortal();
 
   readonly isWindows = isWindowsPlatform();
   readonly automaticPrintStatus = this.automaticPrint.statusMessage;
@@ -112,6 +154,13 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly assignmentSelection = signal<string>('');
   readonly assignmentSaving = signal(false);
   readonly sharingIndividualLink = signal(false);
+  readonly sendDeliveriesDialogOpen = signal(false);
+  readonly sendingDeliveries = signal(false);
+  readonly includeAlreadySent = signal(false);
+  readonly sendDeliveriesResult = signal<SendDeliveryRoutesResult | null>(null);
+  /** Orders the seller physically checked for the current send batch. */
+  readonly checkedSendOrderIds = signal<ReadonlySet<string>>(new Set());
+  readonly sendDeliveriesConfirmed = signal(false);
 
   readonly activePeriodTitle = computed(() => {
     switch (this.selectedPeriod()) {
@@ -158,6 +207,112 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
   readonly assignableDrivers = computed(() =>
     this.deliveryDrivers().filter((driver) => driver.isActive),
+  );
+
+  readonly sendDeliveriesGroups = computed<SendDeliveriesGroup[]>(() => {
+    const groups = new Map<string, SendDeliveriesGroup>();
+
+    for (const order of this.orders()) {
+      if (!this.isSendableDelivery(order)) continue;
+      const deliveryDriverId = order.deliveryDriverId;
+      if (!deliveryDriverId) continue;
+
+      const driver = this.deliveryDrivers().find(
+        (item) => item.deliveryDriverId === deliveryDriverId,
+      );
+      let group = groups.get(deliveryDriverId);
+      if (!group) {
+        group = {
+          deliveryDriverId,
+          driverName: order.deliveryDriverName || driver?.name || 'Motoboy',
+          orders: [],
+          pendingOrders: [],
+          alreadySentOrders: [],
+        };
+        groups.set(deliveryDriverId, group);
+      }
+
+      group.orders.push(order);
+      if (this.isAlreadySent(order)) group.alreadySentOrders.push(order);
+      else group.pendingOrders.push(order);
+    }
+
+    return Array.from(groups.values());
+  });
+
+  readonly pendingSendOrderCount = computed(() =>
+    this.sendDeliveriesGroups().reduce(
+      (total, group) => total + group.pendingOrders.length,
+      0,
+    ),
+  );
+
+  readonly alreadySentOrderCount = computed(() =>
+    this.sendDeliveriesGroups().reduce(
+      (total, group) => total + group.alreadySentOrders.length,
+      0,
+    ),
+  );
+
+  readonly unassignedOnDeliveryOrders = computed(() =>
+    this.orders().filter((order) =>
+      order.status === OrderStatus.OnDelivery
+      && order.fulfillmentType === FulfillmentType.Delivery
+      && !order.deliveryDriverId
+      && !order.sellerCompletedAtUtc
+      && !order.deliveryConfirmedAtUtc,
+    ),
+  );
+
+  readonly includedSendGroups = computed<SendDeliveriesSelection[]>(() =>
+    this.sendDeliveriesGroups()
+      .map((group) => ({
+        ...group,
+        selectedOrders: this.includeAlreadySent()
+          ? group.orders
+          : group.pendingOrders,
+      }))
+      .filter((group) => group.selectedOrders.length > 0),
+  );
+
+  readonly sendDeliveriesOrderIds = computed(() =>
+    this.includedSendGroups().flatMap((group) =>
+      group.selectedOrders.map((order) => order.id),
+    ),
+  );
+
+  readonly sendDeliveriesCheckedCount = computed(() => {
+    const checked = this.checkedSendOrderIds();
+    return this.sendDeliveriesOrderIds().filter((orderId) => checked.has(orderId)).length;
+  });
+
+  readonly allSendDeliveriesOrdersChecked = computed(() => {
+    const orderIds = this.sendDeliveriesOrderIds();
+    if (orderIds.length === 0) return false;
+    const checked = this.checkedSendOrderIds();
+    return orderIds.every((orderId) => checked.has(orderId));
+  });
+
+  /** Accessible status announced while the seller checks the physical volumes. */
+  readonly sendDeliveriesConferenceStatus = computed(() => {
+    const total = this.sendDeliveriesOrderIds().length;
+    if (total === 0) return 'Nenhum pedido selecionado para envio.';
+
+    const checked = this.sendDeliveriesCheckedCount();
+    if (checked < total) {
+      return `${checked} de ${total} pedido(s) conferido(s). Marque cada pedido separado antes de preparar os links.`;
+    }
+    if (!this.sendDeliveriesConfirmed()) {
+      return 'Todos os pedidos foram conferidos. Marque a confirmação física para liberar o envio.';
+    }
+    return 'Conferência física completa. Você já pode preparar os links e abrir o WhatsApp.';
+  });
+
+  readonly canSendDeliveries = computed(() =>
+    this.sendDeliveriesOrderIds().length > 0
+    && this.allSendDeliveriesOrdersChecked()
+    && this.sendDeliveriesConfirmed()
+    && !this.sendingDeliveries(),
   );
 
   readonly pendingRequiresDriver = computed(() => {
@@ -280,6 +435,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
       this.fullscreenChangeHandler = undefined;
     }
+    this.removePrintPortal();
     if (this.ordersWindow.isDetachedRoute()) {
       // A route change destroys this view without the seller clicking
       // "Fixar ao Dashboard": tell the host to restore instead of leaving its
@@ -340,16 +496,13 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     const range = saoPauloPeriodRange(this.selectedPeriod());
 
     forkJoin(this.allStatuses.map((status) =>
-      this.orderService.getStoreOrders({
-        pageSize: 50,
-        status,
-        startDateUtc: range.startDateUtc,
-        endDateUtc: range.endDateUtc,
-      }),
+      this.loadStatusOrders(status, range.startDateUtc, range.endDateUtc),
     )).subscribe({
-      next: (results) => {
+      next: (pagesByStatus) => {
         if (sequence !== this.loadSequence) return;
-        const items = this.sortOrders(results.flatMap((r) => r.items));
+        const items = this.sortOrders(
+          pagesByStatus.flatMap((pages) => pages.flatMap((page) => page.items)),
+        );
         this.orders.set(items);
         this.syncDetailsFromSummaries(items);
         this.loading.set(false);
@@ -362,6 +515,47 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
     });
+  }
+
+  /**
+   * Loads every page of the given status. OnDelivery is fully paginated because the batch send
+   * must never silently omit deliveries beyond the first page; the other columns keep the
+   * existing single-page behavior to avoid pulling the whole history on every refresh.
+   */
+  private loadStatusOrders(
+    status: OrderStatus,
+    startDateUtc: string | undefined,
+    endDateUtc: string | undefined,
+  ): Observable<PagedOrderSummary[]> {
+    const request = (page: number) =>
+      this.orderService.getStoreOrders({
+        page,
+        pageSize: 50,
+        status,
+        startDateUtc,
+        endDateUtc,
+      });
+
+    const firstPage = request(1);
+    if (status !== OrderStatus.OnDelivery) {
+      return firstPage.pipe(map((result) => [result]));
+    }
+
+    // Track the requested page locally: a malformed/echoed response can never make `expand`
+    // request the same page forever, and `totalPages` bounds the loop.
+    let requestedPage = 1;
+    return firstPage.pipe(
+      expand((result) => {
+        const pageSize = result.pageSize > 0 ? result.pageSize : 50;
+        const totalPages = result.totalPages
+          ?? Math.ceil((result.totalItems ?? 0) / pageSize);
+        if (!Number.isFinite(totalPages) || totalPages < 1) return EMPTY;
+        if (requestedPage >= totalPages) return EMPTY;
+        requestedPage += 1;
+        return request(requestedPage);
+      }),
+      toArray(),
+    );
   }
 
   private loadOrderItems(orders: OrderSummary[], sequence: number): void {
@@ -904,6 +1098,381 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     this.deliveryDriverService.listStoreDrivers().subscribe({
       next: (drivers) => this.deliveryDrivers.set(drivers),
       error: () => this.deliveryDrivers.set([]),
+    });
+  }
+
+  private isSendableDelivery(order: OrderSummary): boolean {
+    return order.fulfillmentType === FulfillmentType.Delivery
+      && order.status === OrderStatus.OnDelivery
+      && !order.sellerCompletedAtUtc
+      && !order.deliveryConfirmedAtUtc;
+  }
+
+  private isAlreadySent(order: OrderSummary): boolean {
+    return order.deliveryRouteStatus === DeliveryRouteStatus.Active;
+  }
+
+  openSendDeliveries(event?: Event): void {
+    if (this.pendingSendOrderCount() === 0) {
+      void this.toast.showError('Nenhum pedido em entrega aguardando envio.');
+      return;
+    }
+
+    const trigger = event?.currentTarget;
+    this.sendDeliveriesTrigger = trigger instanceof HTMLElement ? trigger : null;
+    this.includeAlreadySent.set(false);
+    this.resetSendDeliveriesChecklist();
+    this.sendDeliveriesDialogOpen.set(true);
+    this.focusDialogElement('.send-deliveries-dialog');
+  }
+
+  toggleIncludeAlreadySent(value: boolean): void {
+    if (this.includeAlreadySent() === value) return;
+
+    this.includeAlreadySent.set(value);
+    // A resend changes the physical batch: every order needs a fresh check and a fresh
+    // global confirmation, so previously shared orders are never auto-marked as checked.
+    this.sendDeliveriesConfirmed.set(false);
+    if (value) {
+      const alreadySentIds = new Set(
+        this.sendDeliveriesGroups().flatMap((group) =>
+          group.alreadySentOrders.map((order) => order.id),
+        ),
+      );
+      this.checkedSendOrderIds.update((ids) =>
+        new Set(Array.from(ids).filter((id) => !alreadySentIds.has(id))),
+      );
+    }
+  }
+
+  closeSendDeliveries(): void {
+    this.sendDeliveriesDialogOpen.set(false);
+    this.resetSendDeliveriesChecklist();
+    this.restoreSendDeliveriesFocus();
+  }
+
+  isSendOrderChecked(orderId: string): boolean {
+    return this.checkedSendOrderIds().has(orderId);
+  }
+
+  setSendOrderChecked(orderId: string, checked: boolean): void {
+    this.checkedSendOrderIds.update((ids) => {
+      const next = new Set(ids);
+      if (checked) next.add(orderId);
+      else next.delete(orderId);
+      return next;
+    });
+    // Removing an order invalidates the global "all checked" statement.
+    if (!checked) this.sendDeliveriesConfirmed.set(false);
+  }
+
+  setSendDeliveriesConfirmed(confirmed: boolean): void {
+    if (confirmed && !this.allSendDeliveriesOrdersChecked()) {
+      this.sendDeliveriesConfirmed.set(false);
+      return;
+    }
+    this.sendDeliveriesConfirmed.set(confirmed);
+  }
+
+  private resetSendDeliveriesChecklist(): void {
+    this.checkedSendOrderIds.set(new Set());
+    this.sendDeliveriesConfirmed.set(false);
+  }
+
+  /** WhatsApp/phone label for a confirmation group, formatted for reading aloud. */
+  sendGroupPhone(group: Pick<SendDeliveriesGroup, 'deliveryDriverId'>): string {
+    const driver = this.orderDriver(group.deliveryDriverId);
+    const phone = driver?.whatsAppPhoneNumber || driver?.phoneNumber || '';
+    return phone ? formatBrazilianPhone(phone) : '';
+  }
+
+  resultGroupPhone(group: SendDeliveryRouteGroup): string {
+    return formatBrazilianPhone(group.whatsAppPhoneNumber);
+  }
+
+  sendOrderCustomer(order: OrderSummary): string {
+    return order.customerName?.trim() || 'Cliente não identificado';
+  }
+
+  sendOrderAddress(order: OrderSummary): string {
+    const details = this.orderDetails().get(order.id);
+    const composed = details ? this.composeAddress(details) : '';
+    return composed || order.addressSummary?.trim() || 'Endereço no detalhe do pedido';
+  }
+
+  confirmSendDeliveries(): void {
+    if (!this.canSendDeliveries()) return;
+
+    const orderIds = this.sendDeliveriesOrderIds();
+    this.sendingDeliveries.set(true);
+    this.deliveryRouteService
+      .sendDeliveryRoutes(orderIds, this.sendDeliveriesConfirmed())
+      .subscribe({
+        next: (result) => {
+          this.sendingDeliveries.set(false);
+          this.sendDeliveriesDialogOpen.set(false);
+          this.resetSendDeliveriesChecklist();
+          this.sendDeliveriesResult.set(result);
+          this.applySendResult(result);
+          this.focusDialogElement('.send-result-dialog');
+
+          if (!result.groups.length) {
+            void this.toast.showError(result.error ?? 'Nenhum link de entrega foi preparado.');
+            return;
+          }
+
+          const label = result.groups.length === 1 ? 'link preparado' : 'links preparados';
+          void this.toast.showSuccess(`${result.groups.length} ${label}, um por motoboy.`);
+        },
+        error: (err) => {
+          this.sendingDeliveries.set(false);
+          void this.toast.showError(
+            err?.error?.error ?? 'Não foi possível preparar os links das entregas.',
+          );
+        },
+      });
+  }
+
+  closeSendDeliveriesResult(): void {
+    this.sendDeliveriesResult.set(null);
+    this.restoreSendDeliveriesFocus();
+  }
+
+  openWhatsAppForGroup(group: SendDeliveryRouteGroup): void {
+    if (!group.whatsAppUrl) {
+      void this.toast.showError('Cadastre o WhatsApp do motoboy antes de enviar.');
+      return;
+    }
+
+    const opened = window.open(group.whatsAppUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      void this.toast.showError(
+        'O navegador bloqueou a abertura do WhatsApp. Libere pop-ups para este site e tente novamente.',
+      );
+    }
+  }
+
+  copyDeliveryRouteLink(group: SendDeliveryRouteGroup): void {
+    if (!navigator.clipboard?.writeText) {
+      void this.toast.showError('Não foi possível copiar o link neste navegador.');
+      return;
+    }
+
+    navigator.clipboard.writeText(group.shareUrl).then(
+      () => void this.toast.showSuccess('Link da rota copiado.'),
+      () => void this.toast.showError('Não foi possível copiar o link da rota.'),
+    );
+  }
+
+  printSendDeliveriesManifest(group: SendDeliveriesSelection): void {
+    this.printManifests([this.buildSelectionManifest(group)]);
+  }
+
+  printAllSendDeliveriesManifests(): void {
+    const manifests = this.includedSendGroups().map((group) =>
+      this.buildSelectionManifest(group),
+    );
+    this.printManifests(manifests);
+  }
+
+  printSendResultManifest(group: SendDeliveryRouteGroup): void {
+    this.printManifests([this.buildResultManifest(group)]);
+  }
+
+  printAllSendResultManifests(): void {
+    const manifests = (this.sendDeliveriesResult()?.groups ?? []).map((group) =>
+      this.buildResultManifest(group),
+    );
+    this.printManifests(manifests);
+  }
+
+  private buildSelectionManifest(group: SendDeliveriesSelection): SendDeliveriesManifest {
+    return {
+      key: group.deliveryDriverId,
+      driverName: group.driverName,
+      driverPhone: this.sendGroupPhone(group),
+      orders: group.selectedOrders.map((order) => ({
+        orderId: order.id,
+        code: order.code,
+        customerName: this.sendOrderCustomer(order),
+        addressSummary: this.sendOrderAddress(order),
+        checked: this.isSendOrderChecked(order.id),
+      })),
+    };
+  }
+
+  private buildResultManifest(group: SendDeliveryRouteGroup): SendDeliveriesManifest {
+    const stops = [...(group.route?.orders ?? [])].sort((a, b) => a.sequence - b.sequence);
+    return {
+      key: group.storeDeliveryDriverId,
+      driverName: group.driverName,
+      driverPhone: this.resultGroupPhone(group),
+      orders: stops.map((stop) => ({
+        orderId: stop.orderId,
+        code: stop.code,
+        customerName: stop.customerName?.trim() || 'Cliente não identificado',
+        addressSummary: stop.addressSummary?.trim() || 'Endereço no detalhe do pedido',
+        // The printed result manifest is used at dispatch, so the box stays blank.
+        checked: false,
+      })),
+    };
+  }
+
+  /**
+   * Builds a print-only portal on `document.body` so page breaks are not clipped by the
+   * modal/overlay and no navigation or button is printed. Values are inserted with
+   * `textContent`, never HTML, and the portal is discarded right after printing.
+   */
+  private printManifests(manifests: SendDeliveriesManifest[]): void {
+    if (manifests.length === 0) return;
+
+    this.removePrintPortal();
+    const portal = document.createElement('div');
+    portal.className = 'send-manifests-print-portal';
+    portal.setAttribute('aria-hidden', 'true');
+    for (const manifest of manifests) {
+      portal.appendChild(this.createManifestElement(manifest));
+    }
+
+    document.body.appendChild(portal);
+    document.body.classList.add('printing-send-manifests');
+    window.addEventListener('afterprint', this.onAfterPrint);
+
+    try {
+      window.print();
+    } catch {
+      this.removePrintPortal();
+      return;
+    }
+
+    // Embedded webviews may not fire `afterprint`; drop the temporary DOM anyway.
+    this.printCleanupTimer = setTimeout(() => this.removePrintPortal(), 60_000);
+  }
+
+  private createManifestElement(manifest: SendDeliveriesManifest): HTMLElement {
+    const article = document.createElement('article');
+    article.className = 'send-manifest';
+
+    const header = document.createElement('header');
+    header.className = 'send-manifest-header';
+    header.appendChild(this.createPrintText('h1', 'send-manifest-title', 'Manifesto de entrega'));
+    header.appendChild(this.createPrintText('p', 'send-manifest-driver', manifest.driverName));
+    header.appendChild(this.createPrintText(
+      'p',
+      'send-manifest-phone',
+      manifest.driverPhone ? `WhatsApp: ${manifest.driverPhone}` : 'WhatsApp não cadastrado',
+    ));
+    header.appendChild(this.createPrintText(
+      'p',
+      'send-manifest-total',
+      `${manifest.orders.length} pedido(s) · ${manifest.orders.length} volume(s)`,
+    ));
+    article.appendChild(header);
+
+    const list = document.createElement('ol');
+    list.className = 'send-manifest-orders';
+    for (const order of manifest.orders) {
+      const item = document.createElement('li');
+      item.className = 'send-manifest-order';
+
+      const head = document.createElement('div');
+      head.className = 'send-manifest-order-head';
+      head.appendChild(this.createPrintText('span', 'send-manifest-code', `#${order.code}`));
+      const check = document.createElement('span');
+      check.className = order.checked ? 'send-manifest-check is-checked' : 'send-manifest-check';
+      check.textContent = 'Conferido';
+      head.appendChild(check);
+
+      item.appendChild(head);
+      item.appendChild(this.createPrintText('p', 'send-manifest-customer', order.customerName));
+      item.appendChild(this.createPrintText('p', 'send-manifest-address', order.addressSummary));
+      list.appendChild(item);
+    }
+    article.appendChild(list);
+
+    const footer = document.createElement('footer');
+    footer.className = 'send-manifest-footer';
+    footer.appendChild(this.createPrintText(
+      'p',
+      'send-manifest-confirmation',
+      `Conferi fisicamente os ${manifest.orders.length} pedido(s) e confirmei que estão separados para ${manifest.driverName}.`,
+    ));
+    footer.appendChild(this.createPrintText(
+      'p',
+      'send-manifest-signature',
+      'Assinatura: ________________________________   Data: ____/____/________',
+    ));
+    article.appendChild(footer);
+
+    return article;
+  }
+
+  private createPrintText(tag: string, className: string, text: string): HTMLElement {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  }
+
+  private removePrintPortal(): void {
+    window.removeEventListener('afterprint', this.onAfterPrint);
+    if (this.printCleanupTimer !== undefined) {
+      clearTimeout(this.printCleanupTimer);
+      this.printCleanupTimer = undefined;
+    }
+    document.body.classList.remove('printing-send-manifests');
+    document.querySelectorAll('.send-manifests-print-portal').forEach((node) => node.remove());
+  }
+
+  private applySendResult(result: SendDeliveryRoutesResult): void {
+    const routesByOrder = new Map<string, { routeId: string; status: DeliveryRouteStatus }>();
+    for (const group of result.groups) {
+      for (const stop of group.route?.orders ?? []) {
+        routesByOrder.set(stop.orderId, {
+          routeId: group.route.id,
+          status: group.route.status,
+        });
+      }
+    }
+
+    if (!routesByOrder.size) return;
+
+    this.orders.update((items) => items.map((order) => {
+      const route = routesByOrder.get(order.id);
+      return route
+        ? { ...order, deliveryRouteId: route.routeId, deliveryRouteStatus: route.status }
+        : order;
+    }));
+
+    this.orderDetails.update((details) => {
+      let changed = false;
+      const updated = new Map(details);
+      for (const [orderId, detail] of updated) {
+        const route = routesByOrder.get(orderId);
+        if (!route) continue;
+        updated.set(orderId, {
+          ...detail,
+          deliveryRouteId: route.routeId,
+          deliveryRouteStatus: route.status,
+        });
+        changed = true;
+      }
+      return changed ? updated : details;
+    });
+  }
+
+  private focusDialogElement(selector: string): void {
+    setTimeout(() => {
+      document.querySelector<HTMLElement>(selector)?.focus();
+    });
+  }
+
+  private restoreSendDeliveriesFocus(): void {
+    const trigger = this.sendDeliveriesTrigger;
+    this.sendDeliveriesTrigger = null;
+    if (!trigger) return;
+    setTimeout(() => {
+      if (trigger.isConnected) trigger.focus();
     });
   }
 
