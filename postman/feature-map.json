@@ -1,0 +1,851 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "id": "01",
+      "name": "Acesso e identidade",
+      "subfolders": [
+        "Cadastro",
+        "Login",
+        "Sessão",
+        "Confirmação e recuperação"
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Conta do cliente",
+      "subfolders": [
+        "Perfil",
+        "Endereços",
+        "Notificações"
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Descoberta e vitrine",
+      "subfolders": [
+        "Lojas",
+        "Cardápio",
+        "Tipos de culinária",
+        "Avaliações"
+      ]
+    },
+    {
+      "id": "04",
+      "name": "Loja e operação",
+      "subfolders": [
+        "Onboarding e perfil",
+        "Horários e abertura",
+        "Cobertura de entrega",
+        "Tipos de culinária"
+      ]
+    },
+    {
+      "id": "05",
+      "name": "Publicação e assinatura",
+      "subfolders": [
+        "Publicação",
+        "Assinatura"
+      ]
+    },
+    {
+      "id": "06",
+      "name": "Impressão e notificações",
+      "subfolders": [
+        "Configuração de impressão",
+        "Fila de impressão",
+        "Notificações do vendedor"
+      ]
+    },
+    {
+      "id": "07",
+      "name": "Cardápio e oferta",
+      "subfolders": [
+        "Categorias",
+        "Produtos",
+        "Adicionais e grupos"
+      ]
+    },
+    {
+      "id": "08",
+      "name": "Checkout e pedidos",
+      "subfolders": [
+        "Checkout",
+        "Pedidos do cliente",
+        "Pedidos da loja",
+        "Clientes da loja"
+      ]
+    },
+    {
+      "id": "09",
+      "name": "Pagamentos",
+      "subfolders": [
+        "Gateway da loja",
+        "Pagamentos do pedido"
+      ]
+    },
+    {
+      "id": "10",
+      "name": "Avaliações",
+      "subfolders": [
+        "Avaliações do pedido",
+        "Avaliações recebidas"
+      ]
+    },
+    {
+      "id": "11",
+      "name": "Entregas",
+      "subfolders": [
+        "Entregadores",
+        "Rotas de entrega",
+        "App do entregador",
+        "Links públicos de entrega"
+      ]
+    },
+    {
+      "id": "12",
+      "name": "Administração",
+      "subfolders": [
+        "Painel e planos",
+        "Assinaturas e cobranças",
+        "Parâmetros do sistema",
+        "Manutenção e importações",
+        "Conteúdo da landing page",
+        "Outbox"
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Webhooks",
+      "subfolders": [
+        "Mercado Pago",
+        "Asaas"
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Utilidades",
+      "subfolders": [
+        "Consulta de CEP"
+      ]
+    }
+  ],
+  "endpoints": {
+    "POST /api/auth/register/customer": {
+      "feature": "01",
+      "subfolder": "Cadastro"
+    },
+    "POST /api/auth/register/seller": {
+      "feature": "01",
+      "subfolder": "Cadastro"
+    },
+    "POST /api/auth/login/customer": {
+      "feature": "01",
+      "subfolder": "Login"
+    },
+    "POST /api/auth/login/seller": {
+      "feature": "01",
+      "subfolder": "Login"
+    },
+    "POST /api/auth/login/admin": {
+      "feature": "01",
+      "subfolder": "Login"
+    },
+    "POST /api/auth/login/driver": {
+      "feature": "01",
+      "subfolder": "Login"
+    },
+    "POST /api/auth/token": {
+      "feature": "01",
+      "subfolder": "Login"
+    },
+    "POST /api/auth/logout": {
+      "feature": "01",
+      "subfolder": "Sessão"
+    },
+    "POST /api/auth/refresh": {
+      "feature": "01",
+      "subfolder": "Sessão"
+    },
+    "POST /api/auth/email/confirm": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "POST /api/auth/email/confirm/{code}": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "POST /api/auth/email/resend-confirmation": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "POST /api/auth/forgot-password": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "POST /api/auth/reset-password": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "POST /api/auth/update-email": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "GET /api/auth/validate-reset-token": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
+    "GET /api/customer/home": {
+      "feature": "02",
+      "subfolder": "Perfil"
+    },
+    "PUT /api/customer/me": {
+      "feature": "02",
+      "subfolder": "Perfil"
+    },
+    "GET /api/customer/me": {
+      "feature": "02",
+      "subfolder": "Perfil"
+    },
+    "POST /api/customer/addresses": {
+      "feature": "02",
+      "subfolder": "Endereços"
+    },
+    "GET /api/customer/addresses": {
+      "feature": "02",
+      "subfolder": "Endereços"
+    },
+    "DELETE /api/customer/addresses/{addressId}": {
+      "feature": "02",
+      "subfolder": "Endereços"
+    },
+    "PUT /api/customer/addresses/{addressId}": {
+      "feature": "02",
+      "subfolder": "Endereços"
+    },
+    "GET /api/customer/notifications": {
+      "feature": "02",
+      "subfolder": "Notificações"
+    },
+    "PATCH /api/customer/notifications/{notificationId}/read": {
+      "feature": "02",
+      "subfolder": "Notificações"
+    },
+    "GET /api/public/stores": {
+      "feature": "03",
+      "subfolder": "Lojas"
+    },
+    "GET /api/public/stores/{storeId}": {
+      "feature": "03",
+      "subfolder": "Lojas"
+    },
+    "GET /api/public/stores/{storeId}/delivery-check": {
+      "feature": "03",
+      "subfolder": "Lojas"
+    },
+    "GET /api/public/stores/by-path/{storePath}": {
+      "feature": "03",
+      "subfolder": "Lojas"
+    },
+    "GET /api/public/stores/by-slug/{slug}": {
+      "feature": "03",
+      "subfolder": "Lojas"
+    },
+    "GET /api/public/stores/{storeId}/catalog/categories": {
+      "feature": "03",
+      "subfolder": "Cardápio"
+    },
+    "GET /api/public/stores/{storeId}/catalog/products": {
+      "feature": "03",
+      "subfolder": "Cardápio"
+    },
+    "GET /api/public/stores/{storeId}/catalog/products/featured": {
+      "feature": "03",
+      "subfolder": "Cardápio"
+    },
+    "GET /api/stores/cuisine-types": {
+      "feature": "03",
+      "subfolder": "Tipos de culinária"
+    },
+    "GET /api/public/stores/{storeId}/reviews": {
+      "feature": "03",
+      "subfolder": "Avaliações"
+    },
+    "GET /api/seller/panel": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "GET /api/seller/profile": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "PUT /api/seller/profile": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "POST /api/stores": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "PUT /api/stores/{storeId}": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "GET /api/stores/{storeId}/address": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "PUT /api/stores/{storeId}/address": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "GET /api/stores/my-store": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "POST /api/stores/upload-image": {
+      "feature": "04",
+      "subfolder": "Onboarding e perfil"
+    },
+    "GET /api/stores/{storeId}/business-hours": {
+      "feature": "04",
+      "subfolder": "Horários e abertura"
+    },
+    "PUT /api/stores/{storeId}/business-hours": {
+      "feature": "04",
+      "subfolder": "Horários e abertura"
+    },
+    "PATCH /api/stores/{storeId}/status": {
+      "feature": "04",
+      "subfolder": "Horários e abertura"
+    },
+    "GET /api/neighborhoods/cities": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "GET /api/neighborhoods/cities/{cityId}/map": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "GET /api/neighborhoods/cities/{cityId}/search": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "POST /api/neighborhoods/import-by-city": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "PATCH /api/stores/{storeId}/delivery-config": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "POST /api/stores/delivery-neighborhoods": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "GET /api/stores/delivery-neighborhoods": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "GET /api/stores/delivery-neighborhoods-by-store": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "GET /api/stores/delivery-times": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "POST /api/stores/delivery-times": {
+      "feature": "04",
+      "subfolder": "Cobertura de entrega"
+    },
+    "POST /api/stores/{storeId}/cuisine-types": {
+      "feature": "04",
+      "subfolder": "Tipos de culinária"
+    },
+    "GET /api/stores/{storeId}/cuisine-types": {
+      "feature": "04",
+      "subfolder": "Tipos de culinária"
+    },
+    "DELETE /api/stores/{storeId}/cuisine-types/{cuisineTypeId}": {
+      "feature": "04",
+      "subfolder": "Tipos de culinária"
+    },
+    "GET /api/stores/{storeId}/publish/summary": {
+      "feature": "05",
+      "subfolder": "Publicação"
+    },
+    "POST /api/stores/{storeId}/publish": {
+      "feature": "05",
+      "subfolder": "Publicação"
+    },
+    "GET /api/subscriptions/plans": {
+      "feature": "05",
+      "subfolder": "Assinatura"
+    },
+    "POST /api/subscriptions/contract": {
+      "feature": "05",
+      "subfolder": "Assinatura"
+    },
+    "GET /api/subscriptions/my": {
+      "feature": "05",
+      "subfolder": "Assinatura"
+    },
+    "GET /api/subscriptions/my/charges": {
+      "feature": "05",
+      "subfolder": "Assinatura"
+    },
+    "GET /api/printer-config/presets": {
+      "feature": "06",
+      "subfolder": "Configuração de impressão"
+    },
+    "GET /api/printer-config/store": {
+      "feature": "06",
+      "subfolder": "Configuração de impressão"
+    },
+    "PUT /api/printer-config/store": {
+      "feature": "06",
+      "subfolder": "Configuração de impressão"
+    },
+    "POST /api/printer-config/wifi-print": {
+      "feature": "06",
+      "subfolder": "Configuração de impressão"
+    },
+    "GET /api/seller/printing/jobs": {
+      "feature": "06",
+      "subfolder": "Fila de impressão"
+    },
+    "POST /api/seller/printing/jobs/{orderId}/result": {
+      "feature": "06",
+      "subfolder": "Fila de impressão"
+    },
+    "GET /api/seller/notifications": {
+      "feature": "06",
+      "subfolder": "Notificações do vendedor"
+    },
+    "PATCH /api/seller/notifications/{notificationId}/read": {
+      "feature": "06",
+      "subfolder": "Notificações do vendedor"
+    },
+    "POST /api/stores/{storeId}/categories": {
+      "feature": "07",
+      "subfolder": "Categorias"
+    },
+    "GET /api/stores/{storeId}/categories": {
+      "feature": "07",
+      "subfolder": "Categorias"
+    },
+    "PUT /api/stores/{storeId}/categories/{categoryId}": {
+      "feature": "07",
+      "subfolder": "Categorias"
+    },
+    "PUT /api/stores/{storeId}/categories/reorder": {
+      "feature": "07",
+      "subfolder": "Categorias"
+    },
+    "DELETE /api/stores/{storeId}/categories/{categoryId}": {
+      "feature": "07",
+      "subfolder": "Categorias"
+    },
+    "POST /api/stores/{storeId}/products": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "GET /api/stores/{storeId}/products": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "PUT /api/stores/{storeId}/products/{productId}": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "PATCH /api/stores/{storeId}/products/{productId}/availability": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "POST /api/stores/{storeId}/products/{productId}/images": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "POST /api/stores/{storeId}/products/batch": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "DELETE /api/stores/{storeId}/products/{productId}": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "GET /api/stores/{storeId}/products/option-groups": {
+      "feature": "07",
+      "subfolder": "Produtos"
+    },
+    "POST /api/stores/{storeId}/additionals": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "GET /api/stores/{storeId}/additionals": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "PUT /api/stores/{storeId}/additionals/{additionalId}": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "PATCH /api/stores/{storeId}/additionals/{additionalId}/status": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "DELETE /api/stores/{storeId}/additionals/{additionalId}": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "GET /api/stores/{storeId}/additionals/groups": {
+      "feature": "07",
+      "subfolder": "Adicionais e grupos"
+    },
+    "POST /api/checkout/preview": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/checkout/customer-verification/start": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/checkout/customer-verification/confirm": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/checkout/customer-verification/resend": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/checkout/customer-session": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/checkout/confirm": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "POST /api/orders": {
+      "feature": "08",
+      "subfolder": "Checkout"
+    },
+    "GET /api/orders/my": {
+      "feature": "08",
+      "subfolder": "Pedidos do cliente"
+    },
+    "GET /api/orders/{orderId}": {
+      "feature": "08",
+      "subfolder": "Pedidos do cliente"
+    },
+    "POST /api/orders/{orderId}/delivery-confirmation": {
+      "feature": "08",
+      "subfolder": "Pedidos do cliente"
+    },
+    "GET /api/orders/store": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "GET /api/orders/store/{orderId}": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "PATCH /api/orders/{orderId}/status": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "POST /api/orders/{orderId}/complete": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "PUT /api/orders/store/{orderId}/delivery-driver": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "DELETE /api/orders/store/{orderId}/delivery-driver": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "POST /api/orders/store/{orderId}/delivery-link": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "GET /api/orders/store/deliveries": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "GET /api/orders/store/report": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "GET /api/orders/store/customers": {
+      "feature": "08",
+      "subfolder": "Clientes da loja"
+    },
+    "PUT /api/orders/store/customers/{customerUserId}": {
+      "feature": "08",
+      "subfolder": "Clientes da loja"
+    },
+    "PATCH /api/orders/store/customers/{customerUserId}/status": {
+      "feature": "08",
+      "subfolder": "Clientes da loja"
+    },
+    "GET /api/stores/{storeId}/payment-gateway": {
+      "feature": "09",
+      "subfolder": "Gateway da loja"
+    },
+    "PUT /api/stores/{storeId}/payment-gateway": {
+      "feature": "09",
+      "subfolder": "Gateway da loja"
+    },
+    "DELETE /api/stores/{storeId}/payment-gateway": {
+      "feature": "09",
+      "subfolder": "Gateway da loja"
+    },
+    "POST /api/payments/order": {
+      "feature": "09",
+      "subfolder": "Pagamentos do pedido"
+    },
+    "GET /api/payments/order/{orderId}": {
+      "feature": "09",
+      "subfolder": "Pagamentos do pedido"
+    },
+    "GET /api/payments/order/{orderId}/history": {
+      "feature": "09",
+      "subfolder": "Pagamentos do pedido"
+    },
+    "GET /api/orders/{orderId}/review": {
+      "feature": "10",
+      "subfolder": "Avaliações do pedido"
+    },
+    "POST /api/orders/{orderId}/review": {
+      "feature": "10",
+      "subfolder": "Avaliações do pedido"
+    },
+    "GET /api/reviews/store": {
+      "feature": "10",
+      "subfolder": "Avaliações recebidas"
+    },
+    "POST /api/delivery-drivers": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "GET /api/delivery-drivers/store": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-drivers/store": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "PUT /api/delivery-drivers/{storeDriverId}": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "PATCH /api/delivery-drivers/{storeDriverId}/status": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-drivers/store/invite": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-drivers/store/{storeDriverId}/resend-invite": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-drivers/store/{storeDriverId}/revoke": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "DELETE /api/delivery-drivers/{storeDriverId}": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "GET /api/delivery-drivers/invites/{token}": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-drivers/invites/{token}/accept": {
+      "feature": "11",
+      "subfolder": "Entregadores"
+    },
+    "POST /api/delivery-routes/store": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "GET /api/delivery-routes/store": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "GET /api/delivery-routes/store/{routeId}": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "PUT /api/delivery-routes/store/{routeId}": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "POST /api/delivery-routes/store/{routeId}/share": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "POST /api/delivery-routes/store/{routeId}/revoke": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "POST /api/delivery-routes/store/send": {
+      "feature": "11",
+      "subfolder": "Rotas de entrega"
+    },
+    "GET /api/driver/stores": {
+      "feature": "11",
+      "subfolder": "App do entregador"
+    },
+    "GET /api/driver/orders": {
+      "feature": "11",
+      "subfolder": "App do entregador"
+    },
+    "GET /api/driver/orders/{orderId}": {
+      "feature": "11",
+      "subfolder": "App do entregador"
+    },
+    "POST /api/driver/orders/{orderId}/start": {
+      "feature": "11",
+      "subfolder": "App do entregador"
+    },
+    "POST /api/driver/orders/{orderId}/confirm-pin": {
+      "feature": "11",
+      "subfolder": "App do entregador"
+    },
+    "GET /api/public/deliveries/{token}": {
+      "feature": "11",
+      "subfolder": "Links públicos de entrega"
+    },
+    "POST /api/public/deliveries/{token}/deliver": {
+      "feature": "11",
+      "subfolder": "Links públicos de entrega"
+    },
+    "GET /api/public/delivery-routes/{token}": {
+      "feature": "11",
+      "subfolder": "Links públicos de entrega"
+    },
+    "POST /api/public/delivery-routes/{token}/stops/{sequence}/deliver": {
+      "feature": "11",
+      "subfolder": "Links públicos de entrega"
+    },
+    "GET /api/admin/dashboard": {
+      "feature": "12",
+      "subfolder": "Painel e planos"
+    },
+    "GET /api/admin/plans": {
+      "feature": "12",
+      "subfolder": "Painel e planos"
+    },
+    "POST /api/admin/plans": {
+      "feature": "12",
+      "subfolder": "Painel e planos"
+    },
+    "PUT /api/admin/plans/{planId}": {
+      "feature": "12",
+      "subfolder": "Painel e planos"
+    },
+    "PATCH /api/admin/plans/{planId}/status": {
+      "feature": "12",
+      "subfolder": "Painel e planos"
+    },
+    "POST /api/admin/subscriptions/status": {
+      "feature": "12",
+      "subfolder": "Assinaturas e cobranças"
+    },
+    "POST /api/admin/subscriptions/notifications/process": {
+      "feature": "12",
+      "subfolder": "Assinaturas e cobranças"
+    },
+    "GET /api/admin/system-parameters": {
+      "feature": "12",
+      "subfolder": "Parâmetros do sistema"
+    },
+    "GET /api/admin/system-parameters/{key}": {
+      "feature": "12",
+      "subfolder": "Parâmetros do sistema"
+    },
+    "PUT /api/admin/system-parameters/{key}": {
+      "feature": "12",
+      "subfolder": "Parâmetros do sistema"
+    },
+    "DELETE /api/admin/system-parameters/{key}": {
+      "feature": "12",
+      "subfolder": "Parâmetros do sistema"
+    },
+    "POST /api/admin/system-parameters/reload": {
+      "feature": "12",
+      "subfolder": "Parâmetros do sistema"
+    },
+    "POST /api/admin/delivery-neighborhoods": {
+      "feature": "12",
+      "subfolder": "Manutenção e importações"
+    },
+    "POST /api/admin/import-neighborhoods-rj": {
+      "feature": "12",
+      "subfolder": "Manutenção e importações"
+    },
+    "POST /api/admin/import-neighborhoods-google": {
+      "feature": "12",
+      "subfolder": "Manutenção e importações"
+    },
+    "POST /api/admin/migrate-images": {
+      "feature": "12",
+      "subfolder": "Manutenção e importações"
+    },
+    "GET /api/LandingPageContent": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "GET /api/LandingPageContent/section/{section}": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "POST /api/LandingPageContent": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "GET /api/LandingPageContent/{id}": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "PUT /api/LandingPageContent/{id}": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "DELETE /api/LandingPageContent/{id}": {
+      "feature": "12",
+      "subfolder": "Conteúdo da landing page"
+    },
+    "GET /api/outbox/summary": {
+      "feature": "12",
+      "subfolder": "Outbox"
+    },
+    "GET /api/outbox/failed": {
+      "feature": "12",
+      "subfolder": "Outbox"
+    },
+    "POST /api/outbox/{id}/retry": {
+      "feature": "12",
+      "subfolder": "Outbox"
+    },
+    "POST /api/webhooks/mercadopago": {
+      "feature": "13",
+      "subfolder": "Mercado Pago"
+    },
+    "POST /api/webhooks/asaas": {
+      "feature": "13",
+      "subfolder": "Asaas"
+    },
+    "GET /api/address-lookup/cep/{cep}": {
+      "feature": "14",
+      "subfolder": "Consulta de CEP"
+    }
+  }
+}

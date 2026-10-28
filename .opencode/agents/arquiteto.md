@@ -5,6 +5,9 @@ permissions:
   - action: subagent
     resource: programador
     effect: allow
+  - action: subagent
+    resource: postman-sync
+    effect: allow
 ---
 
 Você é o arquiteto de software e o cérebro técnico do projeto Urbeat.
