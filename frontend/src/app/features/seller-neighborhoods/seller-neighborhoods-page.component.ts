@@ -70,6 +70,15 @@ export class SellerNeighborhoodsPageComponent extends StoreDeliveryPageComponent
     this.neighborhoodPage.set(Math.max(1, Math.min(page, this.neighborhoodPageCount())));
   }
 
+  /**
+   * Salva o alcance junto com todas as alterações pendentes compartilhadas
+   * desta tela (bairros, taxas e frete grátis). A persistência é a mesma usada
+   * pelas demais ações; o servidor continua autoritativo sobre raio e cobertura.
+   */
+  async saveRadius(): Promise<void> {
+    await this.saveDraft();
+  }
+
   setAreaSearchFilter(value: string): void {
     this.areaSearchFilter.set(value);
     this.neighborhoodPage.set(1);

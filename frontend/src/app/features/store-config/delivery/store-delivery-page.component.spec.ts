@@ -1105,4 +1105,148 @@ describe('StoreDeliveryPageComponent', () => {
       expect(payload.maxDeliveryRadiusKm).toBe(6);
     });
   });
+
+  describe('shared save transparency and concurrency', () => {
+    function loadWizard() {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      fixture.detectChanges();
+    }
+
+    it('discloses the shared save scope and server-side radius removals next to the wizard save actions', () => {
+      const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+
+      expect(template).toContain('shared-save-note');
+      expect(template).toContain('mesmo que não apareçam');
+      expect(template).toContain('salvam todas as alterações pendentes');
+    });
+
+    it('shows a non-success footer state when the server adjusted the saved coverage', () => {
+      const footer = readFileSync(
+        resolve(__dirname, '../../../shared/components/wizard-footer/wizard-footer.component.ts'),
+        'utf8'
+      );
+
+      expect(footer).toContain("'partial'");
+      expect(footer).toContain('Salvo com ajustes');
+    });
+
+    it('blocks wizard navigation when the config changes while the save request is in flight', async () => {
+      loadWizard();
+      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(save$);
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      const navigation = component.goNext();
+
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      save$.next({ id: 'store-123', maxDeliveryRadiusKm: 5, deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }] });
+      save$.complete();
+      await navigation;
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.formDirty()).toBe(true);
+      expect(toastServiceMock.showWarning).toHaveBeenCalled();
+    });
+
+    it('does not advance when the server rejects every submitted neighborhood', async () => {
+      loadWizard();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [],
+      } as any));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      await component.goNext();
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.areas.length).toBe(0);
+      expect(component.saveStatus()).toBe('partial');
+      expect(component.saveWarnings().join(' ')).toContain('Bela Vista');
+      expect(toastServiceMock.showWarning).toHaveBeenCalled();
+    });
+
+    it('does not advance or hide a partial server-side adjustment', async () => {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      fixture.detectChanges();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'new-bela', neighborhood: 'Bela Vista', deliveryFee: 5, isActive: true, notes: '' }],
+      } as any));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      await component.goNext();
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.areas.controls.map(control => control.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.saveWarnings().join(' ')).toContain('Vila Mariana');
+      expect(component.saveStatus()).toBe('partial');
+    });
+
+    it('keeps form edits when a cancel restore response arrives after a newer edit', () => {
+      loadWizard();
+      const restore$ = new Subject<unknown>();
+      storeServiceMock.getMyStore!.mockReturnValue(restore$);
+
+      component.areas.at(0).get('deliveryFee')?.setValue('10,00');
+      component.cancelChanges();
+      expect(component.isRestoring()).toBe(true);
+
+      component.areas.at(0).get('deliveryFee')?.setValue('11,00');
+      restore$.next({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      });
+      restore$.complete();
+
+      expect(component.areas.at(0).value.deliveryFee).toBe('11,00');
+      expect(component.formDirty()).toBe(true);
+      expect(component.isRestoring()).toBe(false);
+    });
+
+    it('reconciles server-side area removals and keeps a warning instead of a plain success toast', async () => {
+      loadWizard();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [],
+      } as any));
+
+      component.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      await component.saveDraft();
+
+      expect(component.areas.length).toBe(0);
+      expect(component.saveWarnings().join(' ')).toContain('Bela Vista');
+      expect(component.saveStatus()).toBe('partial');
+      expect(toastServiceMock.showSuccess).not.toHaveBeenCalled();
+      expect(toastServiceMock.showWarning).toHaveBeenCalled();
+    });
+  });
 });

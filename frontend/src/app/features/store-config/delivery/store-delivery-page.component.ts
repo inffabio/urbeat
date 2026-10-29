@@ -53,13 +53,13 @@ export class StoreDeliveryPageComponent implements OnInit {
   private readonly toastCtrl = inject(ToastController);
   readonly stepperSteps = createStepperSteps(2);
   readonly isDashboardView = computed(() => (this.router.url ?? '').startsWith('/app/'));
-  private removedArea: { neighborhood: string; deliveryFee: string } | null = null;
+  private removedArea: { id: string | null; neighborhood: string; deliveryFee: string } | null = null;
 
   @ViewChild('inlineNeighborhood') inlineNeighborhoodInput!: ElementRef;
 
   readonly storeId = signal<string | null>(null);
   readonly isSaving = signal(false);
-  readonly saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  readonly saveStatus = signal<'idle' | 'saving' | 'saved' | 'partial' | 'error'>('idle');
   readonly formDirty = signal(false);
   loading = signal(true);
   private existingMinimumOrder = 0;
@@ -83,6 +83,44 @@ export class StoreDeliveryPageComponent implements OnInit {
     return ids.join(' ');
   });
   readonly isRadiusUpdating = signal(false);
+  readonly isRestoring = signal(false);
+  /** Avisos de divergência entre o que foi enviado e o que o servidor persistiu. */
+  readonly saveWarnings = signal<string[]>([]);
+  private readonly persistedAreasBaseline = signal<StoreDeliveryArea[]>([]);
+  /**
+   * Bairros existentes na configuração persistida que não estão mais no rascunho.
+   * Derivado da baseline para não esconder remoções após novas edições de raio.
+   */
+  readonly removedAreaNames = computed<string[]>(() => {
+    this.areaVersion();
+    const baseline = this.persistedAreasBaseline();
+    if (baseline.length === 0) {
+      return [];
+    }
+
+    const draft = this.areas.controls.map(ctrl => ctrl.value as { id?: string; neighborhood?: string });
+    const draftIds = new Set(draft.map(area => area.id).filter((id): id is string => !!id));
+    const draftNames = new Set(
+      draft.map(area => this.normalizeAreaName(area.neighborhood)).filter(Boolean)
+    );
+
+    const removed: string[] = [];
+    for (const area of baseline) {
+      const name = (area.neighborhood ?? '').trim();
+      if (!name) {
+        continue;
+      }
+      // Association ids are recreated by the backend on every PATCH, so the
+      // name is a safe secondary identity for the persisted baseline.
+      const matched = (area.id ? draftIds.has(area.id) : false)
+        || draftNames.has(this.normalizeAreaName(name));
+      if (!matched && !removed.some(removedName => this.normalizeAreaName(removedName) === this.normalizeAreaName(name))) {
+        removed.push(name);
+      }
+    }
+
+    return removed;
+  });
   readonly isNeighborhoodModalOpen = signal(false);
   readonly isMapModalOpen = signal(false);
   private leafletMap: any = null;
@@ -97,6 +135,7 @@ export class StoreDeliveryPageComponent implements OnInit {
   readonly invalidRowIndices = signal<Set<number>>(new Set());
   private areaVersion = signal(0);
   private radiusRequestVersion = 0;
+  private formChangeVersion = 0;
   private lastAppliedRadiusKm: number | null = null;
   private readonly knownGlobalNeighborhoodNames = new Set<string>();
 
@@ -160,7 +199,18 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   constructor() {
     this.initForms();
-    this.form.valueChanges.subscribe(() => this.formDirty.set(true));
+    this.form.valueChanges.subscribe(() => this.markDirty());
+  }
+
+  /**
+   * Marks the shared config as dirty and records the change version so a save
+   * response cannot report success for edits made while the request was in
+   * flight.
+   */
+  private markDirty(): void {
+    this.formChangeVersion++;
+    this.areaVersion.update(v => v + 1);
+    this.formDirty.set(true);
   }
 
   hasUnsavedChanges(): boolean {
@@ -240,6 +290,8 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.radiusInputValue.set(radius > 0 ? radius : '');
     this.radiusValidationError.set(false);
     this.radiusPreviewError.set(false);
+    this.saveWarnings.set([]);
+    this.persistedAreasBaseline.set(this.toPersistedBaseline(store.deliveryAreas));
 
     if (store.freeShippingThreshold !== undefined && store.freeShippingThreshold !== null) {
       this.form.patchValue({
@@ -286,7 +338,7 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.radiusPreviewError.set(false);
     this.radiusInputValue.set(parsed);
     this.maxDeliveryRadiusKm.set(parsed);
-    this.formDirty.set(true);
+    this.markDirty();
 
     const id = this.storeId();
     if (!id) return;
@@ -349,7 +401,7 @@ export class StoreDeliveryPageComponent implements OnInit {
 
 
   addInline() {
-    this.formDirty.set(true);
+    this.markDirty();
     const neighborhood = this.inlineForm.value.neighborhood?.trim();
     let feeStr = this.inlineForm.value.deliveryFee?.trim();
 
@@ -376,6 +428,7 @@ export class StoreDeliveryPageComponent implements OnInit {
     }
 
       this.areas.push(this.fb.group({
+        id: [null],
         neighborhood: [neighborhood, Validators.required],
         deliveryFee: [feeStr],
         isActive: [true],
@@ -635,6 +688,7 @@ export class StoreDeliveryPageComponent implements OnInit {
         ? feeVal.toFixed(2).replace('.', ',')
         : '';
       this.areas.push(this.fb.group({
+        id: [null],
         neighborhood: [nb.neighborhood, Validators.required],
         deliveryFee: [feeStr],
         isActive: [true],
@@ -644,7 +698,7 @@ export class StoreDeliveryPageComponent implements OnInit {
 
     this.checkedNeighborhoodIds.set(new Set());
     this.bulkFeeValue.set('');
-    this.formDirty.set(true);
+    this.markDirty();
     this.sortAreas();
     this.closeNeighborhoodModal();
   }
@@ -684,7 +738,7 @@ export class StoreDeliveryPageComponent implements OnInit {
   toggleFreeShippingToday(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.freeShippingToday.set(input.checked);
-    this.formDirty.set(true);
+    this.markDirty();
   }
 
   async removeArea(index: number) {
@@ -692,9 +746,9 @@ export class StoreDeliveryPageComponent implements OnInit {
     const name = area?.value?.neighborhood?.trim() || `Bairro #${index + 1}`;
     const fee = area?.value?.deliveryFee || '';
 
-    this.removedArea = { neighborhood: name, deliveryFee: fee };
+    this.removedArea = { id: area?.value?.id ?? null, neighborhood: name, deliveryFee: fee };
     this.areas.removeAt(index);
-    this.formDirty.set(true);
+    this.markDirty();
     this.areaVersion.update(v => v + 1);
 
     const toast = await this.toastCtrl.create({
@@ -712,16 +766,17 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   private undoRemove(): void {
     if (!this.removedArea) return;
-    const { neighborhood, deliveryFee } = this.removedArea;
+    const { id, neighborhood, deliveryFee } = this.removedArea;
     this.removedArea = null;
     this.areas.push(this.fb.group({
+          id: [id],
           neighborhood: [neighborhood, Validators.required],
           deliveryFee: [deliveryFee],
           isActive: [true],
           notes: ['']
     }));
     this.sortAreas();
-    this.formDirty.set(true);
+    this.markDirty();
     this.toast.showInfo('Bairro restaurado.');
   }
 
@@ -734,7 +789,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Excluir todos', role: 'destructive', handler: () => {
-          this.formDirty.set(true);
+          this.markDirty();
           while (this.areas.length > 0) this.areas.removeAt(0);
           this.areaVersion.update(v => v + 1);
         }}
@@ -770,6 +825,7 @@ export class StoreDeliveryPageComponent implements OnInit {
           notes: String(val.notes || '').slice(0, 100)
         };
       });
+      const submittedAreas = areasDto.filter(a => a.neighborhood.trim() !== '');
 
       const req: UpdateDeliveryConfigRequest = {
         deliveryFee: this.existingDeliveryFee,
@@ -777,14 +833,27 @@ export class StoreDeliveryPageComponent implements OnInit {
         freeShippingThreshold: (numFreeShipping !== null && !isNaN(numFreeShipping)) ? numFreeShipping : undefined,
         freeShippingToday: this.freeShippingToday(),
         maxDeliveryRadiusKm: this.maxDeliveryRadiusKm() > 0 ? this.maxDeliveryRadiusKm() : undefined,
-        deliveryAreas: areasDto.filter(a => a.neighborhood.trim() !== '')
+        deliveryAreas: submittedAreas
       };
 
+      this.saveWarnings.set([]);
       this.isSaving.set(true);
       this.storeService.updateDeliveryConfig(id, req).subscribe({
-        next: () => {
+        next: (response) => {
           this.isSaving.set(false);
-          this.toast.showSuccess('Configurações de entrega salvas com sucesso!');
+          const divergence = this.reconcileAuthoritativeResponse(submittedAreas, response);
+          const divergences: string[] = [];
+          if (divergence.removed.length > 0) {
+            divergences.push(`removidos: ${divergence.removed.join(', ')}`);
+          }
+          if (divergence.preserved.length > 0) {
+            divergences.push(`mantidos para revisão: ${divergence.preserved.join(', ')}`);
+          }
+          if (divergences.length > 0) {
+            this.toast.showWarning(`O servidor ajustou a cobertura de entrega (${divergences.join('; ')}).`);
+          } else {
+            this.toast.showSuccess('Configurações de entrega salvas com sucesso!');
+          }
           resolve(true);
         },
         error: () => {
@@ -794,6 +863,169 @@ export class StoreDeliveryPageComponent implements OnInit {
         }
       });
     });
+  }
+
+  private normalizeAreaName(value: string | null | undefined): string {
+    return (value ?? '').trim().toLowerCase();
+  }
+
+  private toPersistedBaseline(areas: StoreDeliveryArea[] | null | undefined): StoreDeliveryArea[] {
+    return (areas ?? [])
+      .filter(area => (area.neighborhood ?? '').trim() !== '')
+      .map(area => ({
+        id: area.id,
+        neighborhood: area.neighborhood,
+        deliveryFee: area.deliveryFee,
+        isActive: area.isActive,
+        notes: area.notes
+      }));
+  }
+
+  private findDraftAreaIndex(area: StoreDeliveryArea): number {
+    const targetName = this.normalizeAreaName(area.neighborhood);
+    for (let i = 0; i < this.areas.length; i++) {
+      const value = this.areas.at(i).value;
+      if (area.id && value.id === area.id) {
+        return i;
+      }
+    }
+
+    if (!area.id) {
+      for (let i = 0; i < this.areas.length; i++) {
+        if (this.normalizeAreaName(this.areas.at(i).value.neighborhood) === targetName) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  private hasDraftChangesSinceSubmit(area: StoreDeliveryArea, value: { neighborhood?: string; deliveryFee?: string | number; isActive?: boolean; notes?: string }): boolean {
+    if (String(value.neighborhood ?? '').trim() !== (area.neighborhood ?? '').trim()) {
+      return true;
+    }
+
+    const currentFee = this.parseBRLToNumber(value.deliveryFee as string) ?? 0;
+    if (Math.abs(currentFee - (area.deliveryFee ?? 0)) > 0.0001) {
+      return true;
+    }
+
+    if ((value.isActive !== false) !== (area.isActive !== false)) {
+      return true;
+    }
+
+    return String(value.notes ?? '').slice(0, 100).trim() !== (area.notes ?? '').trim();
+  }
+
+  /**
+   * The backend deletes and recreates store delivery areas on every PATCH, so
+   * the ids returned by the server differ from the submitted ones. Move the
+   * recreated ids into the draft (matched by stable name) to keep the
+   * baseline/draft identity in sync and avoid false removals or duplicates.
+   */
+  private syncDraftAreaIdentities(persisted: StoreDeliveryArea[], submitted: StoreDeliveryArea[]): boolean {
+    const submittedNameById = new Map<string, string>();
+    for (const area of submitted) {
+      if (area.id) {
+        submittedNameById.set(area.id, this.normalizeAreaName(area.neighborhood));
+      }
+    }
+
+    const usedPersistedIds = new Set<string>();
+    const indexes = this.areas.controls.map((_, index) => index);
+    const submittedFirst = [
+      ...indexes.filter(index => submittedNameById.has(this.areas.at(index).value.id)),
+      ...indexes.filter(index => !submittedNameById.has(this.areas.at(index).value.id))
+    ];
+
+    let changed = false;
+    for (const index of submittedFirst) {
+      const control = this.areas.at(index);
+      const referenceName = submittedNameById.get(control.value.id)
+        ?? this.normalizeAreaName(control.value.neighborhood);
+      const match = persisted.find(area =>
+        !!area.id &&
+        !usedPersistedIds.has(area.id) &&
+        this.normalizeAreaName(area.neighborhood) === referenceName
+      );
+
+      if (!match?.id) {
+        continue;
+      }
+
+      usedPersistedIds.add(match.id);
+      if (control.value.id !== match.id) {
+        control.patchValue({ id: match.id }, { emitEvent: false });
+        changed = true;
+      }
+    }
+
+    return changed;
+  }
+
+  /**
+   * Applies the persisted list returned by the server to the local draft. The
+   * backend is authoritative and may drop recognized neighborhoods outside the
+   * radius even when they were not part of the preview, so the client must
+   * surface that divergence instead of reporting a plain success.
+   */
+  private reconcileAuthoritativeResponse(
+    submitted: StoreDeliveryArea[],
+    response: { deliveryAreas?: StoreDeliveryArea[] | null } | null | undefined
+  ): { removed: string[]; preserved: string[] } {
+    if (!response || !Array.isArray(response.deliveryAreas)) {
+      return { removed: [], preserved: [] };
+    }
+
+    const persisted = this.toPersistedBaseline(response.deliveryAreas);
+    const persistedIds = new Set(persisted.map(area => area.id).filter((id): id is string => !!id));
+    const persistedNames = new Set(persisted.map(area => this.normalizeAreaName(area.neighborhood)));
+
+    const rejected = submitted.filter(area => {
+      if (area.id && persistedIds.has(area.id)) {
+        return false;
+      }
+      return !persistedNames.has(this.normalizeAreaName(area.neighborhood));
+    });
+
+    const removed: string[] = [];
+    const preserved: string[] = [];
+    for (const area of rejected) {
+      const index = this.findDraftAreaIndex(area);
+      if (index < 0) {
+        continue;
+      }
+
+      const current = this.areas.at(index);
+      // Any newer edit (name, fee, status or notes) has priority over the
+      // server rejection; dropping the row would silently lose that change.
+      if (this.hasDraftChangesSinceSubmit(area, current.value)) {
+        preserved.push((current.value.neighborhood ?? '').trim() || area.neighborhood);
+        continue;
+      }
+
+      removed.push((current.value.neighborhood ?? '').trim());
+      this.areas.removeAt(index, { emitEvent: false });
+    }
+
+    const identitiesChanged = this.syncDraftAreaIdentities(persisted, submitted);
+    if (removed.length > 0 || identitiesChanged) {
+      this.areaVersion.update(v => v + 1);
+    }
+
+    this.persistedAreasBaseline.set(persisted);
+
+    const warnings: string[] = [];
+    if (removed.length > 0) {
+      warnings.push(`O servidor removeu bairros reconhecidos fora do raio: ${removed.join(', ')}.`);
+    }
+    if (preserved.length > 0) {
+      warnings.push(`O servidor não persistiu ${preserved.join(', ')}; suas alterações mais recentes foram mantidas no formulário. Salve novamente.`);
+    }
+    this.saveWarnings.set(warnings);
+
+    return { removed, preserved };
   }
 
   formatMoneyGroup(index: number) {
@@ -886,6 +1118,9 @@ export class StoreDeliveryPageComponent implements OnInit {
   }
 
   async goNext() {
+    if (this.isRestoring()) {
+      return;
+    }
     if (this.areas.length === 0) {
       this.toast.showError('Adicione pelo menos um bairro para continuar.');
       return;
@@ -913,18 +1148,44 @@ export class StoreDeliveryPageComponent implements OnInit {
     }
     this.invalidRowIndices.set(new Set());
 
+    const changeVersionAtSaveStart = this.formChangeVersion;
     const success = await this.persistConfig();
-    if (success) {
-      this.router.navigate(['/configurar-loja/produtos']);
+    if (!success) {
+      return;
     }
+
+    // Do not navigate away while carrying edits that were not part of the
+    // saved payload, nor hide a server-side coverage adjustment. Both would be
+    // lost without feedback on the next step.
+    const hasNewerChanges = this.formChangeVersion !== changeVersionAtSaveStart;
+    const hasServerAdjustments = this.saveWarnings().length > 0;
+    if (hasNewerChanges || hasServerAdjustments) {
+      this.saveStatus.set(hasServerAdjustments ? 'partial' : 'idle');
+      const messages: string[] = [];
+      if (hasNewerChanges) {
+        messages.push('Alterações feitas durante o salvamento não foram enviadas.');
+      }
+      if (hasServerAdjustments) {
+        messages.push('O servidor ajustou a cobertura de entrega.');
+      }
+      this.toast.showWarning(`${messages.join(' ')} Revise os bairros e salve novamente antes de avançar.`);
+      return;
+    }
+
+    this.router.navigate(['/configurar-loja/produtos']);
   }
 
   async saveDraft(): Promise<void> {
-    if (this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) return;
+    if (this.isRestoring() || this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) return;
+    const changeVersionAtSaveStart = this.formChangeVersion;
     this.saveStatus.set('saving');
     const success = await this.persistConfig();
-    this.saveStatus.set(success ? 'saved' : 'error');
-    if (success) this.formDirty.set(false);
+    // Edits made while the request was in flight were not part of the payload,
+    // so they must stay pending instead of being reported as saved.
+    const hasNewerChanges = this.formChangeVersion !== changeVersionAtSaveStart;
+    const hasDivergence = this.saveWarnings().length > 0;
+    this.saveStatus.set(success ? (hasDivergence ? 'partial' : (hasNewerChanges ? 'idle' : 'saved')) : 'error');
+    if (success && !hasNewerChanges) this.formDirty.set(false);
     setTimeout(() => {
       if (this.saveStatus() === 'saved') this.saveStatus.set('idle');
     }, 2000);
@@ -932,27 +1193,42 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   cancelChanges(): void {
     const id = this.storeId();
-    if (!id || this.isSaving()) return;
+    if (!id || this.isSaving() || this.isRestoring()) return;
 
     // Invalidate any in-flight radius preview before restoring the persisted
     // config so a late response/error cannot mutate the restored state.
     const restoreVersion = ++this.radiusRequestVersion;
+    const changeVersionAtRestoreStart = this.formChangeVersion;
     this.isRadiusUpdating.set(false);
+    this.isRestoring.set(true);
 
     this.storeService.getMyStore().subscribe({
       next: store => {
-        // A newer radius edit (which bumps the request version) must win over
-        // this restore so the late response cannot overwrite it.
-        if (restoreVersion !== this.radiusRequestVersion) return;
+        if (restoreVersion !== this.radiusRequestVersion) {
+          this.isRestoring.set(false);
+          return;
+        }
+        // Edits made while the restore request was in flight were not part of
+        // the persisted snapshot, so keep them instead of overwriting.
+        if (this.formChangeVersion !== changeVersionAtRestoreStart) {
+          this.isRestoring.set(false);
+          this.toast.showWarning('Alterações feitas durante o descarte foram mantidas. Revise e salve novamente.');
+          return;
+        }
         this.loadExistingConfig(store);
         this.formDirty.set(false);
         this.activeRowIndex.set(null);
         this.saveStatus.set('idle');
+        this.isRestoring.set(false);
         this.reloadPersistedNeighborhoods(restoreVersion);
         this.toast.showInfo('Alterações descartadas.');
       },
       error: () => {
-        if (restoreVersion !== this.radiusRequestVersion) return;
+        if (restoreVersion !== this.radiusRequestVersion) {
+          this.isRestoring.set(false);
+          return;
+        }
+        this.isRestoring.set(false);
         this.toast.showError('Não foi possível restaurar a configuração.');
       },
     });

@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
+import { DeliveryNeighborhood } from '../../shared/models/store.model';
 import { AlertController, ToastController } from '@ionic/angular';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -909,8 +910,8 @@ describe('SellerNeighborhoodsPageComponent', () => {
     it('disables the dashboard save buttons while the radius preview is updating or failed', () => {
       const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
 
-      const disabledBindings = template.match(/\[disabled\]="isSaving\(\) \|\| isRadiusUpdating\(\) \|\| radiusPreviewError\(\) \|\| radiusValidationError\(\) \|\| !formDirty\(\)"/g) ?? [];
-      expect(disabledBindings.length).toBe(2);
+      const disabledBindings = template.match(/\[disabled\]="isSaving\(\) \|\| isRestoring\(\) \|\| isRadiusUpdating\(\) \|\| radiusPreviewError\(\) \|\| radiusValidationError\(\) \|\| !formDirty\(\)"/g) ?? [];
+      expect(disabledBindings.length).toBe(3);
     });
 
     it('blocks saving and disables the dashboard save buttons when the radius is invalid', async () => {
@@ -965,6 +966,416 @@ describe('SellerNeighborhoodsPageComponent', () => {
       const saveButtons = buttons.filter(button => button.textContent?.includes('Salvar'));
       expect(saveButtons.length).toBeGreaterThan(0);
       expect(saveButtons.every(button => button.disabled)).toBe(true);
+    });
+
+    it('keeps the two existing save bindings and adds the radius card one', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      const radiusSaveButton = template.match(/<button[^>]*\(click\)="saveRadius\(\)"[^>]*>/);
+      expect(radiusSaveButton).toBeTruthy();
+      expect(radiusSaveButton?.[0]).toContain('[disabled]="isSaving() || isRestoring() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()"');
+    });
+  });
+
+  describe('delivery radius save action', () => {
+    const knownGlobalNeighborhoods: DeliveryNeighborhood[] = [
+      { id: 'nb-bela', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      { id: 'nb-vila', neighborhood: 'Vila Mariana', city: 'Sao Paulo', latitude: -23.5505, longitude: -46.584 },
+    ];
+
+    function buttonWithText(root: HTMLElement, text: string): HTMLButtonElement | undefined {
+      return (Array.from(root.querySelectorAll('button')) as HTMLButtonElement[])
+        .find(button => (button.textContent ?? '').includes(text));
+    }
+
+    function loadStore(overrides: Record<string, unknown> = {}) {
+      storeServiceMock.getMyStore.mockReturnValue(of({
+        id: 'store-123',
+        deliveryFee: 7,
+        minimumOrderValue: 25,
+        maxDeliveryRadiusKm: 10,
+        freeShippingToday: false,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+        ...overrides,
+      }));
+      storeServiceMock.getStoreAddress.mockReturnValue(of({
+        city: 'Sao Paulo',
+        state: 'SP',
+        latitude: -23.5505,
+        longitude: -46.6333,
+      }));
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of(knownGlobalNeighborhoods));
+
+      const fixture = TestBed.createComponent(SellerNeighborhoodsPageComponent);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('saves the radius from its own card together with all pending shared changes', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([knownGlobalNeighborhoods[0]]));
+      component.onDeliveryRadiusChange(3);
+      component.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      component.areas.at(0).get('deliveryFee')?.setValue('9,50');
+
+      expect(buttonWithText(fixture.nativeElement, 'Salvar alcance')).toBeTruthy();
+      await component.saveRadius();
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      const [storeId, payload] = storeServiceMock.updateDeliveryConfig.mock.calls[0] as [string, any];
+      expect(storeId).toBe('store-123');
+      expect(payload.deliveryFee).toBe(7);
+      expect(payload.minimumOrderValue).toBe(25);
+      expect(payload.freeShippingToday).toBe(true);
+      expect(payload.maxDeliveryRadiusKm).toBe(3);
+      expect(payload.deliveryAreas).toEqual([
+        { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 9.5, isActive: true, notes: '' },
+      ]);
+      expect(component.saveStatus()).toBe('saved');
+    });
+
+    it('shows the persisted wizard radius when the dashboard is reopened', async () => {
+      const fixture = loadStore({ maxDeliveryRadiusKm: 3 });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#delivery-radius') as HTMLInputElement;
+      expect(fixture.componentInstance.maxDeliveryRadiusKm()).toBe(3);
+      expect(fixture.componentInstance.radiusInputValue()).toBe(3);
+      expect(input.value).toBe('3');
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenCalledWith('store-123');
+    });
+
+    it('reports a save failure, keeps the edit and restores the persisted radius on cancel', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(throwError(() => new Error('boom')));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([knownGlobalNeighborhoods[0]]));
+      component.onDeliveryRadiusChange(4);
+      await component.saveRadius();
+      fixture.detectChanges();
+
+      expect(component.saveStatus()).toBe('error');
+      expect(component.maxDeliveryRadiusKm()).toBe(4);
+      expect(component.formDirty()).toBe(true);
+      expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('Não foi possível salvar o alcance');
+
+      component.cancelChanges();
+      fixture.detectChanges();
+
+      expect(component.maxDeliveryRadiusKm()).toBe(10);
+      expect(component.radiusInputValue()).toBe(10);
+      expect(component.formDirty()).toBe(false);
+      expect(component.saveStatus()).toBe('idle');
+      expect(component.removedAreaNames()).toEqual([]);
+      expect(component.areas.controls.map(control => control.value.neighborhood)).toEqual(['Bela Vista', 'Vila Mariana']);
+    });
+
+    it('keeps edits made while a cancel restore is in flight and releases the restore lock', () => {
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+      component.areas.at(0).get('deliveryFee')?.setValue('11,00');
+
+      const restore$ = new Subject<unknown>();
+      storeServiceMock.getMyStore.mockReturnValue(restore$);
+
+      component.cancelChanges();
+      expect(component.isRestoring()).toBe(true);
+
+      component.areas.at(0).get('deliveryFee')?.setValue('12,00');
+      restore$.next({
+        id: 'store-123',
+        deliveryFee: 7,
+        minimumOrderValue: 25,
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { id: 'a2', neighborhood: 'Vila Mariana', deliveryFee: 8 },
+        ],
+      });
+      restore$.complete();
+
+      expect(component.areas.at(0).value.deliveryFee).toBe('12,00');
+      expect(component.formDirty()).toBe(true);
+      expect(component.isRestoring()).toBe(false);
+      expect(component.maxDeliveryRadiusKm()).toBe(10);
+    });
+
+    it('blocks the radius save while the preview is pending or failed', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      fixture.detectChanges();
+      expect(component.isRadiusUpdating()).toBe(true);
+      let saveButton = buttonWithText(fixture.nativeElement, 'Salvar alcance');
+      expect(saveButton?.disabled).toBe(true);
+
+      await component.saveRadius();
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+
+      pending$.next([knownGlobalNeighborhoods[0]]);
+      pending$.complete();
+      fixture.detectChanges();
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValueOnce(throwError(() => new Error('boom')));
+      component.onDeliveryRadiusChange(2);
+      fixture.detectChanges();
+      expect(component.radiusPreviewError()).toBe(true);
+      saveButton = buttonWithText(fixture.nativeElement, 'Salvar alcance');
+      expect(saveButton?.disabled).toBe(true);
+
+      await component.saveRadius();
+      expect(storeServiceMock.updateDeliveryConfig).not.toHaveBeenCalled();
+    });
+
+    it('ignores an out-of-order preview response and saves the latest radius', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({} as any));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+      const stale$ = new Subject<DeliveryNeighborhood[]>();
+      const latest$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore
+        .mockReturnValueOnce(stale$)
+        .mockReturnValueOnce(latest$);
+
+      component.onDeliveryRadiusChange(8);
+      component.onDeliveryRadiusChange(3);
+
+      latest$.next([knownGlobalNeighborhoods[0]]);
+      latest$.complete();
+      stale$.next([knownGlobalNeighborhoods[0], knownGlobalNeighborhoods[1]]);
+      stale$.complete();
+
+      expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.areas.controls.map(control => control.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.isRadiusUpdating()).toBe(false);
+
+      await component.saveRadius();
+
+      const [, payload] = storeServiceMock.updateDeliveryConfig.mock.calls[0] as [string, any];
+      expect(payload.maxDeliveryRadiusKm).toBe(3);
+      expect((payload.deliveryAreas as { neighborhood: string }[]).map(area => area.neighborhood)).toEqual(['Bela Vista']);
+    });
+
+    it('preserves edits made to a neighborhood while the preview is running', () => {
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+      const pending$ = new Subject<DeliveryNeighborhood[]>();
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValueOnce(pending$);
+
+      component.onDeliveryRadiusChange(3);
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      component.areas.at(0).get('notes')?.setValue('Portaria');
+
+      pending$.next([knownGlobalNeighborhoods[0]]);
+      pending$.complete();
+
+      expect(component.areas.length).toBe(1);
+      expect(component.areas.at(0).value.deliveryFee).toBe('9,00');
+      expect(component.areas.at(0).value.notes).toBe('Portaria');
+    });
+
+    it('warns which recognized neighborhoods were removed by the radius reduction', () => {
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([knownGlobalNeighborhoods[0]]));
+
+      component.onDeliveryRadiusChange(3);
+      fixture.detectChanges();
+
+      expect(component.removedAreaNames()).toEqual(['Vila Mariana']);
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Vila Mariana');
+      expect(text).toContain('sairão da cobertura');
+    });
+
+    it('derives removals from the persisted baseline instead of hiding them after a later radius change', () => {
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of([knownGlobalNeighborhoods[0]]));
+      component.onDeliveryRadiusChange(3);
+      expect(component.removedAreaNames()).toEqual(['Vila Mariana']);
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of(knownGlobalNeighborhoods));
+      component.onDeliveryRadiusChange(8);
+      fixture.detectChanges();
+
+      expect(component.areas.controls.map(control => control.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.removedAreaNames()).toEqual(['Vila Mariana']);
+      expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('Vila Mariana');
+    });
+
+    it('matches persisted areas by id and keeps renamed neighborhoods out of the removal diff', () => {
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      component.areas.at(0).get('neighborhood')?.setValue('Bela Vista Nova');
+      fixture.detectChanges();
+
+      expect(component.removedAreaNames()).toEqual([]);
+    });
+
+    it('keeps manual entries present in the draft out of the removal diff', () => {
+      const fixture = loadStore({
+        deliveryAreas: [
+          { id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 },
+          { neighborhood: 'Bairro Manual', deliveryFee: 6 },
+        ],
+      });
+      const component = fixture.componentInstance;
+
+      expect(component.removedAreaNames()).toEqual([]);
+
+      const manual = component.areas.controls.find(control => control.value.neighborhood === 'Bairro Manual');
+      manual?.get('deliveryFee')?.setValue('7,00');
+
+      expect(component.removedAreaNames()).toEqual([]);
+    });
+
+    it('reconciles neighborhoods removed by the server without exposing a plain success', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 3,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5, isActive: true, notes: '' }],
+      } as any));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      // The preview lists both neighborhoods, so nothing is removed locally.
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of(knownGlobalNeighborhoods));
+      component.onDeliveryRadiusChange(3);
+      expect(component.removedAreaNames()).toEqual([]);
+
+      await component.saveRadius();
+      fixture.detectChanges();
+
+      expect(component.areas.controls.map(control => control.value.neighborhood)).toEqual(['Bela Vista']);
+      expect(component.removedAreaNames()).toEqual([]);
+      expect(component.saveWarnings().join(' ')).toContain('Vila Mariana');
+      expect(component.saveStatus()).toBe('partial');
+      expect(toastServiceMock.showSuccess).not.toHaveBeenCalled();
+      expect(toastServiceMock.showWarning).toHaveBeenCalled();
+      expect((fixture.nativeElement as HTMLElement).textContent ?? '').toContain('ajustes do servidor');
+    });
+
+    it('preserves fee and notes edited during a save even when the server rejects that row', async () => {
+      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(save$);
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      storeServiceMock.getDeliveryNeighborhoodsByStore.mockReturnValue(of(knownGlobalNeighborhoods));
+      component.onDeliveryRadiusChange(3);
+
+      const saving = component.saveRadius();
+      const vila = component.areas.controls.find(control => control.value.neighborhood === 'Vila Mariana');
+      expect(vila).toBeTruthy();
+      vila?.get('deliveryFee')?.setValue('12,00');
+      vila?.get('notes')?.setValue('Portaria');
+
+      save$.next({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 3,
+        deliveryAreas: [{ id: 'new-bela', neighborhood: 'Bela Vista', deliveryFee: 5, isActive: true, notes: '' }],
+      });
+      save$.complete();
+      await saving;
+
+      const keptVila = component.areas.controls.find(control => control.value.neighborhood === 'Vila Mariana');
+      expect(keptVila).toBeTruthy();
+      expect(keptVila?.value.deliveryFee).toBe('12,00');
+      expect(keptVila?.value.notes).toBe('Portaria');
+      expect(component.saveWarnings().join(' ')).toContain('alterações mais recentes');
+    });
+
+    it('syncs recreated server ids into the draft without false removals or duplicated coverage', async () => {
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 10,
+        deliveryAreas: [
+          { id: 'new-bela', neighborhood: 'Bela Vista', deliveryFee: 5, isActive: true, notes: '' },
+          { id: 'new-vila', neighborhood: 'Vila Mariana', deliveryFee: 8, isActive: true, notes: '' },
+        ],
+      } as any));
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      await component.saveRadius();
+      fixture.detectChanges();
+
+      expect(component.areas.length).toBe(2);
+      expect(component.removedAreaNames()).toEqual([]);
+      const ids = component.areas.controls.map(control => control.value.id);
+      expect(new Set(ids).size).toBe(2);
+      expect(ids).toEqual(expect.arrayContaining(['new-bela', 'new-vila']));
+
+      await component.saveRadius();
+      const [, payload] = storeServiceMock.updateDeliveryConfig.mock.calls[1] as [string, any];
+      expect((payload.deliveryAreas as { id?: string }[]).map(area => area.id)).toEqual(
+        expect.arrayContaining(['new-bela', 'new-vila'])
+      );
+      expect(payload.deliveryAreas.length).toBe(2);
+    });
+
+    it('warns before every shared save that recognized neighborhoods can be removed even when they are not listed', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      const notes = template.match(/shared-save-note/g) ?? [];
+      expect(notes.length).toBeGreaterThanOrEqual(3);
+      expect(template).toContain('mesmo que não apareçam');
+    });
+
+    it('keeps edits made while the save request is in flight pending', async () => {      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig.mockReturnValue(save$);
+      const fixture = loadStore();
+      const component = fixture.componentInstance;
+
+      component.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      const saving = component.saveRadius();
+
+      component.areas.at(0).get('deliveryFee')?.setValue('12,00');
+      save$.next({});
+      save$.complete();
+      await saving;
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      expect(component.areas.at(0).value.deliveryFee).toBe('12,00');
+      expect(component.formDirty()).toBe(true);
+      expect(component.saveStatus()).toBe('idle');
+    });
+
+    it('discloses that the radius action saves shared pending changes without promising delivery isolation', () => {
+      const template = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.html'), 'utf8');
+
+      expect(template).toContain('radius-save-bar');
+      expect(template).toContain('(click)="saveRadius()"');
+      expect(template).toContain('Salvar alcance');
+      expect(template).toContain('(click)="cancelChanges()"');
+      expect(template).toContain('demais alterações pendentes');
+      expect(template).toContain('Bairros reconhecidos fora do raio');
+      expect(template).toContain('mesmo que não apareçam');
+      expect(template).not.toContain('bloqueia pedidos');
+    });
+
+    it('styles the radius save bar with dashboard tokens', () => {
+      const styles = readFileSync(resolve(__dirname, 'seller-neighborhoods-page.component.scss'), 'utf8');
+
+      expect(styles).toContain('.radius-save-bar');
+      expect(styles).toContain('.radius-status');
+      expect(styles).toContain('.radius-removed');
+      expect(styles).toContain('var(--dash-green');
     });
   });
 });

@@ -189,23 +189,37 @@
     }
 
     @if (isDashboardView()) {
+      @if (saveWarnings().length > 0) {
+        <div class="wizard-save-warning" role="alert">
+          @for (warning of saveWarnings(); track warning) { <p>{{ warning }}</p> }
+        </div>
+      }
+      <p class="shared-save-note">Salvar grava todas as alterações pendentes desta tela. Bairros reconhecidos fora do raio podem ser removidos pelo servidor, mesmo que não apareçam na lista.</p>
       <div class="dashboard-save-bar">
-        <span [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
+        <span [class.is-saved]="saveStatus() === 'saved'" [class.is-warning]="saveStatus() === 'partial'" [class.is-error]="saveStatus() === 'error'">
           @if (saveStatus() === 'saving') { Salvando bairros... }
           @else if (saveStatus() === 'saved') { Configuracao salva. }
+          @else if (saveStatus() === 'partial') { Salvo com ajustes do servidor. }
           @else if (saveStatus() === 'error') { Nao foi possivel salvar. }
           @else { Salve as alteracoes antes de sair. }
         </span>
-        <button type="button" class="btn-confirm" (click)="saveDraft()" [disabled]="isSaving() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()">
+        <button type="button" class="btn-confirm" (click)="saveDraft()" [disabled]="isSaving() || isRestoring() || isRadiusUpdating() || radiusPreviewError() || radiusValidationError() || !formDirty()">
           @if (isSaving()) { Salvando... } @else { Salvar }
         </button>
       </div>
     } @else {
+      @if (saveWarnings().length > 0) {
+        <div class="wizard-save-warning" role="alert">
+          @for (warning of saveWarnings(); track warning) { <p>{{ warning }}</p> }
+        </div>
+      }
+      <p class="shared-save-note">Os botões de salvar desta etapa salvam todas as alterações pendentes. Bairros reconhecidos fora do raio podem ser removidos pelo servidor, mesmo que não apareçam na lista.</p>
       <app-wizard-footer
         [backLabel]="'Voltar para Horários'"
         [nextLabel]="'Avançar para Produtos'"
         [isSaving]="isSaving()"
         [hasUnsavedChanges]="formDirty()"
+        [nextDisabled]="isRestoring()"
         [saveStatus]="saveStatus()"
         (back)="goBack()"
         (next)="goNext()"

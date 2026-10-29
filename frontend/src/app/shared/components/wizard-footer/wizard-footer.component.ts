@@ -12,7 +12,7 @@ addIcons({
   'alert-circle': alertCircle,
 });
 
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'partial' | 'error';
 
 @Component({
   selector: 'app-wizard-footer',
@@ -34,6 +34,10 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
           @case ('saved') {
             <ion-icon name="checkmark-circle" class="save-icon saved"></ion-icon>
             <span class="save-label saved-text">Salvo</span>
+          }
+          @case ('partial') {
+            <ion-icon name="alert-circle" class="save-icon partial"></ion-icon>
+            <span class="save-label partial-text">Salvo com ajustes</span>
           }
           @case ('error') {
             <ion-icon name="alert-circle" class="save-icon error"></ion-icon>
@@ -110,10 +114,12 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
     .save-icon { font-size: 18px; }
     .save-icon.saved { color: var(--app-success-green); }
+    .save-icon.partial { color: var(--app-brand); }
     .save-icon.error { color: var(--app-brand); }
 
     .save-label.saving { color: var(--app-brand); font-weight: 600; }
     .save-label.saved-text { color: var(--app-success-green); font-weight: 600; }
+    .save-label.partial-text { color: var(--app-brand); font-weight: 600; }
     .save-label.error-text { color: var(--app-brand); font-weight: 600; }
     .save-label.unsaved { color: var(--app-ink-soft); font-weight: 600; }
 
