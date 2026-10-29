@@ -219,6 +219,32 @@ describe('SellerHoursPageComponent', () => {
     expect(switchEl.hasAttribute('aria-checked')).toBe(true);
     expect(switchEl.getAttribute('aria-label')).toBeTruthy();
   });
+
+  it('disables the add-shift action once the day reaches five shifts', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '00:00', endTime: '01:00' },
+          { startTime: '01:00', endTime: '02:00' },
+          { startTime: '02:00', endTime: '03:00' },
+          { startTime: '03:00', endTime: '04:00' },
+          { startTime: '04:00', endTime: '05:00' },
+        ],
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const segundaRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+    const addButton = segundaRow.querySelector('.add-shift-link') as HTMLButtonElement;
+
+    expect(addButton).toBeTruthy();
+    expect(addButton.disabled).toBe(true);
+  });
 });
 
 describe('SellerHoursPageComponent wizard separation', () => {

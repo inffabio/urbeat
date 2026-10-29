@@ -22,6 +22,12 @@
         </div>
       }
     </div>
+  } @else if (loadFailed()) {
+    <div class="card" role="alert">
+      <h2>Não foi possível carregar os horários</h2>
+      <p class="desc">Os horários atuais da loja não foram carregados. Recarregue antes de editar para não sobrescrever os dados existentes.</p>
+      <button class="btn-primary" (click)="reload()">Tentar novamente</button>
+    </div>
   } @else {
     <!-- Presets -->
     <div class="card">
@@ -104,9 +110,15 @@
                     }
                   </div>
                 }
-                <button class="btn-add-shift" (click)="addShift(day.id)">
+                <button class="btn-add-shift"
+                  (click)="addShift(day.id)"
+                  [disabled]="!canAddShift(day.id)"
+                  [attr.aria-label]="'Adicionar turno em ' + day.label">
                   <ion-icon name="add-outline"></ion-icon> Adicionar turno
                 </button>
+                @if (!canAddShift(day.id)) {
+                  <p class="shift-limit">Máximo de {{ maxShiftsPerDay }} turnos por dia.</p>
+                }
               </div>
             } @else {
               <p class="closed-msg">Loja fechada neste dia</p>

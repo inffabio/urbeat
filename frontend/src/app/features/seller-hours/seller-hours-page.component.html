@@ -28,6 +28,12 @@
       <strong class="seller-state-title">Carregando horários</strong>
       <p class="seller-state-copy">Estamos buscando a agenda atual da loja.</p>
     </div>
+  } @else if (loadFailed()) {
+    <div class="seller-state-card is-error" role="alert">
+      <strong class="seller-state-title">Não foi possível carregar os horários.</strong>
+      <p class="seller-state-copy">Os horários atuais da loja não foram carregados. Recarregue antes de editar para não sobrescrever os dados existentes.</p>
+      <button type="button" class="seller-secondary-button" (click)="reload()">Tentar novamente</button>
+    </div>
   } @else {
     <div class="content-card schedule-card">
       <div class="schedule-card-head">
@@ -120,10 +126,19 @@
                 }
               }
 
-              <button type="button" class="add-shift-link" (click)="addShift(day.id)">
+              <button
+                type="button"
+                class="add-shift-link"
+                (click)="addShift(day.id)"
+                [disabled]="!canAddShift(day.id)"
+                [attr.aria-label]="'Adicionar turno em ' + day.label"
+              >
                 <ion-icon name="add-outline"></ion-icon>
                 Adicionar turno
               </button>
+              @if (!canAddShift(day.id)) {
+                <p class="shift-limit">Máximo de {{ maxShiftsPerDay }} turnos por dia.</p>
+              }
             </div>
           } @else {
             <div class="closed-copy">Loja fechada neste dia</div>

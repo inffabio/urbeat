@@ -75,6 +75,8 @@ export abstract class StoreHoursState implements OnInit {
 
   readonly storeId = signal<string | null>(null);
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
+  readonly maxShiftsPerDay = 5;
   readonly isSaving = signal(false);
   readonly saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
   readonly hasChanges = signal(false);
@@ -126,6 +128,18 @@ export abstract class StoreHoursState implements OnInit {
 
   ngOnInit(): void {
     this.initDefaultSchedule();
+    this.loadStore();
+  }
+
+  reload(): void {
+    if (this.loading()) return;
+    this.loadStore();
+  }
+
+  private loadStore(): void {
+    this.loadFailed.set(false);
+    this.loading.set(true);
+
     this.storeService.getMyStore().subscribe({
       next: store => {
         this.storeId.set(store.id);
@@ -133,6 +147,7 @@ export abstract class StoreHoursState implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.loadFailed.set(true);
         this.toast.showError('Erro ao carregar dados da loja.');
       },
     });
@@ -156,16 +171,27 @@ export abstract class StoreHoursState implements OnInit {
           for (const day of WEEKDAYS) {
             const item = res.items.find(i => i.dayOfWeek === day.dayOfWeek);
             s[day.id] = item
-              ? { isOpen: item.isOpen, shifts: this.sortShifts(item.shifts?.map(sh => ({ id: sh.id, startTime: sh.startTime, endTime: sh.endTime })) ?? []) }
+              ? {
+                  isOpen: item.isOpen,
+                  shifts: this.sortShifts(item.shifts?.map(sh => ({
+                    id: sh.id,
+                    // Keep the exact API value. The native time input only truncates
+                    // after an explicit user edit, never while loading.
+                    startTime: sh.startTime,
+                    endTime: sh.endTime,
+                  })) ?? []),
+                }
               : { isOpen: false, shifts: [] };
           }
           this.schedule.set(s);
         }
         this.savedScheduleSnapshot = this.cloneSchedule(this.schedule());
         this.loading.set(false);
+        this.loadFailed.set(false);
       },
       error: () => {
         this.loading.set(false);
+        this.loadFailed.set(true);
         this.toast.showError('Erro ao carregar horários.');
       },
     });
@@ -186,7 +212,14 @@ export abstract class StoreHoursState implements OnInit {
     if (this.syncAll()) this.syncAllDays(dayId);
   }
 
+  canAddShift(dayId: string): boolean {
+    const day = this.schedule()[dayId];
+    return !!day?.isOpen && day.shifts.length < this.maxShiftsPerDay;
+  }
+
   addShift(dayId: string): void {
+    if (!this.canAddShift(dayId)) return;
+
     this.schedule.update(s => {
       const day = s[dayId];
       const last = day.shifts[day.shifts.length - 1];
@@ -336,6 +369,9 @@ export abstract class StoreHoursState implements OnInit {
   validateDay(dayId: string): string | null {
     const day = this.schedule()[dayId];
     if (!day) return null;
+    if (day.isOpen && day.shifts.length > this.maxShiftsPerDay) {
+      return `Máximo de ${this.maxShiftsPerDay} turnos por dia.`;
+    }
     if (day.isOpen && day.shifts.length === 0) return 'Adicione pelo menos um turno ou feche o dia.';
     if (!day.isOpen) return null;
     const incomplete = day.shifts.some(s => !s.startTime || !s.endTime);
@@ -395,13 +431,16 @@ export abstract class StoreHoursState implements OnInit {
   }
 
   private isValidTime(t: string): boolean {
-    return /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
+    // Accepts the native input value (HH:mm) and the backend TimeOnly contract
+    // (HH:mm:ss with up to seven fractional digits).
+    return /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,7})?)?$/.test(t);
   }
 
   private toMinutes(t: string): number {
     if (!t) return 0;
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + m;
+    const [h = '0', m = '0', s = '0'] = t.split(':');
+    const seconds = Number.parseFloat(s);
+    return Number(h) * 60 + Number(m) + (Number.isFinite(seconds) ? seconds / 60 : 0);
   }
 
   anyOpen(): boolean {
@@ -416,13 +455,17 @@ export abstract class StoreHoursState implements OnInit {
     return {
       items: WEEKDAYS.map(day => {
         const s = this.schedule()[day.id];
+        const isOpen = s?.isOpen ?? false;
         return {
           dayOfWeek: day.dayOfWeek,
-          isOpen: s?.isOpen ?? false,
-          shifts: this.sortShifts((s?.shifts ?? []).map(sh => ({
-            startTime: sh.startTime,
-            endTime: sh.endTime,
-          }))),
+          isOpen,
+          // Hidden shifts of a closed day are neither persisted nor validated by the API.
+          shifts: isOpen
+            ? this.sortShifts((s?.shifts ?? []).map(sh => ({
+                startTime: sh.startTime,
+                endTime: sh.endTime,
+              })))
+            : [],
         };
       }),
     };
@@ -443,6 +486,12 @@ export abstract class StoreHoursState implements OnInit {
   }
 
   async saveDraft(): Promise<void> {
+    if (this.loadFailed()) {
+      this.saveStatus.set('error');
+      this.toast.showError('Recarregue os horários antes de salvar.');
+      return;
+    }
+
     const errors = this.collectScheduleErrors();
     if (errors.length > 0) {
       this.toast.showGrouped(errors.slice(0, 3).map(e => ({ type: 'error' as const, text: e })));
@@ -469,7 +518,7 @@ export abstract class StoreHoursState implements OnInit {
   protected saveHours(): Promise<boolean> {
     return new Promise(resolve => {
       const id = this.storeId();
-      if (!id) { resolve(false); return; }
+      if (!id || this.loadFailed()) { resolve(false); return; }
       this.isSaving.set(true);
       this.storeService.upsertStoreBusinessHours(id, this.buildRequest()).subscribe({
         next: () => {

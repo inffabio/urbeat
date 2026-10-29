@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -266,5 +266,141 @@ describe('StoreHoursState', () => {
 
     expect(storeServiceMock.upsertStoreBusinessHours).not.toHaveBeenCalled();
     expect(toastServiceMock.showGrouped).toHaveBeenCalled();
+  });
+
+  it('preserves backend time values with seconds and fractions when loading', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [{ startTime: '08:00:30.2500000', endTime: '12:30:45.5000000' }],
+      },
+    ]);
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00:30.2500000');
+    expect(component.schedule().segunda.shifts[0].endTime).toBe('12:30:45.5000000');
+    expect(component.validateDay('segunda')).toBeNull();
+  });
+
+  it('keeps seconds and fractions of the unedited shift when another shift is edited', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { id: 'shift-a', startTime: '08:00:30.2500000', endTime: '12:15:45.5000000' },
+          { id: 'shift-b', startTime: '13:00:10.1250000', endTime: '18:00:00.7500000' },
+        ],
+      },
+    ]);
+
+    component.updateTime('segunda', 1, 'startTime', '14:00');
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).toHaveBeenCalledTimes(1);
+    const [, request] = storeServiceMock.upsertStoreBusinessHours.mock.calls[0] as [
+      string,
+      { items: Array<{ dayOfWeek: number; shifts: Array<{ startTime: string; endTime: string }> }> },
+    ];
+    const monday = request.items.find((item) => item.dayOfWeek === 1);
+
+    expect(monday?.shifts).toEqual([
+      { startTime: '08:00:30.2500000', endTime: '12:15:45.5000000' },
+      { startTime: '14:00', endTime: '18:00:00.7500000' },
+    ]);
+  });
+
+  it('does not submit hidden shifts for a closed day', async () => {
+    await load([
+      { dayOfWeek: 1, isOpen: true, shifts: [{ startTime: '08:00', endTime: '12:00' }] },
+    ]);
+
+    component.updateTime('segunda', 0, 'endTime', '');
+    component.toggleDay('segunda');
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).toHaveBeenCalledTimes(1);
+    const [, request] = storeServiceMock.upsertStoreBusinessHours.mock.calls[0] as [
+      string,
+      { items: Array<{ dayOfWeek: number; isOpen: boolean; shifts: unknown[] }> },
+    ];
+    const monday = request.items.find((item) => item.dayOfWeek === 1);
+
+    expect(monday?.isOpen).toBe(false);
+    expect(monday?.shifts).toEqual([]);
+  });
+
+  it('limits each day to five shifts', async () => {
+    await load([
+      {
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '00:00', endTime: '01:00' },
+          { startTime: '01:00', endTime: '02:00' },
+          { startTime: '02:00', endTime: '03:00' },
+          { startTime: '03:00', endTime: '04:00' },
+          { startTime: '04:00', endTime: '05:00' },
+        ],
+      },
+    ]);
+
+    expect(component.canAddShift('segunda')).toBe(false);
+
+    component.addShift('segunda');
+    expect(component.schedule().segunda.shifts).toHaveLength(5);
+
+    component.schedule.update((schedule) => ({
+      ...schedule,
+      segunda: {
+        isOpen: true,
+        shifts: [
+          { startTime: '00:00', endTime: '01:00' },
+          { startTime: '01:00', endTime: '02:00' },
+          { startTime: '02:00', endTime: '03:00' },
+          { startTime: '03:00', endTime: '04:00' },
+          { startTime: '04:00', endTime: '05:00' },
+          { startTime: '05:00', endTime: '06:00' },
+        ],
+      },
+    }));
+
+    expect(component.validateDay('segunda')).toBe('Máximo de 5 turnos por dia.');
+  });
+
+  it('keeps the schedule and blocks saving when loading hours fails', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(throwError(() => new Error('offline')));
+
+    fixture = TestBed.createComponent(TestHoursHostComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.loadFailed()).toBe(true);
+
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).not.toHaveBeenCalled();
+    expect(toastServiceMock.showError).toHaveBeenCalled();
+  });
+
+  it('can reload hours after a failed load', async () => {
+    storeServiceMock.getStoreBusinessHours
+      .mockReturnValueOnce(throwError(() => new Error('offline')))
+      .mockReturnValueOnce(of({
+        items: [{ dayOfWeek: 1, isOpen: true, shifts: [{ startTime: '08:00', endTime: '12:00' }] }],
+      }));
+
+    fixture = TestBed.createComponent(TestHoursHostComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.reload();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.loadFailed()).toBe(false);
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00');
   });
 });

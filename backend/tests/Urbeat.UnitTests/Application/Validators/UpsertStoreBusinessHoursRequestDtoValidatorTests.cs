@@ -139,4 +139,60 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
 
         result.IsValid.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData("00:00", "23:59")]
+    [InlineData("23:59", "00:00")]
+    public async Task ValidateAsync_ShouldAcceptMidnightBoundaryTimes(string start, string end)
+    {
+        var request = BuildRequest(Day(DayOfWeek.Monday, true, Shift(start, end)));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldRejectMissingStartAndEndTimes()
+    {
+        var request = BuildRequest(
+            Day(DayOfWeek.Monday, true, new StoreBusinessHourShiftDto()));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.ErrorMessage == "Start time is required.");
+        result.Errors.Should().Contain(x => x.ErrorMessage == "End time is required.");
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldIgnoreShiftsOfClosedDays()
+    {
+        var request = BuildRequest(
+            Day(DayOfWeek.Monday, false, Shift("09:00", "09:00"), Shift("08:00", "10:00")));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldRejectMoreThanFiveShiftsOnOpenDays()
+    {
+        var request = BuildRequest(
+            Day(
+                DayOfWeek.Monday,
+                true,
+                Shift("00:00", "01:00"),
+                Shift("01:00", "02:00"),
+                Shift("02:00", "03:00"),
+                Shift("03:00", "04:00"),
+                Shift("04:00", "05:00"),
+                Shift("05:00", "06:00")));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.ErrorMessage == "Maximum 5 shifts per day.");
+    }
 }

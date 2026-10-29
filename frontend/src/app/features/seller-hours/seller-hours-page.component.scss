@@ -295,7 +295,20 @@
   text-decoration: underline;
 }
 
+.add-shift-link:disabled {
+  color: var(--app-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
 .add-shift-link ion-icon { font-size: 16px; }
+
+.shift-limit {
+  margin: 2px 0 0;
+  color: var(--app-text-muted);
+  font-size: 11px;
+}
 
 .save-actions {
   display: flex;

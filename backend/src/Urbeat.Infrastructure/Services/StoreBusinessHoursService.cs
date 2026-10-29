@@ -100,8 +100,9 @@ public sealed class StoreBusinessHoursService : IStoreBusinessHoursService
                 {
                     hour.Shifts.Add(new StoreBusinessHourShift
                     {
-                        StartTime = shiftDto.StartTime,
-                        EndTime = shiftDto.EndTime
+                        // Validation rejects null times for open days before this service runs.
+                        StartTime = shiftDto.StartTime!.Value,
+                        EndTime = shiftDto.EndTime!.Value
                     });
                 }
             }
