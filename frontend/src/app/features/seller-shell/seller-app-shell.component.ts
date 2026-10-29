@@ -117,11 +117,17 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
     void this.facade.init();
   }
 
-  async enableSound(): Promise<void> {
-    await this.facade.enableSound();
+  enableSound(): Promise<void> {
+    return this.facade.enableSound();
+  }
+
+  disableSound(): void {
+    this.facade.disableSound();
   }
 
   toggleSound(): void {
+    // The toggle is always a mute control: it never depends on the activation
+    // invite, which lives in its own banner.
     if (this.facade.soundEnabled()) this.facade.disableSound();
     else void this.facade.enableSound();
   }

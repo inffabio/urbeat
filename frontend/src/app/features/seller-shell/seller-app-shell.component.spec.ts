@@ -184,12 +184,32 @@ describe('SellerAppShellComponent', () => {
 
   it('disables sound through the facade when toggled from the enabled state', () => {
     facadeMock.soundEnabled.mockReturnValue(true);
+    facadeMock.soundNeedsActivation.mockReturnValue(false);
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('.sound-btn').click();
 
     expect(facadeMock.disableSound).toHaveBeenCalled();
     expect(facadeMock.enableSound).not.toHaveBeenCalled();
+  });
+
+  it('keeps the sound toggle as an independent mute control while activation is pending', () => {
+    facadeMock.soundEnabled.mockReturnValue(true);
+    facadeMock.soundNeedsActivation.mockReturnValue(true);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector('.sound-btn');
+    expect(toggle.textContent).toContain('Som ligado');
+    expect(toggle.querySelector('ion-icon').getAttribute('name')).toBe('volume-high-outline');
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+
+    toggle.click();
+
+    // Turning sound off must never depend on the activation invite: the banner is
+    // the only place that unlocks audio, the toggle always mutes.
+    expect(facadeMock.disableSound).toHaveBeenCalled();
+    expect(facadeMock.enableSound).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
   });
 
   it('hides the activation banner when audio does not need activation', () => {
@@ -295,12 +315,69 @@ describe('SellerAppShellComponent', () => {
       expect(fixture.nativeElement.querySelector('.mobile-sidebar-backdrop')).toBeNull();
       expect(fixture.nativeElement.querySelector('.mobile-topbar')).toBeNull();
       expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.detached-sound-bar')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('.subscription-banner')).toBeNull();
       expect(fixture.nativeElement.querySelector('.realtime-fallback')).toBeNull();
       // The sr-only live region is not visual chrome and keeps announcing new orders from SignalR.
       expect(fixture.nativeElement.querySelector('.new-order-live')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
       expect(authMock.logout).not.toHaveBeenCalled();
+    });
+
+    it('offers accessible activation and mute controls inside the detached window', async () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(true);
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos-separados');
+      fixture.detectChanges();
+
+      const bar = fixture.nativeElement.querySelector('.detached-sound-bar') as HTMLElement | null;
+      expect(bar).not.toBeNull();
+      expect(bar!.getAttribute('role')).toBe('group');
+      expect(bar!.getAttribute('aria-label')).toBe('Som de novos pedidos');
+
+      const labels = Array.from(bar!.querySelectorAll('button'))
+        .map((button) => button.textContent?.trim() ?? '');
+      // Each window is its own document: audio still needs a gesture here.
+      expect(labels).toContain('Ativar som de pedidos');
+      expect(labels).toContain('Silenciar');
+
+      const activate = Array.from(bar!.querySelectorAll('button'))
+        .find((button) => button.textContent?.includes('Ativar som'))!;
+      activate.click();
+      expect(facadeMock.enableSound).toHaveBeenCalledTimes(1);
+
+      const mute = Array.from(bar!.querySelectorAll('button'))
+        .find((button) => button.textContent?.includes('Silenciar'))!;
+      mute.click();
+      expect(facadeMock.disableSound).toHaveBeenCalledTimes(1);
+      // The existing dashboard banner stays out of the detached chrome.
+      expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+    });
+
+    it('offers turning the sound back on when the detached window starts muted', async () => {
+      facadeMock.soundEnabled.mockReturnValue(false);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos-separados');
+      fixture.detectChanges();
+
+      const bar = fixture.nativeElement.querySelector('.detached-sound-bar') as HTMLElement;
+      const buttons = Array.from(bar.querySelectorAll('button'));
+      expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Ativar som']);
+
+      buttons[0].click();
+      expect(facadeMock.enableSound).toHaveBeenCalledTimes(1);
+      expect(facadeMock.disableSound).not.toHaveBeenCalled();
+    });
+
+    it('does not duplicate the sound controls on regular seller routes', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/app/pedidos');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.detached-sound-bar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
     });
 
     it('restores the dashboard chrome after leaving the detached route', async () => {

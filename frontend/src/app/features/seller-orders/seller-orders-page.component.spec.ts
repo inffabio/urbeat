@@ -1,6 +1,8 @@
 import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import * as fs from 'fs';
+import * as path from 'path';
 import { of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
@@ -3744,5 +3746,243 @@ describe('SellerOrdersPageComponent', () => {
     expect(physicalConfirmation).toBe(true);
     expect(sentOrderIds).toHaveLength(120);
     expect([...sentOrderIds].sort()).toEqual(orders.map((order) => order.id).sort());
+  });
+
+  it('keeps dialogs outside the layout container so fixed overlays stay viewport-bound', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.confirmAdvance(
+      buildOrder({ id: 'modal-order' }),
+      OrderStatus.Preparing,
+      'Aceitar pedido',
+    );
+    fixture.detectChanges();
+
+    const page = fixture.nativeElement.querySelector('.orders-page') as HTMLElement | null;
+    const overlay = fixture.nativeElement.querySelector('.confirm-overlay') as HTMLElement | null;
+
+    expect(page).not.toBeNull();
+    expect(overlay).not.toBeNull();
+    // `container-type: inline-size` adds layout containment, which would trap
+    // `position: fixed` descendants inside the page box.
+    expect(page!.contains(overlay!)).toBe(false);
+  });
+
+  it('exposes labeled header actions and a pressed state for the detached window toggle', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const actions = Array.from(
+      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.top-actions > button'),
+    );
+
+    expect(actions.length).toBeGreaterThanOrEqual(3);
+    for (const action of actions) {
+      expect(action.getAttribute('type')).toBe('button');
+      const accessibleName = (action.getAttribute('aria-label') ?? action.textContent ?? '').trim();
+      expect(accessibleName.length).toBeGreaterThan(0);
+    }
+
+    const windowToggle = fixture.nativeElement.querySelector(
+      '.orders-window-toggle',
+    ) as HTMLButtonElement | null;
+    expect(windowToggle).not.toBeNull();
+    expect(windowToggle!.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('marks the header toggle as detached so the mobile layout never hides the way back', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const toggle = fixture.nativeElement.querySelector(
+      '.orders-window-toggle',
+    ) as HTMLButtonElement | null;
+    expect(toggle).not.toBeNull();
+    expect(toggle!.classList.contains('is-detached')).toBe(false);
+
+    ordersWindowMock.markDetachedRoute();
+    fixture.detectChanges();
+
+    expect(toggle!.classList.contains('is-detached')).toBe(true);
+    expect(toggle!.textContent).toContain('Fixar ao Dashboard');
+    expect(toggle!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('hides decorative header icons from assistive technology', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const icons = Array.from(
+      fixture.nativeElement.querySelectorAll<HTMLElement>('.top-actions .bi'),
+    );
+
+    expect(icons.length).toBeGreaterThan(0);
+    for (const icon of icons) {
+      expect(icon.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+});
+
+/**
+ * jsdom does not apply stylesheets, so the responsive behaviour is locked with a
+ * contract over the component stylesheet. The rules themselves are exercised in
+ * the browser at small/medium/large containers with the sidebar open, collapsed
+ * and the detached orders window.
+ */
+describe('SellerOrdersPageComponent responsive contract', () => {
+  const componentDir = path.resolve(__dirname);
+  const scss = fs.readFileSync(path.join(componentDir, 'seller-orders-page.component.scss'), 'utf8');
+  const template = fs.readFileSync(path.join(componentDir, 'seller-orders-page.component.html'), 'utf8');
+
+  const blockFor = (selector: string): string => {
+    const start = scss.indexOf(selector);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const open = scss.indexOf('{', start);
+    expect(open).toBeGreaterThanOrEqual(0);
+
+    let depth = 0;
+    for (let index = open; index < scss.length; index += 1) {
+      if (scss[index] === '{') depth += 1;
+      else if (scss[index] === '}') {
+        depth -= 1;
+        if (depth === 0) return scss.slice(open + 1, index);
+      }
+    }
+    throw new Error(`Unbalanced block for ${selector}`);
+  };
+
+  const minHeight = (selector: string): number => {
+    const match = /min-height:\s*(\d+)px/.exec(blockFor(selector));
+    expect(match).not.toBeNull();
+    return Number(match![1]);
+  };
+
+  const blockFrom = (start: number): string => {
+    const open = scss.indexOf('{', start);
+    expect(open).toBeGreaterThanOrEqual(0);
+    let depth = 0;
+    for (let index = open; index < scss.length; index += 1) {
+      if (scss[index] === '{') depth += 1;
+      else if (scss[index] === '}') {
+        depth -= 1;
+        if (depth === 0) return scss.slice(open + 1, index);
+      }
+    }
+    throw new Error('Unbalanced block');
+  };
+
+  const mediaBlockFor = (query: string): string => {
+    const start = scss.indexOf(`@media ${query}`);
+    expect(start).toBeGreaterThanOrEqual(0);
+    const open = scss.indexOf('{', start);
+    let depth = 0;
+    for (let index = open; index < scss.length; index += 1) {
+      if (scss[index] === '{') depth += 1;
+      else if (scss[index] === '}') {
+        depth -= 1;
+        if (depth === 0) return scss.slice(open + 1, index);
+      }
+    }
+    throw new Error(`Unbalanced media block for ${query}`);
+  };
+
+  it('measures the page against its own container instead of the viewport', () => {
+    const page = blockFor('.orders-page');
+    expect(page).toContain('container-type: inline-size');
+    expect(scss).toContain('container-name: orders-page');
+  });
+
+  it('keeps the board responsive to the real content width with no horizontal overflow', () => {
+    const grid = blockFor('.status-grid');
+    expect(grid).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
+
+    expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*1100px\)\s*{[\s\S]*?\.status-grid[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*620px\)\s*{[\s\S]*?\.status-grid[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/);
+
+    const newOrders = blockFor('.new-orders-list');
+    expect(newOrders).toMatch(/repeat\(auto-fill, minmax\(min\(100%,\s*\d+px\), 1fr\)\)/);
+    expect(newOrders).not.toMatch(/minmax\((1[5-9]\d|2\d\d)px/);
+  });
+
+  it('stacks the header actions by container width and lets the labels wrap', () => {
+    const actions = blockFor('.top-actions');
+    expect(actions).toContain('flex-wrap: wrap');
+    expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*860px\)\s*{[\s\S]*?\.top-actions/);
+    expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*430px\)\s*{[\s\S]*?flex:\s*1 1 100%/);
+  });
+
+  it('scopes viewport grid fallbacks to engines without container query support', () => {
+    const supportsIndex = scss.indexOf('@supports not (container-type: inline-size)');
+    expect(supportsIndex).toBeGreaterThanOrEqual(0);
+
+    const fallback = blockFrom(supportsIndex);
+    expect(fallback).toContain('@media (max-width: 1199px)');
+    expect(fallback).toContain('repeat(2, minmax(0, 1fr))');
+    expect(fallback).toContain('@media (max-width: 767px)');
+
+    // Outside the guard, the viewport rule would beat the container query at a
+    // <=1199px window whose useful width is >1100px (collapsed sidebar/detached).
+    expect(scss.indexOf('@media (max-width: 1199px)')).toBeGreaterThan(supportsIndex);
+    expect(scss.match(/@media \(max-width: 1199px\)/g)).toHaveLength(1);
+  });
+
+  it('hides the detached-window trigger on the seller shell mobile breakpoint', () => {
+    const mobile = mediaBlockFor('(max-width: 899px)');
+
+    expect(mobile).toContain('.orders-window-toggle:not(.is-detached)');
+    expect(mobile).toContain('display: none');
+  });
+
+  it('leaves the hidden trigger out of the tab order and the accessibility tree', () => {
+    const hiddenRule = blockFor('.orders-window-toggle:not(.is-detached)');
+
+    // `display: none` removes the control from sequential focus navigation and from
+    // the accessibility tree. Opacity/visibility tricks would keep it focusable.
+    expect(hiddenRule).toContain('display: none');
+    expect(hiddenRule).not.toContain('visibility');
+    expect(hiddenRule).not.toContain('opacity');
+    expect(hiddenRule).not.toContain('pointer-events');
+  });
+
+  it('shares the mobile breakpoint with the seller shell', () => {
+    const shellScss = fs.readFileSync(
+      path.resolve(componentDir, '../seller-shell/seller-app-shell.component.scss'),
+      'utf8',
+    );
+
+    expect(scss).toContain('@media (max-width: 899px)');
+    expect(shellScss).toContain('@media (max-width: 899px)');
+  });
+
+  it('keeps the detached-window toggle in the template with a detached modifier', () => {
+    expect(template).toContain('class="btn-soft orders-window-toggle"');
+    expect(template).toContain('[class.is-detached]="isDetachedRoute()"');
+  });
+
+  it('keeps every interactive control at a 44px minimum target', () => {
+    expect(minHeight('.items-retry')).toBeGreaterThanOrEqual(44);
+    expect(minHeight('.confirm-actions')).toBeGreaterThanOrEqual(44);
+    expect(minHeight('.details-error-actions')).toBeGreaterThanOrEqual(44);
+  });
+
+  it('bounds dialogs by the available width instead of the viewport unit alone', () => {
+    expect(blockFor('.confirm-modal')).toMatch(/width:\s*min\(520px, 100%\)/);
+    expect(blockFor('.order-details-dialog')).toMatch(/width:\s*min\(460px, 100%\)/);
+    expect(blockFor('.send-deliveries-dialog,')).toMatch(/width:\s*min\(620px, 100%\)/);
+  });
+
+  it('wraps long order metadata instead of overflowing the card', () => {
+    expect(blockFor('.card-meta')).toContain('overflow-wrap: anywhere');
+  });
+
+  it('renders the page container around the board only, never around the overlays', () => {
+    const pageStart = template.indexOf('<section class="orders-page">');
+    const pageEnd = template.indexOf('</section>');
+
+    expect(pageStart).toBe(0);
+    expect(pageEnd).toBeGreaterThan(pageStart);
+    expect(template.slice(0, pageEnd)).not.toContain('confirm-overlay');
+    expect(template.slice(0, pageEnd)).not.toContain('order-details-overlay');
   });
 });

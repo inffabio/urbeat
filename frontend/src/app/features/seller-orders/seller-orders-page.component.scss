@@ -25,8 +25,75 @@
 }
 
 .orders-page {
-  padding: 24px;
+  /*
+   * The board adapts to the space the shell gives it, not to the window: the
+   * same page runs with the sidebar open (280px), collapsed (86px) and in the
+   * detached orders window (no sidebar). Overlays live outside this element so
+   * the inline-size containment never traps their `position: fixed` boxes.
+   */
+  container-type: inline-size;
+  container-name: orders-page;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: clamp(14px, 2.2vw, 24px);
+}
+
+.orders-page .topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 16px;
+}
+
+.orders-page .topbar-copy {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.orders-page .notice {
+  margin: 0 0 16px;
+}
+
+.orders-page .top-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.orders-page .top-actions > .btn-soft {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.orders-page .top-actions .bi {
+  flex: 0 0 auto;
+}
+
+/*
+ * The seller shell turns the sidebar into a drawer below 899px (see
+ * seller-app-shell.component.scss), so that is the project's mobile
+ * breakpoint. A second window has no room to be useful there, therefore the
+ * "Separar tela pedidos" action is not offered. In the detached window the
+ * same button means "Fixar ao Dashboard" and stays visible: it is the only
+ * path back. `display: none` keeps the hidden control out of the tab order and
+ * out of the accessibility tree, unlike opacity/visibility tricks.
+ */
+@media (max-width: 899px) {
+  .orders-page .orders-window-toggle:not(.is-detached) {
+    display: none;
+  }
 }
 
 .page-title {
@@ -113,6 +180,7 @@
   margin-bottom: 36px;
   background: var(--orders-cream);
   border: 1px solid #fff2c8;
+  box-sizing: border-box;
 }
 
 .panel-title {
@@ -124,9 +192,11 @@
 
 .new-orders-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  /* auto-fill keeps every card readable at any useful width; `min(100%, ...)`
+     prevents a track wider than the container on small screens. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
   gap: 18px;
-  max-width: 900px;
+  min-width: 0;
 }
 
 .order-card {
@@ -137,6 +207,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
 
@@ -243,6 +314,7 @@
   font-size: 12px;
   line-height: 1.12;
   color: #000;
+  overflow-wrap: anywhere;
 
   strong { font-weight: 800; }
 }
@@ -340,15 +412,15 @@
 .items-retry {
   align-self: flex-start;
   border: 0;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 999px;
+  padding: 0 14px;
   font: inherit;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   color: #fff;
   background: var(--orders-blue);
-  min-height: 32px;
+  min-height: 44px;
 
   &:hover {
     filter: brightness(0.94);
@@ -438,9 +510,10 @@
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   align-items: start;
+  min-width: 0;
 }
 
 .status-col {
@@ -549,13 +622,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: clamp(12px, 4vw, 24px);
+  box-sizing: border-box;
 }
 
 .confirm-modal {
   background: #fff;
   border-radius: 18px;
   padding: 24px 28px;
-  width: min(520px, calc(100vw - 32px));
+  width: min(520px, 100%);
   min-width: 0;
   box-sizing: border-box;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.18);
@@ -577,10 +652,11 @@
 .confirm-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 10px;
 
   button {
-    min-height: 40px;
+    min-height: 44px;
     border-radius: 999px;
     font: inherit;
     font-size: 13px;
@@ -640,7 +716,7 @@
 
 .send-deliveries-dialog,
 .send-result-dialog {
-  width: min(620px, calc(100vw - 24px));
+  width: min(620px, 100%);
   max-height: min(85vh, 720px);
   overflow-y: auto;
   padding: 22px 24px;
@@ -1153,12 +1229,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: clamp(12px, 4vw, 24px);
+  box-sizing: border-box;
 }
 
 .order-details-dialog {
-  width: 100%;
-  max-width: 460px;
+  width: min(460px, 100%);
   max-height: 85vh;
   overflow-y: auto;
   background: var(--orders-card);
@@ -1240,10 +1316,11 @@
 
 .details-error-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 
   button {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 18px;
     border-radius: 999px;
     font: inherit;
@@ -1271,18 +1348,23 @@
   }
 }
 
-@media (max-width: 1199px) {
-  .orders-page { padding: 24px; }
-  .new-orders-list { grid-template-columns: repeat(2, minmax(260px, 1fr)); }
-  .status-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
-}
+/*
+ * Fallback only for engines without container queries: there the board follows
+ * the window instead of the real content width. Scoping it with `@supports not`
+ * is required — otherwise a viewport <=1199px with a >1100px useful width
+ * (collapsed sidebar or detached window) would be forced back to 2 columns and
+ * beat the container query below.
+ */
+@supports not (container-type: inline-size) {
+  @media (max-width: 1199px) {
+    .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
 
-@media (max-width: 767px) {
-  .orders-page { padding: 18px; }
-  .new-orders-panel { padding: 22px 18px; }
-  .new-orders-list { grid-template-columns: 1fr; }
-  .status-grid { grid-template-columns: 1fr; }
-  .col-title { text-align: left; }
+  @media (max-width: 767px) {
+    .new-orders-panel { padding: 22px 18px; }
+    .status-grid { grid-template-columns: minmax(0, 1fr); }
+    .col-title { text-align: left; }
+  }
 }
 
 .delivery-driver-panel {
@@ -1472,5 +1554,93 @@
   .driver-assignment-controls {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/*
+ * Container queries (last on purpose): they override the viewport fallbacks
+ * above so the page follows the real usable width in every shell state.
+ */
+@container orders-page (max-width: 1100px) {
+  .status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container orders-page (max-width: 860px) {
+  .orders-page .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orders-page .topbar-copy {
+    /* Column direction would otherwise use the 240px basis as height. */
+    flex: 0 0 auto;
+  }
+
+  .orders-page .top-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .new-orders-panel {
+    padding: 22px 20px;
+  }
+}
+
+@container orders-page (max-width: 720px) {
+  .new-orders-panel {
+    padding: 20px 18px;
+    margin-bottom: 28px;
+  }
+}
+
+@container orders-page (max-width: 620px) {
+  .status-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .status-flow {
+    margin-top: 30px;
+  }
+
+  .status-col {
+    padding: 12px 10px 14px;
+  }
+
+  .col-title {
+    text-align: left;
+  }
+
+  .new-orders-panel {
+    min-height: 240px;
+    padding: 18px 14px;
+  }
+}
+
+@container orders-page (max-width: 430px) {
+  .orders-page .top-actions > .btn-soft {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .new-orders-panel {
+    padding: 16px 12px;
+  }
+
+  .status-col {
+    padding: 10px 8px 12px;
+  }
+
+  .order-card-body {
+    padding: 0 10px 10px;
+  }
+
+  .order-card-toggle {
+    padding: 10px;
+  }
+
+  .item-option {
+    margin-left: 22px;
   }
 }

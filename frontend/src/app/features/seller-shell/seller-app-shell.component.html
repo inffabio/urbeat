@@ -121,8 +121,16 @@
         <small>Fale com nosso suporte</small>
       </span>
     </a>
-    <button type="button" class="mini-btn sound-btn" (click)="toggleSound()">
-      <ion-icon [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'" aria-hidden="true"></ion-icon>
+    <button
+      type="button"
+      class="mini-btn sound-btn"
+      (click)="toggleSound()"
+      [attr.aria-pressed]="facade.soundEnabled()"
+    >
+      <ion-icon
+        [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"
+        aria-hidden="true"
+      ></ion-icon>
       <span class="nav-text">{{ facade.soundEnabled() ? 'Som ligado' : 'Som desligado' }}</span>
     </button>
     <button type="button" class="mini-btn logout-btn" (click)="logout()">
@@ -203,6 +211,32 @@
           <span>Use Atualizar se um pedido nao aparecer automaticamente.</span>
         </div>
       }
+    }
+
+    @if (isDetachedOrdersRoute()) {
+      <div class="detached-sound-bar" role="group" aria-label="Som de novos pedidos">
+        <span class="detached-sound-label" role="status">
+          <ion-icon
+            [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"
+            aria-hidden="true"
+          ></ion-icon>
+          {{
+            facade.soundEnabled()
+              ? (facade.soundNeedsActivation() ? 'Som pendente de ativação' : 'Som ligado')
+              : 'Som desligado'
+          }}
+        </span>
+        @if (facade.soundNeedsActivation()) {
+          <button type="button" class="detached-sound-action is-primary" (click)="enableSound()">
+            Ativar som de pedidos
+          </button>
+        }
+        @if (facade.soundEnabled()) {
+          <button type="button" class="detached-sound-action" (click)="disableSound()">Silenciar</button>
+        } @else {
+          <button type="button" class="detached-sound-action is-primary" (click)="enableSound()">Ativar som</button>
+        }
+      </div>
     }
 
     <div class="new-order-live" aria-live="polite">
