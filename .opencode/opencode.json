@@ -1,4 +1,32 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "default_agent": "arquiteto"
+  "default_agent": "arquiteto",
+  "mcp": {
+    "servers": {
+      "cartograph": {
+        "type": "local",
+        "command": ["npx", "-y", "@anthony-maio/cartograph@1.2.2", "mcp"],
+        "timeout": {
+          "startup": 60000
+        }
+      },
+      "playwright": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@0.0.83",
+          "--headless",
+          "--isolated",
+          "--browser",
+          "chrome"
+        ],
+        "timeout": {
+          "startup": 120000,
+          "catalog": 60000,
+          "execution": 180000
+        }
+      }
+    }
+  }
 }

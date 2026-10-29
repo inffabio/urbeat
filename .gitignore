@@ -44,6 +44,7 @@ scripts/criarDeployOracleCloud/configs/*.local.json
 
 # Local agent/design artifacts
 .impeccable/critique/
+.playwright-mcp/
 
 # Certificates
 *.pem
