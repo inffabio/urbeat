@@ -1,0 +1,72 @@
+<div class="time-field-root">
+  <label class="form-label-app" [attr.for]="fieldId()">{{ label() }}</label>
+
+  <div class="time-box" [class.has-error]="showError()">
+    <input
+      #timeInput
+      class="time-input"
+      type="text"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      maxlength="5"
+      enterkeyhint="done"
+      role="combobox"
+      aria-haspopup="listbox"
+      aria-autocomplete="none"
+      [id]="fieldId()"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-controls]="listId()"
+      [attr.aria-activedescendant]="activeOptionId()"
+      [attr.aria-invalid]="showError() ? 'true' : 'false'"
+      [attr.aria-describedby]="showError() ? errorId() : null"
+      [value]="display()"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      (keydown)="onKeydown($event)"
+    />
+
+    <button
+      type="button"
+      class="time-trigger"
+      [attr.aria-label]="'Escolher horário: ' + ariaLabel()"
+      aria-haspopup="listbox"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-controls]="listId()"
+      (mousedown)="$event.preventDefault()"
+      (click)="toggleList()"
+      (keydown.escape)="closeList()"
+    >
+      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  @if (isOpen()) {
+    <ul
+      #optionsList
+      class="time-options"
+      role="listbox"
+      [id]="listId()"
+      [attr.aria-label]="'Horários disponíveis para ' + ariaLabel()"
+      (mousedown)="$event.preventDefault()"
+    >
+      @for (option of options; track option; let index = $index) {
+        <li
+          class="time-option"
+          role="option"
+          [id]="optionId(index)"
+          [class.is-active]="activeIndex() === index"
+          [class.is-selected]="committedDisplay() === option"
+          [attr.aria-selected]="committedDisplay() === option"
+          (mouseenter)="setActive(index)"
+          (click)="selectOption(option)"
+        >{{ option }}</li>
+      }
+    </ul>
+  }
+
+  @if (showError()) {
+    <p class="time-error" [id]="errorId()" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

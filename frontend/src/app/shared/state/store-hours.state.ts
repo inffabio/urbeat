@@ -15,6 +15,7 @@ addIcons({
 
 interface Shift {
   id?: string;
+  key?: string;
   startTime: string;
   endTime: string;
 }
@@ -46,6 +47,13 @@ const WEEKDAYS: WeekDay[] = [
   { id: 'sexta', label: 'Sexta-feira', short: 'Sex', dayOfWeek: 5 },
   { id: 'sabado', label: 'Sábado', short: 'Sab', dayOfWeek: 6 },
 ];
+
+let shiftKeySeed = 0;
+
+function createShiftKey(): string {
+  shiftKeySeed += 1;
+  return `shift-ui-${shiftKeySeed}`;
+}
 
 const PRESETS: Preset[] = [
   {
@@ -109,6 +117,7 @@ export abstract class StoreHoursState implements OnInit {
       if (!s?.isOpen) continue;
       for (const shift of s.shifts) {
         if (!shift.startTime || !shift.endTime) continue;
+        if (!this.isValidTime(shift.startTime) || !this.isValidTime(shift.endTime)) continue;
         const [sh, sm] = shift.startTime.split(':').map(Number);
         const [eh, em] = shift.endTime.split(':').map(Number);
         let start = sh * 60 + sm;
@@ -156,7 +165,7 @@ export abstract class StoreHoursState implements OnInit {
   private initDefaultSchedule(): void {
     const s: Record<string, DaySchedule> = {};
     for (const day of WEEKDAYS) {
-      s[day.id] = { isOpen: true, shifts: [{ startTime: '11:00', endTime: '23:00' }] };
+      s[day.id] = { isOpen: true, shifts: [{ key: createShiftKey(), startTime: '11:00', endTime: '23:00' }] };
     }
     s['domingo'] = { isOpen: false, shifts: [] };
     this.schedule.set(s);
@@ -175,6 +184,7 @@ export abstract class StoreHoursState implements OnInit {
                   isOpen: item.isOpen,
                   shifts: this.sortShifts(item.shifts?.map(sh => ({
                     id: sh.id,
+                    key: createShiftKey(),
                     // Keep the exact API value. The native time input only truncates
                     // after an explicit user edit, never while loading.
                     startTime: sh.startTime,
@@ -204,7 +214,7 @@ export abstract class StoreHoursState implements OnInit {
       const copy = { ...s };
       copy[dayId] = {
         isOpen: !wasOpen,
-        shifts: !wasOpen && day.shifts.length === 0 ? [{ startTime: '09:00', endTime: '18:00' }] : [...day.shifts],
+        shifts: !wasOpen && day.shifts.length === 0 ? [{ key: createShiftKey(), startTime: '09:00', endTime: '18:00' }] : [...day.shifts],
       };
       return copy;
     });
@@ -220,9 +230,15 @@ export abstract class StoreHoursState implements OnInit {
   addShift(dayId: string): void {
     if (!this.canAddShift(dayId)) return;
 
+    const current = this.schedule()[dayId];
+    const last = current.shifts[current.shifts.length - 1];
+    if (last?.endTime && !this.isValidTime(last.endTime)) {
+      this.toast.showError('Corrija o horário do turno atual antes de adicionar outro.');
+      return;
+    }
+
     this.schedule.update(s => {
       const day = s[dayId];
-      const last = day.shifts[day.shifts.length - 1];
       let start = '18:00';
       let end = '22:00';
       if (last?.endTime) {
@@ -232,7 +248,7 @@ export abstract class StoreHoursState implements OnInit {
         const endTotal = (total + 240) % 1440;
         end = `${String(Math.floor(endTotal / 60)).padStart(2, '0')}:${String(endTotal % 60).padStart(2, '0')}`;
       }
-      return { ...s, [dayId]: { ...day, shifts: [...day.shifts, { startTime: start, endTime: end }] } };
+      return { ...s, [dayId]: { ...day, shifts: [...day.shifts, { key: createShiftKey(), startTime: start, endTime: end }] } };
     });
     this.markDirty();
     if (this.syncAll()) this.syncAllDays(dayId);
@@ -304,7 +320,7 @@ export abstract class StoreHoursState implements OnInit {
       const copy = { ...s };
       for (const day of WEEKDAYS) {
         if (presetId === '24h' || copy[day.id].isOpen) {
-          copy[day.id] = { isOpen: true, shifts: preset.shifts.map(sh => ({ startTime: sh.start, endTime: sh.end })) };
+          copy[day.id] = { isOpen: true, shifts: preset.shifts.map(sh => ({ key: createShiftKey(), startTime: sh.start, endTime: sh.end })) };
         }
       }
       return copy;

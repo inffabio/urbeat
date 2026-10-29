@@ -8,7 +8,7 @@
     </div>
     <div class="top-actions">
       <div class="date-pill">
-        @if (isSaving()) { Salvando horários } @else if (hasChanges()) { Alterações pendentes } @else { Agenda da operação }
+        @if (isSaving()) { Salvando horários } @else if (hasChanges() || hasPendingDrafts()) { Alterações pendentes } @else { Agenda da operação }
       </div>
     </div>
   </header>
@@ -68,35 +68,29 @@
 
           @if (schedule()[day.id]?.isOpen) {
             <div class="shifts-column">
-              @for (shift of schedule()[day.id].shifts; track shift.id ?? $index; let i = $index) {
+              @for (shift of schedule()[day.id].shifts; track shift.key ?? shift.id ?? $index; let i = $index) {
                 @if (i > 0) {
                   <div class="interval-label">Intervalo</div>
                 }
                 <div class="shift-group">
-                  <div class="time-field">
-                    <label class="form-label-app" [attr.for]="'start-' + day.id + '-' + i">Abertura</label>
-                    <div class="time-box">
-                      <input
-                        [id]="'start-' + day.id + '-' + i"
-                        type="time"
-                        [ngModel]="shift.startTime"
-                        (ngModelChange)="updateTime(day.id, i, 'startTime', $event)"
-                        [attr.aria-label]="'Abertura do turno ' + (i + 1) + ' de ' + day.label" />
-                      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-                    </div>
-                  </div>
-                  <div class="time-field">
-                    <label class="form-label-app" [attr.for]="'end-' + day.id + '-' + i">Fechamento</label>
-                    <div class="time-box">
-                      <input
-                        [id]="'end-' + day.id + '-' + i"
-                        type="time"
-                        [ngModel]="shift.endTime"
-                        (ngModelChange)="updateTime(day.id, i, 'endTime', $event)"
-                        [attr.aria-label]="'Fechamento do turno ' + (i + 1) + ' de ' + day.label" />
-                      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-                    </div>
-                  </div>
+                  <app-seller-hours-time-field
+                    class="time-field"
+                    [fieldId]="'start-' + day.id + '-' + (shift.key ?? i)"
+                    label="Abertura"
+                    [ariaLabel]="'Abertura do turno ' + (i + 1) + ' de ' + day.label"
+                    [value]="shift.startTime"
+                    (valueChange)="updateTime(day.id, i, 'startTime', $event)"
+                    (draftChange)="setDraftState($event.fieldId, $event.hasDraft)"
+                  />
+                  <app-seller-hours-time-field
+                    class="time-field"
+                    [fieldId]="'end-' + day.id + '-' + (shift.key ?? i)"
+                    label="Fechamento"
+                    [ariaLabel]="'Fechamento do turno ' + (i + 1) + ' de ' + day.label"
+                    [value]="shift.endTime"
+                    (valueChange)="updateTime(day.id, i, 'endTime', $event)"
+                    (draftChange)="setDraftState($event.fieldId, $event.hasDraft)"
+                  />
                   @if (i === 0) {
                     <button
                       type="button"
@@ -152,7 +146,7 @@
 
       <div class="save-actions">
         <span class="save-feedback" [class.is-saved]="saveStatus() === 'saved'" [class.is-error]="saveStatus() === 'error'">
-          @if (saveStatus() === 'saving') { Salvando horários... } @else if (saveStatus() === 'saved') { Horários salvos. } @else if (saveStatus() === 'error') { Não foi possível salvar. } @else if (hasChanges()) { Salve as alterações antes de sair. }
+          @if (saveStatus() === 'saving') { Salvando horários... } @else if (saveStatus() === 'saved') { Horários salvos. } @else if (saveStatus() === 'error') { Não foi possível salvar. } @else if (hasChanges()) { Salve as alterações antes de sair. } @else if (hasPendingDrafts()) { Conclua a edição do horário em foco. }
         </span>
         <div class="save-buttons">
           <button type="button" class="btn-outline-app" (click)="cancelChanges()" [disabled]="isSaving() || !hasChanges()">Cancelar</button>

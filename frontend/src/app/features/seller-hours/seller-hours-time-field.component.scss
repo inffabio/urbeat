@@ -1,0 +1,152 @@
+:host {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.time-field-root {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.form-label-app {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--hours-muted, var(--app-text-secondary, #6f6f76));
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.time-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 0 0 12px;
+  border: 1px solid var(--hours-line, var(--app-border-light, #eadfd6));
+  border-radius: 10px;
+  background: var(--hours-surface, var(--app-surface, #fff));
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.time-box:focus-within {
+  border-color: var(--hours-orange, var(--app-brand, #D54A51));
+  box-shadow: 0 0 0 3px var(--hours-focus-ring, rgba(255, 75, 31, 0.14));
+}
+
+.time-box.has-error {
+  border-color: var(--app-error, #D32F2F);
+}
+
+.time-box.has-error:focus-within {
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.14);
+}
+
+.time-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--hours-text, var(--app-ink, #161616));
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.time-trigger {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--hours-muted, var(--app-text-secondary, #6f6f76));
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.time-trigger:hover {
+  background: var(--hours-orange-soft, var(--app-brand-soft, #FDECEE));
+  color: var(--hours-orange, var(--app-brand, #D54A51));
+}
+
+.time-trigger:focus-visible {
+  outline: 3px solid var(--hours-orange, var(--app-brand, #D54A51));
+  outline-offset: -2px;
+  color: var(--hours-orange, var(--app-brand, #D54A51));
+}
+
+.time-trigger ion-icon {
+  font-size: 18px;
+}
+
+.time-options {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  min-width: 132px;
+  max-height: 220px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--hours-surface, var(--app-surface, #fff));
+  box-shadow: var(--shadow-md, 0 14px 34px rgba(33, 20, 8, 0.09));
+  overscroll-behavior: contain;
+}
+
+.time-option {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--hours-text, var(--app-ink, #161616));
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.time-option.is-active {
+  background: var(--hours-orange-soft, var(--app-brand-soft, #FDECEE));
+  color: var(--hours-orange, var(--app-brand, #D54A51));
+}
+
+.time-option.is-selected {
+  font-weight: 800;
+}
+
+.time-option.is-selected::after {
+  content: '✓';
+  margin-left: auto;
+  font-size: 13px;
+}
+
+.time-error {
+  margin: 4px 0 0;
+  color: var(--app-error, #D32F2F);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .time-box,
+  .time-trigger {
+    transition: none;
+  }
+}

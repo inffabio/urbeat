@@ -330,6 +330,19 @@ describe('StoreHoursState', () => {
     expect(monday?.shifts).toEqual([]);
   });
 
+  it('blocks adding a shift when the current end time is invalid', async () => {
+    await load([
+      { dayOfWeek: 1, isOpen: true, shifts: [{ startTime: '08:00', endTime: '12:00' }] },
+    ]);
+
+    component.updateTime('segunda', 0, 'endTime', 'ab:cd');
+    component.addShift('segunda');
+
+    expect(component.schedule().segunda.shifts).toHaveLength(1);
+    expect(component.schedule().segunda.shifts[0].endTime).toBe('ab:cd');
+    expect(toastServiceMock.showError).toHaveBeenCalledWith('Corrija o horário do turno atual antes de adicionar outro.');
+  });
+
   it('limits each day to five shifts', async () => {
     await load([
       {

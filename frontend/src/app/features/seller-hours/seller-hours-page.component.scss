@@ -6,7 +6,13 @@
   --hours-line: var(--dash-line, #e7e9f3);
   --hours-orange: var(--dash-orange, #ff4b1f);
   --hours-orange-soft: var(--dash-orange-soft, #fff1ea);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
+
+.hours-page > * { min-width: 0; }
+
+.hours-page .dashboard-topbar > div { min-width: 0; }
 
 .hours-page .schedule-card { padding: 24px; }
 .hours-page .seller-inline-banner { margin-top: 0; }
@@ -133,8 +139,8 @@
 
 .shift-group {
   display: grid;
-  grid-template-columns: repeat(2, 106px) 44px 44px;
-  align-items: end;
+  grid-template-columns: repeat(2, minmax(144px, 160px)) 44px 44px;
+  align-items: start;
   gap: 10px;
 }
 
@@ -148,52 +154,10 @@
 }
 
 .time-field {
-  width: 106px;
-  flex: none;
-}
-
-.form-label-app {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--hours-muted);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.time-box {
-  display: flex;
-  align-items: center;
-  width: 106px;
-  height: 40px;
-  gap: 10px;
-  padding: 0 10px;
-  border: 1px solid var(--hours-line);
-  border-radius: 10px;
-  background: var(--hours-surface);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.time-box:focus-within {
-  border-color: var(--hours-orange);
-  box-shadow: 0 0 0 3px rgba(255, 75, 31, 0.12);
-}
-
-.time-box input {
-  width: 100%;
+  width: 160px;
+  max-width: 100%;
   min-width: 0;
-  border: 0;
-  background: transparent;
-  color: #303447;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  outline: none;
-}
-
-.time-box ion-icon {
-  flex: 0 0 auto;
-  color: var(--hours-muted);
-  font-size: 16px;
+  flex: none;
 }
 
 .overnight-badge {
@@ -216,6 +180,7 @@
   display: block;
   width: 44px;
   height: 44px;
+  margin-top: 18px;
 }
 
 .day-error {
@@ -232,6 +197,8 @@
   width: 44px;
   min-width: 44px;
   height: 44px;
+  margin-top: 18px;
+  align-self: start;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -493,8 +460,8 @@
 
 @media (max-width: 1000px) {
   .settings-row { grid-template-columns: 140px minmax(0, 1fr); gap: 10px; padding: 16px 0; }
-  .shift-group { grid-template-columns: repeat(2, minmax(100px, 106px)) 44px 44px; }
-  .time-field, .time-box { width: 106px; }
+  .shift-group { grid-template-columns: repeat(2, minmax(128px, 160px)) 44px 44px; }
+  .time-field { width: 160px; }
   .hours-meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -507,9 +474,20 @@
   .day-summary { flex-direction: row; align-items: center; justify-content: space-between; grid-column: 1 / -1; }
   .shifts-column { grid-column: 1 / -1; width: 100%; }
 
-  .shift-group { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)) 44px 44px; }
-  .time-field, .time-box { width: 100%; min-width: 0; }
-  .time-box { min-height: 44px; }
+  .shift-group {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+  .time-field { width: 100%; }
+
+  .shift-group > .copy-action,
+  .shift-group > .remove-shift {
+    margin-top: 0;
+    align-self: center;
+    justify-self: end;
+  }
+  .shift-group > .action-slot { margin-top: 0; }
 
   .interval-label { grid-column: 1 / -1; padding-bottom: 0; }
   .hours-meta-grid { grid-template-columns: 1fr; }
@@ -522,8 +500,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .switch-app,
-  .switch-app::before,
-  .time-box { transition: none; }
+  .switch-app::before { transition: none; }
 }
 
 @media (max-width: 430px) {

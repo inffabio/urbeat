@@ -1,5 +1,5 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -7,6 +7,21 @@ import { of } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerHoursPageComponent } from './seller-hours-page.component';
+
+function fieldFor(input: HTMLInputElement): HTMLElement {
+  return input.closest('.time-field') as HTMLElement;
+}
+
+function firstShiftInput(
+  fixture: ComponentFixture<SellerHoursPageComponent>,
+  kind: 'start' | 'end',
+): HTMLInputElement {
+  const mondayRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+  const fields = mondayRow.querySelectorAll<HTMLElement>('.time-field');
+  const field = kind === 'start' ? fields[0] : fields[1];
+
+  return field.querySelector('input') as HTMLInputElement;
+}
 
 describe('SellerHoursPageComponent', () => {
   const storeServiceMock = {
@@ -18,6 +33,7 @@ describe('SellerHoursPageComponent', () => {
   const toastServiceMock = {
     showError: jest.fn(),
     showSuccess: jest.fn(),
+    showGrouped: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -132,8 +148,9 @@ describe('SellerHoursPageComponent', () => {
     expect(shiftGroups.length).toBe(2);
 
     for (const group of Array.from(shiftGroups)) {
-      const inputs = group.querySelectorAll('input[type="time"]');
+      const inputs = group.querySelectorAll('input[role="combobox"]');
       expect(inputs.length).toBe(2);
+      expect(group.querySelectorAll('.time-box ion-icon').length).toBe(2);
 
       const removeShift = group.querySelector('.remove-shift');
       expect(removeShift).toBeTruthy();
@@ -167,21 +184,33 @@ describe('SellerHoursPageComponent', () => {
     expect(row).not.toMatch(/grid-template-columns:\s*156px minmax\(0, 1fr\) 44px/);
 
     const group = styles.match(/\.shift-group\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
-    expect(group).toMatch(/grid-template-columns:\s*repeat\(2,\s*106px\)\s*44px\s*44px/);
+    expect(group).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(144px,\s*160px\)\)\s*44px\s*44px/);
 
     expect(styles).not.toMatch(/\.copy-action\s*\{\s*justify-self:\s*end/);
   });
 
-  it('keeps desktop time fields between 100 and 112px and 44px touch targets', () => {
+  it('keeps desktop time fields wide enough for HH:MM and 44px touch targets', () => {
     const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
     const field = styles.match(/\.time-field\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
     const width = Number(field.match(/width:\s*(\d+)px/)?.[1]);
 
-    expect(width).toBeGreaterThanOrEqual(100);
-    expect(width).toBeLessThanOrEqual(112);
+    expect(width).toBeGreaterThanOrEqual(128);
+    expect(styles).not.toMatch(/width:\s*106px/);
 
     const actions = styles.match(/\.remove-shift,\s*\.copy-action\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
     expect(actions).toMatch(/height:\s*44px/);
+  });
+
+  it('stacks the shift actions below two full-width fields on mobile', () => {
+    const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
+    const pageRule = styles.match(/\.hours-page\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const mobile = styles.match(/@media\s*\(max-width:\s*767px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const group = mobile.match(/\.shift-group\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+
+    expect(pageRule).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    expect(group).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+    expect(group).not.toMatch(/44px\s*44px/);
+    expect(mobile).toMatch(/\.time-field[^{]*\{\s*width:\s*100%/);
   });
 
   it('respects prefers-reduced-motion for the switch and inputs', () => {
@@ -196,17 +225,322 @@ describe('SellerHoursPageComponent', () => {
     await fixture.whenStable();
 
     const inputs = Array.from(
-      fixture.nativeElement.querySelectorAll('input[type="time"]') as NodeListOf<HTMLInputElement>,
+      fixture.nativeElement.querySelectorAll('input[role="combobox"]') as NodeListOf<HTMLInputElement>,
     );
     expect(inputs.length).toBeGreaterThan(0);
 
     for (const input of inputs) {
       expect(input.getAttribute('aria-label')).toBeTruthy();
       expect(input.id).toBeTruthy();
+      expect(input.getAttribute('role')).toBe('combobox');
+      expect(input.hasAttribute('aria-expanded')).toBe(true);
+      expect(input.getAttribute('aria-controls')).toBeTruthy();
       const label = fixture.nativeElement.querySelector(`label[for="${input.id}"]`);
       expect(label).toBeTruthy();
     }
   });
+
+  it('renders a single icon per time box without a native time input', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const boxes = Array.from(fixture.nativeElement.querySelectorAll('.time-box')) as HTMLElement[];
+    expect(boxes.length).toBeGreaterThan(0);
+
+    for (const box of boxes) {
+      expect(box.querySelectorAll('ion-icon')).toHaveLength(1);
+      expect(box.querySelector('input[type="time"]')).toBeNull();
+    }
+  });
+
+  it('shows backend HH:mm:ss values as HH:MM and preserves them while opening and closing the list', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [{ startTime: '08:00:30.2500000', endTime: '12:30:45.5000000' }],
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    expect(startInput.value).toBe('08:00');
+
+    fieldFor(startInput).querySelector<HTMLButtonElement>('.time-trigger')!.click();
+    fixture.detectChanges();
+    expect(fieldFor(startInput).querySelector('[role="listbox"]')).not.toBeNull();
+
+    startInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    expect(fieldFor(startInput).querySelector('[role="listbox"]')).toBeNull();
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00:30.2500000');
+    expect(component.schedule().segunda.shifts[0].endTime).toBe('12:30:45.5000000');
+    expect(component.hasChanges()).toBe(false);
+  });
+
+  it('selects a 30-minute option and closes that field list', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    fieldFor(startInput).querySelector<HTMLButtonElement>('.time-trigger')!.click();
+    fixture.detectChanges();
+
+    const options = Array.from(fieldFor(startInput).querySelectorAll('[role="option"]')) as HTMLElement[];
+    options[19].click();
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('09:30');
+    expect(startInput.value).toBe('09:30');
+    expect(fieldFor(startInput).querySelector('[role="listbox"]')).toBeNull();
+    expect(component.hasChanges()).toBe(true);
+  });
+
+  it('keeps the other field raw value and restores everything on cancel', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [{ startTime: '08:00:30.2500000', endTime: '12:30:45.5000000' }],
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const endInput = firstShiftInput(fixture, 'end');
+    endInput.value = '13:00';
+    endInput.dispatchEvent(new Event('input'));
+    endInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00:30.2500000');
+    expect(component.schedule().segunda.shifts[0].endTime).toBe('13:00');
+
+    component.cancelChanges();
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00:30.2500000');
+    expect(component.schedule().segunda.shifts[0].endTime).toBe('12:30:45.5000000');
+    expect(component.hasChanges()).toBe(false);
+    expect(firstShiftInput(fixture, 'start').value).toBe('08:00');
+  });
+
+  it('sends untouched backend times intact in the save payload', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [{ startTime: '08:00:30.2500000', endTime: '12:30:45.5000000' }],
+      }],
+    }));
+    storeServiceMock.upsertStoreBusinessHours.mockReturnValue(of({ items: [] }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const endInput = firstShiftInput(fixture, 'end');
+    endInput.value = '13:00';
+    endInput.dispatchEvent(new Event('input'));
+    endInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).toHaveBeenCalledTimes(1);
+    const [, request] = storeServiceMock.upsertStoreBusinessHours.mock.calls[0] as [
+      string,
+      { items: Array<{ dayOfWeek: number; shifts: Array<{ startTime: string; endTime: string }> }> },
+    ];
+    const monday = request.items.find((item) => item.dayOfWeek === 1);
+
+    expect(monday?.shifts).toEqual([
+      { startTime: '08:00:30.2500000', endTime: '13:00' },
+    ]);
+  });
+
+  it('reports an invalid typed time, blocks saving and restores it on cancel', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    startInput.value = '25:00';
+    startInput.dispatchEvent(new Event('input'));
+    startInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    const alert = fieldFor(startInput).querySelector('[role="alert"]') as HTMLElement | null;
+    expect(alert).not.toBeNull();
+    expect(alert?.textContent).toContain('HH:MM');
+    expect(startInput.getAttribute('aria-invalid')).toBe('true');
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('25:00');
+
+    await component.saveDraft();
+
+    expect(storeServiceMock.upsertStoreBusinessHours).not.toHaveBeenCalled();
+    expect(toastServiceMock.showGrouped).toHaveBeenCalled();
+    expect(component.hasChanges()).toBe(true);
+
+    component.cancelChanges();
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00');
+    expect(firstShiftInput(fixture, 'start').value).toBe('08:00');
+  });
+
+  it('does not render NaN in the weekly summary while an invalid draft is displayed', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    startInput.value = 'ab:cd';
+    startInput.dispatchEvent(new Event('input'));
+    startInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.weeklyHours()).not.toContain('NaN');
+    expect(fixture.nativeElement.textContent).not.toContain('NaN');
+    expect(component.validateDay('segunda')).toBe('Informe horários válidos no formato HH:MM.');
+    expect(component.hasChanges()).toBe(true);
+  });
+
+  it('warns about an unsaved draft before blur without committing the value', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    startInput.value = '09:30';
+    startInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const pendingPill = fixture.nativeElement.querySelector('.date-pill') as HTMLElement;
+
+    expect(component.hasChanges()).toBe(false);
+    expect(component.hasPendingDrafts()).toBe(true);
+    expect(component.hasUnsavedChanges()).toBe(true);
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00');
+    expect(pendingPill.textContent).toContain('Alterações pendentes');
+
+    startInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('09:30');
+    expect(component.hasChanges()).toBe(true);
+    expect(component.hasPendingDrafts()).toBe(false);
+    expect(component.hasUnsavedChanges()).toBe(true);
+  });
+
+  it('corrects an invalid suffix when the same visible time is selected', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const startInput = firstShiftInput(fixture, 'start');
+    startInput.value = '08:00:99';
+    startInput.dispatchEvent(new Event('input'));
+    startInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00:99');
+
+    fieldFor(startInput).querySelector<HTMLButtonElement>('.time-trigger')!.click();
+    fixture.detectChanges();
+    const options = Array.from(fieldFor(startInput).querySelectorAll('[role="option"]')) as HTMLElement[];
+    options[16].click();
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('08:00');
+    expect(startInput.value).toBe('08:00');
+    expect(fieldFor(startInput).querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('keeps touched field state attached to the same shift after removing an earlier shift', async () => {
+    storeServiceMock.getStoreBusinessHours.mockReturnValueOnce(of({
+      items: [{
+        dayOfWeek: 1,
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '12:00' },
+          { startTime: '13:00', endTime: '18:00' },
+        ],
+      }],
+    }));
+
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    const mondayRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+    const shiftInputs = Array.from(mondayRow.querySelectorAll('.time-field input')) as HTMLInputElement[];
+    const secondShiftStart = shiftInputs[2];
+
+    secondShiftStart.value = 'ab:cd';
+    secondShiftStart.dispatchEvent(new Event('input'));
+    secondShiftStart.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.schedule().segunda.shifts[1].startTime).toBe('ab:cd');
+    expect(fieldFor(secondShiftStart).querySelector('[role="alert"]')).not.toBeNull();
+    const secondShiftFieldId = secondShiftStart.id;
+
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    component.removeShift('segunda', 0);
+    fixture.detectChanges();
+
+    const remainingStart = firstShiftInput(fixture, 'start');
+    expect(component.schedule().segunda.shifts).toHaveLength(1);
+    expect(component.schedule().segunda.shifts[0].startTime).toBe('ab:cd');
+    expect(remainingStart.value).toBe('ab:cd');
+    expect(remainingStart.id).toBe(secondShiftFieldId);
+    expect(fieldFor(remainingStart).querySelector('[role="alert"]')).not.toBeNull();
+  });
+
+  it('keeps opening and closing one field list independent from the other field', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const startInput = firstShiftInput(fixture, 'start');
+    const endInput = firstShiftInput(fixture, 'end');
+
+    fieldFor(startInput).querySelector<HTMLButtonElement>('.time-trigger')!.click();
+    fixture.detectChanges();
+
+    const startList = fieldFor(startInput).querySelector('[role="listbox"]') as HTMLElement;
+    expect(startList).not.toBeNull();
+
+    fieldFor(endInput).querySelector<HTMLButtonElement>('.time-trigger')!.click();
+    fixture.detectChanges();
+
+    const endList = fieldFor(endInput).querySelector('[role="listbox"]') as HTMLElement;
+
+    expect(endList).not.toBeNull();
+    expect(fieldFor(startInput).querySelector('[role="listbox"]')).toBeNull();
+    expect(startList.id).not.toBe(endList.id);
+    expect(startInput.getAttribute('aria-controls')).toBe(startList.id);
+    expect(endInput.getAttribute('aria-controls')).toBe(endList.id);
+  });
+
 
   it('exposes the day switch as an accessible switch control', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
