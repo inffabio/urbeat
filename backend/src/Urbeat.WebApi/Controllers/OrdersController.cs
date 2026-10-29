@@ -1,9 +1,11 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FluentValidation;
+using Urbeat.Application.Analytics;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
+using Urbeat.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +23,7 @@ public sealed class OrdersController : ControllerBase
     private readonly IValidator<CheckoutRequestDto> _checkoutValidator;
     private readonly IValidator<UpdateOrderStatusRequestDto> _updateStatusValidator;
     private readonly IValidator<AssignDeliveryDriverRequestDto> _assignDriverValidator;
+    private readonly TimeProvider _timeProvider;
 
 
 
@@ -32,7 +35,8 @@ public sealed class OrdersController : ControllerBase
         IValidator<UpdateOrderStatusRequestDto> updateStatusValidator,
         IDeliveryDriverService deliveryDriverService,
         IIndividualDeliveryLinkService individualDeliveryLinkService,
-        IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator)
+        IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator,
+        TimeProvider timeProvider)
     {
         _checkoutService = checkoutService;
         _orderService = orderService;
@@ -42,6 +46,7 @@ public sealed class OrdersController : ControllerBase
         _deliveryDriverService = deliveryDriverService;
         _individualDeliveryLinkService = individualDeliveryLinkService;
         _assignDriverValidator = assignDriverValidator;
+        _timeProvider = timeProvider;
     }
     [HttpGet("store/report")]
     [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
@@ -56,6 +61,58 @@ public sealed class OrdersController : ControllerBase
 
         var report = await _orderReportService.GetStoreSimpleReportAsync(sellerUserId.Value, startDateUtc, endDateUtc, cancellationToken);
         return Ok(report);
+    }
+
+    [HttpGet("store/analytics")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<StoreAnalyticsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> StoreAnalytics([FromQuery] StoreAnalyticsQueryDto query, CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var resolution = AnalyticsRangeResolver.Resolve(query, SaoPauloCalendar.GetLocalDate(_timeProvider.GetUtcNow()));
+        if (!resolution.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(
+                resolution.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)));
+        }
+
+        var analytics = await _orderReportService.GetStoreAnalyticsAsync(sellerUserId.Value, resolution.Range!, cancellationToken);
+        return Ok(analytics);
+    }
+
+    [HttpGet("store/sales")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [ProducesResponseType<PagedStoreSalesResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> StoreSales([FromQuery] StoreSalesQueryDto query, CancellationToken cancellationToken)
+    {
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var resolution = AnalyticsRangeResolver.Resolve(query, SaoPauloCalendar.GetLocalDate(_timeProvider.GetUtcNow()));
+        if (!resolution.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(
+                resolution.Errors.ToDictionary(pair => pair.Key, pair => pair.Value)));
+        }
+
+        var sales = await _orderReportService.GetStoreSalesAsync(
+            sellerUserId.Value,
+            resolution.Range!,
+            query.Page,
+            query.PageSize,
+            cancellationToken);
+
+        return Ok(sales);
     }
 
     [HttpPost]
@@ -165,9 +222,19 @@ public sealed class OrdersController : ControllerBase
             return Unauthorized();
         }
 
+        if (query.EndDateUtc.HasValue && query.EndExclusiveUtc.HasValue)
+        {
+            return BadRequest(new { error = "Use EndDateUtc or EndExclusiveUtc, not both." });
+        }
+
         if (query.EndDateUtc.HasValue && query.StartDateUtc.HasValue && query.EndDateUtc < query.StartDateUtc)
         {
             return BadRequest(new { error = "EndDateUtc must be greater than or equal to StartDateUtc." });
+        }
+
+        if (query.EndExclusiveUtc.HasValue && query.StartDateUtc.HasValue && query.EndExclusiveUtc <= query.StartDateUtc)
+        {
+            return BadRequest(new { error = "EndExclusiveUtc must be greater than StartDateUtc." });
         }
 
         var orders = await _orderService.ListStoreOrdersAsync(sellerUserId.Value, query, cancellationToken);

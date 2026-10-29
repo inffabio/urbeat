@@ -1,0 +1,43 @@
+<div class="bar-chart">
+  <div
+    class="bar-plot"
+    role="img"
+    [attr.aria-label]="ariaLabel() + (bestLabel() ? '. Melhor mês: ' + bestLabel() : '')"
+  >
+    @for (bar of bars(); track bar.label) {
+      <div class="bar-column" aria-hidden="true">
+        <div class="bar-track">
+          <div
+            class="bar"
+            [class.is-highlighted]="bar.highlighted === true"
+            [style.height.%]="heightPercent(bar.value)"
+          ></div>
+        </div>
+        <span class="bar-label">{{ bar.label }}</span>
+      </div>
+    }
+  </div>
+
+  <details class="bar-details">
+    <summary>{{ detailsLabel() }} · {{ formatCurrency(total()) }}</summary>
+    <div class="bar-table-wrap" role="region" [attr.aria-label]="caption()" tabindex="0">
+      <table>
+        <caption class="visually-hidden">{{ caption() }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Mês</th>
+            <th scope="col">Faturamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (bar of bars(); track bar.label) {
+            <tr>
+              <th scope="row">{{ bar.label }}</th>
+              <td>{{ formatCurrency(bar.value) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>

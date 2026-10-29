@@ -1,0 +1,130 @@
+.period-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.period-segments {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 14px;
+  background: var(--app-surface);
+}
+
+.period-button {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--app-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.period-button[aria-pressed='true'] {
+  background: var(--app-brand);
+  color: #fff;
+}
+
+.period-selector {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.filter-label {
+  color: var(--app-text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.filter-control {
+  min-height: 44px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 10px;
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+select.filter-control {
+  min-width: 128px;
+}
+
+.week-blocks {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 14px;
+  background: var(--app-surface);
+}
+
+.block-button {
+  min-width: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--app-text-secondary);
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.block-button[aria-pressed='true'] {
+  background: var(--app-brand-soft);
+  color: var(--app-brand-dark);
+  box-shadow: inset 0 0 0 1px rgba(var(--app-brand-rgb), 0.28);
+}
+
+.period-button:focus-visible,
+.block-button:focus-visible,
+.filter-control:focus-visible {
+  outline: 2px solid var(--app-brand);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .period-filter {
+    width: 100%;
+  }
+
+  .period-segments {
+    width: 100%;
+  }
+
+  .period-button {
+    flex: 1 1 0;
+    padding: 0 8px;
+  }
+
+  .period-selector {
+    flex: 1 1 140px;
+  }
+
+  select.filter-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .week-blocks {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .block-button {
+    flex: 1 1 0;
+  }
+}

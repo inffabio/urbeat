@@ -1,0 +1,78 @@
+<div class="period-filter">
+  <div class="period-segments" role="group" aria-label="Período do dashboard">
+    @for (option of periods; track option.value) {
+      <button
+        type="button"
+        class="filter-control period-button"
+        [attr.data-period]="option.value"
+        [attr.aria-pressed]="period() === option.value"
+        (click)="selectPeriod(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  @if (period() === 'day') {
+    <div class="period-selector">
+      <label class="filter-label" for="dashboard-day">Dia</label>
+      <input
+        id="dashboard-day"
+        type="date"
+        class="filter-control"
+        [value]="anchorDate()"
+        [attr.max]="todayIso()"
+        (change)="onDayChange($any($event.target).value)"
+      />
+    </div>
+  }
+
+  @if (period() === 'week' || period() === 'month') {
+    <div class="period-selector">
+      <label class="filter-label" for="dashboard-month">Mês</label>
+      <select
+        id="dashboard-month"
+        class="filter-control"
+        [value]="anchorMonth()"
+        (change)="onMonthChange($any($event.target).value)"
+      >
+        @for (month of monthOptions(); track month.value) {
+          <option [value]="month.value" [selected]="month.value === anchorMonth()">{{ month.label }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  @if (period() === 'week' || period() === 'month' || period() === 'year') {
+    <div class="period-selector">
+      <label class="filter-label" for="dashboard-year">Ano</label>
+      <select
+        id="dashboard-year"
+        class="filter-control"
+        [value]="anchorYear()"
+        (change)="onYearChange($any($event.target).value)"
+      >
+        @for (year of years(); track year) {
+          <option [value]="year" [selected]="year === anchorYear()">{{ year }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  @if (period() === 'week') {
+    <div class="week-blocks" role="group" aria-label="Semana do mês">
+      @for (block of blockOptions(); track block.value) {
+        <button
+          type="button"
+          class="filter-control block-button"
+          [attr.data-week-block]="block.value"
+          [attr.aria-pressed]="block.value === effectiveWeekBlock()"
+          [attr.aria-label]="block.label"
+          (click)="selectBlock(block.value)"
+        >
+          {{ block.text }}
+        </button>
+      }
+    </div>
+  }
+</div>

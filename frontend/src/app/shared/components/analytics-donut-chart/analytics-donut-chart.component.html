@@ -1,0 +1,42 @@
+<div class="donut">
+  @if (total() > 0) {
+    <div
+      class="donut-visual"
+      role="img"
+      [attr.aria-label]="ariaLabel() + '. Total de ' + total() + ' ' + centerLabel()"
+    >
+      <svg viewBox="0 0 100 100" focusable="false" aria-hidden="true">
+        <circle class="donut-track" cx="50" cy="50" r="40" />
+        @for (slice of slices(); track slice.label; let index = $index) {
+          <circle
+            class="donut-slice"
+            [class.is-neutral]="slice.label === 'Outros'"
+            cx="50"
+            cy="50"
+            r="40"
+            fill="none"
+            [attr.stroke]="sliceColor(index, slice.label)"
+            [attr.stroke-dasharray]="dashArray(slice.value)"
+            [attr.stroke-dashoffset]="dashOffset(index)"
+            transform="rotate(-90 50 50)"
+          />
+        }
+      </svg>
+      <div class="donut-center" aria-hidden="true">
+        <strong>{{ total() }}</strong>
+        <span>{{ centerLabel() }}</span>
+      </div>
+    </div>
+
+    <ul class="donut-legend">
+      @for (slice of slices(); track slice.label) {
+        <li>
+          <span class="donut-legend-label">{{ slice.label }}</span>
+          <span class="donut-legend-meta">{{ slice.value }} · {{ percent(slice.value) }}%</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="donut-empty">Nenhum pedido entregue neste período.</p>
+  }
+</div>

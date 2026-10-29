@@ -301,6 +301,67 @@ public sealed class OrderServiceTests : IDisposable
         customer.LastOrderAtUtc.Should().BeNull();
     }
 
+    [Fact]
+    public async Task ListStoreOrdersAsync_ShouldSupportExclusiveEndWithoutLosingTheLastTick()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Limite", Slug = "loja-limite", PhoneNumber = "11999999999" };
+        var start = new DateTime(2026, 10, 29, 3, 0, 0, DateTimeKind.Utc);
+        var endExclusive = new DateTime(2026, 10, 30, 3, 0, 0, DateTimeKind.Utc);
+
+        var first = CreateOrder(store.Id, OrderStatus.Received);
+        first.Code = "START";
+        SetCreatedAtUtc(first, start);
+
+        var last = CreateOrder(store.Id, OrderStatus.Received);
+        last.Code = "LASTTICK";
+        SetCreatedAtUtc(last, endExclusive.AddTicks(-1));
+
+        var boundary = CreateOrder(store.Id, OrderStatus.Received);
+        boundary.Code = "BOUNDARY";
+        SetCreatedAtUtc(boundary, endExclusive);
+
+        _db.Stores.Add(store);
+        _db.Orders.AddRange(first, last, boundary);
+        await _db.SaveChangesAsync();
+
+        var exclusive = await _sut.ListStoreOrdersAsync(sellerUserId, new StoreOrdersHistoryQueryDto
+        {
+            StartDateUtc = start,
+            EndExclusiveUtc = endExclusive,
+            Page = 1,
+            PageSize = 20
+        });
+
+        exclusive.TotalItems.Should().Be(2);
+        exclusive.Items.Select(item => item.Code).Should().BeEquivalentTo(["START", "LASTTICK"]);
+        exclusive.Items.Should().NotContain(item => item.Code == "BOUNDARY");
+
+        var inclusive = await _sut.ListStoreOrdersAsync(sellerUserId, new StoreOrdersHistoryQueryDto
+        {
+            StartDateUtc = start,
+            EndDateUtc = endExclusive,
+            Page = 1,
+            PageSize = 20
+        });
+
+        inclusive.TotalItems.Should().Be(3);
+        inclusive.Items.Should().Contain(item => item.Code == "BOUNDARY");
+    }
+
+    private static Order CreateOrder(Guid storeId, OrderStatus status)
+        => new()
+        {
+            Code = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(),
+            CustomerUserId = Guid.NewGuid(),
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            Status = status,
+            Subtotal = 10m,
+            Total = 10m
+        };
+
     private static void SetCreatedAtUtc(BaseEntity entity, DateTime value)
     {
         typeof(BaseEntity)

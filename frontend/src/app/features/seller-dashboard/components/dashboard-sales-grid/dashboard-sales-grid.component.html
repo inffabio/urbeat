@@ -1,0 +1,187 @@
+<section class="sales-card" [attr.aria-busy]="loading()">
+  <header class="sales-head">
+    <div>
+      <h2>Vendas do período</h2>
+      <p>Pedidos entregues, pela data de criação.</p>
+    </div>
+    <span class="range-label">{{ rangeLabel() }}</span>
+  </header>
+
+  @if (error()) {
+    <div class="sales-error" role="alert">
+      <div>
+        <strong>Não foi possível carregar as vendas.</strong>
+        <p>Os indicadores continuam disponíveis; tente carregar a grade novamente.</p>
+      </div>
+      <button type="button" class="filter-control sales-retry" (click)="retry.emit()">
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  @if (isPageLoading()) {
+    <p class="sales-status" role="status" aria-live="polite">
+      Carregando página {{ page() }}
+    </p>
+  }
+
+  <div class="sales-table-wrap">
+    <table>
+      <caption class="visually-hidden">Vendas entregues do período</caption>
+      <thead>
+        <tr>
+          <th scope="col">Pedido</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Itens</th>
+          <th scope="col">Total da venda</th>
+          <th scope="col">Taxa de entrega</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isFirstLoad()) {
+          @for (row of skeletonRows; track row) {
+            <tr class="skeleton-row" aria-hidden="true">
+              <td colspan="5"><span class="skeleton-line"></span></td>
+            </tr>
+          }
+        } @else if (result()) {
+          @if (isOutOfRange()) {
+            <tr>
+              <td colspan="5" class="table-message">
+                <strong>Esta página não existe mais.</strong>
+                <button type="button" class="filter-control" data-page-action="last" (click)="goToLastPage()">
+                  Ir para a última página
+                </button>
+              </td>
+            </tr>
+          } @else if (isEmpty()) {
+            <tr>
+              <td colspan="5" class="table-message">Nenhuma venda entregue neste período.</td>
+            </tr>
+          } @else {
+            @for (sale of sales(); track sale.orderId) {
+              <tr class="sale-row">
+                <th scope="row" data-label="Pedido" class="order-code">{{ sale.code }}</th>
+                <td data-label="Cliente">
+                  <span class="customer-name" [attr.title]="sale.customerName || 'Cliente'">
+                    {{ sale.customerName || 'Cliente' }}
+                  </span>
+                </td>
+                <td data-label="Itens">
+                  <button
+                    type="button"
+                    class="filter-control items-toggle"
+                    [attr.aria-expanded]="isExpanded(sale.orderId)"
+                    [attr.aria-controls]="'sale-items-' + sale.orderId"
+                    [attr.aria-label]="'Ver itens do pedido ' + sale.code"
+                    (click)="toggle(sale)"
+                  >
+                    {{ sale.items.length }} {{ sale.items.length === 1 ? 'item' : 'itens' }}
+                    <span aria-hidden="true">· Ver itens</span>
+                  </button>
+                </td>
+                <td data-label="Total da venda" class="money">{{ formatCurrency(sale.total) }}</td>
+                <td data-label="Taxa de entrega" class="money">{{ formatCurrency(sale.deliveryFee) }}</td>
+              </tr>
+
+              <tr
+                class="sale-detail-row"
+                [attr.id]="'sale-items-' + sale.orderId"
+                [attr.hidden]="!isExpanded(sale.orderId) ? '' : null"
+              >
+                <td colspan="5" class="sale-detail">
+                  <ul class="sale-items">
+                    @for (item of sale.items; track $index) {
+                      <li>
+                        <span class="sale-item-name">
+                          {{ item.productName }}
+                          @if (item.variationName) {
+                            <small>{{ item.variationName }}</small>
+                          }
+                        </span>
+                        <span class="sale-item-price">{{ itemLine(item) }}</span>
+                      </li>
+                    }
+                  </ul>
+
+                  <dl class="sale-identity">
+                    <div>
+                      <dt>Subtotal dos itens</dt>
+                      <dd>{{ formatCurrency(sale.subtotal) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Taxa de entrega</dt>
+                      <dd>{{ formatCurrency(sale.deliveryFee) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Total da venda</dt>
+                      <dd>{{ formatCurrency(sale.total) }}</dd>
+                    </div>
+                  </dl>
+                  <p class="sale-equation">
+                    Subtotal + taxa = total: {{ formatCurrency(sale.subtotal) }} +
+                    {{ formatCurrency(sale.deliveryFee) }} = {{ formatCurrency(sale.total) }}
+                  </p>
+                  <p class="sale-detail-note">
+                    Adicionais e opções já estão incluídos no preço do item; a composição completa fica em Pedidos.
+                  </p>
+                </td>
+              </tr>
+            }
+          }
+        }
+      </tbody>
+
+      @if (result()) {
+        <tfoot>
+          <tr>
+            <th colspan="3" scope="rowgroup" class="totals-label">Total do período</th>
+            <td data-label="Total das vendas">
+              <span class="totals-caption">Total das vendas (inclui taxas de entrega)</span>
+              <strong [attr.aria-label]="'Total das vendas, inclui taxas de entrega, ' + formatCurrency(totals().salesTotal)">
+                {{ formatCurrency(totals().salesTotal) }}
+              </strong>
+            </td>
+            <td data-label="Taxas de entrega">
+              <span class="totals-caption">Taxas de entrega (já incluídas no total)</span>
+              <strong>{{ formatCurrency(totals().deliveryFees) }}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="5" class="totals-note">
+              As taxas já estão dentro do total; não somar as duas colunas.
+            </td>
+          </tr>
+        </tfoot>
+      }
+    </table>
+  </div>
+
+  @if (!result() || totalItems() > 0) {
+    <nav aria-label="Paginação das vendas" class="sales-pagination">
+      <button
+        type="button"
+        class="filter-control"
+        data-page-action="previous"
+        aria-label="Página anterior"
+        [disabled]="!hasPrevious() || loading()"
+        (click)="previousPage()"
+      >
+        Anterior
+      </button>
+      <span class="pagination-status" aria-live="polite">
+        Página {{ page() }} de {{ totalPages() }} · {{ totalItems() }} vendas entregues
+      </span>
+      <button
+        type="button"
+        class="filter-control"
+        data-page-action="next"
+        aria-label="Próxima página"
+        [disabled]="!hasNext() || loading()"
+        (click)="nextPage()"
+      >
+        Próxima
+      </button>
+    </nav>
+  }
+</section>

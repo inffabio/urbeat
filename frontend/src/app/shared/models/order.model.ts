@@ -164,6 +164,105 @@ export interface StoreOrdersQuery {
   status?: OrderStatus;
   startDateUtc?: string;
   endDateUtc?: string;
+  /** Additive exclusive upper bound; mutually exclusive with endDateUtc. */
+  endExclusiveUtc?: string;
+}
+
+export type StoreAnalyticsPeriod = 'day' | 'week' | 'month' | 'year';
+
+export interface StoreAnalyticsQuery {
+  period: StoreAnalyticsPeriod;
+  /** Local civil date in yyyy-MM-dd. */
+  anchor: string;
+  weekBlock?: number;
+}
+
+export interface StoreAnalyticsKpis {
+  deliveredOrders: number;
+  revenue: number;
+  deliveryFees: number;
+  averageTicket: number;
+}
+
+export interface StoreAnalyticsProduct {
+  productName: string;
+  quantity: number;
+  revenue: number;
+}
+
+export interface StoreAnalyticsPayment {
+  paymentMethod: PaymentMethod;
+  deliveredOrders: number;
+  revenue: number;
+}
+
+export interface StoreAnalyticsMonth {
+  year: number;
+  month: number;
+  deliveredOrders: number;
+  revenue: number;
+}
+
+export interface StoreAnalytics {
+  period: StoreAnalyticsPeriod;
+  anchorDate: string;
+  weekBlock: number | null;
+  rangeStartUtc: string;
+  rangeEndUtcExclusive: string;
+  timeZone: string;
+  chartYear: number;
+  kpis: StoreAnalyticsKpis;
+  products: StoreAnalyticsProduct[];
+  payments: StoreAnalyticsPayment[];
+  months: StoreAnalyticsMonth[];
+  availableYears: number[];
+}
+
+export interface StoreSalesQuery extends StoreAnalyticsQuery {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface StoreSalesTotals {
+  /** Sum of Order.Total; already includes delivery fees. */
+  salesTotal: number;
+  /** Sum of Order.DeliveryFee; already contained in salesTotal. */
+  deliveryFees: number;
+}
+
+export interface StoreSaleItem {
+  productName: string;
+  variationName?: string | null;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface StoreSaleRow {
+  orderId: string;
+  code: string;
+  customerName?: string | null;
+  createdAtUtc: string;
+  subtotal: number;
+  deliveryFee: number;
+  /** Order total, already including deliveryFee. */
+  total: number;
+  items: StoreSaleItem[];
+}
+
+export interface PagedStoreSales {
+  period: StoreAnalyticsPeriod;
+  anchorDate: string;
+  weekBlock: number | null;
+  rangeStartUtc: string;
+  rangeEndUtcExclusive: string;
+  timeZone: string;
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  totals: StoreSalesTotals;
+  sales: StoreSaleRow[];
 }
 
 export interface StoreCustomersQuery {

@@ -6,7 +6,7 @@ public static class StoreOpeningHoursCalculator
 {
     private const int MinutesPerDay = 24 * 60;
 
-    private static readonly TimeZoneInfo SaoPauloTimeZone = ResolveSaoPauloTimeZone();
+    private static readonly TimeZoneInfo SaoPauloTimeZone = SaoPauloCalendar.TimeZone;
 
     public static StoreOpeningHoursStatus Calculate(
         bool isStoreEnabled,
@@ -46,10 +46,7 @@ public static class StoreOpeningHoursCalculator
     /// "frete grátis hoje". Reuses the same timezone resolution as store opening hours.
     /// </summary>
     public static DateOnly GetSaoPauloDate(DateTimeOffset utcNow)
-    {
-        var localNow = TimeZoneInfo.ConvertTime(utcNow.ToUniversalTime(), SaoPauloTimeZone);
-        return DateOnly.FromDateTime(localNow.DateTime);
-    }
+        => SaoPauloCalendar.GetLocalDate(utcNow);
 
     private static bool IsOpenAt(IReadOnlyCollection<StoreBusinessHour> hours, DateTimeOffset localNow)
     {
@@ -159,18 +156,6 @@ public static class StoreOpeningHoursCalculator
             DayOfWeek.Saturday => "Sábado",
             _ => day.ToString()
         };
-    }
-
-    private static TimeZoneInfo ResolveSaoPauloTimeZone()
-    {
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-        }
     }
 }
 

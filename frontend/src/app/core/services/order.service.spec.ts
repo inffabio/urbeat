@@ -167,4 +167,80 @@ describe('OrderService', () => {
       history: [],
     });
   });
+
+  it('should request store orders with an exclusive end bound', () => {
+    service.getStoreOrders({
+      pageSize: 100,
+      startDateUtc: '2026-10-29T03:00:00.000Z',
+      endExclusiveUtc: '2026-10-30T03:00:00Z',
+    }).subscribe();
+
+    const req = httpMock.expectOne(
+      '/api/orders/store?pageSize=100&startDateUtc=2026-10-29T03%3A00%3A00.000Z&endExclusiveUtc=2026-10-30T03%3A00%3A00Z',
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] });
+  });
+
+  it('should request store analytics with period, anchor and week block', () => {
+    service.getStoreAnalytics({ period: 'week', anchor: '2026-10-29', weekBlock: 5 }).subscribe((analytics) => {
+      expect(analytics.kpis.deliveredOrders).toBe(12);
+      expect(analytics.availableYears).toEqual([2026, 2025]);
+    });
+
+    const req = httpMock.expectOne('/api/orders/store/analytics?period=week&anchor=2026-10-29&weekBlock=5');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      period: 'week',
+      anchorDate: '2026-10-29',
+      weekBlock: 5,
+      rangeStartUtc: '2026-10-29T03:00:00Z',
+      rangeEndUtcExclusive: '2026-11-01T03:00:00Z',
+      timeZone: 'America/Sao_Paulo',
+      chartYear: 2026,
+      kpis: { deliveredOrders: 12, revenue: 1234.5, deliveryFees: 60, averageTicket: 102.88 },
+      products: [],
+      payments: [],
+      months: [],
+      availableYears: [2026, 2025],
+    });
+  });
+
+  it('should omit the week block outside the week period', () => {
+    service.getStoreAnalytics({ period: 'day', anchor: '2026-10-29' }).subscribe();
+
+    const req = httpMock.expectOne('/api/orders/store/analytics?period=day&anchor=2026-10-29');
+    req.flush({});
+  });
+
+  it('should request store sales with pagination', () => {
+    service.getStoreSales({ period: 'month', anchor: '2026-10-01', page: 2, pageSize: 20 }).subscribe((sales) => {
+      expect(sales.page).toBe(2);
+      expect(sales.totals.salesTotal).toBe(100);
+    });
+
+    const req = httpMock.expectOne('/api/orders/store/sales?period=month&anchor=2026-10-01&page=2&pageSize=20');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      period: 'month',
+      anchorDate: '2026-10-01',
+      weekBlock: null,
+      rangeStartUtc: '2026-10-01T03:00:00Z',
+      rangeEndUtcExclusive: '2026-11-01T03:00:00Z',
+      timeZone: 'America/Sao_Paulo',
+      page: 2,
+      pageSize: 20,
+      totalItems: 21,
+      totalPages: 2,
+      totals: { salesTotal: 100, deliveryFees: 5 },
+      sales: [],
+    });
+  });
+
+  it('should omit the week block from store sales outside the week period', () => {
+    service.getStoreSales({ period: 'year', anchor: '2026-01-01', page: 1, pageSize: 20 }).subscribe();
+
+    const req = httpMock.expectOne('/api/orders/store/sales?period=year&anchor=2026-01-01&page=1&pageSize=20');
+    req.flush({});
+  });
 });

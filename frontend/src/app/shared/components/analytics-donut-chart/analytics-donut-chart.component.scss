@@ -1,0 +1,127 @@
+:host {
+  display: block;
+}
+
+.donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.donut-visual {
+  position: relative;
+  flex: 0 0 auto;
+  width: 200px;
+  height: 200px;
+}
+
+.donut-visual svg {
+  width: 100%;
+  height: 100%;
+}
+
+.donut-track {
+  fill: none;
+  stroke: var(--app-hairline-warm);
+  stroke-width: 14;
+}
+
+.donut-slice {
+  stroke-width: 14;
+  transition: stroke-dashoffset 0.35s ease;
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-center strong {
+  color: var(--app-text-primary);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.donut-center span {
+  margin-top: 4px;
+  color: var(--app-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.donut-legend {
+  flex: 1 1 180px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.donut-legend li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--app-hairline-warm);
+  font-size: 13px;
+}
+
+.donut-legend li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.donut-legend-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--app-text-primary);
+  font-weight: 700;
+}
+
+.donut-legend-meta {
+  flex: 0 0 auto;
+  color: var(--app-text-secondary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.donut-empty {
+  margin: 0;
+  padding: 20px 0;
+  color: var(--app-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .donut {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .donut-visual {
+    width: 200px;
+    height: 200px;
+    margin-inline: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut-slice {
+    transition: none;
+  }
+}

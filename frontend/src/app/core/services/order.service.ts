@@ -12,11 +12,15 @@ import {
   OrderSummary,
   PagedOrderSummary,
   PagedSellerCustomerSummary,
+  PagedStoreSales,
   SellerCustomerSummary,
   SellerDeliverySummary,
+  StoreAnalytics,
+  StoreAnalyticsQuery,
   StoreCustomersQuery,
   StoreOrdersQuery,
   StoreOrdersReport,
+  StoreSalesQuery,
 } from '../../shared/models/order.model';
 
 @Injectable({ providedIn: 'root' })
@@ -55,6 +59,30 @@ export class OrderService {
     return this.api.get<StoreOrdersReport>(`/api/orders/store/report${query ? `?${query}` : ''}`);
   }
 
+  getStoreAnalytics(query: StoreAnalyticsQuery): Observable<StoreAnalytics> {
+    const params = new URLSearchParams();
+    params.set('period', query.period);
+    params.set('anchor', query.anchor);
+    if (query.period === 'week' && query.weekBlock != null) {
+      params.set('weekBlock', String(query.weekBlock));
+    }
+
+    return this.api.get<StoreAnalytics>(`/api/orders/store/analytics?${params.toString()}`);
+  }
+
+  getStoreSales(query: StoreSalesQuery): Observable<PagedStoreSales> {
+    const params = new URLSearchParams();
+    params.set('period', query.period);
+    params.set('anchor', query.anchor);
+    if (query.period === 'week' && query.weekBlock != null) {
+      params.set('weekBlock', String(query.weekBlock));
+    }
+    if (query.page != null) params.set('page', String(query.page));
+    if (query.pageSize != null) params.set('pageSize', String(query.pageSize));
+
+    return this.api.get<PagedStoreSales>(`/api/orders/store/sales?${params.toString()}`);
+  }
+
   getStoreOrders(query: StoreOrdersQuery = {}): Observable<PagedOrderSummary> {
     const params = new URLSearchParams();
     if (query.page != null) params.set('page', String(query.page));
@@ -62,6 +90,7 @@ export class OrderService {
     if (query.status != null) params.set('status', String(query.status));
     if (query.startDateUtc) params.set('startDateUtc', query.startDateUtc);
     if (query.endDateUtc) params.set('endDateUtc', query.endDateUtc);
+    if (query.endExclusiveUtc) params.set('endExclusiveUtc', query.endExclusiveUtc);
     const qs = params.toString();
 
     return this.api.get<PagedOrderSummary>(`/api/orders/store${qs ? `?${qs}` : ''}`);

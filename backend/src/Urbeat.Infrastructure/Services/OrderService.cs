@@ -90,7 +90,11 @@ public sealed class OrderService : IOrderService
             storeOrdersQuery = storeOrdersQuery.Where(x => x.CreatedAtUtc >= query.StartDateUtc.Value);
         }
 
-        if (query.EndDateUtc.HasValue)
+        if (query.EndExclusiveUtc.HasValue)
+        {
+            storeOrdersQuery = storeOrdersQuery.Where(x => x.CreatedAtUtc < query.EndExclusiveUtc.Value);
+        }
+        else if (query.EndDateUtc.HasValue)
         {
             storeOrdersQuery = storeOrdersQuery.Where(x => x.CreatedAtUtc <= query.EndDateUtc.Value);
         }
