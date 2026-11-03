@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { StoreDeliveryPageComponent } from './store-delivery-page.component';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { DeliveryNeighborhood } from '../../../shared/models/store.model';
+import { pendingChangesGuard } from '../../../core/guards/pending-changes.guard';
 import { AlertController, ToastController } from '@ionic/angular';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { readFileSync } from 'node:fs';
@@ -16,7 +16,7 @@ describe('StoreDeliveryPageComponent', () => {
   let fixture: ComponentFixture<StoreDeliveryPageComponent>;
   let storeServiceMock: jest.Mocked<Partial<StoreService>>;
   let toastServiceMock: jest.Mocked<ToastService>;
-  let routerMock: jest.Mocked<Partial<Router>>;
+  let routerMock: { url: string; navigate: jest.Mock };
 
   const mockStore = {
     id: 'store-123',
@@ -58,6 +58,7 @@ describe('StoreDeliveryPageComponent', () => {
     };
 
     routerMock = {
+      url: '/configurar-loja/entrega',
       navigate: jest.fn().mockResolvedValue(true),
     };
 
@@ -65,7 +66,7 @@ describe('StoreDeliveryPageComponent', () => {
       imports: [StoreDeliveryPageComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
-        provideRouter([]),
+        { provide: Router, useValue: routerMock },
         { provide: StoreService, useValue: storeServiceMock },
         { provide: ToastService, useValue: toastServiceMock },
         { provide: AlertController, useValue: { create: jest.fn().mockResolvedValue({ present: jest.fn().mockResolvedValue(undefined) }) } },
@@ -384,6 +385,78 @@ describe('StoreDeliveryPageComponent', () => {
       expect(Array.isArray(payload.deliveryAreas)).toBe(true);
       const names = (payload.deliveryAreas as { neighborhood: string }[]).map(a => a.neighborhood);
       expect(names).toEqual(['Centro', 'Jardins']);
+    });
+  });
+
+  describe('route context (wizard vs dashboard)', () => {
+    function loadStore(overrides: Record<string, unknown> = {}) {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        ...overrides,
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+      fixture.detectChanges();
+    }
+
+    it('renders the wizard chrome without the dashboard-only free shipping card on /configurar-loja/entrega', () => {
+      routerMock.url = '/configurar-loja/entrega';
+
+      loadStore();
+
+      const host = fixture.nativeElement as HTMLElement;
+      const text = host.textContent ?? '';
+      expect(component.isDashboardView()).toBe(false);
+      expect(host.querySelector('app-wizard-header')).toBeTruthy();
+      expect(host.querySelector('app-wizard-footer')).toBeTruthy();
+      expect(host.querySelector('.dashboard-save-bar')).toBeNull();
+      expect(text).not.toContain('Frete grátis hoje');
+    });
+
+    it('renders the dashboard save surface instead of the wizard footer on /app/configuracoes/bairros', () => {
+      routerMock.url = '/app/configuracoes/bairros';
+
+      loadStore();
+
+      const host = fixture.nativeElement as HTMLElement;
+      const text = host.textContent ?? '';
+      expect(component.isDashboardView()).toBe(true);
+      expect(host.querySelector('app-wizard-header')).toBeNull();
+      expect(host.querySelector('app-wizard-footer')).toBeNull();
+      expect(host.querySelector('.dashboard-save-bar')).toBeTruthy();
+      expect(text).toContain('Frete grátis hoje');
+    });
+
+    it('keeps the persisted free shipping values in the wizard payload although the controls are absent', async () => {
+      routerMock.url = '/configurar-loja/entrega';
+      loadStore({
+        freeShippingToday: true,
+        freeShippingThreshold: 50,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Centro', deliveryFee: 5, isActive: true, notes: '' }],
+      });
+
+      expect(fixture.nativeElement.querySelector('[formcontrolname="freeShippingThreshold"]')).toBeNull();
+
+      await component.saveDraft();
+
+      const [storeId, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(storeId).toBe('store-123');
+      expect(payload.freeShippingToday).toBe(true);
+      expect(payload.freeShippingThreshold).toBe(50);
+    });
+
+    it('still sends the value edited through the dashboard free shipping card', async () => {
+      routerMock.url = '/app/configuracoes/bairros';
+      loadStore({ freeShippingToday: false });
+
+      component.toggleFreeShippingToday({ target: { checked: true } } as unknown as Event);
+      await component.saveDraft();
+
+      const [, payload] = storeServiceMock.updateDeliveryConfig!.mock.calls[0] as [string, any];
+      expect(payload.freeShippingToday).toBe(true);
     });
   });
 
@@ -1247,6 +1320,118 @@ describe('StoreDeliveryPageComponent', () => {
       expect(component.saveStatus()).toBe('partial');
       expect(toastServiceMock.showSuccess).not.toHaveBeenCalled();
       expect(toastServiceMock.showWarning).toHaveBeenCalled();
+    });
+  });
+
+  describe('in-flight save protection', () => {
+    function loadWizard() {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        deliveryFee: 0,
+        minimumOrderValue: 0,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+      fixture.detectChanges();
+    }
+
+    const savedStore = {
+      id: 'store-123',
+      maxDeliveryRadiusKm: 5,
+      deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+    };
+
+    it('keeps the delivery draft protected while the save request is in flight', async () => {
+      loadWizard();
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(save$);
+
+      const saving = component.saveDraft();
+
+      expect(component.isSaving()).toBe(true);
+      expect(component.hasUnsavedChanges()).toBe(true);
+
+      save$.next(savedStore);
+      save$.complete();
+      await saving;
+
+      expect(component.hasUnsavedChanges()).toBe(false);
+    });
+
+    it('does not start a concurrent delivery save while a request is in flight', async () => {
+      loadWizard();
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(save$);
+
+      const first = component.saveDraft();
+      const second = component.saveDraft();
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+
+      save$.next(savedStore);
+      save$.complete();
+      await Promise.all([first, second]);
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      expect(component.saveStatus()).toBe('saved');
+    });
+
+    it('does not start a concurrent save or navigate when advancing during a pending save', async () => {
+      loadWizard();
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      const save$ = new Subject<unknown>();
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(save$);
+
+      const saving = component.saveDraft();
+      await component.goNext();
+
+      expect(storeServiceMock.updateDeliveryConfig).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+
+      save$.next(savedStore);
+      save$.complete();
+      await saving;
+    });
+
+    it('clears the pending state after a successful advance so the route guard does not ask a false confirmation', async () => {
+      loadWizard();
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of(savedStore as any));
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      await component.goNext();
+
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/configurar-loja/produtos']);
+      expect(component.formDirty()).toBe(false);
+      expect(component.hasUnsavedChanges()).toBe(false);
+
+      const canLeave = TestBed.runInInjectionContext(() =>
+        pendingChangesGuard(component, null as never, null as never, null as never),
+      );
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(canLeave).toBe(true);
+    });
+
+    it('keeps the pending state when the server adjusted the saved coverage', async () => {
+      loadWizard();
+      component.areas.at(0).get('deliveryFee')?.setValue('9,00');
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({
+        id: 'store-123',
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [],
+      } as any));
+
+      await component.saveDraft();
+
+      expect(component.saveWarnings().length).toBeGreaterThan(0);
+      expect(component.saveStatus()).toBe('partial');
+      expect(component.formDirty()).toBe(true);
+      expect(component.hasUnsavedChanges()).toBe(true);
     });
   });
 });

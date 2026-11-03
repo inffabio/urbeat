@@ -214,7 +214,9 @@ export class StoreDeliveryPageComponent implements OnInit {
   }
 
   hasUnsavedChanges(): boolean {
-    return this.formDirty() && !this.isSaving();
+    // A save that is still in flight has not been confirmed by the server yet,
+    // so the draft must remain protected by the navigation guard.
+    return this.formDirty();
   }
 
   ngOnInit() {
@@ -800,6 +802,12 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   private persistConfig(): Promise<boolean> {
     return new Promise((resolve) => {
+      // Never overlap PATCH requests from the wizard save/advance actions.
+      if (this.isSaving() || this.isRestoring()) {
+        resolve(false);
+        return;
+      }
+
       if (this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) {
         resolve(false);
         return;
@@ -1172,11 +1180,15 @@ export class StoreDeliveryPageComponent implements OnInit {
       return;
     }
 
+    // The persisted draft matches the server and nothing newer is pending, so
+    // the route guard must not ask a false "unsaved changes" confirmation.
+    this.formDirty.set(false);
+    this.saveStatus.set('saved');
     this.router.navigate(['/configurar-loja/produtos']);
   }
 
   async saveDraft(): Promise<void> {
-    if (this.isRestoring() || this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) return;
+    if (this.isSaving() || this.isRestoring() || this.isRadiusUpdating() || this.radiusPreviewError() || this.radiusValidationError()) return;
     const changeVersionAtSaveStart = this.formChangeVersion;
     this.saveStatus.set('saving');
     const success = await this.persistConfig();
@@ -1185,7 +1197,8 @@ export class StoreDeliveryPageComponent implements OnInit {
     const hasNewerChanges = this.formChangeVersion !== changeVersionAtSaveStart;
     const hasDivergence = this.saveWarnings().length > 0;
     this.saveStatus.set(success ? (hasDivergence ? 'partial' : (hasNewerChanges ? 'idle' : 'saved')) : 'error');
-    if (success && !hasNewerChanges) this.formDirty.set(false);
+    // Server adjustments keep pending review work, so the draft stays dirty.
+    if (success && !hasNewerChanges && !hasDivergence) this.formDirty.set(false);
     setTimeout(() => {
       if (this.saveStatus() === 'saved') this.saveStatus.set('idle');
     }, 2000);

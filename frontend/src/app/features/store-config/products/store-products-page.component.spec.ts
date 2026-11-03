@@ -7,7 +7,8 @@ import { StoreService } from '../../../core/services/store.service';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
+import { pendingChangesGuard } from '../../../core/guards/pending-changes.guard';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -727,6 +728,489 @@ describe('StoreProductsPageComponent — option groups', () => {
       const priceIdx = styles.indexOf('.catalog-product-price');
       const priceBlock = styles.slice(priceIdx, styles.indexOf('.catalog-product-price-label', priceIdx + 1));
       expect(priceBlock).toContain('flex-direction: row;');
+    });
+  });
+
+  describe('wizard draft persistence', () => {
+    function startValidDraft(): void {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.markDirty();
+    }
+
+    it('persists a filled editor draft through the product API before reporting it as saved', async () => {
+      startValidDraft();
+      storeServiceMock.createProduct.mockReturnValue(of(sampleProduct({ id: 'p1', name: 'Pizza' })));
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledTimes(1);
+      expect(component.saveStatus()).toBe('saved');
+      expect(component.formDirty()).toBe(false);
+    });
+
+    it('never reports a save when the API rejects the draft and keeps the editor data', async () => {
+      startValidDraft();
+      storeServiceMock.createProduct.mockReturnValue(throwError(() => ({ status: 500 })));
+
+      await component.saveDraft();
+
+      expect(component.saveStatus()).toBe('error');
+      expect(component.formDirty()).toBe(true);
+      expect(component.productName()).toBe('Pizza');
+      expect(toastMock.showError).toHaveBeenCalled();
+    });
+
+    it('reports an error and skips the API when the draft breaks the existing product validations', async () => {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.markDirty();
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.createProduct).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('error');
+      expect(component.formDirty()).toBe(true);
+      expect(toastMock.showError).toHaveBeenCalledWith('Selecione uma categoria.');
+    });
+
+    it('distinguishes an empty dirty form from an editable draft and never claims a save', async () => {
+      component.storeId.set('store-1');
+      component.toggleTag('destaque');
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.createProduct).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('idle');
+      expect(component.formDirty()).toBe(true);
+      expect(toastMock.showInfo).toHaveBeenCalled();
+    });
+
+    it('updates an existing product draft instead of creating a duplicate', async () => {
+      startValidDraft();
+      component.selectProduct(sampleProduct({ id: 'p-existing' }));
+      storeServiceMock.updateProduct.mockReturnValue(of(sampleProduct({ id: 'p-existing' })));
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateProduct).toHaveBeenCalledWith('store-1', 'p-existing', expect.any(Object));
+      expect(storeServiceMock.createProduct).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('saved');
+    });
+  });
+
+  describe('editor change tracking', () => {
+    function fileEvent(file: File): Event {
+      return ({ target: { files: [file], value: '' } } as unknown as Event);
+    }
+
+    it('marks the form dirty when the price is typed', () => {
+      component.formDirty.set(false);
+
+      component.onPriceInput('1990');
+
+      expect(component.productPrice()).toBe('19,90');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when a product image upload succeeds', async () => {
+      storeServiceMock.uploadImage.mockReturnValue(of({ url: 'https://img.test/uploaded.png' }));
+      component.formDirty.set(false);
+
+      await component.onImageSelected(fileEvent(new File(['<svg/>'], 'product.svg', { type: 'image/svg+xml' })));
+
+      expect(component.productImage()).toBe('https://img.test/uploaded.png');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when a product tag is toggled', () => {
+      component.formDirty.set(false);
+
+      component.toggleTag('novidade');
+
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when an option group item is removed', () => {
+      component.addOptionGroup();
+      const groupId = component.optionGroups()[0].id!;
+      component.addOptionItem(groupId);
+      component.formDirty.set(false);
+
+      component.removeOptionItem(groupId, component.optionGroups()[0].items[0].id!);
+
+      expect(component.optionGroups()[0].items).toHaveLength(0);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when option groups are reordered', () => {
+      component.addOptionGroup();
+      component.addOptionGroup();
+      component.formDirty.set(false);
+      const complete = jest.fn();
+
+      component.reorderGroups({ detail: { from: 0, to: 1, complete } } as unknown as CustomEvent);
+
+      expect(component.formDirty()).toBe(true);
+      expect(complete).toHaveBeenCalled();
+    });
+
+    it('marks the form dirty when the tag priority order changes', () => {
+      component.toggleTag('destaque');
+      component.toggleTag('mais_vendido');
+      component.formDirty.set(false);
+
+      component.movePriorityUp('mais_vendido');
+
+      expect(component.tagPriority()).toEqual(['mais_vendido', 'destaque']);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when moving a tag priority down', () => {
+      component.toggleTag('destaque');
+      component.toggleTag('mais_vendido');
+      component.formDirty.set(false);
+
+      component.movePriorityDown('destaque');
+
+      expect(component.tagPriority()).toEqual(['mais_vendido', 'destaque']);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when reordered fixed weight variations change the payload order', () => {
+      component.addFixedWeightVariation();
+      component.addFixedWeightVariation();
+      component.formDirty.set(false);
+      const complete = jest.fn();
+
+      component.reorderFixedWeightVariations({ detail: { from: 0, to: 1, complete } } as unknown as CustomEvent);
+
+      expect(component.formDirty()).toBe(true);
+      expect(complete).toHaveBeenCalled();
+    });
+
+    it('binds the remaining editor fields to markDirty', () => {
+      const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+
+      expect(template).toContain('(ngModelChange)="productCatId.set($event); markDirty()"');
+      expect(template).toContain('(ngModelChange)="productDesc.set($event); markDirty()"');
+      expect(template).toContain('(ngModelChange)="isProductActive.set($event); markDirty()"');
+    });
+  });
+
+  describe('wizard navigation protection', () => {
+    it('saves the pending draft before advancing to the publish step', async () => {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.markDirty();
+      storeServiceMock.createProduct.mockReturnValue(of(sampleProduct({ id: 'p1', name: 'Pizza' })));
+
+      await component.goNext();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/configurar-loja/publicar']);
+    });
+
+    it('does not advance or discard the draft when the save fails', async () => {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.markDirty();
+      storeServiceMock.createProduct.mockReturnValue(throwError(() => ({ status: 500 })));
+
+      await component.goNext();
+
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+      expect(component.productName()).toBe('Pizza');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('does not advance with an empty dirty form that cannot be persisted', async () => {
+      component.storeId.set('store-1');
+      component.toggleTag('destaque');
+
+      await component.goNext();
+
+      expect(storeServiceMock.createProduct).not.toHaveBeenCalled();
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+      expect(toastMock.showError).toHaveBeenCalled();
+    });
+  });
+
+  describe('wizard draft data safety', () => {
+    function startValidDraft(): void {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.markDirty();
+    }
+
+    it('adopts the created id when the draft changes during the request so the next save updates instead of duplicating', async () => {
+      startValidDraft();
+      const save$ = new Subject<any>();
+      storeServiceMock.createProduct.mockReturnValue(save$);
+
+      const saving = component.saveDraft();
+
+      component.productName.set('Pizza Calabresa');
+      component.markDirty();
+
+      save$.next(sampleProduct({ id: 'p-created', name: 'Pizza' }));
+      save$.complete();
+      await saving;
+
+      expect(component.selectedId()).toBe('p-created');
+      expect(component.productName()).toBe('Pizza Calabresa');
+      expect(component.formDirty()).toBe(true);
+      expect(component.saveStatus()).toBe('idle');
+      expect(toastMock.showWarning).toHaveBeenCalled();
+
+      storeServiceMock.updateProduct.mockReturnValue(of(sampleProduct({ id: 'p-created', name: 'Pizza Calabresa' })));
+      await component.saveDraft();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledTimes(1);
+      expect(storeServiceMock.updateProduct).toHaveBeenCalledWith(
+        'store-1',
+        'p-created',
+        expect.objectContaining({ name: 'Pizza Calabresa' }),
+      );
+      expect(component.saveStatus()).toBe('saved');
+      expect(component.formDirty()).toBe(false);
+    });
+
+    it('keeps the draft protected while the save request is in flight', async () => {
+      startValidDraft();
+      const save$ = new Subject<any>();
+      storeServiceMock.createProduct.mockReturnValue(save$);
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      const saving = component.saveDraft();
+
+      expect(component.hasUnsavedChanges()).toBe(true);
+      const canLeave = TestBed.runInInjectionContext(() =>
+        pendingChangesGuard(component, null as never, null as never, null as never),
+      );
+
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      expect(canLeave).toBe(false);
+      expect(component.productName()).toBe('Pizza');
+
+      save$.next(sampleProduct({ id: 'p1' }));
+      save$.complete();
+      await saving;
+    });
+
+    it('does not start a second save or navigate while a save is in flight', async () => {
+      startValidDraft();
+      const save$ = new Subject<any>();
+      storeServiceMock.createProduct.mockReturnValue(save$);
+
+      const saving = component.saveDraft();
+      await component.goNext();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledTimes(1);
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+      expect(component.productName()).toBe('Pizza');
+
+      save$.next(sampleProduct({ id: 'p1' }));
+      save$.complete();
+      await saving;
+    });
+
+    it('keeps the same draft available for a retry after the API rejects the save', async () => {
+      startValidDraft();
+      storeServiceMock.createProduct
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })))
+        .mockReturnValueOnce(of(sampleProduct({ id: 'p-retry', name: 'Pizza' })));
+
+      await component.saveDraft();
+
+      expect(component.saveStatus()).toBe('error');
+      expect(component.selectedId()).toBeNull();
+      expect(component.formDirty()).toBe(true);
+      expect(component.productName()).toBe('Pizza');
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.createProduct).toHaveBeenCalledTimes(2);
+      expect(component.saveStatus()).toBe('saved');
+      expect(component.formDirty()).toBe(false);
+      expect(component.productName()).toBe('');
+    });
+  });
+
+  describe('internal draft switches', () => {
+    function startDirtyDraft(): void {
+      component.storeId.set('store-1');
+      component.productName.set('Pizza');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('10,00');
+      component.productImage.set('https://img.test/pizza.png');
+      component.markDirty();
+    }
+
+    it('asks for confirmation before starting another product and cancels the discard', () => {
+      startDirtyDraft();
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      component.newProduct();
+
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      expect(component.productName()).toBe('Pizza');
+      expect(component.selectedId()).toBeNull();
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('discards the draft and clears the pending state after confirmation', () => {
+      startDirtyDraft();
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+      component.newProduct();
+
+      expect(component.productName()).toBe('');
+      expect(component.productCatId()).toBe('');
+      expect(component.formDirty()).toBe(false);
+      expect(component.saveStatus()).toBe('idle');
+    });
+
+    it('asks for confirmation before loading another product and keeps the draft on cancel', () => {
+      startDirtyDraft();
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      component.selectProduct(sampleProduct({ id: 'other', name: 'Outro produto' }));
+
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      expect(component.selectedId()).toBeNull();
+      expect(component.productName()).toBe('Pizza');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('loads the selected product and clears the pending state after confirmation', () => {
+      startDirtyDraft();
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+      component.selectProduct(sampleProduct({ id: 'other', name: 'Outro produto' }));
+
+      expect(component.selectedId()).toBe('other');
+      expect(component.productName()).toBe('Outro produto');
+      expect(component.formDirty()).toBe(false);
+      expect(component.saveStatus()).toBe('idle');
+    });
+
+    it('does not switch drafts while a save is in flight', async () => {
+      startDirtyDraft();
+      const save$ = new Subject<any>();
+      storeServiceMock.createProduct.mockReturnValue(save$);
+      const confirmSpy = jest.spyOn(window, 'confirm');
+
+      const saving = component.saveDraft();
+      component.newProduct();
+      component.selectProduct(sampleProduct({ id: 'other' }));
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(component.selectedId()).toBeNull();
+      expect(component.productName()).toBe('Pizza');
+      expect(component.formDirty()).toBe(true);
+
+      save$.next(sampleProduct({ id: 'p1' }));
+      save$.complete();
+      await saving;
+    });
+
+    it('asks for confirmation before copying options over a dirty draft and keeps it on cancel', () => {
+      startDirtyDraft();
+      const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+
+      component.copyProductOptions(sampleProduct({
+        saleMode: 'size',
+        variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+      }));
+
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+      expect(component.productName()).toBe('Pizza');
+      expect(component.sizeVariations()).toEqual([]);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('copies options after confirmation and keeps the copied draft pending', () => {
+      startDirtyDraft();
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+      component.copyProductOptions(sampleProduct({
+        saleMode: 'size',
+        variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+      }));
+
+      expect(component.productName()).toBe('Pizza');
+      expect(component.sizeVariations()).toHaveLength(1);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('does not copy options over the editor while a save is in flight', async () => {
+      startDirtyDraft();
+      const save$ = new Subject<any>();
+      storeServiceMock.createProduct.mockReturnValue(save$);
+      const confirmSpy = jest.spyOn(window, 'confirm');
+
+      const saving = component.saveDraft();
+      component.copyProductOptions(sampleProduct({
+        saleMode: 'size',
+        variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+      }));
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(component.productName()).toBe('Pizza');
+      expect(component.sizeVariations()).toEqual([]);
+
+      save$.next(sampleProduct({ id: 'p1' }));
+      save$.complete();
+      await saving;
+    });
+  });
+
+  describe('advance validation', () => {
+    it('requires an image for variation products before advancing', async () => {
+      component.products.set([
+        sampleProduct({
+          id: 'p-size',
+          name: 'Pizza G',
+          saleMode: 'size',
+          price: 0,
+          imageUrl: null,
+          variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+        }),
+      ]);
+
+      await component.goNext();
+
+      expect(routerMock.navigate).not.toHaveBeenCalled();
+      expect(toastMock.showError).toHaveBeenCalledWith('O produto "Pizza G" precisa de uma imagem.');
+    });
+
+    it('keeps accepting variation products without a base price when they have an image', async () => {
+      component.products.set([
+        sampleProduct({
+          id: 'p-size',
+          name: 'Pizza G',
+          saleMode: 'size',
+          price: 0,
+          variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+        }),
+      ]);
+
+      await component.goNext();
+
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/configurar-loja/publicar']);
     });
   });
 

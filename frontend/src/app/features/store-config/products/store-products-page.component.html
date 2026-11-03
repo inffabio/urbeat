@@ -129,7 +129,7 @@
           </div>
           <div>
             <label class="prod-label">Categoria *</label>
-            <select class="prod-select" [ngModel]="productCatId()" (ngModelChange)="productCatId.set($event)">
+            <select class="prod-select" [ngModel]="productCatId()" (ngModelChange)="productCatId.set($event); markDirty()">
               <option value="" disabled>Selecione uma categoria</option>
               @for (cat of categoryOptionsForProduct(); track cat.id) { <option [value]="cat.id">{{cat.name}}</option> }
             </select>
@@ -139,7 +139,7 @@
           </div>
           <div class="span-full">
             <label class="prod-label">Descricao *</label>
-            <textarea class="prod-textarea" [ngModel]="productDesc()" (ngModelChange)="productDesc.set($event)" maxlength="300" placeholder="Pao brioche, burger 180g, bacon, queijo cheddar..."></textarea>
+            <textarea class="prod-textarea" [ngModel]="productDesc()" (ngModelChange)="productDesc.set($event); markDirty()" maxlength="300" placeholder="Pao brioche, burger 180g, bacon, queijo cheddar..."></textarea>
             <span class="desc-counter">{{ (productDesc() || '').length }}/300</span>
           </div>
           <div class="span-full">
@@ -152,7 +152,7 @@
                     <input type="text" class="price-input" [ngModel]="productPrice()" (ngModelChange)="onPriceInput($event)" placeholder="0,00" />
                   </div>
                 </div>
-                <label class="check-label"><input type="checkbox" class="prod-check-lg" [ngModel]="isProductActive()" (ngModelChange)="isProductActive.set($event)" /> Ativo</label>
+                <label class="check-label"><input type="checkbox" class="prod-check-lg" [ngModel]="isProductActive()" (ngModelChange)="isProductActive.set($event); markDirty()" /> Ativo</label>
               </div>
               <div>
                 <label class="prod-label">Foto do produto *</label>

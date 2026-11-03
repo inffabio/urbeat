@@ -1,7 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -120,6 +120,129 @@ describe('SellerProductsPageComponent', () => {
     (component as unknown as { onProductSaved: () => void }).onProductSaved();
 
     expect(component.editorOpen()).toBe(false);
+  });
+
+  it('keeps a draft switched during a save intact without retargeting it to the saved product', () => {
+    const fixture = TestBed.createComponent(SellerProductsPageComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.storeId.set('store-1');
+    component.productName.set('Produto A');
+    component.productCatId.set('cat-1');
+    component.productPrice.set('10,00');
+    component.productImage.set('https://img.test/a.png');
+    component.markDirty();
+
+    const save$ = new Subject<any>();
+    storeServiceMock.createProduct.mockReturnValue(save$);
+    component.saveProduct();
+
+    const target = component.products()[0];
+    component.selectProduct(target);
+    component.productName.set('Produto B alterado');
+    component.markDirty();
+
+    save$.next({
+      id: 'product-a',
+      name: 'Produto A',
+      imageUrl: 'https://img.test/a.png',
+      price: 10,
+      categoryId: 'cat-1',
+      saleMode: 'single',
+      optionGroups: [],
+      variations: [],
+    });
+    save$.complete();
+
+    expect(component.selectedId()).toBe(target.id);
+    expect(component.productName()).toBe('Produto B alterado');
+    expect(component.formDirty()).toBe(true);
+    expect(component.isSaving()).toBe(false);
+  });
+
+  it('keeps the dashboard editor switching products without the wizard discard confirmation', () => {
+    const fixture = TestBed.createComponent(SellerProductsPageComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    const confirmSpy = jest.spyOn(window, 'confirm');
+
+    component.selectProduct(component.products()[0]);
+    component.productName.set('Rascunho local');
+    component.markDirty();
+    component.newProduct();
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(component.selectedId()).toBeNull();
+    expect(component.productName()).toBe('');
+    expect(component.editorOpen()).toBe(true);
+  });
+
+  describe('dashboard editor change tracking', () => {
+    function renderEditor() {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+      component.selectProduct(component.products()[0]);
+      fixture.detectChanges();
+      component.formDirty.set(false);
+      return { fixture, component };
+    }
+
+    it('marks the form dirty when the category changes', () => {
+      const { fixture, component } = renderEditor();
+      component.categories.set([
+        ...component.categories(),
+        { id: 'cat-2', name: 'Bebidas', displayOrder: 2, isActive: true, isFeatured: false, storeId: 'store-1', description: '' },
+      ]);
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('.prod-select') as HTMLSelectElement;
+
+      select.value = 'cat-2';
+      select.dispatchEvent(new Event('change'));
+
+      expect(component.productCatId()).toBe('cat-2');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when the description changes', () => {
+      const { fixture, component } = renderEditor();
+      const textarea = fixture.nativeElement.querySelector('.prod-textarea') as HTMLTextAreaElement;
+
+      textarea.value = 'Descrição atualizada';
+      textarea.dispatchEvent(new Event('input'));
+
+      expect(component.productDesc()).toBe('Descrição atualizada');
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('marks the form dirty when the availability changes', () => {
+      const { fixture, component } = renderEditor();
+      const checkbox = fixture.nativeElement.querySelector('.prod-check-lg') as HTMLInputElement;
+
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+
+      expect(component.isProductActive()).toBe(false);
+      expect(component.formDirty()).toBe(true);
+    });
+
+    it('keeps copying options without the wizard discard confirmation in the dashboard', () => {
+      const { fixture, component } = renderEditor();
+      component.markDirty();
+      const confirmSpy = jest.spyOn(window, 'confirm');
+
+      component.copyProductOptions({
+        ...component.products()[0],
+        saleMode: 'size',
+        variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 }],
+      } as any);
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(component.selectedId()).toBeNull();
+      expect(component.sizeVariations()).toHaveLength(1);
+      expect(component.formDirty()).toBe(true);
+      void fixture;
+    });
   });
 
   describe('reusable option groups in the dashboard editor', () => {

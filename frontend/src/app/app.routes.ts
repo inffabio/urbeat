@@ -109,6 +109,7 @@ export const routes: Routes = [
       },
       {
         path: 'entrega',
+        canDeactivate: [pendingChangesGuard],
         loadComponent: () =>
           import('./features/store-config/delivery/store-delivery-page.component').then(
             (m) => m.StoreDeliveryPageComponent,
@@ -116,6 +117,7 @@ export const routes: Routes = [
       },
       {
         path: 'produtos',
+        canDeactivate: [pendingChangesGuard],
         loadComponent: () =>
           import('./features/store-config/products/store-products-page.component').then(
             (m) => m.StoreProductsPageComponent,

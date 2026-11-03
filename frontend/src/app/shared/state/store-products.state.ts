@@ -73,13 +73,19 @@ export abstract class StoreProductsState implements OnInit {
   readonly isSaving = signal(false);
   readonly saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
   readonly formDirty = signal(false);
+  private formChangeVersion = 0;
+  /** Identifies the editor draft target; bumped whenever the draft is replaced. */
+  private draftToken = 0;
 
   markDirty(): void {
+    this.formChangeVersion++;
     this.formDirty.set(true);
   }
 
   hasUnsavedChanges(): boolean {
-    return this.formDirty() && !this.isSaving();
+    // A pending save is still an unsaved edit until the API confirms it, so
+    // navigation guards must keep protecting the draft while it is in flight.
+    return this.formDirty();
   }
 
   readonly products = signal<Product[]>([]);
@@ -119,6 +125,28 @@ export abstract class StoreProductsState implements OnInit {
   readonly expandedGroupId = signal<string | null>(null);
 
   readonly editingProduct = computed(() => this.selectedId() !== null);
+
+  /**
+   * Distinguishes an editable product draft from a form that only holds local
+   * UI changes (tags, empty groups) which cannot be persisted by the API.
+   */
+  readonly hasProductDraft = computed(() => {
+    if (this.selectedId() !== null) return true;
+    if (this.productName().trim() !== '') return true;
+    if (this.productDesc().trim() !== '') return true;
+    if (this.productCatId() !== '') return true;
+    if (this.productImage() !== '') return true;
+    if (this.productPrice() !== '0,00') return true;
+    if (this.sizeVariations().length > 0) return true;
+    if (this.fixedWeightVariations().length > 0) return true;
+    if (this.optionGroups().length > 0) return true;
+    const weight = this.weightConfig();
+    return weight.pricePerKg !== ''
+      || weight.minGrams !== ''
+      || weight.maxGrams !== ''
+      || weight.incrementGrams !== ''
+      || weight.isEstimated;
+  });
 
   // ── Category management ──────────────────────────────────
 
@@ -481,23 +509,23 @@ export abstract class StoreProductsState implements OnInit {
   // ── Priority tags ────────────────────────────────────────
 
   movePriorityUp(tag: string) {
-    this.tagPriority.update(p => {
-      const idx = p.indexOf(tag);
-      if (idx <= 0) return p;
-      const copy = [...p];
-      [copy[idx - 1], copy[idx]] = [copy[idx], copy[idx - 1]];
-      return copy;
-    });
+    const current = this.tagPriority();
+    const idx = current.indexOf(tag);
+    if (idx <= 0) return;
+    const copy = [...current];
+    [copy[idx - 1], copy[idx]] = [copy[idx], copy[idx - 1]];
+    this.tagPriority.set(copy);
+    this.markDirty();
   }
 
   movePriorityDown(tag: string) {
-    this.tagPriority.update(p => {
-      const idx = p.indexOf(tag);
-      if (idx < 0 || idx >= p.length - 1) return p;
-      const copy = [...p];
-      [copy[idx], copy[idx + 1]] = [copy[idx + 1], copy[idx]];
-      return copy;
-    });
+    const current = this.tagPriority();
+    const idx = current.indexOf(tag);
+    if (idx < 0 || idx >= current.length - 1) return;
+    const copy = [...current];
+    [copy[idx], copy[idx + 1]] = [copy[idx + 1], copy[idx]];
+    this.tagPriority.set(copy);
+    this.markDirty();
   }
 
   private syncTagPriority() {
@@ -620,6 +648,7 @@ export abstract class StoreProductsState implements OnInit {
       copy.splice(to, 0, moved);
       return copy;
     });
+    this.markDirty();
     complete();
   }
 
@@ -662,6 +691,7 @@ export abstract class StoreProductsState implements OnInit {
   // ── Novo / Limpar ────────────────────────────────────────
 
   newProduct() {
+    this.draftToken++;
     this.selectedId.set(null);
     this.clearForm();
     this.searchQuery.set('');
@@ -669,6 +699,7 @@ export abstract class StoreProductsState implements OnInit {
   }
 
   selectProduct(product: Product) {
+    this.draftToken++;
     this.selectedId.set(product.id);
     this.productName.set(product.name);
     this.productDesc.set(product.description || '');
@@ -735,6 +766,7 @@ export abstract class StoreProductsState implements OnInit {
   }
 
   copyProductOptions(product: Product): void {
+    this.draftToken++;
     if (this.selectedId()) {
       this.selectedId.set(null);
       this.productName.set('');
@@ -800,38 +832,43 @@ export abstract class StoreProductsState implements OnInit {
       return match ? Math.max(max, parseInt(match[1], 10)) : max;
     }, 0);
     this.expandedGroupId.set(copiedGroups[0]?.id ?? null);
-    this.formDirty.set(true);
+    this.markDirty();
     this.toast.showSuccess('Opcoes copiadas para o produto em criacao.');
   }
 
   // ── Save ─────────────────────────────────────────────────
 
-  saveProduct() {
-    if (this.isSaving()) return;
+  saveProduct(): void {
+    void this.persistProduct();
+  }
 
+  /**
+   * Single validation path shared by the explicit product save and the wizard
+   * draft save. Returns the first error message, or null when the draft is valid.
+   */
+  private validateProductDraft(): string | null {
     const name = this.productName().trim();
-    if (!name) { this.toast.showError('Informe o nome do produto.'); return; }
-    if (name.length > 120) { this.toast.showError('Nome deve ter no máximo 120 caracteres.'); return; }
+    if (!name) return 'Informe o nome do produto.';
+    if (name.length > 120) return 'Nome deve ter no máximo 120 caracteres.';
 
-    const catId = this.productCatId();
-    if (!catId) { this.toast.showError('Selecione uma categoria.'); return; }
+    if (!this.productCatId()) return 'Selecione uma categoria.';
 
     const desc = this.productDesc().trim();
-    if (desc.length > 500) { this.toast.showError('Descrição deve ter no máximo 500 caracteres.'); return; }
+    if (desc.length > 500) return 'Descrição deve ter no máximo 500 caracteres.';
 
     const sm = this.saleMode();
     const price = this.parseBRL(this.productPrice());
-    if (sm === 'single' && (isNaN(price) || price <= 0)) { this.toast.showError('Informe um preço válido maior que zero.'); return; }
+    if (sm === 'single' && (isNaN(price) || price <= 0)) return 'Informe um preço válido maior que zero.';
 
-    if (!this.productImage()) { this.toast.showError('Adicione uma imagem do produto.'); return; }
+    if (!this.productImage()) return 'Adicione uma imagem do produto.';
 
     if (sm === 'size') {
       const active = this.sizeVariations().filter(v => v.isActive && this.parseBRL(v.price) > 0 && v.name.trim());
-      if (!active.length) { this.toast.showError('Cadastre ao menos um tamanho ativo com preço e nome.'); return; }
+      if (!active.length) return 'Cadastre ao menos um tamanho ativo com preço e nome.';
     }
     if (sm === 'fixed_weight') {
       const active = this.fixedWeightVariations().filter(v => v.isActive && this.parseBRL(v.price) > 0 && Number(v.weight) > 0);
-      if (!active.length) { this.toast.showError('Cadastre ao menos um peso ativo com preço.'); return; }
+      if (!active.length) return 'Cadastre ao menos um peso ativo com preço.';
     }
     if (sm === 'variable_weight') {
       const wc = this.weightConfig();
@@ -839,24 +876,46 @@ export abstract class StoreProductsState implements OnInit {
       const min = Number(wc.minGrams);
       const max = Number(wc.maxGrams);
       const inc = Number(wc.incrementGrams);
-      if (ppk <= 0) { this.toast.showError('Informe o preço por kg.'); return; }
-      if (min <= 0) { this.toast.showError('Peso mínimo deve ser maior que zero.'); return; }
-      if (max < min) { this.toast.showError('Peso máximo não pode ser menor que o mínimo.'); return; }
-      if (inc <= 0) { this.toast.showError('Incremento deve ser maior que zero.'); return; }
+      if (ppk <= 0) return 'Informe o preço por kg.';
+      if (min <= 0) return 'Peso mínimo deve ser maior que zero.';
+      if (max < min) return 'Peso máximo não pode ser menor que o mínimo.';
+      if (inc <= 0) return 'Incremento deve ser maior que zero.';
     }
 
     for (const g of this.optionGroups()) {
       const label = g.name?.trim() || 'sem nome';
-      if (!g.name?.trim()) { this.toast.showError(`Informe o nome do grupo de opções.`); return; }
-      if (g.maxChoices < 1) { this.toast.showError(`Grupo "${label}": o máximo deve ser ao menos 1.`); return; }
-      if (g.minChoices === 0 && g.maxChoices === 0) { this.toast.showError(`Grupo "${label}": mínimo e máximo não podem ser ambos zero.`); return; }
-      if (g.minChoices > g.maxChoices) { this.toast.showError(`Grupo "${label}": mínimo (${g.minChoices}) não pode ser maior que máximo (${g.maxChoices}).`); return; }
-      if (g.items.length === 0 || g.items.some(i => !i.name?.trim())) { this.toast.showError(`Grupo "${label}" está com item vazio. Preencha o nome de todos os itens.`); return; }
+      if (!g.name?.trim()) return 'Informe o nome do grupo de opções.';
+      if (g.maxChoices < 1) return `Grupo "${label}": o máximo deve ser ao menos 1.`;
+      if (g.minChoices === 0 && g.maxChoices === 0) return `Grupo "${label}": mínimo e máximo não podem ser ambos zero.`;
+      if (g.minChoices > g.maxChoices) return `Grupo "${label}": mínimo (${g.minChoices}) não pode ser maior que máximo (${g.maxChoices}).`;
+      if (g.items.length === 0 || g.items.some(i => !i.name?.trim())) return `Grupo "${label}" está com item vazio. Preencha o nome de todos os itens.`;
     }
+
+    return null;
+  }
+
+  /**
+   * Persists the current editor draft through the existing product endpoints.
+   * Resolves to true only when the API confirmed the write.
+   */
+  private persistProduct(): Promise<boolean> {
+    if (this.isSaving()) return Promise.resolve(false);
+
+    const validationError = this.validateProductDraft();
+    if (validationError) {
+      this.toast.showError(validationError);
+      return Promise.resolve(false);
+    }
+
+    const name = this.productName().trim();
+    const catId = this.productCatId();
+    const desc = this.productDesc().trim();
+    const sm = this.saleMode();
+    const price = this.parseBRL(this.productPrice());
 
     const existingId = this.selectedId();
     const sid = this.storeId();
-    if (!sid) return;
+    if (!sid) return Promise.resolve(false);
 
     const currentProduct = existingId ? this.products().find(p => p.id === existingId) : null;
 
@@ -902,45 +961,74 @@ export abstract class StoreProductsState implements OnInit {
       };
     }
 
-    this.isSaving.set(true);
-    const req$ = existingId
-      ? this.storeService.updateProduct(sid, existingId, body)
-      : this.storeService.createProduct(sid, body);
+    const changeVersionAtSaveStart = this.formChangeVersion;
+    const draftTokenAtSaveStart = this.draftToken;
 
-    req$.subscribe({
-      next: (created) => {
-        this.registerSavedOptionGroups(created.optionGroups ?? []);
-        this.products.update(list => {
-          const idx = list.findIndex(p => p.id === created.id);
-          if (idx >= 0) {
-            const copy = [...list];
-            copy[idx] = created;
-            return copy;
-          }
-          return [...list, created];
-        });
-        this.clearForm();
-        this.isSaving.set(false);
-        this.toast.showSuccess('Produto salvo com sucesso!');
-        this.onProductSaved();
-      },
-      error: (err: any) => {
-        this.isSaving.set(false);
-        const validationErrors = err?.error?.errors;
-        const detail = err?.error?.detail || err?.error?.title || '';
-        if (validationErrors) {
-          const messages: string[] = [];
-          for (const key of Object.keys(validationErrors)) {
-            const fieldErrors = validationErrors[key];
-            if (Array.isArray(fieldErrors)) {
-              for (const m of fieldErrors) messages.push(m);
+    return new Promise(resolve => {
+      this.isSaving.set(true);
+      const req$ = existingId
+        ? this.storeService.updateProduct(sid, existingId, body)
+        : this.storeService.createProduct(sid, body);
+
+      req$.subscribe({
+        next: (created) => {
+          this.registerSavedOptionGroups(created.optionGroups ?? []);
+          this.products.update(list => {
+            const idx = list.findIndex(p => p.id === created.id);
+            if (idx >= 0) {
+              const copy = [...list];
+              copy[idx] = created;
+              return copy;
             }
+            return [...list, created];
+          });
+          this.isSaving.set(false);
+
+          // The user replaced the editor draft while the request was in flight.
+          // Never retarget or clear the newer draft with this response.
+          if (this.draftToken !== draftTokenAtSaveStart) {
+            this.toast.showSuccess('Produto salvo com sucesso!');
+            resolve(true);
+            return;
           }
-          if (messages.length > 0) { this.toast.showError(messages.join('. ')); return; }
+
+          // Edits made while the request was in flight were not part of the
+          // payload, so they stay in the editor instead of being discarded.
+          const hasNewerChanges = this.formChangeVersion !== changeVersionAtSaveStart;
+          if (hasNewerChanges) {
+            // The server already owns this draft. Point the still-dirty editor
+            // at the created/updated product so the next save updates it
+            // instead of creating a duplicate.
+            if (created.id) this.selectedId.set(created.id);
+            this.toast.showWarning('Alterações feitas durante o salvamento não foram enviadas. Revise e salve novamente.');
+            resolve(true);
+            return;
+          }
+          this.clearForm();
+          this.formDirty.set(false);
+          this.toast.showSuccess('Produto salvo com sucesso!');
+          this.onProductSaved();
+          resolve(true);
+        },
+        error: (err: any) => {
+          this.isSaving.set(false);
+          const validationErrors = err?.error?.errors;
+          const detail = err?.error?.detail || err?.error?.title || '';
+          if (validationErrors) {
+            const messages: string[] = [];
+            for (const key of Object.keys(validationErrors)) {
+              const fieldErrors = validationErrors[key];
+              if (Array.isArray(fieldErrors)) {
+                for (const m of fieldErrors) messages.push(m);
+              }
+            }
+            if (messages.length > 0) { this.toast.showError(messages.join('. ')); resolve(false); return; }
+          }
+          if (detail) { this.toast.showError(detail); resolve(false); return; }
+          this.toast.showError('Erro ao salvar produto. Verifique os dados informados.');
+          resolve(false);
         }
-        if (detail) { this.toast.showError(detail); return; }
-        this.toast.showError('Erro ao salvar produto. Verifique os dados informados.');
-      }
+      });
     });
   }
 
@@ -1037,7 +1125,10 @@ export abstract class StoreProductsState implements OnInit {
     this.storeService.deleteProduct(sid, product.id).subscribe({
       next: () => {
         this.products.update(list => list.filter(p => p.id !== product.id));
-        if (this.selectedId() === product.id) this.clearForm();
+        if (this.selectedId() === product.id) {
+          this.draftToken++;
+          this.clearForm();
+        }
         if (this.currentPage() >= this.totalPages()) {
           this.currentPage.set(Math.max(0, this.totalPages() - 1));
         }
@@ -1094,6 +1185,7 @@ export abstract class StoreProductsState implements OnInit {
       next: (res) => {
         this.productImage.set(res.url);
         this.productImagePreview.set(res.url);
+        this.markDirty();
         this.uploadingImage.set(false);
       },
       error: (err) => {
@@ -1117,8 +1209,9 @@ export abstract class StoreProductsState implements OnInit {
   onPriceInput(value: string) {
     const digits = value.replace(/\D/g, '');
     const num = parseFloat(digits) / 100;
-    if (isNaN(num)) { this.productPrice.set('0,00'); return; }
+    if (isNaN(num)) { this.productPrice.set('0,00'); this.markDirty(); return; }
     this.productPrice.set(num.toFixed(2).replace('.', ','));
+    this.markDirty();
   }
 
   private formatBRL(num: number): string { return num.toFixed(2).replace('.', ','); }
@@ -1135,6 +1228,7 @@ export abstract class StoreProductsState implements OnInit {
     if (type === 'mais_vendido') this.tagMaisVendido.update(v => !v);
     if (type === 'novidade') this.tagNovidade.update(v => !v);
     this.syncTagPriority();
+    this.markDirty();
   }
 
   private uid(): string {
@@ -1211,6 +1305,7 @@ export abstract class StoreProductsState implements OnInit {
       copy.splice(to, 0, moved);
       return copy.map((g, i) => ({ ...g, displayOrder: i + 1 }));
     });
+    this.markDirty();
     complete();
   }
 
@@ -1265,6 +1360,7 @@ export abstract class StoreProductsState implements OnInit {
     const group = this.optionGroups().find(g => g.id === groupId);
     if (!confirm(`Excluir o grupo "${group?.name || 'sem nome'}"?`)) return;
     this.optionGroups.update(groups => groups.filter(g => g.id !== groupId));
+    this.markDirty();
   }
 
   addOptionItem(groupId: string) {
@@ -1281,6 +1377,7 @@ export abstract class StoreProductsState implements OnInit {
       if (g.id !== groupId) return g;
       return { ...g, items: g.items.filter(i => i.id !== itemId) };
     }));
+    this.markDirty();
   }
 
   updateOptionItemName(groupId: string, itemId: string, name: string) {
@@ -1313,19 +1410,53 @@ export abstract class StoreProductsState implements OnInit {
     const prods = this.products();
     if (prods.length === 0) { this.toast.showError('Cadastre pelo menos um produto com preço e imagem antes de avançar.'); return false; }
     for (const product of prods) {
+      // The product API requires an image for every sale mode, including the
+      // variation modes that are exempt from the base price rule.
+      if (!product.imageUrl) { this.toast.showError(`O produto "${product.name}" precisa de uma imagem.`); return false; }
       if (!product.price || product.price <= 0) {
         const sm = product.saleMode as string;
         if (sm === 'size' || sm === 'fixed_weight' || sm === 'variable_weight') continue;
         this.toast.showError(`O produto "${product.name}" precisa de um preço válido maior que zero.`); return false;
       }
-      if (!product.imageUrl) { this.toast.showError(`O produto "${product.name}" precisa de uma imagem.`); return false; }
     }
     return true;
   }
 
-  saveDraft(): void {
-    this.saveStatus.set('saved');
-    this.formDirty.set(false);
+  /**
+   * Persists the pending product editor draft. The wizard footer save and the
+   * "advance" action both rely on it, so it never reports "saved" without a
+   * confirmed API write.
+   */
+  async saveDraft(): Promise<void> {
+    if (this.isSaving()) return;
+
+    if (!this.hasProductDraft()) {
+      // Nothing in the editor can be persisted (for example, only tags or an
+      // empty group were touched). Keep the pending state truthful.
+      this.saveStatus.set('idle');
+      this.toast.showInfo('Nenhum produto em edição para salvar.');
+      return;
+    }
+
+    this.saveStatus.set('saving');
+    const changeVersionAtSaveStart = this.formChangeVersion;
+    const draftTokenAtSaveStart = this.draftToken;
+    const saved = await this.persistProduct();
+
+    // The editor now targets a different draft, so this save says nothing about
+    // the current form state.
+    if (this.draftToken !== draftTokenAtSaveStart) {
+      this.saveStatus.set('idle');
+      return;
+    }
+
+    if (!saved) {
+      this.saveStatus.set('error');
+      return;
+    }
+
+    const hasNewerChanges = this.formChangeVersion !== changeVersionAtSaveStart;
+    this.saveStatus.set(hasNewerChanges ? 'idle' : 'saved');
     setTimeout(() => { if (this.saveStatus() === 'saved') this.saveStatus.set('idle'); }, 2000);
   }
 }

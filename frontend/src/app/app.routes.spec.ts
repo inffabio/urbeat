@@ -1,6 +1,7 @@
 import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
 import { driverChildGuard, driverGuard } from './core/guards/driver.guard';
 import { routes } from './app.routes';
+import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 describe('app routes', () => {
   it('declares the driver portal before the public store slug route and protects it with the driver guard', () => {
@@ -64,6 +65,16 @@ describe('app routes', () => {
     expect(children.some((child) => child.path === 'horarios' && !!child.loadComponent)).toBe(true);
     expect(children.some((child) => child.path === 'produtos' && !!child.loadComponent)).toBe(true);
     expect(children.some((child) => child.path === 'publicar' && !!child.loadComponent)).toBe(true);
+  });
+
+  it('protects the editable store configuration wizard steps with the pending changes guard', () => {
+    const wizardRoute = routes.find((route) => route.path === 'configurar-loja' && route.children);
+    const children = wizardRoute?.children ?? [];
+    const productsRoute = children.find((child) => child.path === 'produtos');
+    const deliveryRoute = children.find((child) => child.path === 'entrega');
+
+    expect(productsRoute?.canDeactivate).toEqual([pendingChangesGuard]);
+    expect(deliveryRoute?.canDeactivate).toEqual([pendingChangesGuard]);
   });
 
   it('declares seller dashboard child routes for all documented dashboard screens', () => {
