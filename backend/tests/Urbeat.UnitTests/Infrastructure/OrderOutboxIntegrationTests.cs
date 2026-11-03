@@ -54,6 +54,7 @@ public sealed class OrderOutboxIntegrationTests : IDisposable
                 StoreId = store.Id,
                 FulfillmentType = FulfillmentType.PickUp,
                 PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
                 Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
             },
             "127.0.0.1");
@@ -95,6 +96,7 @@ public sealed class OrderOutboxIntegrationTests : IDisposable
                 StoreId = store.Id,
                 FulfillmentType = FulfillmentType.PickUp,
                 PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
                 Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
             },
             "127.0.0.1");
@@ -122,6 +124,7 @@ public sealed class OrderOutboxIntegrationTests : IDisposable
                 StoreId = store.Id,
                 FulfillmentType = FulfillmentType.PickUp,
                 PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
                 Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
             },
             "127.0.0.1");

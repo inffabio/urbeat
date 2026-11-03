@@ -51,6 +51,14 @@ describe('app routes', () => {
     expect(appIndex).toBeLessThan(storeIndex);
   });
 
+  it('redirects the legacy delivery payment route to the main authoritative checkout', () => {
+    const storeRoute = routes.find((route) => route.path === ':storePath');
+    const legacyRoute = storeRoute?.children?.find((child) => child.path === 'checkout/entrega');
+
+    expect(legacyRoute?.redirectTo).toBe('checkout/pagamento');
+    expect(legacyRoute?.loadComponent).toBeUndefined();
+  });
+
   it('protects /app children with the seller auth guard', () => {
     const appRoute = routes.find((route) => route.path === 'app');
 

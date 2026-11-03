@@ -506,3 +506,87 @@
     place-items: center;
   }
 }
+
+.route-stop-payment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--app-text-secondary);
+}
+
+.route-stop-payment strong {
+  color: var(--app-text-primary);
+}
+
+.route-handover {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--app-surface-soft, #fff8f0);
+}
+
+.route-handover-payment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 10px;
+}
+
+.route-handover-payment .label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--app-text-secondary);
+}
+
+.route-handover-payment small,
+.route-handover-hint {
+  font-size: 12px;
+  color: var(--app-text-secondary);
+}
+
+.route-handover-hint {
+  margin: 6px 0 0;
+}
+
+.route-cash-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-text-secondary);
+}
+
+.route-cash-field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--app-border-light);
+  background: var(--app-surface, #fff);
+  font-size: 16px;
+  color: var(--app-text-primary);
+}
+
+.route-handover-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--app-text-primary);
+  cursor: pointer;
+}
+
+.route-handover-check input {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  accent-color: var(--app-brand);
+  flex-shrink: 0;
+}

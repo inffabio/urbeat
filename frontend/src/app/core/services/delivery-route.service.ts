@@ -92,10 +92,12 @@ export class DeliveryRouteService {
     token: string,
     sequence: number,
     pin: string,
+    handoverConfirmed: boolean,
+    cashReceivedAmount?: number,
   ): Observable<PublicDeliveryRoutePinResult> {
     return this.api.post<PublicDeliveryRoutePinResult>(
       `/api/public/delivery-routes/${encodeURIComponent(token)}/stops/${sequence}/deliver`,
-      { pin },
+      { pin, handoverConfirmed, cashReceivedAmount: cashReceivedAmount ?? null },
       this.publicContext(),
     );
   }
@@ -103,10 +105,12 @@ export class DeliveryRouteService {
   confirmPublicIndividualDelivery(
     token: string,
     pin: string,
+    handoverConfirmed: boolean,
+    cashReceivedAmount?: number,
   ): Observable<PublicDeliveryRoutePinResult> {
     return this.api.post<PublicDeliveryRoutePinResult>(
       `/api/public/deliveries/${encodeURIComponent(token)}/deliver`,
-      { pin },
+      { pin, handoverConfirmed, cashReceivedAmount: cashReceivedAmount ?? null },
       this.publicContext(),
     );
   }

@@ -214,7 +214,10 @@ public sealed class OrderServiceTests : IDisposable
         var otherSellerUserId = Guid.NewGuid();
         var firstCustomerUserId = Guid.NewGuid();
         var secondCustomerUserId = Guid.NewGuid();
-        var now = DateTime.UtcNow;
+        var utcNow = DateTime.UtcNow;
+        // Anchor inside the month so "last 3 days" never crosses a month boundary at month start,
+        // which would make NewCustomersThisMonth depend on the calendar day the test runs.
+        var now = new DateTime(utcNow.Year, utcNow.Month, 15, 12, 0, 0, DateTimeKind.Utc);
         var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
         var otherStore = new Store { OwnerUserId = otherSellerUserId, Name = "Outra Loja", Slug = "outra-loja", PhoneNumber = "11888888888" };
         var firstCustomerRecentOrder = new Order { CustomerUserId = firstCustomerUserId, StoreId = store.Id, Status = OrderStatus.Delivered, Total = 30m };

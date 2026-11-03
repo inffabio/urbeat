@@ -62,6 +62,8 @@ public interface IDeliveryRouteService
         string token,
         int sequence,
         string pin,
+        bool handoverConfirmed,
+        decimal? cashReceivedAmount,
         string? ipAddress,
         CancellationToken cancellationToken = default);
 }

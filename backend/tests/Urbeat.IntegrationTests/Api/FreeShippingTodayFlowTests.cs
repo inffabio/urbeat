@@ -121,7 +121,7 @@ public sealed class FreeShippingTodayFlowTests : IClassFixture<TestWebApplicatio
         var request = new CheckoutRequestDto
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
-            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnline,
+            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [ new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 } ]
         };
 
@@ -178,7 +178,7 @@ public sealed class FreeShippingTodayFlowTests : IClassFixture<TestWebApplicatio
         var request = new CheckoutRequestDto
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
-            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnline,
+            CustomerAddressId = address!.Id, PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [ new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 } ]
         };
 
@@ -214,7 +214,7 @@ public sealed class FreeShippingTodayFlowTests : IClassFixture<TestWebApplicatio
         var request = new CheckoutRequestDto
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.PickUp,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [ new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 } ]
         };
 

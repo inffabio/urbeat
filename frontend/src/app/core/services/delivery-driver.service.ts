@@ -106,6 +106,13 @@ export class DeliveryDriverService {
     return this.api.post<DeliveryDriverActionResult>(`/api/driver/orders/${orderId}/start`, {});
   }
 
+  confirmHandover(orderId: string, cashReceivedAmount?: number): Observable<DeliveryDriverActionResult> {
+    return this.api.post<DeliveryDriverActionResult>(
+      `/api/driver/orders/${orderId}/handover`,
+      { cashReceivedAmount: cashReceivedAmount ?? null },
+    );
+  }
+
   confirmPin(orderId: string, pin: string): Observable<DeliveryDriverActionResult> {
     return this.api.post<DeliveryDriverActionResult>(`/api/driver/orders/${orderId}/confirm-pin`, { pin });
   }

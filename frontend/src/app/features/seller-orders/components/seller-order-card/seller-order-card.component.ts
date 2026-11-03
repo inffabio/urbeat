@@ -95,19 +95,46 @@ export class SellerOrderCardComponent {
 
   paymentLabel(method: PaymentMethod | undefined): string {
     switch (method) {
-      case PaymentMethod.PixOnline:
-        return 'Pix online';
-      case PaymentMethod.CardOnline:
-        return 'Cartão online';
+      case PaymentMethod.PixOnDelivery:
+        return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery:
+        return 'Débito na maquininha';
+      case PaymentMethod.CreditOnDelivery:
+        return 'Crédito na maquininha';
       case PaymentMethod.CashOnDelivery:
-        return 'Dinheiro ao receber';
+        return 'Dinheiro';
+      case PaymentMethod.PixOnline:
+        return 'Pix online (legado)';
+      case PaymentMethod.CardOnline:
+        return 'Cartão online (legado)';
       case PaymentMethod.CardOnDelivery:
-        return 'Cartão ao receber';
+        return 'Cartão na entrega (legado)';
       default:
         return '';
     }
   }
 
+  /** Cash change summary, without any card machine identifier or bank verification claim. */
+  cashDetail(): string {
+    const order = this.order();
+    if (order.paymentMethod !== PaymentMethod.CashOnDelivery) return '';
+
+    if (order.cashReceivedAmount !== undefined && order.cashReceivedAmount !== null) {
+      const change = order.cashChangeAmount ?? 0;
+      return `Recebido ${this.formatCurrency(order.cashReceivedAmount)} · Troco ${this.formatCurrency(change)}`;
+    }
+
+    if (order.cashWithoutChange === true) return 'Sem troco';
+    if (order.cashChangeForAmount !== undefined && order.cashChangeForAmount !== null) {
+      return `Troco para ${this.formatCurrency(order.cashChangeForAmount)}`;
+    }
+    return '';
+  }
+
+  paymentConfirmationLabel(): string {
+    const confirmedAt = this.order().paymentConfirmedAtUtc;
+    return confirmedAt ? `Pagamento confirmado às ${this.formatTime(confirmedAt)}` : '';
+  }
   emitSelect(): void {
     this.select.emit(this.order().id);
   }

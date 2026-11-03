@@ -42,6 +42,11 @@ export interface OrderDetails {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
+  cashReceivedAmount?: number;
+  cashChangeAmount?: number;
+  paymentConfirmedAtUtc?: string;
   createdAtUtc: string;
   deliveryConfirmedAtUtc?: string;
   sellerCompletedAtUtc?: string;
@@ -79,6 +84,11 @@ export interface OrderSummary {
   subtotal?: number;
   deliveryFee?: number;
   total: number;
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
+  cashReceivedAmount?: number;
+  cashChangeAmount?: number;
+  paymentConfirmedAtUtc?: string;
   createdAtUtc: string;
   deliveryConfirmedAtUtc?: string;
   sellerCompletedAtUtc?: string;
@@ -141,6 +151,12 @@ export interface SellerDeliverySummary {
   addressSummary?: string;
   status: OrderStatus;
   total: number;
+  paymentMethod?: PaymentMethod;
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
+  cashReceivedAmount?: number;
+  cashChangeAmount?: number;
+  paymentConfirmedAtUtc?: string;
   createdAtUtc: string;
   deliveryDriverId?: string;
   deliveryDriverName?: string;

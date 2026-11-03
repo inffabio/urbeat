@@ -1,4 +1,4 @@
-﻿using Urbeat.Application.DTOs;
+using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
@@ -153,6 +153,11 @@ public sealed class OrderService : IOrderService
                     Subtotal = x.Subtotal,
                     DeliveryFee = x.DeliveryFee,
                     Total = x.Total,
+                    CashWithoutChange = x.CashWithoutChange,
+                    CashChangeForAmount = x.CashChangeForAmount,
+                    CashReceivedAmount = x.CashReceivedAmount,
+                    CashChangeAmount = x.CashChangeAmount,
+                    PaymentConfirmedAtUtc = x.PaymentConfirmedAtUtc,
                     CreatedAtUtc = x.CreatedAtUtc,
                     DeliveryConfirmedAtUtc = x.DeliveryConfirmedAtUtc,
                     SellerCompletedAtUtc = x.SellerCompletedAtUtc,
@@ -616,6 +621,12 @@ public sealed class OrderService : IOrderService
                     AddressSummary = BuildAddressSummary(x),
                     Status = x.Status,
                     Total = x.Total,
+                    PaymentMethod = x.PaymentMethod,
+                    CashWithoutChange = x.CashWithoutChange,
+                    CashChangeForAmount = x.CashChangeForAmount,
+                    CashReceivedAmount = x.CashReceivedAmount,
+                    CashChangeAmount = x.CashChangeAmount,
+                    PaymentConfirmedAtUtc = x.PaymentConfirmedAtUtc,
                     CreatedAtUtc = x.CreatedAtUtc,
                     DeliveryDriverId = assignment?.DeliveryDriverId,
                     DeliveryDriverName = assignment?.DeliveryDriverName,
@@ -983,6 +994,15 @@ public sealed class OrderService : IOrderService
             return new UpdateOrderConfirmationResultDto { InvalidState = true };
         }
 
+        // New-contract delivery orders must be concluded through both the manual handover/payment
+        // confirmation and the delivery PIN. A seller marking Delivered must never let the customer
+        // confirmation path bypass them. Legacy orders keep the previous behavior.
+        if (OrderPaymentPolicy.RequiresHandoverConfirmation(order)
+            && (order.PaymentConfirmedAtUtc is null || order.DeliveryPinConfirmedAtUtc is null))
+        {
+            return new UpdateOrderConfirmationResultDto { PinRequired = true };
+        }
+
         if (order.DeliveryConfirmedAtUtc is not null)
         {
             return new UpdateOrderConfirmationResultDto
@@ -1222,6 +1242,11 @@ public sealed class OrderService : IOrderService
             Subtotal = order.Subtotal,
             DeliveryFee = order.DeliveryFee,
             Total = order.Total,
+            CashWithoutChange = order.CashWithoutChange,
+            CashChangeForAmount = order.CashChangeForAmount,
+            CashReceivedAmount = order.CashReceivedAmount,
+            CashChangeAmount = order.CashChangeAmount,
+            PaymentConfirmedAtUtc = order.PaymentConfirmedAtUtc,
             CreatedAtUtc = order.CreatedAtUtc,
             DeliveryConfirmedAtUtc = order.DeliveryConfirmedAtUtc,
             SellerCompletedAtUtc = order.SellerCompletedAtUtc,

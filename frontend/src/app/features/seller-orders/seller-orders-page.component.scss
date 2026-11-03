@@ -1644,3 +1644,8 @@
     margin-left: 22px;
   }
 }
+
+.payment-confirmed {
+  color: var(--app-success, #119441);
+  font-weight: 600;
+}

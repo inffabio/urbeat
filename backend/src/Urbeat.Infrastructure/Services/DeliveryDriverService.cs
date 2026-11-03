@@ -1086,6 +1086,130 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
         };
     }
 
+    public async Task<DeliveryDriverActionResultDto> ConfirmHandoverAsync(
+        Guid driverUserId,
+        Guid orderId,
+        ConfirmOrderHandoverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var context = await LoadDriverOrderContextAsync(driverUserId, orderId, cancellationToken);
+        if (context is null)
+        {
+            return new DeliveryDriverActionResultDto { NotFound = true };
+        }
+
+        var (order, assignment, driver, link) = context.Value;
+
+        if (link.Status != StoreDeliveryDriverStatus.Active)
+        {
+            return new DeliveryDriverActionResultDto { Forbidden = true };
+        }
+
+        if (order.FulfillmentType != FulfillmentType.Delivery)
+        {
+            return new DeliveryDriverActionResultDto { InvalidState = true };
+        }
+
+        // Repeating an already confirmed handover is idempotent and never mutates amounts.
+        if (order.PaymentConfirmedAtUtc is not null)
+        {
+            return BuildHandoverResult(order);
+        }
+
+        if (order.Status is not (OrderStatus.OnDelivery or OrderStatus.Delivered)
+            || order.DeliveryConfirmedAtUtc is not null)
+        {
+            return new DeliveryDriverActionResultDto { InvalidState = true };
+        }
+
+        // Legacy orders keep the previous flow. Only orders created under the current
+        // pay-on-delivery contract can (and must) be confirmed here before the PIN.
+        if (!OrderPaymentPolicy.RequiresHandoverConfirmation(order))
+        {
+            return new DeliveryDriverActionResultDto { InvalidState = true };
+        }
+
+        decimal? change = null;
+        if (OrderPaymentPolicy.IsCashOnDelivery(order.PaymentMethod))
+        {
+            var error = OrderPaymentPolicy.ValidateCashReceived(order, request.CashReceivedAmount, out var computedChange);
+            if (error is not null)
+            {
+                return new DeliveryDriverActionResultDto
+                {
+                    PaymentAmountInvalid = true,
+                    PaymentError = error
+                };
+            }
+
+            change = computedChange;
+        }
+        else if (request.CashReceivedAmount.HasValue)
+        {
+            return new DeliveryDriverActionResultDto
+            {
+                PaymentAmountInvalid = true,
+                PaymentError = "Este pedido não é em dinheiro; não informe valor recebido."
+            };
+        }
+
+        var confirmedAtUtc = DateTime.UtcNow;
+        order.PaymentConfirmedAtUtc = confirmedAtUtc;
+        order.PaymentConfirmedByDriverId = driver.Id;
+        if (change.HasValue)
+        {
+            order.CashReceivedAmount = request.CashReceivedAmount;
+            order.CashChangeAmount = change;
+        }
+
+        assignment.HandoverConfirmedAtUtc = confirmedAtUtc;
+        assignment.AdvanceConcurrency();
+        assignment.MarkAsUpdated();
+        order.MarkAsUpdated();
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = driverUserId,
+            Event = "OrderPaymentHandoverConfirmed",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = change.HasValue
+                ? $"Motoboy {driver.FullName} confirmou o recebimento do pedido {order.Code}: dinheiro recebido R$ {request.CashReceivedAmount:0.00}, troco R$ {change:0.00}."
+                : $"Motoboy {driver.FullName} confirmou o recebimento e a forma de pagamento do pedido {order.Code} ({order.PaymentMethod}).",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            var current = await _dbContext.Orders
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+
+            if (current?.PaymentConfirmedAtUtc is not null)
+            {
+                return BuildHandoverResult(current);
+            }
+
+            return new DeliveryDriverActionResultDto { ConcurrentUpdate = true };
+        }
+
+        return BuildHandoverResult(order);
+    }
+
+    private static DeliveryDriverActionResultDto BuildHandoverResult(Order order) =>
+        new()
+        {
+            Status = order.Status,
+            PaymentConfirmedAtUtc = order.PaymentConfirmedAtUtc,
+            HandoverConfirmedAtUtc = order.PaymentConfirmedAtUtc,
+            CashReceivedAmount = order.CashReceivedAmount,
+            CashChangeAmount = order.CashChangeAmount
+        };
     public async Task<DeliveryDriverActionResultDto> ConfirmDeliveryPinAsync(
         Guid driverUserId,
         Guid orderId,
@@ -1125,6 +1249,18 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             return new DeliveryDriverActionResultDto { InvalidState = true };
         }
 
+        // The assigned motoboy must manually confirm the handover/payment before the PIN.
+        // This is checked before the attempt counter so a missing confirmation never consumes a
+        // PIN attempt. Legacy orders keep the previous flow.
+        if (OrderPaymentPolicy.RequiresHandoverConfirmation(order)
+            && order.PaymentConfirmedAtUtc is null)
+        {
+            return new DeliveryDriverActionResultDto
+            {
+                HandoverRequired = true,
+                Status = order.Status
+            };
+        }
         if (string.IsNullOrWhiteSpace(order.DeliveryPinHash))
         {
             return new DeliveryDriverActionResultDto { PinUnavailable = true };
@@ -1271,11 +1407,50 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
             return await ResolvePinConcurrencyAsync(orderId, cancellationToken);
         }
 
+        if (previousStatus == order.Status)
+        {
+            await NotifyCustomerDeliveryConfirmedAsync(order, confirmedAtUtc);
+        }
+
         return new DeliveryDriverActionResultDto
         {
             Status = order.Status,
             DeliveryConfirmedAtUtc = order.DeliveryConfirmedAtUtc
         };
+    }
+
+    /// <summary>
+    /// Best-effort live hint for a PIN confirmation that did not change the order status (the
+    /// seller had already marked the order Delivered). The customer tracking page updates its
+    /// status view from "OrderStatusUpdated" and then re-fetches the details, which is how the
+    /// delivery confirmation reaches the screen without a reload. Durable notifications, status
+    /// history and the outbox keep owning real status transitions, so this hint is not persisted
+    /// and is never retried; it runs only after the confirmation was committed.
+    /// </summary>
+    private async Task NotifyCustomerDeliveryConfirmedAsync(Order order, DateTime confirmedAtUtc)
+    {
+        try
+        {
+            var delivered = await _notificationService.NotifyCustomerOrderStatusUpdatedAsync(
+                order.CustomerUserId,
+                order.Id,
+                order.Code,
+                order.Status,
+                confirmedAtUtc,
+                CancellationToken.None);
+
+            if (!delivered)
+            {
+                _logger.LogWarning(
+                    "Delivery confirmation hint not delivered | OrderId={OrderId} | Status={Status}",
+                    order.Id,
+                    order.Status);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Delivery confirmation hint failed | OrderId={OrderId}", order.Id);
+        }
     }
 
     /// <summary>
@@ -1709,6 +1884,13 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
                 Subtotal = order.Subtotal,
                 DeliveryFee = order.DeliveryFee,
                 Total = order.Total,
+                CashWithoutChange = order.CashWithoutChange,
+                CashChangeForAmount = order.CashChangeForAmount,
+                CashReceivedAmount = order.CashReceivedAmount,
+                CashChangeAmount = order.CashChangeAmount,
+                RequiresHandoverConfirmation = OrderPaymentPolicy.RequiresHandoverConfirmation(order),
+                HandoverConfirmedAtUtc = assignment?.HandoverConfirmedAtUtc,
+                PaymentConfirmedAtUtc = order.PaymentConfirmedAtUtc,
                 CreatedAtUtc = order.CreatedAtUtc,
                 DeliveryStartedAtUtc = assignment?.DeliveryStartedAtUtc,
                 DeliveryConfirmedAtUtc = order.DeliveryConfirmedAtUtc,
@@ -1728,8 +1910,13 @@ public sealed class DeliveryDriverService : IDeliveryDriverService
                     })
                     .ToList(),
                 CanStartDelivery = order.Status == OrderStatus.Ready && assignment?.DeliveryStartedAtUtc is null,
+                CanConfirmHandover = order.PaymentConfirmedAtUtc is null
+                    && order.DeliveryConfirmedAtUtc is null
+                    && order.Status is OrderStatus.OnDelivery or OrderStatus.Delivered
+                    && OrderPaymentPolicy.RequiresHandoverConfirmation(order),
                 CanConfirmPin = order.DeliveryConfirmedAtUtc is null
                     && order.Status is OrderStatus.OnDelivery or OrderStatus.Delivered
+                    && (!OrderPaymentPolicy.RequiresHandoverConfirmation(order) || order.PaymentConfirmedAtUtc is not null)
             };
         }).ToList();
     }

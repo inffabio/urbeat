@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.IdentityModel.Tokens.Jwt;
@@ -84,7 +84,7 @@ public sealed class SubscriptionEnforcementFlowTests : IClassFixture<TestWebAppl
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto

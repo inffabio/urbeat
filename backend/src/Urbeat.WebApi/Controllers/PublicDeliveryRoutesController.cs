@@ -73,6 +73,8 @@ public sealed class PublicDeliveryRoutesController : ControllerBase
             token,
             sequence,
             request.Pin,
+            request.HandoverConfirmed,
+            request.CashReceivedAmount,
             HttpContext.Connection.RemoteIpAddress?.ToString(),
             cancellationToken);
 
@@ -109,6 +111,15 @@ public sealed class PublicDeliveryRoutesController : ControllerBase
             });
         }
 
+        if (result.HandoverRequired)
+        {
+            return Conflict(new { error = "Confirme o recebimento e a forma de pagamento antes do PIN." });
+        }
+
+        if (result.PaymentAmountInvalid)
+        {
+            return BadRequest(new { error = result.PaymentError ?? "Valor recebido inválido." });
+        }
         if (result.PinUnavailable)
         {
             return Conflict(new { error = "Este pedido não possui PIN de entrega." });

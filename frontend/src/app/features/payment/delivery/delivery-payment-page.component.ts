@@ -13,8 +13,13 @@ import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { StickyActionBarComponent } from '../../../shared/components/sticky-action-bar/sticky-action-bar.component';
 
-type DeliveryPay = 'cash' | 'card';
+type DeliveryPay = 'cash' | 'pix-machine' | 'debit' | 'credit';
 
+/**
+ * @deprecated The legacy `/checkout/entrega` route now redirects to the authoritative
+ * `/checkout/pagamento` page. This component is kept only for historical tests and must not be
+ * routed again: it does not own an authoritative preview total.
+ */
 @Component({
   selector: 'app-delivery-payment-page',
   standalone: true,
@@ -32,16 +37,15 @@ export class DeliveryPaymentPageComponent implements OnInit, OnDestroy {
 
   private destroyed = false;
 
-  // Inicia com "Cartão" pré-selecionado (forma mais segura/usual)
-  readonly selected = signal<DeliveryPay | null>('card');
+  // No method is pre-selected: the storefront requires an explicit choice.
+  readonly selected = signal<DeliveryPay | null>(null);
   readonly needsChange = signal<boolean | null>(null);
   readonly changeFor = signal<string>('');
-  readonly cardPreference = signal<'credit' | 'debit' | 'any'>('any');
   readonly processing = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
   readonly subtotal = this.cart.subtotal;
-  readonly deliveryFee = signal(6.99);
+  readonly deliveryFee = signal(0);
   readonly discount = signal(0);
   readonly effectiveDeliveryFee = computed(() =>
     this.checkout.fulfillmentType() === FulfillmentType.Delivery ? this.deliveryFee() : 0,
@@ -53,9 +57,12 @@ export class DeliveryPaymentPageComponent implements OnInit, OnDestroy {
 
   readonly canFinalize = computed(() => {
     if (!this.selected()) return false;
-    if (this.selected() === 'cash' && this.needsChange() === true) {
-      const value = parseFloat(this.changeFor().replace(',', '.'));
-      if (Number.isNaN(value) || value < this.total()) return false;
+    if (this.selected() === 'cash') {
+      if (this.needsChange() === null) return false;
+      if (this.needsChange() === true) {
+        const value = parseFloat(this.changeFor().replace(',', '.'));
+        if (Number.isNaN(value) || value < this.total()) return false;
+      }
     }
     return true;
   });
@@ -105,18 +112,34 @@ export class DeliveryPaymentPageComponent implements OnInit, OnDestroy {
     const method =
       this.selected() === 'cash'
         ? PaymentMethod.CashOnDelivery
-        : PaymentMethod.CardOnDelivery;
+        : this.selected() === 'pix-machine'
+          ? PaymentMethod.PixOnDelivery
+          : this.selected() === 'debit'
+            ? PaymentMethod.DebitOnDelivery
+            : PaymentMethod.CreditOnDelivery;
 
-    let notes = `Pagamento: ${this.selected() === 'cash' ? 'dinheiro' : 'cartão'} na entrega.`;
+    const selectedLabel = this.selected() === 'cash'
+      ? 'dinheiro'
+      : this.selected() === 'pix-machine'
+        ? 'Pix na maquininha'
+        : this.selected() === 'debit'
+          ? 'débito'
+          : 'crédito';
+    const customerNotes = this.checkout.orderNotes().trim();
+    let notes = customerNotes
+      ? `${customerNotes} | Pagamento: ${selectedLabel} na entrega.`
+      : `Pagamento: ${selectedLabel} na entrega.`;
     if (this.selected() === 'cash') {
       if (this.needsChange() && this.changeFor()) {
         notes += ` Precisa de troco para R$ ${this.changeFor()}.`;
       } else {
         notes += ' Não precisa de troco.';
       }
-    } else if (this.selected() === 'card' && this.cardPreference() !== 'any') {
-      notes += ` Preferência: ${this.cardPreference() === 'credit' ? 'crédito' : 'débito'}.`;
     }
+
+    const cashChangeFor = this.selected() === 'cash' && this.needsChange()
+      ? Number.parseFloat(this.changeFor().replace(',', '.'))
+      : undefined;
 
     this.processing.set(true);
     this.errorMessage.set(null);
@@ -133,6 +156,8 @@ export class DeliveryPaymentPageComponent implements OnInit, OnDestroy {
         fulfillmentType: this.checkout.fulfillmentType(),
         customerAddressId: this.checkout.customerAddressId() ?? undefined,
         paymentMethod: method,
+        cashWithoutChange: this.selected() === 'cash' ? !this.needsChange() : undefined,
+        cashChangeForAmount: Number.isFinite(cashChangeFor) ? cashChangeFor : undefined,
         notes,
         items: this.cart.toCheckoutItems(),
       })

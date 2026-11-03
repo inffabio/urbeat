@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
@@ -62,12 +63,13 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         var orderDetails = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{orderId}");
         orderDetails!.Code.Should().NotBeNullOrWhiteSpace();
@@ -149,15 +151,41 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
             PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = true,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         var orderDetails = await customerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"/api/orders/{orderId}");
 
         await _factory.DispatchOutboxAsync();
+
+        // Assert the pipeline actually completed before inspecting live pushes: the durable
+        // notification and a fully processed outbox are the preconditions for the SignalR push. If
+        // this fails, the failure message carries the real outbox state instead of an empty recording.
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var durableNotification = await db.Notifications
+                .AsNoTracking()
+                .Where(x => x.RecipientUserId == sellerUserId
+                    && x.OrderId == orderId
+                    && x.Type == NotificationType.NewOrder)
+                .ToListAsync();
+            durableNotification.Should().ContainSingle("checkout must persist the durable new-order notification");
+
+            var outbox = await db.OutboxMessages
+                .AsNoTracking()
+                .Where(x => x.AggregateId == orderId)
+                .ToListAsync();
+            outbox.Should().NotBeEmpty("checkout must enqueue the order-created event");
+            outbox.Should().OnlyContain(x => x.Status == OutboxMessageStatus.Processed,
+                "the outbox must be fully processed before the live push is asserted; state: {0}",
+                string.Join("; ", outbox.Select(x => $"{x.Type}={x.Status}/attempt={x.AttemptCount}/error={x.LastError}")));
+        }
 
         var sellerMessage = sellerRecording.Messages
             .Where(x => x.Method == "ReceiveSellerNotification")
@@ -219,12 +247,13 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         recording.Clear();
 
@@ -291,12 +320,13 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         var receivedResponse = await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
         {
@@ -378,12 +408,13 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
         {
@@ -474,12 +505,13 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         var orderId = created!.OrderId;
+        await MarkOrderAwaitingPaymentAsync(orderId);
 
         (await sellerClient.PatchAsJsonAsync($"/api/orders/{orderId}/status", new UpdateOrderStatusRequestDto
         {
@@ -514,6 +546,14 @@ public sealed class OrderStatusSignalRTests : IClassFixture<TestWebApplicationFa
         return payload?.GetType().GetProperty(name)?.GetValue(payload);
     }
 
+    private async Task MarkOrderAwaitingPaymentAsync(Guid orderId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var order = await db.Orders.SingleAsync(x => x.Id == orderId);
+        order.Status = OrderStatus.PendingPayment;
+        await db.SaveChangesAsync();
+    }
     private async Task<(string AccessToken, Guid StoreId)> RegisterLoginAndCreateStoreAsync(HttpClient client, string cuisineType)
     {
         var email = $"signalr.seller.{Guid.NewGuid():N}@urbeat.local";

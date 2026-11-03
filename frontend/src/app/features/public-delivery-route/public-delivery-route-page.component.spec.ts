@@ -29,6 +29,9 @@ const buildRoute = (overrides: Partial<PublicDeliveryRoute> = {}): PublicDeliver
       status: OrderStatus.OnDelivery,
       isNext: true,
       canDeliver: true,
+      paymentMethod: 7,
+      requiresHandoverConfirmation: false,
+      total: 30,
       customerName: 'Ana',
       customerPhoneNumber: '11999999999',
       addressStreet: 'Rua A',
@@ -43,6 +46,9 @@ const buildRoute = (overrides: Partial<PublicDeliveryRoute> = {}): PublicDeliver
       status: OrderStatus.OnDelivery,
       isNext: false,
       canDeliver: false,
+      paymentMethod: 7,
+      requiresHandoverConfirmation: false,
+      total: 30,
       customerName: 'Bia',
       addressStreet: 'Rua B',
       addressNumber: '20',
@@ -199,7 +205,7 @@ describe('PublicDeliveryRoutePageComponent', () => {
     component.updatePin('1234');
     component.submitPin();
 
-    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '1234');
+    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '1234', true, undefined);
     expect(component.routeData()!.nextSequence).toBe(2);
     expect(component.successMessage()).toContain('ABC');
     expect(component.pinTarget()).toBeNull();
@@ -293,7 +299,62 @@ describe('PublicDeliveryRoutePageComponent', () => {
     component.updatePin('1234');
     component.submitPin();
 
-    expect(routeServiceMock.confirmPublicIndividualDelivery).toHaveBeenCalledWith('public-token', '1234');
+    expect(routeServiceMock.confirmPublicIndividualDelivery).toHaveBeenCalledWith('public-token', '1234', true, undefined);
     expect(routeServiceMock.confirmPublicDelivery).not.toHaveBeenCalled();
+  });
+
+  it('blocks the PIN until the motoboy confirms the handover on a new-contract order', () => {
+    routeServiceMock.getPublicRoute.mockReturnValue(of(buildRoute({
+      stops: [{
+        ...buildRoute().stops[0],
+        requiresHandoverConfirmation: true,
+      }],
+    })));
+
+    const fixture = TestBed.createComponent(PublicDeliveryRoutePageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openPinDialog(component.routeData()!.stops[0]);
+    component.updatePin('1234');
+    component.submitPin();
+
+    expect(component.pinError()).toContain('Confirme o recebimento');
+    expect(routeServiceMock.confirmPublicDelivery).not.toHaveBeenCalled();
+
+    component.setHandoverConfirmed(true);
+    component.submitPin();
+
+    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '1234', true, undefined);
+  });
+
+  it('requires and forwards the received cash amount before the PIN', () => {
+    routeServiceMock.getPublicRoute.mockReturnValue(of(buildRoute({
+      stops: [{
+        ...buildRoute().stops[0],
+        paymentMethod: 3,
+        requiresHandoverConfirmation: true,
+        cashWithoutChange: false,
+        cashChangeForAmount: 50,
+        total: 30,
+      }],
+    })));
+
+    const fixture = TestBed.createComponent(PublicDeliveryRoutePageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openPinDialog(component.routeData()!.stops[0]);
+    component.setHandoverConfirmed(true);
+    component.updatePin('1234');
+    component.submitPin();
+
+    expect(component.cashReceivedError()).toContain('valor recebido');
+    expect(routeServiceMock.confirmPublicDelivery).not.toHaveBeenCalled();
+
+    component.updateCashReceived('3000');
+    component.submitPin();
+
+    expect(routeServiceMock.confirmPublicDelivery).toHaveBeenCalledWith('public-token', 1, '1234', true, 30);
   });
 });

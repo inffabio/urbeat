@@ -16,6 +16,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { formatSaoPauloDateTime } from '../../core/utils/sao-paulo-date.helper';
 import { toGeoPoint } from '../../core/utils/geo.helper';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import {
   DeliveryDriverStore,
   DriverOrder,
@@ -39,11 +40,14 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
 
   @ViewChild('startDialog') private startDialogRef?: ElementRef<HTMLElement>;
   @ViewChild('pinDialog') private pinDialogRef?: ElementRef<HTMLElement>;
+  @ViewChild('handoverDialog') private handoverDialogRef?: ElementRef<HTMLElement>;
 
   private startTrigger: HTMLElement | null = null;
   private pinTrigger: HTMLElement | null = null;
+  private handoverTrigger: HTMLElement | null = null;
 
   readonly OrderStatus = OrderStatus;
+  readonly paymentMethodEnum = PaymentMethod;
   readonly stores = signal<DeliveryDriverStore[]>([]);
   readonly selectedStoreId = signal<string | null>(null);
   readonly orders = signal<DriverOrder[]>([]);
@@ -54,6 +58,10 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
   readonly actionOrderId = signal<string | null>(null);
   readonly startTarget = signal<DriverOrder | null>(null);
   readonly pinTarget = signal<DriverOrder | null>(null);
+  readonly handoverTarget = signal<DriverOrder | null>(null);
+  readonly cashReceivedInput = signal('');
+  readonly handoverError = signal<string | null>(null);
+  readonly handoverSubmitting = signal(false);
   readonly pinValue = signal('');
   readonly pinError = signal<string | null>(null);
   readonly pinConflict = signal(false);
@@ -73,7 +81,7 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
     this.loadStores();
     this.refreshTimer = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      if (this.startTarget() || this.pinTarget()) return;
+      if (this.startTarget() || this.pinTarget() || this.handoverTarget()) return;
       if (this.selectedStoreId()) this.loadOrders({ silent: true });
     }, REFRESH_INTERVAL_MS);
   }
@@ -184,6 +192,113 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  openHandoverDialog(order: DriverOrder, event?: Event): void {
+    this.handoverTrigger = this.resolveTrigger(event);
+    this.handoverTarget.set(order);
+    this.cashReceivedInput.set('');
+    this.handoverError.set(null);
+    this.handoverSubmitting.set(false);
+    this.focusDialog('handover');
+  }
+
+  cancelHandover(): void {
+    const trigger = this.handoverTrigger;
+    this.handoverTrigger = null;
+    this.handoverTarget.set(null);
+    this.cashReceivedInput.set('');
+    this.handoverError.set(null);
+    this.restoreFocus(trigger);
+  }
+
+  updateCashReceived(value: string): void {
+    const digits = value.replace(/\D/g, '');
+    if (!digits) {
+      this.cashReceivedInput.set('');
+      return;
+    }
+    const amount = Number.parseInt(digits, 10) / 100;
+    this.cashReceivedInput.set(amount.toFixed(2).replace('.', ','));
+  }
+
+  cashReceivedValue(): number | null {
+    const raw = this.cashReceivedInput().trim();
+    if (!raw) return null;
+    const parsed = Number.parseFloat(raw.replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  submitHandover(): void {
+    const order = this.handoverTarget();
+    if (!order || this.handoverSubmitting()) return;
+
+    const isCash = order.paymentMethod === PaymentMethod.CashOnDelivery;
+    let cashReceived: number | undefined;
+    if (isCash) {
+      const received = this.cashReceivedValue();
+      if (received === null || received < order.total) {
+        this.handoverError.set('Informe o valor recebido, igual ou maior que o total do pedido.');
+        return;
+      }
+      cashReceived = received;
+    }
+
+    this.handoverSubmitting.set(true);
+    this.handoverError.set(null);
+
+    this.deliveryDrivers.confirmHandover(order.id, cashReceived).subscribe({
+      next: () => {
+        this.handoverSubmitting.set(false);
+        this.cancelHandover();
+        void this.toast.showSuccess('Recebimento confirmado.');
+        this.loadOrders({ silent: true });
+      },
+      error: (err) => {
+        this.handoverSubmitting.set(false);
+        this.handoverError.set(
+          err?.error?.error ?? 'Não foi possível confirmar o recebimento.',
+        );
+      },
+    });
+  }
+
+  handoverInstruction(order: DriverOrder): string {
+    if (order.paymentMethod === PaymentMethod.CashOnDelivery) {
+      return `Confirme que você recebeu o dinheiro do cliente para o pedido #${order.code}.`;
+    }
+    return `Confirme que o pagamento foi aprovado na maquininha para o pedido #${order.code}.`;
+  }
+
+  paymentLabel(order: DriverOrder): string {    switch (order.paymentMethod) {
+      case PaymentMethod.PixOnDelivery:
+        return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery:
+        return 'Débito na maquininha';
+      case PaymentMethod.CreditOnDelivery:
+        return 'Crédito na maquininha';
+      case PaymentMethod.CashOnDelivery:
+        return 'Dinheiro';
+      case PaymentMethod.PixOnline:
+        return 'Pix online (legado)';
+      case PaymentMethod.CardOnline:
+        return 'Cartão online (legado)';
+      case PaymentMethod.CardOnDelivery:
+        return 'Cartão na entrega (legado)';
+      default:
+        return '';
+    }
+  }
+
+  cashDetail(order: DriverOrder): string {
+    if (order.paymentMethod !== PaymentMethod.CashOnDelivery) return '';
+    if (order.cashReceivedAmount !== undefined && order.cashReceivedAmount !== null) {
+      return `Recebido ${this.formatCurrency(order.cashReceivedAmount)} · Troco ${this.formatCurrency(order.cashChangeAmount ?? 0)}`;
+    }
+    if (order.cashWithoutChange === true) return 'Cliente não precisa de troco';
+    if (order.cashChangeForAmount !== undefined && order.cashChangeForAmount !== null) {
+      return `Trocar para ${this.formatCurrency(order.cashChangeForAmount)}`;
+    }
+    return '';
+  }
   openPinDialog(order: DriverOrder, event?: Event): void {
     this.pinTrigger = this.resolveTrigger(event);
     this.pinTarget.set(order);
@@ -205,6 +320,12 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.handoverTarget()) {
+      event?.preventDefault();
+      this.cancelHandover();
+      return;
+    }
+
     if (this.startTarget()) {
       event?.preventDefault();
       this.closeStart();
@@ -217,6 +338,8 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
       event.preventDefault();
       if (this.pinTarget()) {
         this.closePin();
+      } else if (this.handoverTarget()) {
+        this.cancelHandover();
       } else if (this.startTarget()) {
         this.closeStart();
       }
@@ -387,12 +510,14 @@ export class DriverOrdersPageComponent implements OnInit, OnDestroy {
     return target instanceof HTMLElement ? target : null;
   }
 
-  private focusDialog(kind: 'start' | 'pin'): void {
+  private focusDialog(kind: 'start' | 'pin' | 'handover'): void {
     // The dialog is rendered by the signal update, so focus must wait for change detection.
     setTimeout(() => {
       const dialog = kind === 'start'
         ? this.startDialogRef?.nativeElement
-        : this.pinDialogRef?.nativeElement;
+        : kind === 'handover'
+          ? this.handoverDialogRef?.nativeElement
+          : this.pinDialogRef?.nativeElement;
       dialog?.focus();
     });
   }

@@ -102,11 +102,19 @@ export interface DriverOrder {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
+  cashReceivedAmount?: number;
+  cashChangeAmount?: number;
+  requiresHandoverConfirmation: boolean;
+  handoverConfirmedAtUtc?: string | null;
+  paymentConfirmedAtUtc?: string | null;
   createdAtUtc: string;
   deliveryStartedAtUtc?: string | null;
   deliveryConfirmedAtUtc?: string | null;
   items: OrderItem[];
   canStartDelivery: boolean;
+  canConfirmHandover: boolean;
   canConfirmPin: boolean;
 }
 
@@ -122,6 +130,13 @@ export interface DeliveryDriverActionResult {
   pinInvalid: boolean;
   pinLocked: boolean;
   pinUnavailable: boolean;
+  handoverRequired?: boolean;
+  paymentAmountInvalid?: boolean;
+  paymentError?: string | null;
+  paymentConfirmedAtUtc?: string | null;
+  handoverConfirmedAtUtc?: string | null;
+  cashReceivedAmount?: number | null;
+  cashChangeAmount?: number | null;
   concurrentUpdate?: boolean;
   remainingAttempts: number;
   status?: OrderStatus;

@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { formatSaoPauloDateTime, formatSaoPauloTime } from '../../../core/utils/sao-paulo-date.helper';
 import { FulfillmentType } from '../../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../../shared/enums/order-status.enum';
@@ -210,7 +210,7 @@ export class BrowserPrintAdapter extends PrinterAdapter {
   }
 
   private paymentLabel(m: PaymentMethod): string {
-    const map: Record<number, string> = { 0: 'Pix', 1: 'Cartao', 2: 'Dinheiro', 3: 'Cartao' };
+    const map: Record<number, string> = { 1: 'Pix online', 2: 'Cartao online', 3: 'Dinheiro', 4: 'Cartao na entrega', 5: 'Pix na maquininha', 6: 'Debito', 7: 'Credito' };
     return map[m] ?? '-';
   }
 

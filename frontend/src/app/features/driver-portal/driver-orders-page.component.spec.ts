@@ -34,11 +34,13 @@ const buildOrder = (overrides: Partial<DriverOrder> = {}): DriverOrder => ({
   subtotal: 20,
   deliveryFee: 4,
   total: 24,
+  requiresHandoverConfirmation: false,
   createdAtUtc: '2026-10-24T12:00:00Z',
   items: [
     { productName: 'Lanche', quantity: 1, unitPrice: 20, totalPrice: 20 },
   ],
   canStartDelivery: true,
+  canConfirmHandover: false,
   canConfirmPin: false,
   ...overrides,
 });
@@ -49,6 +51,7 @@ describe('DriverOrdersPageComponent', () => {
     getDriverOrders: jest.Mock;
     startDelivery: jest.Mock;
     confirmPin: jest.Mock;
+    confirmHandover: jest.Mock;
   };
   let toastMock: { showSuccess: jest.Mock; showError: jest.Mock };
 
@@ -66,6 +69,7 @@ describe('DriverOrdersPageComponent', () => {
       getDriverOrders: jest.fn().mockReturnValue(of({ storeNotAvailable: false, orders: [buildOrder()] })),
       startDelivery: jest.fn().mockReturnValue(of({ status: OrderStatus.OnDelivery })),
       confirmPin: jest.fn().mockReturnValue(of({ status: OrderStatus.Delivered })),
+      confirmHandover: jest.fn().mockReturnValue(of({ status: OrderStatus.OnDelivery })),
     };
     toastMock = {
       showSuccess: jest.fn().mockResolvedValue(undefined),
@@ -411,6 +415,86 @@ describe('DriverOrdersPageComponent', () => {
 
     expect(fixture.componentInstance.pinTarget()).toBeNull();
     expect(document.activeElement).toBe(trigger);
+
+    fixture.destroy();
+  });
+
+  it('shows the handover action and forwards a non-cash confirmation before the PIN', () => {
+    deliveryDriverServiceMock.getDriverOrders.mockReturnValue(of({
+      storeNotAvailable: false,
+      orders: [buildOrder({
+        status: OrderStatus.OnDelivery,
+        paymentMethod: PaymentMethod.PixOnDelivery,
+        canStartDelivery: false,
+        requiresHandoverConfirmation: true,
+        canConfirmHandover: true,
+        canConfirmPin: false,
+      })],
+    }));
+
+    const fixture = TestBed.createComponent(DriverOrdersPageComponent);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.textContent).toContain('Pix na maquininha');
+    const trigger = Array.from(element.querySelectorAll<HTMLButtonElement>('button'))
+      .find((button) => button.textContent?.includes('Confirmar recebimento'));
+    expect(trigger).toBeDefined();
+
+    trigger!.click();
+    fixture.detectChanges();
+
+    const dialog = element.querySelector<HTMLElement>('#handover-dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog!.textContent).toContain('antes do PIN');
+    expect(dialog!.textContent).toContain('aprovado na maquininha');
+
+    fixture.componentInstance.submitHandover();
+    fixture.detectChanges();
+
+    expect(deliveryDriverServiceMock.confirmHandover)
+      .toHaveBeenCalledWith('order-1', undefined);
+    expect(fixture.componentInstance.handoverTarget()).toBeNull();
+    expect(deliveryDriverServiceMock.getDriverOrders).toHaveBeenCalledTimes(2);
+
+    fixture.destroy();
+  });
+
+  it('requires and forwards the received cash amount at handover', () => {
+    deliveryDriverServiceMock.getDriverOrders.mockReturnValue(of({
+      storeNotAvailable: false,
+      orders: [buildOrder({
+        status: OrderStatus.OnDelivery,
+        paymentMethod: PaymentMethod.CashOnDelivery,
+        cashWithoutChange: false,
+        cashChangeForAmount: 50,
+        canStartDelivery: false,
+        requiresHandoverConfirmation: true,
+        canConfirmHandover: true,
+        canConfirmPin: false,
+      })],
+    }));
+
+    const fixture = TestBed.createComponent(DriverOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openHandoverDialog(component.orders()[0]);
+    fixture.detectChanges();
+    const dialog = fixture.nativeElement.querySelector('#handover-dialog') as HTMLElement;
+    expect(dialog.textContent).toContain('recebeu o dinheiro');
+
+    component.updateCashReceived('2000');
+    component.submitHandover();
+
+    expect(component.handoverError()).toContain('valor recebido');
+    expect(deliveryDriverServiceMock.confirmHandover).not.toHaveBeenCalled();
+
+    component.updateCashReceived('3000');
+    component.submitHandover();
+
+    expect(deliveryDriverServiceMock.confirmHandover)
+      .toHaveBeenCalledWith('order-1', 30);
 
     fixture.destroy();
   });

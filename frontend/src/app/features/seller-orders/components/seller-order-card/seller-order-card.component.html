@@ -34,8 +34,16 @@
     <div class="order-tags">
       @if (fulfillmentLabel(order().fulfillmentType)) { <span>{{ fulfillmentLabel(order().fulfillmentType) }}</span> }
       @if (paymentLabel(order().paymentMethod)) { <span>{{ paymentLabel(order().paymentMethod) }}</span> }
+      @if (cashDetail()) { <span class="is-cash">{{ cashDetail() }}</span> }
       @if (order().addressSummary) { <span>{{ order().addressSummary }}</span> }
     </div>
+  }
+
+  @if (paymentConfirmationLabel()) {
+    <p class="payment-confirmed">
+      <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+      {{ paymentConfirmationLabel() }}
+    </p>
   }
 
   @if (statusActions(order().status).length) {

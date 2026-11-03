@@ -5,6 +5,7 @@ import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
 import { OrderDetails } from '../../shared/models/order.model';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 
 export const TRACKED_ORDER_IDS_STORAGE_KEY = 'urbeat:tracked-order-ids';
 
@@ -57,11 +58,35 @@ export class CustomerOrderTrackingService {
 
   trackOrder(orderId: string): void {
     if (!orderId) return;
-    if (this.trackedIds().includes(orderId)) return;
+    if (this.trackedIds().includes(orderId)) {
+      // Reopening an order that is already tracked must not reload terminal orders,
+      // but a delivered order still awaiting the confirmation can change server-side
+      // (for example when the motoboy confirms the PIN). Refresh only that case.
+      this.refreshPendingDeliveryConfirmation(orderId);
+      return;
+    }
 
     this.setTrackedIds([...this.trackedIds(), orderId]);
     this.refresh(orderId);
     if (this.shouldPoll) this.ensurePollingTimer();
+  }
+
+  private refreshPendingDeliveryConfirmation(orderId: string): void {
+    const order = this.trackedOrders().find((item) => item.id === orderId);
+    if (!order || !this.awaitsDeliveryConfirmation(order)) return;
+    if (this.inFlight.has(orderId)) return;
+    this.refresh(orderId, { background: true });
+  }
+
+  /**
+   * A delivered delivery order that has no confirmation yet is not terminal for the
+   * customer: the motoboy PIN confirmation changes its details without a status change,
+   * so it still deserves a retry and a refresh on reopen.
+   */
+  private awaitsDeliveryConfirmation(order: OrderDetails): boolean {
+    return order.status === OrderStatus.Delivered
+      && order.fulfillmentType === FulfillmentType.Delivery
+      && !order.deliveryConfirmedAtUtc;
   }
 
   isOrderUnavailable(orderId: string): boolean {
@@ -311,7 +336,8 @@ export class CustomerOrderTrackingService {
     const order = this.trackedOrders().find((o) => o.id === orderId);
     if (
       order &&
-      (order.status === OrderStatus.Delivered || order.status === OrderStatus.Cancelled)
+      (order.status === OrderStatus.Cancelled
+        || (order.status === OrderStatus.Delivered && !this.awaitsDeliveryConfirmation(order)))
     ) {
       this.recoveringOrders.delete(orderId);
       return;
@@ -327,6 +353,13 @@ export class CustomerOrderTrackingService {
   }
 
   private applyEventStatus(data: OrderStatusUpdateEvent): void {
+    const currentStatus = this.trackedOrders().find((order) => order.id === data.orderId)?.status;
+
+    // A repeated status (for example a delivery-confirmation hint) must not advance the
+    // status version: it carries fresh details that the follow-up refresh has to apply,
+    // and claiming a newer version would discard that response as stale.
+    if (currentStatus === data.status) return;
+
     const version = this.toTimestamp(data.changedAtUtc);
     const current = this.statusVersion.get(data.orderId) ?? 0;
     if (version > 0 && version <= current) return;

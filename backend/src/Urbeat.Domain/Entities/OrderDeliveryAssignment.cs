@@ -21,6 +21,12 @@ public sealed class OrderDeliveryAssignment : BaseEntity
 
     public DateTime? DeliveryStartedAtUtc { get; set; }
 
+    /// <summary>
+    /// UTC timestamp of the manual handover/payment confirmation by the assigned motoboy. The
+    /// delivery PIN can only be confirmed after this step for orders under the current contract.
+    /// </summary>
+    public DateTime? HandoverConfirmedAtUtc { get; set; }
+
     public int PinAttemptCount { get; set; }
 
     public DateTime? LastPinAttemptAtUtc { get; set; }

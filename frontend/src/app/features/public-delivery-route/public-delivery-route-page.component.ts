@@ -16,6 +16,7 @@ import { DeliveryRouteService } from '../../core/services/delivery-route.service
 import { formatSaoPauloDateTime } from '../../core/utils/sao-paulo-date.helper';
 import { toGeoPoint } from '../../core/utils/geo.helper';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import {
   DeliveryRouteStatus,
   PublicDeliveryRoute,
@@ -53,8 +54,12 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
   readonly pinError = signal<string | null>(null);
   readonly pinSubmitting = signal(false);
   readonly pinConflict = signal(false);
+  readonly handoverConfirmed = signal(false);
+  readonly cashReceivedInput = signal('');
+  readonly cashReceivedError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly DeliveryRouteStatus = DeliveryRouteStatus;
+  readonly paymentMethodEnum = PaymentMethod;
   /** Individual links use the same UI but only one order and no route sequence. */
   readonly isIndividualDelivery = this.route.snapshot.data?.['individual'] === true;
 
@@ -150,6 +155,9 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
     this.pinError.set(null);
     this.pinConflict.set(false);
     this.successMessage.set(null);
+    this.handoverConfirmed.set(false);
+    this.cashReceivedInput.set('');
+    this.cashReceivedError.set(null);
     setTimeout(() => this.pinDialogRef?.nativeElement.focus());
   }
 
@@ -160,6 +168,9 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
     this.pinValue.set('');
     this.pinError.set(null);
     this.pinConflict.set(false);
+    this.handoverConfirmed.set(false);
+    this.cashReceivedInput.set('');
+    this.cashReceivedError.set(null);
     setTimeout(() => {
       if (trigger?.isConnected) trigger.focus();
     });
@@ -168,6 +179,67 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
   updatePin(value: string): void {
     this.pinValue.set(value.replace(/\D/g, '').slice(0, 4));
     this.pinError.set(null);
+  }
+
+  setHandoverConfirmed(value: boolean): void {
+    this.handoverConfirmed.set(value);
+    this.pinError.set(null);
+  }
+
+  updateCashReceived(value: string): void {
+    const digits = value.replace(/\D/g, '');
+    if (!digits) {
+      this.cashReceivedInput.set('');
+      this.cashReceivedError.set(null);
+      return;
+    }
+    const amount = Number.parseInt(digits, 10) / 100;
+    this.cashReceivedInput.set(amount.toFixed(2).replace('.', ','));
+    this.cashReceivedError.set(null);
+  }
+
+  cashReceivedValue(): number | null {
+    const raw = this.cashReceivedInput().trim();
+    if (!raw) return null;
+    const parsed = Number.parseFloat(raw.replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  requiresHandover(stop: PublicDeliveryRouteStop): boolean {
+    return stop.requiresHandoverConfirmation && !stop.paymentConfirmedAtUtc;
+  }
+
+  paymentLabel(method: PaymentMethod): string {
+    switch (method) {
+      case PaymentMethod.PixOnDelivery:
+        return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery:
+        return 'Débito na maquininha';
+      case PaymentMethod.CreditOnDelivery:
+        return 'Crédito na maquininha';
+      case PaymentMethod.CashOnDelivery:
+        return 'Dinheiro';
+      case PaymentMethod.PixOnline:
+        return 'Pix online (legado)';
+      case PaymentMethod.CardOnline:
+        return 'Cartão online (legado)';
+      case PaymentMethod.CardOnDelivery:
+        return 'Cartão na entrega (legado)';
+      default:
+        return '';
+    }
+  }
+
+  cashDetail(stop: PublicDeliveryRouteStop): string {
+    if (stop.paymentMethod !== PaymentMethod.CashOnDelivery) return '';
+    if (stop.cashReceivedAmount !== undefined && stop.cashReceivedAmount !== null) {
+      return `Recebido ${this.formatCurrency(stop.cashReceivedAmount)} · Troco ${this.formatCurrency(stop.cashChangeAmount ?? 0)}`;
+    }
+    if (stop.cashWithoutChange === true) return 'Sem troco';
+    if (stop.cashChangeForAmount !== undefined && stop.cashChangeForAmount !== null) {
+      return `Troco para ${this.formatCurrency(stop.cashChangeForAmount)}`;
+    }
+    return '';
   }
 
   submitPin(): void {
@@ -180,13 +252,41 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const needsHandover = this.requiresHandover(stop);
+    if (needsHandover && !this.handoverConfirmed()) {
+      this.pinError.set('Confirme o recebimento e a forma de pagamento antes de informar o PIN.');
+      return;
+    }
+
+    let cashReceived: number | undefined;
+    if (needsHandover && stop.paymentMethod === PaymentMethod.CashOnDelivery) {
+      const received = this.cashReceivedValue();
+      if (received === null || received < stop.total) {
+        this.cashReceivedError.set('Informe o valor recebido, igual ou maior que o total do pedido.');
+        return;
+      }
+      cashReceived = received;
+    }
+
     this.pinSubmitting.set(true);
     this.pinError.set(null);
     this.pinConflict.set(false);
+    this.cashReceivedError.set(null);
 
     const request = this.isIndividualDelivery
-      ? this.routeService.confirmPublicIndividualDelivery(this.token(), pin)
-      : this.routeService.confirmPublicDelivery(this.token(), stop.sequence, pin);
+      ? this.routeService.confirmPublicIndividualDelivery(
+          this.token(),
+          pin,
+          needsHandover ? this.handoverConfirmed() : true,
+          cashReceived,
+        )
+      : this.routeService.confirmPublicDelivery(
+          this.token(),
+          stop.sequence,
+          pin,
+          needsHandover ? this.handoverConfirmed() : true,
+          cashReceived,
+        );
 
     request.subscribe({
       next: (result) => {
@@ -274,6 +374,10 @@ export class PublicDeliveryRoutePageComponent implements OnInit, OnDestroy {
 
   formatDateTime(value?: string | null): string {
     return value ? formatSaoPauloDateTime(value) : '';
+  }
+
+  formatCurrency(value: number | null | undefined): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
   }
 
   statusLabel(status: OrderStatus): string {

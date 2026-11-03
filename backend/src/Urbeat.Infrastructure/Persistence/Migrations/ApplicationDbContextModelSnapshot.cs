@@ -1023,6 +1023,21 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<decimal?>("CashChangeAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("CashChangeForAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("CashReceivedAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<bool?>("CashWithoutChange")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -1078,6 +1093,12 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("PaymentConfirmedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PaymentConfirmedByDriverId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("integer");
@@ -1150,6 +1171,9 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeliveryStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("HandoverConfirmedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("LastPinAttemptAtUtc")

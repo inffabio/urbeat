@@ -16,13 +16,16 @@ public sealed class DriverController : ControllerBase
 {
     private readonly IDeliveryDriverService _deliveryDriverService;
     private readonly IValidator<ConfirmDeliveryPinRequestDto> _pinValidator;
+    private readonly IValidator<ConfirmOrderHandoverRequestDto> _handoverValidator;
 
     public DriverController(
         IDeliveryDriverService deliveryDriverService,
-        IValidator<ConfirmDeliveryPinRequestDto> pinValidator)
+        IValidator<ConfirmDeliveryPinRequestDto> pinValidator,
+        IValidator<ConfirmOrderHandoverRequestDto> handoverValidator)
     {
         _deliveryDriverService = deliveryDriverService;
         _pinValidator = pinValidator;
+        _handoverValidator = handoverValidator;
     }
 
     [HttpGet("stores")]
@@ -89,6 +92,45 @@ public sealed class DriverController : ControllerBase
         return ToActionResult(result, "A entrega não pode ser iniciada neste estado.");
     }
 
+    [HttpPost("orders/{orderId:guid}/handover")]
+    [ProducesResponseType<DeliveryDriverActionResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ConfirmHandover(
+        Guid orderId,
+        [FromBody] ConfirmOrderHandoverRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _handoverValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validation.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    keySelector: group => group.Key,
+                    elementSelector: group => group.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var driverUserId = GetCurrentUserId();
+        if (driverUserId is null) return Unauthorized();
+
+        var result = await _deliveryDriverService.ConfirmHandoverAsync(
+            driverUserId.Value,
+            orderId,
+            request,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound) return NotFound();
+        if (result.Forbidden) return Forbid();
+        if (result.ConcurrentUpdate) return Conflict(new { error = "O pedido foi alterado ao mesmo tempo. Atualize e tente novamente." });
+        if (result.PaymentAmountInvalid) return BadRequest(new { error = result.PaymentError ?? "Valor recebido inválido." });
+        if (result.InvalidState) return Conflict(new { error = "O recebimento não pode ser confirmado neste estado." });
+
+        return Ok(result);
+    }
     [HttpPost("orders/{orderId:guid}/confirm-pin")]
     [ProducesResponseType<DeliveryDriverActionResultDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -151,6 +193,10 @@ public sealed class DriverController : ControllerBase
             return Conflict(new { error = "Este pedido não possui PIN de entrega. Use a confirmação do cliente." });
         }
 
+        if (result.HandoverRequired)
+        {
+            return Conflict(new { error = "Confirme o recebimento e a forma de pagamento antes do PIN." });
+        }
         return ToActionResult(result, "O PIN não pode ser confirmado neste estado.");
     }
 

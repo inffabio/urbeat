@@ -22,6 +22,11 @@ export interface CheckoutRequest {
   fulfillmentType: FulfillmentType;
   customerAddressId?: string;
   paymentMethod?: PaymentMethod;
+  /** Authoritative total the customer accepted in the preview. */
+  expectedTotal?: number;
+  /** Cash change choice: true = exact amount, false = change for `cashChangeForAmount`. */
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
   notes?: string;
   items: CheckoutItemRequest[];
 }
@@ -37,6 +42,8 @@ export interface CheckoutPreviewResponse {
   freeShippingThreshold?: number;
   freeShippingApplied: boolean;
   total: number;
+  cashWithoutChange?: boolean;
+  cashChangeForAmount?: number;
   storeIsOpen: boolean;
 }
 

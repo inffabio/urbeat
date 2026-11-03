@@ -24,5 +24,9 @@ public sealed class CheckoutSummaryResponseDto
 
     public decimal Total { get; init; }
 
+    public bool? CashWithoutChange { get; init; }
+
+    public decimal? CashChangeForAmount { get; init; }
+
     public bool StoreIsOpen { get; init; }
 }

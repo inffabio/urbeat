@@ -146,6 +146,7 @@ public sealed class CheckoutServiceTests : IDisposable
                 StoreId = store.Id,
                 FulfillmentType = FulfillmentType.PickUp,
                 PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
                 Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
             });
 
@@ -154,13 +155,229 @@ public sealed class CheckoutServiceTests : IDisposable
         result.Summary.FreeShippingApplied.Should().BeFalse();
     }
 
-    private static CheckoutRequestDto BuildPickupRequest(Store store, Product product)
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectOnlinePixForNewOrders()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var result = await _sut.ConfirmAsync(
+            Guid.NewGuid(),
+            BuildPickupRequest(store, product, PaymentMethod.PixOnline),
+            "127.0.0.1");
+
+        result.PaymentMethodNotAllowed.Should().BeTrue();
+        result.Confirmation.Should().BeNull();
+        (await _db.Orders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldAcceptPixOnDeliveryAndReachTheStoreImmediately()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var result = await _sut.ConfirmAsync(
+            Guid.NewGuid(),
+            BuildPickupRequest(store, product, PaymentMethod.PixOnDelivery),
+            "127.0.0.1");
+
+        result.Confirmation.Should().NotBeNull();
+        result.Confirmation!.Status.Should().Be(OrderStatus.Received);
+
+        var order = await _db.Orders.SingleAsync(x => x.Id == result.Confirmation.OrderId);
+        order.PaymentMethod.Should().Be(PaymentMethod.PixOnDelivery);
+        order.Status.Should().Be(OrderStatus.Received);
+        order.CashWithoutChange.Should().BeNull();
+        order.CashChangeForAmount.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRequireExplicitCashChangeChoiceForNewContractClients()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            // A client that already sends the accepted total is on the new contract, so the cash
+            // selection is mandatory (the legacy compatibility path does not apply).
+            ExpectedTotal = 40m,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.InvalidCashChange.Should().BeTrue();
+        result.PaymentError.Should().NotBeNullOrWhiteSpace();
+        result.Confirmation.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldAcceptLegacyCashPayloadWithoutChangeSelection()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        // Legacy cached storefronts (PWA/Capacitor) send cash with neither the accepted total nor
+        // the change selection. The order must still be created, without inventing a cash decision.
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.InvalidCashChange.Should().BeFalse();
+        result.Confirmation.Should().NotBeNull();
+
+        var order = await _db.Orders.SingleAsync(x => x.Id == result.Confirmation!.OrderId);
+        order.CashWithoutChange.Should().BeNull("no cash decision may be invented for legacy clients");
+        order.CashChangeForAmount.Should().BeNull();
+        order.Status.Should().Be(OrderStatus.Received);
+        OrderPaymentPolicy.RequiresHandoverConfirmation(order).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectCashChangeBelowAuthoritativeTotal()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = false,
+            CashChangeForAmount = 39.99m,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.InvalidCashChange.Should().BeTrue();
+        result.PaymentError.Should().Contain("total");
+        (await _db.Orders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldPersistCashChangeForAmountAtOrAboveTotal()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = false,
+            CashChangeForAmount = 50.00m,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.Confirmation.Should().NotBeNull();
+        var order = await _db.Orders.SingleAsync(x => x.Id == result.Confirmation!.OrderId);
+        order.CashWithoutChange.Should().BeFalse();
+        order.CashChangeForAmount.Should().Be(50.00m);
+        order.Status.Should().Be(OrderStatus.Received);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectCashFieldsOnNonCashMethods()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.DebitOnDelivery,
+            CashWithoutChange = true,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.InvalidCashChange.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectChangedExpectedTotal_WithoutPersistingAnything()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
+            ExpectedTotal = 39.99m,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.TotalChanged.Should().BeTrue();
+        result.AuthoritativeTotal.Should().Be(40m);
+        result.Confirmation.Should().BeNull();
+        result.PaymentError.Should().Contain("mudou");
+        (await _db.Orders.CountAsync()).Should().Be(0);
+        (await _db.OrderStatusHistories.CountAsync()).Should().Be(0);
+        (await _db.AuditLogs.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldAcceptExpectedTotalMatchingTheAuthoritativeTotal()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var request = new CheckoutRequestDto
+        {
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
+            ExpectedTotal = 40m,
+            Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+        };
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), request, "127.0.0.1");
+
+        result.TotalChanged.Should().BeFalse();
+        result.Confirmation.Should().NotBeNull();
+        result.Confirmation!.Total.Should().Be(40m);
+        (await _db.Orders.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldKeepLegacyClientsWithoutExpectedTotalWorking()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+
+        var result = await _sut.ConfirmAsync(
+            Guid.NewGuid(),
+            BuildPickupRequest(store, product, PaymentMethod.PixOnDelivery),
+            "127.0.0.1");
+
+        result.TotalChanged.Should().BeFalse();
+        result.Confirmation.Should().NotBeNull();
+        result.Confirmation!.Total.Should().Be(40m);
+    }
+
+    private static CheckoutRequestDto BuildPickupRequest(
+        Store store,
+        Product product,
+        PaymentMethod paymentMethod = PaymentMethod.CashOnDelivery)
     {
         return new CheckoutRequestDto
         {
             StoreId = store.Id,
             FulfillmentType = FulfillmentType.PickUp,
-            PaymentMethod = PaymentMethod.CashOnDelivery,
+            PaymentMethod = paymentMethod,
+            CashWithoutChange = paymentMethod == PaymentMethod.CashOnDelivery ? true : null,
             Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
         };
     }
@@ -203,6 +420,7 @@ public sealed class CheckoutServiceTests : IDisposable
                 FulfillmentType = FulfillmentType.Delivery,
                 CustomerAddressId = address.Id,
                 PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
                 Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
             });
     }

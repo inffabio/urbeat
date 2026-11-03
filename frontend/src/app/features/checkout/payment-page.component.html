@@ -5,7 +5,7 @@
     </button>
     <div class="page-title">
       <h1>Pagamento</h1>
-      <p>Pix online ou pagamento ao receber</p>
+      <p>Pague na entrega ou na retirada</p>
     </div>
     <span aria-hidden="true"></span>
   </header>
@@ -31,41 +31,111 @@
     </div>
 
     <h2 class="section-title">Como deseja pagar?</h2>
-    <p class="section-sub">A loja recebe o pedido assim que o pagamento estiver liberado</p>
+    <p class="section-sub">Escolha uma forma de pagamento. O pedido vai para a loja assim que você confirmar.</p>
 
-    <div class="options-list">
-      <label
-        class="option-card"
-        [class.active]="selected() === 'pix'"
-      >
-        <input class="payment-input" type="radio" name="payment-category" value="pix" [checked]="selected() === 'pix'" (change)="select('pix')" />
-        <span class="opt-radio"></span>
+    @if (previewError()) {
+      <div class="payment-error" role="alert">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span>
+          Não foi possível calcular o total do pedido.
+          <button type="button" class="preview-retry" (click)="retryPreview()">Tentar novamente</button>
+        </span>
+      </div>
+    }
+
+    <div class="options-list" role="radiogroup" aria-label="Forma de pagamento">
+      <label class="option-card" [class.active]="selected() === 'pix-machine'">
+        <input class="payment-input" type="radio" name="payment-category" value="pix-machine" [checked]="selected() === 'pix-machine'" (change)="select('pix-machine')" />
+        <span class="opt-radio" aria-hidden="true"></span>
         <span class="opt-icon" aria-hidden="true">
           <ion-icon name="qr-code-outline"></ion-icon>
         </span>
         <div class="opt-info">
-          <h3>Pix</h3>
-          <p>Seu pedido fica aguardando pagamento e vai para a loja após confirmação do gateway.</p>
+          <h3>Pix na maquininha</h3>
+          <p>Pague com Pix na maquininha do entregador ou no balcão da loja.</p>
         </div>
-        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
       </label>
 
-      <label
-        class="option-card"
-        [class.active]="selected() === 'receive'"
-      >
-        <input class="payment-input" type="radio" name="payment-category" value="receive" [checked]="selected() === 'receive'" (change)="select('receive')" />
-        <span class="opt-radio"></span>
+      <label class="option-card" [class.active]="selected() === 'cash'">
+        <input class="payment-input" type="radio" name="payment-category" value="cash" [checked]="selected() === 'cash'" (change)="select('cash')" />
+        <span class="opt-radio" aria-hidden="true"></span>
         <span class="opt-icon" aria-hidden="true">
-          <ion-icon name="wallet-outline"></ion-icon>
+          <ion-icon name="cash-outline"></ion-icon>
         </span>
         <div class="opt-info">
-          <h3>Pagar ao receber</h3>
-          <p>O pedido é enviado agora para a loja e você paga quando receber.</p>
+          <h3>Dinheiro</h3>
+          <p>Pague em dinheiro ao entregador ou na retirada.</p>
         </div>
-        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+
+      <label class="option-card" [class.active]="selected() === 'debit'">
+        <input class="payment-input" type="radio" name="payment-category" value="debit" [checked]="selected() === 'debit'" (change)="select('debit')" />
+        <span class="opt-radio" aria-hidden="true"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="card-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Débito</h3>
+          <p>Pague com cartão de débito na maquininha.</p>
+        </div>
+      </label>
+
+      <label class="option-card" [class.active]="selected() === 'credit'">
+        <input class="payment-input" type="radio" name="payment-category" value="credit" [checked]="selected() === 'credit'" (change)="select('credit')" />
+        <span class="opt-radio" aria-hidden="true"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="card-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Crédito</h3>
+          <p>Pague com cartão de crédito na maquininha.</p>
+        </div>
       </label>
     </div>
+
+    @if (selected() === 'cash') {
+      <div class="cash-complement">
+        <p class="cash-title">Precisa de troco?</p>
+        <div class="change-options" role="radiogroup" aria-label="Precisa de troco?">
+          <label class="change-opt" [class.active]="cashNeedsChange() === false">
+            <input class="payment-input" type="radio" name="needs-change" value="no" [checked]="cashNeedsChange() === false" (change)="setCashNeedsChange(false)" />
+            Não preciso
+          </label>
+          <label class="change-opt" [class.active]="cashNeedsChange() === true">
+            <input class="payment-input" type="radio" name="needs-change" value="yes" [checked]="cashNeedsChange() === true" (change)="setCashNeedsChange(true)" />
+            Sim, preciso
+          </label>
+        </div>
+
+        @if (cashNeedsChange() === true) {
+          <div class="change-input">
+            <label for="cash-change-for">Troco para quanto?</label>
+            <div class="change-field">
+              <span class="prefix" aria-hidden="true">R$</span>
+              <input
+                id="cash-change-for"
+                type="text"
+                inputmode="decimal"
+                placeholder="0,00"
+                [value]="cashChangeFor()"
+                (input)="onChangeForInput($any($event.target).value)"
+                aria-label="Valor para troco"
+              />
+            </div>
+            <p class="change-hint">
+              O valor precisa ser maior ou igual ao total de {{ total() | brl }}.
+            </p>
+          </div>
+        }
+      </div>
+    }
+
+    @if (selected() === 'pix-machine' || selected() === 'debit' || selected() === 'credit') {
+      <div class="payment-note">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <p>O pagamento é feito presencialmente na maquininha. A loja não verifica dados bancários pelo urbeat.</p>
+      </div>
+    }
 
     @if (errorMessage()) {
       <div class="payment-error" role="alert">
@@ -106,8 +176,7 @@
         <strong class="total-value">{{ total() | brl }}</strong>
       </div>
     </div>
-
-   </section>
+  </section>
 
   <app-sticky-action-bar
     placement="inline"
@@ -115,7 +184,7 @@
     icon="wallet-outline"
     [label]="actionLabel()"
     detail="Confirme a forma de pagamento"
-    [disabled]="!selected() || processing()"
+    [disabled]="!canContinue()"
     (action)="continue()"
   />
 

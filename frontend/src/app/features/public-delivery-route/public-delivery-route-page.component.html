@@ -147,6 +147,16 @@
                 </div>
                 <p class="route-stop-code">Pedido #{{ stop.orderCode }}</p>
                 <p class="route-stop-address">{{ stop.addressSummary || addressLine(stop) || 'Endereço não informado' }}</p>
+                <p class="route-stop-payment">
+                  <strong>{{ paymentLabel(stop.paymentMethod) }}</strong>
+                  @if (cashDetail(stop)) { <span>{{ cashDetail(stop) }}</span> }
+                </p>
+                @if (stop.paymentConfirmedAtUtc) {
+                  <p class="route-stop-confirmed">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    Recebimento confirmado
+                  </p>
+                }
                 @if (stop.deliveryConfirmedAtUtc) {
                   <p class="route-stop-confirmed">
                     <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
@@ -197,6 +207,43 @@
       <p class="route-dialog-copy">
         Digite os últimos 4 dígitos do celular do cliente. O pedido só será concluído com o PIN correto.
       </p>
+
+      @if (requiresHandover(target)) {
+        <div class="route-handover">
+          <p class="route-handover-payment">
+            <span class="label">Pagamento</span>
+            <strong>{{ paymentLabel(target.paymentMethod) }}</strong>
+            @if (cashDetail(target)) { <small>{{ cashDetail(target) }}</small> }
+          </p>
+
+          @if (target.paymentMethod === paymentMethodEnum.CashOnDelivery) {
+            <label class="route-cash-field">
+              <span>Valor em dinheiro recebido</span>
+              <input
+                type="text"
+                inputmode="decimal"
+                [value]="cashReceivedInput()"
+                (input)="updateCashReceived($any($event.target).value)"
+                placeholder="0,00"
+                aria-label="Valor em dinheiro recebido"
+              />
+            </label>
+            <p class="route-handover-hint">Total do pedido: {{ formatCurrency(target.total) }}. O troco é calculado pelo sistema.</p>
+            @if (cashReceivedError(); as message) {
+              <p class="route-pin-error" role="alert">{{ message }}</p>
+            }
+          }
+
+          <label class="route-handover-check">
+            <input
+              type="checkbox"
+              [checked]="handoverConfirmed()"
+              (change)="setHandoverConfirmed($any($event.target).checked)"
+            />
+            <span>Confirmo que recebi o pedido e conferi a forma de pagamento com o cliente.</span>
+          </label>
+        </div>
+      }
 
       <input
         class="route-pin-input"

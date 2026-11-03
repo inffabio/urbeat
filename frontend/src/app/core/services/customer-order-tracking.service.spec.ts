@@ -878,6 +878,184 @@ describe('CustomerOrderTrackingService', () => {
     expect(stopCustomerHubMock).toHaveBeenCalled();
   });
 
+  it('keeps a finished order tracked in this tab when it is opened again from history', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    service.trackOrder('order1');
+    service.trackOrder('order1');
+
+    expect(service.trackedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(service.finishedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1']);
+  });
+
+  it('restores finished orders after a stop/start cycle in the same tab (session reload)', async () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    expect(service.finishedOrders().map((order) => order.id)).toEqual(['order1']);
+
+    service.stop();
+    await service.start();
+
+    expect(service.trackedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(service.finishedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(getOrderMock.mock.calls.filter(([id]) => id === 'order1').length).toBeGreaterThan(1);
+    expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1']);
+  });
+
+  it('applies fresh details after a repeated delivered event (delivery confirmation)', async () => {
+    const deliveredAt = '2026-07-28T12:10:00Z';
+    const history = [
+      ...baseOrder.history,
+      { createdAtUtc: deliveredAt, previousStatus: OrderStatus.OnDelivery, newStatus: OrderStatus.Delivered },
+    ];
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered, history }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    expect(service.trackedOrders()[0].deliveryConfirmedAtUtc).toBeUndefined();
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      history,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Delivered,
+      changedAtUtc: '2026-07-28T12:30:00Z',
+    });
+
+    expect(service.trackedOrders()[0].deliveryConfirmedAtUtc).toBe('2026-07-28T12:30:00Z');
+  });
+
+  it('retries a failed detail refresh for a delivered order that is still awaiting confirmation', async () => {
+    jest.useFakeTimers();
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    expect(service.finishedOrders()).toHaveLength(1);
+
+    getOrderMock.mockReturnValue(new Observable<OrderDetails>((subscriber) => subscriber.error(new Error('api down'))));
+    service.refresh('order1', { background: true });
+    const callsAfterFailure = getOrderMock.mock.calls.length;
+
+    jest.advanceTimersByTime(30_000);
+
+    expect(getOrderMock.mock.calls.length).toBe(callsAfterFailure + 1);
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+    jest.advanceTimersByTime(30_000);
+
+    expect(service.trackedOrders()[0].deliveryConfirmedAtUtc).toBe('2026-07-28T12:30:00Z');
+
+    const settled = getOrderMock.mock.calls.length;
+    jest.advanceTimersByTime(30_000);
+    expect(getOrderMock.mock.calls.length).toBe(settled);
+  });
+
+  it('does not keep retrying a delivered order whose confirmation already arrived', async () => {
+    jest.useFakeTimers();
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    getOrderMock.mockReturnValue(new Observable<OrderDetails>((subscriber) => subscriber.error(new Error('api down'))));
+    service.refresh('order1', { background: true });
+    const callsAfterFailure = getOrderMock.mock.calls.length;
+
+    jest.advanceTimersByTime(30_000);
+
+    expect(getOrderMock.mock.calls.length).toBe(callsAfterFailure);
+  });
+
+  it('refreshes a reopened delivered order that still awaits confirmation', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    service.trackOrder('order1');
+    expect(getOrderMock).toHaveBeenCalledTimes(1);
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+    service.trackOrder('order1');
+
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
+    expect(service.trackedOrders()[0].deliveryConfirmedAtUtc).toBe('2026-07-28T12:30:00Z');
+  });
+
+  it('does not refetch a reopened delivered order whose confirmation already arrived', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    service.trackOrder('order1');
+    service.trackOrder('order1');
+
+    expect(getOrderMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not let an in-flight initial load overwrite a status event that arrived first', async () => {
+    const pending: ((order: OrderDetails) => void)[] = [];
+    getOrderMock.mockImplementation(
+      () =>
+        new Observable<OrderDetails>((subscriber) => {
+          pending.push((order) => subscriber.next(order));
+        }),
+    );
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    expect(pending).toHaveLength(1);
+
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    });
+
+    pending[0]({ ...baseOrder, status: OrderStatus.Preparing });
+    expect(service.trackedOrders()).toEqual([]);
+
+    pending[1]({
+      ...baseOrder,
+      status: OrderStatus.Ready,
+      history: [
+        { createdAtUtc: '2026-07-28T12:10:00Z', previousStatus: OrderStatus.Preparing, newStatus: OrderStatus.Ready },
+      ],
+    });
+
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+  });
+
   describe('teardown', () => {
     it('removes the order status listener and stops the customer hub on stop', async () => {
       const service = TestBed.inject(CustomerOrderTrackingService);
@@ -994,6 +1172,23 @@ describe('CustomerOrderTrackingService', () => {
       tokenSubject.next(null);
 
       expect(service.trackedOrders()).toEqual([]);
+      expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
+      expect(stopCustomerHubMock).toHaveBeenCalled();
+    });
+
+    it('clears finished orders, storage and the hub on logout', async () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+
+      const service = TestBed.inject(CustomerOrderTrackingService);
+      await service.start();
+      service.trackOrder('order1');
+      expect(service.finishedOrders().length).toBe(1);
+
+      authTokenSignal.set(null);
+      tokenSubject.next(null);
+
+      expect(service.trackedOrders()).toEqual([]);
+      expect(service.finishedOrders()).toEqual([]);
       expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual([]);
       expect(stopCustomerHubMock).toHaveBeenCalled();
     });

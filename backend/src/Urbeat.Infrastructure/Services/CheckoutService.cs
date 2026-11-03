@@ -1,4 +1,4 @@
-﻿using Urbeat.Application.DTOs;
+using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
@@ -194,6 +194,8 @@ public sealed class CheckoutService : ICheckoutService
                     FulfillmentType = request.FulfillmentType,
                     CustomerAddressId = address?.Id,
                     PaymentMethod = request.PaymentMethod ?? Domain.Entities.PaymentMethod.CashOnDelivery,
+                    CashWithoutChange = request.CashWithoutChange,
+                    CashChangeForAmount = request.CashChangeForAmount,
                     Subtotal = subtotal,
                     DeliveryFee = deliveryFee,
                     MinimumOrderValue = minimumOrderValue,
@@ -214,6 +216,8 @@ public sealed class CheckoutService : ICheckoutService
             FulfillmentType = request.FulfillmentType,
             CustomerAddressId = address?.Id,
             PaymentMethod = request.PaymentMethod ?? Domain.Entities.PaymentMethod.CashOnDelivery,
+            CashWithoutChange = request.CashWithoutChange,
+            CashChangeForAmount = request.CashChangeForAmount,
             Subtotal = subtotal,
             DeliveryFee = deliveryFee,
             MinimumOrderValue = minimumOrderValue,
@@ -228,16 +232,94 @@ public sealed class CheckoutService : ICheckoutService
             return new CheckoutResultDto { Summary = summary };
         }
 
+        // Price security: the customer only accepts the total they saw in the preview. Any
+        // divergence is rejected before payment validation, order persistence, outbox, printing or
+        // notifications. Older clients that do not send ExpectedTotal keep working with the
+        // authoritative total recomputed below (explicit compatibility path).
+        if (request.ExpectedTotal.HasValue
+            && decimal.Round(request.ExpectedTotal.Value, 2) != decimal.Round(summary.Total, 2))
+        {
+            Serilog.Log.Warning("{EventType} | Checkout failed | CustomerUserId={CustomerUserId} | StoreId={StoreId} | Reason=total_changed | ExpectedTotal={ExpectedTotal} | AuthoritativeTotal={AuthoritativeTotal} | IP={IpAddress}",
+                "ORDER_CREATE_FAILED", customerUserId, request.StoreId, request.ExpectedTotal, summary.Total, ipAddress);
+
+            return new CheckoutResultDto
+            {
+                TotalChanged = true,
+                AuthoritativeTotal = summary.Total,
+                Summary = summary,
+                PaymentError = "O total do pedido mudou. Confira o novo valor e confirme novamente."
+            };
+        }
+
+        // Authoritative payment policy for new orders. Online Pix is no longer offered by the
+        // storefront; old orders keep their historical method and in-flight gateway transactions.
+        if (!request.PaymentMethod.HasValue || !OrderPaymentPolicy.SupportsNewOrder(request.PaymentMethod.Value))
+        {
+            Serilog.Log.Warning("{EventType} | Checkout failed | CustomerUserId={CustomerUserId} | StoreId={StoreId} | Reason=payment_method_not_allowed | PaymentMethod={PaymentMethod} | IP={IpAddress}", "ORDER_CREATE_FAILED", customerUserId, request.StoreId, request.PaymentMethod, ipAddress);
+            return new CheckoutResultDto
+            {
+                PaymentMethodNotAllowed = true,
+                PaymentError = request.PaymentMethod.HasValue
+                    ? "Esta forma de pagamento não está mais disponível. Atualize o aplicativo ou recarregue a página e escolha Pix na maquininha, dinheiro, débito ou crédito."
+                    : "Escolha Pix na maquininha, dinheiro, débito ou crédito para este pedido."
+            };
+        }
+
+        var paymentMethod = request.PaymentMethod.Value;
+        // Compatibility path for cached storefronts (PWA/Capacitor) written before the cash-change
+        // contract: they send cash without the selection and without ExpectedTotal. Keep them on the
+        // legacy flow instead of rejecting the order. No decision is invented: the change fields stay
+        // null, so RequiresHandoverConfirmation stays false and the previous PIN-only flow is used.
+        var isLegacyCashCheckout = OrderPaymentPolicy.IsLegacyCashCheckout(
+            request.ExpectedTotal,
+            request.CashWithoutChange);
+
+        if (OrderPaymentPolicy.IsCashOnDelivery(paymentMethod))
+        {
+            if (isLegacyCashCheckout)
+            {
+                Serilog.Log.Information("{EventType} | Checkout accepted legacy cash payload | CustomerUserId={CustomerUserId} | StoreId={StoreId} | IP={IpAddress}",
+                    "CHECKOUT_LEGACY_CASH", customerUserId, request.StoreId, ipAddress);
+            }
+            else
+            {
+                var cashError = OrderPaymentPolicy.ValidateCashSelection(
+                    summary.Total,
+                    request.CashWithoutChange,
+                    request.CashChangeForAmount);
+                if (cashError is not null)
+                {
+                    Serilog.Log.Warning("{EventType} | Checkout failed | CustomerUserId={CustomerUserId} | StoreId={StoreId} | Reason=invalid_cash_change | IP={IpAddress}", "ORDER_CREATE_FAILED", customerUserId, request.StoreId, ipAddress);
+                    return new CheckoutResultDto
+                    {
+                        InvalidCashChange = true,
+                        PaymentError = cashError
+                    };
+                }
+            }
+        }
+        else if (request.CashWithoutChange.HasValue || request.CashChangeForAmount.HasValue)
+        {
+            return new CheckoutResultDto
+            {
+                InvalidCashChange = true,
+                PaymentError = "A escolha de troco só é válida para pagamento em dinheiro."
+            };
+        }
+
         var order = new Order
         {
             CustomerUserId = customerUserId!.Value,
             StoreId = store.Id,
             FulfillmentType = request.FulfillmentType,
             Notes = request.Notes?.Trim(),
-            PaymentMethod = request.PaymentMethod ?? Domain.Entities.PaymentMethod.CashOnDelivery,
-            Status = (request.PaymentMethod ?? Domain.Entities.PaymentMethod.CashOnDelivery) is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery
-                ? OrderStatus.Received
-                : OrderStatus.PendingPayment,
+            PaymentMethod = paymentMethod,
+            // Every supported storefront method is paid at handover, so the order reaches the
+            // seller immediately. Online Pix/Card remain readable for legacy orders only.
+            Status = OrderStatus.Received,
+            // Null for legacy cached checkouts: no cash decision is invented for them.
+            CashWithoutChange = request.CashWithoutChange,
+            CashChangeForAmount = request.CashChangeForAmount,
             Subtotal = summary.Subtotal,
             DeliveryFee = summary.DeliveryFee,
             Total = summary.Total
@@ -313,6 +395,9 @@ public sealed class CheckoutService : ICheckoutService
         {
             PaymentMethod.CardOnDelivery => "cartão na entrega",
             PaymentMethod.CashOnDelivery => "dinheiro na entrega",
+            PaymentMethod.PixOnDelivery => "Pix na maquininha",
+            PaymentMethod.DebitOnDelivery => "débito na maquininha",
+            PaymentMethod.CreditOnDelivery => "crédito na maquininha",
             PaymentMethod.PixOnline => "Pix online",
             PaymentMethod.CardOnline => "cartão online",
             _ => "pagamento"
@@ -320,11 +405,17 @@ public sealed class CheckoutService : ICheckoutService
 
         var fulfillmentLabel = isDelivery ? "entrega" : "retirada";
 
-        var orderMessage = order.PaymentMethod is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery
+        var isPayOnDelivery = order.PaymentMethod is PaymentMethod.CashOnDelivery
+            or PaymentMethod.CardOnDelivery
+            or PaymentMethod.PixOnDelivery
+            or PaymentMethod.DebitOnDelivery
+            or PaymentMethod.CreditOnDelivery;
+
+        var orderMessage = isPayOnDelivery
             ? $"Novo pedido {order.Code} recebido para {fulfillmentLabel} com pagamento via {paymentLabel}."
             : $"Novo pedido {order.Code} para {fulfillmentLabel} com pagamento via {paymentLabel}. Aguardando confirmação.";
 
-        if (order.PaymentMethod is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery)
+        if (isPayOnDelivery)
         {
             await _notificationService.NotifySellerNewOrderAsync(
                 store.OwnerUserId,
@@ -333,7 +424,7 @@ public sealed class CheckoutService : ICheckoutService
                 cancellationToken);
         }
 
-        if (order.PaymentMethod is PaymentMethod.CashOnDelivery or PaymentMethod.CardOnDelivery)
+        if (isPayOnDelivery)
         {
             await _notificationService.NotifyCustomerOrderStatusChangedAsync(
                 customerUserId.Value,

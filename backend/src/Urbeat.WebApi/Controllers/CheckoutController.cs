@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FluentValidation;
 using Urbeat.Application.DTOs;
@@ -168,6 +168,19 @@ public sealed class CheckoutController : ControllerBase
 
     private IActionResult ToActionResult(CheckoutResultDto result)
     {
+        if (result.TotalChanged)
+        {
+            return new ObjectResult(new
+            {
+                error = result.PaymentError ?? "O total do pedido mudou. Confira o novo valor e confirme novamente.",
+                total = result.AuthoritativeTotal,
+                summary = result.Summary
+            })
+            {
+                StatusCode = StatusCodes.Status409Conflict
+            };
+        }
+
         if (result.StoreNotFound)
         {
             return NotFound(new { error = "Store not found." });
@@ -198,6 +211,10 @@ public sealed class CheckoutController : ControllerBase
             return BadRequest(new { error = result.ItemError ?? "Itens do pedido inválidos." });
         }
 
+        if (result.PaymentMethodNotAllowed || result.InvalidCashChange)
+        {
+            return BadRequest(new { error = result.PaymentError ?? "Forma de pagamento inválida." });
+        }
         if (result.BelowMinimum)
         {
             return BadRequest(new

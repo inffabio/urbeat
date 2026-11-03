@@ -18,6 +18,18 @@ public sealed class SellerDeliverySummaryResponseDto
 
     public decimal Total { get; init; }
 
+    public PaymentMethod PaymentMethod { get; init; }
+
+    public bool? CashWithoutChange { get; init; }
+
+    public decimal? CashChangeForAmount { get; init; }
+
+    public decimal? CashReceivedAmount { get; init; }
+
+    public decimal? CashChangeAmount { get; init; }
+
+    public DateTime? PaymentConfirmedAtUtc { get; init; }
+
     public DateTime CreatedAtUtc { get; init; }
 
     public Guid? DeliveryDriverId { get; init; }

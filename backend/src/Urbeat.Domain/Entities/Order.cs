@@ -57,6 +57,44 @@ public sealed class Order : BaseEntity
 
     public decimal Total { get; set; }
 
+    /// <summary>
+    /// Authoritative cash change choice captured at checkout. Null means the order predates the
+    /// cash-change contract (or is not a cash order) and must keep the legacy flow.
+    /// True means the customer will pay the exact amount; false means
+    /// <see cref="CashChangeForAmount"/> was informed and must be at least the order total.
+    /// </summary>
+    public bool? CashWithoutChange { get; set; }
+
+    /// <summary>
+    /// Amount the customer asked change for ("troco para"). Null when the customer does not need
+    /// change or when the order predates the cash-change contract. Always validated against the
+    /// authoritative order total on the server.
+    /// </summary>
+    public decimal? CashChangeForAmount { get; set; }
+
+    /// <summary>
+    /// Amount actually received in cash, informed by the assigned motoboy at handover. Only set
+    /// for cash orders under the current contract; the server recomputes and validates the change.
+    /// </summary>
+    public decimal? CashReceivedAmount { get; set; }
+
+    /// <summary>
+    /// Change actually returned to the customer, recomputed by the server from
+    /// <see cref="CashReceivedAmount"/> and the authoritative order total.
+    /// </summary>
+    public decimal? CashChangeAmount { get; set; }
+
+    /// <summary>
+    /// UTC timestamp of the manual payment/handover confirmation performed by the assigned motoboy
+    /// before the delivery PIN. Null for online orders and for orders that predate the contract.
+    /// </summary>
+    public DateTime? PaymentConfirmedAtUtc { get; set; }
+
+    /// <summary>
+    /// Driver that manually confirmed the payment/handover. Kept for audit and support only.
+    /// </summary>
+    public Guid? PaymentConfirmedByDriverId { get; set; }
+
     public DateTime? DeliveryConfirmedAtUtc { get; set; }
 
     public DateTime? SellerCompletedAtUtc { get; set; }

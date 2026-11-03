@@ -1,14 +1,16 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 using Urbeat.Infrastructure.Services.Payments;
 
@@ -62,7 +64,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -76,7 +78,8 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var createdOrder = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         createdOrder.Should().NotBeNull();
-        createdOrder!.Status.Should().Be(OrderStatus.PendingPayment);
+        await MarkLegacyOrderAsync(createdOrder!.OrderId, PaymentMethod.PixOnline);
+        createdOrder!.Status.Should().Be(OrderStatus.Received);
 
         var paymentStartResponse = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
         {
@@ -145,7 +148,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -159,6 +162,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var createdOrder = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         createdOrder.Should().NotBeNull();
+        await MarkLegacyOrderAsync(createdOrder!.OrderId, PaymentMethod.PixOnline);
 
         var firstStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
         {
@@ -221,6 +225,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
             PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = true,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -294,7 +299,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.CardOnline,
+            PaymentMethod = PaymentMethod.CreditOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -307,8 +312,9 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
 
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var order = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        await MarkLegacyOrderAsync(order!.OrderId, PaymentMethod.CardOnline);
         order.Should().NotBeNull();
-        order!.Status.Should().Be(OrderStatus.PendingPayment);
+        order!.Status.Should().Be(OrderStatus.Received);
 
         var startPaymentResponse = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
         {
@@ -325,11 +331,11 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
 
         var beforeWebhookCustomerNotifications = await customerClient.GetFromJsonAsync<CustomerNotificationsResponseDto>("/api/customer/notifications");
         beforeWebhookCustomerNotifications.Should().NotBeNull();
-        beforeWebhookCustomerNotifications!.UnreadCount.Should().Be(0);
+        beforeWebhookCustomerNotifications!.UnreadCount.Should().Be(1);
 
         var beforeWebhookNotifications = await sellerClient.GetFromJsonAsync<SellerNotificationsResponseDto>("/api/seller/notifications");
         beforeWebhookNotifications.Should().NotBeNull();
-        beforeWebhookNotifications!.UnreadCount.Should().Be(0);
+        beforeWebhookNotifications!.UnreadCount.Should().Be(1);
 
         var webhookPayload = $"{{\"type\":\"payment\",\"data\":{{\"id\":\"{payment!.GatewayTransactionId}\"}}}}";
         var webhookContent = new StringContent(webhookPayload, Encoding.UTF8, "application/json");
@@ -439,7 +445,7 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.CardOnline,
+            PaymentMethod = PaymentMethod.CreditOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -452,8 +458,9 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
 
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var order = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+        await MarkLegacyOrderAsync(order!.OrderId, PaymentMethod.CardOnline);
         order.Should().NotBeNull();
-        order!.Status.Should().Be(OrderStatus.PendingPayment);
+        order!.Status.Should().Be(OrderStatus.Received);
 
         var firstStart = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
         {
@@ -494,6 +501,29 @@ public sealed class PaymentsFlowTests : IClassFixture<TestWebApplicationFactory>
         orderAfterRetry!.Status.Should().Be(OrderStatus.PendingPayment);
     }
 
+    private async Task MarkLegacyOrderAsync(Guid orderId, PaymentMethod method)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var order = await db.Orders.SingleAsync(x => x.Id == orderId);
+        order.PaymentMethod = method;
+        order.Status = OrderStatus.PendingPayment;
+
+        // The test helper creates the order through the current checkout, which already records a
+        // Received entry. Legacy paid-online orders only ever had the initial PendingPayment entry.
+        var histories = db.OrderStatusHistories.Where(x => x.OrderId == orderId);
+        db.OrderStatusHistories.RemoveRange(histories);
+        db.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = orderId,
+            PreviousStatus = OrderStatus.Created,
+            NewStatus = OrderStatus.PendingPayment,
+            ChangedByUserId = order.CustomerUserId,
+            Notes = "Initial order status set at checkout confirmation."
+        });
+
+        await db.SaveChangesAsync();
+    }
     private async Task<(string AccessToken, Guid StoreId)> RegisterLoginAndCreateStoreAsync(HttpClient client, string cuisineType)
     {
         var email = $"payments.seller.{Guid.NewGuid():N}@urbeat.local";

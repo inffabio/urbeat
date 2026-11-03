@@ -22,6 +22,8 @@ public interface IIndividualDeliveryLinkService
     Task<PublicDeliveryRoutePinResultDto> ConfirmPublicDeliveryAsync(
         string token,
         string pin,
+        bool handoverConfirmed,
+        decimal? cashReceivedAmount,
         string? ipAddress,
         CancellationToken cancellationToken = default);
 }

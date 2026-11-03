@@ -57,10 +57,10 @@ describe('DeliveryRouteService', () => {
     expect(load.request.method).toBe('GET');
     load.flush({ storeName: 'Loja', driverName: 'Ana', stops: [] });
 
-    service.confirmPublicIndividualDelivery('token/1', '1234').subscribe();
+    service.confirmPublicIndividualDelivery('token/1', '1234', true, 30).subscribe();
     const confirm = httpMock.expectOne('/api/public/deliveries/token%2F1/deliver');
     expect(confirm.request.method).toBe('POST');
-    expect(confirm.request.body).toEqual({ pin: '1234' });
+    expect(confirm.request.body).toEqual({ pin: '1234', handoverConfirmed: true, cashReceivedAmount: 30 });
     confirm.flush({ succeeded: true });
   });
 });

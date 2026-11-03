@@ -1,4 +1,5 @@
 import { OrderStatus } from '../enums/order-status.enum';
+import { PaymentMethod } from '../enums/payment-method.enum';
 
 export enum DeliveryRouteStatus {
   Active = 1,
@@ -98,6 +99,15 @@ export interface PublicDeliveryRouteStop {
   status: OrderStatus;
   isNext: boolean;
   canDeliver: boolean;
+  paymentMethod: PaymentMethod;
+  requiresHandoverConfirmation: boolean;
+  cashWithoutChange?: boolean | null;
+  cashChangeForAmount?: number | null;
+  cashReceivedAmount?: number | null;
+  cashChangeAmount?: number | null;
+  total: number;
+  handoverConfirmedAtUtc?: string | null;
+  paymentConfirmedAtUtc?: string | null;
   customerName?: string | null;
   customerPhoneNumber?: string | null;
   addressCep?: string | null;
@@ -137,6 +147,12 @@ export interface PublicDeliveryRoutePinResult {
   pinInvalid: boolean;
   pinLocked: boolean;
   pinUnavailable: boolean;
+  handoverRequired?: boolean;
+  paymentAmountInvalid?: boolean;
+  paymentError?: string | null;
+  paymentConfirmedAtUtc?: string | null;
+  cashReceivedAmount?: number | null;
+  cashChangeAmount?: number | null;
   concurrentUpdate: boolean;
   remainingAttempts: number;
   orderStatus?: OrderStatus | null;

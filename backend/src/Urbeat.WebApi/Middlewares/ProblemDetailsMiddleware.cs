@@ -113,6 +113,16 @@ public sealed class ProblemDetailsMiddleware
                     problem.Extensions["code"] = codeProp.GetString();
                 }
 
+                if (doc.RootElement.TryGetProperty("total", out var totalProp))
+                {
+                    problem.Extensions["total"] = totalProp.Clone();
+                }
+
+                if (doc.RootElement.TryGetProperty("summary", out var summaryProp))
+                {
+                    problem.Extensions["summary"] = summaryProp.Clone();
+                }
+
                 if (doc.RootElement.TryGetProperty("errors", out var errorsProp))
                 {
                     // Clone the element so it survives the JsonDocument disposal below.

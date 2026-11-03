@@ -20,52 +20,80 @@ public sealed class RecordingHubContext<THub> : IHubContext<THub> where THub : H
 public sealed class RecordingHubClients : IHubClients
 {
     private readonly List<SignalRMessage> _messages = new();
+    private readonly object _sync = new();
 
-    public IReadOnlyList<SignalRMessage> Messages => _messages;
+    /// <summary>
+    /// Snapshot of the recorded pushes. SignalR reaches the hub from server threads, so reads and
+    /// writes are synchronized: a plain List exposed to readers races with concurrent writes.
+    /// </summary>
+    public IReadOnlyList<SignalRMessage> Messages
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _messages.ToArray();
+            }
+        }
+    }
 
-    public IClientProxy All => new RecordingClientProxy("all", _messages);
+    public IClientProxy All => new RecordingClientProxy("all", Add);
 
     public IClientProxy AllExcept(IReadOnlyList<string> excludedConnectionIds) => All;
 
-    public ISingleClientProxy Client(string connectionId) => new RecordingClientProxy($"connection:{connectionId}", _messages);
+    public ISingleClientProxy Client(string connectionId) => new RecordingClientProxy($"connection:{connectionId}", Add);
 
     IClientProxy IHubClients<IClientProxy>.Client(string connectionId) => Client(connectionId);
 
     public IClientProxy Clients(IReadOnlyList<string> connectionIds) => All;
 
-    public IClientProxy Group(string groupName) => new RecordingClientProxy($"group:{groupName}", _messages);
+    public IClientProxy Group(string groupName) => new RecordingClientProxy($"group:{groupName}", Add);
 
     public IClientProxy GroupExcept(string groupName, IReadOnlyList<string> excludedConnectionIds) => Group(groupName);
 
     public IClientProxy Groups(IReadOnlyList<string> groupNames) => All;
 
-    public IClientProxy User(string userId) => new RecordingClientProxy($"user:{userId}", _messages);
+    public IClientProxy User(string userId) => new RecordingClientProxy($"user:{userId}", Add);
 
     public IClientProxy Users(IReadOnlyList<string> userIds) => All;
 
-    public void Clear() => _messages.Clear();
+    public void Clear()
+    {
+        lock (_sync)
+        {
+            _messages.Clear();
+        }
+    }
+
+    private void Add(SignalRMessage message)
+    {
+        lock (_sync)
+        {
+            _messages.Add(message);
+        }
+    }
 }
 
 public sealed class RecordingClientProxy : ISingleClientProxy
 {
     private readonly string _target;
-    private readonly List<SignalRMessage> _messages;
+    private readonly Action<SignalRMessage> _record;
 
-    public RecordingClientProxy(string target, List<SignalRMessage> messages)
+    public RecordingClientProxy(string target, Action<SignalRMessage> record)
     {
         _target = target;
-        _messages = messages;
+        _record = record;
     }
 
     public Task SendCoreAsync(string method, object?[] args, CancellationToken cancellationToken = default)
     {
-        _messages.Add(new SignalRMessage(_target, method, args ?? Array.Empty<object?>()));
+        _record(new SignalRMessage(_target, method, args ?? Array.Empty<object?>()));
         return Task.CompletedTask;
     }
 
     public Task<T> InvokeCoreAsync<T>(string method, object?[] args, CancellationToken cancellationToken = default)
     {
-        _messages.Add(new SignalRMessage(_target, method, args ?? Array.Empty<object?>()));
+        _record(new SignalRMessage(_target, method, args ?? Array.Empty<object?>()));
         return Task.FromResult(default(T)!);
     }
 }

@@ -87,6 +87,13 @@ public interface IDeliveryDriverService
         string? ipAddress,
         CancellationToken cancellationToken = default);
 
+    Task<DeliveryDriverActionResultDto> ConfirmHandoverAsync(
+        Guid driverUserId,
+        Guid orderId,
+        ConfirmOrderHandoverRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     Task<DeliveryDriverActionResultDto> ConfirmDeliveryPinAsync(
         Guid driverUserId,
         Guid orderId,

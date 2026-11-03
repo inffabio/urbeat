@@ -6,8 +6,6 @@ import { Subscription } from 'rxjs';
 
 import { OrderService } from '../../core/services/order.service';
 import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
-import { CartService } from '../../core/services/cart.service';
-import { CartCheckoutActionService } from '../../core/services/cart-checkout-action.service';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { formatSaoPauloTime } from '../../core/utils/sao-paulo-date.helper';
 import { OrderDetails, OrderItem } from '../../shared/models/order.model';
@@ -33,17 +31,24 @@ interface TimelineStep {
 export class TrackingPageComponent implements OnInit, OnDestroy {
   private readonly orders = inject(OrderService);
   private readonly tracking = inject(CustomerOrderTrackingService);
-  private readonly cart = inject(CartService);
-  private readonly cartCheckoutAction = inject(CartCheckoutActionService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly storeContext = inject(StoreContextService);
 
   readonly confirmLoading = signal(false);
   readonly deliveredCelebrationOpen = signal(false);
-  private readonly celebratedOrderId = signal<string | null>(null);
   private readonly currentOrderId = signal<string | null>(null);
   private routeParamSub?: Subscription;
+
+  /**
+   * Status last rendered for the order currently on screen. It separates the
+   * live transition into `Delivered` (worth celebrating) from an order that was
+   * already delivered when it was opened from the history list or after a
+   * reload. The record is reset when the route switches orders, because a
+   * status change that happened while another order was open is a first
+   * observation when the customer comes back — never a transition to celebrate.
+   */
+  private renderedOrderStatus: { orderId: string; status: OrderStatus } | null = null;
 
   readonly order = computed<OrderDetails | null>(() => {
     const id = this.currentOrderId();
@@ -169,6 +174,9 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
       case PaymentMethod.PixOnline: return 'Pago no app · Pix';
       case PaymentMethod.CardOnline: return 'Pago no app · Mercado Pago';
       case PaymentMethod.CashOnDelivery: return 'Pagar na entrega · Dinheiro';
+      case PaymentMethod.PixOnDelivery: return 'Pagar na entrega · Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery: return 'Pagar na entrega · Débito';
+      case PaymentMethod.CreditOnDelivery: return 'Pagar na entrega · Crédito';
       case PaymentMethod.CardOnDelivery: return 'Pagar na entrega · Cartão';
       default: return '—';
     }
@@ -185,14 +193,24 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   private readonly celebrationAction = viewChild<ElementRef<HTMLButtonElement>>('celebrationAction');
 
   constructor() {
-    // Celebrate delivery once per tracked order. SignalR reconnections and
-    // detail refreshes keep the same order id, so the guard prevents the modal
-    // from reopening on every realtime update.
+    // Celebrate only the transition into delivery observed on this screen.
+    // SignalR reconnections, detail refreshes and history re-opens keep the
+    // same order id, and the first snapshot of an already delivered order is
+    // not a transition, so the modal never covers a finished order.
     effect(() => {
       const order = this.order();
-      if (!order || order.status !== OrderStatus.Delivered) return;
-      if (this.celebratedOrderId() === order.id) return;
-      this.celebratedOrderId.set(order.id);
+      if (!order) return;
+
+      const previous = this.renderedOrderStatus?.orderId === order.id
+        ? this.renderedOrderStatus.status
+        : undefined;
+      if (previous === order.status) return;
+      this.renderedOrderStatus = { orderId: order.id, status: order.status };
+
+      if (order.status !== OrderStatus.Delivered) return;
+      // `undefined` means the order arrived already delivered (history reopen).
+      if (previous === undefined || previous === OrderStatus.Delivered) return;
+
       this.deliveredCelebrationOpen.set(true);
     });
 
@@ -205,7 +223,16 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.routeParamSub = this.route.paramMap.subscribe((params) => {
       const orderId = params.get('orderId');
-      this.currentOrderId.set(orderId);
+      if (this.currentOrderId() !== orderId) {
+        // A celebration belongs to the order that was on screen when it was
+        // delivered; it must never cover a different order opened afterwards.
+        // The rendered status is per on-screen order as well: a transition that
+        // happened while another order was open is a first observation when the
+        // customer comes back, never a transition to celebrate.
+        this.deliveredCelebrationOpen.set(false);
+        this.renderedOrderStatus = null;
+        this.currentOrderId.set(orderId);
+      }
       if (!orderId) return;
 
       // The store shell owns the shared service lifecycle. This page only
@@ -239,19 +266,14 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Closes the delivered celebration and clears only the local storefront
-   * state: cart, tracked order and temporary checkout action. The customer
-   * session, user account and backend order history are preserved.
+   * Closes the delivered celebration and returns to the menu. Only navigation
+   * happens here: the tracked orders of this tab (including the finished one),
+   * the cart and the checkout hint are preserved, so the order stays in
+   * "Pedidos" for history consultation, delivery confirmation and re-opening.
+   * Logout still clears everything through the auth token subscription.
    */
   finishDeliveredOrder(): void {
     this.deliveredCelebrationOpen.set(false);
-    this.tracking.reset();
-    this.cart.clearAll();
-    this.cartCheckoutAction.reset();
-    // `reset()` also stops the shared customer hub; the store shell owns that
-    // lifecycle, so restart it to keep realtime updates for future orders in
-    // the same session. No tracked order or remote data is recreated here.
-    void this.tracking.start();
     this.goToMenu();
   }
 

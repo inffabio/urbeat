@@ -28,10 +28,20 @@
     <p class="section-sub">Escolha a forma de pagamento que será utilizada no momento da entrega.</p>
 
     <div class="options-list">
-      <label
-        class="option-card"
-        [class.active]="selected() === 'cash'"
-      >
+      <label class="option-card" [class.active]="selected() === 'pix-machine'">
+        <input class="payment-input" type="radio" name="delivery-payment-method" value="pix-machine" [checked]="selected() === 'pix-machine'" (change)="select('pix-machine')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="qr-code-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Pix na maquininha</h3>
+          <p>Pague com Pix na maquininha do entregador.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+
+      <label class="option-card" [class.active]="selected() === 'cash'">
         <input class="payment-input" type="radio" name="delivery-payment-method" value="cash" [checked]="selected() === 'cash'" (change)="select('cash')" />
         <span class="opt-radio"></span>
         <span class="opt-icon" aria-hidden="true">
@@ -44,18 +54,28 @@
         <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
       </label>
 
-      <label
-        class="option-card"
-        [class.active]="selected() === 'card'"
-      >
-        <input class="payment-input" type="radio" name="delivery-payment-method" value="card" [checked]="selected() === 'card'" (change)="select('card')" />
+      <label class="option-card" [class.active]="selected() === 'debit'">
+        <input class="payment-input" type="radio" name="delivery-payment-method" value="debit" [checked]="selected() === 'debit'" (change)="select('debit')" />
         <span class="opt-radio"></span>
         <span class="opt-icon" aria-hidden="true">
           <ion-icon name="card-outline"></ion-icon>
         </span>
         <div class="opt-info">
-          <h3>Cartão</h3>
-          <p>Pague com cartão de crédito ou débito para o entregador.</p>
+          <h3>Débito</h3>
+          <p>Pague com cartão de débito na maquininha.</p>
+        </div>
+        <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
+      </label>
+
+      <label class="option-card" [class.active]="selected() === 'credit'">
+        <input class="payment-input" type="radio" name="delivery-payment-method" value="credit" [checked]="selected() === 'credit'" (change)="select('credit')" />
+        <span class="opt-radio"></span>
+        <span class="opt-icon" aria-hidden="true">
+          <ion-icon name="card-outline"></ion-icon>
+        </span>
+        <div class="opt-info">
+          <h3>Crédito</h3>
+          <p>Pague com cartão de crédito na maquininha.</p>
         </div>
         <ion-icon name="chevron-forward" class="opt-chevron" aria-hidden="true"></ion-icon>
       </label>
@@ -99,10 +119,10 @@
       </div>
     }
 
-    @if (selected() === 'card') {
+    @if (selected() === 'pix-machine' || selected() === 'debit' || selected() === 'credit') {
       <div class="notice-card">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-        <p>O pagamento será realizado diretamente com o entregador no momento da entrega.</p>
+        <p>O pagamento é feito presencialmente na maquininha. A loja não verifica dados bancários pelo urbeat.</p>
       </div>
     }
 

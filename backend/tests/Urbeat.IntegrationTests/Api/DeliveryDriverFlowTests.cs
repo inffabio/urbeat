@@ -1751,6 +1751,329 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         return token!.AccessToken;
     }
 
+    [Fact]
+    public async Task PublicLink_ShouldNotPersistHandoverPayment_WhenPinIsWrongOrLocked()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PUBLIC-ATOMIC");
+        var email = $"driver.public.atomic.{Guid.NewGuid():N}@urbeat.local";
+        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Publico", "11999990001");
+        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+
+        var order = await CreateNewContractDeliveryOrderAsync(
+            sellerClient,
+            storeId,
+            PaymentMethod.CashOnDelivery,
+            cashWithoutChange: false,
+            cashChangeForAmount: 50m);
+
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var pin = (await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}"))!.DeliveryPin!;
+        var wrongPin = pin == "0000" ? "0001" : "0000";
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var wrong = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = wrongPin,
+                HandoverConfirmed = true,
+                CashReceivedAmount = 30m
+            });
+        wrong.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.PaymentConfirmedAtUtc.Should().BeNull("a wrong PIN must never confirm the payment");
+            stored.CashReceivedAmount.Should().BeNull();
+            stored.CashChangeAmount.Should().BeNull();
+
+            var assignment = await dbContext.OrderDeliveryAssignments.AsNoTracking()
+                .SingleAsync(x => x.OrderId == order.OrderId);
+            assignment.HandoverConfirmedAtUtc.Should().BeNull();
+        }
+
+        // Exhaust the PIN attempts; a locked PIN must also leave the payment untouched.
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            await publicClient.PostAsJsonAsync(
+                $"/api/public/deliveries/{token}/deliver",
+                new ConfirmDeliveryPinRequestDto
+                {
+                    Pin = wrongPin,
+                    HandoverConfirmed = true,
+                    CashReceivedAmount = 30m
+                });
+        }
+
+        var locked = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = pin,
+                HandoverConfirmed = true,
+                CashReceivedAmount = 30m
+            });
+        locked.StatusCode.Should().Be(HttpStatusCode.Locked);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.PaymentConfirmedAtUtc.Should().BeNull("a locked PIN must never confirm the payment");
+            stored.CashReceivedAmount.Should().BeNull();
+            stored.CashChangeAmount.Should().BeNull();
+
+            var assignment = await dbContext.OrderDeliveryAssignments.AsNoTracking()
+                .SingleAsync(x => x.OrderId == order.OrderId);
+            assignment.HandoverConfirmedAtUtc.Should().BeNull();
+        }
+    }
+
+    [Fact]
+    public async Task SellerDelivered_ShouldNotAllowCustomerConfirmationToBypassHandoverAndPin()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("BYPASS");
+        var email = $"driver.bypass.{Guid.NewGuid():N}@urbeat.local";
+        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Bypass", "11999990001");
+        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+
+        var order = await CreateNewContractDeliveryOrderAsync(sellerClient, storeId);
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var detailsBeforeDelivered = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        detailsBeforeDelivered!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+
+        // A seller can mark the order Delivered, but that must not finish the delivery.
+        var sellerDelivered = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order.OrderId}/status",
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
+        sellerDelivered.StatusCode.Should().Be(HttpStatusCode.OK, await sellerDelivered.Content.ReadAsStringAsync());
+
+        var customerBypass = await order.CustomerClient.PostAsync(
+            $"/api/orders/{order.OrderId}/delivery-confirmation",
+            null);
+        customerBypass.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await customerBypass.Content.ReadAsStringAsync()).Should().Contain("PIN");
+
+        var completeBeforePin = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
+        completeBeforePin.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.DeliveryConfirmedAtUtc.Should().BeNull();
+            stored.DeliveryPinConfirmedAtUtc.Should().BeNull();
+        }
+
+        var handover = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/handover",
+            new ConfirmOrderHandoverRequestDto());
+        handover.StatusCode.Should().Be(HttpStatusCode.OK, await handover.Content.ReadAsStringAsync());
+
+        var pin = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/confirm-pin",
+            new ConfirmDeliveryPinRequestDto { Pin = detailsBeforeDelivered.DeliveryPin! });
+        pin.StatusCode.Should().Be(HttpStatusCode.OK, await pin.Content.ReadAsStringAsync());
+
+        var completeAfterPin = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
+        completeAfterPin.StatusCode.Should().Be(HttpStatusCode.OK, await completeAfterPin.Content.ReadAsStringAsync());
+    }
+
+    private async Task<(Guid OrderId, HttpClient CustomerClient)> CreateNewContractDeliveryOrderAsync(
+        HttpClient sellerClient,
+        Guid storeId,
+        PaymentMethod paymentMethod = PaymentMethod.PixOnDelivery,
+        bool? cashWithoutChange = null,
+        decimal? cashChangeForAmount = null)
+    {
+        var customerClient = await CreateCustomerClientAsync();
+        var productId = await ProductTestHelper.CreateProductAsync(
+            sellerClient, storeId, $"Produto {Guid.NewGuid():N}", 20m);
+        var addressId = await CreateAddressAsync(customerClient);
+
+        var response = await customerClient.PostAsJsonAsync("/api/orders", new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.Delivery,
+            CustomerAddressId = addressId,
+            PaymentMethod = paymentMethod,
+            CashWithoutChange = cashWithoutChange,
+            CashChangeForAmount = cashChangeForAmount,
+            Items =
+            [
+                new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }
+            ]
+        });
+        response.StatusCode.Should().Be(HttpStatusCode.Created, await response.Content.ReadAsStringAsync());
+        var created = await response.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+
+        await AdvanceToReadyAsync(sellerClient, created!.OrderId);
+        return (created.OrderId, customerClient);
+    }
+
+    [Fact]
+    public async Task Handover_ShouldBeRequiredBeforePin_AndPersistCashChange()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("HANDOVER");
+        var email = $"driver.handover.{Guid.NewGuid():N}@urbeat.local";
+        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Handover", "11999990001");
+        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+
+        var order = await CreateNewContractDeliveryOrderAsync(sellerClient, storeId);
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        details!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+
+        var pinBeforeHandover = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/confirm-pin",
+            new ConfirmDeliveryPinRequestDto { Pin = details.DeliveryPin! });
+        pinBeforeHandover.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await pinBeforeHandover.Content.ReadAsStringAsync()).Should().Contain("recebimento");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var assignment = await db.OrderDeliveryAssignments.AsNoTracking()
+                .SingleAsync(x => x.OrderId == order.OrderId);
+            assignment.PinAttemptCount.Should().Be(0, "a missing handover is not a wrong PIN");
+        }
+
+        var handover = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/handover",
+            new ConfirmOrderHandoverRequestDto());
+        handover.StatusCode.Should().Be(HttpStatusCode.OK, await handover.Content.ReadAsStringAsync());
+        var handoverBody = await handover.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
+        handoverBody!.PaymentConfirmedAtUtc.Should().NotBeNull();
+        handoverBody.PaymentConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+
+        var confirm = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/confirm-pin",
+            new ConfirmDeliveryPinRequestDto { Pin = details.DeliveryPin! });
+        confirm.StatusCode.Should().Be(HttpStatusCode.OK, await confirm.Content.ReadAsStringAsync());
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.Status.Should().Be(OrderStatus.Delivered);
+            stored.PaymentConfirmedAtUtc.Should().NotBeNull();
+            stored.PaymentConfirmedByDriverId.Should().Be(invite.DeliveryDriverId);
+        }
+    }
+
+    [Fact]
+    public async Task Handover_ShouldValidateCashReceivedAndComputeChange()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("CASH");
+        var email = $"driver.cash.{Guid.NewGuid():N}@urbeat.local";
+        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Dinheiro", "11999990001");
+        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+
+        var order = await CreateNewContractDeliveryOrderAsync(
+            sellerClient,
+            storeId,
+            PaymentMethod.CashOnDelivery,
+            cashWithoutChange: false,
+            cashChangeForAmount: 50m);
+
+        var assign = await sellerClient.PutAsJsonAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
+
+        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
+        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+
+        var below = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/handover",
+            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 10m });
+        below.StatusCode.Should().Be(HttpStatusCode.BadRequest, await below.Content.ReadAsStringAsync());
+
+        var success = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/handover",
+            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 60m });
+        success.StatusCode.Should().Be(HttpStatusCode.OK, await success.Content.ReadAsStringAsync());
+        var body = await success.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
+        body!.CashReceivedAmount.Should().Be(60m);
+        body.CashChangeAmount.Should().Be(36m, "the checkout forecast is not a cap and the server computes the real change");
+
+        var repeat = await driverClient.PostAsJsonAsync(
+            $"/api/driver/orders/{order.OrderId}/handover",
+            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 30m });
+        repeat.StatusCode.Should().Be(HttpStatusCode.OK);
+        var repeatedBody = await repeat.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
+        repeatedBody!.CashReceivedAmount.Should().Be(60m, "repeating never rewrites the collected amount");
+        repeatedBody.CashChangeAmount.Should().Be(36m);
+    }
+
+    [Fact]
+    public async Task Pickup_ShouldBeCompletedWithoutDriverOrPin()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PICKUP");
+        var order = await CreateOrderAsync(
+            sellerClient,
+            storeId,
+            FulfillmentType.PickUp,
+            addressId: null);
+
+        foreach (var status in new[] { OrderStatus.Preparing, OrderStatus.Ready })
+        {
+            var response = await sellerClient.PatchAsJsonAsync(
+                $"/api/orders/{order}/status",
+                new UpdateOrderStatusRequestDto { NewStatus = status });
+            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        }
+
+        var delivered = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order}/status",
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
+        delivered.StatusCode.Should().Be(HttpStatusCode.OK, await delivered.Content.ReadAsStringAsync());
+
+        var complete = await sellerClient.PostAsync($"/api/orders/{order}/complete", null);
+        complete.StatusCode.Should().Be(HttpStatusCode.OK, await complete.Content.ReadAsStringAsync());
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order);
+        stored.Status.Should().Be(OrderStatus.Delivered);
+        stored.SellerCompletedAtUtc.Should().NotBeNull();
+        (await db.OrderDeliveryAssignments.AsNoTracking().AnyAsync(x => x.OrderId == order))
+            .Should().BeFalse("pickup must never require a motoboy or delivery PIN");
+    }
+
     private async Task<(Guid OrderId, HttpClient CustomerClient)> CreateDeliveryOrderAsync(
         HttpClient sellerClient,
         Guid storeId,
@@ -1796,7 +2119,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             StoreId = storeId,
             FulfillmentType = fulfillmentType,
             CustomerAddressId = fulfillmentType == FulfillmentType.Delivery ? addressId : null,
-            PaymentMethod = PaymentMethod.CashOnDelivery,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto { ProductId = productId.Value, Quantity = 1 }
@@ -1804,6 +2127,17 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         });
         response.StatusCode.Should().Be(HttpStatusCode.Created, await response.Content.ReadAsStringAsync());
         var created = await response.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+
+        // These PIN/route tests predate the manual handover contract and exercise the legacy flow.
+        // New-contract handover behavior has its own dedicated tests below.
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var order = await dbContext.Orders.SingleAsync(x => x.Id == created!.OrderId);
+            order.PaymentMethod = PaymentMethod.CardOnDelivery;
+            await dbContext.SaveChangesAsync();
+        }
+
         return created!.OrderId;
     }
 

@@ -60,9 +60,43 @@ public sealed class ConfirmDeliveryPinRequestDtoValidator : AbstractValidator<Co
             .NotEmpty()
             .Matches(@"^\d{4}$")
             .WithMessage("O PIN deve ter 4 dígitos.");
+
+        RuleFor(x => x.CashReceivedAmount)
+            .Must(value => !value.HasValue || OrderPaymentPolicy.HasCurrencyPrecision(value.Value))
+            .WithMessage("O valor recebido deve ter no máximo duas casas decimais.")
+            .When(x => x.CashReceivedAmount.HasValue);
+
+        RuleFor(x => x.CashReceivedAmount)
+            .GreaterThan(0m)
+            .WithMessage("O valor recebido deve ser maior que zero.")
+            .When(x => x.CashReceivedAmount.HasValue);
+
+        RuleFor(x => x.CashReceivedAmount)
+            .LessThanOrEqualTo(OrderPaymentPolicy.MaxCashAmount)
+            .WithMessage("O valor recebido excede o limite permitido.")
+            .When(x => x.CashReceivedAmount.HasValue);
     }
 }
 
+public sealed class ConfirmOrderHandoverRequestDtoValidator : AbstractValidator<ConfirmOrderHandoverRequestDto>
+{
+    public ConfirmOrderHandoverRequestDtoValidator()
+    {
+        RuleFor(x => x.CashReceivedAmount)
+            .Must(value => !value.HasValue || OrderPaymentPolicy.HasCurrencyPrecision(value.Value))
+            .WithMessage("O valor recebido deve ter no máximo duas casas decimais.");
+
+        RuleFor(x => x.CashReceivedAmount)
+            .GreaterThan(0m)
+            .WithMessage("O valor recebido deve ser maior que zero.")
+            .When(x => x.CashReceivedAmount.HasValue);
+
+        RuleFor(x => x.CashReceivedAmount)
+            .LessThanOrEqualTo(OrderPaymentPolicy.MaxCashAmount)
+            .WithMessage("O valor recebido excede o limite permitido.")
+            .When(x => x.CashReceivedAmount.HasValue);
+    }
+}
 public sealed class UpsertStoreDeliveryDriverRequestDtoValidator : AbstractValidator<UpsertStoreDeliveryDriverRequestDto>
 {
     public UpsertStoreDeliveryDriverRequestDtoValidator()

@@ -10,6 +10,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services.Email;
 
@@ -853,6 +854,8 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
         string token,
         int sequence,
         string pin,
+        bool handoverConfirmed,
+        decimal? cashReceivedAmount,
         string? ipAddress,
         CancellationToken cancellationToken = default)
     {
@@ -936,6 +939,74 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             };
         }
 
+        // Public links have no authenticated identity, so the motoboy must explicitly confirm the
+        // handover/payment in the same request. Validate it now, but only persist it together with a
+        // valid PIN: an incorrect or locked PIN must never mark a payment as confirmed.
+        var applyHandover = OrderPaymentPolicy.RequiresHandoverConfirmation(order)
+            && order.PaymentConfirmedAtUtc is null;
+        decimal? pendingCashReceived = null;
+        decimal? pendingChange = null;
+        if (applyHandover)
+        {
+            // Preserve the existing lockout semantics: a locked PIN must be reported as locked and
+            // must not reveal/advance the handover step.
+            var handoverCheckAtUtc = DateTime.UtcNow;
+            if (assignment.PinAttemptCount >= MaxPinAttempts)
+            {
+                var lockExpiresAtUtc = (assignment.LastPinAttemptAtUtc ?? handoverCheckAtUtc).Add(PinLockoutCooldown);
+                if (lockExpiresAtUtc > handoverCheckAtUtc)
+                {
+                    return new PublicDeliveryRoutePinResultDto
+                    {
+                        PinLocked = true,
+                        RemainingAttempts = 0,
+                        OrderStatus = order.Status,
+                        Route = await MapPublicRouteAsync(route, cancellationToken)
+                    };
+                }
+            }
+
+            if (!handoverConfirmed)
+            {
+                return new PublicDeliveryRoutePinResultDto
+                {
+                    HandoverRequired = true,
+                    RemainingAttempts = MaxPinAttempts,
+                    OrderStatus = order.Status,
+                    Route = await MapPublicRouteAsync(route, cancellationToken)
+                };
+            }
+
+            if (OrderPaymentPolicy.IsCashOnDelivery(order.PaymentMethod))
+            {
+                var amountError = OrderPaymentPolicy.ValidateCashReceived(order, cashReceivedAmount, out var computedChange);
+                if (amountError is not null)
+                {
+                    return new PublicDeliveryRoutePinResultDto
+                    {
+                        PaymentAmountInvalid = true,
+                        PaymentError = amountError,
+                        RemainingAttempts = MaxPinAttempts,
+                        OrderStatus = order.Status,
+                        Route = await MapPublicRouteAsync(route, cancellationToken)
+                    };
+                }
+
+                pendingCashReceived = cashReceivedAmount;
+                pendingChange = computedChange;
+            }
+            else if (cashReceivedAmount.HasValue)
+            {
+                return new PublicDeliveryRoutePinResultDto
+                {
+                    PaymentAmountInvalid = true,
+                    PaymentError = "Este pedido não é em dinheiro; não informe valor recebido.",
+                    RemainingAttempts = MaxPinAttempts,
+                    OrderStatus = order.Status,
+                    Route = await MapPublicRouteAsync(route, cancellationToken)
+                };
+            }
+        }
         if (string.IsNullOrWhiteSpace(order.DeliveryPinHash))
         {
             return new PublicDeliveryRoutePinResultDto
@@ -1014,6 +1085,26 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
         {
             order.Status = OrderStatus.Delivered;
             order.StatusVersion += 1;
+        }
+
+        if (applyHandover)
+        {
+            var handoverAtUtc = DateTime.UtcNow;
+            order.PaymentConfirmedAtUtc = handoverAtUtc;
+            order.CashReceivedAmount = pendingCashReceived;
+            order.CashChangeAmount = pendingChange;
+            assignment.HandoverConfirmedAtUtc = handoverAtUtc;
+            await _dbContext.AuditLogs.AddAsync(new AuditLog
+            {
+                UserId = null,
+                Event = "OrderPaymentHandoverConfirmed",
+                Entity = nameof(Order),
+                EntityId = order.Id,
+                Description = pendingChange.HasValue
+                    ? $"Recebimento confirmado no link público da rota para o pedido {order.Code}: dinheiro recebido R$ {pendingCashReceived:0.00}, troco R$ {pendingChange:0.00}."
+                    : $"Recebimento e forma de pagamento confirmados no link público da rota para o pedido {order.Code} ({order.PaymentMethod}).",
+                IpAddress = ipAddress
+            }, cancellationToken);
         }
 
         order.MarkAsUpdated();
@@ -1515,6 +1606,15 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
                     && (x.Order?.Status == OrderStatus.OnDelivery
                         || (x.Order?.Status == OrderStatus.Delivered && x.Order?.DeliveryConfirmedAtUtc is null))
                     && x.Order?.DeliveryConfirmedAtUtc is null,
+                PaymentMethod = x.Order?.PaymentMethod ?? PaymentMethod.CashOnDelivery,
+                RequiresHandoverConfirmation = x.Order is not null && OrderPaymentPolicy.RequiresHandoverConfirmation(x.Order),
+                CashWithoutChange = x.Order?.CashWithoutChange,
+                CashChangeForAmount = x.Order?.CashChangeForAmount,
+                CashReceivedAmount = x.Order?.CashReceivedAmount,
+                CashChangeAmount = x.Order?.CashChangeAmount,
+                Total = x.Order?.Total ?? 0m,
+                HandoverConfirmedAtUtc = x.Order?.PaymentConfirmedAtUtc,
+                PaymentConfirmedAtUtc = x.Order?.PaymentConfirmedAtUtc,
                 CustomerName = x.Order is null ? null : names.GetValueOrDefault(x.Order.CustomerUserId),
                 CustomerPhoneNumber = x.Order is null ? null : phones.GetValueOrDefault(x.Order.CustomerUserId),
                 AddressCep = x.Order?.AddressCep,

@@ -384,10 +384,8 @@ export const routes: Routes = [
       },
       {
         path: 'checkout/entrega',
-        loadComponent: () =>
-          import('./features/payment/delivery/delivery-payment-page.component').then(
-            (m) => m.DeliveryPaymentPageComponent,
-          ),
+        redirectTo: 'checkout/pagamento',
+        pathMatch: 'full',
       },
       {
         path: 'pedidos',

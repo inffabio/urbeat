@@ -168,3 +168,15 @@
     justify-content: flex-start;
   }
 }
+
+.payment-cash,
+.payment-confirmed {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--app-text-secondary);
+}
+.payment-confirmed {
+  color: var(--app-success, #119441);
+  font-weight: 600;
+}

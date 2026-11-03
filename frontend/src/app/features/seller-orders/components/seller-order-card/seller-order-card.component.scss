@@ -138,3 +138,17 @@ button.is-danger {
   color: var(--app-danger, #b42318);
   border: 1px solid rgba(180, 35, 24, 0.32);
 }
+
+.payment-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-success, #119441);
+}
+
+.order-tags .is-cash {
+  color: var(--app-text-primary);
+}

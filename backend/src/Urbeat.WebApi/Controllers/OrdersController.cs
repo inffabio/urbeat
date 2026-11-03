@@ -530,6 +530,14 @@ public sealed class OrdersController : ControllerBase
             return Forbid();
         }
 
+        if (result.PinRequired)
+        {
+            return Conflict(new
+            {
+                error = "A entrega precisa ser concluída pelo motoboy com a confirmação de recebimento e o PIN."
+            });
+        }
+
         if (result.InvalidState)
         {
             return Conflict(new { error = "Delivery confirmation is only available for delivered delivery orders." });

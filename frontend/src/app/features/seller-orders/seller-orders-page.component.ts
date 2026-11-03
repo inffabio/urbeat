@@ -194,6 +194,11 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       subtotal: details?.subtotal,
       deliveryFee: details?.deliveryFee,
       total: details?.total ?? summary?.total ?? 0,
+      cashWithoutChange: details?.cashWithoutChange ?? summary?.cashWithoutChange,
+      cashChangeForAmount: details?.cashChangeForAmount ?? summary?.cashChangeForAmount,
+      cashReceivedAmount: details?.cashReceivedAmount ?? summary?.cashReceivedAmount,
+      cashChangeAmount: details?.cashChangeAmount ?? summary?.cashChangeAmount,
+      paymentConfirmedAtUtc: details?.paymentConfirmedAtUtc ?? summary?.paymentConfirmedAtUtc,
       deliveryDriverId: details?.deliveryDriverId ?? summary?.deliveryDriverId,
       deliveryDriverName: details?.deliveryDriverName ?? summary?.deliveryDriverName,
       deliveryStartedAtUtc: details?.deliveryStartedAtUtc ?? summary?.deliveryStartedAtUtc,
@@ -1510,6 +1515,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       case PaymentMethod.CardOnline: return 'Cartão online';
       case PaymentMethod.CashOnDelivery: return 'Dinheiro ao receber';
       case PaymentMethod.CardOnDelivery: return 'Cartão ao receber';
+      case PaymentMethod.PixOnDelivery: return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery: return 'Débito na maquininha';
+      case PaymentMethod.CreditOnDelivery: return 'Crédito na maquininha';
       default: return '-';
     }
   }
@@ -1517,6 +1525,22 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   formatCurrency(value?: number | null): string {
     if (value == null || Number.isNaN(value)) return 'R$ 0,00';
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  cashDetail(order: { paymentMethod?: PaymentMethod; cashWithoutChange?: boolean; cashChangeForAmount?: number; cashReceivedAmount?: number; cashChangeAmount?: number }): string {
+    if (order.paymentMethod !== PaymentMethod.CashOnDelivery) return '';
+    if (order.cashReceivedAmount != null) {
+      return `Recebido ${this.formatCurrency(order.cashReceivedAmount)} · Troco ${this.formatCurrency(order.cashChangeAmount ?? 0)}`;
+    }
+    if (order.cashWithoutChange === true) return 'Sem troco';
+    if (order.cashChangeForAmount != null) return `Troco para ${this.formatCurrency(order.cashChangeForAmount)}`;
+    return '';
+  }
+
+  paymentConfirmationLabel(order: { paymentConfirmedAtUtc?: string }): string {
+    return order.paymentConfirmedAtUtc
+      ? `Confirmado em ${formatSaoPauloDateTime(order.paymentConfirmedAtUtc)}`
+      : '';
   }
 
   statusLabel(status?: OrderStatus): string {

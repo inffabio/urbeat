@@ -151,6 +151,20 @@ public sealed class DriverOrderSummaryResponseDto
 
     public decimal Total { get; init; }
 
+    public bool? CashWithoutChange { get; init; }
+
+    public decimal? CashChangeForAmount { get; init; }
+
+    public decimal? CashReceivedAmount { get; init; }
+
+    public decimal? CashChangeAmount { get; init; }
+
+    public bool RequiresHandoverConfirmation { get; init; }
+
+    public DateTime? HandoverConfirmedAtUtc { get; init; }
+
+    public DateTime? PaymentConfirmedAtUtc { get; init; }
+
     public DateTime CreatedAtUtc { get; init; }
 
     public DateTime? DeliveryStartedAtUtc { get; init; }
@@ -160,6 +174,8 @@ public sealed class DriverOrderSummaryResponseDto
     public IReadOnlyCollection<OrderItemResponseDto> Items { get; init; } = [];
 
     public bool CanStartDelivery { get; init; }
+
+    public bool CanConfirmHandover { get; init; }
 
     public bool CanConfirmPin { get; init; }
 }
@@ -196,6 +212,32 @@ public sealed class AssignDeliveryDriverResultDto
 public sealed class ConfirmDeliveryPinRequestDto
 {
     public string Pin { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Public tokenized links have no authenticated driver. They must still explicitly confirm the
+    /// handover/payment manually before the PIN. Authenticated drivers use the dedicated handover
+    /// endpoint, so this flag is ignored for them and can never replace the persisted handover.
+    /// </summary>
+    public bool HandoverConfirmed { get; init; }
+
+    /// <summary>
+    /// Cash amount actually received, informed by the motoboy on the public link. Validated and
+    /// converted into change by the server; the client never sends the change value.
+    /// </summary>
+    public decimal? CashReceivedAmount { get; init; }
+}
+
+/// <summary>
+/// Manual handover/payment confirmation performed by the authenticated assigned motoboy before
+/// the delivery PIN.
+/// </summary>
+public sealed class ConfirmOrderHandoverRequestDto
+{
+    /// <summary>
+    /// Required only for cash orders: the amount actually received. The server validates it
+    /// against the authoritative total and computes the change.
+    /// </summary>
+    public decimal? CashReceivedAmount { get; init; }
 }
 
 public sealed class DeliveryDriverActionResultDto
@@ -211,6 +253,25 @@ public sealed class DeliveryDriverActionResultDto
     public bool PinLocked { get; init; }
 
     public bool PinUnavailable { get; init; }
+
+    /// <summary>
+    /// The order requires a manual handover/payment confirmation from the assigned motoboy before
+    /// the PIN. The caller must confirm it and retry; no PIN attempt is consumed.
+    /// </summary>
+    public bool HandoverRequired { get; init; }
+
+    /// <summary>The informed cash amount is invalid for this order (below total, above declared change or precision).</summary>
+    public bool PaymentAmountInvalid { get; init; }
+
+    public string? PaymentError { get; init; }
+
+    public DateTime? PaymentConfirmedAtUtc { get; init; }
+
+    public DateTime? HandoverConfirmedAtUtc { get; init; }
+
+    public decimal? CashReceivedAmount { get; init; }
+
+    public decimal? CashChangeAmount { get; init; }
 
     /// <summary>
     /// The customer has no phone number with at least four digits. The PIN is derived from that

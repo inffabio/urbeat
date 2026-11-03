@@ -7,6 +7,7 @@ import { callOutline, cashOutline, checkmarkDoneOutline, locationOutline, naviga
 import { OrderService } from '../../core/services/order.service';
 import { formatSaoPauloDateTime } from '../../core/utils/sao-paulo-date.helper';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { SellerDeliverySummary } from '../../shared/models/order.model';
 
 addIcons({
@@ -85,6 +86,29 @@ export class SellerDeliveriesPageComponent implements OnInit {
     if (status === OrderStatus.OnDelivery) return 'Em rota';
     if (status === OrderStatus.Delivered) return 'Entregue';
     return 'Acompanhar';
+  }
+
+  paymentLabel(method?: PaymentMethod): string {
+    switch (method) {
+      case PaymentMethod.PixOnDelivery: return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery: return 'Débito';
+      case PaymentMethod.CreditOnDelivery: return 'Crédito';
+      case PaymentMethod.CashOnDelivery: return 'Dinheiro';
+      case PaymentMethod.PixOnline: return 'Pix online (legado)';
+      case PaymentMethod.CardOnline: return 'Cartão online (legado)';
+      case PaymentMethod.CardOnDelivery: return 'Cartão (legado)';
+      default: return '-';
+    }
+  }
+
+  cashDetail(order: SellerDeliverySummary): string {
+    if (order.paymentMethod !== PaymentMethod.CashOnDelivery) return '';
+    if (order.cashReceivedAmount != null) {
+      return `Recebido ${this.formatCurrency(order.cashReceivedAmount)} · Troco ${this.formatCurrency(order.cashChangeAmount ?? 0)}`;
+    }
+    if (order.cashWithoutChange === true) return 'Sem troco';
+    if (order.cashChangeForAmount != null) return `Troco para ${this.formatCurrency(order.cashChangeForAmount)}`;
+    return '';
   }
 
   openMap(addressSummary?: string): void {

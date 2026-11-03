@@ -627,7 +627,9 @@ export class SellerDashboardPageComponent implements OnInit {
       case PaymentMethod.CardOnline: return 'Cartão online';
       case PaymentMethod.CashOnDelivery: return 'Dinheiro';
       case PaymentMethod.CardOnDelivery: return 'Cartão na entrega';
-      default: return '-';
+      case PaymentMethod.PixOnDelivery: return 'Pix na maquininha';
+      case PaymentMethod.DebitOnDelivery: return 'Débito na maquininha';
+      case PaymentMethod.CreditOnDelivery: return 'Crédito na maquininha';      default: return '-';
     }
   }
 

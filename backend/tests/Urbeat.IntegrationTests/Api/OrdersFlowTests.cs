@@ -1,9 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -55,7 +58,7 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto
@@ -69,6 +72,17 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
         created.Should().NotBeNull();
+
+        // Legacy in-flight online order: checkout no longer creates it, but the contract must keep
+        // reading it exactly as before (awaiting payment and hidden from the seller board).
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var legacyOrder = await db.Orders.SingleAsync(x => x.Id == created!.OrderId);
+            legacyOrder.PaymentMethod = PaymentMethod.PixOnline;
+            legacyOrder.Status = OrderStatus.PendingPayment;
+            await db.SaveChangesAsync();
+        }
 
         var myOrdersResponse = await customerClient.GetAsync("/api/orders/my");
         myOrdersResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -149,8 +163,8 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
 
         var productId = await ProductTestHelper.CreateProductAsync(sellerClient, storeId, "Lanche", 20m);
 
-        var firstOrder = await CreateOrderAsync(customerClient, storeId, address!.Id, productId, PaymentMethod.PixOnline);
-        var secondOrder = await CreateOrderAsync(customerClient, storeId, address.Id, productId, PaymentMethod.PixOnline);
+        var firstOrder = await CreateOrderAsync(customerClient, storeId, address!.Id, productId, PaymentMethod.PixOnDelivery);
+        var secondOrder = await CreateOrderAsync(customerClient, storeId, address.Id, productId, PaymentMethod.PixOnDelivery);
         var thirdOrder = await CreateOrderAsync(customerClient, storeId, address.Id, productId, PaymentMethod.CashOnDelivery);
 
         await sellerClient.PatchAsJsonAsync($"/api/orders/{firstOrder}/status", new UpdateOrderStatusRequestDto
@@ -170,8 +184,8 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
         var pageOnePayload = await pageOneResponse.Content.ReadFromJsonAsync<PagedOrderSummaryResponseDto>();
         pageOnePayload.Should().NotBeNull();
         pageOnePayload!.Items.Should().HaveCount(1);
-        pageOnePayload.TotalItems.Should().Be(2);
-        pageOnePayload.TotalPages.Should().Be(2);
+        pageOnePayload.TotalItems.Should().Be(3);
+        pageOnePayload.TotalPages.Should().Be(3);
 
         var pageTwoResponse = await sellerClient.GetAsync("/api/orders/store?page=2&pageSize=1");
         pageTwoResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -217,11 +231,21 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+
+        // This test covers the legacy customer-confirmation path, which must keep working for
+        // orders created before the handover/PIN contract.
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var legacyOrder = await db.Orders.SingleAsync(x => x.Id == created!.OrderId);
+            legacyOrder.PaymentMethod = PaymentMethod.CardOnDelivery;
+            await db.SaveChangesAsync();
+        }
 
         await AdvanceOrderStatusToAsync(sellerClient, created!.OrderId, OrderStatus.Delivered);
 
@@ -283,7 +307,7 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
         {
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -313,8 +337,11 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
     private static async Task AdvanceOrderStatusToAsync(HttpClient sellerClient, Guid orderId, OrderStatus targetStatus)
     {
         var sequence = new[] { OrderStatus.Received, OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.OnDelivery, OrderStatus.Delivered };
+        var current = await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>($"api/orders/store/{orderId}");
+        if (current!.Status == targetStatus) return;
+        var startIndex = Array.IndexOf(sequence, current.Status) + 1;
         Guid? deliveryDriverId = null;
-        foreach (var status in sequence)
+        foreach (var status in sequence.Skip(startIndex))
         {
             if (status == OrderStatus.OnDelivery)
             {
@@ -358,6 +385,7 @@ public sealed class OrdersFlowTests : IClassFixture<TestWebApplicationFactory>
             StoreId = storeId, FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = addressId,
             PaymentMethod = paymentMethod,
+            CashWithoutChange = paymentMethod == PaymentMethod.CashOnDelivery ? true : null,
             Items =
             [
                 new CheckoutItemRequestDto

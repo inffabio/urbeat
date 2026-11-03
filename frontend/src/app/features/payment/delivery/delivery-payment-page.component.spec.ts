@@ -34,6 +34,7 @@ describe('DeliveryPaymentPageComponent', () => {
             customerAddressId: signal('addr1'),
             lastOrderId: signal(null),
             lastOrderCode: signal(null),
+            orderNotes: signal(''),
             confirm: jest.fn().mockReturnValue(of({ orderId: 'o1', code: 'ABC123' })),
           },
         },
@@ -66,8 +67,8 @@ describe('DeliveryPaymentPageComponent', () => {
 
     const radios = fixture.debugElement.queryAll(By.css('input[type="radio"][name="delivery-payment-method"]'));
 
-    expect(radios).toHaveLength(2);
-    expect(radios.map(radio => radio.nativeElement.value)).toEqual(['cash', 'card']);
+    expect(radios).toHaveLength(4);
+    expect(radios.map(radio => radio.nativeElement.value)).toEqual(['pix-machine', 'cash', 'debit', 'credit']);
   });
 
   it('should render cash change choice as native radio inputs', () => {
@@ -88,6 +89,7 @@ describe('DeliveryPaymentPageComponent', () => {
     const fixture = TestBed.createComponent(DeliveryPaymentPageComponent);
     fixture.detectChanges();
 
+    fixture.componentInstance.select('credit');
     fixture.componentInstance.finalize();
 
     expect(trackOrderSpy).toHaveBeenCalledWith('o1');
@@ -106,6 +108,7 @@ describe('DeliveryPaymentPageComponent', () => {
 
     const fixture = TestBed.createComponent(DeliveryPaymentPageComponent);
     fixture.detectChanges();
+    fixture.componentInstance.select('credit');
     fixture.componentInstance.finalize();
     fixture.destroy();
 
@@ -116,6 +119,7 @@ describe('DeliveryPaymentPageComponent', () => {
 
   it('renders the Continuar bar as a primary in-flow bar inside the scroll content', () => {
     const fixture = TestBed.createComponent(DeliveryPaymentPageComponent);
+    fixture.componentInstance.select('credit');
     fixture.detectChanges();
 
     const bar = fixture.debugElement.query(By.css('app-sticky-action-bar'));

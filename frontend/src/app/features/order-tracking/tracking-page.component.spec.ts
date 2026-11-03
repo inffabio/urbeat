@@ -10,6 +10,7 @@ import { TrackingPageComponent } from './tracking-page.component';
 import {
   CustomerOrderTrackingService,
   OrderStatusUpdateEvent,
+  TRACKED_ORDER_IDS_STORAGE_KEY,
 } from '../../core/services/customer-order-tracking.service';
 import { OrderService } from '../../core/services/order.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -57,24 +58,7 @@ describe('TrackingPageComponent', () => {
   let listeners: Record<string, (data: OrderStatusUpdateEvent) => void>;
   let paramMap: BehaviorSubject<ParamMap>;
 
-  beforeEach(async () => {
-    localStorage.clear();
-    sessionStorage.clear();
-
-    getOrderMock = jest.fn().mockReturnValue(of(baseOrder));
-    confirmDeliveryMock = jest.fn();
-    startCustomerHubMock = jest.fn().mockResolvedValue(undefined);
-    listeners = {};
-    onCustomerEventMock = jest.fn((name: string, cb: (data: OrderStatusUpdateEvent) => void) => {
-      listeners[name] = cb;
-    });
-    removeCustomerListenerMock = jest.fn();
-    stopCustomerHubMock = jest.fn();
-    onCustomerStateChangeMock = jest.fn(() => jest.fn());
-    routerMock = { navigate: jest.fn(), url: '/loja/pedido/order1' };
-    logoutMock = jest.fn();
-    paramMap = new BehaviorSubject<ParamMap>(makeParamMap('order1'));
-
+  const configureTrackingModule = async (): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [TrackingPageComponent],
       providers: [
@@ -96,6 +80,27 @@ describe('TrackingPageComponent', () => {
         { provide: Router, useValue: routerMock },
       ],
     }).compileComponents();
+  };
+
+  beforeEach(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+
+    getOrderMock = jest.fn().mockReturnValue(of(baseOrder));
+    confirmDeliveryMock = jest.fn();
+    startCustomerHubMock = jest.fn().mockResolvedValue(undefined);
+    listeners = {};
+    onCustomerEventMock = jest.fn((name: string, cb: (data: OrderStatusUpdateEvent) => void) => {
+      listeners[name] = cb;
+    });
+    removeCustomerListenerMock = jest.fn();
+    stopCustomerHubMock = jest.fn();
+    onCustomerStateChangeMock = jest.fn(() => jest.fn());
+    routerMock = { navigate: jest.fn(), url: '/loja/pedido/order1' };
+    logoutMock = jest.fn();
+    paramMap = new BehaviorSubject<ParamMap>(makeParamMap('order1'));
+
+    await configureTrackingModule();
   });
 
   afterEach(() => {
@@ -897,7 +902,32 @@ describe('TrackingPageComponent', () => {
 
       fixture.destroy();
     });
-  describe('delivered celebration and local reset', () => {
+  });
+
+  describe('delivered celebration and order history retention', () => {
+    const delivering = (overrides: Partial<OrderDetails> = {}): OrderDetails => ({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      history: [
+        ...baseOrder.history,
+        {
+          createdAtUtc: '2026-07-28T12:20:00Z',
+          previousStatus: OrderStatus.OnDelivery,
+          newStatus: OrderStatus.Delivered,
+        },
+      ],
+      ...overrides,
+    });
+
+    const emitDelivered = (orderId = 'order1', changedAtUtc = '2026-07-28T12:20:00Z'): void => {
+      listeners['OrderStatusUpdated']({
+        orderId,
+        orderCode: 'ABC123',
+        status: OrderStatus.Delivered,
+        changedAtUtc,
+      });
+    };
+
     it('no longer renders the inline return-to-menu button above the closing content', () => {
       const fixture = TestBed.createComponent(TrackingPageComponent);
       fixture.detectChanges();
@@ -911,7 +941,7 @@ describe('TrackingPageComponent', () => {
       fixture.destroy();
     });
 
-    it('does not show the celebration dialog while the order is still in progress', () => {
+    it('does not celebrate while the order is still being prepared', () => {
       const fixture = TestBed.createComponent(TrackingPageComponent);
       fixture.detectChanges();
 
@@ -921,10 +951,58 @@ describe('TrackingPageComponent', () => {
       fixture.destroy();
     });
 
-    it('shows an accessible delivered celebration with the explicit return action', () => {
-      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+    it('does not celebrate a received (accepted) order', () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Received }));
 
       const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.Received);
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+
+      fixture.destroy();
+    });
+
+    it('does not celebrate an order waiting for payment confirmation', () => {
+      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.PendingPayment }));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.PendingPayment);
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+
+      fixture.destroy();
+    });
+
+    it('does not celebrate an order that was already delivered when it is opened from the history list', () => {
+      getOrderMock.mockReturnValue(of(delivering({ deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z' })));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      // The finished order stays fully consultable instead of being covered by a modal.
+      expect(fixture.debugElement.query(By.css('.order-summary-card'))).not.toBeNull();
+      expect(fixture.debugElement.query(By.css('.status-bar[role="list"]'))).not.toBeNull();
+
+      fixture.destroy();
+    });
+
+    it('celebrates only the delivered transition observed on this screen, with an accessible dialog', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
       fixture.detectChanges();
 
       const dialog = fixture.debugElement.query(By.css('[role="dialog"].delivered-celebration-modal'));
@@ -942,39 +1020,7 @@ describe('TrackingPageComponent', () => {
       fixture.destroy();
     });
 
-    it('clears only local storefront state and returns to the menu without logging out', () => {
-      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
-
-      const fixture = TestBed.createComponent(TrackingPageComponent);
-      fixture.detectChanges();
-
-      const tracking = TestBed.inject(CustomerOrderTrackingService);
-      const cart = TestBed.inject(CartService);
-      const checkoutAction = TestBed.inject(CartCheckoutActionService);
-      const trackingReset = jest.spyOn(tracking, 'reset');
-      const cartClear = jest.spyOn(cart, 'clearAll');
-      const actionReset = jest.spyOn(checkoutAction, 'reset');
-
-      fixture.debugElement
-        .query(By.css('.delivered-celebration-modal .celebration-action'))
-        .nativeElement.click();
-      fixture.detectChanges();
-
-      expect(trackingReset).toHaveBeenCalledTimes(1);
-      expect(cartClear).toHaveBeenCalledTimes(1);
-      expect(actionReset).toHaveBeenCalledTimes(1);
-      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
-      expect(logoutMock).not.toHaveBeenCalled();
-      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
-      expect(tracking.trackedOrders()).toEqual([]);
-      // The shared hub lifecycle belongs to the store shell; reset stops it,
-      // so the page restarts it without re-tracking the finished order.
-      expect(startCustomerHubMock).toHaveBeenCalled();
-
-      fixture.destroy();
-    });
-
-    it('opens the celebration once and does not reopen it for realtime refreshes of the same order', async () => {
+    it('does not reopen the celebration for later refreshes of the same order', async () => {
       const tracking = TestBed.inject(CustomerOrderTrackingService);
       await tracking.start();
 
@@ -982,21 +1028,8 @@ describe('TrackingPageComponent', () => {
       fixture.detectChanges();
       await tick();
 
-      getOrderMock.mockReturnValue(of({
-        ...baseOrder,
-        status: OrderStatus.Delivered,
-        history: [
-          ...baseOrder.history,
-          { createdAtUtc: '2026-07-28T12:10:00Z', previousStatus: OrderStatus.OnDelivery, newStatus: OrderStatus.Delivered },
-        ],
-      }));
-
-      listeners['OrderStatusUpdated']({
-        orderId: 'order1',
-        orderCode: 'ABC123',
-        status: OrderStatus.Delivered,
-        changedAtUtc: '2026-07-28T12:10:00Z',
-      });
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
       await tick();
       fixture.detectChanges();
 
@@ -1005,12 +1038,7 @@ describe('TrackingPageComponent', () => {
       fixture.componentInstance.deliveredCelebrationOpen.set(false);
       fixture.detectChanges();
 
-      listeners['OrderStatusUpdated']({
-        orderId: 'order1',
-        orderCode: 'ABC123',
-        status: OrderStatus.Delivered,
-        changedAtUtc: '2026-07-28T12:15:00Z',
-      });
+      emitDelivered('order1', '2026-07-28T12:25:00Z');
       await tick();
       fixture.detectChanges();
 
@@ -1019,26 +1047,268 @@ describe('TrackingPageComponent', () => {
       fixture.destroy();
     });
 
-    it('celebrates each delivered order once, not only the first one in the session', async () => {
-      getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+    it('does not celebrate when a finished order is reopened through the route', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
 
       const fixture = TestBed.createComponent(TrackingPageComponent);
       fixture.detectChanges();
       await tick();
 
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
       expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
 
       fixture.componentInstance.deliveredCelebrationOpen.set(false);
       fixture.detectChanges();
 
-      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999', status: OrderStatus.Delivered }));
+      getOrderMock.mockImplementation((id: string) =>
+        of(delivering({ id, code: id === 'order2' ? 'XYZ999' : 'ABC123' })),
+      );
       paramMap.next(makeParamMap('order2'));
       fixture.detectChanges();
       await tick();
       fixture.detectChanges();
 
       expect(fixture.componentInstance.order()?.id).toBe('order2');
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+
+      paramMap.next(makeParamMap('order1'));
+      fixture.detectChanges();
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.id).toBe('order1');
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      // Both finished orders remain tracked and reopenable in this tab.
+      expect(tracking.trackedOrders().map((order) => order.id).sort()).toEqual(['order1', 'order2']);
+
+      fixture.destroy();
+    });
+
+    it('celebrates each tracked order only on its own live delivered transition', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
       expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      fixture.componentInstance.deliveredCelebrationOpen.set(false);
+      fixture.detectChanges();
+
+      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999', status: OrderStatus.Preparing }));
+      paramMap.next(makeParamMap('order2'));
+      fixture.detectChanges();
+      await tick();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+
+      getOrderMock.mockReturnValue(of(delivering({ id: 'order2', code: 'XYZ999' })));
+      emitDelivered('order2', '2026-07-28T12:40:00Z');
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      fixture.destroy();
+    });
+
+    it('closes an open celebration when the route switches to another order', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999' }));
+      paramMap.next(makeParamMap('order2'));
+      fixture.detectChanges();
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.id).toBe('order2');
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+
+      fixture.destroy();
+    });
+
+    it('does not celebrate a delivered transition that happened while another order was on screen', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999' }));
+      paramMap.next(makeParamMap('order2'));
+      fixture.detectChanges();
+      await tick();
+      expect(fixture.componentInstance.order()?.id).toBe('order2');
+
+      // order1 is delivered while the customer is looking at order2.
+      getOrderMock.mockImplementation((id: string) =>
+        of(id === 'order1' ? delivering() : { ...baseOrder, id, code: 'XYZ999' }),
+      );
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+
+      // Coming back to the finished order is a first observation, not a transition.
+      paramMap.next(makeParamMap('order1'));
+      fixture.detectChanges();
+      await tick();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.order()?.id).toBe('order1');
+      expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.Delivered);
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+
+      fixture.destroy();
+    });
+
+    it('keeps every tracked order, including finished ones, after returning to the menu', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of({ ...baseOrder, id: 'order2', code: 'XYZ999' }));
+      tracking.trackOrder('order2');
+
+      getOrderMock.mockImplementation((id: string) =>
+        of(id === 'order1' ? delivering() : { ...baseOrder, id, code: 'XYZ999' }),
+      );
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(true);
+
+      const cart = TestBed.inject(CartService);
+      const checkoutAction = TestBed.inject(CartCheckoutActionService);
+      const trackingReset = jest.spyOn(tracking, 'reset');
+      const cartClear = jest.spyOn(cart, 'clearAll');
+      const actionReset = jest.spyOn(checkoutAction, 'reset');
+      startCustomerHubMock.mockClear();
+
+      fixture.debugElement
+        .query(By.css('.delivered-celebration-modal .celebration-action'))
+        .nativeElement.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja']);
+      expect(logoutMock).not.toHaveBeenCalled();
+      // Returning to the menu is navigation only: the tab keeps its orders and cart.
+      expect(trackingReset).not.toHaveBeenCalled();
+      expect(cartClear).not.toHaveBeenCalled();
+      expect(actionReset).not.toHaveBeenCalled();
+      expect(startCustomerHubMock).not.toHaveBeenCalled();
+      expect(tracking.trackedOrders().map((order) => order.id).sort()).toEqual(['order1', 'order2']);
+      expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1', 'order2']);
+
+      fixture.destroy();
+    });
+
+    it('reopens a finished order without the celebration and keeps the delivery confirmation available', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.delivered-celebration-modal .celebration-action'))
+        .nativeElement.click();
+      fixture.destroy();
+
+      const reopened = TestBed.createComponent(TrackingPageComponent);
+      reopened.detectChanges();
+      await tick();
+      reopened.detectChanges();
+
+      expect(tracking.trackedOrders().map((order) => order.id)).toEqual(['order1']);
+      expect(reopened.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+      expect(reopened.componentInstance.order()?.status).toBe(OrderStatus.Delivered);
+      expect(reopened.debugElement.query(By.css('.confirm-delivery-fab'))).not.toBeNull();
+
+      reopened.destroy();
+    });
+
+    it('keeps the finished order after a session reload and does not celebrate it on reopen', async () => {
+      const tracking = TestBed.inject(CustomerOrderTrackingService);
+      await tracking.start();
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+      await tick();
+
+      getOrderMock.mockReturnValue(of(delivering()));
+      emitDelivered();
+      await tick();
+      fixture.detectChanges();
+
+      fixture.debugElement
+        .query(By.css('.delivered-celebration-modal .celebration-action'))
+        .nativeElement.click();
+      fixture.detectChanges();
+      fixture.destroy();
+
+      // Simulates a same-tab reload: a new injector reads the tab-scoped ids.
+      TestBed.resetTestingModule();
+      await configureTrackingModule();
+
+      const reloadedTracking = TestBed.inject(CustomerOrderTrackingService);
+      await reloadedTracking.start();
+
+      const reloaded = TestBed.createComponent(TrackingPageComponent);
+      reloaded.detectChanges();
+      await tick();
+      reloaded.detectChanges();
+
+      expect(reloadedTracking.trackedOrders().map((order) => order.id)).toEqual(['order1']);
+      expect(reloaded.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
+      expect(reloaded.componentInstance.order()?.status).toBe(OrderStatus.Delivered);
+
+      reloaded.destroy();
+    });
+
+    it('does not celebrate a delivered order that belongs to another store', () => {
+      getOrderMock.mockReturnValue(of(delivering({ storeId: 'store2' })));
+
+      const fixture = TestBed.createComponent(TrackingPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.invalidOrder()).toBe(true);
+      expect(fixture.componentInstance.deliveredCelebrationOpen()).toBe(false);
+      expect(fixture.debugElement.query(By.css('.delivered-celebration-overlay'))).toBeNull();
 
       fixture.destroy();
     });

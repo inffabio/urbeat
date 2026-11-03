@@ -416,3 +416,124 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+.cash-complement {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: var(--app-radius-lg, 18px);
+  background: var(--app-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.cash-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--app-text-primary);
+}
+
+.change-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.change-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--app-radius-md, 14px);
+  border: 1px solid var(--app-border-light);
+  background: var(--app-surface);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-text-primary);
+  cursor: pointer;
+}
+
+.change-opt.active {
+  border-color: var(--app-brand);
+  background: var(--app-brand-soft);
+  color: var(--app-brand-dark);
+}
+
+.change-input {
+  margin-top: 14px;
+}
+
+.change-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text-secondary);
+}
+
+.change-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: var(--app-radius-md, 14px);
+  border: 1px solid var(--app-border-light);
+  background: var(--app-surface);
+}
+
+.change-field .prefix {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-text-secondary);
+}
+
+.change-field input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: var(--app-text-primary);
+  outline: none;
+}
+
+.change-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--app-text-secondary);
+}
+
+.payment-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--app-radius-md, 14px);
+  background: var(--app-surface-soft);
+  color: var(--app-text-secondary);
+}
+
+.payment-note ion-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--app-brand);
+}
+
+.payment-note p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.preview-retry {
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--app-brand);
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

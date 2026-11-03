@@ -236,7 +236,7 @@ public sealed class MockPixPaymentFlowTests
             StoreId = storeId,
             FulfillmentType = FulfillmentType.Delivery,
             CustomerAddressId = address!.Id,
-            PaymentMethod = PaymentMethod.PixOnline,
+            PaymentMethod = PaymentMethod.PixOnDelivery,
             Items =
             [
                 new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }
@@ -244,6 +244,27 @@ public sealed class MockPixPaymentFlowTests
         });
         createOrderResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var order = await createOrderResponse.Content.ReadFromJsonAsync<CheckoutConfirmResponseDto>();
+
+        // Preserve an in-flight online Pix order: checkout no longer creates one, but existing
+        // transactions (links, webhooks, worker retries) must keep working.
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var legacy = await db.Orders.SingleAsync(x => x.Id == order!.OrderId);
+            legacy.PaymentMethod = PaymentMethod.PixOnline;
+            legacy.Status = OrderStatus.PendingPayment;
+            var histories = db.OrderStatusHistories.Where(x => x.OrderId == legacy.Id);
+            db.OrderStatusHistories.RemoveRange(histories);
+            db.OrderStatusHistories.Add(new OrderStatusHistory
+            {
+                OrderId = legacy.Id,
+                PreviousStatus = OrderStatus.Created,
+                NewStatus = OrderStatus.PendingPayment,
+                ChangedByUserId = legacy.CustomerUserId,
+                Notes = "Initial order status set at checkout confirmation."
+            });
+            await db.SaveChangesAsync();
+        }
 
         var paymentStartResponse = await customerClient.PostAsJsonAsync("/api/payments/order", new CreateOrderPaymentRequestDto
         {

@@ -199,6 +199,24 @@ public sealed class PublicDeliveryRouteStopDto
 
     public bool CanDeliver { get; init; }
 
+    public PaymentMethod PaymentMethod { get; init; }
+
+    public bool RequiresHandoverConfirmation { get; init; }
+
+    public bool? CashWithoutChange { get; init; }
+
+    public decimal? CashChangeForAmount { get; init; }
+
+    public decimal? CashReceivedAmount { get; init; }
+
+    public decimal? CashChangeAmount { get; init; }
+
+    public decimal Total { get; init; }
+
+    public DateTime? HandoverConfirmedAtUtc { get; init; }
+
+    public DateTime? PaymentConfirmedAtUtc { get; init; }
+
     public string? CustomerName { get; init; }
 
     public string? CustomerPhoneNumber { get; init; }
@@ -279,6 +297,18 @@ public sealed class PublicDeliveryRoutePinResultDto
     public bool PinLocked { get; init; }
 
     public bool PinUnavailable { get; init; }
+
+    public bool HandoverRequired { get; init; }
+
+    public bool PaymentAmountInvalid { get; init; }
+
+    public string? PaymentError { get; init; }
+
+    public DateTime? PaymentConfirmedAtUtc { get; init; }
+
+    public decimal? CashReceivedAmount { get; init; }
+
+    public decimal? CashChangeAmount { get; init; }
 
     public bool ConcurrentUpdate { get; init; }
 

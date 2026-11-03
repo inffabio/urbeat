@@ -107,12 +107,12 @@ describe('BrowserPrintAdapter', () => {
   it('shows fulfillment and payment in tags', async () => {
     await adapter.printOrder({
       code: 'ABC123', total: 30, createdAtUtc: new Date().toISOString(),
-      fulfillmentType: 1, paymentMethod: 0, addressSummary: 'Rua A, 123',
+      fulfillmentType: 1, paymentMethod: 1, addressSummary: 'Rua A, 123',
     }, defaultConfig);
 
     const html = popupSpy.mock.results[0].value.document.write.mock.calls[0][0] as string;
     expect(html).toContain('Entrega');
-    expect(html).toContain('Pix');
+    expect(html).toContain('Pix online');
     expect(html).toContain('Rua A, 123');
   });
 

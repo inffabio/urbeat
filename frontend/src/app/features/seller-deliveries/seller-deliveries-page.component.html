@@ -117,6 +117,7 @@
                 <th>Endereco</th>
                 <th>Entregador</th>
                 <th>Status</th>
+                <th>Pagamento</th>
                 <th>Recebido em</th>
                 <th>Valor</th>
                 <th class="text-end">Acoes</th>
@@ -133,6 +134,13 @@
                     <span class="seller-status-badge" [class.is-info]="order.status === OrderStatus.OnDelivery" [class.is-success]="order.status === OrderStatus.Delivered" [class.is-neutral]="order.status !== OrderStatus.OnDelivery && order.status !== OrderStatus.Delivered">{{ statusLabel(order.status) }}</span>
                   </td>
                   <td data-label="Recebido em">{{ formatDateTime(order.createdAtUtc) }}</td>
+                  <td data-label="Pagamento">
+                    <span>{{ paymentLabel(order.paymentMethod) }}</span>
+                    @if (cashDetail(order)) { <small class="payment-cash">{{ cashDetail(order) }}</small> }
+                    @if (order.paymentConfirmedAtUtc) {
+                      <small class="payment-confirmed">Confirmado</small>
+                    }
+                  </td>
                   <td data-label="Valor">{{ formatCurrency(order.total) }}</td>
                   <td class="text-end" data-label="Acoes">
                     <span class="action-buttons">

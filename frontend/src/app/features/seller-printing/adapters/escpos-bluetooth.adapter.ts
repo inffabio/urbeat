@@ -1,4 +1,4 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { formatSaoPauloDateTime } from '../../../core/utils/sao-paulo-date.helper';
 import { BluetoothPrinterAdapter } from '../bluetooth-printer.adapter';
 import { PrintableOrder, PrintingConfig } from '../seller-printing.models';
@@ -257,10 +257,13 @@ export class EscPosBluetoothAdapter extends PrinterAdapter {
 
   private paymentLabel(method: unknown): string {
     switch (method) {
-      case 0: return 'Pix';
-      case 1: return 'Cartao online';
-      case 2: return 'Dinheiro';
-      case 3: return 'Cartao ao receber';
+      case 1: return 'Pix online';
+      case 2: return 'Cartao online';
+      case 3: return 'Dinheiro';
+      case 4: return 'Cartao na entrega';
+      case 5: return 'Pix na maquininha';
+      case 6: return 'Debito';
+      case 7: return 'Credito';
       default: return '-';
     }
   }

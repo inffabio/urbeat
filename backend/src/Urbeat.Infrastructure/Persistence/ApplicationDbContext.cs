@@ -309,6 +309,9 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Subtotal).HasPrecision(10, 2);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.Total).HasPrecision(10, 2);
+            entity.Property(x => x.CashChangeForAmount).HasPrecision(10, 2);
+            entity.Property(x => x.CashReceivedAmount).HasPrecision(10, 2);
+            entity.Property(x => x.CashChangeAmount).HasPrecision(10, 2);
             entity.Property(x => x.SellerCompletedAtUtc).IsConcurrencyToken();
             entity.Property(x => x.StatusVersion).IsConcurrencyToken();
             entity.Property(x => x.DeliveryPinHash).HasMaxLength(500);
