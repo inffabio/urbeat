@@ -26,6 +26,10 @@
           "catalog": 60000,
           "execution": 180000
         }
+      },
+      "mercadopago": {
+        "type": "remote",
+        "url": "https://mcp.mercadopago.com/mcp"
       }
     }
   }
