@@ -48,12 +48,10 @@ public static class TestAuthHelpers
     }
 
     /// <summary>
-    /// Registers a seller through the public API, asserts the registration was created (so a
-    /// contractor-name/e-mail conflict cannot be silently ignored), and confirms the e-mail.
-    /// Integration test classes share a single in-memory database, so the supplied
-    /// <paramref name="fullName"/> is made unique per call: otherwise the second test that reuses
-    /// the same base name would receive a 409 contractor-name conflict and the follow-up
-    /// confirmation lookup would fail with a misleading "user not found" error.
+    /// Registers a seller through the public API, asserts the registration was created, and confirms
+    /// the e-mail. Integration test classes share a single in-memory database, so a unique suffix is
+    /// appended to the supplied <paramref name="fullName"/> to keep test data easy to tell apart;
+    /// contractor names themselves are not unique across sellers.
     /// </summary>
     public static async Task<HttpResponseMessage> RegisterSellerAsync<TFactory>(
         this TFactory factory,

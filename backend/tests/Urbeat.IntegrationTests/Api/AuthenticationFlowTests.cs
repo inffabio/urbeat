@@ -1,8 +1,11 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
 
@@ -89,20 +92,11 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task RegisterSeller_ShouldReturnConflict_WhenContractorNameAlreadyRegistered()
+    public async Task RegisterSeller_ShouldAllowSameContractorName_IgnoringCaseAndSurroundingSpaces()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
 
         var baseName = $"Contratante {Guid.NewGuid():N}";
-
-        var firstResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
-        {
-            FullName = baseName,
-            Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
-            Password = "SenhaForte123",
-            PhoneNumber = "11988888888"
-        });
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var variations = new[]
         {
@@ -113,25 +107,31 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         foreach (var variation in variations)
         {
+            var email = $"seller.{Guid.NewGuid():N}@urbeat.local";
+
             var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
             {
                 FullName = variation,
-                Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
+                Email = email,
                 Password = "SenhaForte123",
                 PhoneNumber = "11977777777"
             });
 
-            response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            response.StatusCode.Should().Be(
+                HttpStatusCode.Created,
+                "contractor names are not unique identifiers; body: " + await response.Content.ReadAsStringAsync());
 
             var payload = await response.Content.ReadFromJsonAsync<JsonElement>();
-            payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
-            payload.GetProperty("errors").GetArrayLength().Should().Be(1);
-            payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+            payload.TryGetProperty("contractorNameAlreadyRegistered", out _).Should().BeFalse();
+
+            // The supplied name is still persisted (trimmed) for each account.
+            var claims = await GetUserClaimsAsync(email);
+            claims.Should().Contain(claim => claim.Type == "FullName" && claim.Value == variation.Trim());
         }
     }
 
     [Fact]
-    public async Task RegisterSeller_WithSameEmail_ShouldReturnEmailAlreadyExists_NotContractorNameConflict()
+    public async Task RegisterSeller_WithSameEmail_ShouldReturnEmailAlreadyExists()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
 
@@ -165,7 +165,7 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task RegisterSeller_ShouldReturnConflict_WhenPromotingCustomerWithNameAlreadyRegistered()
+    public async Task RegisterSeller_ShouldPromoteCustomer_WhenAnotherSellerHasSameName()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
 
@@ -198,20 +198,23 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
             PhoneNumber = "11977777777"
         });
 
-        promoteResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        promoteResponse.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            "promotion must not be blocked by another seller using the same contractor name; body: "
+                + await promoteResponse.Content.ReadAsStringAsync());
 
-        var payload = await promoteResponse.Content.ReadFromJsonAsync<JsonElement>();
-        payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
-        payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+        var claims = await GetUserClaimsAsync(customerEmail);
+        claims.Should().Contain(claim => claim.Type == "FullName" && claim.Value == baseName);
     }
 
     [Fact]
-    public async Task PromoteCustomerToSeller_ShouldPersistFullName_AndBlockSubsequentSellerWithSameName()
+    public async Task PromoteCustomerToSeller_ShouldPersistFullName_AndAllowSubsequentSellerWithSameName()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
 
         var unique = Guid.NewGuid().ToString("N");
         var customerEmail = $"customer.{unique}@urbeat.local";
+        var secondSellerEmail = $"seller.{unique}@urbeat.local";
         var promotedName = $"Contratante Promovido {unique}";
         const string password = "SenhaForte123";
 
@@ -236,17 +239,52 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
         var secondSellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = promotedName,
-            Email = $"seller.{unique}@urbeat.local",
+            Email = secondSellerEmail,
             Password = password,
             PhoneNumber = "11966666666"
         });
 
-        secondSellerResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        secondSellerResponse.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            "contractor names are not unique identifiers; body: "
+                + await secondSellerResponse.Content.ReadAsStringAsync());
 
-        var payload = await secondSellerResponse.Content.ReadFromJsonAsync<JsonElement>();
-        payload.GetProperty("contractorNameAlreadyRegistered").GetBoolean().Should().BeTrue();
-        payload.GetProperty("errors").GetArrayLength().Should().Be(1);
-        payload.GetProperty("errors")[0].GetString().Should().Be("Nome do contratante já cadastrado.");
+        var promotedClaims = await GetUserClaimsAsync(customerEmail);
+        promotedClaims.Should().Contain(claim => claim.Type == "FullName" && claim.Value == promotedName);
+
+        var secondClaims = await GetUserClaimsAsync(secondSellerEmail);
+        secondClaims.Should().Contain(claim => claim.Type == "FullName" && claim.Value == promotedName);
+    }
+
+    [Fact]
+    public async Task RegisterCustomer_WithSameDocument_ShouldReturnConflict()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var document = ValidCpf();
+        const string password = "SenhaForte123";
+
+        var firstResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = $"Pessoa Documento {Guid.NewGuid():N}",
+            Email = $"document.{Guid.NewGuid():N}@urbeat.local",
+            Password = password,
+            PhoneNumber = "11977777777",
+            Document = document
+        });
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = $"Pessoa Documento Dois {Guid.NewGuid():N}",
+            Email = $"document.other.{Guid.NewGuid():N}@urbeat.local",
+            Password = password,
+            PhoneNumber = "11966666666",
+            Document = document
+        });
+
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        var payload = await secondResponse.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("documentAlreadyRegistered").GetBoolean().Should().BeTrue();
     }
 
     [Fact]
@@ -430,6 +468,46 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
         var newTokenRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
         newTokenRefresh.Headers.Add("Cookie", newCookie);
         (await client.SendAsync(newTokenRefresh)).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    private async Task<IList<Claim>> GetUserClaimsAsync(string email)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var user = await userManager.FindByEmailAsync(email.Trim().ToLowerInvariant());
+        user.Should().NotBeNull($"user '{email}' should have been registered");
+        return await userManager.GetClaimsAsync(user!);
+    }
+
+    private static string ValidCpf()
+    {
+        var random = Random.Shared;
+        var digits = new int[9];
+        do
+        {
+            for (var i = 0; i < digits.Length; i++)
+            {
+                digits[i] = random.Next(0, 10);
+            }
+        }
+        while (digits.Distinct().Count() == 1);
+
+        var firstCheckDigit = CheckDigit(digits, 10);
+        var secondCheckDigit = CheckDigit(digits.Append(firstCheckDigit).ToArray(), 11);
+
+        return string.Concat(digits) + firstCheckDigit + secondCheckDigit;
+    }
+
+    private static int CheckDigit(IReadOnlyList<int> digits, int weightStart)
+    {
+        var sum = 0;
+        for (var i = 0; i < digits.Count; i++)
+        {
+            sum += digits[i] * (weightStart - i);
+        }
+
+        var remainder = (sum * 10) % 11;
+        return remainder == 10 ? 0 : remainder;
     }
 
     private static string ExtractRefreshCookie(HttpResponseMessage response)

@@ -114,6 +114,21 @@ describe('SellerRegisterPageComponent', () => {
     );
   });
 
+  it('allows registering a seller whose contractor name matches an existing seller', () => {
+    fillValidForm();
+    component.fullName.set('Contratante Teste');
+    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
+
+    component.submit();
+
+    expect(authServiceMock.registerSeller).toHaveBeenCalledWith(
+      expect.objectContaining({ fullName: 'Contratante Teste' }),
+    );
+    expect(component.errors()['fullName']).toBeUndefined();
+    expect(toastMock.showError).not.toHaveBeenCalled();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
+  });
+
   it('preserves registration error handling for an email conflict', () => {
     fillValidForm();
     authServiceMock.registerSeller.mockReturnValue(throwError(() => ({ status: 409 })));

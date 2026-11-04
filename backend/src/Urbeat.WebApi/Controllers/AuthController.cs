@@ -94,15 +94,6 @@ public sealed class AuthController : ControllerBase
         var result = await _authService.RegisterSellerAsync(request, cancellationToken);
         if (!result.Succeeded)
         {
-            if (result.ContractorNameAlreadyRegistered)
-            {
-                Response.ContentType = "application/problem+json";
-                return Conflict(new
-                {
-                    contractorNameAlreadyRegistered = true,
-                    errors = result.Errors
-                });
-            }
             if (result.DocumentAlreadyRegistered)
             {
                 Response.ContentType = "application/problem+json";
