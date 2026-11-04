@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
-import { driverChildGuard, driverGuard } from './core/guards/driver.guard';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 export const routes: Routes = [
@@ -276,39 +275,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/seller-delivery-drivers/seller-delivery-drivers-page.component').then(
             (m) => m.SellerDeliveryDriversPageComponent,
-          ),
-      },
-    ],
-  },
-  {
-    path: 'entregador/login',
-    loadComponent: () =>
-      import('./features/driver-portal/driver-login-page.component').then(
-        (m) => m.DriverLoginPageComponent,
-      ),
-  },
-  {
-    path: 'entregador/convite/:token',
-    loadComponent: () =>
-      import('./features/driver-portal/driver-invite-page.component').then(
-        (m) => m.DriverInvitePageComponent,
-      ),
-  },
-  {
-    path: 'entregador',
-    canActivate: [driverGuard],
-    canActivateChild: [driverChildGuard],
-    loadComponent: () =>
-      import('./features/driver-portal/driver-shell.component').then(
-        (m) => m.DriverShellComponent,
-      ),
-    children: [
-      { path: '', pathMatch: 'full', redirectTo: 'pedidos' },
-      {
-        path: 'pedidos',
-        loadComponent: () =>
-          import('./features/driver-portal/driver-orders-page.component').then(
-            (m) => m.DriverOrdersPageComponent,
           ),
       },
     ],

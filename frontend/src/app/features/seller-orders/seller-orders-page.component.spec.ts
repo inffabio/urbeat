@@ -83,13 +83,10 @@ describe('SellerOrdersPageComponent', () => {
     id: 'link-ana',
     deliveryDriverId: 'driver-ana',
     name: 'Ana Motoboy',
-    email: '',
     phoneNumber: '11999999999',
     whatsAppPhoneNumber: '11988887777',
     isActive: true,
-    hasAccount: false,
     status: 2,
-    canResendInvite: false,
     ...overrides,
   });
 
@@ -2974,13 +2971,10 @@ describe('SellerOrdersPageComponent', () => {
       id: 'link-1',
       deliveryDriverId: 'driver-1',
       name: 'Ana Motoboy',
-      email: '',
       phoneNumber: '11999999999',
       whatsAppPhoneNumber: '11988887777',
       isActive: true,
-      hasAccount: false,
       status: 2,
-      canResendInvite: false,
     }]));
 
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
@@ -3025,13 +3019,10 @@ describe('SellerOrdersPageComponent', () => {
       id: 'link-1',
       deliveryDriverId: 'driver-1',
       name: 'Ana Motoboy',
-      email: '',
       phoneNumber: '11999999999',
       whatsAppPhoneNumber: '11988887777',
       isActive: true,
-      hasAccount: false,
       status: 2,
-      canResendInvite: false,
     }]);
     component.selectedOrderId.set('order-1');
 
@@ -3053,25 +3044,19 @@ describe('SellerOrdersPageComponent', () => {
         id: 'link-ana',
         deliveryDriverId: 'driver-ana',
         name: 'Ana Motoboy',
-        email: '',
         phoneNumber: '11999999999',
         whatsAppPhoneNumber: '11988887777',
         isActive: true,
-        hasAccount: false,
         status: 2,
-        canResendInvite: false,
       },
       {
         id: 'link-bruno',
         deliveryDriverId: 'driver-bruno',
         name: 'Bruno Motoboy',
-        email: '',
         phoneNumber: '11999999998',
         whatsAppPhoneNumber: '11988887778',
         isActive: true,
-        hasAccount: false,
         status: 2,
-        canResendInvite: false,
       },
     ]));
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) =>

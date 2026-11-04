@@ -67,20 +67,20 @@ exibido”, mas também não são quebrados; o frontend atualizado sempre envia 
 
 ## Confirmação manual antes do PIN
 
-Pedidos criados sob o contrato atual exigem que o motoboy confirme manualmente o recebimento e a
-forma de pagamento **antes** do PIN de 4 dígitos:
+O motoboy **não possui conta, senha, sessão ou token de entregador**. A operação acontece
+exclusivamente pelos links públicos bearer de rota/entrega. Pedidos criados sob o contrato atual
+exigem que o motoboy confirme manualmente o recebimento e a forma de pagamento **antes** do PIN de
+4 dígitos:
 
-- Motoboy autenticado: `POST /api/driver/orders/{orderId}/handover`
-  (`ConfirmOrderHandoverRequestDto { cashReceivedAmount? }`).
-- Link público de rota/entrega individual: o mesmo pedido de PIN envia
-  `handoverConfirmed: true` (e `cashReceivedAmount` no dinheiro). O servidor persiste a confirmação
-  antes de verificar o PIN. A interface exige checkbox explícito e não envia o campo sem ação do
-  motoboy.
+- Link público de rota/entrega individual: o pedido de PIN envia `handoverConfirmed: true` (e
+  `cashReceivedAmount` no dinheiro). O servidor persiste a confirmação antes de verificar o PIN. A
+  interface exige checkbox explícito e não envia o campo sem ação do motoboy. Não existe endpoint
+  autenticado de handover nem fluxo alternativo.
 
 Invariantes preservados:
 
-- A confirmação só é aceita para o motoboy atribuído e ativo da mesma loja, ou pelo token público
-  válido da rota/entrega.
+- A confirmação só é aceita pelo token público válido da rota/entrega, com vínculo ativo entre a
+  loja, o motoboy operacional e o pedido.
 - `ConfirmDeliveryPinAsync` retorna `HandoverRequired` enquanto `PaymentConfirmedAtUtc` estiver
   nulo, **sem consumir tentativa de PIN**. O contador e o bloqueio de 5 tentativas continuam iguais.
 - Repetir a confirmação é idempotente: não reescreve valores, horário nem auditoria.
@@ -92,8 +92,8 @@ Invariantes preservados:
   não grava valores de dinheiro e não cria auditoria de handover.
 - Pedidos novos com entrega não podem ser concluídos por caminho alternativo: a confirmação do
   cliente (`/delivery-confirmation`) e a conclusão do lojista exigem handover/pagamento **e** PIN.
-  Se o lojista marcar `Delivered` antes, o pedido continua pendente até o motoboy concluir.
-  Pedidos legados e retiradas mantêm o fluxo anterior.
+  Se o lojista marcar `Delivered` antes, o pedido continua pendente até o motoboy concluir pelo link
+  público. Pedidos legados e retiradas mantêm o fluxo anterior.
 
 ## Compatibilidade explícita
 
@@ -164,10 +164,8 @@ Backend:
 
 - `PaymentMethod` (novos valores 5/6/7 sem renumerar).
 - `CheckoutRequestDto`, `CheckoutSummaryResponseDto`, `CheckoutResultDto`.
-- `OrderDetailsResponseDto`, `OrderSummaryResponseDto`, `SellerDeliverySummaryResponseDto`,
-  `DriverOrderSummaryResponseDto`.
+- `OrderDetailsResponseDto`, `OrderSummaryResponseDto`, `SellerDeliverySummaryResponseDto`.
 - `ConfirmDeliveryPinRequestDto` (`handoverConfirmed`, `cashReceivedAmount`).
-- `ConfirmOrderHandoverRequestDto` e `DeliveryDriverActionResultDto`.
 - `PublicDeliveryRouteStopDto` e `PublicDeliveryRoutePinResultDto`.
 
 Frontend:
@@ -177,10 +175,23 @@ Frontend:
   preview estiver pendente ou falhar; se a confirmação devolver outro total, o cliente é avisado;
 - `/checkout/entrega` (legado) redireciona para `/checkout/pagamento`;
 - card de pedido do lojista: forma, troco, valores recebidos e confirmação;
-- app do motoboy: forma, troco, ação “Confirmar recebimento” antes do PIN (copy explícita
-  “recebeu o dinheiro” ou “pagamento aprovado na maquininha”);
-- link público de rota/entrega: forma, troco e confirmação explícita no diálogo do PIN;
+- link público de rota/entrega em `/rota/:token` e `/entrega/:token`: forma, troco e confirmação
+  explícita no diálogo do PIN. É o único fluxo operacional do motoboy;
+- lojista em `/app/entregadores`: cadastro operacional do motoboy por nome/telefone e atribuição de
+  pedidos/rotas, sem convite, senha ou conta de entregador;
 - rastreio, dashboard, listas e impressão: rótulos dos novos métodos (compatíveis com os antigos).
+
+## Ausência de autenticação do motoboy
+
+- Não existe `POST /api/auth/login/driver`, papel/policy `DeliveryDriverOnly`, `DriverController`,
+  rotas `/api/driver/*` nem telas `/entregador/login`, `/entregador` ou `/entregador/convite/:token`.
+- O lojista continua cadastrando e atribuindo o motoboy operacional (nome/telefone) e criando
+  rotas/links. O motoboy acessa a entrega somente com o link público válido, mais PIN/handover
+  quando aplicável.
+- Links inválidos, expirados ou revogados continuam retornando os status existentes (`404`/`410`) e
+  nunca expõem dados do pedido.
+- Nenhum bearer de entregador é necessário, emitido ou documentado; o token do link é o único
+  segredo e não deve ser impresso em logs ou documentação.
 
 ## Limitações conhecidas
 
@@ -195,7 +206,9 @@ Frontend:
 ## Validação executada
 
 - `dotnet build backend/Urbeat.sln`
-- `dotnet test backend/tests/Urbeat.UnitTests` (940 testes)
-- `dotnet test backend/tests/Urbeat.IntegrationTests` (259 testes)
-- `npx jest --no-coverage` no `frontend/` (114 suítes / 1906 testes)
+- `dotnet test backend/tests/Urbeat.UnitTests` (931 testes)
+- `dotnet test backend/tests/Urbeat.IntegrationTests` (261 testes)
+- `npx jest --no-coverage` no `frontend/` (109 suítes / 1884 testes)
 - `npx ng build --configuration production`
+- `powershell -NoProfile -File scripts/postman/Test-PostmanCollection.ps1`
+- `powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1`

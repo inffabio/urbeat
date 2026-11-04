@@ -62,15 +62,9 @@ $expectedGuardNames = @(
     'DELETE /api/stores/{storeId}/payment-gateway',
     'PUT /api/stores/{storeId}/payment-gateway',
     'POST /api/payments/order',
-    'POST /api/driver/orders/{orderId}/start',
-    'POST /api/driver/orders/{orderId}/confirm-pin',
     'DELETE /api/delivery-drivers/{storeDriverId}',
     'PATCH /api/delivery-drivers/{storeDriverId}/status',
-    'POST /api/delivery-drivers/invites/{token}/accept',
     'POST /api/delivery-drivers/store',
-    'POST /api/delivery-drivers/store/{storeDriverId}/resend-invite',
-    'POST /api/delivery-drivers/store/{storeDriverId}/revoke',
-    'POST /api/delivery-drivers/store/invite',
     'POST /api/delivery-routes/store/{routeId}/revoke',
     'POST /api/delivery-routes/store/{routeId}/share',
     'POST /api/delivery-routes/store/send',
@@ -98,7 +92,6 @@ $allowlistPosts = @(
     'POST /api/auth/login/customer',
     'POST /api/auth/login/seller',
     'POST /api/auth/login/admin',
-    'POST /api/auth/login/driver',
     'POST /api/auth/token',
     'POST /api/auth/refresh',
     'POST /api/checkout/preview'
@@ -112,8 +105,8 @@ $environmentCatalog = @(
     @('cityId','default'), @('printerPresetId','default'),
     @('customerEmail','secret'), @('newCustomerEmail','secret'), @('customerPassword','secret'),
     @('sellerEmail','secret'), @('sellerPassword','secret'), @('adminEmail','secret'),
-    @('adminPassword','secret'), @('driverEmail','secret'), @('driverPassword','secret'),
-    @('customerToken','secret'), @('sellerToken','secret'), @('adminToken','secret'), @('driverToken','secret'),
+    @('adminPassword','secret'),
+    @('customerToken','secret'), @('sellerToken','secret'), @('adminToken','secret'),
     @('storeId','default'), @('cuisineTypeId','default'), @('categoryId','default'), @('productId','default'),
     @('productImageUrl','default'), @('uploadedImageUrl','default'), @('additionalId','default'),
     @('additionalGroupId','default'), @('addressId','default'), @('orderId','default'),
@@ -123,7 +116,7 @@ $environmentCatalog = @(
     @('systemParameterKey','default'), @('landingContentId','default'), @('outboxEventId','default'),
     @('customerNotificationId','default'), @('sellerNotificationId','default'),
     @('verificationId','default'), @('stopSequence','default'),
-    @('deliveryRouteToken','secret'), @('individualDeliveryToken','secret'), @('driverInviteToken','secret'),
+    @('deliveryRouteToken','secret'), @('individualDeliveryToken','secret'),
     @('verificationCode','secret'), @('deliveryPin','secret'), @('emailConfirmationCode','secret'),
     @('emailConfirmationToken','secret'), @('passwordResetToken','secret'), @('emailChangeChallenge','secret'),
     @('customerDocument','secret'), @('sellerDocument','secret'), @('storeDocument','secret'),
@@ -141,6 +134,23 @@ function Test-Guid([string]$value) {
 # ---------------- coleção ----------------
 $collection = Read-Utf8Json $CollectionPath
 $collectionText = Read-Utf8Text $CollectionPath
+
+# The motoboy has no account, password or token: only public bearer links and seller-side
+# operational management. Any of these strings means the removed model leaked back in.
+$forbiddenDriverReferences = @(
+    'login/driver',
+    'driverToken',
+    'driverPassword',
+    'driverEmail',
+    'driverInviteToken',
+    '/api/driver/',
+    'DeliveryDriverOnly'
+)
+foreach ($forbidden in $forbiddenDriverReferences) {
+    if ($collectionText.IndexOf($forbidden, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+        Fail "referencia proibida ao motoboy autenticado: $forbidden"
+    }
+}
 
 if ($collection.info.schema -ne 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json') {
     Fail "schema invalido: $($collection.info.schema)"
@@ -179,8 +189,8 @@ foreach ($folder in $folders) {
         }
     }
 }
-if ($subfolderCount -ne 44) { Fail "subpastas esperadas=44 encontradas=$subfolderCount" }
-if ($requests.Count -ne 179) { Fail "requisicoes esperadas=179 encontradas=$($requests.Count)" }
+if ($subfolderCount -ne 43) { Fail "subpastas esperadas=43 encontradas=$subfolderCount" }
+if ($requests.Count -ne 170) { Fail "requisicoes esperadas=170 encontradas=$($requests.Count)" }
 
 $duplicateIds = @($allIds | Group-Object | Where-Object Count -gt 1)
 foreach ($g in $duplicateIds) { Fail "id duplicado: $($g.Name)" }
@@ -208,7 +218,7 @@ if ($null -ne $map) {
     }
 }
 
-$allowedBearerTokens = @('{{customerToken}}','{{sellerToken}}','{{adminToken}}','{{driverToken}}')
+$allowedBearerTokens = @('{{customerToken}}','{{sellerToken}}','{{adminToken}}')
 $strictPublic200 = @(
     'GET /api/public/stores',
     'GET /api/stores/cuisine-types',
@@ -389,9 +399,9 @@ if ($null -ne $guardText) {
     if (-not $destructiveMatch.Success) { Fail 'guard sem destructive' }
     else { $guardNames = @([regex]::Matches($destructiveMatch.Groups[1].Value, "'([^']+)'") | ForEach-Object { $_.Groups[1].Value }) }
 
-    if ($readOnlyNames.Count -ne 7) { Fail "guard readOnlyPosts esperado=7 encontrado=$($readOnlyNames.Count)" }
+    if ($readOnlyNames.Count -ne 6) { Fail "guard readOnlyPosts esperado=6 encontrado=$($readOnlyNames.Count)" }
     foreach ($n in $allowlistPosts) { if ($readOnlyNames -notcontains $n) { Fail "guard sem allowlist: $n" } }
-    if ($guardNames.Count -ne 63) { Fail "guard destructive esperado=63 encontrado=$($guardNames.Count)" }
+    if ($guardNames.Count -ne 57) { Fail "guard destructive esperado=57 encontrado=$($guardNames.Count)" }
     foreach ($n in $expectedGuardNames) { if ($guardNames -notcontains $n) { Fail "guard sem destrutiva: $n" } }
     foreach ($n in $guardNames) { if ($expectedGuardNames -notcontains $n) { Fail "guard com destrutiva inesperada: $n" } }
 

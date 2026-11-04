@@ -277,57 +277,6 @@
               ]
             },
             {
-              "id": "0367d95b-cbbd-5425-8f1f-041943aa413a",
-              "name": "POST /api/auth/login/driver",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/auth/login/driver",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "login",
-                    "driver"
-                  ]
-                },
-                "auth": {
-                  "type": "noauth"
-                },
-                "description": "Feature: 01 · Acesso e identidade / Login\nController: Auth.LoginDriver\nAuth: No Auth\nClassificação: read\nPré-requisitos: variáveis {{driverEmail}}, {{driverPassword}} preenchidas.\nEfeitos: nenhum.\nCaptura: driverToken ← accessToken; lastLoginRole=driver",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"{{driverEmail}}\",\n  \"password\": \"{{driverPassword}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "response": [],
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "(() => {\n  try {\n    if (!pm.response || pm.response.code < 200 || pm.response.code >= 300) return;\n    const body = pm.response.json();\n    if (!body || typeof body.accessToken !== 'string' || body.accessToken.length === 0) return;\n    pm.environment.set('driverToken', body.accessToken);\n    pm.environment.set('lastLoginRole', 'driver');\n  } catch (e) { /* captura best-effort */ }\n})();"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
               "id": "b1d030c9-d640-5289-9f1b-30eff8143462",
               "name": "POST /api/auth/token",
               "request": {
@@ -459,7 +408,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "(() => {\n  try {\n    if (!pm.response || pm.response.code < 200 || pm.response.code >= 300) return;\n    const body = pm.response.json();\n    if (!body || typeof body.accessToken !== 'string' || !body.accessToken) return;\n    const target = {\n      customer: 'customerToken',\n      seller: 'sellerToken',\n      admin: 'adminToken',\n      driver: 'driverToken'\n    }[String(pm.environment.get('lastLoginRole') || '')];\n    if (target) pm.environment.set(target, body.accessToken);\n  } catch (e) { /* captura best-effort */ }\n})();"
+                      "(() => {\n  try {\n    if (!pm.response || pm.response.code < 200 || pm.response.code >= 300) return;\n    const body = pm.response.json();\n    if (!body || typeof body.accessToken !== 'string' || !body.accessToken) return;\n    const target = {\n      customer: 'customerToken',\n      seller: 'sellerToken',\n      admin: 'adminToken'\n    }[String(pm.environment.get('lastLoginRole') || '')];\n    if (target) pm.environment.set(target, body.accessToken);\n  } catch (e) { /* captura best-effort */ }\n})();"
                     ]
                   }
                 }
@@ -4524,7 +4473,7 @@
                 "description": "Feature: 08 · Checkout e pedidos / Checkout\nController: Checkout.Preview\nAuth: No Auth\nClassificação: read\nPré-requisitos: variáveis {{storeId}}, {{addressId}}, {{productId}} preenchidas; loja aberta; storeId, productId e (para delivery) addressId válidos.\nEfeitos: nenhum.\nCaptura: nenhuma",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": null,\n  \"notes\": \"Prévia de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ]\n}",
+                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": null,\n  \"notes\": \"Prévia de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ],\n  \"expectedTotal\": null,\n  \"cashWithoutChange\": null,\n  \"cashChangeForAmount\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4762,7 +4711,7 @@
                 "description": "Feature: 08 · Checkout e pedidos / Checkout\nController: Checkout.Confirm\nAuth: customerToken\nClassificação: destructive\nPré-requisitos: token válido em customerToken; variáveis {{storeId}}, {{addressId}}, {{productId}} preenchidas; cliente autenticado; loja aberta e não bloqueada; storeId, productId e addressId válidos.\nEfeitos: cria o pedido e recalcula preços, taxas e totais no servidor.\nCaptura: orderId ← orderId; orderCode ← code\nManual: sim",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": 1,\n  \"notes\": \"Pedido de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ]\n}",
+                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": 1,\n  \"notes\": \"Pedido de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ],\n  \"expectedTotal\": null,\n  \"cashWithoutChange\": null,\n  \"cashChangeForAmount\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4818,7 +4767,7 @@
                 "description": "Feature: 08 · Checkout e pedidos / Checkout\nController: Orders.Create\nAuth: customerToken\nClassificação: destructive\nPré-requisitos: token válido em customerToken; variáveis {{storeId}}, {{addressId}}, {{productId}} preenchidas; cliente autenticado; loja aberta e não bloqueada; storeId, productId e addressId válidos.\nEfeitos: cria o pedido com o mesmo contrato de confirmação do checkout.\nCaptura: orderId ← orderId; orderCode ← code\nManual: sim",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": 1,\n  \"notes\": \"Pedido de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ]\n}",
+                  "raw": "{\n  \"storeId\": \"{{storeId}}\",\n  \"fulfillmentType\": 1,\n  \"customerAddressId\": \"{{addressId}}\",\n  \"paymentMethod\": 1,\n  \"notes\": \"Pedido de teste\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"notes\": \"Sem cebola\",\n      \"variationId\": null,\n      \"choiceOptionId\": null,\n      \"weightGrams\": null,\n      \"additionalIds\": [],\n      \"optionGroups\": []\n    }\n  ],\n  \"expectedTotal\": null,\n  \"cashWithoutChange\": null,\n  \"cashChangeForAmount\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5327,6 +5276,134 @@
                   ]
                 },
                 "description": "Feature: 08 · Checkout e pedidos / Pedidos da loja\nController: Orders.StoreDeliveries\nAuth: sellerToken\nClassificação: read\nPré-requisitos: token válido em sellerToken.\nEfeitos: nenhum.\nCaptura: nenhuma"
+              },
+              "response": []
+            },
+            {
+              "id": "01749d76-98d5-4131-b45b-09b3a47d3f63",
+              "name": "GET /api/orders/store/sales",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/orders/store/sales",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders",
+                    "store",
+                    "sales"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "day",
+                      "description": "Opcional. day, week, month ou year. Padrão day.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "anchor",
+                      "value": "",
+                      "description": "Opcional. Data local (AAAA-MM-DD) usada como referência.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "weekBlock",
+                      "value": "1",
+                      "description": "Opcional. Bloco de semana (1 a 5) quando period=week.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Opcional. Padrão 1.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "20",
+                      "description": "Opcional. Padrão 20.",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{sellerToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Feature: 08 · Checkout e pedidos / Pedidos da loja\nController: Orders.StoreSales\nAuth: sellerToken\nClassificação: read\nPré-requisitos: token válido em sellerToken.\nEfeitos: nenhum.\nCaptura: nenhuma"
+              },
+              "response": []
+            },
+            {
+              "id": "c689c579-78bf-4181-9b36-0238bc4877f9",
+              "name": "GET /api/orders/store/analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/orders/store/analytics",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders",
+                    "store",
+                    "analytics"
+                  ],
+                  "query": [
+                    {
+                      "key": "period",
+                      "value": "day",
+                      "description": "Opcional. day, week, month ou year. Padrão day.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "anchor",
+                      "value": "",
+                      "description": "Opcional. Data local (AAAA-MM-DD) usada como referência.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "weekBlock",
+                      "value": "1",
+                      "description": "Opcional. Bloco de semana (1 a 5) quando period=week.",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{sellerToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Feature: 08 · Checkout e pedidos / Pedidos da loja\nController: Orders.StoreAnalytics\nAuth: sellerToken\nClassificação: read\nPré-requisitos: token válido em sellerToken.\nEfeitos: nenhum.\nCaptura: nenhuma"
               },
               "response": []
             },
@@ -5995,7 +6072,7 @@
     {
       "id": "69900aa7-f673-5b1a-8582-8068ef06d803",
       "name": "11 · Entregas",
-      "description": "Entregadores, rotas, app do entregador e links públicos.",
+      "description": "Entregadores, rotas e links públicos de entrega.",
       "item": [
         {
           "id": "c113b446-9178-529d-8a0f-2818ba5de3b8",
@@ -6070,7 +6147,7 @@
                     }
                   ]
                 },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.Create\nAuth: sellerToken\nClassificação: write\nPré-requisitos: token válido em sellerToken.\nEfeitos: cria o vínculo do entregador com a loja.\nCaptura: storeDriverId ← id; deliveryDriverId",
+                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.Create\nAuth: sellerToken\nClassificação: write\nPré-requisitos: token válido em sellerToken.\nEfeitos: cria o vínculo operacional do motoboy com a loja (nome/telefone), sem conta, convite ou senha.\nCaptura: storeDriverId ← id; deliveryDriverId",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"Entregador Teste\",\n  \"phoneNumber\": \"+5521999990003\",\n  \"whatsAppPhoneNumber\": \"+5521999990003\",\n  \"isActive\": true\n}",
@@ -6127,10 +6204,10 @@
                     }
                   ]
                 },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.CreateForStore\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken.\nEfeitos: cria vínculo de entregador; com e-mail preenchido dispara convite.\nCaptura: storeDriverId ← id; deliveryDriverId\nManual: sim",
+                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.CreateForStore\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken.\nEfeitos: cria o vínculo operacional do motoboy (nome/telefone), sem conta, convite ou senha.\nCaptura: storeDriverId ← id; deliveryDriverId\nManual: sim",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Entregador Teste\",\n  \"fullName\": null,\n  \"email\": null,\n  \"phoneNumber\": \"+5521999990003\",\n  \"whatsAppPhoneNumber\": \"+5521999990003\",\n  \"isActive\": true\n}",
+                  "raw": "{\n  \"name\": \"Entregador Teste\",\n  \"fullName\": null,\n  \"phoneNumber\": \"+5521999990003\",\n  \"whatsAppPhoneNumber\": \"+5521999990003\",\n  \"isActive\": true\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6245,131 +6322,6 @@
               "response": []
             },
             {
-              "id": "81a01d8b-de01-5131-b582-1c8242662ed4",
-              "name": "POST /api/delivery-drivers/store/invite",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/delivery-drivers/store/invite",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "delivery-drivers",
-                    "store",
-                    "invite"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{sellerToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.Invite\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken; variáveis {{driverEmail}} preenchidas.\nEfeitos: envia convite de entregador por e-mail.\nCaptura: nenhuma\nManual: sim",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"fullName\": \"Entregador Convidado\",\n  \"email\": \"{{driverEmail}}\",\n  \"phoneNumber\": \"+5521999990004\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "response": []
-            },
-            {
-              "id": "4308d9a7-4366-5b90-902b-f61dba13df03",
-              "name": "POST /api/delivery-drivers/store/{storeDriverId}/resend-invite",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/delivery-drivers/store/{{storeDriverId}}/resend-invite",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "delivery-drivers",
-                    "store",
-                    "{{storeDriverId}}",
-                    "resend-invite"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{sellerToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.ResendInvite\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken; variáveis {{storeDriverId}} preenchidas.\nEfeitos: reenvia convite de entregador por e-mail.\nCaptura: nenhuma\nManual: sim"
-              },
-              "response": []
-            },
-            {
-              "id": "9cd0d253-d718-5ff1-8ad5-6964ad236da6",
-              "name": "POST /api/delivery-drivers/store/{storeDriverId}/revoke",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/delivery-drivers/store/{{storeDriverId}}/revoke",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "delivery-drivers",
-                    "store",
-                    "{{storeDriverId}}",
-                    "revoke"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{sellerToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.Revoke\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken; variáveis {{storeDriverId}} preenchidas.\nEfeitos: revoga o convite pendente do entregador.\nCaptura: nenhuma\nManual: sim"
-              },
-              "response": []
-            },
-            {
               "id": "8cf695e5-9a1f-503d-b7b3-d6afd1ae6497",
               "name": "DELETE /api/delivery-drivers/{storeDriverId}",
               "request": {
@@ -6403,103 +6355,6 @@
                   ]
                 },
                 "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.Delete\nAuth: sellerToken\nClassificação: destructive\nPré-requisitos: token válido em sellerToken; variáveis {{storeDriverId}} preenchidas.\nEfeitos: remove o recurso indicado; operação destrutiva sem desfazer.\nCaptura: nenhuma\nManual: sim"
-              },
-              "response": []
-            },
-            {
-              "id": "60b41c12-6e15-56e3-b5a1-05ef9499736d",
-              "name": "GET /api/delivery-drivers/invites/{token}",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/delivery-drivers/invites/{{driverInviteToken}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "delivery-drivers",
-                    "invites",
-                    "{{driverInviteToken}}"
-                  ]
-                },
-                "auth": {
-                  "type": "noauth"
-                },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.PreviewInvite\nAuth: No Auth\nClassificação: read\nPré-requisitos: variáveis {{driverInviteToken}} preenchidas.\nEfeitos: nenhum.\nCaptura: nenhuma"
-              },
-              "response": [],
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const token = String(pm.environment.get('driverInviteToken') || '');",
-                      "if (token) {",
-                      "  pm.test('200 com preview de convite', function () {",
-                      "    pm.expect(pm.response.code).to.eql(200);",
-                      "    pm.expect(pm.response.json()).to.be.an('object');",
-                      "  });",
-                      "} else {",
-                      "  pm.test('token ausente retorna 200/404, nunca 401/403', function () {",
-                      "    pm.expect([200, 404]).to.include(pm.response.code);",
-                      "  });",
-                      "}",
-                      "pm.test('público: sem autenticação e sem 5xx', function () {",
-                      "  pm.expect(pm.response.code).to.not.be.oneOf([401, 403]);",
-                      "  pm.expect(pm.response.code).to.be.below(500);",
-                      "});"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "id": "72a8dddd-98df-5a5a-ab13-4616b656fdba",
-              "name": "POST /api/delivery-drivers/invites/{token}/accept",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/delivery-drivers/invites/{{driverInviteToken}}/accept",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "delivery-drivers",
-                    "invites",
-                    "{{driverInviteToken}}",
-                    "accept"
-                  ]
-                },
-                "auth": {
-                  "type": "noauth"
-                },
-                "description": "Feature: 11 · Entregas / Entregadores\nController: DeliveryDrivers.AcceptInvite\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{driverInviteToken}}, {{driverPassword}} preenchidas.\nEfeitos: aceita o convite e cria a conta do entregador.\nCaptura: nenhuma\nManual: sim",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"password\": \"{{driverPassword}}\",\n  \"fullName\": \"Entregador Convidado\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
               },
               "response": []
             }
@@ -6838,218 +6693,6 @@
           ]
         },
         {
-          "id": "688ebf4e-2318-5446-8776-a5f27f21c61d",
-          "name": "App do entregador",
-          "item": [
-            {
-              "id": "2cb2f09c-53bb-57af-afaa-0b5d89adcd14",
-              "name": "GET /api/driver/stores",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/driver/stores",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "driver",
-                    "stores"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{driverToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / App do entregador\nController: Driver.Stores\nAuth: driverToken\nClassificação: read\nPré-requisitos: token válido em driverToken.\nEfeitos: nenhum.\nCaptura: nenhuma"
-              },
-              "response": []
-            },
-            {
-              "id": "1c5a1a8d-abb0-578e-98d0-bcd980517d86",
-              "name": "GET /api/driver/orders",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/driver/orders?storeId={{storeId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "driver",
-                    "orders"
-                  ],
-                  "query": [
-                    {
-                      "key": "storeId",
-                      "value": "{{storeId}}",
-                      "description": "Obrigatório. Loja do entregador."
-                    }
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{driverToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / App do entregador\nController: Driver.Orders\nAuth: driverToken\nClassificação: read\nPré-requisitos: token válido em driverToken; variáveis {{storeId}} preenchidas.\nEfeitos: nenhum.\nCaptura: nenhuma"
-              },
-              "response": []
-            },
-            {
-              "id": "43e89016-e57a-5c0c-a181-f15e112ddbf1",
-              "name": "GET /api/driver/orders/{orderId}",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/driver/orders/{{orderId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "driver",
-                    "orders",
-                    "{{orderId}}"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{driverToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / App do entregador\nController: Driver.Order\nAuth: driverToken\nClassificação: read\nPré-requisitos: token válido em driverToken; variáveis {{orderId}} preenchidas.\nEfeitos: nenhum.\nCaptura: nenhuma"
-              },
-              "response": []
-            },
-            {
-              "id": "01fa688d-9181-52f3-9a0d-1cc97c1457cb",
-              "name": "POST /api/driver/orders/{orderId}/start",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/driver/orders/{{orderId}}/start",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "driver",
-                    "orders",
-                    "{{orderId}}",
-                    "start"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{driverToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / App do entregador\nController: Driver.StartDelivery\nAuth: driverToken\nClassificação: destructive\nPré-requisitos: token válido em driverToken; variáveis {{orderId}} preenchidas.\nEfeitos: entregador inicia a entrega do pedido.\nCaptura: nenhuma\nManual: sim"
-              },
-              "response": []
-            },
-            {
-              "id": "9a629cea-ae43-5259-93f6-ef8ea5e6c28e",
-              "name": "POST /api/driver/orders/{orderId}/confirm-pin",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/api/driver/orders/{{orderId}}/confirm-pin",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "api",
-                    "driver",
-                    "orders",
-                    "{{orderId}}",
-                    "confirm-pin"
-                  ]
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{driverToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "description": "Feature: 11 · Entregas / App do entregador\nController: Driver.ConfirmPin\nAuth: driverToken\nClassificação: destructive\nPré-requisitos: token válido em driverToken; variáveis {{orderId}}, {{deliveryPin}} preenchidas; PIN conhecido do pedido (derivado do telefone do cliente).\nEfeitos: valida o PIN e confirma a entrega do pedido.\nCaptura: nenhuma\nManual: sim",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"pin\": \"{{deliveryPin}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
           "id": "4d2eee25-b1b1-5dd4-87f7-37d4ef5a6def",
           "name": "Links públicos de entrega",
           "item": [
@@ -7135,7 +6778,7 @@
                 "description": "Feature: 11 · Entregas / Links públicos de entrega\nController: PublicIndividualDeliveries.ConfirmDelivery\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{individualDeliveryToken}}, {{deliveryPin}} preenchidas; individualDeliveryToken capturado de delivery-link.\nEfeitos: confirma a entrega por link público bearer (sem login).\nCaptura: nenhuma\nManual: sim",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"pin\": \"{{deliveryPin}}\"\n}",
+                  "raw": "{\n  \"pin\": \"{{deliveryPin}}\",\n  \"handoverConfirmed\": false,\n  \"cashReceivedAmount\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7229,7 +6872,7 @@
                 "description": "Feature: 11 · Entregas / Links públicos de entrega\nController: PublicDeliveryRoutes.ConfirmDelivery\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{deliveryRouteToken}}, {{stopSequence}}, {{deliveryPin}} preenchidas; deliveryRouteToken e stopSequence válidos.\nEfeitos: confirma uma parada da rota por link público bearer (sem login).\nCaptura: nenhuma\nManual: sim",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"pin\": \"{{deliveryPin}}\"\n}",
+                  "raw": "{\n  \"pin\": \"{{deliveryPin}}\",\n  \"handoverConfirmed\": false,\n  \"cashReceivedAmount\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8634,7 +8277,6 @@
           "    'POST /api/auth/login/customer',",
           "    'POST /api/auth/login/seller',",
           "    'POST /api/auth/login/admin',",
-          "    'POST /api/auth/login/driver',",
           "    'POST /api/auth/token',",
           "    'POST /api/auth/refresh',",
           "    'POST /api/checkout/preview'",
@@ -8674,15 +8316,9 @@
           "    'DELETE /api/stores/{storeId}/payment-gateway',",
           "    'PUT /api/stores/{storeId}/payment-gateway',",
           "    'POST /api/payments/order',",
-          "    'POST /api/driver/orders/{orderId}/start',",
-          "    'POST /api/driver/orders/{orderId}/confirm-pin',",
           "    'DELETE /api/delivery-drivers/{storeDriverId}',",
           "    'PATCH /api/delivery-drivers/{storeDriverId}/status',",
-          "    'POST /api/delivery-drivers/invites/{token}/accept',",
           "    'POST /api/delivery-drivers/store',",
-          "    'POST /api/delivery-drivers/store/{storeDriverId}/resend-invite',",
-          "    'POST /api/delivery-drivers/store/{storeDriverId}/revoke',",
-          "    'POST /api/delivery-drivers/store/invite',",
           "    'POST /api/delivery-routes/store/{routeId}/revoke',",
           "    'POST /api/delivery-routes/store/{routeId}/share',",
           "    'POST /api/delivery-routes/store/send',",

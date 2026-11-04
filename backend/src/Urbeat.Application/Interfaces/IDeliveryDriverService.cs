@@ -2,6 +2,10 @@ using Urbeat.Application.DTOs;
 
 namespace Urbeat.Application.Interfaces;
 
+/// <summary>
+/// Seller-side management of the operational motoboy link. The motoboy does not authenticate:
+/// deliveries are operated exclusively through the public bearer links.
+/// </summary>
 public interface IDeliveryDriverService
 {
     Task<IReadOnlyCollection<SellerDeliveryDriverResponseDto>> ListStoreDriversAsync(
@@ -35,69 +39,6 @@ public interface IDeliveryDriverService
     Task<SellerDeliveryDriverOperationResultDto> DeleteStoreDriverAsync(
         Guid sellerUserId,
         Guid storeDriverId,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Legacy invite flow, kept for compatibility with links already sent.</summary>
-    Task<SellerDeliveryDriverOperationResultDto> InviteAsync(
-        Guid sellerUserId,
-        InviteDeliveryDriverRequestDto request,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<SellerDeliveryDriverOperationResultDto> ResendInviteAsync(
-        Guid sellerUserId,
-        Guid storeDriverId,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<SellerDeliveryDriverOperationResultDto> RevokeAsync(
-        Guid sellerUserId,
-        Guid storeDriverId,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<DeliveryDriverInvitePreviewResponseDto> GetInvitePreviewAsync(
-        string token,
-        CancellationToken cancellationToken = default);
-
-    Task<AcceptDeliveryDriverInviteResultDto> AcceptInviteAsync(
-        string token,
-        AcceptDeliveryDriverInviteRequestDto request,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyCollection<DeliveryDriverStoreResponseDto>> ListDriverStoresAsync(
-        Guid driverUserId,
-        CancellationToken cancellationToken = default);
-
-    Task<DriverOrdersResultDto> ListDriverOrdersAsync(
-        Guid driverUserId,
-        Guid storeId,
-        CancellationToken cancellationToken = default);
-
-    Task<DriverOrderSummaryResponseDto?> GetDriverOrderAsync(
-        Guid driverUserId,
-        Guid orderId,
-        CancellationToken cancellationToken = default);
-
-    Task<DeliveryDriverActionResultDto> StartDeliveryAsync(
-        Guid driverUserId,
-        Guid orderId,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<DeliveryDriverActionResultDto> ConfirmHandoverAsync(
-        Guid driverUserId,
-        Guid orderId,
-        ConfirmOrderHandoverRequestDto request,
-        string? ipAddress,
-        CancellationToken cancellationToken = default);
-
-    Task<DeliveryDriverActionResultDto> ConfirmDeliveryPinAsync(
-        Guid driverUserId,
-        Guid orderId,
-        string pin,
         string? ipAddress,
         CancellationToken cancellationToken = default);
 

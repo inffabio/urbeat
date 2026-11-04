@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -11,10 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
-using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
-using Urbeat.Infrastructure.Outbox;
 using Urbeat.IntegrationTests.Infrastructure;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -29,459 +26,119 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         _factory = factory;
     }
 
+
     [Fact]
-    public async Task InviteAccept_ShouldWorkForSameDriverInTwoStores_AndIsolateData()
+    public async Task Assignment_ShouldRejectCrossStoreDriver_AndKeepSellerOwnership()
     {
         var (sellerAClient, storeAId) = await CreateStoreAsync("A");
         var (sellerBClient, storeBId) = await CreateStoreAsync("B");
-        var email = $"driver.{Guid.NewGuid():N}@urbeat.local";
 
-        var inviteA = await InviteDriverAsync(sellerAClient, email, "Entregador A", "11999990001");
-        var inviteB = await InviteDriverAsync(sellerBClient, email, "Entregador B", "11999990002");
-
-        var driverClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var tokenA = await ReadInviteTokenAsync(inviteA.Id);
-        var tokenB = await ReadInviteTokenAsync(inviteB.Id);
-
-        var preview = await driverClient.GetFromJsonAsync<DeliveryDriverInvitePreviewResponseDto>(
-            $"/api/delivery-drivers/invites/{tokenA}");
-        preview.Should().NotBeNull();
-        preview!.Valid.Should().BeTrue();
-        preview.AlreadyAccepted.Should().BeFalse();
-
-        var acceptA = await driverClient.PostAsJsonAsync(
-            $"/api/delivery-drivers/invites/{tokenA}/accept",
-            new AcceptDeliveryDriverInviteRequestDto { Password = Password, FullName = "Entregador Global" });
-        acceptA.StatusCode.Should().Be(HttpStatusCode.OK, await acceptA.Content.ReadAsStringAsync());
-
-        var acceptB = await driverClient.PostAsJsonAsync(
-            $"/api/delivery-drivers/invites/{tokenB}/accept",
-            new AcceptDeliveryDriverInviteRequestDto { Password = Password });
-        acceptB.StatusCode.Should().Be(HttpStatusCode.OK, await acceptB.Content.ReadAsStringAsync());
-
-        var replay = await driverClient.PostAsJsonAsync(
-            $"/api/delivery-drivers/invites/{tokenA}/accept",
-            new AcceptDeliveryDriverInviteRequestDto { Password = Password });
-        replay.StatusCode.Should().Be(HttpStatusCode.BadRequest, "invites are single-use");
-
-        var driverToken = await LoginDriverAsync(driverClient, email);
-        driverClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", driverToken);
-
-        var stores = await driverClient.GetFromJsonAsync<List<DeliveryDriverStoreResponseDto>>("/api/driver/stores");
-        stores.Should().NotBeNull();
-        stores!.Should().HaveCount(2);
-        stores.Select(x => x.StoreId).Should().Contain([storeAId, storeBId]);
-
-        var storeAList = await sellerAClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
-            "/api/delivery-drivers/store");
-        storeAList.Should().NotBeNull();
-        storeAList!.Should().ContainSingle(x => x.Email == email && x.Status == StoreDeliveryDriverStatus.Active);
-
-        var revokeResponse = await sellerAClient.PostAsync(
-            $"/api/delivery-drivers/store/{inviteA.Id}/revoke", null);
-        revokeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var ordersForRevokedStore = await driverClient.GetAsync($"/api/driver/orders?storeId={storeAId}");
-        ordersForRevokedStore.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-    }
-
-    [Fact]
-    public async Task Assignment_ShouldRejectCrossStore_AndDriverShouldOnlySeeOwnStoreOrders()
-    {
-        var (sellerAClient, storeAId) = await CreateStoreAsync("A");
-        var (sellerBClient, storeBId) = await CreateStoreAsync("B");
-        var email = $"driver.assignment.{Guid.NewGuid():N}@urbeat.local";
-
-        var invite = await InviteDriverAsync(sellerAClient, email, "Entregador A", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driverA = await CreateSimpleDriverAsync(
+            sellerAClient, "Entregador A", "11999990001", null, isActive: true);
 
         var orderA = await CreateDeliveryOrderAsync(sellerAClient, storeAId);
         var orderB = await CreateDeliveryOrderAsync(sellerBClient, storeBId);
 
         var crossStore = await sellerBClient.PutAsJsonAsync(
             $"/api/orders/store/{orderB.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driverA.Id });
         crossStore.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         var assignA = await sellerAClient.PutAsJsonAsync(
             $"/api/orders/store/{orderA.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driverA.Id });
         assignA.StatusCode.Should().Be(HttpStatusCode.OK, await assignA.Content.ReadAsStringAsync());
         var assigned = await assignA.Content.ReadFromJsonAsync<OrderDetailsResponseDto>();
         assigned!.DeliveryDriverName.Should().Be("Entregador A");
+        assigned.DeliveryDriverId.Should().Be(driverA.DeliveryDriverId);
 
-        var driverOrders = await driverClient.GetFromJsonAsync<DriverOrdersResultDto>(
-            $"/api/driver/orders?storeId={storeAId}");
-        driverOrders.Should().NotBeNull();
-        driverOrders!.Orders.Should().ContainSingle(x => x.Id == orderA.OrderId);
-        driverOrders.Orders.Should().NotContain(x => x.Id == orderB.OrderId);
-
-        var otherStoreOrders = await driverClient.GetAsync($"/api/driver/orders?storeId={storeBId}");
-        otherStoreOrders.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-
-        var secondDriverEmail = $"driver.assignment.second.{Guid.NewGuid():N}@urbeat.local";
-        var secondInvite = await InviteDriverAsync(sellerAClient, secondDriverEmail, "Entregador Dois", "11999990003");
-        var secondDriverClient = await AcceptInviteAndLoginAsync(secondInvite.Id, secondDriverEmail);
-
-        var secondDriverOrders = await secondDriverClient.GetFromJsonAsync<DriverOrdersResultDto>(
-            $"/api/driver/orders?storeId={storeAId}");
-        secondDriverOrders!.Orders.Should().BeEmpty("orders are isolated per driver");
-        var secondDriverOrderDetail = await secondDriverClient.GetAsync($"/api/driver/orders/{orderA.OrderId}");
-        secondDriverOrderDetail.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var driverB = await CreateSimpleDriverAsync(
+            sellerBClient, "Entregador B", "11999990002", null, isActive: true);
+        var otherStore = await sellerAClient.PutAsJsonAsync(
+            $"/api/orders/store/{orderA.OrderId}/delivery-driver",
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driverB.Id });
+        otherStore.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task DriverOrders_ShouldExposePersistedStoreAndCustomerCoordinates_AndNullWhenMissing()
+    public async Task Deactivate_ShouldBeBlocked_WhileAssignedOrderStillNeedsPublicLinkToConfirmPin()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.coords.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Rotas", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
-
-        const double storeLatitude = -23.55052;
-        const double storeLongitude = -46.633308;
-        const double customerLatitude = -23.561414;
-        const double customerLongitude = -46.655881;
-
-        await SetStoreAddressAsync(sellerClient, storeId, storeLatitude, storeLongitude);
-
-        var withCoordinates = await CreateDeliveryOrderAsync(
-            sellerClient, storeId, customerLatitude, customerLongitude);
-        var withoutCoordinates = await CreateDeliveryOrderAsync(sellerClient, storeId);
-
-        foreach (var orderId in new[] { withCoordinates.OrderId, withoutCoordinates.OrderId })
-        {
-            var assign = await sellerClient.PutAsJsonAsync(
-                $"/api/orders/store/{orderId}/delivery-driver",
-                new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-            assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
-        }
-
-        var list = await driverClient.GetFromJsonAsync<DriverOrdersResultDto>(
-            $"/api/driver/orders?storeId={storeId}");
-        list.Should().NotBeNull();
-
-        var mapped = list!.Orders.Single(x => x.Id == withCoordinates.OrderId);
-        mapped.OriginLatitude.Should().Be(storeLatitude);
-        mapped.OriginLongitude.Should().Be(storeLongitude);
-        mapped.DestinationLatitude.Should().Be(customerLatitude);
-        mapped.DestinationLongitude.Should().Be(customerLongitude);
-
-        var missing = list.Orders.Single(x => x.Id == withoutCoordinates.OrderId);
-        missing.OriginLatitude.Should().Be(storeLatitude);
-        missing.OriginLongitude.Should().Be(storeLongitude);
-        missing.DestinationLatitude.Should().BeNull("the customer address has no coordinates");
-        missing.DestinationLongitude.Should().BeNull("the customer address has no coordinates");
-
-        var detail = await driverClient.GetFromJsonAsync<DriverOrderSummaryResponseDto>(
-            $"/api/driver/orders/{withCoordinates.OrderId}");
-        detail.Should().NotBeNull();
-        detail!.DestinationLatitude.Should().Be(customerLatitude);
-        detail.DestinationLongitude.Should().Be(customerLongitude);
-    }
-
-    [Fact]
-    public async Task DeliveryOrder_ShouldKeepCheckoutCoordinateSnapshot_WhenCustomerAddressIsEdited()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.snapshot.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Snapshot", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
-
-        const double checkoutLatitude = -23.55052;
-        const double checkoutLongitude = -46.633308;
-        const double editedLatitude = -22.906847;
-        const double editedLongitude = -43.172897;
-
-        var order = await CreateDeliveryOrderAsync(
-            sellerClient, storeId, checkoutLatitude, checkoutLongitude);
-
-        var addresses = await order.CustomerClient.GetFromJsonAsync<List<CustomerAddressResponseDto>>(
-            "/api/customer/addresses");
-        var address = addresses!.Single();
-        var updateAddress = await order.CustomerClient.PutAsJsonAsync(
-            $"/api/customer/addresses/{address.Id}",
-            new UpsertCustomerAddressRequestDto
-            {
-                Cep = address.Cep,
-                Number = "999",
-                Street = "Rua Editada Depois do Checkout",
-                Neighborhood = address.Neighborhood,
-                City = address.City,
-                State = address.State,
-                IsPrimary = address.IsPrimary,
-                Latitude = editedLatitude,
-                Longitude = editedLongitude
-            });
-        updateAddress.StatusCode.Should().Be(HttpStatusCode.OK, await updateAddress.Content.ReadAsStringAsync());
-
-        var assign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
-
-        var list = await driverClient.GetFromJsonAsync<DriverOrdersResultDto>(
-            $"/api/driver/orders?storeId={storeId}");
-        var mapped = list!.Orders.Single(x => x.Id == order.OrderId);
-
-        mapped.DestinationLatitude.Should().Be(checkoutLatitude,
-            "the order must keep the coordinates captured at checkout");
-        mapped.DestinationLongitude.Should().Be(checkoutLongitude);
-        mapped.AddressNumber.Should().Be("100", "the address text is also an order snapshot");
-        mapped.AddressStreet.Should().Be("Rua Entrega");
-    }
-
-    [Fact]
-    public async Task Revoke_ShouldBeBlocked_WhileAssignedOrderStillNeedsDriverToConfirmPin()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.revoke.pending.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Revogacao", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Inativacao", "11999990001", null, isActive: true);
 
         var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
         var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
         customerDetails!.DeliveryPin.Should().BeNull("the PIN must not be exposed before OnDelivery");
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
 
         customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
         customerDetails!.DeliveryPin.Should().NotBeNullOrWhiteSpace();
 
-        var revokeOnDelivery = await sellerClient.PostAsync(
-            $"/api/delivery-drivers/store/{invite.Id}/revoke", null);
-        revokeOnDelivery.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        (await revokeOnDelivery.Content.ReadAsStringAsync()).Should().Contain("PIN");
+        var deactivateOnDelivery = await sellerClient.PatchAsJsonAsync(
+            $"/api/delivery-drivers/{driver.Id}/status",
+            new SetStoreDeliveryDriverStatusRequestDto { IsActive = false });
+        deactivateOnDelivery.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await deactivateOnDelivery.Content.ReadAsStringAsync()).Should().Contain("PIN");
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
 
         var markDelivered = await sellerClient.PatchAsJsonAsync(
             $"/api/orders/{order.OrderId}/status",
             new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
         markDelivered.StatusCode.Should().Be(HttpStatusCode.OK, await markDelivered.Content.ReadAsStringAsync());
 
-        var revokeAwaitingPin = await sellerClient.PostAsync(
-            $"/api/delivery-drivers/store/{invite.Id}/revoke", null);
-        revokeAwaitingPin.StatusCode.Should().Be(HttpStatusCode.Conflict,
-            "delivered orders without PIN confirmation still depend on the assigned driver");
+        var deactivateAwaitingPin = await sellerClient.PatchAsJsonAsync(
+            $"/api/delivery-drivers/{driver.Id}/status",
+            new SetStoreDeliveryDriverStatusRequestDto { IsActive = false });
+        deactivateAwaitingPin.StatusCode.Should().Be(HttpStatusCode.Conflict,
+            "delivered orders without PIN confirmation still depend on the assigned driver link");
 
-        var confirm = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = customerDetails!.DeliveryPin! });
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var confirm = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = customerDetails.DeliveryPin! });
         confirm.StatusCode.Should().Be(HttpStatusCode.OK, await confirm.Content.ReadAsStringAsync());
 
-        var revokeAfterPin = await sellerClient.PostAsync(
-            $"/api/delivery-drivers/store/{invite.Id}/revoke", null);
-        revokeAfterPin.StatusCode.Should().Be(HttpStatusCode.OK, await revokeAfterPin.Content.ReadAsStringAsync());
+        var deactivateAfterPin = await sellerClient.PatchAsJsonAsync(
+            $"/api/delivery-drivers/{driver.Id}/status",
+            new SetStoreDeliveryDriverStatusRequestDto { IsActive = false });
+        deactivateAfterPin.StatusCode.Should().Be(HttpStatusCode.OK, await deactivateAfterPin.Content.ReadAsStringAsync());
     }
 
-    [Fact]
-    public async Task PinAttempts_ShouldStopAtLimit_AndPersistExactlyFiveAttempts()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.limit.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Limite", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
 
-        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
-        var assign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-
-        var wrongPin = customerDetails!.DeliveryPin == "0000" ? "0001" : "0000";
-        for (var attempt = 1; attempt <= 5; attempt++)
-        {
-            var response = await driverClient.PostAsJsonAsync(
-                $"/api/driver/orders/{order.OrderId}/confirm-pin",
-                new ConfirmDeliveryPinRequestDto { Pin = wrongPin });
-
-            response.StatusCode.Should().Be(
-                attempt < 5 ? HttpStatusCode.BadRequest : HttpStatusCode.Locked,
-                $"attempt {attempt} must respect the configured limit");
-        }
-
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var assignment = await dbContext.OrderDeliveryAssignments
-                .AsNoTracking()
-                .SingleAsync(x => x.OrderId == order.OrderId);
-            assignment.PinAttemptCount.Should().Be(5, "the persisted counter must never exceed the limit");
-        }
-
-        var correctPin = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = customerDetails.DeliveryPin! });
-        correctPin.StatusCode.Should().Be(HttpStatusCode.Locked);
-    }
-
-    [Fact]
-    public async Task StartAndPinConfirmation_ShouldTransitionOrder_AndExposePinOnlyToCustomer()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.pin.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Pin", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
-
-        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
-
-        var assign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
-
-        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-        customerDetails.Should().NotBeNull();
-        customerDetails!.DeliveryPin.Should().BeNull(
-            "the customer only sees the PIN after the order enters OnDelivery");
-
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
-
-        var action = await start.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
-        action!.Status.Should().Be(OrderStatus.OnDelivery);
-
-        customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-        customerDetails!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
-
-        var sellerDetails = await sellerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/store/{order.OrderId}");
-        sellerDetails!.DeliveryPin.Should().BeNull("the PIN must never be exposed to the seller");
-
-        var wrongPin = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = "0000" });
-        // A generated PIN can legitimately be 0000; retry with another wrong value if so.
-        if (wrongPin.StatusCode == HttpStatusCode.OK)
-        {
-            customerDetails.DeliveryPin.Should().Be("0000");
-            wrongPin = await driverClient.PostAsJsonAsync(
-                $"/api/driver/orders/{order.OrderId}/confirm-pin",
-                new ConfirmDeliveryPinRequestDto { Pin = "1111" });
-        }
-
-        wrongPin.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-        var locked = false;
-        foreach (var attempt in new[] { "9998", "9997", "9996", "9995", "9994" })
-        {
-            var response = await driverClient.PostAsJsonAsync(
-                $"/api/driver/orders/{order.OrderId}/confirm-pin",
-                new ConfirmDeliveryPinRequestDto { Pin = attempt });
-            if (response.StatusCode == HttpStatusCode.Locked)
-            {
-                locked = true;
-                break;
-            }
-        }
-
-        locked.Should().BeTrue("the backend must lock the PIN after the configured attempts");
-
-        var correctPin = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = customerDetails.DeliveryPin! });
-        correctPin.StatusCode.Should().Be(HttpStatusCode.Locked, "the attempt limit must be enforced");
-
-        // Reassigning resets the attempt counter by design and lets the same driver try again.
-        var reassign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        reassign.StatusCode.Should().Be(HttpStatusCode.Conflict, "the delivery already started");
-
-        var remove = await sellerClient.DeleteAsync($"/api/orders/store/{order.OrderId}/delivery-driver");
-        remove.StatusCode.Should().Be(HttpStatusCode.Conflict);
-
-        var deliveredBySeller = await sellerClient.PatchAsJsonAsync(
-            $"/api/orders/{order.OrderId}/status",
-            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
-        deliveredBySeller.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var completeWithoutPin = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
-        completeWithoutPin.StatusCode.Should().Be(HttpStatusCode.Conflict);
-    }
-
-    [Fact]
-    public async Task CorrectPin_ShouldConfirmDelivery_EnableSellerCompletion_AndAuditUtc()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.success.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Success", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
-
-        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
-        var assign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        assign.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var customerDetails = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-
-        var confirm = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = customerDetails!.DeliveryPin! });
-        confirm.StatusCode.Should().Be(HttpStatusCode.OK, await confirm.Content.ReadAsStringAsync());
-
-        var result = await confirm.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
-        result!.Status.Should().Be(OrderStatus.Delivered);
-        result.DeliveryConfirmedAtUtc.Should().NotBeNull();
-        result.DeliveryConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
-
-        var complete = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
-        complete.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var pinAudit = await dbContext.AuditLogs
-            .AsNoTracking()
-            .SingleAsync(x => x.Event == "DeliveryPinConfirmed" && x.EntityId == order.OrderId);
-        pinAudit.UserId.Should().NotBeNull();
-        pinAudit.CreatedAtUtc.Kind.Should().Be(DateTimeKind.Utc);
-
-        var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
-        stored.DeliveryConfirmedAtUtc.Should().NotBeNull();
-        stored.DeliveryPinConfirmedAtUtc.Should().NotBeNull();
-        stored.DeliveryPinConfirmedByDriverId.Should().NotBeNull();
-        stored.DeliveryPinEncrypted.Should().NotBeNull();
-        stored.DeliveryPinHash.Should().NotBeNull();
-        stored.DeliveryPinHash.Should().NotBe(customerDetails.DeliveryPin);
-    }
 
     [Fact]
     public async Task PickupOrder_ShouldNotAcceptDeliveryDriverAssignment()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("A");
-        var email = $"driver.pickup.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Pickup", "11999990001");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Pickup", "11999990001", null, isActive: true);
 
         var pickupOrderId = await CreateOrderAsync(sellerClient, storeId, FulfillmentType.PickUp, null);
 
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{pickupOrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
-    public async Task StoreDriverCrud_ShouldWorkWithoutEmailOrInvite_AndExposeWhatsApp()
+    public async Task StoreDriverCrud_ShouldWorkWithOperationalFieldsOnly_AndExposeWhatsApp()
     {
         var (sellerClient, _) = await CreateStoreAsync("CRUD");
 
@@ -492,8 +149,6 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             "(11) 99999-0012",
             isActive: true);
 
-        created.Email.Should().BeEmpty();
-        created.HasAccount.Should().BeFalse();
         created.IsActive.Should().BeTrue();
         created.PhoneNumber.Should().Be("11999990011", "the mask is never persisted");
         created.WhatsAppPhoneNumber.Should().Be("11999990012");
@@ -651,37 +306,6 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         list!.Should().ContainSingle(x => x.Id == driver.Id);
     }
 
-    [Fact]
-    public async Task DeleteStoreDriver_ShouldKeepSharedLegacyIdentity_UsedByAnotherStore()
-    {
-        var (sellerAClient, _) = await CreateStoreAsync("DELETE-SHARED-A");
-        var (sellerBClient, _) = await CreateStoreAsync("DELETE-SHARED-B");
-        var email = $"driver.shared.delete.{Guid.NewGuid():N}@urbeat.local";
-
-        var inviteA = await InviteDriverAsync(sellerAClient, email, "Entregador Compartilhado", "11999990001");
-        var inviteB = await InviteDriverAsync(sellerBClient, email, "Entregador Compartilhado", "11999990001");
-        await AcceptInviteAndLoginAsync(inviteA.Id, email);
-        await AcceptInviteAndLoginAsync(inviteB.Id, email);
-
-        inviteB.DeliveryDriverId.Should().Be(inviteA.DeliveryDriverId,
-            "the legacy invite flow shares one global driver between stores");
-
-        var delete = await sellerAClient.DeleteAsync($"/api/delivery-drivers/{inviteA.Id}");
-        delete.StatusCode.Should().Be(HttpStatusCode.NoContent, await delete.Content.ReadAsStringAsync());
-
-        var storeAList = await sellerAClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
-            "/api/delivery-drivers/store");
-        storeAList!.Should().NotContain(x => x.Id == inviteA.Id);
-
-        var storeBList = await sellerBClient.GetFromJsonAsync<List<SellerDeliveryDriverResponseDto>>(
-            "/api/delivery-drivers/store");
-        storeBList!.Should().ContainSingle(x => x.Id == inviteB.Id && x.Email == email);
-
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        (await dbContext.DeliveryDrivers.AsNoTracking().AnyAsync(x => x.Id == inviteA.DeliveryDriverId))
-            .Should().BeTrue("the identity is still used by the other store");
-    }
 
     [Fact]
     public async Task OnDeliveryTransition_ShouldRequireActiveDriverFromTheSameStore()
@@ -1340,43 +964,6 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         details!.DeliveryPin.Should().Be("5432");
     }
 
-    [Fact]
-    public async Task DriverStart_ShouldRejectCustomerWithoutValidPhone()
-    {
-        var (sellerClient, storeId) = await CreateStoreAsync("PIN-DRIVER-PHONE");
-        var email = $"driver.phone.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Telefone", "11999990048");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
-
-        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
-        var assign = await sellerClient.PutAsJsonAsync(
-            $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
-        assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
-
-        await SetCustomerPhoneAsync(order.OrderId, null);
-
-        var rejected = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        rejected.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        (await rejected.Content.ReadAsStringAsync()).Should().Contain("telefone");
-
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var stored = await dbContext.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
-            stored.Status.Should().Be(OrderStatus.Ready);
-            stored.DeliveryPinHash.Should().BeNull();
-        }
-
-        await SetCustomerPhoneAsync(order.OrderId, "11912345678");
-
-        var started = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        started.StatusCode.Should().Be(HttpStatusCode.OK, await started.Content.ReadAsStringAsync());
-
-        var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
-            $"/api/orders/{order.OrderId}");
-        details!.DeliveryPin.Should().Be("5678");
-    }
 
     [Fact]
     public async Task PinConfirmation_ShouldRejectNonFourDigitPayload_WithoutChangingTheOrder()
@@ -1691,73 +1278,16 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         return (client, store.Id);
     }
 
-    private async Task<SellerDeliveryDriverResponseDto> InviteDriverAsync(
-        HttpClient sellerClient,
-        string email,
-        string name,
-        string phone)
-    {
-        var response = await sellerClient.PostAsJsonAsync("/api/delivery-drivers/store/invite", new InviteDeliveryDriverRequestDto
-        {
-            FullName = name,
-            Email = email,
-            PhoneNumber = phone
-        });
-        response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
-        var driver = await response.Content.ReadFromJsonAsync<SellerDeliveryDriverResponseDto>();
-        driver.Should().NotBeNull();
-        driver!.Status.Should().Be(StoreDeliveryDriverStatus.Pending);
-        return driver;
-    }
 
-    private async Task<string> ReadInviteTokenAsync(Guid storeDriverId)
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var message = await dbContext.OutboxMessages
-            .AsNoTracking()
-            .Where(x => x.Type == OutboxEventTypes.OutboundMessageRequested && x.AggregateId == storeDriverId)
-            .OrderByDescending(x => x.OccurredAtUtc)
-            .FirstAsync();
-        var payload = OutboxPayloadSerializer.Deserialize<OutboundMessageRequestedEvent>(message.Payload);
-        var match = Regex.Match(payload.Body, @"/entregador/convite/([^""<\s]+)");
-        match.Success.Should().BeTrue("invite e-mail must contain the acceptance link");
-        return Uri.UnescapeDataString(match.Groups[1].Value);
-    }
 
-    private async Task<HttpClient> AcceptInviteAndLoginAsync(Guid storeDriverId, string email)
-    {
-        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var token = await ReadInviteTokenAsync(storeDriverId);
-        var accept = await client.PostAsJsonAsync(
-            $"/api/delivery-drivers/invites/{token}/accept",
-            new AcceptDeliveryDriverInviteRequestDto { Password = Password });
-        accept.StatusCode.Should().Be(HttpStatusCode.OK, await accept.Content.ReadAsStringAsync());
 
-        var driverToken = await LoginDriverAsync(client, email);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", driverToken);
-        return client;
-    }
-
-    private async Task<string> LoginDriverAsync(HttpClient client, string email)
-    {
-        var login = await client.PostAsJsonAsync("/api/auth/login/driver", new LoginRequestDto
-        {
-            Email = email,
-            Password = Password
-        });
-        login.StatusCode.Should().Be(HttpStatusCode.OK, await login.Content.ReadAsStringAsync());
-        var token = await login.Content.ReadFromJsonAsync<AuthTokenResponseDto>();
-        return token!.AccessToken;
-    }
 
     [Fact]
     public async Task PublicLink_ShouldNotPersistHandoverPayment_WhenPinIsWrongOrLocked()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("PUBLIC-ATOMIC");
-        var email = $"driver.public.atomic.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Publico", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Publico", "11999990001", null, isActive: true);
 
         var order = await CreateNewContractDeliveryOrderAsync(
             sellerClient,
@@ -1768,11 +1298,10 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
 
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
 
         var pin = (await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}"))!.DeliveryPin!;
@@ -1850,22 +1379,27 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     public async Task SellerDelivered_ShouldNotAllowCustomerConfirmationToBypassHandoverAndPin()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("BYPASS");
-        var email = $"driver.bypass.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Bypass", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Bypass", "11999990001", null, isActive: true);
 
         var order = await CreateNewContractDeliveryOrderAsync(sellerClient, storeId);
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
 
         var detailsBeforeDelivered = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
         detailsBeforeDelivered!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
 
         // A seller can mark the order Delivered, but that must not finish the delivery.
         var sellerDelivered = await sellerClient.PatchAsJsonAsync(
@@ -1890,14 +1424,14 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             stored.DeliveryPinConfirmedAtUtc.Should().BeNull();
         }
 
-        var handover = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/handover",
-            new ConfirmOrderHandoverRequestDto());
-        handover.StatusCode.Should().Be(HttpStatusCode.OK, await handover.Content.ReadAsStringAsync());
-
-        var pin = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = detailsBeforeDelivered.DeliveryPin! });
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var pin = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = detailsBeforeDelivered.DeliveryPin!,
+                HandoverConfirmed = true
+            });
         pin.StatusCode.Should().Be(HttpStatusCode.OK, await pin.Content.ReadAsStringAsync());
 
         var completeAfterPin = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
@@ -1937,28 +1471,34 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
-    public async Task Handover_ShouldBeRequiredBeforePin_AndPersistCashChange()
+    public async Task PublicLink_ShouldRequireHandoverBeforePin_AndPersistPayment()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("HANDOVER");
-        var email = $"driver.handover.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Handover", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Handover", "11999990001", null, isActive: true);
 
         var order = await CreateNewContractDeliveryOrderAsync(sellerClient, storeId);
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
 
         var details = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
             $"/api/orders/{order.OrderId}");
         details!.DeliveryPin.Should().MatchRegex(@"^\d{4}$");
 
-        var pinBeforeHandover = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var pinBeforeHandover = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
             new ConfirmDeliveryPinRequestDto { Pin = details.DeliveryPin! });
         pinBeforeHandover.StatusCode.Should().Be(HttpStatusCode.Conflict);
         (await pinBeforeHandover.Content.ReadAsStringAsync()).Should().Contain("recebimento");
@@ -1971,17 +1511,13 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             assignment.PinAttemptCount.Should().Be(0, "a missing handover is not a wrong PIN");
         }
 
-        var handover = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/handover",
-            new ConfirmOrderHandoverRequestDto());
-        handover.StatusCode.Should().Be(HttpStatusCode.OK, await handover.Content.ReadAsStringAsync());
-        var handoverBody = await handover.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
-        handoverBody!.PaymentConfirmedAtUtc.Should().NotBeNull();
-        handoverBody.PaymentConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
-
-        var confirm = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/confirm-pin",
-            new ConfirmDeliveryPinRequestDto { Pin = details.DeliveryPin! });
+        var confirm = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = details.DeliveryPin!,
+                HandoverConfirmed = true
+            });
         confirm.StatusCode.Should().Be(HttpStatusCode.OK, await confirm.Content.ReadAsStringAsync());
 
         using (var scope = _factory.Services.CreateScope())
@@ -1990,17 +1526,18 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
             stored.Status.Should().Be(OrderStatus.Delivered);
             stored.PaymentConfirmedAtUtc.Should().NotBeNull();
-            stored.PaymentConfirmedByDriverId.Should().Be(invite.DeliveryDriverId);
+            stored.PaymentConfirmedAtUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+            stored.PaymentConfirmedByDriverId.Should().BeNull(
+                "the public link has no authenticated driver identity");
         }
     }
 
     [Fact]
-    public async Task Handover_ShouldValidateCashReceivedAndComputeChange()
+    public async Task PublicLink_ShouldValidateCashReceivedAndComputeChange()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("CASH");
-        var email = $"driver.cash.{Guid.NewGuid():N}@urbeat.local";
-        var invite = await InviteDriverAsync(sellerClient, email, "Entregador Dinheiro", "11999990001");
-        var driverClient = await AcceptInviteAndLoginAsync(invite.Id, email);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Dinheiro", "11999990001", null, isActive: true);
 
         var order = await CreateNewContractDeliveryOrderAsync(
             sellerClient,
@@ -2011,32 +1548,68 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
 
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{order.OrderId}/delivery-driver",
-            new AssignDeliveryDriverRequestDto { DeliveryDriverId = invite.Id });
+            new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.OK, await assign.Content.ReadAsStringAsync());
 
-        var start = await driverClient.PostAsync($"/api/driver/orders/{order.OrderId}/start", null);
-        start.StatusCode.Should().Be(HttpStatusCode.OK, await start.Content.ReadAsStringAsync());
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
 
-        var below = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/handover",
-            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 10m });
+        var pin = (await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}"))!.DeliveryPin!;
+
+        var share = await sellerClient.PostAsync(
+            $"/api/orders/store/{order.OrderId}/delivery-link",
+            null);
+        share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
+        var token = ExtractRouteToken(
+            (await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>())!.ShareUrl!);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var below = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = pin,
+                HandoverConfirmed = true,
+                CashReceivedAmount = 10m
+            });
         below.StatusCode.Should().Be(HttpStatusCode.BadRequest, await below.Content.ReadAsStringAsync());
 
-        var success = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/handover",
-            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 60m });
+        var success = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = pin,
+                HandoverConfirmed = true,
+                CashReceivedAmount = 60m
+            });
         success.StatusCode.Should().Be(HttpStatusCode.OK, await success.Content.ReadAsStringAsync());
-        var body = await success.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
-        body!.CashReceivedAmount.Should().Be(60m);
-        body.CashChangeAmount.Should().Be(36m, "the checkout forecast is not a cap and the server computes the real change");
 
-        var repeat = await driverClient.PostAsJsonAsync(
-            $"/api/driver/orders/{order.OrderId}/handover",
-            new ConfirmOrderHandoverRequestDto { CashReceivedAmount = 30m });
-        repeat.StatusCode.Should().Be(HttpStatusCode.OK);
-        var repeatedBody = await repeat.Content.ReadFromJsonAsync<DeliveryDriverActionResultDto>();
-        repeatedBody!.CashReceivedAmount.Should().Be(60m, "repeating never rewrites the collected amount");
-        repeatedBody.CashChangeAmount.Should().Be(36m);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.CashReceivedAmount.Should().Be(60m);
+            stored.CashChangeAmount.Should().Be(36m,
+                "the checkout forecast is not a cap and the server computes the real change");
+        }
+
+        var repeat = await publicClient.PostAsJsonAsync(
+            $"/api/public/deliveries/{token}/deliver",
+            new ConfirmDeliveryPinRequestDto
+            {
+                Pin = pin,
+                HandoverConfirmed = true,
+                CashReceivedAmount = 30m
+            });
+        repeat.StatusCode.Should().Be(HttpStatusCode.OK, "repeating a confirmed delivery is idempotent");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order.OrderId);
+            stored.CashReceivedAmount.Should().Be(60m, "repeating never rewrites the collected amount");
+            stored.CashChangeAmount.Should().Be(36m);
+        }
     }
 
     [Fact]

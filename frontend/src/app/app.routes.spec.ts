@@ -1,21 +1,15 @@
 import { authChildGuard, authGuard, customerGuard } from './core/guards/auth.guard';
-import { driverChildGuard, driverGuard } from './core/guards/driver.guard';
 import { routes } from './app.routes';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
 describe('app routes', () => {
-  it('declares the driver portal before the public store slug route and protects it with the driver guard', () => {
-    const driverIndex = routes.findIndex((route) => route.path === 'entregador');
-    const storeIndex = routes.findIndex((route) => route.path === ':storePath');
-    const driverRoute = routes.find((route) => route.path === 'entregador');
+  it('does not expose any authenticated driver portal, login or invite route', () => {
+    const driverRoutes = routes.filter((route) => route.path?.startsWith('entregador'));
 
-    expect(driverIndex).toBeGreaterThanOrEqual(0);
-    expect(driverIndex).toBeLessThan(storeIndex);
-    expect(driverRoute?.canActivate).toEqual([driverGuard]);
-    expect(driverRoute?.canActivateChild).toEqual([driverChildGuard]);
-    expect(driverRoute?.children?.some((child) => child.path === 'pedidos')).toBe(true);
-    expect(routes.some((route) => route.path === 'entregador/login')).toBe(true);
-    expect(routes.some((route) => route.path === 'entregador/convite/:token')).toBe(true);
+    expect(driverRoutes).toEqual([]);
+    expect(routes.some((route) => route.path === 'entregador')).toBe(false);
+    expect(routes.some((route) => route.path === 'entregador/login')).toBe(false);
+    expect(routes.some((route) => route.path === 'entregador/convite/:token')).toBe(false);
   });
 
   it('routes /app/entregadores to the seller delivery drivers page', () => {
@@ -31,15 +25,22 @@ describe('app routes', () => {
     expect(appRoute?.children?.some((child) => child.path === 'rotas')).toBe(false);
   });
 
-  it('declares the public tokenized route page before the store slug route and without guards', () => {
+  it('declares the public tokenized route and individual delivery pages without guards', () => {
     const publicRouteIndex = routes.findIndex((route) => route.path === 'rota/:token');
+    const publicDeliveryIndex = routes.findIndex((route) => route.path === 'entrega/:token');
     const storeIndex = routes.findIndex((route) => route.path === ':storePath');
     const publicRoute = routes.find((route) => route.path === 'rota/:token');
+    const publicDelivery = routes.find((route) => route.path === 'entrega/:token');
 
     expect(publicRouteIndex).toBeGreaterThanOrEqual(0);
+    expect(publicDeliveryIndex).toBeGreaterThanOrEqual(0);
     expect(publicRouteIndex).toBeLessThan(storeIndex);
+    expect(publicDeliveryIndex).toBeLessThan(storeIndex);
     expect(publicRoute?.canActivate).toBeUndefined();
+    expect(publicDelivery?.canActivate).toBeUndefined();
     expect(publicRoute?.loadComponent?.toString()).toContain('public-delivery-route-page.component');
+    expect(publicDelivery?.loadComponent?.toString()).toContain('public-delivery-route-page.component');
+    expect(publicDelivery?.data?.['individual']).toBe(true);
   });
 
   it('declares /app before the public store slug route', () => {

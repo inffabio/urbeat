@@ -3,7 +3,6 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { ApiService } from './api.service';
 import { DeliveryDriverService } from './delivery-driver.service';
-import { OrderStatus } from '../../shared/enums/order-status.enum';
 
 describe('DeliveryDriverService', () => {
   let service: DeliveryDriverService;
@@ -25,7 +24,7 @@ describe('DeliveryDriverService', () => {
 
     const req = httpMock.expectOne('/api/delivery-drivers/store');
     expect(req.request.method).toBe('GET');
-    req.flush([{ id: 'driver-1', name: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999', status: 2, canResendInvite: false }]);
+    req.flush([{ id: 'driver-1', name: 'Ana', phoneNumber: '11999999999', status: 2 }]);
   });
 
   it('creates and updates a simple motoboy without e-mail', () => {
@@ -70,44 +69,6 @@ describe('DeliveryDriverService', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
   });
 
-  it('keeps the legacy invite endpoint for already sent links', () => {
-    service.invite({ fullName: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999' }).subscribe();
-
-    const req = httpMock.expectOne('/api/delivery-drivers/store/invite');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({
-      fullName: 'Ana',
-      email: 'ana@example.com',
-      phoneNumber: '11999999999',
-    });
-    req.flush({ id: 'driver-1', name: 'Ana', email: 'ana@example.com', phoneNumber: '11999999999', status: 1, canResendInvite: true });
-  });
-
-  it('resends and revokes invites by store driver id', () => {
-    service.resendInvite('link-1').subscribe();
-    const resend = httpMock.expectOne('/api/delivery-drivers/store/link-1/resend-invite');
-    expect(resend.request.method).toBe('POST');
-    resend.flush({});
-
-    service.revoke('link-1').subscribe();
-    const revoke = httpMock.expectOne('/api/delivery-drivers/store/link-1/revoke');
-    expect(revoke.request.method).toBe('POST');
-    revoke.flush({});
-  });
-
-  it('previews and accepts an invite token', () => {
-    service.previewInvite('token with space').subscribe();
-    const preview = httpMock.expectOne('/api/delivery-drivers/invites/token%20with%20space');
-    expect(preview.request.method).toBe('GET');
-    preview.flush({ valid: true, alreadyAccepted: false, storeName: 'Loja', driverName: 'Ana', maskedEmail: 'an***@example.com' });
-
-    service.acceptInvite('token with space', { password: 'SenhaForte123' }).subscribe();
-    const accept = httpMock.expectOne('/api/delivery-drivers/invites/token%20with%20space/accept');
-    expect(accept.request.method).toBe('POST');
-    expect(accept.request.body).toEqual({ password: 'SenhaForte123' });
-    accept.flush({ succeeded: true });
-  });
-
   it('assigns and removes a store driver for an order', () => {
     service.assignOrder('order-1', 'link-1').subscribe();
     const assign = httpMock.expectOne('/api/orders/store/order-1/delivery-driver');
@@ -121,28 +82,19 @@ describe('DeliveryDriverService', () => {
     remove.flush({ id: 'order-1' });
   });
 
-  it('loads driver stores and orders by validated store id', () => {
-    service.getDriverStores().subscribe();
-    const stores = httpMock.expectOne('/api/driver/stores');
-    expect(stores.request.method).toBe('GET');
-    stores.flush([]);
+  it('does not expose invite, password or authenticated driver portal operations', () => {
+    const legacy = service as unknown as Record<string, unknown>;
 
-    service.getDriverOrders('store 1').subscribe();
-    const orders = httpMock.expectOne('/api/driver/orders?storeId=store%201');
-    expect(orders.request.method).toBe('GET');
-    orders.flush({ storeNotAvailable: false, orders: [] });
-  });
-
-  it('starts delivery and confirms the delivery PIN', () => {
-    service.startDelivery('order-1').subscribe();
-    const start = httpMock.expectOne('/api/driver/orders/order-1/start');
-    expect(start.request.method).toBe('POST');
-    start.flush({ status: OrderStatus.OnDelivery });
-
-    service.confirmPin('order-1', '1234').subscribe();
-    const pin = httpMock.expectOne('/api/driver/orders/order-1/confirm-pin');
-    expect(pin.request.method).toBe('POST');
-    expect(pin.request.body).toEqual({ pin: '1234' });
-    pin.flush({ status: OrderStatus.Delivered });
+    expect(legacy['invite']).toBeUndefined();
+    expect(legacy['resendInvite']).toBeUndefined();
+    expect(legacy['revoke']).toBeUndefined();
+    expect(legacy['previewInvite']).toBeUndefined();
+    expect(legacy['acceptInvite']).toBeUndefined();
+    expect(legacy['getDriverStores']).toBeUndefined();
+    expect(legacy['getDriverOrders']).toBeUndefined();
+    expect(legacy['getDriverOrder']).toBeUndefined();
+    expect(legacy['startDelivery']).toBeUndefined();
+    expect(legacy['confirmHandover']).toBeUndefined();
+    expect(legacy['confirmPin']).toBeUndefined();
   });
 });

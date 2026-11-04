@@ -1,7 +1,7 @@
 # Coleção Postman do urbeat
 
-Coleção de homologação manual da API REST do urbeat. Cobre as 179 ações expostas pelos controllers da WebApi do urbeat, incluindo os 2
-webhooks, organizadas em 14 features funcionais e 44 subpastas de fluxo.
+Coleção de homologação manual da API REST do urbeat. Cobre as 170 ações expostas pelos controllers da WebApi do urbeat, incluindo os 2
+webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
 
 ## 1. Escopo e o que a coleção não é
 
@@ -28,7 +28,7 @@ webhooks, organizadas em 14 features funcionais e 44 subpastas de fluxo.
    `postman/urbeat.oci.postman_environment.json` separadamente.
 4. Selecione o ambiente **urbeat · local**.
 
-Resultado esperado: 14 features, 44 subpastas e 179 requisições. Nenhuma pasta
+Resultado esperado: 14 features, 43 subpastas e 170 requisições. Nenhuma pasta
 recebe nome de controller; a origem técnica aparece na linha `Controller:` de cada
 descrição.
 
@@ -36,15 +36,14 @@ Contagens de referência:
 
 | Métrica | Valor |
 | --- | ---: |
-| Ações REST + webhooks | 179 |
-| Anônimas (`No Auth`) | 42 |
-| `sellerToken` (`SellerOnly` + `Role:Seller`) | 90 |
+| Ações REST + webhooks | 170 |
+| Anônimas (`No Auth`) | 39 |
+| `sellerToken` (`SellerOnly` + `Role:Seller`) | 89 |
 | `customerToken` (`CustomerOnly` + `[Authorize]`) | 19 |
 | `adminToken` | 23 |
-| `driverToken` | 5 |
-| `read` | 78 |
+| `read` | 75 |
 | `write` | 38 |
-| `destructive` | 61 |
+| `destructive` | 55 |
 | `webhook` | 2 |
 
 ## 4. Ambientes
@@ -79,7 +78,7 @@ arquivo versionado. Se a infraestrutura confirmar HTTPS no subdomínio, altere
 - Preencha `adminEmail`/`adminPassword` manualmente na sessão.
 - Cliente e vendedor podem vir de `POST /api/auth/register/*` (exigem confirmação
   de e-mail) ou de contas previamente confirmadas.
-- Entregador pode vir de convite aceito ou de conta de teste já existente.
+- O motoboy não possui conta, senha ou login. Cadastre-o pela loja (nome/telefone) e use os links públicos de rota/entrega.
 
 ## 6. Confirmação de e-mail e OTP
 
@@ -137,7 +136,6 @@ Allowlist de `read-only` (além de GET/HEAD):
 - `POST /api/auth/login/customer`
 - `POST /api/auth/login/seller`
 - `POST /api/auth/login/admin`
-- `POST /api/auth/login/driver`
 - `POST /api/auth/token`
 - `POST /api/auth/refresh`
 - `POST /api/checkout/preview`
@@ -164,21 +162,21 @@ Todas as variáveis são de **ambiente**, nunca de coleção. Catálogo:
 | --- | --- |
 | Controle | `runMode`, `allowWebhooks`, `lastLoginRole` |
 | URLs/dados públicos | `baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
-| Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword`, `driverEmail`, `driverPassword` |
-| Tokens (secret) | `customerToken`, `sellerToken`, `adminToken`, `driverToken` |
+| Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword` |
+| Tokens (secret) | `customerToken`, `sellerToken`, `adminToken` |
 | IDs/valores | `storeId`, `cuisineTypeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `stopSequence` |
-| Segredos/links/códigos (secret) | `deliveryRouteToken`, `individualDeliveryToken`, `driverInviteToken`, `verificationCode`, `deliveryPin`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `emailChangeChallenge`, `customerDocument`, `sellerDocument`, `storeDocument`, `storePixKey`, `asaasWebhookToken`, `paymentGatewayAccessToken`, `printerBase64Data` |
+| Segredos/links/códigos (secret) | `deliveryRouteToken`, `individualDeliveryToken`, `verificationCode`, `deliveryPin`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `emailChangeChallenge`, `customerDocument`, `sellerDocument`, `storeDocument`, `storePixKey`, `asaasWebhookToken`, `paymentGatewayAccessToken`, `printerBase64Data` |
 
 Notas de captura:
 
-- `lastLoginRole` registra o último login (`customer`, `seller`, `admin`,
-  `driver`). `POST /api/auth/refresh` grava o novo access token na variável desse
+- `lastLoginRole` registra o último login (`customer`, `seller`, `admin`). `POST /api/auth/refresh` grava o novo access token na variável desse
   papel, pois o refresh não informa qual conta renovou.
 - `POST /api/auth/logout` limpa `lastLoginRole`; faça login novamente para renovar
   um papel específico.
 - Notificações e outbox capturam `items[0].id` (não `[0].id`).
-- `deliveryRouteToken`, `individualDeliveryToken` e `driverInviteToken` são
-  credenciais bearer, embora a especificação original os listasse entre IDs.
+- `deliveryRouteToken` e `individualDeliveryToken` são credenciais bearer dos links
+  públicos, embora a especificação original os listasse entre IDs. O motoboy não
+  possui bearer de sessão.
 - `printerBase64Data` fica vazio e marcado como secret: o conteúdo depende do
   modelo físico da impressora.
 - **Limpeza**: exportar um ambiente preenchido grava tokens/senhas em texto claro.
@@ -208,7 +206,7 @@ confirmadas/SMTP/log disponíveis.
 10. `POST /api/payments/order` → captura `paymentId`/`gatewayTransactionId`.
 11. Webhook Mercado Pago local com o `gatewayTransactionId` → conferir transição
     (somente com `allowWebhooks=true`).
-12. Criar entregador/rota e confirmar entrega com PIN conhecido.
+12. Criar motoboy/rota e confirmar entrega pelo link público com PIN conhecido.
 13. Ao final, limpe as variáveis e recrie o banco local.
 
 Reexecutar criações gera duplicatas ou `409`. Para recomeçar do zero, recrie o
@@ -299,7 +297,7 @@ preencha esse campo com uma URL de produção no ambiente OCI.
 Da raiz do repositório:
 
 ```powershell
-# Cobertura: controllers -> mapa -> coleção (179 ações, 14 features, 44 subpastas)
+# Cobertura: controllers -> mapa -> coleção (170 ações, 14 features, 43 subpastas)
 powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1
 
 # Estrutura, segredos, ambientes e matriz determinística do guard
@@ -317,7 +315,7 @@ esperada em cada parâmetro de path, além de auth, classe, query obrigatória e
 chaves de DTO. Ele aceita `-MapOnly` (antes da coleção existir) e `-Feature 08`
 (recorte por feature).
 `Test-PostmanCollection.ps1 -VerifyGuard` executa a matriz de decisão do guard para
-as 179 requisições em `read-only`, `write`, `destructive`,
+as 170 requisições em `read-only`, `write`, `destructive`,
 `destructive+allowWebhooks` e `runMode` inválido, além de casos sintéticos de
 divergência entre nome, método, path, host e `baseUrl`.
 
@@ -383,7 +381,7 @@ Asserts dos GETs públicos:
 
 ## 16. Manutenção
 
-- O mapa autoritativo é `postman/feature-map.json` (1:1 entre as 179 ações e
+- O mapa autoritativo é `postman/feature-map.json` (1:1 entre as 170 ações e
   feature/subpasta).
 - IDs de requisição são estáveis; nunca regenere a coleção inteira. Crie IDs apenas
   para requisições novas.
@@ -394,8 +392,7 @@ Asserts dos GETs públicos:
   verificadores e reporta adições/remoções/movimentações. Ele não executa OCI,
   não executa destrutivas/webhooks e não commita.
 - Divergências encontradas na implementação, conferidas contra o código:
-  - `GET /api/driver/orders` exige o query `storeId`; `GET
-    /api/stores/delivery-times` também. O plano não os listava.
+  - `GET /api/stores/delivery-times` exige o query `storeId`; o plano não o listava.
   - `GET`/`DELETE /api/stores/{storeId}/payment-gateway` aceitam `gateway`
     opcional; `DELETE /api/stores/{storeId}/categories/{categoryId}` aceita
     `reassignCategoryId`; `POST /api/admin/import-neighborhoods-google` aceita

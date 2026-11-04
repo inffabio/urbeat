@@ -56,7 +56,6 @@ function Get-ExpectedPathVariable([string]$param, [string]$path) {
             return 'outboxEventId'
         }
         'token' {
-            if ($path.StartsWith('/api/delivery-drivers/invites')) { return 'driverInviteToken' }
             if ($path.StartsWith('/api/public/delivery-routes')) { return 'deliveryRouteToken' }
             if ($path.StartsWith('/api/public/deliveries')) { return 'individualDeliveryToken' }
             return ''
@@ -66,15 +65,14 @@ function Get-ExpectedPathVariable([string]$param, [string]$path) {
 }
 
 $expectedFeatureCounts = @{
-    '01' = 16; '02' = 9; '03' = 10; '04' = 25; '05' = 6; '06' = 8; '07' = 19;
-    '08' = 22; '09' = 6; '10' = 3; '11' = 27; '12' = 25; '13' = 2; '14' = 1
+    '01' = 15; '02' = 9; '03' = 10; '04' = 25; '05' = 6; '06' = 8; '07' = 19;
+    '08' = 24; '09' = 6; '10' = 3; '11' = 17; '12' = 25; '13' = 2; '14' = 1
 }
 
 $allowlistPosts = @(
     'POST /api/auth/login/customer',
     'POST /api/auth/login/seller',
     'POST /api/auth/login/admin',
-    'POST /api/auth/login/driver',
     'POST /api/auth/token',
     'POST /api/auth/refresh',
     'POST /api/checkout/preview'
@@ -114,15 +112,9 @@ $destructiveNames = @(
     'DELETE /api/stores/{storeId}/payment-gateway',
     'PUT /api/stores/{storeId}/payment-gateway',
     'POST /api/payments/order',
-    'POST /api/driver/orders/{orderId}/start',
-    'POST /api/driver/orders/{orderId}/confirm-pin',
     'DELETE /api/delivery-drivers/{storeDriverId}',
     'PATCH /api/delivery-drivers/{storeDriverId}/status',
-    'POST /api/delivery-drivers/invites/{token}/accept',
     'POST /api/delivery-drivers/store',
-    'POST /api/delivery-drivers/store/{storeDriverId}/resend-invite',
-    'POST /api/delivery-drivers/store/{storeDriverId}/revoke',
-    'POST /api/delivery-drivers/store/invite',
     'POST /api/delivery-routes/store/{routeId}/revoke',
     'POST /api/delivery-routes/store/{routeId}/share',
     'POST /api/delivery-routes/store/send',
@@ -152,7 +144,6 @@ function Get-AuthKind {
     if ($Block -match 'AdminOnly') { return 'AdminOnly' }
     if ($Block -match 'SellerOnly') { return 'SellerOnly' }
     if ($Block -match 'CustomerOnly') { return 'CustomerOnly' }
-    if ($Block -match 'DeliveryDriverOnly') { return 'DeliveryDriverOnly' }
     if ($Block -match 'Roles\s*=\s*"Seller"') { return 'Role:Seller' }
     if ($Block -match '\[Authorize\b') { return 'authenticated' }
     return $Fallback
@@ -288,7 +279,6 @@ function Get-AuthLabel([string]$kind) {
         'AdminOnly' { return 'adminToken' }
         'SellerOnly' { return 'sellerToken' }
         'CustomerOnly' { return 'customerToken' }
-        'DeliveryDriverOnly' { return 'driverToken' }
         'Role:Seller' { return 'sellerToken' }
         'authenticated' { return 'customerToken' }
         default { return 'No Auth' }
@@ -309,8 +299,8 @@ $controllersCount = @(Get-ChildItem -LiteralPath $ControllersPath -Filter *Contr
 $actionNames = @($actions | ForEach-Object { $_.Name })
 $duplicateActions = @($actions | Group-Object Name | Where-Object Count -gt 1)
 
-if ($controllersCount -ne 33) { Fail "controllers esperados=33 encontrados=$controllersCount" }
-if ($actions.Count -ne 179) { Fail "actions esperadas=179 encontradas=$($actions.Count)" }
+if ($controllersCount -ne 32) { Fail "controllers esperados=32 encontrados=$controllersCount" }
+if ($actions.Count -ne 170) { Fail "actions esperadas=170 encontradas=$($actions.Count)" }
 if ($duplicateActions.Count -gt 0) {
     foreach ($g in $duplicateActions) { Fail "duplicate controller action: $($g.Name)" }
 }
@@ -335,10 +325,10 @@ if (-not (Test-Path -LiteralPath $FeatureMapPath)) {
         $featureById[$f.id] = $f
         $subfolderTotal += @($f.subfolders).Count
     }
-    if ($subfolderTotal -ne 44) { Fail "subpastas esperadas=44 encontradas=$subfolderTotal" }
+    if ($subfolderTotal -ne 43) { Fail "subpastas esperadas=43 encontradas=$subfolderTotal" }
 
     $endpoints = @($map.endpoints.PSObject.Properties)
-    if ($endpoints.Count -ne 179) { Fail "endpoints no mapa esperados=179 encontrados=$($endpoints.Count)" }
+    if ($endpoints.Count -ne 170) { Fail "endpoints no mapa esperados=170 encontrados=$($endpoints.Count)" }
 
     $mapNames = @($endpoints | ForEach-Object { $_.Name })
     foreach ($name in $actionNames) { if (-not ($mapNames -contains $name)) { Fail "missing endpoint: $name" } }
@@ -410,6 +400,27 @@ if (-not $MapOnly) {
         Fail "colecao nao encontrada: $CollectionPath"
     } else {
         $collection = Read-Utf8Json $CollectionPath
+
+        $forbiddenDriverReferences = @(
+            'login/driver',
+            'driverToken',
+            'driverPassword',
+            'driverEmail',
+            'driverInviteToken',
+            '/api/driver/',
+            'DeliveryDriverOnly'
+        )
+        foreach ($artifact in @($CollectionPath, $FeatureMapPath)) {
+            if (-not (Test-Path -LiteralPath $artifact)) { continue }
+            $artifactText = [System.IO.File]::ReadAllText(
+                (Resolve-Path -LiteralPath $artifact).Path,
+                [System.Text.Encoding]::UTF8)
+            foreach ($forbidden in $forbiddenDriverReferences) {
+                if ($artifactText.IndexOf($forbidden, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                    Fail "referencia proibida ao motoboy autenticado em $artifact`: $forbidden"
+                }
+            }
+        }
         $walk = {
             param($items, $featureId, $featureName, $subName)
             foreach ($item in @($items)) {
@@ -641,10 +652,10 @@ if ($PSBoundParameters.ContainsKey('Feature') -and -not [string]::IsNullOrWhiteS
 }
 
 if ($script:failures.Count -eq 0) {
-    Write-Host ("OK controllers={0} actions={1} features=14 subfolders=44 endpoints=179" -f $controllersCount, $actions.Count)
-    Write-Host ("OK auth anonymous={0} SellerOnly={1} CustomerOnly={2} AdminOnly={3} Role:Seller={4} DeliveryDriverOnly={5} authenticated={6}" -f `
+    Write-Host ("OK controllers={0} actions={1} features=14 subfolders=43 endpoints=170" -f $controllersCount, $actions.Count)
+    Write-Host ("OK auth anonymous={0} SellerOnly={1} CustomerOnly={2} AdminOnly={3} Role:Seller={4} authenticated={5}" -f `
         [int]$authCounts['anonymous'], [int]$authCounts['SellerOnly'], [int]$authCounts['CustomerOnly'], [int]$authCounts['AdminOnly'], `
-        [int]$authCounts['Role:Seller'], [int]$authCounts['DeliveryDriverOnly'], [int]$authCounts['authenticated'])
+        [int]$authCounts['Role:Seller'], [int]$authCounts['authenticated'])
     Write-Host ("OK class read={0} write={1} destructive={2} webhook={3} guard={4}" -f `
         $classCounts['read'], $classCounts['write'], $classCounts['destructive'], $classCounts['webhook'], $destructiveNames.Count)
     if ($null -ne $collection) {

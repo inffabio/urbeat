@@ -1,11 +1,17 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { SKIP_AUTH_HEADER } from './auth.context';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getToken();
-  if (token && req.url.includes('/api/') && !req.url.includes('/auth/refresh')) {
+  if (
+    token
+    && req.url.includes('/api/')
+    && !req.url.includes('/auth/refresh')
+    && !req.context.get(SKIP_AUTH_HEADER)
+  ) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },
     });

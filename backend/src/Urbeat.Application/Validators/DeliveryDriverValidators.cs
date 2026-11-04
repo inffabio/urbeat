@@ -4,45 +4,6 @@ using Urbeat.Domain.Services;
 
 namespace Urbeat.Application.Validators;
 
-public sealed class InviteDeliveryDriverRequestDtoValidator : AbstractValidator<InviteDeliveryDriverRequestDto>
-{
-    public InviteDeliveryDriverRequestDtoValidator()
-    {
-        RuleFor(x => x.FullName)
-            .NotEmpty()
-            .MinimumLength(3)
-            .MaximumLength(120);
-
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MaximumLength(255);
-
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty()
-            .MinimumLength(8)
-            .MaximumLength(20)
-            .Matches(@"^[0-9+()\-\s]+$")
-            .WithMessage("Informe um telefone válido.");
-    }
-}
-
-public sealed class AcceptDeliveryDriverInviteRequestDtoValidator : AbstractValidator<AcceptDeliveryDriverInviteRequestDto>
-{
-    public AcceptDeliveryDriverInviteRequestDtoValidator()
-    {
-        RuleFor(x => x.Password)
-            .NotEmpty()
-            .MinimumLength(8)
-            .MaximumLength(100);
-
-        RuleFor(x => x.FullName)
-            .MinimumLength(3)
-            .MaximumLength(120)
-            .When(x => !string.IsNullOrWhiteSpace(x.FullName));
-    }
-}
-
 public sealed class AssignDeliveryDriverRequestDtoValidator : AbstractValidator<AssignDeliveryDriverRequestDto>
 {
     public AssignDeliveryDriverRequestDtoValidator()
@@ -78,25 +39,6 @@ public sealed class ConfirmDeliveryPinRequestDtoValidator : AbstractValidator<Co
     }
 }
 
-public sealed class ConfirmOrderHandoverRequestDtoValidator : AbstractValidator<ConfirmOrderHandoverRequestDto>
-{
-    public ConfirmOrderHandoverRequestDtoValidator()
-    {
-        RuleFor(x => x.CashReceivedAmount)
-            .Must(value => !value.HasValue || OrderPaymentPolicy.HasCurrencyPrecision(value.Value))
-            .WithMessage("O valor recebido deve ter no máximo duas casas decimais.");
-
-        RuleFor(x => x.CashReceivedAmount)
-            .GreaterThan(0m)
-            .WithMessage("O valor recebido deve ser maior que zero.")
-            .When(x => x.CashReceivedAmount.HasValue);
-
-        RuleFor(x => x.CashReceivedAmount)
-            .LessThanOrEqualTo(OrderPaymentPolicy.MaxCashAmount)
-            .WithMessage("O valor recebido excede o limite permitido.")
-            .When(x => x.CashReceivedAmount.HasValue);
-    }
-}
 public sealed class UpsertStoreDeliveryDriverRequestDtoValidator : AbstractValidator<UpsertStoreDeliveryDriverRequestDto>
 {
     public UpsertStoreDeliveryDriverRequestDtoValidator()

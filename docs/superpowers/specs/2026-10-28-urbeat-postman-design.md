@@ -2,7 +2,7 @@
 
 **Data:** 2026-10-28
 **Status:** especificação aprovada para implementação
-**Organização:** 14 features funcionais e 44 subpastas de fluxo; controllers são apenas a origem técnica da extração.
+**Organização:** 14 features funcionais e 43 subpastas de fluxo; controllers são apenas a origem técnica da extração.
 **Escopo desta entrega:** somente este documento. A coleção, os ambientes, os scripts de verificação e o agente OpenCode descritos aqui **não** foram implementados nesta tarefa e nada foi commitado.
 
 ## 1. Objetivo
@@ -24,7 +24,7 @@ O resultado esperado é uma ferramenta de exploração e homologação manual, n
 
 - Implementar a coleção, os ambientes, os scripts ou o agente nesta tarefa.
 - Alterar backend, frontend, Docker, scripts de deploy ou `.opencode/opencode.json`.
-- SignalR (`/hubs/seller-notifications`, `/hubs/customer-notifications`), `/health`, `/swagger`, `/hangfire` e `/metrics`: não são controllers REST e não entram nas 179 ações.
+- SignalR (`/hubs/seller-notifications`, `/hubs/customer-notifications`), `/health`, `/swagger`, `/hangfire` e `/metrics`: não são controllers REST e não entram nas 170 ações.
 - Automação de deploy, testes de carga, testes E2E de navegador ou testes de segurança ofensiva.
 - Criar, obter ou versionar credenciais, tokens, documentos pessoais ou dados de produção.
 - Executar qualquer chamada contra a OCI durante a implementação ou validação.
@@ -40,10 +40,10 @@ Precedência adotada:
 
 Levantamento executado para esta especificação:
 
-- `backend/src/Urbeat.WebApi/Controllers/*.cs`: 33 controllers.
+- `backend/src/Urbeat.WebApi/Controllers/*.cs`: 32 controllers.
 - Extração de `[Route]`, `[HttpX]`, `[Authorize]`, `[AllowAnonymous]`, `[FromBody]`, `IFormFile`.
-- Contagem: **179 ações únicas** (`MÉTODO + rota`), sem duplicidade.
-- Matriz de autorização: 42 anônimas, 85 `SellerOnly`, 18 `CustomerOnly`, 23 `AdminOnly`, 5 `Role:Seller`, 5 `DeliveryDriverOnly` e 1 `[Authorize]` genérica.
+- Contagem: **170 ações únicas** (`MÉTODO + rota`), sem duplicidade.
+- Matriz de autorização: 39 anônimas, 84 `SellerOnly`, 18 `CustomerOnly`, 23 `AdminOnly`, 5 `Role:Seller` e 1 `[Authorize]` genérica.
 - Contratos auxiliares lidos: `AuthController`, `CheckoutController`, `OrdersController`, `PaymentsController`, `StoresController`, `StoreProductsController`, `PublicStoresController`, `DeliveryDriversController`, `DeliveryRoutesController`, `WebhooksController`, `AdminController`, `LandingPageContentController`, `ReviewsController`.
 - DTOs e validadores correspondentes; enums de domínio; `StoreMediaUploadValidator`; adaptadores Mercado Pago/Asaas; seeders; `.opencode/agents/`.
 - `DEPLOY.md` para a URL pública da API e `docker-compose.yml` para a URL local.
@@ -58,22 +58,21 @@ Controllers são a **fonte de extração** do contrato, não o critério de orga
 
 | Métrica | Valor |
 | --- | ---: |
-| Controllers de origem | 33 |
-| Ações REST | 179 |
+| Controllers de origem | 32 |
+| Ações REST | 170 |
 | Método + rota duplicados | 0 |
 | Features funcionais | 14 |
-| Subpastas de fluxo | 44 |
-| Ações anônimas | 42 |
-| Ações `SellerOnly` | 85 |
+| Subpastas de fluxo | 43 |
+| Ações anônimas | 39 |
+| Ações `SellerOnly` | 84 |
 | Ações `CustomerOnly` | 18 |
 | Ações `AdminOnly` | 23 |
 | Ações `Role:Seller` | 5 |
-| Ações `DeliveryDriverOnly` | 5 |
 | Ações `[Authorize]` genérica | 1 |
 | Endpoints multipart | 2 |
 | Webhooks | 2 (feature `13`) |
 
-O Anexo A lista as 179 ações por feature e subpasta.
+O Anexo A lista as 170 ações por feature e subpasta.
 
 ### 4.2 Features funcionais
 
@@ -81,21 +80,21 @@ A coleção terá exatamente estas 14 features de primeiro nível:
 
 | Feature | Escopo funcional | Subpastas de fluxo | Ações |
 | --- | --- | --- | ---: |
-| `01 · Acesso e identidade` | Cadastro, login, sessão, confirmação e recuperação de acesso | `Cadastro`, `Login`, `Sessão`, `Confirmação e recuperação` | 16 |
+| `01 · Acesso e identidade` | Cadastro, login, sessão, confirmação e recuperação de acesso | `Cadastro`, `Login`, `Sessão`, `Confirmação e recuperação` | 15 |
 | `02 · Conta do cliente` | Perfil, endereços e notificações do cliente | `Perfil`, `Endereços`, `Notificações` | 9 |
 | `03 · Descoberta e vitrine` | Lojas públicas, cardápio público, tipos de culinária e avaliações públicas | `Lojas`, `Cardápio`, `Tipos de culinária`, `Avaliações` | 10 |
 | `04 · Loja e operação` | Onboarding, perfil, horários, cobertura de entrega e tipos de culinária da loja | `Onboarding e perfil`, `Horários e abertura`, `Cobertura de entrega`, `Tipos de culinária` | 25 |
 | `05 · Publicação e assinatura` | Publicação da loja e ciclo da assinatura | `Publicação`, `Assinatura` | 6 |
 | `06 · Impressão e notificações` | Configuração de impressão, fila de impressão e notificações do vendedor | `Configuração de impressão`, `Fila de impressão`, `Notificações do vendedor` | 8 |
 | `07 · Cardápio e oferta` | Categorias, produtos, adicionais e grupos de opções | `Categorias`, `Produtos`, `Adicionais e grupos` | 19 |
-| `08 · Checkout e pedidos` | Checkout, pedidos do cliente, pedidos da loja e clientes da loja | `Checkout`, `Pedidos do cliente`, `Pedidos da loja`, `Clientes da loja` | 22 |
+| `08 · Checkout e pedidos` | Checkout, pedidos do cliente, pedidos da loja e clientes da loja | `Checkout`, `Pedidos do cliente`, `Pedidos da loja`, `Clientes da loja` | 24 |
 | `09 · Pagamentos` | Gateway da loja e pagamentos do pedido | `Gateway da loja`, `Pagamentos do pedido` | 6 |
 | `10 · Avaliações` | Avaliações do pedido e avaliações recebidas pela loja | `Avaliações do pedido`, `Avaliações recebidas` | 3 |
-| `11 · Entregas` | Entregadores, rotas, app do entregador e links públicos | `Entregadores`, `Rotas de entrega`, `App do entregador`, `Links públicos de entrega` | 27 |
+| `11 · Entregas` | Entregadores, rotas e links públicos de entrega | `Entregadores`, `Rotas de entrega`, `Links públicos de entrega` | 17 |
 | `12 · Administração` | Planos, cobranças, parâmetros, manutenção, landing page e outbox | `Painel e planos`, `Assinaturas e cobranças`, `Parâmetros do sistema`, `Manutenção e importações`, `Conteúdo da landing page`, `Outbox` | 25 |
 | `13 · Webhooks` | Callbacks de provedores de pagamento/assinatura | `Mercado Pago`, `Asaas` | 2 |
 | `14 · Utilidades` | Consultas auxiliares sem domínio de negócio | `Consulta de CEP` | 1 |
-| **Total** | **14 features** | **44 subpastas** | **179** |
+| **Total** | **14 features** | **43 subpastas** | **170** |
 
 Regras de composição:
 
@@ -110,7 +109,7 @@ A reorganização por feature **não altera** a autenticação de cada ação, o
 
 ### 4.3 Critérios para classificar e manter por feature
 
-1. **Uma ação, uma feature, uma subpasta.** O mapeamento é uma bijeção entre as 179 ações e `feature-map.json`; não há duplicação para "facilitar" outro fluxo.
+1. **Uma ação, uma feature, uma subpasta.** O mapeamento é uma bijeção entre as 170 ações e `feature-map.json`; não há duplicação para "facilitar" outro fluxo.
 2. **A feature é a capacidade de negócio**, não o controller, o verbo HTTP, a camada ou o prefixo da URL. O critério é: qual resultado de negócio o endpoint entrega e qual estado ele governa?
 3. **O dono do estado prevalece.** Se um endpoint cria pedido ou muda seu ciclo (inclusive confirmação de recebimento pelo cliente e conclusão pela loja), pertence a Checkout e pedidos; se opera entrega/rota/PIN do entregador, pertence a Entregas; se move dinheiro, pertence a Pagamentos; se processa callback de provedor, pertence a Webhooks.
 4. **O consumidor dominante prevalece.** Um endpoint usado principalmente pelo cliente fica na feature do cliente; um endpoint operado pela loja fica na feature da loja, mesmo que compartilhe DTO ou serviço.
@@ -148,7 +147,7 @@ A reorganização por feature **não altera** a autenticação de cada ação, o
 2. A URL usa `{{baseUrl}}` + a rota, substituindo cada parâmetro por variável de ambiente:
    - `{storeId:guid}` → `{{storeId}}`
    - `{sequence:int}` → `{{stopSequence}}`
-   - `{token}` → variável contextual (`{{deliveryRouteToken}}`, `{{individualDeliveryToken}}` ou `{{driverInviteToken}}`)
+   - `{token}` → variável contextual (`{{deliveryRouteToken}}`, `{{individualDeliveryToken}}` ou ``)
    - `{key}` → `{{systemParameterKey}}`
    - demais parâmetros → `{{nomeDoParametro}}` em camelCase.
 3. Constraints (`:guid`, `:int`) não aparecem na URL do Postman; são validações do servidor.
@@ -164,7 +163,6 @@ A reorganização por feature **não altera** a autenticação de cada ação, o
 | `{id}` | `OutboxOperations` | `{{outboxEventId}}` |
 | `{notificationId}` | `CustomerNotifications` | `{{customerNotificationId}}` |
 | `{notificationId}` | `SellerNotifications` | `{{sellerNotificationId}}` |
-| `{token}` | `DeliveryDrivers/invites` | `{{driverInviteToken}}` |
 | `{token}` | `PublicDeliveryRoutes` | `{{deliveryRouteToken}}` |
 | `{token}` | `PublicIndividualDeliveries` | `{{individualDeliveryToken}}` |
 | `{sequence:int}` | `PublicDeliveryRoutes` | `{{stopSequence}}` |
@@ -181,10 +179,10 @@ A reorganização por feature **não altera** a autenticação de cada ação, o
 
 | Caminho | Finalidade |
 | --- | --- |
-| `postman/urbeat.postman_collection.json` | Coleção v2.1 com as 179 requisições, guardas e scripts de captura. |
+| `postman/urbeat.postman_collection.json` | Coleção v2.1 com as 170 requisições, guardas e scripts de captura. |
 | `postman/urbeat.local.postman_environment.json` | Ambiente padrão, sem credenciais. |
 | `postman/urbeat.oci.postman_environment.json` | Ambiente OCI, somente URLs e flags seguras, sem credenciais. |
-| `postman/feature-map.json` | Mapa autoritativo `endpoint → feature/subpasta`, com as 14 features e as 179 ações. |
+| `postman/feature-map.json` | Mapa autoritativo `endpoint → feature/subpasta`, com as 14 features e as 170 ações. |
 | `postman/README.md` | Como importar, preparar contas locais, alternar `runMode`, lidar com arquivos, riscos da OCI e comandos de verificação. |
 | `scripts/postman/Test-PostmanCoverage.ps1` | Compara controllers, `feature-map.json` e coleção; falha em divergência. |
 | `scripts/postman/Test-PostmanCollection.ps1` | Valida estrutura v2.1, ausência de segredos, guardas, multipart e ambientes. |
@@ -225,7 +223,7 @@ O contrato mínimo de `postman/feature-map.json` é:
 }
 ```
 
-O arquivo real contém as 14 features e as 179 entradas de endpoint. `Test-PostmanCoverage.ps1` exige correspondência 1:1 entre a extração dos controllers, as entradas do mapa e as requisições da coleção.
+O arquivo real contém as 14 features e as 170 entradas de endpoint. `Test-PostmanCoverage.ps1` exige correspondência 1:1 entre a extração dos controllers, as entradas do mapa e as requisições da coleção.
 
 ### 6.2 Autorização
 
@@ -237,7 +235,6 @@ A autorização é declarada **em cada requisição**, não herdada de pasta. Is
 | `AdminOnly` | Bearer `{{adminToken}}` |
 | `SellerOnly` ou `Roles = "Seller"` | Bearer `{{sellerToken}}` |
 | `CustomerOnly` | Bearer `{{customerToken}}` |
-| `DeliveryDriverOnly` | Bearer `{{driverToken}}` |
 | `[Authorize]` genérica | Bearer `{{customerToken}}` (único caso: `GET /api/orders/{orderId}/review`) |
 
 O header `Authorization` não é adicionado manualmente; usa-se o tipo `bearer` do Postman para evitar header duplicado.
@@ -249,7 +246,7 @@ Toda requisição terá uma descrição com este template:
 ```
 Feature: <id> · <nome> / <subpasta>
 Controller: <Nome>.<Action>  (rastreabilidade técnica, não organização)
-Auth: <No Auth | adminToken | sellerToken | customerToken | driverToken>
+Auth: <No Auth | adminToken | sellerToken | customerToken>
 Classificação: <read | write | destructive | webhook>
 Pré-requisitos: <variáveis e estado necessários>
 Efeitos: <o que cria/altera; "nenhum" para GET>
@@ -318,15 +315,15 @@ Todas as variáveis são de ambiente (`environment`), não de coleção, para pe
 
 **Credenciais de teste (vazias; tipo `secret` quando suportado)**
 
-`customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword`, `driverEmail`, `driverPassword`.
+`customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword`.
 
 **Tokens de acesso (vazios; tipo `secret`)**
 
-`customerToken`, `sellerToken`, `adminToken`, `driverToken`.
+`customerToken`, `sellerToken`, `adminToken`.
 
 **Identificadores e dados gerados (vazios)**
 
-`storeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `deliveryRouteToken`, `individualDeliveryToken`, `driverInviteToken`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `verificationCode`, `stopSequence`, `deliveryPin`, `emailConfirmationCode`, `passwordResetToken`, `emailChangeChallenge`, `cuisineTypeId`.
+`storeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `deliveryRouteToken`, `individualDeliveryToken`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `verificationCode`, `stopSequence`, `deliveryPin`, `emailConfirmationCode`, `passwordResetToken`, `emailChangeChallenge`, `cuisineTypeId`.
 
 **Dados sensíveis de teste (vazios; tipo `secret`)**
 
@@ -352,7 +349,6 @@ Scripts de teste só gravam valores quando a resposta é `2xx`, o corpo é JSON 
 | `POST /api/auth/login/customer`, `POST /api/auth/token` | `customerToken` | `accessToken` |
 | `POST /api/auth/login/seller` | `sellerToken` | `accessToken` |
 | `POST /api/auth/login/admin` | `adminToken` | `accessToken` |
-| `POST /api/auth/login/driver` | `driverToken` | `accessToken` |
 | `POST /api/auth/refresh` | token do último login | `accessToken` |
 | `POST /api/checkout/customer-session` e `POST /api/checkout/customer-verification/confirm` | `customerToken` | `accessToken` |
 | `POST /api/checkout/customer-session` e `POST /api/checkout/customer-verification/confirm` | `addressId` (se presente) | `customerAddressId` |
@@ -386,7 +382,6 @@ Scripts de teste só gravam valores quando a resposta é `2xx`, o corpo é JSON 
 
 Não há captura de:
 
-- token de convite de entregador (`/invites/{token}`), pois ele só é enviado por e-mail;
 - código OTP, pois não é devolvido pela API;
 - short code de confirmação de e-mail, pois só existe no e-mail/Redis;
 - refresh token, pois é cookie `HttpOnly`;
@@ -396,7 +391,7 @@ Não há captura de:
 ## 8. Autenticação e sessão
 
 - Esquema: JWT Bearer (`Authorization: Bearer <token>`), validado por issuer, audience, assinatura e lifetime; `ClockSkew` de 1 minuto.
-- Papéis: `Admin`, `Seller`, `Customer`, `DeliveryDriver`. As policies estão em `AuthorizationPolicies`.
+- Papéis: `Admin`, `Seller`, `Customer`. As policies estão em `AuthorizationPolicies`; o motoboy não possui papel nem sessão.
 - `401` = token ausente/inválido/expirado. `403` = token válido com papel errado, e-mail não confirmado (código `EMAIL_NOT_CONFIRMED`) ou regra de negócio. `423` = conta bloqueada.
 - O login devolve `{ accessToken, expiresAtUtc }`. O refresh token vai apenas no cookie `urbeat.refresh_token` (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`).
 - `POST /api/auth/refresh` depende exclusivamente desse cookie; não aceita refresh token no corpo.
@@ -801,33 +796,13 @@ Não há captura de:
 {
   "name": "Entregador Teste",
   "fullName": null,
-  "email": null,
   "phoneNumber": "+5521999990003",
   "whatsAppPhoneNumber": "+5521999990003",
   "isActive": true
 }
 ```
 
-Quando `email` é preenchido, o backend encaminha para o fluxo de convite; sem e-mail, cria o vínculo simples de loja. `POST /api/delivery-drivers` é a variante global.
-
-`POST /api/delivery-drivers/store/invite`:
-
-```json
-{
-  "fullName": "Entregador Convidado",
-  "email": "{{driverEmail}}",
-  "phoneNumber": "+5521999990004"
-}
-```
-
-`POST /api/delivery-drivers/invites/{token}/accept`:
-
-```json
-{
-  "password": "{{driverPassword}}",
-  "fullName": "Entregador Convidado"
-}
-```
+O motoboy é apenas um vínculo operacional da loja, sem e-mail, senha ou conta. `POST /api/delivery-drivers` é a variante global.
 
 `POST /api/delivery-routes/store`:
 
@@ -847,11 +822,13 @@ Quando `email` é preenchido, o backend encaminha para o fluxo de convite; sem e
 }
 ```
 
-`POST /api/driver/orders/{orderId}/confirm-pin` e as rotas públicas de entrega:
+Rotas públicas de entrega (`/api/public/delivery-routes/{token}/stops/{sequence}/deliver` e `/api/public/deliveries/{token}/deliver`):
 
 ```json
 {
-  "pin": "{{deliveryPin}}"
+  "pin": "{{deliveryPin}}",
+  "handoverConfirmed": true,
+  "cashReceivedAmount": null
 }
 ```
 
@@ -1076,7 +1053,6 @@ Allowlist de `read-only` (além de GET/HEAD):
 - `POST /api/auth/login/customer`
 - `POST /api/auth/login/seller`
 - `POST /api/auth/login/admin`
-- `POST /api/auth/login/driver`
 - `POST /api/auth/token`
 - `POST /api/auth/refresh`
 - `POST /api/checkout/preview`
@@ -1103,7 +1079,6 @@ const readOnlyPosts = new Set([
   'POST /api/auth/login/customer',
   'POST /api/auth/login/seller',
   'POST /api/auth/login/admin',
-  'POST /api/auth/login/driver',
   'POST /api/auth/token',
   'POST /api/auth/refresh',
   'POST /api/checkout/preview'
@@ -1147,14 +1122,13 @@ Além de **todos os `DELETE`**, entram na lista:
 - `POST /api/orders`, `PATCH /api/orders/{orderId}/status`, `POST /api/orders/{orderId}/delivery-confirmation`, `POST /api/orders/{orderId}/complete`
 - `POST /api/payments/order`
 - `POST /api/stores/{storeId}/publish`
-- `POST /api/delivery-drivers/store` (pode disparar convite quando `email` está preenchido; por segurança, a classificação é sempre destrutiva)
+- `POST /api/delivery-drivers/store` (cadastro operacional do motoboy; por segurança, a classificação é sempre destrutiva)
 - `PATCH /api/stores/{storeId}/status`
 - `PUT /api/stores/{storeId}/payment-gateway`
 - `PATCH /api/orders/store/customers/{customerUserId}/status`
-- `POST /api/delivery-drivers/store/invite`, `POST /api/delivery-drivers/store/{storeDriverId}/resend-invite`, `POST /api/delivery-drivers/store/{storeDriverId}/revoke`, `POST /api/delivery-drivers/invites/{token}/accept`, `PATCH /api/delivery-drivers/{storeDriverId}/status`
+- `PATCH /api/delivery-drivers/{storeDriverId}/status`
 - `POST /api/delivery-routes/store/send`, `POST /api/delivery-routes/store/{routeId}/share`, `POST /api/delivery-routes/store/{routeId}/revoke`
 - `POST /api/orders/store/{orderId}/delivery-link`
-- `POST /api/driver/orders/{orderId}/start`, `POST /api/driver/orders/{orderId}/confirm-pin`
 - `POST /api/public/delivery-routes/{token}/stops/{sequence}/deliver`, `POST /api/public/deliveries/{token}/deliver`
 - `POST /api/admin/plans`, `PUT /api/admin/plans/{planId}`, `PATCH /api/admin/plans/{planId}/status`
 - `POST /api/admin/subscriptions/status`, `POST /api/admin/subscriptions/notifications/process`
@@ -1264,16 +1238,16 @@ Fluxo esperado:
 - Uma ação nova em um controller gera exatamente uma entrada no `feature-map.json` e uma requisição na feature/subpasta correta.
 - Uma ação removida remove exatamente a requisição e a entrada do mapa, sem afetar as demais.
 - Uma mudança de DTO atualiza o exemplo ou é reportada como ambígua.
-- A cobertura continua em 33 controllers / 179 ações / 14 features / 44 subpastas (ou no novo total justificado) e o script passa.
+- A cobertura continua em 32 controllers / 170 ações / 14 features / 43 subpastas (ou no novo total justificado) e o script passa.
 - Nenhum segredo é introduzido.
 - Nenhuma chamada é feita à OCI.
 - O relatório final lista arquivos alterados e comandos executados.
 
 ## 16. Critérios de aceite da implementação
 
-1. A coleção importa no Postman sem erro de schema e mostra **14 features**, **44 subpastas de fluxo** e **179 requisições**.
+1. A coleção importa no Postman sem erro de schema e mostra **14 features**, **43 subpastas de fluxo** e **170 requisições**.
 2. Existe exatamente uma requisição por `MÉTODO + rota`, sem duplicatas nem ações faltantes; cada uma tem exatamente uma entrada em `feature-map.json` e uma única feature/subpasta; o Anexo A é a referência.
-3. A matriz de autorização confere: 42 No Auth, 85 `sellerToken`, 18 `customerToken`, 23 `adminToken`, 5 `sellerToken` (`Role:Seller`), 5 `driverToken` e 1 `customerToken` (`[Authorize]`).
+3. A matriz de autorização confere: 39 No Auth, 84 `sellerToken`, 18 `customerToken`, 23 `adminToken`, 5 `sellerToken` (`Role:Seller`) e 1 `customerToken` (`[Authorize]`).
 4. Toda URL começa com `{{baseUrl}}/api/` e não contém host absoluto.
 5. Os dois ambientes existem, são importáveis e não contêm credenciais, tokens, cookies, IDs de produção nem PII.
 6. `runMode` é `read-only` e `allowWebhooks` é `false` nos dois ambientes.
@@ -1282,7 +1256,7 @@ Fluxo esperado:
 9. Os dois endpoints multipart têm campo `file`, limites e fixtures documentados; nenhum usa URL de imagem externa.
 10. Login captura o token do papel correto; refresh é documentado como dependente de cookie; nenhuma captura ocorre em resposta de erro.
 11. Webhooks têm payload, header (Asaas), efeitos e aviso de execução manual; não são executados por Runner padrão.
-12. `feature-map.json` tem 14 features, 44 subpastas e 179 entradas; `Test-PostmanCoverage.ps1` e `Test-PostmanCollection.ps1` encerram com código 0 e falham quando há divergência simulada.
+12. `feature-map.json` tem 14 features, 43 subpastas e 170 entradas; `Test-PostmanCoverage.ps1` e `Test-PostmanCollection.ps1` encerram com código 0 e falham quando há divergência simulada.
 13. O smoke público com Newman não retorna 5xx e não requer credenciais.
 14. O `README` explica importação, contas locais, confirmação de e-mail/OTP, modos, limpeza de variáveis, arquivos e proibição de uso na OCI.
 15. O agente `postman-sync` existe, é subagente, tem as guardas da seção 15 e não altera código de aplicação.
@@ -1296,14 +1270,14 @@ Executar na fase de implementação, a partir da raiz do repositório.
 
 ```powershell
 $controllers = Get-ChildItem backend/src/Urbeat.WebApi/Controllers -Filter *Controller.cs
-$controllers.Count  # 33
+$controllers.Count  # 32
 
 # extração usada nesta especificação: contar [HttpX] por arquivo
 $total = 0
 $controllers | ForEach-Object {
   $total += (Select-String -Path $_.FullName -Pattern '^\s*\[Http(Get|Post|Put|Patch|Delete)').Count
 }
-$total  # 179
+$total  # 170
 ```
 
 ### 17.2 Cobertura
@@ -1317,8 +1291,8 @@ powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1 `
 
 Critérios:
 
-- 33 controllers e 179 ações na extração.
-- 14 features, 44 subpastas e 179 entradas no `feature-map.json`.
+- 32 controllers e 170 ações na extração.
+- 14 features, 43 subpastas e 170 entradas no `feature-map.json`.
 - Nenhuma ação ausente/extra/duplicada.
 - Cada endpoint aparece em exatamente uma feature/subpasta; nenhuma pasta usa nome de controller.
 - Webhooks somente na feature `13`.
@@ -1342,7 +1316,7 @@ Verificações mínimas:
 - URLs com `{{baseUrl}}`; nenhum `http://localhost` ou domínio OCI dentro da coleção.
 - Nenhum padrão de JWT (`eyJ...`), `Bearer ` literal, `CHANGE_ME`, senha preenchida, `asaas-access-token` com valor, CPF/CNPJ fixo.
 - Toda variável de token/senha/ID vazia nos dois ambientes.
-- `feature-map.json` presente, com 14 features, 44 subpastas e 179 endpoints; toda requisição tem destino único.
+- `feature-map.json` presente, com 14 features, 43 subpastas e 170 endpoints; toda requisição tem destino único.
 - Nenhuma pasta/subpasta com nome de controller; features e subpastas seguem a seção 4.2.
 - Guard presente; webhooks somente em `13 · Webhooks` e cobertos.
 - Exatamente 2 entradas `formdata` do tipo arquivo, com descrição do fixture.
@@ -1352,7 +1326,7 @@ Verificações mínimas:
 
 1. Abrir Postman desktop atual.
 2. Importar `urbeat.postman_collection.json` e os dois environments.
-3. Confirmar 14 features, 44 subpastas e 179 requisições.
+3. Confirmar 14 features, 43 subpastas e 170 requisições.
 4. Selecionar o ambiente Local.
 5. Executar `GET /api/public/stores` e `GET /api/address-lookup/cep/01310100`; aceitar `200` ou `404` (sem dados) e exigir ausência de 5xx.
 6. Abrir uma requisição multipart e confirmar que o campo `file` está sem arquivo e a descrição aponta o fixture.
@@ -1422,17 +1396,17 @@ npx --yes newman run postman/urbeat.postman_collection.json `
 
 ## Anexo A — inventário por feature
 
-Controllers são a origem técnica da extração, não o critério de agrupamento. Cada uma das 179 ações aparece uma única vez abaixo, na feature e subpasta de negócio que possui o estado/resultado. Auth segue a mesma legenda da seção 4.1: `anonymous`, `SellerOnly`, `CustomerOnly`, `AdminOnly`, `Role:Seller`, `DeliveryDriverOnly` e `authenticated`. As constraints de rota (`:guid`, `:int`) foram omitidas nesta listagem; na coleção elas viram variáveis de ambiente.
+Controllers são a origem técnica da extração, não o critério de agrupamento. Cada uma das 170 ações aparece uma única vez abaixo, na feature e subpasta de negócio que possui o estado/resultado. Auth segue a mesma legenda da seção 4.1: `anonymous`, `SellerOnly`, `CustomerOnly`, `AdminOnly`, `Role:Seller` e `authenticated`. As constraints de rota (`:guid`, `:int`) foram omitidas nesta listagem; na coleção elas viram variáveis de ambiente.
 
-**Total: 14 features, 44 subpastas e 179 ações.**
+**Total: 14 features, 43 subpastas e 170 ações.**
 
-### 01 · Acesso e identidade — 16 endpoints
+### 01 · Acesso e identidade — 15 endpoints
 
 | Subpasta | Ações | Endpoints (`MÉTODO /rota [auth]`) |
 | --- | ---: | --- |
 | Cadastro | 2 | POST /api/auth/register/customer [anonymous]<br>POST /api/auth/register/seller [anonymous] |
 | Confirmação e recuperação | 7 | POST /api/auth/email/confirm [anonymous]<br>POST /api/auth/email/confirm/{code} [anonymous]<br>POST /api/auth/email/resend-confirmation [anonymous]<br>POST /api/auth/forgot-password [anonymous]<br>POST /api/auth/reset-password [anonymous]<br>POST /api/auth/update-email [anonymous]<br>GET /api/auth/validate-reset-token [anonymous] |
-| Login | 5 | POST /api/auth/login/admin [anonymous]<br>POST /api/auth/login/customer [anonymous]<br>POST /api/auth/login/driver [anonymous]<br>POST /api/auth/login/seller [anonymous]<br>POST /api/auth/token [anonymous] |
+| Login | 4 | POST /api/auth/login/admin [anonymous]<br>POST /api/auth/login/customer [anonymous]<br>POST /api/auth/login/seller [anonymous]<br>POST /api/auth/token [anonymous] |
 | Sessão | 2 | POST /api/auth/logout [anonymous]<br>POST /api/auth/refresh [anonymous] |
 
 ### 02 · Conta do cliente — 9 endpoints
@@ -1484,13 +1458,13 @@ Controllers são a origem técnica da extração, não o critério de agrupament
 | Categorias | 5 | POST /api/stores/{storeId}/categories [SellerOnly]<br>GET /api/stores/{storeId}/categories [SellerOnly]<br>DELETE /api/stores/{storeId}/categories/{categoryId} [SellerOnly]<br>PUT /api/stores/{storeId}/categories/{categoryId} [SellerOnly]<br>PUT /api/stores/{storeId}/categories/reorder [SellerOnly] |
 | Produtos | 8 | POST /api/stores/{storeId}/products [SellerOnly]<br>GET /api/stores/{storeId}/products [SellerOnly]<br>DELETE /api/stores/{storeId}/products/{productId} [SellerOnly]<br>PUT /api/stores/{storeId}/products/{productId} [SellerOnly]<br>PATCH /api/stores/{storeId}/products/{productId}/availability [SellerOnly]<br>POST /api/stores/{storeId}/products/{productId}/images [SellerOnly]<br>POST /api/stores/{storeId}/products/batch [SellerOnly]<br>GET /api/stores/{storeId}/products/option-groups [SellerOnly] |
 
-### 08 · Checkout e pedidos — 22 endpoints
+### 08 · Checkout e pedidos — 24 endpoints
 
 | Subpasta | Ações | Endpoints (`MÉTODO /rota [auth]`) |
 | --- | ---: | --- |
 | Checkout | 7 | POST /api/checkout/confirm [CustomerOnly]<br>POST /api/checkout/customer-session [anonymous]<br>POST /api/checkout/customer-verification/confirm [anonymous]<br>POST /api/checkout/customer-verification/resend [anonymous]<br>POST /api/checkout/customer-verification/start [anonymous]<br>POST /api/checkout/preview [anonymous]<br>POST /api/orders [CustomerOnly] |
 | Clientes da loja | 3 | GET /api/orders/store/customers [SellerOnly]<br>PUT /api/orders/store/customers/{customerUserId} [SellerOnly]<br>PATCH /api/orders/store/customers/{customerUserId}/status [SellerOnly] |
-| Pedidos da loja | 9 | POST /api/orders/{orderId}/complete [SellerOnly]<br>PATCH /api/orders/{orderId}/status [SellerOnly]<br>GET /api/orders/store [SellerOnly]<br>GET /api/orders/store/{orderId} [SellerOnly]<br>DELETE /api/orders/store/{orderId}/delivery-driver [SellerOnly]<br>PUT /api/orders/store/{orderId}/delivery-driver [SellerOnly]<br>POST /api/orders/store/{orderId}/delivery-link [SellerOnly]<br>GET /api/orders/store/deliveries [SellerOnly]<br>GET /api/orders/store/report [SellerOnly] |
+| Pedidos da loja | 11 | POST /api/orders/{orderId}/complete [SellerOnly]<br>PATCH /api/orders/{orderId}/status [SellerOnly]<br>GET /api/orders/store [SellerOnly]<br>GET /api/orders/store/{orderId} [SellerOnly]<br>DELETE /api/orders/store/{orderId}/delivery-driver [SellerOnly]<br>PUT /api/orders/store/{orderId}/delivery-driver [SellerOnly]<br>POST /api/orders/store/{orderId}/delivery-link [SellerOnly]<br>GET /api/orders/store/deliveries [SellerOnly]<br>GET /api/orders/store/report [SellerOnly]<br>GET /api/orders/store/analytics [SellerOnly]<br>GET /api/orders/store/sales [SellerOnly] |
 | Pedidos do cliente | 3 | GET /api/orders/{orderId} [CustomerOnly]<br>POST /api/orders/{orderId}/delivery-confirmation [CustomerOnly]<br>GET /api/orders/my [CustomerOnly] |
 
 ### 09 · Pagamentos — 6 endpoints
@@ -1507,12 +1481,11 @@ Controllers são a origem técnica da extração, não o critério de agrupament
 | Avaliações do pedido | 2 | GET /api/orders/{orderId}/review [authenticated]<br>POST /api/orders/{orderId}/review [CustomerOnly] |
 | Avaliações recebidas | 1 | GET /api/reviews/store [SellerOnly] |
 
-### 11 · Entregas — 27 endpoints
+### 11 · Entregas — 17 endpoints
 
 | Subpasta | Ações | Endpoints (`MÉTODO /rota [auth]`) |
 | --- | ---: | --- |
-| App do entregador | 5 | GET /api/driver/orders [DeliveryDriverOnly]<br>GET /api/driver/orders/{orderId} [DeliveryDriverOnly]<br>POST /api/driver/orders/{orderId}/confirm-pin [DeliveryDriverOnly]<br>POST /api/driver/orders/{orderId}/start [DeliveryDriverOnly]<br>GET /api/driver/stores [DeliveryDriverOnly] |
-| Entregadores | 11 | POST /api/delivery-drivers [SellerOnly]<br>PUT /api/delivery-drivers/{storeDriverId} [SellerOnly]<br>DELETE /api/delivery-drivers/{storeDriverId} [SellerOnly]<br>PATCH /api/delivery-drivers/{storeDriverId}/status [SellerOnly]<br>GET /api/delivery-drivers/invites/{token} [anonymous]<br>POST /api/delivery-drivers/invites/{token}/accept [anonymous]<br>POST /api/delivery-drivers/store [SellerOnly]<br>GET /api/delivery-drivers/store [SellerOnly]<br>POST /api/delivery-drivers/store/{storeDriverId}/resend-invite [SellerOnly]<br>POST /api/delivery-drivers/store/{storeDriverId}/revoke [SellerOnly]<br>POST /api/delivery-drivers/store/invite [SellerOnly] |
+| Entregadores | 6 | POST /api/delivery-drivers [SellerOnly]<br>PUT /api/delivery-drivers/{storeDriverId} [SellerOnly]<br>DELETE /api/delivery-drivers/{storeDriverId} [SellerOnly]<br>PATCH /api/delivery-drivers/{storeDriverId}/status [SellerOnly]<br>POST /api/delivery-drivers/store [SellerOnly]<br>GET /api/delivery-drivers/store [SellerOnly] |
 | Links públicos de entrega | 4 | GET /api/public/deliveries/{token} [anonymous]<br>POST /api/public/deliveries/{token}/deliver [anonymous]<br>GET /api/public/delivery-routes/{token} [anonymous]<br>POST /api/public/delivery-routes/{token}/stops/{sequence}/deliver [anonymous] |
 | Rotas de entrega | 7 | POST /api/delivery-routes/store [SellerOnly]<br>GET /api/delivery-routes/store [SellerOnly]<br>PUT /api/delivery-routes/store/{routeId} [SellerOnly]<br>GET /api/delivery-routes/store/{routeId} [SellerOnly]<br>POST /api/delivery-routes/store/{routeId}/revoke [SellerOnly]<br>POST /api/delivery-routes/store/{routeId}/share [SellerOnly]<br>POST /api/delivery-routes/store/send [SellerOnly] |
 
@@ -1544,8 +1517,8 @@ Controllers são a origem técnica da extração, não o critério de agrupament
 
 - [ ] Coleção v2.1 importada sem erro.
 - [ ] Ambientes Local e OCI importados separadamente.
-- [ ] 14 features e 44 subpastas visíveis; nenhuma pasta nomeada por controller.
-- [ ] 179 requisições; contagem por feature confere com a seção 4.2 e com `feature-map.json`.
+- [ ] 14 features e 43 subpastas visíveis; nenhuma pasta nomeada por controller.
+- [ ] 170 requisições; contagem por feature confere com a seção 4.2 e com `feature-map.json`.
 - [ ] Nenhum token/senha/ID preenchido nos JSONs.
 - [ ] `runMode=read-only` e `allowWebhooks=false`.
 - [ ] GET público responde sem credencial.

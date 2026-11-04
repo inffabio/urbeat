@@ -98,7 +98,6 @@
       "subfolders": [
         "Entregadores",
         "Rotas de entrega",
-        "App do entregador",
         "Links públicos de entrega"
       ]
     },
@@ -148,10 +147,6 @@
       "subfolder": "Login"
     },
     "POST /api/auth/login/admin": {
-      "feature": "01",
-      "subfolder": "Login"
-    },
-    "POST /api/auth/login/driver": {
       "feature": "01",
       "subfolder": "Login"
     },
@@ -647,27 +642,7 @@
       "feature": "11",
       "subfolder": "Entregadores"
     },
-    "POST /api/delivery-drivers/store/invite": {
-      "feature": "11",
-      "subfolder": "Entregadores"
-    },
-    "POST /api/delivery-drivers/store/{storeDriverId}/resend-invite": {
-      "feature": "11",
-      "subfolder": "Entregadores"
-    },
-    "POST /api/delivery-drivers/store/{storeDriverId}/revoke": {
-      "feature": "11",
-      "subfolder": "Entregadores"
-    },
     "DELETE /api/delivery-drivers/{storeDriverId}": {
-      "feature": "11",
-      "subfolder": "Entregadores"
-    },
-    "GET /api/delivery-drivers/invites/{token}": {
-      "feature": "11",
-      "subfolder": "Entregadores"
-    },
-    "POST /api/delivery-drivers/invites/{token}/accept": {
       "feature": "11",
       "subfolder": "Entregadores"
     },
@@ -698,26 +673,6 @@
     "POST /api/delivery-routes/store/send": {
       "feature": "11",
       "subfolder": "Rotas de entrega"
-    },
-    "GET /api/driver/stores": {
-      "feature": "11",
-      "subfolder": "App do entregador"
-    },
-    "GET /api/driver/orders": {
-      "feature": "11",
-      "subfolder": "App do entregador"
-    },
-    "GET /api/driver/orders/{orderId}": {
-      "feature": "11",
-      "subfolder": "App do entregador"
-    },
-    "POST /api/driver/orders/{orderId}/start": {
-      "feature": "11",
-      "subfolder": "App do entregador"
-    },
-    "POST /api/driver/orders/{orderId}/confirm-pin": {
-      "feature": "11",
-      "subfolder": "App do entregador"
     },
     "GET /api/public/deliveries/{token}": {
       "feature": "11",
@@ -846,6 +801,14 @@
     "GET /api/address-lookup/cep/{cep}": {
       "feature": "14",
       "subfolder": "Consulta de CEP"
+    },
+    "GET /api/orders/store/analytics": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
+    },
+    "GET /api/orders/store/sales": {
+      "feature": "08",
+      "subfolder": "Pedidos da loja"
     }
   }
 }

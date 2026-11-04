@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `superpowers:subagent-driven-development` (recomendado) ou `superpowers:executing-plans` para executar este plano tarefa por tarefa. Cada passo tem checkbox (`- [ ]`). Não execute chamadas contra a OCI e não faça commits: o diff fica para revisão humana (especificação §15.3 e §15.4).
 
-**Goal:** criar a coleção Postman v2.1 importável que cobre as 179 ações REST/webhook do `Urbeat.WebApi`, organizada em 14 features e 44 subpastas de negócio, com ambientes Local/OCI sem credenciais, guardas de execução, exemplos derivados dos DTOs, fixtures reais, scripts de verificação de cobertura/estrutura e um subagente OpenCode de manutenção.
+**Goal:** criar a coleção Postman v2.1 importável que cobre as 170 ações REST/webhook do `Urbeat.WebApi`, organizada em 14 features e 43 subpastas de negócio, com ambientes Local/OCI sem credenciais, guardas de execução, exemplos derivados dos DTOs, fixtures reais, scripts de verificação de cobertura/estrutura e um subagente OpenCode de manutenção.
 
-**Architecture:** `postman/feature-map.json` é o mapa autoritativo 1:1 entre as 179 ações e feature/subpasta. A coleção é o artefato principal, mantido como fonte versionada (não gerado em build). Dois scripts PowerShell validam, respectivamente, contrato↔mapa↔coleção e estrutura/segredos/guardas. Um guard no `prerequest` de coleção bloqueia escrita/destrutivas/webhooks por padrão (`runMode=read-only`, `allowWebhooks=false`). Ambientes guardam todos os valores mutáveis; nada sensível é versionado.
+**Architecture:** `postman/feature-map.json` é o mapa autoritativo 1:1 entre as 170 ações e feature/subpasta. A coleção é o artefato principal, mantido como fonte versionada (não gerado em build). Dois scripts PowerShell validam, respectivamente, contrato↔mapa↔coleção e estrutura/segredos/guardas. Um guard no `prerequest` de coleção bloqueia escrita/destrutivas/webhooks por padrão (`runMode=read-only`, `allowWebhooks=false`). Ambientes guardam todos os valores mutáveis; nada sensível é versionado.
 
 **Tech Stack:** Postman Collection v2.1 (JSON), PowerShell 5.1/7, Newman via `npx`, ASP.NET Core 9 (somente leitura de controllers/DTOs), .NET minimal APIs não são tocadas.
 
@@ -16,7 +16,7 @@ Estas divergências foram confirmadas contra os controllers/DTOs atuais e **deve
 
 | # | Especificação diz | Código real (fonte) | Resolução no plano |
 | --- | --- | --- | --- |
-| D1 | §7.5: `POST /api/auth/refresh` grava "token do último login" | O refresh devolve só `accessToken`; não há estado de qual papel fez o último login | Adicionar variável de ambiente não secreta `lastLoginRole` (`customer`/`seller`/`admin`/`driver`), escrita pelos logins; o refresh grava no token correspondente. Documentar em `postman/README.md`. |
+| D1 | §7.5: `POST /api/auth/refresh` grava "token do último login" | O refresh devolve só `accessToken`; não há estado de qual papel fez o último login | Adicionar variável de ambiente não secreta `lastLoginRole` (`customer`/`seller`/`admin`), escrita pelos logins; o refresh grava no token correspondente. Documentar em `postman/README.md`. |
 | D2 | §7.5: `GET /api/outbox/failed` captura `[0].id` | `OutboxOperations.ListFailed` devolve `{ page, pageSize, totalItems, totalPages, items: [...] }` | Capturar `items[0].id`. |
 | D3 | §7.5: `GET /api/customer/notifications` e `GET /api/seller/notifications` capturam `[0].id` | Ambos devolvem `{ unreadCount, items: [...] }` | Capturar `items[0].id`. |
 | D4 | §9.1: todo corpo com todas as chaves do DTO | `CreateProductRequestDto`/`UpdateProductRequestDto` possuem `weightConfig`; o exemplo §9.4 o omite | Incluir `"weightConfig": null` no exemplo de produto (B28). |
@@ -28,14 +28,14 @@ Estas divergências foram confirmadas contra os controllers/DTOs atuais e **deve
 | D10 | §5 lista 8 arquivos; §15.4 exige permissão em `arquiteto.md` | A permissão atual só delega a `programador` | Alterar **somente** o bloco `permissions` de `.opencode/agents/arquiteto.md`, como exceção já prevista na §5. |
 | D11 | §17.2 cita `POST/PUT/DELETE /api/stores/{storeId}/cuisine-types` em `04` | `StoresController` expõe `POST`, `GET` e `DELETE` desse recurso; **não existe PUT** | Validar `POST/GET/DELETE` em `04`, como no Anexo A. |
 
-> Itens apenas registrados, sem mudança de conteúdo: `POST /api/auth/logout` não está na allowlist (fica `write`); `StoreDeliveryAreaDto.Id` e `StoreBusinessHourShiftDto.Id` são omitidos nos exemplos por serem opcionais para criação (não há GUID fixo permitido); `printerBase64Data` permanece vazio e `secret`; `emailChangeChallenge`, `deliveryRouteToken`, `individualDeliveryToken` e `driverInviteToken` são gravados como `secret` (a §7.3 os lista entre IDs, mas são credenciais bearer).
+> Itens apenas registrados, sem mudança de conteúdo: `POST /api/auth/logout` não está na allowlist (fica `write`); `StoreDeliveryAreaDto.Id` e `StoreBusinessHourShiftDto.Id` são omitidos nos exemplos por serem opcionais para criação (não há GUID fixo permitido); `printerBase64Data` permanece vazio e `secret`; `emailChangeChallenge`, `deliveryRouteToken` e `individualDeliveryToken` são gravados como `secret` (a §7.3 os lista entre IDs, mas são credenciais bearer).
 
 ---
 
 ## 1. Restrições globais
 
-- **Contagens invariantes:** 33 controllers, 179 ações, 14 features, 44 subpastas. Matriz de auth: 42 anônimas, 85 `SellerOnly`, 18 `CustomerOnly`, 23 `AdminOnly`, 5 `Role:Seller`, 5 `DeliveryDriverOnly`, 1 `[Authorize]` genérica.
-- **Classificação esperada:** 78 `read` (71 GET + 7 POST da allowlist), 63 `destructive` (61 + 2 webhooks), 38 `write`. Total 179.
+- **Contagens invariantes:** 32 controllers, 170 ações, 14 features, 43 subpastas. Matriz de auth: 39 anônimas, 84 `SellerOnly`, 18 `CustomerOnly`, 23 `AdminOnly`, 5 `Role:Seller`, 1 `[Authorize]` genérica.
+- **Classificação esperada:** 75 `read` (69 GET + 6 POST da allowlist), 55 `destructive` (53 + 2 webhooks), 38 `write`. Total 170.
 - **Sem credenciais/PII:** nenhum token, senha, cookie, CPF/CNPJ, e-mail real, ID de produção ou resposta de OCI em JSON, descrição, exemplos, README ou script.
 - **Sem host fixo na coleção:** toda URL começa com `{{baseUrl}}/api/`; hosts existem somente nos dois ambientes.
 - **Guardas por padrão:** `runMode=read-only`, `allowWebhooks=false` nos dois ambientes. Webhooks exigem `runMode=destructive` **e** `allowWebhooks=true`, apenas local.
@@ -52,10 +52,10 @@ Estas divergências foram confirmadas contra os controllers/DTOs atuais e **deve
 
 | Caminho | Responsabilidade |
 | --- | --- |
-| `postman/urbeat.postman_collection.json` | Coleção v2.1: 14 features, 44 subpastas, 179 requisições, guard de coleção, scripts de captura/teste. |
+| `postman/urbeat.postman_collection.json` | Coleção v2.1: 14 features, 43 subpastas, 170 requisições, guard de coleção, scripts de captura/teste. |
 | `postman/urbeat.local.postman_environment.json` | `baseUrl=http://localhost:5000`, `webBaseUrl=http://localhost:4200`, `runMode=read-only`, `allowWebhooks=false`; demais variáveis vazias. |
 | `postman/urbeat.oci.postman_environment.json` | `baseUrl=https://api.urbeat.com.br`, `webBaseUrl=https://urbeat.com.br`, mesmas flags; demais vazias. |
-| `postman/feature-map.json` | Mapa autoritativo `endpoint → {feature, subfolder}` com as 14 features e 179 entradas. |
+| `postman/feature-map.json` | Mapa autoritativo `endpoint → {feature, subfolder}` com as 14 features e 170 entradas. |
 | `postman/README.md` | Importação, contas locais, confirmação/OTP, modos, fixtures, riscos da OCI, limpeza, comandos. |
 | `scripts/postman/Test-PostmanCoverage.ps1` | Extrai controllers, valida mapa e coleção (cobertura, auth, classe, DTOs, destrutivas). |
 | `scripts/postman/Test-PostmanCollection.ps1` | Valida schema v2.1, IDs, URLs, segredos, ambientes, multipart, guard e scripts. |
@@ -73,7 +73,7 @@ Nenhum outro arquivo pode ser criado ou alterado. Arquivos temporários de teste
 - Nome da requisição = `MÉTODO + espaço + rota`, sem constraints: `GET /api/stores/{storeId}/products`.
 - URL = `{{baseUrl}}` + rota; cada `{param}` vira `{{variavel}}`:
   - `{storeId:guid}` → `{{storeId}}`; `{sequence:int}` → `{{stopSequence}}`;
-  - `{token}` contextual → `{{deliveryRouteToken}}`, `{{individualDeliveryToken}}` ou `{{driverInviteToken}}` (tabela §4.4);
+  - `{token}` contextual → `{{deliveryRouteToken}}` ou `{{individualDeliveryToken}}` (tabela §4.4);
   - `{id}` do Outbox → `{{outboxEventId}}`; `{notificationId}` → `{{customerNotificationId}}`/`{{sellerNotificationId}}`; `{id:guid}` da landing → `{{landingContentId}}`; `{key}` → `{{systemParameterKey}}`; `{code}` → `{{emailConfirmationCode}}`; `{slug}` → `{{storeSlug}}`; `{storePath}` → `{{storePath}}`; `{cep}` → `{{cep}}`; `{section}` → `{{landingSection}}`; `{cityId:guid}` → `{{cityId}}`; `{cuisineTypeId:guid}` → `{{cuisineTypeId}}`.
 - Preservar `api/LandingPageContent` com maiúsculas. Rotas de action com barra inicial (`api/orders/...`) não geram `//`.
 - Query opcional entra **desabilitada** (`"disabled": true`) com descrição e exemplo; query obrigatória entra habilitada e vazia.
@@ -88,7 +88,6 @@ Nenhum outro arquivo pode ser criado ou alterado. Arquivos temporários de teste
 | `AdminOnly` | `{ "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }` |
 | `SellerOnly` ou `Roles = "Seller"` | bearer `{{sellerToken}}` |
 | `CustomerOnly` | bearer `{{customerToken}}` |
-| `DeliveryDriverOnly` | bearer `{{driverToken}}` |
 | `[Authorize]` genérica (`GET /api/orders/{orderId}/review`) | bearer `{{customerToken}}` |
 
 ### 3.3 Descrição obrigatória
@@ -96,7 +95,7 @@ Nenhum outro arquivo pode ser criado ou alterado. Arquivos temporários de teste
 ```
 Feature: <NN> · <nome> / <subpasta>
 Controller: <Arquivo>.<Action>
-Auth: <No Auth | adminToken | sellerToken | customerToken | driverToken>
+Auth: <No Auth | adminToken | sellerToken | customerToken>
 Classificação: <read | write | destructive | webhook>
 Pré-requisitos: <variáveis/estado; "nenhum" quando não houver>
 Efeitos: <o que cria/altera; "nenhum" para GET>
@@ -126,7 +125,6 @@ Inserir em `event` de nível de coleção, `listen: "prerequest"`, `script.type:
     'POST /api/auth/login/customer',
     'POST /api/auth/login/seller',
     'POST /api/auth/login/admin',
-    'POST /api/auth/login/driver',
     'POST /api/auth/token',
     'POST /api/auth/refresh',
     'POST /api/checkout/preview'
@@ -166,15 +164,9 @@ Inserir em `event` de nível de coleção, `listen: "prerequest"`, `script.type:
     'DELETE /api/stores/{storeId}/payment-gateway',
     'PUT /api/stores/{storeId}/payment-gateway',
     'POST /api/payments/order',
-    'POST /api/driver/orders/{orderId}/start',
-    'POST /api/driver/orders/{orderId}/confirm-pin',
     'DELETE /api/delivery-drivers/{storeDriverId}',
     'PATCH /api/delivery-drivers/{storeDriverId}/status',
-    'POST /api/delivery-drivers/invites/{token}/accept',
     'POST /api/delivery-drivers/store',
-    'POST /api/delivery-drivers/store/{storeDriverId}/resend-invite',
-    'POST /api/delivery-drivers/store/{storeDriverId}/revoke',
-    'POST /api/delivery-drivers/store/invite',
     'POST /api/delivery-routes/store/{routeId}/revoke',
     'POST /api/delivery-routes/store/{routeId}/share',
     'POST /api/delivery-routes/store/send',
@@ -228,8 +220,8 @@ Todos os scripts de captura devem ser tolerantes a erro (nunca lançar exceção
     if (!pm.response || pm.response.code < 200 || pm.response.code >= 300) return;
     const body = pm.response.json();
     if (!body || typeof body.accessToken !== 'string' || body.accessToken.length === 0) return;
-    pm.environment.set('adminToken', body.accessToken); // trocar por customerToken/sellerToken/driverToken
-    pm.environment.set('lastLoginRole', 'admin');       // trocar por customer/seller/driver
+    pm.environment.set('adminToken', body.accessToken); // trocar por customerToken/sellerToken
+    pm.environment.set('lastLoginRole', 'admin');       // trocar por customer/seller
   } catch (e) { /* captura best-effort */ }
 })();
 ```
@@ -245,8 +237,7 @@ Todos os scripts de captura devem ser tolerantes a erro (nunca lançar exceção
     const target = {
       customer: 'customerToken',
       seller: 'sellerToken',
-      admin: 'adminToken',
-      driver: 'driverToken'
+      admin: 'adminToken'
     }[String(pm.environment.get('lastLoginRole') || '')];
     if (target) pm.environment.set(target, body.accessToken);
   } catch (e) { /* captura best-effort */ }
@@ -331,7 +322,7 @@ Formato:
 
 - `runMode` e `allowWebhooks` são `default` (texto), não secret.
 - `lastLoginRole` é `default`, vazio.
-- Tokens, senhas, documentos, chaves, challenges, códigos e PIN são `secret` (inclui `deliveryRouteToken`, `individualDeliveryToken`, `driverInviteToken`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `verificationCode`, `deliveryPin`).
+- Tokens, senhas, documentos, chaves, challenges, códigos e PIN são `secret` (inclui `deliveryRouteToken`, `individualDeliveryToken`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `verificationCode`, `deliveryPin`).
 - IDs e URLs são `default` e vazios.
 - Conjunto de chaves idêntico nos dois ambientes; somente `baseUrl`/`webBaseUrl` diferem.
 
@@ -341,10 +332,10 @@ Catálogo completo (ordem alfabética dentro de cada grupo):
 | --- | --- |
 | Controle | `runMode`, `allowWebhooks`, `lastLoginRole` |
 | URLs/dados públicos | `baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
-| Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword`, `driverEmail`, `driverPassword` |
-| Tokens (secret) | `customerToken`, `sellerToken`, `adminToken`, `driverToken` |
+| Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword` |
+| Tokens (secret) | `customerToken`, `sellerToken`, `adminToken` |
 | IDs/valores (default) | `storeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `stopSequence` |
-| Segredos/links/códigos (secret) | `deliveryRouteToken`, `individualDeliveryToken`, `driverInviteToken`, `verificationCode`, `deliveryPin`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `emailChangeChallenge`, `customerDocument`, `sellerDocument`, `storeDocument`, `storePixKey`, `asaasWebhookToken`, `paymentGatewayAccessToken`, `printerBase64Data` |
+| Segredos/links/códigos (secret) | `deliveryRouteToken`, `individualDeliveryToken`, `verificationCode`, `deliveryPin`, `emailConfirmationCode`, `emailConfirmationToken`, `passwordResetToken`, `emailChangeChallenge`, `customerDocument`, `sellerDocument`, `storeDocument`, `storePixKey`, `asaasWebhookToken`, `paymentGatewayAccessToken`, `printerBase64Data` |
 
 ### 3.7 Multipart e fixtures
 
@@ -373,7 +364,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 | 11 | 151 |
 | 12 | 176 |
 | 13 | 178 |
-| 14 | 179 |
+| 14 | 170 |
 
 ---
 
@@ -409,7 +400,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
   }
   ```
 
-  Transcrever as 14 features (nomes sem prefixo numérico) e as 44 subpastas na ordem do fluxo do Anexo A. Transcrever as 179 chaves exatamente como na coluna "Requisição" do Anexo A. Não incluir auth/classe no mapa.
+  Transcrever as 14 features (nomes sem prefixo numérico) e as 43 subpastas na ordem do fluxo do Anexo A. Transcrever as 170 chaves exatamente como na coluna "Requisição" do Anexo A. Não incluir auth/classe no mapa.
 
 - [ ] **Step 2: Implementar a extração de controllers**
 
@@ -434,7 +425,6 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
       if ($Block -match 'AdminOnly') { return 'AdminOnly' }
       if ($Block -match 'SellerOnly') { return 'SellerOnly' }
       if ($Block -match 'CustomerOnly') { return 'CustomerOnly' }
-      if ($Block -match 'DeliveryDriverOnly') { return 'DeliveryDriverOnly' }
       if ($Block -match 'Roles\s*=\s*"Seller"') { return 'Role:Seller' }
       if ($Block -match '\[Authorize') { return 'authenticated' }
       return $Fallback
@@ -488,14 +478,14 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 - [ ] **Step 3: Validar fonte, mapa e (quando houver) coleção**
 
   Checks mínimos, todos com `Fail`:
-  1. 33 arquivos; 179 ações; zero nomes duplicados.
-  2. `version=1`; 14 features com ids `01`–`14`; 44 subpastas no total; 179 entradas.
+  1. 32 arquivos; 170 ações; zero nomes duplicados.
+  2. `version=1`; 14 features com ids `01`–`14`; 43 subpastas no total; 170 entradas.
   3. Conjunto de chaves do mapa = conjunto extraído. Reportar faltantes/extras.
   4. Toda entrada aponta feature existente e subpasta declarada.
   5. Contagem por feature = `16,9,10,25,6,8,19,22,6,3,27,25,2,1`.
   6. Fronteiras explícitas: `GET /api/stores/cuisine-types` e `GET /api/public/stores/{storeId}/reviews` em `03`; `POST/GET/DELETE /api/stores/{storeId}/cuisine-types` em `04`; gateway em `09`; webhooks em `13`; `POST /api/orders` em `08`.
   7. Nenhuma feature/subpasta com nome de controller (`Auth`, `Stores`, `Orders`, ...).
-  8. Com coleção: cada requisição aparece uma vez; destino igual ao mapa; `Auth:` da descrição igual à extração; `Classificação:` derivada deterministicamente (webhook se `POST /api/webhooks/*`; destructive se estiver na lista de 63; read se GET/HEAD ou na allowlist de 7 POSTs; caso contrário write).
+  8. Com coleção: cada requisição aparece uma vez; destino igual ao mapa; `Auth:` da descrição igual à extração; `Classificação:` derivada deterministicamente (webhook se `POST /api/webhooks/*`; destructive se estiver na lista de 57; read se GET/HEAD ou na allowlist de 6 POSTs; caso contrário write).
   9. Nomes com classe `destructive` ∪ `webhook` = lista hardcoded de 63 nomes do guard (que já inclui os 2 webhooks); todo `DELETE` é destrutivo.
   10. Para cada ação com `[FromBody]` (69), a requisição correspondente tem `body.mode="raw"`, `options.raw.language="json"` e o JSON contém todas as chaves de nível superior do DTO.
   11. Exatamente 2 requisições com `IFormFile`/`formdata`.
@@ -534,9 +524,9 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
   Saída esperada:
 
   ```
-  OK controllers=33 actions=179 features=14 subfolders=44 endpoints=179
-  OK auth anonymous=42 SellerOnly=85 CustomerOnly=18 AdminOnly=23 Role:Seller=5 DeliveryDriverOnly=5 authenticated=1
-  OK class read=78 write=38 destructive=61 webhook=2 guard=63
+  OK controllers=32 actions=170 features=14 subfolders=43 endpoints=170
+  OK auth anonymous=39 SellerOnly=84 CustomerOnly=18 AdminOnly=23 Role:Seller=5 authenticated=1
+  OK class read=75 write=38 destructive=55 webhook=2 guard=57
   ```
 
 - [ ] **Step 4: Rodar a validação do mapa (antes da coleção existir)**
@@ -576,7 +566,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 **Interfaces:**
 - Consumes: nomes de features/subpastas do mapa (Task 1).
-- Produces: coleção com `info`, 14 pastas e 44 subpastas vazias, `event` de guard; ambientes completos; script com `-CollectionPath`, `-LocalEnvironment`, `-OciEnvironment`, `-VerifyGuard`; exit `0/1`.
+- Produces: coleção com `info`, 14 pastas e 43 subpastas vazias, `event` de guard; ambientes completos; script com `-CollectionPath`, `-LocalEnvironment`, `-OciEnvironment`, `-VerifyGuard`; exit `0/1`.
 
 - [ ] **Step 1: Criar o esqueleto da coleção**
 
@@ -606,7 +596,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
   }
   ```
 
-  Repetir as 14 features/44 subpastas exatamente como no mapa e na ordem do fluxo. Não criar `variable` de coleção (tudo é ambiente).
+  Repetir as 14 features/43 subpastas exatamente como no mapa e na ordem do fluxo. Não criar `variable` de coleção (tudo é ambiente).
 
 - [ ] **Step 2: Criar os dois ambientes com o catálogo completo**
 
@@ -616,17 +606,17 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
   Checks mínimos:
   1. JSON válido; `info.schema` v2.1; `info.name` exato; `_postman_id` GUID; `item.id` presente em toda requisição e GUID único.
-  2. 14 pastas e 44 subpastas com os nomes do mapa; nenhuma pasta/subpasta com nome de controller.
+  2. 14 pastas e 43 subpastas com os nomes do mapa; nenhuma pasta/subpasta com nome de controller.
   3. Toda `request.url.raw` começa com `{{baseUrl}}/api/`; sem `http://`, `https://`, `//` após `{{baseUrl}}`, `:guid` ou `:int`.
-  4. `Accept: application/json` presente; nenhum header `Content-Type`/`Authorization`; `auth.type` em `noauth|bearer`; bearer só com `{{customerToken}}`, `{{sellerToken}}`, `{{adminToken}}`, `{{driverToken}}`.
+  4. `Accept: application/json` presente; nenhum header `Content-Type`/`Authorization`; `auth.type` em `noauth|bearer`; bearer só com `{{customerToken}}`, `{{sellerToken}}` e `{{adminToken}}`.
   5. Corpo `raw`/`json` parseável; nenhum GUID literal no corpo (permitir UUIDs apenas em `id`, `_postman_id` e `info`); nenhuma URL de imagem externa (o `websiteUrl` público de B14/B15 é permitido).
   6. Exatamente 2 `formdata` com campo `file` tipo `file`, sem `src`; descrição cita o fixture.
   7. Descrição com as linhas `Feature:`, `Controller:`, `Auth:`, `Classificação:`, `Pré-requisitos:`, `Efeitos:`, `Captura:`; `Manual: sim` em destructive/webhook.
   8. Nenhum `pm.sendRequest`/`setNextRequest` em scripts; capturas contêm `try`/`catch`.
-  9. Guard: existe `event` prerequest de coleção; extrair `readOnlyPosts` (7 nomes) e `destructive` (63 nomes) e comparar com as listas hardcoded no script; `mode` normalizado; `isWebhook` presente.
+  9. Guard: existe `event` prerequest de coleção; extrair `readOnlyPosts` (6 nomes) e `destructive` (57 nomes) e comparar com as listas hardcoded no script; `mode` normalizado; `isWebhook` presente.
   10. Ambientes: nomes/URLs exatos; `runMode=read-only`; `allowWebhooks=false`; mesmas chaves; todos os valores vazios exceto `baseUrl`/`webBaseUrl`/`runMode`/`allowWebhooks`; sem chave duplicada.
   11. Scan de segredos nos 3 JSONs: `eyJ[A-Za-z0-9_-]{10,}`, `(?i)bearer\s+[A-Za-z0-9._-]{10,}`, `CHANGE_ME`, `-----BEGIN`, `asaas-access-token` com valor literal (permitir somente `{{asaasWebhookToken}}`), `(?<![+\d])\d{11}(?!\d)`, `\d{14}`, `@urbeat.com.br` (exceto README).
-  12. Saída `OK structure folders=14 subfolders=44 requests=N` e `OK guard ...`; exit `1` com a lista de falhas.
+  12. Saída `OK structure folders=14 subfolders=43 requests=N` e `OK guard ...`; exit `1` com a lista de falhas.
 
 - [ ] **Step 4: Rodar o verificador de estrutura no esqueleto**
 
@@ -638,7 +628,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
     -VerifyGuard
   ```
 
-  Esperado: `OK structure folders=14 subfolders=44 requests=0` e `OK guard read-only=7 destructive=63`.
+  Esperado: `OK structure folders=14 subfolders=43 requests=0` e `OK guard read-only=6 destructive=57`.
 
 - [ ] **Step 5: Teste negativo do guard e dos segredos**
 
@@ -812,7 +802,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 ---
 
-### Task 10: Feature `08 · Checkout e pedidos` (22 requisições)
+### Task 10: Feature `08 · Checkout e pedidos` (24 requisições)
 
 **Files:**
 - Modify: `postman/urbeat.postman_collection.json`
@@ -826,9 +816,9 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
   6. `POST /api/checkout/confirm` (destructive; B13b; captura `orderId`/`code`→`orderId`/`orderCode`).
   7. `POST /api/orders` (destructive; B13b; mesmas capturas).
 - [ ] **Step 2:** `Pedidos do cliente` (3): `GET my`, `GET {orderId}`, `POST {orderId}/delivery-confirmation` (destructive, sem corpo).
-- [ ] **Step 3:** `Pedidos da loja` (9): `GET store` (queries `status`,`startDateUtc`,`endDateUtc`,`page`,`pageSize` desabilitadas, exemplos 1/20), `GET store/{orderId}`, `PATCH {orderId}/status` (B52; destructive), `POST {orderId}/complete` (destructive), `PUT store/{orderId}/delivery-driver` (B51), `DELETE store/{orderId}/delivery-driver` (destructive), `POST store/{orderId}/delivery-link` (destructive; captura último segmento de `shareUrl`→`individualDeliveryToken`), `GET store/deliveries`, `GET store/report` (queries desabilitadas).
+- [ ] **Step 3:** `Pedidos da loja` (11): `GET store` (queries `status`,`startDateUtc`,`endDateUtc`,`page`,`pageSize` desabilitadas, exemplos 1/20), `GET store/{orderId}`, `PATCH {orderId}/status` (B52; destructive), `POST {orderId}/complete` (destructive), `PUT store/{orderId}/delivery-driver` (B51), `DELETE store/{orderId}/delivery-driver` (destructive), `POST store/{orderId}/delivery-link` (destructive; captura último segmento de `shareUrl`→`individualDeliveryToken`), `GET store/deliveries`, `GET store/report`, `GET store/analytics` e `GET store/sales` (queries `period`/`anchor`/`weekBlock`/`page`/`pageSize` desabilitadas).
 - [ ] **Step 4:** `Clientes da loja` (3): `GET store/customers` (queries `search`/`status`/`sort`/`page`/`pageSize` desabilitadas, exemplos `all`/`lastOrderDesc`/1/20), `PUT store/customers/{customerUserId}` (B55), `PATCH status` (B56; destructive).
-- [ ] **Step 5:** Rodar `-Feature 08`; esperado `requests=22`, total `115`, `7/3/9/3`; confirmar que `POST /api/orders` está em `08` e não em `09`.
+- [ ] **Step 5:** Rodar `-Feature 08`; esperado `requests=24`, total `116`, `7/3/11/3`; confirmar que `POST /api/orders` está em `08` e não em `09`.
 
 ---
 
@@ -839,7 +829,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 - [ ] **Step 1:** `Gateway da loja`: `GET`, `PUT` (B31; destructive; `notificationUrl` vazio ou `{{webhookPublicUrl}}`, nunca produção), `DELETE` (destructive).
 - [ ] **Step 2:** `Pagamentos do pedido`: `POST /api/payments/order` (destructive; B57; captura `paymentId`/`gatewayTransactionId`), `GET /{orderId}`, `GET /{orderId}/history`.
-- [ ] **Step 3:** Rodar `-Feature 09`; esperado `requests=6`, total `121`, `3/3`.
+- [ ] **Step 3:** Rodar `-Feature 09`; esperado `requests=6`, total `122`, `3/3`.
 
 ---
 
@@ -850,20 +840,19 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 - [ ] **Step 1:** `Avaliações do pedido`: `GET /api/orders/{orderId}/review` (auth `customerToken`, pois é `[Authorize]` genérica) e `POST /api/orders/{orderId}/review` (CustomerOnly, B53, write).
 - [ ] **Step 2:** `Avaliações recebidas`: `GET /api/reviews/store` (SellerOnly).
-- [ ] **Step 3:** Rodar `-Feature 10`; esperado `requests=3`, total `124`, `2/1`.
+- [ ] **Step 3:** Rodar `-Feature 10`; esperado `requests=3`, total `125`, `2/1`.
 
 ---
 
-### Task 13: Feature `11 · Entregas` (27 requisições)
+### Task 13: Feature `11 · Entregas` (17 requisições)
 
 **Files:**
 - Modify: `postman/urbeat.postman_collection.json`
 
-- [ ] **Step 1:** `Entregadores` (11): `GET /api/delivery-drivers/store`; `POST /api/delivery-drivers` (B42; captura `id`→`storeDriverId`, `deliveryDriverId`); `POST /api/delivery-drivers/store` (destructive; B43; mesmas capturas); `PUT /{storeDriverId}` (B42); `PATCH /{storeDriverId}/status` (B44; destructive); `POST store/invite` (destructive; B45); `POST store/{storeDriverId}/resend-invite` (destructive, sem corpo); `POST store/{storeDriverId}/revoke` (destructive, sem corpo); `DELETE /{storeDriverId}` (destructive); `GET invites/{token}` (No Auth; `driverInviteToken`; captura nenhuma); `POST invites/{token}/accept` (No Auth; destructive; B46).
+- [ ] **Step 1:** `Entregadores` (6): `GET /api/delivery-drivers/store`; `POST /api/delivery-drivers` (B42; captura `id`→`storeDriverId`, `deliveryDriverId`); `POST /api/delivery-drivers/store` (destructive; B43; mesmas capturas); `PUT /{storeDriverId}` (B42); `PATCH /{storeDriverId}/status` (B44; destructive); `DELETE /{storeDriverId}` (destructive). O motoboy é apenas operacional, sem convite, senha ou conta.
 - [ ] **Step 2:** `Rotas de entrega` (7): `POST store` (write; B47; captura `route.id`→`routeId` e, se houver, último segmento de `shareUrl`→`deliveryRouteToken`); `GET store`; `GET store/{routeId}`; `PUT store/{routeId}` (B48); `POST store/{routeId}/share` (destructive; captura token); `POST store/{routeId}/revoke` (destructive, sem corpo); `POST store/send` (destructive; B49; captura `groups[0].shareUrl`).
-- [ ] **Step 3:** `App do entregador` (5): `GET stores`, `GET orders`, `GET orders/{orderId}`, `POST orders/{orderId}/start` (destructive, sem corpo), `POST orders/{orderId}/confirm-pin` (destructive; B50).
-- [ ] **Step 4:** `Links públicos de entrega` (4): `GET /api/public/deliveries/{token}` (`individualDeliveryToken`, No Auth), `POST .../deliver` (destructive; B50), `GET /api/public/delivery-routes/{token}` (`deliveryRouteToken`, No Auth), `POST .../stops/{sequence}/deliver` (destructive; `{{stopSequence}}`; B50).
-- [ ] **Step 5:** Rodar `-Feature 11`; esperado `requests=27`, total `151`, `11/7/5/4`; nenhum link público capturado de listagem pública.
+- [ ] **Step 3:** `Links públicos de entrega` (4): `GET /api/public/deliveries/{token}` (`individualDeliveryToken`, No Auth), `POST .../deliver` (destructive; B50), `GET /api/public/delivery-routes/{token}` (`deliveryRouteToken`, No Auth), `POST .../stops/{sequence}/deliver` (destructive; `{{stopSequence}}`; B50).
+- [ ] **Step 4:** Rodar `-Feature 11`; esperado `requests=17`, total `142`, `6/7/4`; nenhum link público capturado de listagem pública.
 
 ---
 
@@ -878,7 +867,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 - [ ] **Step 4:** `Manutenção e importações` (4): `POST admin/delivery-neighborhoods` (destructive; B22); `POST import-neighborhoods-rj`, `POST import-neighborhoods-google`, `POST migrate-images` (destructive, sem corpo).
 - [ ] **Step 5:** `Conteúdo da landing page` (6): `GET /api/LandingPageContent` (No Auth), `GET section/{section}` (No Auth; `landingSection`), `POST` (write; B38; captura `id`→`landingContentId`), `GET {id}` (adminToken), `PUT {id}` (write; B38), `DELETE {id}` (destructive). Preservar maiúsculas na rota. A §12.4 não classifica POST/PUT da landing como destrutivos.
 - [ ] **Step 6:** `Outbox` (3): `GET summary`; `GET failed` (queries `page`/`pageSize` desabilitadas; captura `items[0].id`→`outboxEventId` só se vazio); `POST {id}/retry` (destructive; `outboxEventId`).
-- [ ] **Step 7:** Rodar `-Feature 12`; esperado `requests=25`, total `176`, `5/2/5/4/6/3`.
+- [ ] **Step 7:** Rodar `-Feature 12`; esperado `requests=25`, total `167`, `5/2/5/4/6/3`.
 
 ---
 
@@ -890,7 +879,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 - [ ] **Step 1:** `Mercado Pago`: `POST /api/webhooks/mercadopago` (No Auth, classe `webhook`, B58). Descrição em maiúsculas com aviso: só local, `runMode=destructive` **e** `allowWebhooks=true`, nunca OCI; replay com simulação pode marcar pagamento como pago.
 - [ ] **Step 2:** `Asaas`: `POST /api/webhooks/asaas` (No Auth, classe `webhook`, B59) com header `asaas-access-token: {{asaasWebhookToken}}` (o único header além de `Accept`; é header de contrato, não `Authorization`). Descrição idem.
 - [ ] **Step 3:** Nenhum script de captura; nenhum teste de status.
-- [ ] **Step 4:** Rodar `-Feature 13`; esperado `requests=2`, total `178`; confirmar no `Test-PostmanCollection.ps1` que webhooks só existem em `13 · Webhooks` e estão na lista destrutiva.
+- [ ] **Step 4:** Rodar `-Feature 13`; esperado `requests=2`, total `169`; confirmar no `Test-PostmanCollection.ps1` que webhooks só existem em `13 · Webhooks` e estão na lista destrutiva.
 
 ---
 
@@ -900,7 +889,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 - Modify: `postman/urbeat.postman_collection.json`
 
 - [ ] **Step 1:** `GET /api/address-lookup/cep/{cep}` (No Auth, read, `{{cep}}`, teste `sem 5xx`).
-- [ ] **Step 2:** Rodar `-Feature 14`; esperado `requests=1`, total `179`. A consulta depende do ViaCep: falha de rede deve ser reportada, não mascarada.
+- [ ] **Step 2:** Rodar `-Feature 14`; esperado `requests=1`, total `170`. A consulta depende do ViaCep: falha de rede deve ser reportada, não mascarada.
 
 ---
 
@@ -915,7 +904,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
   # Coleção Postman do urbeat
   1. Escopo e o que a coleção não é (não é suíte de carga/regressão/produção)
   2. Requisitos (Postman ≥ 10.15; Newman ≥ 6; API local)
-  3. Importação (coleção + environments; 14 features/44 subpastas/179 requisições)
+  3. Importação (coleção + environments; 14 features/43 subpastas/170 requisições)
   4. Ambientes (Local padrão; variantes 5281 HTTP e 7274 HTTPS; OCI só leitura)
   5. Contas locais (AdminSeed; preencher adminEmail/adminPassword manualmente; nunca versionar)
   6. Confirmação de e-mail e OTP (SMTP local, Email:LogOnly, log da API, contas confirmadas; não automatizável)
@@ -1029,7 +1018,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
     -ControllersPath backend/src/Urbeat.WebApi/Controllers
   ```
 
-  Esperado: exit `0`; 33/179/14/44; auth 42/85/18/23/5/5/1; classe 78 read / 38 write / 61 destructive / 2 webhook (63 nomes no guard); `missing=0`, `extra=0`, `duplicate=0`.
+  Esperado: exit `0`; 32/170/14/43; auth 39/84/18/23/5/1; classe 75 read / 38 write / 55 destructive / 2 webhook (57 nomes no guard); `missing=0`, `extra=0`, `duplicate=0`.
 
 - [ ] **Step 2: Estrutura, segredos e guard**
 
@@ -1041,18 +1030,18 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
     -VerifyGuard
   ```
 
-  Esperado: exit `0`; `requests=179`; `OK guard read-only=7 destructive=63`; `OK secrets=0`.
+  Esperado: exit `0`; `requests=170`; `OK guard read-only=6 destructive=57`; `OK secrets=0`.
 
 - [ ] **Step 3: Simulação determinística do guard**
 
-  O script, com `-VerifyGuard`, simula para cada uma das 179 requisições, em `read-only`, `write`, `destructive` e `destructive+allowWebhooks`, a decisão do guard e compara com:
+  O script, com `-VerifyGuard`, simula para cada uma das 170 requisições, em `read-only`, `write`, `destructive` e `destructive+allowWebhooks`, a decisão do guard e compara com:
   - `read-only`: executa somente 71 GET + 7 allowlist; nunca executa destructive/webhook.
   - `write`: executa read + 38 writes; nunca destructive/webhook.
   - `destructive` sem `allowWebhooks`: executa tudo menos os 2 webhooks.
   - `destructive` com `allowWebhooks=true`: executa tudo.
   - `runMode=lixo`: comporta-se como `read-only`.
 
-  Esperado: `OK guard matrix 179x4`.
+  Esperado: `OK guard matrix 170x4`.
 
 - [ ] **Step 4: Testes negativos obrigatórios**
 
@@ -1092,7 +1081,7 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 - [ ] **Step 8: Aceite manual de importação**
 
-  - Importar coleção + 2 ambientes no Postman desktop atual; confirmar 14 features, 44 subpastas, 179 requisições.
+  - Importar coleção + 2 ambientes no Postman desktop atual; confirmar 14 features, 43 subpastas, 170 requisições.
   - Abrir um multipart e confirmar `file` vazio + fixture na descrição.
   - Conferir que o ambiente OCI importa e que `baseUrl` está correto; **não executar**.
   - Conferir que nenhum response de exemplo foi salvo.
@@ -1104,11 +1093,11 @@ Nenhuma entrada `formdata` pode ter `src` absoluto. A descrição de cada multip
 
 ---
 
-## 5. Anexo A — matriz das 179 requisições
+## 5. Anexo A — matriz das 170 requisições
 
-Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `driverToken`. Classe = `read` | `write` | `destructive` | `webhook`. `Bnn` refere-se ao Anexo B.
+Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken`. Classe = `read` | `write` | `destructive` | `webhook`. `Bnn` refere-se ao Anexo B.
 
-### 01 · Acesso e identidade — 16
+### 01 · Acesso e identidade — 15
 
 | Subpasta | Requisição | Controller.Action | Auth | Classe | Corpo/Query | Captura |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1117,7 +1106,6 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Login | `POST /api/auth/login/customer` | Auth.LoginCustomer | No Auth | read | B02 | `customerToken`; `lastLoginRole=customer` |
 | Login | `POST /api/auth/login/seller` | Auth.LoginSeller | No Auth | read | B02 | `sellerToken`; `lastLoginRole=seller` |
 | Login | `POST /api/auth/login/admin` | Auth.LoginAdmin | No Auth | read | B02 | `adminToken`; `lastLoginRole=admin` |
-| Login | `POST /api/auth/login/driver` | Auth.LoginDriver | No Auth | read | B02 | `driverToken`; `lastLoginRole=driver` |
 | Login | `POST /api/auth/token` | Auth.GenerateToken | No Auth | read | B02 | `customerToken`; `lastLoginRole=customer` |
 | Sessão | `POST /api/auth/logout` | Auth.Logout | No Auth | write | — | limpa `lastLoginRole` |
 | Sessão | `POST /api/auth/refresh` | Auth.Refresh | No Auth | read | — | token do `lastLoginRole` |
@@ -1236,7 +1224,7 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Adicionais e grupos | `DELETE /api/stores/{storeId}/additionals/{additionalId}` | StoreAdditionals.Delete | sellerToken | destructive | — | — |
 | Adicionais e grupos | `GET /api/stores/{storeId}/additionals/groups` | StoreAdditionals.ListGroups | sellerToken | read | — | `additionalGroupId`←`[0].id` (se vazio) |
 
-### 08 · Checkout e pedidos — 22
+### 08 · Checkout e pedidos — 24
 
 | Subpasta | Requisição | Controller.Action | Auth | Classe | Corpo/Query | Captura |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1259,6 +1247,8 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Pedidos da loja | `POST /api/orders/store/{orderId}/delivery-link` | Orders.ShareIndividualDelivery | sellerToken | destructive | — | `individualDeliveryToken`←último segmento de `shareUrl` |
 | Pedidos da loja | `GET /api/orders/store/deliveries` | Orders.StoreDeliveries | sellerToken | read | — | — |
 | Pedidos da loja | `GET /api/orders/store/report` | Orders.StoreSimpleReport | sellerToken | read | queries `startDateUtc`/`endDateUtc` (off) | — |
+| Pedidos da loja | `GET /api/orders/store/analytics` | Orders.StoreAnalytics | sellerToken | read | queries `period`/`anchor`/`weekBlock` (off; `day`) | — |
+| Pedidos da loja | `GET /api/orders/store/sales` | Orders.StoreSales | sellerToken | read | queries `period`/`anchor`/`weekBlock`/`page`/`pageSize` (off; 1/20) | — |
 | Clientes da loja | `GET /api/orders/store/customers` | Orders.StoreCustomers | sellerToken | read | queries `search`/`status`/`sort`/`page`/`pageSize` (off) | — |
 | Clientes da loja | `PUT /api/orders/store/customers/{customerUserId}` | Orders.UpdateStoreCustomer | sellerToken | write | B55 | — |
 | Clientes da loja | `PATCH /api/orders/store/customers/{customerUserId}/status` | Orders.UpdateStoreCustomerStatus | sellerToken | destructive | B56 | — |
@@ -1282,7 +1272,7 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Avaliações do pedido | `POST /api/orders/{orderId}/review` | Reviews.CreateOrUpdate | customerToken | write | B53 | — |
 | Avaliações recebidas | `GET /api/reviews/store` | Reviews.ListBySeller | sellerToken | read | — | — |
 
-### 11 · Entregas — 27
+### 11 · Entregas — 17
 
 | Subpasta | Requisição | Controller.Action | Auth | Classe | Corpo/Query | Captura |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1291,12 +1281,7 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Entregadores | `POST /api/delivery-drivers/store` | DeliveryDrivers.CreateForStore | sellerToken | destructive | B43 | `storeDriverId`←`id`; `deliveryDriverId`←`deliveryDriverId` |
 | Entregadores | `PUT /api/delivery-drivers/{storeDriverId}` | DeliveryDrivers.Update | sellerToken | write | B42 | — |
 | Entregadores | `PATCH /api/delivery-drivers/{storeDriverId}/status` | DeliveryDrivers.SetStatus | sellerToken | destructive | B44 | — |
-| Entregadores | `POST /api/delivery-drivers/store/invite` | DeliveryDrivers.Invite | sellerToken | destructive | B45 | — |
-| Entregadores | `POST /api/delivery-drivers/store/{storeDriverId}/resend-invite` | DeliveryDrivers.ResendInvite | sellerToken | destructive | — | — |
-| Entregadores | `POST /api/delivery-drivers/store/{storeDriverId}/revoke` | DeliveryDrivers.Revoke | sellerToken | destructive | — | — |
 | Entregadores | `DELETE /api/delivery-drivers/{storeDriverId}` | DeliveryDrivers.Delete | sellerToken | destructive | — | — |
-| Entregadores | `GET /api/delivery-drivers/invites/{token}` | DeliveryDrivers.PreviewInvite | No Auth | read | `{{driverInviteToken}}` | — |
-| Entregadores | `POST /api/delivery-drivers/invites/{token}/accept` | DeliveryDrivers.AcceptInvite | No Auth | destructive | B46 | — |
 | Rotas de entrega | `POST /api/delivery-routes/store` | DeliveryRoutes.Create | sellerToken | write | B47 | `routeId`←`route.id`; `deliveryRouteToken` (se houver `shareUrl`) |
 | Rotas de entrega | `GET /api/delivery-routes/store` | DeliveryRoutes.ListStoreRoutes | sellerToken | read | — | — |
 | Rotas de entrega | `GET /api/delivery-routes/store/{routeId}` | DeliveryRoutes.GetStoreRoute | sellerToken | read | — | — |
@@ -1304,11 +1289,6 @@ Legenda: Auth = `No Auth` | `sellerToken` | `customerToken` | `adminToken` | `dr
 | Rotas de entrega | `POST /api/delivery-routes/store/{routeId}/share` | DeliveryRoutes.Share | sellerToken | destructive | — | `deliveryRouteToken`←último segmento de `shareUrl` |
 | Rotas de entrega | `POST /api/delivery-routes/store/{routeId}/revoke` | DeliveryRoutes.Revoke | sellerToken | destructive | — | — |
 | Rotas de entrega | `POST /api/delivery-routes/store/send` | DeliveryRoutes.SendBatches | sellerToken | destructive | B49 | `deliveryRouteToken`←`groups[0].shareUrl` |
-| App do entregador | `GET /api/driver/stores` | Driver.Stores | driverToken | read | — | — |
-| App do entregador | `GET /api/driver/orders` | Driver.Orders | driverToken | read | — | — |
-| App do entregador | `GET /api/driver/orders/{orderId}` | Driver.Order | driverToken | read | — | — |
-| App do entregador | `POST /api/driver/orders/{orderId}/start` | Driver.StartDelivery | driverToken | destructive | — | — |
-| App do entregador | `POST /api/driver/orders/{orderId}/confirm-pin` | Driver.ConfirmPin | driverToken | destructive | B50 | — |
 | Links públicos de entrega | `GET /api/public/deliveries/{token}` | PublicIndividualDeliveries.GetDelivery | No Auth | read | `{{individualDeliveryToken}}` | — |
 | Links públicos de entrega | `POST /api/public/deliveries/{token}/deliver` | PublicIndividualDeliveries.ConfirmDelivery | No Auth | destructive | B50 | — |
 | Links públicos de entrega | `GET /api/public/delivery-routes/{token}` | PublicDeliveryRoutes.GetRoute | No Auth | read | `{{deliveryRouteToken}}` | — |
@@ -1386,7 +1366,7 @@ Convenções: camelCase, enums numéricos, datas UTC, GUIDs sempre por variável
 }
 ```
 
-> Em `login/seller` usar `{{sellerEmail}}`/`{{sellerPassword}}`; em `login/admin`, `{{adminEmail}}`/`{{adminPassword}}`; em `login/driver`, `{{driverEmail}}`/`{{driverPassword}}`. `POST /api/auth/token` é o login de cliente.
+> Em `login/seller` usar `{{sellerEmail}}`/`{{sellerPassword}}`; em `login/admin`, `{{adminEmail}}`/`{{adminPassword}}`. `POST /api/auth/token` é o login de cliente.
 
 ### B03 — `ConfirmEmailRequestDto`
 
@@ -1927,39 +1907,19 @@ Convenções: camelCase, enums numéricos, datas UTC, GUIDs sempre por variável
 {
   "name": "Entregador Teste",
   "fullName": null,
-  "email": null,
   "phoneNumber": "+5521999990003",
   "whatsAppPhoneNumber": "+5521999990003",
   "isActive": true
 }
 ```
 
-> Com `email` preenchido, o backend encaminha para o fluxo de convite. O exemplo mantém `null` para criar o vínculo simples.
+> O motoboy é apenas um vínculo operacional da loja; não há e-mail, convite, senha ou conta de entregador.
 
 ### B44 — `SetStoreDeliveryDriverStatusRequestDto`
 
 ```json
 {
   "isActive": false
-}
-```
-
-### B45 — `InviteDeliveryDriverRequestDto`
-
-```json
-{
-  "fullName": "Entregador Convidado",
-  "email": "{{driverEmail}}",
-  "phoneNumber": "+5521999990004"
-}
-```
-
-### B46 — `AcceptDeliveryDriverInviteRequestDto`
-
-```json
-{
-  "password": "{{driverPassword}}",
-  "fullName": "Entregador Convidado"
 }
 ```
 
@@ -2105,9 +2065,9 @@ Executar da raiz do repositório.
 
 ```powershell
 # 1. Conferência da fonte (informativa)
-(Get-ChildItem backend/src/Urbeat.WebApi/Controllers -Filter *Controller.cs).Count   # 33
+(Get-ChildItem backend/src/Urbeat.WebApi/Controllers -Filter *Controller.cs).Count   # 32
 $t = 0; Get-ChildItem backend/src/Urbeat.WebApi/Controllers -Filter *Controller.cs |
-  ForEach-Object { $t += (Select-String -Path $_.FullName -Pattern '^\s*\[Http(Get|Post|Put|Patch|Delete)').Count }; $t  # 179
+  ForEach-Object { $t += (Select-String -Path $_.FullName -Pattern '^\s*\[Http(Get|Post|Put|Patch|Delete)').Count }; $t  # 170
 
 # 2. Cobertura
 powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1 `
@@ -2135,7 +2095,7 @@ $c.item | ForEach-Object {
 }
 ```
 
-Saída esperada do item 5: 16, 9, 10, 25, 6, 8, 19, 22, 6, 3, 27, 25, 2, 1 (total 179; 44 subpastas).
+Saída esperada do item 5: 15, 9, 10, 25, 6, 8, 19, 24, 6, 3, 17, 25, 2, 1 (total 170; 43 subpastas).
 
 Smoke público (somente com API local; nunca OCI):
 
@@ -2181,7 +2141,7 @@ Pré-requisitos do fluxo manual (não executar na implementação): `docker comp
 ## 9. Anexo E — aceite manual (Postman desktop)
 
 - [ ] Importar os 3 arquivos sem erro de schema.
-- [ ] 14 features, 44 subpastas e 179 requisições visíveis.
+- [ ] 14 features, 43 subpastas e 170 requisições visíveis.
 - [ ] Nenhuma pasta/subpasta com nome de controller.
 - [ ] `GET /api/public/stores` responde sem credencial.
 - [ ] Multipart mostra `file` vazio e o fixture na descrição.

@@ -6,6 +6,7 @@ import {
   SKIP_GLOBAL_ERROR_TOAST,
   SKIP_SERVER_ACCESS_OVERLAY,
 } from '../interceptors/server-access.context';
+import { SKIP_AUTH_HEADER } from '../interceptors/auth.context';
 import {
   CreateDeliveryRouteRequest,
   DeliveryRoute,
@@ -117,6 +118,7 @@ export class DeliveryRouteService {
 
   private publicContext(): HttpContext {
     return new HttpContext()
+      .set(SKIP_AUTH_HEADER, true)
       .set(SKIP_GLOBAL_ERROR_TOAST, true)
       .set(SKIP_SERVER_ACCESS_OVERLAY, true);
   }

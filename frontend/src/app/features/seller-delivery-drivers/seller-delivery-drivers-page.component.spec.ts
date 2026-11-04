@@ -12,13 +12,10 @@ const activeDriver: SellerDeliveryDriver = {
   id: 'link-1',
   deliveryDriverId: 'driver-1',
   name: 'Ana Motoboy',
-  email: '',
   phoneNumber: '11999999999',
   whatsAppPhoneNumber: '11988887777',
   isActive: true,
-  hasAccount: false,
   status: StoreDeliveryDriverStatus.Active,
-  canResendInvite: false,
 };
 
 describe('SellerDeliveryDriversPageComponent', () => {

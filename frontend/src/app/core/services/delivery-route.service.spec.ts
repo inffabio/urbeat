@@ -1,8 +1,10 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
 import { DeliveryRouteService } from './delivery-route.service';
+import { authInterceptor } from '../interceptors/auth.interceptor';
 
 describe('DeliveryRouteService', () => {
   let service: DeliveryRouteService;
@@ -62,5 +64,59 @@ describe('DeliveryRouteService', () => {
     expect(confirm.request.method).toBe('POST');
     expect(confirm.request.body).toEqual({ pin: '1234', handoverConfirmed: true, cashReceivedAmount: 30 });
     confirm.flush({ succeeded: true });
+  });
+});
+
+describe('DeliveryRouteService public links', () => {
+  let service: DeliveryRouteService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        DeliveryRouteService,
+        ApiService,
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { getToken: jest.fn().mockReturnValue('seller-token-in-this-tab') },
+        },
+      ],
+    });
+
+    service = TestBed.inject(DeliveryRouteService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('never adds a bearer token to public route or delivery links', () => {
+    service.getPublicRoute('route-token').subscribe();
+    const route = httpMock.expectOne('/api/public/delivery-routes/route-token');
+    expect(route.request.headers.has('Authorization')).toBe(false);
+    route.flush({ storeName: 'Loja', driverName: 'Ana', stops: [] });
+
+    service.getPublicIndividualDelivery('delivery-token').subscribe();
+    const delivery = httpMock.expectOne('/api/public/deliveries/delivery-token');
+    expect(delivery.request.headers.has('Authorization')).toBe(false);
+    delivery.flush({ storeName: 'Loja', driverName: 'Ana', stops: [] });
+
+    service.confirmPublicDelivery('route-token', 1, '1234', true, 20).subscribe();
+    const confirm = httpMock.expectOne('/api/public/delivery-routes/route-token/stops/1/deliver');
+    expect(confirm.request.headers.has('Authorization')).toBe(false);
+    confirm.flush({ succeeded: true });
+
+    service.confirmPublicIndividualDelivery('delivery-token', '1234', true, 20).subscribe();
+    const individualConfirm = httpMock.expectOne('/api/public/deliveries/delivery-token/deliver');
+    expect(individualConfirm.request.headers.has('Authorization')).toBe(false);
+    individualConfirm.flush({ succeeded: true });
+  });
+
+  it('keeps adding a bearer token to seller delivery management requests', () => {
+    service.listStoreRoutes().subscribe();
+    const list = httpMock.expectOne('/api/delivery-routes/store');
+    expect(list.request.headers.get('Authorization')).toBe('Bearer seller-token-in-this-tab');
+    list.flush([]);
   });
 });
