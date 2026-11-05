@@ -192,6 +192,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
+      // The seller subscription screen owns the plan/contract error copy
+      // (ownership, inactive plan and already-contracted states).
+      if (req.url.includes('/api/subscriptions/')) {
+        return throwError(() => err);
+      }
+
       if (isCheckoutRequest(req) || isDeliveryAreaError(req, err)) {
         return throwError(() => err);
       }
@@ -222,6 +228,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       let errorMessage = 'Ocorreu um erro ao processar sua requisição.';
 
       if (err.status === 400 && err.error) {
+        // Admin settings renders authoritative validation inline per parameter.
+        if (req.url.includes('/api/admin/system-parameters')) {
+          return throwError(() => err);
+        }
+
         if (req.url.includes('/checkout/preview') && err.error.summary) {
           return throwError(() => err);
         }

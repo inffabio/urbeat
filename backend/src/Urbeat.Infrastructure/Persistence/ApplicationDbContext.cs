@@ -199,6 +199,8 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Name).HasMaxLength(120);
             entity.Property(x => x.Description).HasMaxLength(500);
             entity.Property(x => x.Amount).HasPrecision(10, 2);
+            entity.Property(x => x.TrialDays).HasDefaultValue(Plan.DefaultTrialDays);
+            entity.Property(x => x.BenefitsJson).HasColumnType("text").HasDefaultValue("[]");
         });
 
         builder.Entity<StoreAddress>(entity =>

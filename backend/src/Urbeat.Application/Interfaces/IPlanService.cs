@@ -8,6 +8,8 @@ public interface IPlanService
 
     Task<IReadOnlyList<PlanResponseDto>> ListActiveAsync(CancellationToken cancellationToken = default);
 
+    Task<PublicPlanOfferResponseDto> GetPublicOfferAsync(CancellationToken cancellationToken = default);
+
     Task<PlanResponseDto?> CreateAsync(CreatePlanRequestDto request, CancellationToken cancellationToken = default);
 
     Task<PlanResponseDto?> UpdateAsync(Guid planId, UpdatePlanRequestDto request, CancellationToken cancellationToken = default);

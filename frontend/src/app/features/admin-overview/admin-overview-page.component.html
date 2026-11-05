@@ -1,0 +1,37 @@
+<section class="admin-page" aria-labelledby="admin-overview-title">
+  <header class="admin-page-head">
+    <p class="admin-eyebrow">Administração da plataforma</p>
+    <h1 id="admin-overview-title">Visão geral</h1>
+    <p class="admin-lead">
+      Este é o painel administrativo da plataforma, separado do painel do lojista. Nenhum
+      indicador é exibido enquanto não houver uma fonte de dados dedicada.
+    </p>
+  </header>
+
+  <div class="admin-card-grid">
+    <article class="admin-card">
+      <h2>Configurações da plataforma</h2>
+      <p>
+        Revise parâmetros de segurança, e-mail, integrações e regras de negócio com validação
+        feita no servidor.
+      </p>
+      <a class="admin-card-link" routerLink="/admin/configuracoes">Abrir configurações</a>
+    </article>
+
+    <article class="admin-card">
+      <h2>Planos</h2>
+      <p>
+        A gestão de planos será migrada para esta área em uma próxima fase. Nenhuma operação
+        fictícia é oferecida aqui.
+      </p>
+      <a class="admin-card-link" routerLink="/admin/planos">Ver status da área</a>
+    </article>
+  </div>
+
+  <div class="admin-notice" role="note">
+    <strong>Escopo desta fase</strong>
+    <span>
+      Gráficos regionais, cupons, auditoria consultável e subdomínio continuam fora deste painel.
+    </span>
+  </div>
+</section>

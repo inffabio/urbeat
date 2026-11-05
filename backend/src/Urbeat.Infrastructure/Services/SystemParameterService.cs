@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
+using System.Globalization;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.SystemParameters;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -34,10 +36,42 @@ public sealed class SystemParameterService : ISystemParameterService, IDisposabl
             .ThenBy(p => p.Key)
             .ToListAsync(cancellationToken);
 
-        return entities.Select(e => new SystemParameterDto(
-            e.Key, e.Value, e.Type.ToString(), e.Group, e.Description,
-            e.CreatedAtUtc, e.UpdatedAtUtc
-        )).ToList();
+        return entities.Select(ToDto).ToList();
+    }
+
+    public async Task<SystemParameterDto?> GetByKeyAsync(string key, CancellationToken cancellationToken = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var entity = await db.SystemParameters
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Key == key, cancellationToken);
+
+        return entity is null ? null : ToDto(entity);
+    }
+
+    public async Task<IReadOnlyList<SystemParameterDto>> GetBusinessAsync(CancellationToken cancellationToken = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var entities = await db.SystemParameters
+            .AsNoTracking()
+            .Where(p => BusinessSystemParameterCatalog.Keys.Contains(p.Key))
+            .OrderBy(p => p.Group)
+            .ThenBy(p => p.Key)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(ToDto).ToList();
+    }
+
+    public async Task<SystemParameterDto?> GetBusinessByKeyAsync(string key, CancellationToken cancellationToken = default)
+    {
+        if (!BusinessSystemParameterCatalog.Contains(key))
+            return null;
+
+        return await GetByKeyAsync(key, cancellationToken);
     }
 
     public async Task<string> GetValueAsync(string key, CancellationToken cancellationToken = default)
@@ -56,7 +90,7 @@ public sealed class SystemParameterService : ISystemParameterService, IDisposabl
         var raw = await GetValueAsync(key, cancellationToken);
         return string.IsNullOrWhiteSpace(raw)
             ? throw new KeyNotFoundException($"System parameter '{key}' not found or is empty.")
-            : T.Parse(raw, null);
+            : T.Parse(raw, CultureInfo.InvariantCulture);
     }
 
     public async Task SetValueAsync(string key, string value, string? type = null, string? group = null, string? description = null, CancellationToken cancellationToken = default)
@@ -100,12 +134,15 @@ public sealed class SystemParameterService : ISystemParameterService, IDisposabl
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var count = await db.SystemParameters
-            .Where(p => p.Key == key)
-            .ExecuteDeleteAsync(cancellationToken);
+        var parameter = await db.SystemParameters
+            .FirstOrDefaultAsync(p => p.Key == key, cancellationToken);
 
-        if (count > 0)
-            _cache.TryRemove(key, out _);
+        if (parameter is null)
+            return;
+
+        db.SystemParameters.Remove(parameter);
+        await db.SaveChangesAsync(cancellationToken);
+        _cache.TryRemove(key, out _);
     }
 
     public Task InvalidateCacheAsync(string key)
@@ -116,28 +153,33 @@ public sealed class SystemParameterService : ISystemParameterService, IDisposabl
 
     public async Task ReloadAllAsync(CancellationToken cancellationToken = default)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
         await _refreshLock.WaitAsync(cancellationToken);
         try
         {
-            var parameters = await db.SystemParameters
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-
-            var dict = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var p in parameters)
-                dict[p.Key] = p.Value;
-
-            Interlocked.Exchange(ref _cache, dict);
-
-            _logger.LogInformation("SystemParameterService: cache reloaded with {Count} entries", dict.Count);
+            await ReloadAllCoreAsync(cancellationToken);
         }
         finally
         {
             _refreshLock.Release();
         }
+    }
+
+    private async Task ReloadAllCoreAsync(CancellationToken cancellationToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var parameters = await db.SystemParameters
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var dict = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in parameters)
+            dict[p.Key] = p.Value;
+
+        Interlocked.Exchange(ref _cache, dict);
+
+        _logger.LogInformation("SystemParameterService: cache reloaded with {Count} entries", dict.Count);
     }
 
     private async Task RefreshIfEmptyAsync(CancellationToken cancellationToken)
@@ -151,12 +193,37 @@ public sealed class SystemParameterService : ISystemParameterService, IDisposabl
             if (!_cache.IsEmpty)
                 return;
 
-            await ReloadAllAsync(cancellationToken);
+            // Reuse the lock-aware core: calling ReloadAllAsync here would try
+            // to acquire _refreshLock again and deadlock the first read.
+            await ReloadAllCoreAsync(cancellationToken);
         }
         finally
         {
             _refreshLock.Release();
         }
+    }
+
+    private static SystemParameterDto ToDto(SystemParameter entity)
+    {
+        var policy = SystemParameterCatalog.Resolve(entity.Key, entity.Type, entity.Group);
+
+        return new SystemParameterDto(
+            entity.Id,
+            entity.Key,
+            policy.Secret ? SystemParameterCatalog.SecretMask : entity.Value,
+            entity.Type.ToString(),
+            entity.Group,
+            entity.Description,
+            entity.CreatedAtUtc,
+            entity.UpdatedAtUtc,
+            policy.MaxLength,
+            policy.Display.ToWireName(),
+            policy.Unit,
+            policy.MinValue,
+            policy.MaxValue,
+            policy.ReadOnly,
+            policy.Restricted,
+            policy.Secret);
     }
 
     public void Dispose()

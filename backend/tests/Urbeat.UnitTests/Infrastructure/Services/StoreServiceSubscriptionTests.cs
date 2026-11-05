@@ -80,7 +80,7 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
         subscription.PlanAmount.Should().Be(49.90m);
         subscription.Status.Should().Be(SellerSubscriptionBillingStatus.Active);
         subscription.StartDateUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
-        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddMonths(1), TimeSpan.FromMinutes(1));
+        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(15), TimeSpan.FromMinutes(1));
 
         var status = await _db.SellerSubscriptionStatuses.SingleAsync(x => x.SellerUserId == ownerUserId);
         status.BillingStatus.Should().Be(SellerSubscriptionBillingStatus.Active);
@@ -115,5 +115,113 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
 
         var subscriptions = await _db.SellerSubscriptions.Where(x => x.SellerUserId == ownerUserId).ToListAsync();
         subscriptions.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task CreateForOwnerAsync_ShouldUsePlanTrialDaysForFirstBillingDate()
+    {
+        _db.CuisineTypes.Add(new CuisineType { Name = "Pizza", IsActive = true });
+        _db.Plans.Add(new Plan
+        {
+            Name = BillingPlanSeeder.DefaultPlanName,
+            Amount = 19.90m,
+            Description = "Plano Começar",
+            IsActive = true,
+            TrialDays = 7
+        });
+        await _db.SaveChangesAsync();
+
+        var ownerUserId = Guid.NewGuid();
+
+        var result = await _sut.CreateForOwnerAsync(
+            ownerUserId,
+            new CreateStoreRequestDto
+            {
+                Name = "Loja Trial",
+                PhoneNumber = "11999999999",
+                CuisineType = "Pizza"
+            },
+            ipAddress: null);
+
+        result.Created.Should().BeTrue();
+
+        var subscription = await _db.SellerSubscriptions.SingleAsync(x => x.SellerUserId == ownerUserId);
+        subscription.StartDateUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(7), TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task CreateForOwnerAsync_ShouldKeepMonthlyCycleWhenPlanHasNoTrial()
+    {
+        _db.CuisineTypes.Add(new CuisineType { Name = "Pizza", IsActive = true });
+        _db.Plans.Add(new Plan
+        {
+            Name = BillingPlanSeeder.DefaultPlanName,
+            Amount = 19.90m,
+            Description = "Plano sem trial",
+            IsActive = true,
+            TrialDays = 0
+        });
+        await _db.SaveChangesAsync();
+
+        var ownerUserId = Guid.NewGuid();
+
+        var result = await _sut.CreateForOwnerAsync(
+            ownerUserId,
+            new CreateStoreRequestDto
+            {
+                Name = "Loja Sem Trial",
+                PhoneNumber = "11999999999",
+                CuisineType = "Pizza"
+            },
+            ipAddress: null);
+
+        result.Created.Should().BeTrue();
+
+        var subscription = await _db.SellerSubscriptions.SingleAsync(x => x.SellerUserId == ownerUserId);
+        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddMonths(1), TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task CreateForOwnerAsync_ShouldSkipInactiveDefaultPlanAndUseActivePlan()
+    {
+        _db.CuisineTypes.Add(new CuisineType { Name = "Pizza", IsActive = true });
+        _db.Plans.AddRange(
+            new Plan
+            {
+                Name = BillingPlanSeeder.DefaultPlanName,
+                Amount = 19.90m,
+                Description = "Plano padrão inativo",
+                IsActive = false,
+                TrialDays = 5
+            },
+            new Plan
+            {
+                Name = "Plano Ativo",
+                Amount = 39.90m,
+                Description = "Plano ativo",
+                IsActive = true,
+                TrialDays = 10
+            });
+        await _db.SaveChangesAsync();
+
+        var ownerUserId = Guid.NewGuid();
+
+        var result = await _sut.CreateForOwnerAsync(
+            ownerUserId,
+            new CreateStoreRequestDto
+            {
+                Name = "Loja Plano Ativo",
+                PhoneNumber = "11999999999",
+                CuisineType = "Pizza"
+            },
+            ipAddress: null);
+
+        result.Created.Should().BeTrue();
+
+        var subscription = await _db.SellerSubscriptions.SingleAsync(x => x.SellerUserId == ownerUserId);
+        subscription.PlanName.Should().Be("Plano Ativo");
+        subscription.PlanAmount.Should().Be(39.90m);
+        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(10), TimeSpan.FromMinutes(1));
     }
 }

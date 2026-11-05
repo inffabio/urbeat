@@ -1209,18 +1209,45 @@ app-landing-page {
   color: var(--green-500);
 }
 
-/* ───────────── Plano ───────────── */
-.lp-plan-wrap {
-  max-width: 600px;
-  margin: 0 auto;
+/* ───────────── Planos ───────────── */
+.lp-plans-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: stretch;
+
+  @media (min-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1040px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .lp-plan-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
   background: #ffffff;
   border: 2px solid var(--green-500);
   border-radius: 32px;
   box-shadow: 0 24px 64px rgba(110, 175, 74, 0.16), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.lp-plan-empty {
+  max-width: 640px;
+  margin: 8px auto 0;
+  padding: 24px;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  color: #52525b;
+  background: #ffffff;
+  border: 1px solid #f4f4f5;
+  border-radius: 20px;
 }
 
 .lp-plan-head {
@@ -1264,20 +1291,20 @@ app-landing-page {
 }
 
 .lp-plan-head h3 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
   color: #18181b;
 
   @media (min-width: 768px) {
-    font-size: 26px;
+    font-size: 24px;
   }
 }
 
 .lp-plan-after {
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #52525b;
 }
@@ -1291,14 +1318,14 @@ app-landing-page {
 }
 
 .lp-plan-value {
-  font-size: 48px;
+  font-size: 38px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--green-500);
 
   @media (min-width: 768px) {
-    font-size: 56px;
+    font-size: 44px;
   }
 }
 
@@ -1316,22 +1343,36 @@ app-landing-page {
   color: #71717a;
 }
 
+.lp-plan-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 24px 24px 0;
+
+  @media (min-width: 768px) {
+    padding: 28px 28px 0;
+  }
+}
+
+.lp-plan-description {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #52525b;
+}
+
 .lp-plan-features {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
-  margin: 0;
-  padding: 28px 24px;
-
-  @media (min-width: 768px) {
-    padding: 32px;
-  }
+  margin: 20px 0 0;
+  padding: 0;
 
   li {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 500;
     line-height: 1.35;
     color: #3f3f46;
@@ -1353,12 +1394,13 @@ app-landing-page {
 }
 
 .lp-plan-footer {
+  margin-top: auto;
   padding: 24px;
   background: var(--surface-alt);
   border-top: 1px solid #f4f4f5;
 
   @media (min-width: 768px) {
-    padding: 24px 32px;
+    padding: 24px 28px 28px;
   }
 }
 
@@ -1366,6 +1408,15 @@ app-landing-page {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.lp-plan-assurances-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 28px;
+  max-width: 900px;
+  margin: 32px auto 0;
 }
 
 .lp-assurance {

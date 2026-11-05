@@ -115,6 +115,140 @@ public sealed class SellerSubscriptionStatusServiceContractTests : IDisposable
         result.Subscription.Should().BeNull();
     }
 
+    [Fact]
+    public async Task ContractAsync_ShouldCalculateFirstDueDateFromPlanTrialInsteadOfClientRequest()
+    {
+        var (sellerUserId, storeId, plan) = await SeedSellerStoreAndPlanAsync();
+        plan.TrialDays = 20;
+        await _db.SaveChangesAsync();
+
+        var trialStartUtc = DateTime.UtcNow.AddDays(-5);
+        _db.SellerSubscriptions.Add(new SellerSubscription
+        {
+            StoreId = storeId,
+            SellerUserId = sellerUserId,
+            PlanId = plan.Id,
+            PlanName = BillingPlanSeeder.DefaultPlanName,
+            PlanAmount = plan.Amount,
+            Status = SellerSubscriptionBillingStatus.Active,
+            StartDateUtc = trialStartUtc,
+            NextBillingDateUtc = trialStartUtc.AddDays(20),
+            GatewayCustomerId = string.Empty,
+            GatewaySubscriptionId = string.Empty
+        });
+        await _db.SaveChangesAsync();
+
+        AsaasSubscriptionContractRequest? captured = null;
+        _adapter
+            .Setup(a => a.CreateContractAsync(It.IsAny<AsaasSubscriptionContractRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<AsaasSubscriptionContractRequest, CancellationToken>((request, _) => captured = request)
+            .ReturnsAsync((AsaasSubscriptionContractRequest request, CancellationToken _) => new AsaasSubscriptionContractResponse
+            {
+                GatewayCustomerId = "cus_demo",
+                GatewaySubscriptionId = "sub_demo",
+                NextDueDateUtc = request.FirstDueDateUtc
+            });
+
+        var result = await _sut.ContractAsync(
+            sellerUserId,
+            new ContractSellerSubscriptionRequestDto
+            {
+                StoreId = storeId,
+                PlanId = plan.Id,
+                // Valor do cliente é ignorado pelo servidor.
+                FirstDueDateUtc = DateTime.UtcNow.AddDays(1)
+            },
+            ipAddress: null);
+
+        result.Subscription.Should().NotBeNull();
+        captured.Should().NotBeNull();
+        captured!.FirstDueDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(15), TimeSpan.FromMinutes(1));
+        result.Subscription!.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(15), TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public void CalculateFirstDueDateUtc_ShouldNotExtendExpiredTrial()
+    {
+        var now = DateTime.UtcNow;
+
+        var dueDate = SellerSubscriptionStatusService.CalculateFirstDueDateUtc(
+            trialDays: 15,
+            trialStartUtc: now.AddDays(-40),
+            nowUtc: now);
+
+        dueDate.Should().Be(now);
+    }
+
+    [Fact]
+    public async Task ContractAsync_ShouldReturnForbidden_WhenStoreBelongsToAnotherSeller()
+    {
+        var (_, storeId, plan) = await SeedSellerStoreAndPlanAsync();
+        var otherSellerUserId = Guid.NewGuid();
+
+        var result = await _sut.ContractAsync(
+            otherSellerUserId,
+            new ContractSellerSubscriptionRequestDto
+            {
+                StoreId = storeId,
+                PlanId = plan.Id,
+            },
+            ipAddress: null);
+
+        result.Forbidden.Should().BeTrue();
+        result.Subscription.Should().BeNull();
+        _adapter.Verify(
+            a => a.CreateContractAsync(It.IsAny<AsaasSubscriptionContractRequest>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ContractAsync_ShouldReturnInvalidPlan_WhenPlanIsInactive()
+    {
+        var (sellerUserId, storeId, _) = await SeedSellerStoreAndPlanAsync();
+        var inactivePlan = new Plan
+        {
+            Name = "Plano Inativo",
+            Amount = 19.90m,
+            Description = "Inativo",
+            IsActive = false,
+        };
+        _db.Plans.Add(inactivePlan);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ContractAsync(
+            sellerUserId,
+            new ContractSellerSubscriptionRequestDto
+            {
+                StoreId = storeId,
+                PlanId = inactivePlan.Id,
+            },
+            ipAddress: null);
+
+        result.InvalidPlan.Should().BeTrue();
+        result.Subscription.Should().BeNull();
+        _adapter.Verify(
+            a => a.CreateContractAsync(It.IsAny<AsaasSubscriptionContractRequest>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ContractAsync_ShouldReturnNotFound_WhenStoreDoesNotExist()
+    {
+        var (sellerUserId, _, plan) = await SeedSellerStoreAndPlanAsync();
+
+        var result = await _sut.ContractAsync(
+            sellerUserId,
+            new ContractSellerSubscriptionRequestDto
+            {
+                StoreId = Guid.NewGuid(),
+                PlanId = plan.Id,
+            },
+            ipAddress: null);
+
+        result.NotFound.Should().BeTrue();
+        result.Subscription.Should().BeNull();
+    }
+
     private async Task<(Guid SellerUserId, Guid StoreId, Plan Plan)> SeedSellerStoreAndPlanAsync()
     {
         var sellerUserId = Guid.NewGuid();

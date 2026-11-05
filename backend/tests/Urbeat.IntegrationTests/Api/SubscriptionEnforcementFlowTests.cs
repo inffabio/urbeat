@@ -125,7 +125,7 @@ public sealed class SubscriptionEnforcementFlowTests : IClassFixture<TestWebAppl
         payload.Should().NotBeNull();
         payload!.HasSubscription.Should().BeTrue();
         payload.BillingStatus.Should().Be(SellerSubscriptionBillingStatus.Active);
-        payload.LastChargeStatus.Should().Be("Pago");
+        payload.LastChargeStatus.Should().Be("Periodo gratuito");
         payload.StoreBlocked.Should().BeFalse();
         payload.RegularizationMessage.Should().NotBeNullOrWhiteSpace();
     }

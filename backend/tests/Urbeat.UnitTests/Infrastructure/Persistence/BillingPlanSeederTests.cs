@@ -25,18 +25,22 @@ public sealed class BillingPlanSeederTests : IDisposable
     }
 
     [Fact]
-    public async Task SeedAsync_ShouldCreateDefaultPlan()
+    public async Task SeedAsync_ShouldCreateDefaultPlanCatalog()
     {
         var plan = await _sut.SeedAsync();
 
         plan.Should().NotBeNull();
         plan.Name.Should().Be(BillingPlanSeeder.DefaultPlanName);
-        plan.Amount.Should().Be(49.90m);
+        plan.Amount.Should().Be(BillingPlanSeeder.DefaultPlanAmount);
         plan.IsActive.Should().BeTrue();
         plan.Description.Should().NotBeNullOrWhiteSpace();
+        plan.TrialDays.Should().Be(Plan.DefaultTrialDays);
 
         var persisted = await _db.Plans.SingleAsync(x => x.Name == BillingPlanSeeder.DefaultPlanName);
-        persisted.Amount.Should().Be(49.90m);
+        persisted.Amount.Should().Be(BillingPlanSeeder.DefaultPlanAmount);
+
+        var names = await _db.Plans.Select(x => x.Name).ToListAsync();
+        names.Should().BeEquivalentTo(BillingPlanSeeder.Catalog.Select(x => x.Name));
     }
 
     [Fact]
@@ -47,8 +51,16 @@ public sealed class BillingPlanSeederTests : IDisposable
 
         second.Id.Should().Be(first.Id);
 
-        var plans = await _db.Plans.Where(x => x.Name == BillingPlanSeeder.DefaultPlanName).ToListAsync();
+        var plans = await _db.Plans
+            .Where(x => x.Name == BillingPlanSeeder.DefaultPlanName)
+            .ToListAsync();
         plans.Should().ContainSingle();
+
+        foreach (var seed in BillingPlanSeeder.Catalog)
+        {
+            var count = await _db.Plans.CountAsync(x => x.Name == seed.Name);
+            count.Should().Be(1);
+        }
     }
 
     [Fact]
@@ -75,12 +87,12 @@ public sealed class BillingPlanSeederTests : IDisposable
     }
 
     [Fact]
-    public async Task SeedAsync_ShouldReactivateExistingInactivePlan()
+    public async Task SeedAsync_ShouldPreserveAdminDecisionForExistingInactivePlan()
     {
         var existing = new Plan
         {
             Name = BillingPlanSeeder.DefaultPlanName,
-            Amount = 49.90m,
+            Amount = 19.90m,
             Description = BillingPlanSeeder.DefaultPlanDescription,
             IsActive = false
         };
@@ -90,11 +102,11 @@ public sealed class BillingPlanSeederTests : IDisposable
         var result = await _sut.SeedAsync();
 
         result.Id.Should().Be(existing.Id);
-        result.IsActive.Should().BeTrue();
+        result.IsActive.Should().BeFalse();
 
         var plans = await _db.Plans.Where(x => x.Name == BillingPlanSeeder.DefaultPlanName).ToListAsync();
         plans.Should().ContainSingle();
-        plans.Single().IsActive.Should().BeTrue();
+        plans.Single().IsActive.Should().BeFalse();
     }
 
     [Fact]

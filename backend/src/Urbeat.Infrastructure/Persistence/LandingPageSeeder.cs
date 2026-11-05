@@ -22,7 +22,11 @@ public sealed class LandingPageSeeder
                 content.Value = content.Value
                     .Replace("UrBeat", "urbeat", StringComparison.Ordinal)
                     .Replace("Urbeat", "urbeat", StringComparison.Ordinal)
-                    .Replace("URBEAT", "urbeat", StringComparison.Ordinal);
+                    .Replace("URBEAT", "urbeat", StringComparison.Ordinal)
+                    .Replace(
+                        "Chega de dividir seu lucro no delivery. Teste por 15 dias.",
+                        "Chega de dividir seu lucro no delivery. Teste grátis.",
+                        StringComparison.Ordinal);
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -34,7 +38,7 @@ public sealed class LandingPageSeeder
             // Hero Section (landpage urbeat Green)
             new() { Section = "Hero", Key = "Title", Value = "Nunca vendeu por delivery? Comece hoje com seu app próprio.", DisplayOrder = 1, IsActive = true, Description = "Título principal da seção Hero" },
             new() { Section = "Hero", Key = "Subtitle", Value = "A urbeat foi feita para quem está começando. Sem complicação, sem taxas por pedido, sem precisar saber de tecnologia. Você cadastra sua loja, divulga seu link e começa a receber pedidos organizados.", DisplayOrder = 2, IsActive = true, Description = "Subtítulo da seção Hero" },
-            new() { Section = "Hero", Key = "Badge", Value = "Chega de dividir seu lucro no delivery. Teste por 15 dias.", DisplayOrder = 3, IsActive = true, Description = "Badge do topo do Hero" },
+            new() { Section = "Hero", Key = "Badge", Value = "Chega de dividir seu lucro no delivery. Teste grátis.", DisplayOrder = 3, IsActive = true, Description = "Badge do topo do Hero" },
 
             // Features Section (6 cards da landpage urbeat Green)
             new() { Section = "Features", Key = "AppBrand_Desc", Value = "Seus clientes usam seu app, com sua marca. Sem necessidade de você dividir seu lucro.", DisplayOrder = 1, IsActive = true, Description = "Card: App com sua marca" },

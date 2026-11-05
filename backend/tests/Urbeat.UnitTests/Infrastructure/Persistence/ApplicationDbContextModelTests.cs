@@ -42,6 +42,24 @@ public sealed class ApplicationDbContextModelTests
     }
 
     [Fact]
+    public void SystemParameter_ShouldKeepValueUnboundedAndDocumentStringMetadataLimits()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"urbeat-model-{Guid.NewGuid()}")
+            .Options;
+        using var db = new ApplicationDbContext(options);
+
+        var entityType = db.Model.FindEntityType(typeof(SystemParameter));
+        entityType.Should().NotBeNull();
+
+        entityType!.FindProperty(nameof(SystemParameter.Key))!.GetMaxLength().Should().Be(200);
+        entityType.FindProperty(nameof(SystemParameter.Description))!.GetMaxLength().Should().Be(500);
+        entityType.FindProperty(nameof(SystemParameter.Group))!.GetMaxLength().Should().Be(100);
+        entityType.FindProperty(nameof(SystemParameter.Type))!.GetMaxLength().Should().Be(20);
+        entityType.FindProperty(nameof(SystemParameter.Value))!.GetMaxLength().Should().BeNull();
+    }
+
+    [Fact]
     public void DeliveryNeighborhood_ShouldNotDefineGlobalNeighborhoodCityUniqueIndex_AndShouldKeepCityIdNormalizedNameUniqueIndex()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

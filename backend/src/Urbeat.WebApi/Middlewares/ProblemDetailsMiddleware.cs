@@ -128,6 +128,11 @@ public sealed class ProblemDetailsMiddleware
                     // Clone the element so it survives the JsonDocument disposal below.
                     problem.Extensions["errors"] = errorsProp.Clone();
                 }
+
+                if (doc.RootElement.TryGetProperty("requiresConfirmation", out var requiresConfirmationProp))
+                {
+                    problem.Extensions["requiresConfirmation"] = requiresConfirmationProp.Clone();
+                }
             }
             catch
             {

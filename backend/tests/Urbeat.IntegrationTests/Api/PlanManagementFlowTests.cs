@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -74,6 +75,98 @@ public sealed class PlanManagementFlowTests : IClassFixture<TestWebApplicationFa
         sellerPlans.Should().NotBeNull();
         sellerPlans!.Should().ContainSingle(x => x.Id == basicPlan.Id && x.Name == "Basico Plus" && x.IsActive);
         sellerPlans.Should().NotContain(x => x.Id == proPlan.Id);
+    }
+
+    [Fact]
+    public async Task PublicOffer_ShouldExposeActivePlansWithTrialAndBenefitsOnly()
+    {
+        var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var adminToken = await LoginAdminAsync(adminClient);
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var activeName = $"Oferta Ativa {suffix}";
+        var inactiveName = $"Oferta Inativa {suffix}";
+
+        var activeResponse = await adminClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+        {
+            Name = activeName,
+            Amount = 27.90m,
+            Description = "Plano público",
+            IsActive = true,
+            TrialDays = 9,
+            Benefits = ["Cardápio digital", "Relatórios"]
+        });
+        var inactiveResponse = await adminClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+        {
+            Name = inactiveName,
+            Amount = 17.90m,
+            Description = "Plano oculto",
+            IsActive = false,
+            TrialDays = 3
+        });
+
+        activeResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        inactiveResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var rawOffer = await publicClient.GetStringAsync("/api/public/plans");
+
+        using var document = JsonDocument.Parse(rawOffer);
+        var plans = document.RootElement.GetProperty("plans").EnumerateArray().ToList();
+        var activePlan = plans.Single(x => x.GetProperty("name").GetString() == activeName);
+
+        activePlan.GetProperty("trialDays").GetInt32().Should().Be(9);
+        activePlan.GetProperty("benefits").EnumerateArray().Select(x => x.GetString())
+            .Should().Equal("Cardápio digital", "Relatórios");
+        plans.Should().NotContain(x => x.GetProperty("name").GetString() == inactiveName);
+
+        foreach (var plan in plans)
+        {
+            plan.TryGetProperty("isActive", out _).Should().BeFalse();
+            plan.TryGetProperty("createdAtUtc", out _).Should().BeFalse();
+            plan.TryGetProperty("updatedAtUtc", out _).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task PlanWrites_ShouldRejectNonAdminUsers()
+    {
+        var anonymousClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var anonymousResponse = await anonymousClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+        {
+            Name = "Plano Anonimo",
+            Amount = 10m
+        });
+        anonymousResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var sellerToken = await RegisterAndLoginSellerAsync(sellerClient);
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        var sellerResponse = await sellerClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+        {
+            Name = "Plano Vendedor",
+            Amount = 10m
+        });
+        sellerResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task CreatePlan_ShouldRejectTrialDaysOutsideAllowedRange()
+    {
+        var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var adminToken = await LoginAdminAsync(adminClient);
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        var response = await adminClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+        {
+            Name = $"Trial Invalido {Guid.NewGuid():N}",
+            Amount = 19.90m,
+            TrialDays = 366
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private static async Task<string> LoginAdminAsync(HttpClient client)

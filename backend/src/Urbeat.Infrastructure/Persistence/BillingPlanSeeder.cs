@@ -1,20 +1,67 @@
+using System.Text.Json;
 using Urbeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Urbeat.Infrastructure.Persistence;
 
 /// <summary>
-/// Garante a existência do plano padrão "Básico" (49,90) antes da criação de
-/// lojas. Idempotente: preserva o registro se já existir e não duplica em
-/// execuções repetidas. Não remove nem altera planos existentes.
+/// Garante o catálogo inicial de planos por porte. Os valores são apenas seed
+/// administrativo: depois de criados, nome, preço, trial e benefícios passam a
+/// ser configurados pelo admin e não são sobrescritos nas próximas execuções.
+/// Planos legados (por exemplo "Básico") não são removidos nem alterados.
 /// </summary>
 public sealed class BillingPlanSeeder
 {
-    public const string DefaultPlanName = "Básico";
+    public const string DefaultPlanName = "Começar";
 
-    public const decimal DefaultPlanAmount = 49.90m;
+    public const decimal DefaultPlanAmount = 19.90m;
 
-    public const string DefaultPlanDescription = "Ideal para pequenos negócios. Taxa por pedido: 8%.";
+    public const string DefaultPlanDescription = "Para quem está começando a vender pelo próprio app.";
+
+    public const int DefaultTrialDays = Plan.DefaultTrialDays;
+
+    public sealed record PlanSeed(
+        string Name,
+        decimal Amount,
+        string Description,
+        IReadOnlyList<string> Benefits);
+
+    public static readonly IReadOnlyList<PlanSeed> Catalog =
+    [
+        new(
+            DefaultPlanName,
+            DefaultPlanAmount,
+            DefaultPlanDescription,
+            [
+                "Cardápio digital com a sua marca",
+                "Pedidos no WhatsApp",
+                "Painel de pedidos em tempo real",
+                "Impressão automática na cozinha",
+                "Suporte via WhatsApp"
+            ]),
+        new(
+            "Crescer",
+            39.90m,
+            "Para negócios que já vendem e querem mais controle.",
+            [
+                "Tudo do plano Começar",
+                "Relatórios de vendas",
+                "Base de clientes exportável",
+                "Banners no cardápio",
+                "Geração de QR Code"
+            ]),
+        new(
+            "Profissional",
+            79.90m,
+            "Para operações com equipe e automações avançadas.",
+            [
+                "Tudo do plano Crescer",
+                "Usuários e permissões",
+                "Automação de WhatsApp",
+                "Dashboard com resumo das vendas",
+                "Controle de finanças"
+            ])
+    ];
 
     private readonly ApplicationDbContext _dbContext;
 
@@ -25,42 +72,54 @@ public sealed class BillingPlanSeeder
 
     public async Task<Plan> SeedAsync(CancellationToken cancellationToken = default)
     {
-        var existing = await _dbContext.Plans
-            .SingleOrDefaultAsync(x => x.Name == DefaultPlanName, cancellationToken);
+        var existingNames = await _dbContext.Plans
+            .AsNoTracking()
+            .Select(x => x.Name)
+            .ToListAsync(cancellationToken);
 
-        if (existing is not null)
+        var created = new List<Plan>();
+
+        foreach (var seed in Catalog)
         {
-            if (!existing.IsActive)
+            if (existingNames.Contains(seed.Name, StringComparer.Ordinal))
             {
-                existing.IsActive = true;
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                continue;
             }
 
-            return existing;
+            var plan = new Plan
+            {
+                Name = seed.Name,
+                Amount = seed.Amount,
+                Description = seed.Description,
+                IsActive = true,
+                TrialDays = DefaultTrialDays,
+                BenefitsJson = JsonSerializer.Serialize(seed.Benefits)
+            };
+
+            await _dbContext.Plans.AddAsync(plan, cancellationToken);
+            created.Add(plan);
         }
 
-        var plan = new Plan
+        if (created.Count > 0)
         {
-            Name = DefaultPlanName,
-            Amount = DefaultPlanAmount,
-            Description = DefaultPlanDescription,
-            IsActive = true
-        };
-
-        await _dbContext.Plans.AddAsync(plan, cancellationToken);
-
-        try
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return plan;
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                // Concorrência: outra instância pode ter inserido o catálogo primeiro.
+                foreach (var plan in created)
+                {
+                    _dbContext.Entry(plan).State = EntityState.Detached;
+                }
+            }
         }
-        catch (DbUpdateException)
-        {
-            // Concorrência: outro processo/instância inseriu o plano primeiro.
-            _dbContext.Entry(plan).State = EntityState.Detached;
-            var winner = await _dbContext.Plans
-                .SingleOrDefaultAsync(x => x.Name == DefaultPlanName, cancellationToken);
-            return winner ?? plan;
-        }
+
+        var defaultPlan = await _dbContext.Plans
+            .SingleOrDefaultAsync(x => x.Name == DefaultPlanName, cancellationToken);
+
+        return defaultPlan ?? created.FirstOrDefault(x => x.Name == DefaultPlanName)
+            ?? throw new InvalidOperationException($"Default plan '{DefaultPlanName}' could not be seeded.");
     }
 }

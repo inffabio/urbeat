@@ -43,4 +43,46 @@ describe('SubscriptionService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([{ gatewayChargeId: 'charge1', gatewayStatus: 'paid', billingStatus: 1, dueDateUtc: '2026-07-29T00:00:00Z', amount: 49.9 }]);
   });
+
+  it('loads active subscription plans', () => {
+    service.listPlans().subscribe((plans) => {
+      expect(plans).toHaveLength(1);
+      expect(plans[0].name).toBe('Plano Pro');
+      expect(plans[0].trialDays).toBe(15);
+      expect(plans[0].benefits).toEqual(['Cardápio digital']);
+    });
+
+    const req = httpMock.expectOne('/api/subscriptions/plans');
+    expect(req.request.method).toBe('GET');
+    req.flush([{
+      id: 'plan-1',
+      name: 'Plano Pro',
+      amount: 49.9,
+      description: 'Plano completo',
+      isActive: true,
+      trialDays: 15,
+      benefits: ['Cardápio digital'],
+    }]);
+  });
+
+  it('contracts a plan sending only store and plan identifiers', () => {
+    service.contract({ storeId: 'store-1', planId: 'plan-1' }).subscribe((res) => {
+      expect(res.planName).toBe('Plano Pro');
+      expect(res.nextBillingDateUtc).toBe('2026-08-16T00:00:00Z');
+    });
+
+    const req = httpMock.expectOne('/api/subscriptions/contract');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ storeId: 'store-1', planId: 'plan-1' });
+    req.flush({
+      subscriptionId: 'subscription-1',
+      storeId: 'store-1',
+      sellerUserId: 'seller-1',
+      planName: 'Plano Pro',
+      planAmount: 49.9,
+      status: 1,
+      startDateUtc: '2026-08-01T00:00:00Z',
+      nextBillingDateUtc: '2026-08-16T00:00:00Z',
+    });
+  });
 });

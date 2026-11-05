@@ -1,9 +1,11 @@
-﻿import { Component, OnInit, inject, signal, ViewEncapsulation } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 
 import { LandingPageService, LandingPageContent } from '../../core/services/landing-page.service';
+import { PlanOfferService } from '../../core/services/plan-offer.service';
+import { PublicPlanOfferItem } from '../../shared/models/plan-offer.model';
 
 /*
   ── DIRECTION CONTRACT (landpage urbeat Green) ─────────────────────────────
@@ -19,7 +21,8 @@ import { LandingPageService, LandingPageContent } from '../../core/services/land
   hero em 2 colunas — à esquerda badge pulsante + H1 48px + bullets de
   confiança; à direita foto da empreendedora com cards flutuantes.
   FORM: réplica fiel do protótipo React, em Angular standalone mobile-first,
-  conteúdo editável pelo admin via LandingPageService (fallbacks do protótipo).
+  conteúdo editável pelo admin via LandingPageService (fallbacks do protótipo)
+  e planos/trial carregados da oferta pública, com fallback seguro.
   ────────────────────────────────────────────────────────────────────────────
 */
 
@@ -29,6 +32,51 @@ export interface LandingFeature {
   contentKey: string;
   fallback: string;
 }
+
+const FALLBACK_PLANS: PublicPlanOfferItem[] = [
+  {
+    id: 'fallback-comecar',
+    name: 'Começar',
+    amount: 19.9,
+    description: 'Para quem está começando a vender pelo próprio app.',
+    trialDays: 15,
+    benefits: [
+      'Cardápio digital com a sua marca',
+      'Pedidos no WhatsApp',
+      'Painel de pedidos em tempo real',
+      'Impressão automática na cozinha',
+      'Suporte via WhatsApp',
+    ],
+  },
+  {
+    id: 'fallback-crescer',
+    name: 'Crescer',
+    amount: 39.9,
+    description: 'Para negócios que já vendem e querem mais controle.',
+    trialDays: 15,
+    benefits: [
+      'Tudo do plano Começar',
+      'Relatórios de vendas',
+      'Base de clientes exportável',
+      'Banners no cardápio',
+      'Geração de QR Code',
+    ],
+  },
+  {
+    id: 'fallback-profissional',
+    name: 'Profissional',
+    amount: 79.9,
+    description: 'Para operações com equipe e automações avançadas.',
+    trialDays: 15,
+    benefits: [
+      'Tudo do plano Crescer',
+      'Usuários e permissões',
+      'Automação de WhatsApp',
+      'Dashboard com resumo das vendas',
+      'Controle de finanças',
+    ],
+  },
+];
 
 @Component({
   selector: 'app-landing-page',
@@ -41,6 +89,7 @@ export interface LandingFeature {
 })
 export class LandingPageComponent implements OnInit {
   private readonly landingPageService = inject(LandingPageService);
+  private readonly planOfferService = inject(PlanOfferService);
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
@@ -49,6 +98,16 @@ export class LandingPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly menuOpen = signal(false);
   readonly currentYear = new Date().getFullYear();
+
+  private readonly offerPlans = signal<PublicPlanOfferItem[] | null>(null);
+
+  /** Planos ativos vindos da API; fallback seguro apenas quando a chamada falha. */
+  readonly plans = computed<PublicPlanOfferItem[]>(() => this.offerPlans() ?? FALLBACK_PLANS);
+
+  /** Maior trial entre os planos, usado nos textos gerais da página. */
+  readonly trialDays = computed(() =>
+    this.plans().reduce((max, plan) => Math.max(max, plan.trialDays), 0),
+  );
 
   readonly features: LandingFeature[] = [
     { icon: 'store', title: 'App com sua marca', contentKey: 'AppBrand_Desc', fallback: 'Seus clientes usam seu app, com sua marca. Sem necessidade de você dividir seu lucro.' },
@@ -73,27 +132,9 @@ export class LandingPageComponent implements OnInit {
   ];
 
   readonly starterBenefits = [
-    { icon: 'badge', title: 'Sem mensalidade absurda', desc: 'Plano que cabe no bolso de quem vende da cozinha de casa. Comece pequeno, cresça com lucro.' },
+    { icon: 'badge', title: 'Sem mensalidade absurda', desc: 'Planos que cabem no bolso de quem vende da cozinha de casa. Comece pequeno, cresça com lucro.' },
     { icon: 'whatsapp', title: 'Suporte humano no WhatsApp', desc: 'Travou? Chama a gente. Suporte de verdade, com gente que entende de delivery iniciante.' },
     { icon: 'book', title: 'Manual completo para iniciantes', desc: 'Vídeos curtos e diretos. Como cadastrar produto, imprimir, configurar entrega. Sem jargão.' },
-  ];
-
-  readonly planFeatures = [
-    'Cardápio personalizável',
-    'Painel para gestão completa',
-    'Sem limites de produtos e pedidos',
-    'Impressão automática',
-    'Controle via celular',
-    'Aplicativo Android do painel',
-    'Suporte via WhatsApp',
-    'Geração de QR Code',
-    'Dashboard com resumo das vendas',
-    'Controle de finanças',
-    'Relatórios de vendas',
-    'Link para bio de redes sociais',
-    'Banners no cardápio',
-    'Usuários e permissões',
-    'Automatização de WhatsApp',
   ];
 
   readonly planAssurances = [
@@ -105,17 +146,22 @@ export class LandingPageComponent implements OnInit {
   ngOnInit(): void {
     this.setupSEO();
     this.loadContent();
+    this.loadPlans();
   }
 
   toggleMenu(): void {
     this.menuOpen.update((v) => !v);
   }
 
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
   private setupSEO(): void {
     this.title.setTitle('urbeat — Cardápio digital para quem está começando');
 
     const metaTags = [
-      { name: 'description', content: 'Crie seu app de delivery próprio, sem taxa por pedido. Cardápio digital, pedidos no WhatsApp e impressão automática na cozinha. Teste 15 dias grátis.' },
+      { name: 'description', content: 'Crie seu app de delivery próprio, sem taxa por pedido. Cardápio digital, pedidos no WhatsApp e impressão automática na cozinha. Teste grátis.' },
       { name: 'keywords', content: 'delivery, cardápio digital, app para delivery, pedidos online, urbeat' },
       { property: 'og:type', content: 'website' },
       { property: 'og:url', content: 'https://urbeat.com.br/' },
@@ -124,7 +170,7 @@ export class LandingPageComponent implements OnInit {
       { property: 'og:image', content: 'https://urbeat.com.br/assets/images/empreendedora-urbeat.jpg' },
       { property: 'twitter:card', content: 'summary_large_image' },
       { property: 'twitter:title', content: 'urbeat — Cardápio digital para iniciantes' },
-      { property: 'twitter:description', content: 'Seu delivery, seu lucro. Teste 15 dias grátis, sem cartão.' },
+      { property: 'twitter:description', content: 'Seu delivery, seu lucro. Teste grátis, sem cartão.' },
       { property: 'twitter:image', content: 'https://urbeat.com.br/assets/images/empreendedora-urbeat.jpg' }
     ];
 
@@ -150,6 +196,34 @@ export class LandingPageComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  private loadPlans(): void {
+    this.planOfferService.getOffer().subscribe({
+      next: (offer) => {
+        const plans = offer?.plans?.filter((plan) => Number.isFinite(plan.amount) && plan.name?.trim()) ?? [];
+        this.offerPlans.set(plans);
+        this.updateTrialMeta();
+      },
+      error: () => {
+        this.offerPlans.set(null);
+        this.updateTrialMeta();
+      },
+    });
+  }
+
+  private updateTrialMeta(): void {
+    const days = this.trialDays();
+    const description = days > 0
+      ? `Crie seu app de delivery próprio, sem taxa por pedido. Cardápio digital, pedidos no WhatsApp e impressão automática na cozinha. Teste até ${days} dias grátis.`
+      : 'Crie seu app de delivery próprio, sem taxa por pedido. Cardápio digital, pedidos no WhatsApp e impressão automática na cozinha.';
+
+    const twitterDescription = days > 0
+      ? `Seu delivery, seu lucro. Teste até ${days} dias grátis, sem cartão.`
+      : 'Seu delivery, seu lucro. Sem cartão para começar.';
+
+    this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ property: 'twitter:description', content: twitterDescription });
   }
 
   getContent(section: string, key: string, defaultValue: string): string {

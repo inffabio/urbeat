@@ -1,0 +1,216 @@
+<section class="admin-page" aria-labelledby="admin-settings-title">
+  <header class="admin-page-head">
+    <p class="admin-eyebrow">Administração da plataforma</p>
+    <h1 id="admin-settings-title">Configurações</h1>
+    <p class="admin-lead">
+      Parâmetros de negócio da plataforma, agrupados por área. O servidor valida tipo, limites e
+      parâmetros de alto impacto antes de salvar; o valor canônico é sempre o persistido.
+    </p>
+    <div class="admin-head-actions">
+      <button
+        type="button"
+        class="admin-secondary"
+        (click)="load()"
+        [disabled]="loading() || savingKey() !== null || bulkSaving()"
+      >
+        Recarregar
+      </button>
+    </div>
+  </header>
+
+  @if (feedback(); as message) {
+    <p
+      class="admin-feedback"
+      [class.is-error]="message.type === 'error'"
+      role="status"
+      aria-live="polite"
+    >
+      {{ message.message }}
+    </p>
+  }
+
+  @if (loading()) {
+    <div class="admin-loading" role="status" aria-live="polite">
+      <span class="admin-loading-title">Carregando parâmetros…</span>
+      <span class="admin-skeleton-line"></span>
+      <span class="admin-skeleton-line"></span>
+      <span class="admin-skeleton-line"></span>
+    </div>
+  } @else if (loadError(); as error) {
+    <div class="admin-error" role="alert">
+      <strong>Não foi possível carregar os parâmetros.</strong>
+      <span>{{ error }}</span>
+      <button type="button" class="admin-secondary" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else {
+    <div class="admin-summary" role="status" aria-live="polite">
+      <p>
+        {{ totalCount() }} parâmetro(s) · {{ dirtyCount() }} com alteração não salva
+      </p>
+      <button
+        type="button"
+        class="admin-primary"
+        (click)="saveAll()"
+        [disabled]="dirtyCount() === 0 || bulkSaving() || savingKey() !== null"
+      >
+        {{ bulkSaving() ? 'Salvando…' : 'Salvar alterações' }}
+      </button>
+    </div>
+
+    @for (group of groups(); track group.group) {
+      <section class="admin-group" [attr.aria-label]="group.label">
+        <header class="admin-group-head">
+          <h2>{{ group.label }}</h2>
+          <span>{{ group.parameters.length }} parâmetro(s)</span>
+        </header>
+
+        @for (parameter of group.parameters; track parameter.key) {
+          <article class="admin-param" [class.is-dirty]="isDirty(parameter)">
+            <div class="admin-param-info">
+              <div class="admin-param-title">
+                <label class="admin-param-key" [for]="controlId(parameter.key)">
+                  {{ parameter.key }}
+                </label>
+                <span class="admin-badge">{{ displayLabel(parameter) }}</span>
+                @if (parameter.requiresConfirmation) {
+                  <span class="admin-badge is-restricted">alto impacto</span>
+                }
+                @if (parameter.isReadOnly) {
+                  <span class="admin-badge is-locked">somente leitura</span>
+                }
+                @if (parameter.isSecret) {
+                  <span class="admin-badge is-secret">segredo</span>
+                }
+              </div>
+
+              @if (parameter.description) {
+                <p class="admin-param-description">{{ parameter.description }}</p>
+              }
+
+              @if (rangeHint(parameter); as range) {
+                <small class="admin-param-range">{{ range }}</small>
+              }
+            </div>
+
+            <div class="admin-param-field">
+              @switch (control(parameter)) {
+                @case ('checkbox') {
+                  <label class="admin-switch">
+                    <input
+                      [id]="controlId(parameter.key)"
+                      type="checkbox"
+                      role="switch"
+                      [checked]="draftValue(parameter) === 'true'"
+                      [disabled]="parameter.isReadOnly || savingKey() !== null"
+                      (change)="onBooleanInput(parameter, $event)"
+                    />
+                    <span class="admin-switch-track" aria-hidden="true">
+                      <span class="admin-switch-thumb"></span>
+                    </span>
+                    <span class="admin-switch-label">
+                      {{ draftValue(parameter) === 'true' ? 'Ativo' : 'Inativo' }}
+                    </span>
+                  </label>
+                }
+                @case ('textarea') {
+                  <textarea
+                    [id]="controlId(parameter.key)"
+                    class="admin-input admin-textarea"
+                    rows="4"
+                    [value]="draftValue(parameter)"
+                    [attr.maxlength]="textMaxLength(parameter)"
+                    [attr.aria-describedby]="hintId(parameter)"
+                    [disabled]="parameter.isReadOnly || savingKey() !== null"
+                    (input)="onTextInput(parameter, $event)"
+                  ></textarea>
+                }
+                @case ('readonly') {
+                  <span class="admin-readonly">
+                    {{ parameter.isSecret ? 'Valor protegido' : parameter.value }}
+                  </span>
+                }
+                @default {
+                  <input
+                    [id]="controlId(parameter.key)"
+                    class="admin-input"
+                    [type]="inputType(parameter)"
+                    [attr.step]="inputStep(parameter)"
+                    [attr.min]="parameter.minValue"
+                    [attr.max]="parameter.maxValue"
+                    [attr.maxlength]="textMaxLength(parameter)"
+                    [attr.inputmode]="control(parameter) === 'decimal' ? 'decimal' : null"
+                    [attr.aria-describedby]="hintId(parameter)"
+                    [value]="draftValue(parameter)"
+                    [disabled]="parameter.isReadOnly || savingKey() !== null"
+                    autocomplete="off"
+                    spellcheck="false"
+                    (input)="onTextInput(parameter, $event)"
+                  />
+                }
+              }
+
+              @if (hint(parameter); as hintText) {
+                <small class="admin-hint" [attr.id]="'hint-' + controlId(parameter.key)">
+                  {{ hintText }}
+                </small>
+              }
+            </div>
+
+            <div class="admin-param-action">
+              <button
+                type="button"
+                class="admin-primary"
+                (click)="save(parameter)"
+                [disabled]="
+                  parameter.isReadOnly ||
+                  !isDirty(parameter) ||
+                  savingKey() !== null ||
+                  bulkSaving()
+                "
+              >
+                {{ savingKey() === parameter.key ? 'Salvando…' : 'Salvar' }}
+              </button>
+              <small>{{ updatedAt(parameter) }}</small>
+            </div>
+
+            @if (restrictedPromptKey() === parameter.key) {
+              <div
+                class="admin-confirm"
+                role="alertdialog"
+                [attr.aria-labelledby]="'confirm-title-' + controlId(parameter.key)"
+              >
+                <div>
+                  <strong [id]="'confirm-title-' + controlId(parameter.key)">
+                    Confirmar alteração de alto impacto
+                  </strong>
+                  <p>
+                    {{ parameter.key }} afeta uma regra de negócio. Confirme para salvar o valor
+                    informado.
+                  </p>
+                </div>
+                <div class="admin-confirm-actions">
+                  <button type="button" class="admin-secondary" (click)="cancelRestricted()">
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    class="admin-primary"
+                    [disabled]="savingKey() !== null"
+                    (click)="save(parameter, true)"
+                  >
+                    Confirmar e salvar
+                  </button>
+                </div>
+              </div>
+            }
+          </article>
+        }
+      </section>
+    } @empty {
+      <div class="admin-empty" role="status">
+        <strong>Nenhum parâmetro cadastrado.</strong>
+        <span>Os parâmetros da plataforma aparecerão aqui quando estiverem disponíveis.</span>
+      </div>
+    }
+  }
+</section>

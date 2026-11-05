@@ -63,7 +63,7 @@ export class AdminLoginPageComponent {
     this.auth.loginAdmin(request).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigateByUrl('/painel/landing-page');
+        this.router.navigateByUrl('/admin');
       },
       error: (err) => {
         this.loading.set(false);

@@ -69,6 +69,39 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'admin',
+    canActivate: [adminGuard],
+    canActivateChild: [adminGuard],
+    loadComponent: () =>
+      import('./features/admin-shell/admin-shell.component').then(
+        (m) => m.AdminShellComponent,
+      ),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'visao-geral' },
+      {
+        path: 'visao-geral',
+        loadComponent: () =>
+          import('./features/admin-overview/admin-overview-page.component').then(
+            (m) => m.AdminOverviewPageComponent,
+          ),
+      },
+      {
+        path: 'planos',
+        loadComponent: () =>
+          import('./features/admin-plans/admin-plans-page.component').then(
+            (m) => m.AdminPlansPageComponent,
+          ),
+      },
+      {
+        path: 'configuracoes',
+        loadComponent: () =>
+          import('./features/admin-settings/admin-settings-page.component').then(
+            (m) => m.AdminSettingsPageComponent,
+          ),
+      },
+    ],
+  },
+  {
     path: 'confirmacao-email',
     loadComponent: () =>
       import('./features/email-confirmation/email-confirmation-page.component').then(

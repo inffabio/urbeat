@@ -1,0 +1,107 @@
+<ng-template #sidebarContent let-mobile="mobile">
+  <div class="admin-brand">
+    <img
+      src="/images/logo_urbeat.png"
+      alt="urbeat"
+      class="admin-logo"
+      width="138"
+      height="42"
+    />
+    <span class="admin-brand-caption">Administração</span>
+    @if (mobile) {
+      <button
+        type="button"
+        class="admin-icon-btn admin-close-btn"
+        (click)="closeMobileMenu()"
+        aria-label="Fechar menu administrativo"
+      >
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    }
+  </div>
+
+  <nav class="admin-nav" aria-label="Navegação administrativa">
+    @for (item of menuItems; track item.route) {
+      <a
+        class="admin-nav-link"
+        [routerLink]="item.route"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        [attr.aria-label]="item.label"
+        (click)="mobile ? closeMobileMenu() : null"
+      >
+        <ion-icon [attr.name]="item.icon" aria-hidden="true"></ion-icon>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="admin-sidebar-footer">
+    @if (adminEmail()) {
+      <p class="admin-identity" title="Conta administrativa">
+        <span class="admin-identity-label">Conta</span>
+        <span class="admin-identity-value">{{ adminEmail() }}</span>
+      </p>
+    }
+    <button type="button" class="admin-nav-link admin-logout" (click)="logout()">
+      <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+      <span>Sair</span>
+    </button>
+  </div>
+</ng-template>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" aria-label="Menu administrativo">
+    <ng-container
+      [ngTemplateOutlet]="sidebarContent"
+      [ngTemplateOutletContext]="{ mobile: false }"
+    ></ng-container>
+  </aside>
+
+  <button
+    type="button"
+    class="admin-backdrop"
+    [class.is-open]="mobileMenuOpen()"
+    (click)="closeMobileMenu()"
+    aria-label="Fechar menu administrativo"
+    [attr.tabindex]="mobileMenuOpen() ? 0 : -1"
+  ></button>
+
+  <aside
+    id="admin-mobile-navigation"
+    class="admin-mobile-sidebar"
+    [class.is-open]="mobileMenuOpen()"
+    aria-label="Menu administrativo no celular"
+  >
+    <ng-container
+      [ngTemplateOutlet]="sidebarContent"
+      [ngTemplateOutletContext]="{ mobile: true }"
+    ></ng-container>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <button
+        type="button"
+        class="admin-icon-btn"
+        (click)="toggleMobileMenu()"
+        aria-label="Abrir menu administrativo"
+        aria-controls="admin-mobile-navigation"
+        [attr.aria-expanded]="mobileMenuOpen()"
+      >
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
+      </button>
+      <div class="admin-topbar-brand">
+        <img
+          src="/images/logo_urbeat.png"
+          alt="urbeat"
+          width="104"
+          height="32"
+        />
+        <span>Administração</span>
+      </div>
+    </header>
+
+    <router-outlet />
+  </main>
+</div>

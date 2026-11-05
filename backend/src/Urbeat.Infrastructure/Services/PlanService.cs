@@ -1,5 +1,6 @@
 ﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Plans;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -19,36 +20,39 @@ public sealed class PlanService : IPlanService
 
     public async Task<IReadOnlyList<PlanResponseDto>> ListAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Plans
+        var plans = await _dbContext.Plans
             .AsNoTracking()
             .OrderBy(x => x.Name)
-            .Select(x => new PlanResponseDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Amount = x.Amount,
-                Description = x.Description,
-                IsActive = x.IsActive
-            })
             .ToListAsync(cancellationToken);
+
+        return plans.Select(Map).ToList();
     }
 
     public async Task<IReadOnlyList<PlanResponseDto>> ListActiveAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Plans
+        var plans = await _dbContext.Plans
             .AsNoTracking()
             .Where(x => x.IsActive)
             .OrderBy(x => x.Amount)
             .ThenBy(x => x.Name)
-            .Select(x => new PlanResponseDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Amount = x.Amount,
-                Description = x.Description,
-                IsActive = x.IsActive
-            })
             .ToListAsync(cancellationToken);
+
+        return plans.Select(Map).ToList();
+    }
+
+    public async Task<PublicPlanOfferResponseDto> GetPublicOfferAsync(CancellationToken cancellationToken = default)
+    {
+        var plans = await _dbContext.Plans
+            .AsNoTracking()
+            .Where(x => x.IsActive)
+            .OrderBy(x => x.Amount)
+            .ThenBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+
+        return new PublicPlanOfferResponseDto
+        {
+            Plans = plans.Select(MapPublic).ToList()
+        };
     }
 
     public async Task<PlanResponseDto?> CreateAsync(CreatePlanRequestDto request, CancellationToken cancellationToken = default)
@@ -67,8 +71,10 @@ public sealed class PlanService : IPlanService
         {
             Name = normalizedName,
             Amount = request.Amount,
-            Description = request.Description.Trim(),
-            IsActive = request.IsActive
+            Description = request.Description?.Trim() ?? string.Empty,
+            IsActive = request.IsActive,
+            TrialDays = request.TrialDays ?? Plan.DefaultTrialDays,
+            BenefitsJson = PlanBenefits.Serialize(request.Benefits)
         };
 
         await _dbContext.Plans.AddAsync(plan, cancellationToken);
@@ -99,7 +105,14 @@ public sealed class PlanService : IPlanService
 
         plan.Name = normalizedName;
         plan.Amount = request.Amount;
-        plan.Description = request.Description.Trim();
+        plan.Description = request.Description?.Trim() ?? string.Empty;
+        plan.TrialDays = request.TrialDays ?? plan.TrialDays;
+
+        if (request.Benefits is not null)
+        {
+            plan.BenefitsJson = PlanBenefits.Serialize(request.Benefits);
+        }
+
         plan.MarkAsUpdated();
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
@@ -131,7 +144,22 @@ public sealed class PlanService : IPlanService
             Name = plan.Name,
             Amount = plan.Amount,
             Description = plan.Description,
-            IsActive = plan.IsActive
+            IsActive = plan.IsActive,
+            TrialDays = plan.TrialDays,
+            Benefits = PlanBenefits.Deserialize(plan.BenefitsJson)
+        };
+    }
+
+    private static PublicPlanOfferItemDto MapPublic(Plan plan)
+    {
+        return new PublicPlanOfferItemDto
+        {
+            Id = plan.Id,
+            Name = plan.Name,
+            Amount = plan.Amount,
+            Description = plan.Description,
+            TrialDays = plan.TrialDays,
+            Benefits = PlanBenefits.Deserialize(plan.BenefitsJson)
         };
     }
 }

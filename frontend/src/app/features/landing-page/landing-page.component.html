@@ -10,7 +10,7 @@
         <a href="#iniciantes">Para iniciantes</a>
         <a href="#funcionalidades">Funcionalidades</a>
         <a href="#como-funciona">Como funciona</a>
-        <a href="#plano">Plano</a>
+        <a href="#plano">Planos</a>
       </nav>
 
       <div class="lp-nav-actions">
@@ -32,7 +32,7 @@
         <a href="#iniciantes" (click)="toggleMenu()">Para iniciantes</a>
         <a href="#funcionalidades" (click)="toggleMenu()">Funcionalidades</a>
         <a href="#como-funciona" (click)="toggleMenu()">Como funciona</a>
-        <a href="#plano" (click)="toggleMenu()">Plano único</a>
+        <a href="#plano" (click)="toggleMenu()">Planos</a>
         <a routerLink="/login-vendedor" class="lp-mobile-login" (click)="toggleMenu()">Entrar</a>
         <a routerLink="/cadastro" class="lp-btn-cta lp-mobile-cta" (click)="toggleMenu()">Criar meu cardápio</a>
       </div>
@@ -45,7 +45,7 @@
       <div class="lp-hero-copy">
         <div class="lp-hero-badge">
           <span class="lp-pulse-dot"></span>
-          {{ getContent('Hero', 'Badge', 'Chega de dividir seu lucro no delivery. Teste por 15 dias.') }}
+          {{ getContent('Hero', 'Badge', 'Chega de dividir seu lucro no delivery. Teste grátis.') }}
         </div>
 
         @let titleParts = heroTitleParts();
@@ -64,12 +64,14 @@
           </a>
 
           <div class="lp-hero-trust">
-            <span class="lp-trust-item">
-              <span class="lp-trust-check">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            @if (trialDays() > 0) {
+              <span class="lp-trust-item">
+                <span class="lp-trust-check">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                Até {{ trialDays() }} dias grátis
               </span>
-              15 dias grátis
-            </span>
+            }
             <span class="lp-trust-item">
               <span class="lp-trust-check">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -321,66 +323,83 @@
     </div>
   </section>
 
-  <!-- ═════════════════ PLANO ═════════════════ -->
+  <!-- ═════════════════ PLANOS ═════════════════ -->
   <section id="plano" class="lp-section lp-section-alt lp-plans">
     <div class="lp-container">
       <div class="lp-section-head lp-center">
-        <div class="lp-eyebrow lp-eyebrow-bordered">Plano único • Sem complicação</div>
-        <h2>Um plano simples para você começar</h2>
-        <p>Sem pegadinha, sem letras miúdas. Só o que você precisa para vender.</p>
+        <div class="lp-eyebrow lp-eyebrow-bordered">Planos por porte • Sem complicação</div>
+        <h2>Escolha o plano ideal para o seu momento</h2>
+        <p>Sem pegadinha, sem letras miúdas. Você começa pequeno e muda de plano quando quiser.</p>
       </div>
 
-      <div class="lp-plan-wrap">
-        <article class="lp-plan-card">
-          <header class="lp-plan-head">
-            <span class="lp-plan-tag">Plano único</span>
-            <h3>Primeiros 15 dias GRÁTIS!</h3>
-            <p class="lp-plan-after">Depois somente</p>
-            <div class="lp-plan-price">
-              <span class="lp-plan-value">R$29,90</span>
-              <span class="lp-plan-period">/mês</span>
-            </div>
-            <p class="lp-plan-note">Sem fidelidade • Cancele quando quiser</p>
-          </header>
+      <div class="lp-plans-grid">
+        @for (plan of plans(); track plan.id) {
+          <article class="lp-plan-card">
+            <header class="lp-plan-head">
+              <span class="lp-plan-tag">{{ plan.name }}</span>
+              @if (plan.trialDays > 0) {
+                <h3>{{ plan.trialDays }} dias grátis</h3>
+              } @else {
+                <h3>Comece hoje</h3>
+              }
+              <p class="lp-plan-after">Depois somente</p>
+              <div class="lp-plan-price">
+                <span class="lp-plan-value">{{ formatCurrency(plan.amount) }}</span>
+                <span class="lp-plan-period">/mês</span>
+              </div>
+              <p class="lp-plan-note">Sem fidelidade • Cancele quando quiser</p>
+            </header>
 
-          <ul class="lp-plan-features">
-            @for (feature of planFeatures; track feature) {
-              <li>
-                <span class="lp-plan-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                </span>
-                {{ feature }}
-              </li>
-            }
-          </ul>
-
-          <footer class="lp-plan-footer">
-            <div class="lp-plan-assurances">
-              @for (assurance of planAssurances; track assurance) {
-                <div class="lp-assurance">
-                  <span class="lp-assurance-check">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                  </span>
-                  {{ assurance }}
-                </div>
+            <div class="lp-plan-body">
+              <p class="lp-plan-description">{{ plan.description }}</p>
+              @if (plan.benefits.length > 0) {
+                <ul class="lp-plan-features">
+                  @for (benefit of plan.benefits; track benefit) {
+                    <li>
+                      <span class="lp-plan-check">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                      </span>
+                      {{ benefit }}
+                    </li>
+                  }
+                </ul>
               }
             </div>
 
-            <a routerLink="/cadastro" class="lp-btn-plan">
-              Quero começar grátis por 15 dias
-              <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </a>
-            <p class="lp-plan-fine">Sem fidelidade • Cancele quando quiser</p>
-          </footer>
-        </article>
+            <footer class="lp-plan-footer">
+              <a routerLink="/cadastro" class="lp-btn-plan">
+                {{ plan.trialDays > 0 ? 'Quero começar grátis' : 'Quero contratar' }}
+                <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <p class="lp-plan-fine">Sem cartão no início • Cancele quando quiser</p>
+            </footer>
+          </article>
+        }
+      </div>
+
+      @if (plans().length > 0) {
+        <div class="lp-plan-assurances lp-plan-assurances-row">
+          @for (assurance of planAssurances; track assurance) {
+            <div class="lp-assurance">
+              <span class="lp-assurance-check">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              {{ assurance }}
+            </div>
+          }
+        </div>
 
         <div class="lp-plan-proof">
           <span class="lp-proof-check">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           </span>
-          Plano usado por quem vende marmita, hambúrguer, bolo, açaí e lanche
+          Planos usados por quem vende marmita, hambúrguer, bolo, açaí e lanche
         </div>
-      </div>
+      } @else {
+        <p class="lp-plan-empty">
+          Estamos atualizando nossos planos. Fale com a gente para conhecer as condições atuais.
+        </p>
+      }
     </div>
   </section>
 
@@ -401,12 +420,14 @@
                 </span>
                 Cancelamento fácil a qualquer momento
               </div>
-              <div class="lp-final-bullet">
-                <span class="lp-final-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                </span>
-                15 dias para testar todos os recursos
-              </div>
+              @if (trialDays() > 0) {
+                <div class="lp-final-bullet">
+                  <span class="lp-final-check">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  </span>
+                  Até {{ trialDays() }} dias para testar todos os recursos
+                </div>
+              }
             </div>
           </div>
 
@@ -415,10 +436,12 @@
               Criar minha loja em 15 minutos
               <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
-            <span class="lp-final-tag">
-              <span class="lp-final-tag-dot"></span>
-              Teste 15 dias grátis
-            </span>
+            @if (trialDays() > 0) {
+              <span class="lp-final-tag">
+                <span class="lp-final-tag-dot"></span>
+                Teste até {{ trialDays() }} dias grátis
+              </span>
+            }
             <p>Você não precisa de cartão para começar. Manual em vídeo e suporte humano inclusos.</p>
           </div>
         </div>

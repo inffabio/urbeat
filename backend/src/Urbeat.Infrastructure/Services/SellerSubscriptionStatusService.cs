@@ -72,6 +72,12 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
             return new ContractSellerSubscriptionResultDto { Forbidden = true };
         }
 
+        // O servidor calcula a primeira cobrança a partir do trial do plano e do
+        // início da assinatura local. O valor enviado pelo cliente é ignorado.
+        var now = DateTime.UtcNow;
+        var trialStartUtc = existing?.StartDateUtc ?? now;
+        var firstDueDateUtc = CalculateFirstDueDateUtc(plan.TrialDays, trialStartUtc, now);
+
         var asaasContract = await _asaasSubscriptionAdapter.CreateContractAsync(new AsaasSubscriptionContractRequest
         {
             SellerUserId = sellerUserId,
@@ -79,11 +85,10 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
             SellerEmail = sellerUser.Email ?? string.Empty,
             SellerPhone = store.PhoneNumber,
             PlanAmount = plan.Amount,
-            FirstDueDateUtc = request.FirstDueDateUtc,
+            FirstDueDateUtc = firstDueDateUtc,
             ExternalReference = sellerUserId.ToString()
         }, cancellationToken);
 
-        var now = DateTime.UtcNow;
         var subscription = existing ?? new SellerSubscription
         {
             StoreId = store.Id,
@@ -94,7 +99,7 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
         subscription.PlanName = plan.Name;
         subscription.PlanAmount = plan.Amount;
         subscription.Status = SellerSubscriptionBillingStatus.Active;
-        subscription.StartDateUtc = now;
+        subscription.StartDateUtc = trialStartUtc;
         subscription.EndDateUtc = null;
         subscription.NextBillingDateUtc = asaasContract.NextDueDateUtc;
         subscription.GatewayCustomerId = asaasContract.GatewayCustomerId;
@@ -199,36 +204,73 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.SellerUserId == sellerUserId, cancellationToken);
 
-        var storeBlocked = await _dbContext.Stores
+        var store = await _dbContext.Stores
             .AsNoTracking()
             .Where(x => x.OwnerUserId == sellerUserId)
-            .Select(x => x.IsSubscriptionBlocked)
+            .Select(x => new { x.Id, x.IsSubscriptionBlocked })
             .SingleOrDefaultAsync(cancellationToken);
+
+        var storeBlocked = store?.IsSubscriptionBlocked ?? false;
+        var storeId = subscription?.StoreId ?? store?.Id;
 
         if (status is null && subscription is null)
         {
             return new SellerSubscriptionMyResponseDto
             {
                 HasSubscription = false,
+                StoreId = storeId,
                 LastChargeStatus = "Nao contratado",
                 StoreBlocked = storeBlocked,
                 RegularizationMessage = "Voce ainda nao possui assinatura ativa. Contrate um plano para operar a loja."
             };
         }
 
+        var plan = subscription?.PlanId is Guid planId
+            ? await _dbContext.Plans
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == planId, cancellationToken)
+            : null;
+
         var currentStatus = status?.BillingStatus ?? subscription!.Status;
         var nextDueDate = status?.NextDueDateUtc ?? subscription!.NextBillingDateUtc;
+        var hasGatewaySubscription = subscription is not null
+            && !string.IsNullOrWhiteSpace(subscription.GatewaySubscriptionId);
+
+        // O trial pertence ao plano e comeca no inicio da assinatura local. Planos
+        // sem trial (TrialDays = 0) nunca sao apresentados como periodo gratuito.
+        // Assinaturas locais antigas, sem plano vinculado, usam o vencimento local
+        // como fim do teste; nunca inventamos dias gratis para planos sem trial.
+        var trialDays = plan?.TrialDays;
+        var trialEndsAtUtc = subscription is not null && plan is { TrialDays: > 0 }
+            ? subscription.StartDateUtc.AddDays(plan.TrialDays)
+            : subscription is not null && plan is null && !hasGatewaySubscription
+                ? subscription.NextBillingDateUtc
+                : (DateTime?)null;
+
+        var isTrialActive = !hasGatewaySubscription
+            && trialEndsAtUtc.HasValue
+            && trialEndsAtUtc.Value > DateTime.UtcNow
+            && currentStatus is not (SellerSubscriptionBillingStatus.Overdue or SellerSubscriptionBillingStatus.Blocked);
+
+        var nextChargeAmount = subscription?.PlanAmount ?? plan?.Amount;
 
         return new SellerSubscriptionMyResponseDto
         {
             HasSubscription = true,
-            PlanName = subscription?.PlanName ?? "Plano MVP",
+            StoreId = storeId,
+            PlanId = subscription?.PlanId,
+            PlanName = subscription?.PlanName ?? plan?.Name ?? "Plano MVP",
             PlanAmount = subscription?.PlanAmount,
+            NextChargeAmount = nextChargeAmount,
+            TrialDays = trialDays,
+            TrialEndsAtUtc = trialEndsAtUtc,
+            IsTrialActive = isTrialActive,
+            HasGatewaySubscription = hasGatewaySubscription,
             BillingStatus = currentStatus,
             NextDueDateUtc = nextDueDate,
-            LastChargeStatus = MapLastChargeStatus(currentStatus),
+            LastChargeStatus = MapLastChargeStatus(currentStatus, isTrialActive, hasGatewaySubscription),
             StoreBlocked = storeBlocked,
-            RegularizationMessage = BuildRegularizationMessage(currentStatus, nextDueDate)
+            RegularizationMessage = BuildRegularizationMessage(currentStatus, nextDueDate, isTrialActive, trialEndsAtUtc)
         };
     }
 
@@ -256,8 +298,23 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
             .ToListAsync(cancellationToken);
     }
 
-    private static string MapLastChargeStatus(SellerSubscriptionBillingStatus billingStatus)
+    private static string MapLastChargeStatus(
+        SellerSubscriptionBillingStatus billingStatus,
+        bool isTrialActive,
+        bool hasGatewaySubscription)
     {
+        // Nunca reportar pagamento quando a loja esta apenas no periodo gratuito ou
+        // possui somente a assinatura local criada junto com a loja.
+        if (isTrialActive)
+        {
+            return "Periodo gratuito";
+        }
+
+        if (!hasGatewaySubscription && billingStatus == SellerSubscriptionBillingStatus.Active)
+        {
+            return "Nao contratado";
+        }
+
         return billingStatus switch
         {
             SellerSubscriptionBillingStatus.Active => "Pago",
@@ -267,8 +324,33 @@ public sealed class SellerSubscriptionStatusService : ISellerSubscriptionStatusS
         };
     }
 
-    private static string BuildRegularizationMessage(SellerSubscriptionBillingStatus billingStatus, DateTime nextDueDateUtc)
+    /// <summary>
+    /// Calcula a primeira cobrança sem confiar no cliente. O trial começa no
+    /// início da assinatura local e não é estendido por contratações tardias:
+    /// se o período já venceu, a primeira cobrança vence imediatamente.
+    /// </summary>
+    internal static DateTime CalculateFirstDueDateUtc(int trialDays, DateTime trialStartUtc, DateTime nowUtc)
     {
+        if (trialDays <= 0)
+        {
+            return nowUtc;
+        }
+
+        var trialEndUtc = trialStartUtc.AddDays(trialDays);
+        return trialEndUtc > nowUtc ? trialEndUtc : nowUtc;
+    }
+
+    private static string BuildRegularizationMessage(
+        SellerSubscriptionBillingStatus billingStatus,
+        DateTime nextDueDateUtc,
+        bool isTrialActive,
+        DateTime? trialEndsAtUtc)
+    {
+        if (isTrialActive)
+        {
+            return $"Periodo gratuito ativo ate {trialEndsAtUtc:yyyy-MM-dd}. A primeira cobranca vence em {nextDueDateUtc:yyyy-MM-dd}.";
+        }
+
         return billingStatus switch
         {
             SellerSubscriptionBillingStatus.Active => $"Assinatura ativa. Proximo vencimento em {nextDueDateUtc:yyyy-MM-dd}.",

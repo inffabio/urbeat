@@ -968,14 +968,24 @@ public sealed class StoreService : IStoreService
     {
         var plan = await _dbContext.Plans
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Name == BillingPlanSeeder.DefaultPlanName, cancellationToken);
+            .Where(x => x.Name == BillingPlanSeeder.DefaultPlanName && x.IsActive)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? await _dbContext.Plans
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.Amount)
+                .ThenBy(x => x.Name)
+                .FirstOrDefaultAsync(cancellationToken);
 
         var planId = plan?.Id;
         var planName = plan?.Name ?? BillingPlanSeeder.DefaultPlanName;
         var planAmount = plan?.Amount ?? BillingPlanSeeder.DefaultPlanAmount;
+        var trialDays = plan?.TrialDays ?? BillingPlanSeeder.DefaultTrialDays;
 
         var now = DateTime.UtcNow;
-        var nextBillingDateUtc = now.AddMonths(1);
+        var nextBillingDateUtc = trialDays > 0
+            ? now.AddDays(trialDays)
+            : now.AddMonths(1);
 
         await _dbContext.SellerSubscriptions.AddAsync(new SellerSubscription
         {

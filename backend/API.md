@@ -767,7 +767,9 @@ Lista planos de assinatura.
     "name": "Plano Básico",
     "amount": 49.90,
     "description": "Ideal para pequenos negócios.",
-    "isActive": true
+    "isActive": true,
+    "trialDays": 15,
+    "benefits": ["Cardápio digital", "Pedidos no WhatsApp"]
   }
 ]
 ```
@@ -781,7 +783,9 @@ Cria plano.
   "name": "Plano Premium",
   "amount": 99.90,
   "description": "Taxa zero por pedido.",
-  "isActive": true
+  "isActive": true,
+  "trialDays": 15,
+  "benefits": ["Relatórios de vendas", "Usuários e permissões"]
 }
 ```
 **Response 201:** `PlanResponseDto`
@@ -807,25 +811,77 @@ Insere/atualiza status de assinatura manualmente.
 ### POST `/api/admin/subscriptions/notifications/process`
 Processa notificações de assinatura em lote.
 
-### GET `/api/admin/system-parameters`
-Lista parâmetros do sistema.
+### GET `/api/admin/system-parameters/business`
+Lista **somente** os parâmetros de negócio editáveis na tela Configurações da plataforma.
 
-### GET `/api/admin/system-parameters/{key}`
-Obtém parâmetro por chave.
+O catálogo é fechado no servidor (`BusinessSystemParameterCatalog`) e contém apenas:
 
-### PUT `/api/admin/system-parameters/{key}`
-Atualiza parâmetro.
+`Customer.MaxAddresses`, `Order.DefaultPageSize`, `Order.MaxPageSize`, `Order.CodePrefix`,
+`Order.CodeLength`, `Order.CodeChars`, `Order.CodeMaxAttempts`, `Notification.MaxReturned`,
+`Store.DefaultDeliveryFee`, `Store.DefaultMinimumOrderValue`, `Subscription.DueSoonDays`,
+`Subscription.DefaultBillingCycleDays`, `Subscription.BillingType`, `Subscription.Cycle`,
+`Subscription.Description`.
+
+Parâmetros técnicos, de infraestrutura, segurança ou integração (`Security`/`Jwt`, SMTP/e-mail,
+`Url`, `Http`, `Upload`, `Payment`/gateways, `Hangfire`, `Cors`, `Cookie`) **não** são retornados
+por esta rota. Eles permanecem no banco e disponíveis ao `SystemParameterService` interno.
+
+**Response 200:**
+```json
+[
+  {
+    "id": "guid...",
+    "key": "Store.DefaultDeliveryFee",
+    "value": "19.90",
+    "type": "Decimal",
+    "group": "Business",
+    "description": "Taxa de entrega padrão",
+    "createdAtUtc": "2026-01-01T00:00:00Z",
+    "updatedAtUtc": null,
+    "maxLength": 18,
+    "display": "currency",
+    "unit": null,
+    "minValue": 0,
+    "maxValue": 1000000,
+    "isReadOnly": false,
+    "requiresConfirmation": false,
+    "isSecret": false
+  }
+]
+```
+
+Valores de `display`: `text`, `multiline`, `integer`, `decimal`, `currency`, `percentage`, `url`, `email`, `cron`, `boolean`, `json`, `secret`.
+
+### GET `/api/admin/system-parameters/business/{key}`
+Obtém um parâmetro de negócio por chave (mesmo shape acima). **404** quando a chave não existe
+**ou** não pertence ao catálogo de negócio.
+
+### PUT `/api/admin/system-parameters/business/{key}`
+Atualiza o valor canônico de um parâmetro de negócio. A chave não pode ser alterada nem criada
+por esta rota.
 
 **Request:**
 ```json
-{ "value": "novo-valor" }
+{ "value": "19.90", "confirmRestrictedChange": false }
 ```
 
-### DELETE `/api/admin/system-parameters/{key}**
-Exclui parâmetro. **Response:** 204
+- Chave fora do catálogo de negócio retorna **404** (`Parameter '<key>' is not available in the business settings.`) e não altera o banco, mesmo que a chave exista como parâmetro técnico.
+- Decimais usam ponto como separador (`19.90`); valores como `R$ 19,90` retornam **400**.
+- Booleanos aceitam `true`/`false`/`1`/`0` e são persistidos como `true`/`false`.
+- `maxLength`, `minValue`, `maxValue`, URL/e-mail e padrões são validados no servidor.
+- Parâmetros `requiresConfirmation` exigem `confirmRestrictedChange: true`; sem isso retornam **400** com a extensão `requiresConfirmation`.
+- Parâmetros `isReadOnly`/segredos retornam **400**.
+- Após salvar, o cache singleton de `SystemParameterService` é recarregado e a alteração é registrada em `AuditLogs` (`SystemParameterUpdated`, sem copiar o valor).
 
-### POST `/api/admin/system-parameters/reload`
-Recarrega parâmetros do banco.
+### Rotas internas de parâmetros do sistema (fora da tela de negócio)
+
+Estas rotas existem para operação interna e não são consumidas pela tela Configurações:
+
+- `GET /api/admin/system-parameters` — lista todos os parâmetros, incluindo técnicos.
+- `GET /api/admin/system-parameters/{key}` — obtém qualquer parâmetro; **404** quando não existe.
+- `PUT /api/admin/system-parameters/{key}` — atualiza qualquer parâmetro com as mesmas validações.
+- `DELETE /api/admin/system-parameters/{key}` — exclui parâmetro; **204**.
+- `POST /api/admin/system-parameters/reload` — recarrega o cache do banco; **204**.
 
 ---
 
@@ -1140,7 +1196,12 @@ Lista apenas produtos em destaque (`isFeatured: true`).
 
 ## 19. Assinaturas
 
-Todas as rotas exigem `[SellerOnly]`.
+Todas as rotas exigem `[SellerOnly]`, exceto a oferta pública.
+
+### GET `/api/public/plans`
+Oferta pública anônima consumida pela landing page. Retorna apenas planos
+ativos (`id`, `name`, `amount`, `description`, `trialDays`, `benefits`), sem
+timestamps, status interno ou identificadores de gateway.
 
 ### GET `/api/subscriptions/plans`
 Lista planos de assinatura ativos.
@@ -1156,6 +1217,8 @@ Contrata um plano de assinatura.
   "planId": "guid..."
 }
 ```
+O servidor calcula preço, trial e primeira cobrança a partir do plano ativo.
+`firstDueDateUtc` continua aceito por compatibilidade, mas é ignorado.
 
 **Response 201:**
 ```json

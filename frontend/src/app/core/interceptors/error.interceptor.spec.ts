@@ -122,6 +122,14 @@ describe('errorInterceptor', () => {
 
       expect(toastServiceMock.showError).not.toHaveBeenCalled();
     });
+
+    it('should leave subscription contract errors for the mensalidade screen', () => {
+      triggerError('/api/subscriptions/contract', {
+        error: 'Store already has a contracted subscription.'
+      }, 409);
+
+      expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    });
   });
 
   describe('401 Unauthorized', () => {
