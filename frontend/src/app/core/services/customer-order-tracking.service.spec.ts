@@ -409,7 +409,7 @@ describe('CustomerOrderTrackingService', () => {
     expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
   });
 
-  it('starts polling when the customer connection drops and stops on reconnect', async () => {
+  it('starts polling when the customer connection drops and reconciles once on reconnect', async () => {
     jest.useFakeTimers();
     getOrderMock.mockReturnValue(of(baseOrder));
 
@@ -429,8 +429,152 @@ describe('CustomerOrderTrackingService', () => {
     expect(getOrderMock).toHaveBeenCalledTimes(2);
 
     stateChangeCallback?.(true);
+    // Reconnect runs one authoritative read of the active order, in the background.
+    expect(getOrderMock).toHaveBeenCalledTimes(3);
+    expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
+
     jest.advanceTimersByTime(30_000);
+    expect(getOrderMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('reconciles tracked orders only once per reconnect transition', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    let stateChangeCallback: ((connected: boolean) => void) | undefined;
+    onCustomerStateChangeMock.mockImplementation((cb: (connected: boolean) => void) => {
+      stateChangeCallback = cb;
+      return jest.fn();
+    });
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    expect(getOrderMock).toHaveBeenCalledTimes(1);
+
+    stateChangeCallback?.(false);
+    stateChangeCallback?.(true);
     expect(getOrderMock).toHaveBeenCalledTimes(2);
+
+    // A duplicated "connected" notification must not trigger another load.
+    stateChangeCallback?.(true);
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reconcile orders that can no longer change after a reconnect', async () => {
+    getOrderMock.mockImplementation((id: string, options?: { background?: boolean }) => {
+      if (!options?.background) return of({ ...baseOrder, id });
+      return of({
+        ...baseOrder,
+        id,
+        status: OrderStatus.Delivered,
+        deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+      });
+    });
+
+    let stateChangeCallback: ((connected: boolean) => void) | undefined;
+    onCustomerStateChangeMock.mockImplementation((cb: (connected: boolean) => void) => {
+      stateChangeCallback = cb;
+      return jest.fn();
+    });
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    // The background refresh completes the order while the customer is offline.
+    stateChangeCallback?.(false);
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+    service.refresh('order1', { background: true });
+    expect(service.activeOrders()).toHaveLength(0);
+
+    getOrderMock.mockClear();
+    stateChangeCallback?.(true);
+
+    expect(getOrderMock).not.toHaveBeenCalled();
+  });
+
+  it('does not duplicate an in-flight request while reconciling after a reconnect', async () => {
+    const pending: ((order: OrderDetails) => void)[] = [];
+    getOrderMock.mockImplementation(() =>
+      new Observable<OrderDetails>((subscriber) => {
+        pending.push((order) => subscriber.next(order));
+      }),
+    );
+
+    let stateChangeCallback: ((connected: boolean) => void) | undefined;
+    onCustomerStateChangeMock.mockImplementation((cb: (connected: boolean) => void) => {
+      stateChangeCallback = cb;
+      return jest.fn();
+    });
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    pending[0]({ ...baseOrder });
+    expect(getOrderMock).toHaveBeenCalledTimes(1);
+
+    stateChangeCallback?.(false);
+    stateChangeCallback?.(true);
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+
+    // The reconciliation request is still pending, so a second reconnect must not
+    // stack another read for the same order.
+    stateChangeCallback?.(false);
+    stateChangeCallback?.(true);
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+
+    pending[1]({ ...baseOrder, status: OrderStatus.Ready });
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+  });
+
+  it('ignores a duplicated OrderStatusUpdated event without another request', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    const event: OrderStatusUpdateEvent = {
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    };
+    listeners['OrderStatusUpdated'](event);
+    listeners['OrderStatusUpdated'](event);
+
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+  });
+
+  it('does not request or regress status for an out-of-order OrderStatusUpdated event', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    });
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Preparing,
+      changedAtUtc: '2026-07-28T12:05:00Z',
+    });
+
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
   });
 
   it('ignores a refresh response that settles after stop and restart', async () => {

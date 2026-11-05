@@ -89,6 +89,9 @@ interface SendDeliveriesManifest {
   orders: SendDeliveriesManifestOrder[];
 }
 
+/** Minimum gap between full-board reloads triggered by an unknown-order status event. */
+const UNKNOWN_ORDER_RECONCILE_MIN_INTERVAL_MS = 5_000;
+
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
@@ -114,6 +117,13 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   private readonly retryVersion = new Map<string, number>();
   private readonly manualRequestPending = new Map<string, number>();
   private readonly prefetchSequence = new Map<string, number>();
+  /** Last `changedAtUtc` applied per order, so duplicated/older events are dropped. */
+  private readonly orderEventVersions = new Map<string, number>();
+  /** Orders with a point detail refresh in flight, keyed by the event version it serves. */
+  private readonly eventRefreshes = new Map<string, number>();
+  private readonly pendingEventRefreshes = new Set<string>();
+  private reconcilingUnknownOrder = false;
+  private lastUnknownOrderReconcileAt = 0;
   private retrySequence = 0;
   private selectedOrderTrigger: HTMLElement | null = null;
   private sendDeliveriesTrigger: HTMLElement | null = null;
@@ -504,6 +514,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       this.loadStatusOrders(status, range.startDateUtc, range.endDateUtc),
     )).subscribe({
       next: (pagesByStatus) => {
+        this.reconcilingUnknownOrder = false;
         if (sequence !== this.loadSequence) return;
         const items = this.sortOrders(
           pagesByStatus.flatMap((pages) => pages.flatMap((page) => page.items)),
@@ -515,6 +526,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         void this.automaticPrint.reconcilePendingJobs();
       },
       error: () => {
+        this.reconcilingUnknownOrder = false;
         if (sequence !== this.loadSequence) return;
         if (!options?.silent) this.error.set(true);
         this.loading.set(false);
@@ -1656,8 +1668,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       // The detached window owns the live board; the host reloads once on
       // restore instead of processing status events against a hidden board.
       if (this.ordersWindow.isDetachedHost()) return;
-      if (!this.orders().some((order) => order.id === payload.orderId)) return;
-      this.load({ silent: true });
+      this.handleOrderStatusEvent(payload);
     };
     this.signalR.onSellerEvent('OrderStatusUpdated', this.orderStatusListener);
 
@@ -1666,6 +1677,99 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       void this.automaticPrint.enqueueAcceptedOrder(payload);
     };
     this.signalR.onSellerEvent('OrderAcceptedForPrinting', this.acceptedForPrintingListener);
+  }
+
+  /**
+   * A status notification only carries the new status, so the affected row is patched in
+   * place and a single detail read fills the fields the payload does not carry. The full
+   * board is only reloaded when the order is not on it, because no safe patch exists then.
+   */
+  private handleOrderStatusEvent(payload: OrderStatusUpdateEvent): void {
+    const orderId = payload.orderId;
+    if (!orderId) return;
+
+    const order = this.orders().find((item) => item.id === orderId);
+    if (!order) {
+      this.reconcileUnknownOrder();
+      return;
+    }
+
+    const version = this.utcTimestamp(payload.changedAtUtc);
+    const lastVersion = this.orderEventVersions.get(orderId) ?? 0;
+    // Duplicated or out-of-order notifications never regress the board and never cost a read.
+    if (version > 0 && version <= lastVersion) return;
+    if (version > 0) this.orderEventVersions.set(orderId, version);
+
+    const nextStatus = payload.status;
+    if (nextStatus !== undefined && nextStatus !== order.status) {
+      this.orders.update((items) => items.map((item) =>
+        item.id === orderId ? { ...item, status: nextStatus } : item,
+      ));
+      this.patchDetailStatus(orderId, nextStatus);
+    }
+
+    // The payload omits driver, route and confirmation timestamps; one point read keeps
+    // the card actions correct without reloading every column.
+    this.refreshOrderFromEvent(orderId);
+  }
+
+  /** Coalesces a missed event for an order that is not on the board into one silent reload. */
+  private reconcileUnknownOrder(): void {
+    if (this.loading() || this.reconcilingUnknownOrder) return;
+    const now = Date.now();
+    if (now - this.lastUnknownOrderReconcileAt < UNKNOWN_ORDER_RECONCILE_MIN_INTERVAL_MS) return;
+    // A batch of events for orders outside the board must not turn into a request storm.
+    this.lastUnknownOrderReconcileAt = now;
+    this.reconcilingUnknownOrder = true;
+    this.load({ silent: true });
+  }
+
+  private refreshOrderFromEvent(orderId: string): void {
+    if (this.eventRefreshes.has(orderId)) {
+      // The in-flight read may predate this event; queue exactly one follow-up read.
+      this.pendingEventRefreshes.add(orderId);
+      return;
+    }
+
+    const version = this.orderEventVersions.get(orderId) ?? 0;
+    this.eventRefreshes.set(orderId, version);
+    this.orderService.getStoreOrder(orderId).pipe(
+      catchError(() => of(null)),
+    ).subscribe((detail) => {
+      if (this.eventRefreshes.get(orderId) === version) {
+        this.eventRefreshes.delete(orderId);
+      }
+      const queued = this.pendingEventRefreshes.delete(orderId);
+      const stillOnBoard = this.orders().some((item) => item.id === orderId);
+
+      if (detail && detail.id === orderId && stillOnBoard) {
+        if ((this.orderEventVersions.get(orderId) ?? 0) > version) {
+          // A newer event won the race; the queued read below brings the latest state.
+        } else if (this.manualRequestPending.has(orderId)) {
+          // A manual details read is in flight and applies the newest state itself.
+        } else if (detail.sellerCompletedAtUtc) {
+          this.orders.update((items) => items.filter((item) => item.id !== orderId));
+        } else {
+          this.patchOrderFromDetails(detail);
+          this.itemsErrorOrderIds.update((ids) => {
+            if (!ids.has(orderId)) return ids;
+            const next = new Set(ids);
+            next.delete(orderId);
+            return next;
+          });
+        }
+      }
+
+      if (queued && this.orders().some((item) => item.id === orderId)) {
+        this.refreshOrderFromEvent(orderId);
+      }
+    });
+  }
+
+  private utcTimestamp(value?: string): number {
+    if (!value) return 0;
+    const timestamp = Date.parse(value);
+    return Number.isNaN(timestamp) ? 0 : timestamp;
   }
 
   private sortOrders(orders: OrderSummary[]): OrderSummary[] {

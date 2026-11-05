@@ -45,6 +45,7 @@ export class CustomerOrderTrackingService {
   private readonly statusVersion = new Map<string, number>();
   private readonly eventVersion = new Map<string, number>();
   private readonly eventStatus = new Map<string, OrderStatus>();
+  private readonly lastEventTimestamp = new Map<string, number>();
   private readonly recoveringOrders = new Set<string>();
   private pollingTimer: ReturnType<typeof setInterval> | null = null;
   private recoveryTimer: ReturnType<typeof setInterval> | null = null;
@@ -52,6 +53,7 @@ export class CustomerOrderTrackingService {
   private started = false;
   private lifecycleGeneration = 0;
   private hubConnected = false;
+  private awaitingReconnect = false;
   private orderStatusListener?: (data: OrderStatusUpdateEvent) => void;
   private customerStateUnsubscribe?: () => void;
   private tokenSubscription?: Subscription;
@@ -100,6 +102,7 @@ export class CustomerOrderTrackingService {
     this.requestGeneration.set(orderId, (this.requestGeneration.get(orderId) ?? 0) + 1);
     this.eventVersion.delete(orderId);
     this.eventStatus.delete(orderId);
+    this.lastEventTimestamp.delete(orderId);
     this.recoveringOrders.delete(orderId);
     this.clearUnavailable(orderId);
   }
@@ -188,6 +191,7 @@ export class CustomerOrderTrackingService {
 
   private async activate(): Promise<void> {
     const generation = ++this.lifecycleGeneration;
+    this.awaitingReconnect = false;
 
     const storedIds = this.readStoredIds();
     this.setTrackedIds(storedIds);
@@ -215,10 +219,12 @@ export class CustomerOrderTrackingService {
     this.statusVersion.clear();
     this.eventVersion.clear();
     this.eventStatus.clear();
+    this.lastEventTimestamp.clear();
     this.recoveringOrders.clear();
     this.clearPolling();
     this.clearRecoveryTimer();
     this.hubConnected = false;
+    this.awaitingReconnect = false;
     this.lifecycleGeneration++;
     this.signalR.stopCustomerHub();
   }
@@ -226,6 +232,7 @@ export class CustomerOrderTrackingService {
   stop(): void {
     this.started = false;
     this.hubConnected = false;
+    this.awaitingReconnect = false;
     this.lifecycleGeneration++;
     this.clearPolling();
     this.clearRecoveryTimer();
@@ -233,6 +240,7 @@ export class CustomerOrderTrackingService {
     this.statusVersion.clear();
     this.eventVersion.clear();
     this.eventStatus.clear();
+    this.lastEventTimestamp.clear();
 
     if (this.tokenSubscription) {
       this.tokenSubscription.unsubscribe();
@@ -265,27 +273,63 @@ export class CustomerOrderTrackingService {
   private registerListener(): void {
     if (!this.orderStatusListener) {
       this.orderStatusListener = (data: OrderStatusUpdateEvent) => {
-        if (data && this.trackedIds().includes(data.orderId)) {
-          this.applyEventStatus(data);
-          // The event already updated the visible status; the follow-up detail
-          // refresh is automatic and must not surface a transient error toast.
-          this.refresh(data.orderId, { background: true });
-        }
+        if (!data || !this.trackedIds().includes(data.orderId)) return;
+        if (!this.applyEventStatus(data)) return;
+        // The event already updated the visible status; the follow-up detail
+        // refresh is automatic and must not surface a transient error toast.
+        this.refresh(data.orderId, { background: true });
       };
       this.signalR.onCustomerEvent('OrderStatusUpdated', this.orderStatusListener);
     }
 
     if (!this.customerStateUnsubscribe) {
-      this.customerStateUnsubscribe = this.signalR.onCustomerStateChange((connected) => {
-        if (!this.started) return;
-        this.hubConnected = connected;
-        if (connected) {
-          this.clearPolling();
-        } else {
-          this.startPolling();
-        }
-      });
+      this.customerStateUnsubscribe = this.signalR.onCustomerStateChange((connected) =>
+        this.handleConnectionChange(connected),
+      );
     }
+  }
+
+  private handleConnectionChange(connected: boolean): void {
+    if (!this.started) return;
+    this.hubConnected = connected;
+    if (connected) {
+      this.clearPolling();
+      // Events are at-least-once and anything published while the socket was down
+      // is lost, so a single authoritative pass per reconnect recovers the state.
+      if (this.awaitingReconnect) {
+        this.awaitingReconnect = false;
+        this.reconcileAfterReconnect();
+      }
+      return;
+    }
+
+    this.awaitingReconnect = true;
+    this.startPolling();
+  }
+
+  /**
+   * Re-reads every order that can still change server-side. Terminal orders are
+   * skipped (only a delivery confirmation can still touch a delivered order), and
+   * requests already in flight are already authoritative for that order.
+   */
+  private reconcileAfterReconnect(): void {
+    if (!this.auth.token()) return;
+    this.reconcilableIds().forEach((orderId) => {
+      if (this.inFlight.has(orderId)) return;
+      this.refresh(orderId, { background: true });
+    });
+  }
+
+  private reconcilableIds(): string[] {
+    const orders = this.trackedOrders();
+    return this.trackedIds().filter((id) => {
+      if (this.isOrderUnavailable(id)) return false;
+      const order = orders.find((item) => item.id === id);
+      if (!order) return true;
+      if (order.status === OrderStatus.Cancelled) return false;
+      if (order.status === OrderStatus.Delivered) return this.awaitsDeliveryConfirmation(order);
+      return true;
+    });
   }
 
   private startPolling(): void {
@@ -352,22 +396,32 @@ export class CustomerOrderTrackingService {
     }
   }
 
-  private applyEventStatus(data: OrderStatusUpdateEvent): void {
+  /**
+   * Applies an `OrderStatusUpdated` notification. Returns `false` when the event is a
+   * duplicate or arrives out of order, in which case no HTTP request is needed.
+   */
+  private applyEventStatus(data: OrderStatusUpdateEvent): boolean {
     const currentStatus = this.trackedOrders().find((order) => order.id === data.orderId)?.status;
+    const version = this.toTimestamp(data.changedAtUtc);
+    const lastEvent = this.lastEventTimestamp.get(data.orderId) ?? 0;
+    const currentVersion = this.statusVersion.get(data.orderId) ?? 0;
+
+    // A repeated or older notification for the same change carries no new information.
+    if (version > 0 && version <= lastEvent) return false;
+    if (version > 0 && version <= currentVersion) return false;
+    if (version > 0) this.lastEventTimestamp.set(data.orderId, version);
 
     // A repeated status (for example a delivery-confirmation hint) must not advance the
     // status version: it carries fresh details that the follow-up refresh has to apply,
     // and claiming a newer version would discard that response as stale.
-    if (currentStatus === data.status) return;
+    if (currentStatus === data.status) return true;
 
-    const version = this.toTimestamp(data.changedAtUtc);
-    const current = this.statusVersion.get(data.orderId) ?? 0;
-    if (version > 0 && version <= current) return;
-    const nextVersion = version > 0 ? version : current + 1;
+    const nextVersion = version > 0 ? version : currentVersion + 1;
     this.statusVersion.set(data.orderId, nextVersion);
     this.eventVersion.set(data.orderId, nextVersion);
     this.eventStatus.set(data.orderId, data.status);
     this.applyStatusOnly(data.orderId, data.status);
+    return true;
   }
 
   private applyStatusOnly(orderId: string, status: OrderStatus): void {

@@ -1057,7 +1057,43 @@ describe('SellerOrdersPageComponent', () => {
     expect(toastServiceMock.showError).toHaveBeenCalled();
   });
 
-  it('reloads silently when OrderStatusUpdated arrives for a known order', () => {
+  it('patches the affected order from OrderStatusUpdated without reloading the board', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockReturnValue(of({
+      id: '2',
+      code: 'DEF',
+      status: OrderStatus.Ready,
+      items: [],
+      total: 50,
+      createdAtUtc: '2026-08-04T10:00:00Z',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    const boardCallsBefore = orderServiceMock.getStoreOrders.mock.calls.length;
+    const detailCallsBefore = orderServiceMock.getStoreOrder.mock.calls.length;
+
+    listener({ orderId: '2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:05:00Z' });
+    fixture.detectChanges();
+
+    // The board is patched in place; only the affected order is read again.
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(boardCallsBefore);
+    expect(orderServiceMock.getStoreOrder.mock.calls.length).toBe(detailCallsBefore + 1);
+    expect(orderServiceMock.getStoreOrder).toHaveBeenLastCalledWith('2');
+    expect(fixture.componentInstance.statusGroups().preparing).toHaveLength(0);
+    expect(fixture.componentInstance.statusGroups().ready.map((order) => order.id)).toEqual(['2']);
+  });
+
+  it('does not reload or regress the board for duplicated and out-of-order status events', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Preparing) {
         return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
@@ -1071,12 +1107,26 @@ describe('SellerOrdersPageComponent', () => {
     const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
     expect(listener).toBeDefined();
 
-    const before = orderServiceMock.getStoreOrders.mock.calls.length;
-    listener({ orderId: '2', status: OrderStatus.Ready });
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBeGreaterThan(before);
+    listener({ orderId: '2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.statusGroups().ready.map((order) => order.id)).toEqual(['2']);
+
+    const boardCalls = orderServiceMock.getStoreOrders.mock.calls.length;
+    const detailCalls = orderServiceMock.getStoreOrder.mock.calls.length;
+
+    // Same event again: no new read.
+    listener({ orderId: '2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    // Older event: dropped instead of moving the card back.
+    listener({ orderId: '2', status: OrderStatus.Preparing, changedAtUtc: '2026-08-04T10:00:00Z' });
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(boardCalls);
+    expect(orderServiceMock.getStoreOrder.mock.calls.length).toBe(detailCalls);
+    expect(fixture.componentInstance.statusGroups().preparing).toHaveLength(0);
+    expect(fixture.componentInstance.statusGroups().ready.map((order) => order.id)).toEqual(['2']);
   });
 
-  it('ignores OrderStatusUpdated for an unknown order', () => {
+  it('reloads the board once when a status event arrives for an order it does not have', () => {
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
 
@@ -1084,8 +1134,182 @@ describe('SellerOrdersPageComponent', () => {
     expect(listener).toBeDefined();
 
     const before = orderServiceMock.getStoreOrders.mock.calls.length;
-    listener({ orderId: 'unknown' });
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before);
+    listener({ orderId: 'unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    listener({ orderId: 'other-unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:01Z' });
+
+    // A burst of events for orders outside the board must not become a request storm.
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+    // The status payload alone cannot add a row, so no unsafe optimistic patch happens.
+    expect(fixture.componentInstance.orders()).toEqual([]);
+  });
+
+  it('allows another unknown-order reconcile after the throttle window', () => {
+    const nowSpy = jest.spyOn(Date, 'now');
+    let now = 1_000_000;
+    nowSpy.mockImplementation(() => now);
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    const before = orderServiceMock.getStoreOrders.mock.calls.length;
+    listener({ orderId: 'unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+
+    now += 5_000;
+    listener({ orderId: 'unknown-2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:11:00Z' });
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 10);
+  });
+
+  it('coalesces unknown-order reconciliations while one board reload is in flight', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    const pending = new Subject<{ items: any[]; totalItems: number }>();
+    orderServiceMock.getStoreOrders.mockImplementation(() => pending.asObservable());
+
+    const before = orderServiceMock.getStoreOrders.mock.calls.length;
+    listener({ orderId: 'unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    listener({ orderId: 'unknown', status: OrderStatus.Delivered, changedAtUtc: '2026-08-04T10:11:00Z' });
+
+    // One pending reload covers both unknown-order events.
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+  });
+
+  it('keeps the newest status when the point read for a status event resolves late', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const staleRead = new Subject<any>();
+    const freshRead = new Subject<any>();
+    let detailCalls = 0;
+    orderServiceMock.getStoreOrder.mockImplementation(() => {
+      detailCalls += 1;
+      if (detailCalls === 1) {
+        return of({
+          id: '2',
+          code: 'DEF',
+          status: OrderStatus.Preparing,
+          items: [],
+          total: 50,
+          createdAtUtc: '2026-08-04T10:00:00Z',
+        });
+      }
+      return detailCalls === 2 ? staleRead.asObservable() : freshRead.asObservable();
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    listener({ orderId: '2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    listener({ orderId: '2', status: OrderStatus.OnDelivery, changedAtUtc: '2026-08-04T10:20:00Z' });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.statusGroups().onDelivery.map((order) => order.id)).toEqual(['2']);
+
+    // The first read belongs to the older event and must not move the card back.
+    staleRead.next({ id: '2', code: 'DEF', status: OrderStatus.Ready, items: [], total: 50, createdAtUtc: '2026-08-04T10:00:00Z' });
+    staleRead.complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.statusGroups().onDelivery.map((order) => order.id)).toEqual(['2']);
+
+    // The queued read brings the latest authoritative state.
+    expect(detailCalls).toBe(3);
+    freshRead.next({ id: '2', code: 'DEF', status: OrderStatus.OnDelivery, items: [], total: 50, createdAtUtc: '2026-08-04T10:00:00Z' });
+    freshRead.complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.statusGroups().onDelivery.map((order) => order.id)).toEqual(['2']);
+    expect(detailCalls).toBe(3);
+  });
+
+  it('removes an order from the board when the point read reports it as completed', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Delivered) {
+        return of({
+          items: [buildOrder({ id: 'done', code: 'DONE', status: OrderStatus.Delivered, deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z' })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockReturnValue(of({
+      id: 'done',
+      code: 'DONE',
+      status: OrderStatus.Delivered,
+      deliveryConfirmedAtUtc: '2026-08-04T11:00:00Z',
+      sellerCompletedAtUtc: '2026-08-04T12:00:00Z',
+      items: [],
+      total: 50,
+      createdAtUtc: '2026-08-04T10:00:00Z',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    listener({ orderId: 'done', status: OrderStatus.Delivered, changedAtUtc: '2026-08-04T12:00:00Z' });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.orders()).toEqual([]);
+  });
+
+  it('does not apply a status event while the detached window owns the board', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Preparing) {
+        return of({ items: [buildOrder({ id: '2', code: 'DEF', status: OrderStatus.Preparing })], totalItems: 1 });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const listener = signalRServiceMock.onSellerEvent.mock.calls.find(([name]: [string]) => name === 'OrderStatusUpdated')?.[1];
+    expect(listener).toBeDefined();
+
+    ordersWindowMock.isDetached.set(true);
+    const boardCalls = orderServiceMock.getStoreOrders.mock.calls.length;
+    const detailCalls = orderServiceMock.getStoreOrder.mock.calls.length;
+
+    listener({ orderId: '2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(boardCalls);
+    expect(orderServiceMock.getStoreOrder.mock.calls.length).toBe(detailCalls);
+  });
+
+  it('reloads the board once after reconnecting to recover missed events', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const before = orderServiceMock.getStoreOrders.mock.calls.length;
+
+    signalRServiceMock.isSellerConnected.set(true);
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+
+    const afterReconnect = orderServiceMock.getStoreOrders.mock.calls.length;
+    signalRServiceMock.isSellerConnected.set(true);
+    fixture.detectChanges();
+
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(afterReconnect);
   });
 
   it('enqueues automatic printing when the seller acceptance event arrives', () => {
