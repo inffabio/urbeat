@@ -60,6 +60,29 @@ public sealed class ApplicationDbContextModelTests
     }
 
     [Fact]
+    public void UserRoleCredential_ShouldHaveUniqueIndexPerUserAndRole()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"urbeat-model-{Guid.NewGuid()}")
+            .Options;
+        using var db = new ApplicationDbContext(options);
+
+        var entityType = db.Model.FindEntityType(typeof(UserRoleCredential));
+        entityType.Should().NotBeNull();
+
+        var index = entityType!.GetIndexes().SingleOrDefault(x =>
+            x.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(UserRoleCredential.UserId),
+                nameof(UserRoleCredential.Role)
+            }));
+
+        index.Should().NotBeNull();
+        index!.IsUnique.Should().BeTrue();
+        entityType.FindProperty(nameof(UserRoleCredential.PasswordHash))!.GetMaxLength().Should().Be(500);
+    }
+
+    [Fact]
     public void DeliveryNeighborhood_ShouldNotDefineGlobalNeighborhoodCityUniqueIndex_AndShouldKeepCityIdNormalizedNameUniqueIndex()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

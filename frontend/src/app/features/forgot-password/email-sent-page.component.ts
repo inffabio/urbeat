@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { AccountRole } from '../../shared/models/auth.model';
 
 @Component({
   selector: 'app-email-sent-page',
@@ -57,6 +58,9 @@ export class EmailSentPageComponent {
   private readonly router = inject(Router);
 
   readonly email = signal('');
+  readonly role = signal<AccountRole>(
+    this.route.snapshot.queryParamMap.get('role') === 'Customer' ? 'Customer' : 'Seller',
+  );
   readonly cooldown = signal(0);
   private interval: any;
 
@@ -67,7 +71,7 @@ export class EmailSentPageComponent {
 
   resend() {
     if (this.cooldown() > 0) return;
-    this.auth.forgotPassword({ email: this.email() }).subscribe({
+    this.auth.forgotPassword({ email: this.email(), role: this.role() }).subscribe({
       next: () => {
         this.toast.showSuccess('E-mail reenviado com sucesso!');
         this.cooldown.set(60);

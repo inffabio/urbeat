@@ -64,38 +64,66 @@ describe('SellerRegisterPageComponent', () => {
     component.submit();
   }
 
-  it('clears the existing session before registering a new seller account', () => {
+  it('keeps the signed-in customer session when adding a seller access', () => {
     authServiceMock.isAuthenticated.mockReturnValue(true);
-
-    submit(registerResponse);
-
-    expect(authServiceMock.logout).toHaveBeenCalledTimes(1);
-    expect(authServiceMock.logout.mock.invocationCallOrder[0]).toBeLessThan(
-      authServiceMock.registerSeller.mock.invocationCallOrder[0],
-    );
-  });
-
-  it('does not log out after the registration request resolves', () => {
-    authServiceMock.isAuthenticated.mockReturnValue(true);
-    fillValidForm();
-    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
-
-    component.submit();
-
-    const registerOrder = authServiceMock.registerSeller.mock.invocationCallOrder[0];
-    expect(authServiceMock.registerSeller).toHaveBeenCalledTimes(1);
-    expect(authServiceMock.logout).toHaveBeenCalledTimes(1);
-    expect(
-      authServiceMock.logout.mock.invocationCallOrder.every((order) => order < registerOrder),
-    ).toBe(true);
-  });
-
-  it('does not clear a session when there is no existing session', () => {
-    authServiceMock.isAuthenticated.mockReturnValue(false);
 
     submit(registerResponse);
 
     expect(authServiceMock.logout).not.toHaveBeenCalled();
+  });
+
+  it('sends the new seller password separately from the current account password', () => {
+    fillValidForm();
+    component.currentPassword.set('SenhaClienteAtual1');
+    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
+
+    component.submit();
+
+    expect(authServiceMock.registerSeller).toHaveBeenCalledWith(
+      expect.objectContaining({
+        password: 'Senha@123',
+        currentPassword: 'SenhaClienteAtual1',
+      }),
+    );
+  });
+
+  it('does not send currentPassword when the field is empty', () => {
+    submit(registerResponse);
+
+    const request = authServiceMock.registerSeller.mock.calls[0][0];
+    expect(request.currentPassword).toBeUndefined();
+  });
+
+  it('sends the document without relying on untyped casts', () => {
+    fillValidForm();
+    component.document.set('123.456.789-09');
+    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
+
+    component.submit();
+
+    expect(authServiceMock.registerSeller).toHaveBeenCalledWith(
+      expect.objectContaining({ document: '12345678909' }),
+    );
+  });
+
+  it('explains that the customer password was preserved after promoting an existing account', () => {
+    submit({ ...registerResponse, roleAddedToExistingAccount: true, emailConfirmationPending: false });
+
+    expect(toastMock.showSuccess).toHaveBeenCalledWith(
+      'Acesso lojista criado! Sua senha de cliente continua a mesma.',
+    );
+  });
+
+  it('uses a generic conflict message that does not reveal the existing role', () => {
+    fillValidForm();
+    authServiceMock.registerSeller.mockReturnValue(throwError(() => ({ status: 409 })));
+
+    component.submit();
+
+    expect(toastMock.showError).toHaveBeenCalledWith(
+      'Não foi possível adicionar o acesso lojista. Se este e-mail já pertence a uma conta urbeat, informe a senha atual da conta para confirmar.',
+    );
+    expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
   it('navigates to /login-vendedor when the account is immediately activated', () => {
@@ -127,16 +155,6 @@ describe('SellerRegisterPageComponent', () => {
     expect(component.errors()['fullName']).toBeUndefined();
     expect(toastMock.showError).not.toHaveBeenCalled();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/login-vendedor']);
-  });
-
-  it('preserves registration error handling for an email conflict', () => {
-    fillValidForm();
-    authServiceMock.registerSeller.mockReturnValue(throwError(() => ({ status: 409 })));
-
-    component.submit();
-
-    expect(toastMock.showError).toHaveBeenCalledWith('Este e-mail já está em uso');
-    expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
   it('preserves document already registered error handling', () => {

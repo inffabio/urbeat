@@ -40,7 +40,7 @@
           </div>
 
           <p class="forgot-password">
-            Esqueceu ou perdeu a senha? <a routerLink="/recuperar-senha">Recuperar senha</a>
+            Esqueceu ou perdeu a senha? <a [routerLink]="['/recuperar-senha']" [queryParams]="{ role: 'Seller' }">Recuperar senha</a>
           </p>
 
           <p class="submit-hint">

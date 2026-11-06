@@ -34,8 +34,25 @@ Autenticação via JWT Bearer Token no header `Authorization: Bearer <token>`.
 
 Todas as rotas públicas (`AllowAnonymous`). Usadas para registro e login de usuários.
 
+### Identidade única, senhas por papel
+
+Cada e-mail continua tendo **um único** registro em `AspNetUsers`. As senhas de Customer e
+Seller são independentes e armazenadas em `UserRoleCredentials` (uma linha por `UserId` +
+`Role`). A senha enviada em `password` é sempre a **nova senha do papel sendo registrado**;
+ela não altera a senha do outro papel. O login `admin` continua usando o fluxo legado e não
+consulta essa tabela.
+
+Ao cadastrar um papel para um e-mail que já existe, a API exige prova de posse da conta:
+
+- o chamador autenticado como o próprio usuário (Bearer token); ou
+- `currentPassword` com a senha de **qualquer credencial já existente** da conta (ou a senha
+  legada durante a janela de migração).
+
+A senha nova (`password`) nunca é usada como prova da conta antiga. Sem prova, a resposta é o
+mesmo `409` genérico de e-mail existente, sem revelar qual papel já existe.
+
 ### POST `/api/auth/register/customer`
-Registrar novo cliente consumidor.
+Registrar novo cliente consumidor, ou adicionar o acesso Customer a uma conta existente.
 
 **Request:**
 ```json
@@ -43,36 +60,49 @@ Registrar novo cliente consumidor.
   "fullName": "João Silva",
   "email": "joao@email.com",
   "password": "Senha@123",
-  "phoneNumber": "(11) 99999-8888"
+  "phoneNumber": "(11) 99999-8888",
+  "document": "12345678909",
+  "currentPassword": "SenhaDoSeller@123"
 }
 ```
+
+`document` e `currentPassword` são opcionais. Envie `currentPassword` apenas ao adicionar um
+papel a uma conta existente sem Bearer token.
 
 **Response 201:**
 ```json
 {
-  "succeeded": true,
   "userId": "a1b2c3d4-...",
-  "emailConfirmationPending": true
+  "emailConfirmationPending": true,
+  "emailChangeChallenge": null,
+  "roleAddedToExistingAccount": false,
+  "message": "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
 }
 ```
 
+Quando o papel é adicionado a uma conta existente, `roleAddedToExistingAccount` é `true` e a
+mensagem informa que a senha do outro papel foi preservada.
+
 ### POST `/api/auth/register/seller`
-Registrar novo vendedor (lojista). Após registrar, deve criar a loja via `POST /api/stores`.
+Registrar novo vendedor (lojista), ou adicionar o acesso Seller a uma conta existente. Após
+registrar, deve criar a loja via `POST /api/stores`.
 
 **Request:** `RegisterUserRequestDto`
 ```json
 {
   "fullName": "Maria Loja",
   "email": "maria@loja.com",
-  "password": "Senha@123",
-  "phoneNumber": "(11) 98888-7777"
+  "password": "NovaSenhaLojista@123",
+  "phoneNumber": "(11) 98888-7777",
+  "currentPassword": "SenhaCliente@123"
 }
 ```
 
-**Response 201:** igual ao de customer.
+**Response 201:** igual ao de customer, com `roleAddedToExistingAccount` indicando promoção.
 
 ### POST `/api/auth/login/customer`
-Login como cliente.
+Login como cliente. Valida **somente** a credencial Customer e emite um JWT com apenas a role
+`Customer`, mesmo que o e-mail também tenha acesso Seller.
 
 **Request:**
 ```json
@@ -93,10 +123,13 @@ Login como cliente.
 ```
 
 ### POST `/api/auth/login/seller`
-Login como vendedor. Mesmo formato de `LoginRequestDto`.
+Login como vendedor. Valida **somente** a credencial Seller e emite um JWT com apenas a role
+`Seller`. Falhas e bloqueio (`423`) são contados por `UserId` + `Role`, então um bloqueio de
+Customer não afeta o Seller. Mesmo formato de `LoginRequestDto`.
 
 ### POST `/api/auth/login/admin`
-Login como administrador. Mesmo formato.
+Login como administrador. Mesmo formato. Continua usando a senha legada de `AspNetUsers` e não
+consulta `UserRoleCredentials`.
 
 ### POST `/api/auth/token`
 Gera token genérico (sempre como Customer). Mesmo formato.
@@ -143,6 +176,64 @@ Reenvia e-mail de confirmação.
   "alreadyConfirmed": false,
   "message": "E-mail de confirmação reenviado."
 }
+```
+
+### POST `/api/auth/forgot-password`
+Solicita recuperação de senha para um contexto específico. `role` deve ser `Customer` ou
+`Seller`. Um pedido Seller nunca invalida nem altera a credencial Customer (e vice-versa).
+
+**Request:**
+```json
+{
+  "email": "joao@email.com",
+  "role": "Customer"
+}
+```
+
+**Response 200:** uniforme, exista ou não a conta/papel, para evitar enumeração.
+
+### GET `/api/auth/validate-reset-token?token=...&role=Seller`
+Valida o token dentro do contexto informado. Tokens legados sem role são rejeitados.
+
+**Response 200:**
+```json
+{ "valid": true, "role": "Seller" }
+```
+
+### POST `/api/auth/reset-password`
+Redefine somente a credencial do role vinculado ao token. A senha legada de `AspNetUsers` não
+é alterada e a sessão do outro papel continua ativa.
+
+**Request:**
+```json
+{
+  "token": "abc123...",
+  "newPassword": "NovaSenha@123",
+  "confirmPassword": "NovaSenha@123",
+  "role": "Seller"
+}
+```
+
+`role` é opcional, mas quando enviado precisa coincidir com o role gravado no token; tokens
+antigos sem contexto são rejeitados.
+
+### POST `/api/auth/change-password`
+Autenticado. Altera somente a credencial do papel informado. O JWT precisa carregar aquele
+contexto (um token Seller não altera Customer).
+
+**Request:**
+```json
+{
+  "role": "Seller",
+  "currentPassword": "SenhaAtual@123",
+  "newPassword": "NovaSenha@123",
+  "confirmPassword": "NovaSenha@123"
+}
+```
+
+**Response 200:**
+```json
+{ "message": "Senha alterada com sucesso." }
 ```
 
 ---

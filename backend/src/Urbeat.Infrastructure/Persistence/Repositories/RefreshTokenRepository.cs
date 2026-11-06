@@ -18,7 +18,7 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
         await _dbContext.RefreshTokens.AddAsync(refreshToken, cancellationToken);
     }
 
-    public async Task<string?> TryClaimAsync(string tokenHash, DateTime utcNow, CancellationToken cancellationToken = default)
+    public async Task<RefreshTokenClaim?> TryClaimAsync(string tokenHash, DateTime utcNow, CancellationToken cancellationToken = default)
     {
         if (_dbContext.Database.IsRelational())
         {
@@ -36,11 +36,13 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
                 return null;
             }
 
-            return await _dbContext.RefreshTokens
+            var claim = await _dbContext.RefreshTokens
                 .AsNoTracking()
                 .Where(x => x.TokenHash == tokenHash)
-                .Select(x => x.UserId.ToString())
+                .Select(x => new { x.UserId, x.Role })
                 .SingleAsync(cancellationToken);
+
+            return new RefreshTokenClaim(claim.UserId.ToString(), claim.Role);
         }
 
         // InMemory (unit/integration tests): best-effort claim, not concurrency-safe. Production
@@ -54,7 +56,7 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
         token.RevokedAtUtc = utcNow;
         token.MarkAsUpdated();
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return token.UserId.ToString();
+        return new RefreshTokenClaim(token.UserId.ToString(), token.Role);
     }
 
     public async Task RevokeAllForUserAsync(Guid userId, DateTime utcNow, CancellationToken cancellationToken = default)
@@ -71,6 +73,31 @@ public sealed class RefreshTokenRepository : IRefreshTokenRepository
 
         var tokens = await _dbContext.RefreshTokens
             .Where(x => x.UserId == userId && x.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in tokens)
+        {
+            token.RevokedAtUtc = utcNow;
+            token.MarkAsUpdated();
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RevokeAllForUserAndRoleAsync(Guid userId, string role, DateTime utcNow, CancellationToken cancellationToken = default)
+    {
+        if (_dbContext.Database.IsRelational())
+        {
+            await _dbContext.RefreshTokens
+                .Where(x => x.UserId == userId && x.Role == role && x.RevokedAtUtc == null)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(x => x.RevokedAtUtc, utcNow),
+                    cancellationToken);
+            return;
+        }
+
+        var tokens = await _dbContext.RefreshTokens
+            .Where(x => x.UserId == userId && x.Role == role && x.RevokedAtUtc == null)
             .ToListAsync(cancellationToken);
 
         foreach (var token in tokens)

@@ -80,6 +80,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
 
         UpsertFullNameClaim(user.Id, request.Customer.FullName);
         await EnsureCustomerRoleAsync(user.Id, cancellationToken);
+        await EnsureCustomerCredentialAsync(user, cancellationToken);
         await EnsureStoreCustomerAsync(store.Id, user.Id, cancellationToken);
 
         var code = GenerateCode();
@@ -159,6 +160,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
 
         UpsertFullNameClaim(user.Id, request.Customer.FullName);
         await EnsureCustomerRoleAsync(user.Id, cancellationToken);
+        await EnsureCustomerCredentialAsync(user, cancellationToken);
         await EnsureStoreCustomerAsync(request.StoreId, user.Id, cancellationToken);
 
         var address = await SaveCustomerAddressAsync(user.Id, request.Address, cancellationToken);
@@ -166,6 +168,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
         _dbContext.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
+            Role = CustomerRole,
             TokenHash = RefreshTokenHasher.Hash(token.RefreshToken),
             ExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         });
@@ -233,10 +236,12 @@ public sealed class CustomerOtpService : ICustomerOtpService
 
         var address = await SavePendingAddressAsync(user.Id, verification, cancellationToken);
 
+        await EnsureCustomerCredentialAsync(user, cancellationToken);
         var token = _jwtTokenService.GenerateToken(user.Email ?? string.Empty, user.Id, [CustomerRole]);
         _dbContext.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
+            Role = CustomerRole,
             TokenHash = RefreshTokenHasher.Hash(token.RefreshToken),
             ExpiresAtUtc = token.RefreshTokenExpiresAtUtc
         });
@@ -368,6 +373,38 @@ public sealed class CustomerOtpService : ICustomerOtpService
                 RoleId = role.Id
             });
         }
+    }
+
+    /// <summary>
+    /// Checkout creates the identity without a password form. Ensure the Customer role always has
+    /// a realm credential so later password recovery and seller promotion have a safe proof of
+    /// ownership. The legacy hash is copied when present; otherwise an unguessable random
+    /// password is hashed (the user reaches the account through e-mail recovery).
+    /// </summary>
+    private async Task EnsureCustomerCredentialAsync(IdentityUser<Guid> user, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.UserRoleCredentials
+            .AnyAsync(x => x.UserId == user.Id && x.Role == UserRoleType.Customer, cancellationToken);
+        if (exists)
+        {
+            return;
+        }
+
+        var passwordHash = user.PasswordHash;
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            var randomPassword = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            passwordHash = _userManager.PasswordHasher.HashPassword(user, randomPassword);
+        }
+
+        _dbContext.UserRoleCredentials.Add(new UserRoleCredential
+        {
+            UserId = user.Id,
+            Role = UserRoleType.Customer,
+            PasswordHash = passwordHash,
+            AccessFailedCount = 0,
+            LockoutEndUtc = null
+        });
     }
 
     private async Task EnsureStoreCustomerAsync(Guid storeId, Guid customerUserId, CancellationToken cancellationToken)

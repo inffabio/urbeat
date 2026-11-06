@@ -45,6 +45,11 @@ public sealed class CustomerOtpServiceTests
         verification.ExpiresAtUtc.Should().BeAfter(DateTime.UtcNow.AddSeconds(45));
         var fullNameClaim = await db.UserClaims.SingleAsync(x => x.ClaimType == "FullName");
         fullNameClaim.ClaimValue.Should().Be("Maria Oliveira");
+
+        var credential = await db.UserRoleCredentials
+            .SingleAsync(x => x.Role == UserRoleType.Customer);
+        credential.PasswordHash.Should().NotBeNullOrWhiteSpace();
+        credential.AccessFailedCount.Should().Be(0);
     }
 
     [Fact]
@@ -110,6 +115,8 @@ public sealed class CustomerOtpServiceTests
         result.Response.CustomerAddressId.Should().NotBeNull();
         (await db.CustomerAddresses.CountAsync()).Should().Be(1);
         (await db.CustomerPhoneVerifications.SingleAsync()).ConfirmedAtUtc.Should().NotBeNull();
+        var refreshToken = await db.RefreshTokens.SingleAsync();
+        refreshToken.Role.Should().Be("Customer");
     }
 
     private static ApplicationDbContext CreateDbContext()

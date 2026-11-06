@@ -34,8 +34,8 @@ public sealed class AuthHardeningTests : IClassFixture<TestWebApplicationFactory
         });
         await _factory.ConfirmEmailAsync(email);
 
-        var knownResponse = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordRequestDto { Email = email });
-        var unknownResponse = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordRequestDto { Email = $"missing.{Guid.NewGuid():N}@urbeat.local" });
+        var knownResponse = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordRequestDto { Email = email, Role = "Customer" });
+        var unknownResponse = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordRequestDto { Email = $"missing.{Guid.NewGuid():N}@urbeat.local", Role = "Customer" });
 
         knownResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         unknownResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -82,6 +82,7 @@ public sealed class AuthHardeningTests : IClassFixture<TestWebApplicationFactory
             db.PasswordResetTokens.Add(new PasswordResetToken
             {
                 UserId = user!.Id,
+                Role = UserRoleType.Customer,
                 TokenHash = userManager.PasswordHasher.HashPassword(user, rawToken),
                 ExpiresAt = DateTime.UtcNow.AddHours(1),
                 Used = false
@@ -93,7 +94,8 @@ public sealed class AuthHardeningTests : IClassFixture<TestWebApplicationFactory
         {
             Token = rawToken,
             NewPassword = newPassword,
-            ConfirmPassword = newPassword
+            ConfirmPassword = newPassword,
+            Role = "Customer"
         });
         var resetBody = await resetResponse.Content.ReadAsStringAsync();
         resetResponse.StatusCode.Should().Be(HttpStatusCode.OK, resetBody);

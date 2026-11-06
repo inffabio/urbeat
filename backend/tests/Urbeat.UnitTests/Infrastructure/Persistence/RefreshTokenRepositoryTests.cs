@@ -36,6 +36,7 @@ public sealed class RefreshTokenRepositoryTests : IDisposable
         await _sut.AddAsync(new RefreshToken
         {
             UserId = userId,
+            Role = "Customer",
             TokenHash = hash,
             ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
         });
@@ -44,7 +45,9 @@ public sealed class RefreshTokenRepositoryTests : IDisposable
         var first = await _sut.TryClaimAsync(hash, DateTime.UtcNow, CancellationToken.None);
         var replay = await _sut.TryClaimAsync(hash, DateTime.UtcNow, CancellationToken.None);
 
-        first.Should().Be(userId.ToString());
+        first.Should().NotBeNull();
+        first!.UserId.Should().Be(userId.ToString());
+        first.Role.Should().Be("Customer");
         replay.Should().BeNull();
         (await _db.RefreshTokens.SingleAsync()).IsRevoked.Should().BeTrue();
     }
@@ -90,5 +93,31 @@ public sealed class RefreshTokenRepositoryTests : IDisposable
         var result = await _sut.TryClaimAsync(RefreshTokenHasher.Hash("unknown"), DateTime.UtcNow, CancellationToken.None);
 
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RevokeAllForUserAndRoleAsync_ShouldRevokeOnlyThatLoginContext()
+    {
+        var userId = Guid.NewGuid();
+        await _sut.AddAsync(new RefreshToken
+        {
+            UserId = userId,
+            Role = "Customer",
+            TokenHash = RefreshTokenHasher.Hash("customer"),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
+        });
+        await _sut.AddAsync(new RefreshToken
+        {
+            UserId = userId,
+            Role = "Seller",
+            TokenHash = RefreshTokenHasher.Hash("seller"),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
+        });
+        await _db.SaveChangesAsync();
+
+        await _sut.RevokeAllForUserAndRoleAsync(userId, "Customer", DateTime.UtcNow, CancellationToken.None);
+
+        (await _sut.TryClaimAsync(RefreshTokenHasher.Hash("customer"), DateTime.UtcNow, CancellationToken.None)).Should().BeNull();
+        (await _sut.TryClaimAsync(RefreshTokenHasher.Hash("seller"), DateTime.UtcNow, CancellationToken.None)).Should().NotBeNull();
     }
 }

@@ -158,6 +158,11 @@
   margin-top: 0.25rem;
 }
 
+.field-optional {
+  font-weight: 400;
+  color: var(--c-muted);
+}
+
 .strength-bar {
   height: 4px;
   background: var(--c-border);

@@ -83,6 +83,13 @@ using (var scope = app.Services.CreateScope())
         {
             startupLogger.LogWarning(exception, "Seeding skipped because the data store is unavailable.");
         }
+
+        // The per-role credential backfill is part of schema/consistency migration, not optional
+        // demo data: it runs after seeders and outside the catch above so a failure aborts startup
+        // instead of silently running without Customer/Seller credentials. Existing rows are never
+        // overwritten, and users without a legacy hash are logged and preserved.
+        var credentialBackfill = scope.ServiceProvider.GetRequiredService<UserRoleCredentialBackfillService>();
+        await credentialBackfill.BackfillAsync();
     }
 }
 

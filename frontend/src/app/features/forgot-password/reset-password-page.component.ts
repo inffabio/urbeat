@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { AccountRole } from '../../shared/models/auth.model';
 
 @Component({
   selector: 'app-reset-password-page',
@@ -26,7 +27,10 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
             } @else {
               <img src="/images/logo_urbeat.png" alt="urbeat" class="login-logo" width="150" />
               <h1 class="login-title">Criar nova senha</h1>
-              <p class="login-subtitle">Digite sua nova senha nos campos abaixo.</p>
+              <p class="login-subtitle">
+                Digite a nova senha do acesso {{ role() === 'Seller' ? 'lojista' : 'cliente' }}.
+                O outro acesso, se existir, não será alterado.
+              </p>
               <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
                 <div class="input-group">
                   <label class="input-label">Nova senha</label>
@@ -103,6 +107,9 @@ export class ResetPasswordPageComponent {
   readonly tokenValid = signal<boolean | null>(null);
   readonly loading = signal(false);
   readonly showPwd = signal(false);
+  readonly role = signal<AccountRole>(
+    this.route.snapshot.queryParamMap.get('role') === 'Seller' ? 'Seller' : 'Customer',
+  );
 
   readonly form = this.fb.nonNullable.group({
     newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/)]],
@@ -137,8 +144,11 @@ export class ResetPasswordPageComponent {
     const t = this.route.snapshot.queryParams['token'];
     if (!t) { this.tokenValid.set(false); return; }
     this.token.set(t);
-    this.auth.validateResetToken(t).subscribe({
-      next: (res) => this.tokenValid.set(res.valid),
+    this.auth.validateResetToken(t, this.role()).subscribe({
+      next: (res) => {
+        if (res.role) this.role.set(res.role);
+        this.tokenValid.set(res.valid);
+      },
       error: () => this.tokenValid.set(false)
     });
   }
@@ -147,7 +157,7 @@ export class ResetPasswordPageComponent {
     if (this.form.invalid || this.loading()) return;
     this.loading.set(true);
     const { newPassword, confirmPassword } = this.form.getRawValue();
-    this.auth.resetPassword({ token: this.token(), newPassword, confirmPassword }).subscribe({
+    this.auth.resetPassword({ token: this.token(), newPassword, confirmPassword, role: this.role() }).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/recuperar-senha/sucesso']);

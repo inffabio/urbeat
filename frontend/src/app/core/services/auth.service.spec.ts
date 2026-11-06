@@ -309,6 +309,61 @@ describe('AuthService', () => {
     });
   });
 
+  describe('password recovery context', () => {
+    it('sends the chosen role when requesting a password reset', () => {
+      service.forgotPassword({ email: 'loja@test.com', role: 'Seller' }).subscribe();
+
+      const req = httpMock.expectOne('/api/auth/forgot-password');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ email: 'loja@test.com', role: 'Seller' });
+      req.flush({ message: 'ok' });
+    });
+
+    it('validates the reset token inside the requested context', () => {
+      service.validateResetToken('tok en', 'Seller').subscribe();
+
+      const req = httpMock.expectOne('/api/auth/validate-reset-token?token=tok%20en&role=Seller');
+      expect(req.request.method).toBe('GET');
+      req.flush({ valid: true, role: 'Seller' });
+    });
+
+    it('sends the role with the new password so only that credential changes', () => {
+      service.resetPassword({
+        token: 'token-1',
+        newPassword: 'NovaSenha@123',
+        confirmPassword: 'NovaSenha@123',
+        role: 'Customer',
+      }).subscribe();
+
+      const req = httpMock.expectOne('/api/auth/reset-password');
+      expect(req.request.body).toEqual({
+        token: 'token-1',
+        newPassword: 'NovaSenha@123',
+        confirmPassword: 'NovaSenha@123',
+        role: 'Customer',
+      });
+      req.flush({ message: 'ok' });
+    });
+
+    it('changes the password with an explicit role context', () => {
+      service.changePassword({
+        role: 'Seller',
+        currentPassword: 'SenhaAtual@123',
+        newPassword: 'SenhaNova@123',
+        confirmPassword: 'SenhaNova@123',
+      }).subscribe();
+
+      const req = httpMock.expectOne('/api/auth/change-password');
+      expect(req.request.body).toEqual({
+        role: 'Seller',
+        currentPassword: 'SenhaAtual@123',
+        newPassword: 'SenhaNova@123',
+        confirmPassword: 'SenhaNova@123',
+      });
+      req.flush({ message: 'ok' });
+    });
+  });
+
   describe('registerSeller', () => {
     it('should call seller registration API', () => {
       const registerReq = { 

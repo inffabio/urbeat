@@ -1,10 +1,11 @@
 ﻿import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { AccountRole } from '../../shared/models/auth.model';
 
 @Component({
   selector: 'app-forgot-password-page',
@@ -17,7 +18,20 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
           <div class="form-wrapper">
             <img src="/images/logo_urbeat.png" alt="urbeat" class="login-logo" width="150" />
             <h1 class="login-title">Recuperar senha</h1>
-            <p class="login-subtitle">Informe o e-mail cadastrado na sua conta. Enviaremos um link para você criar uma nova senha.</p>
+            <p class="login-subtitle">Escolha qual acesso deseja recuperar. Cliente e lojista têm senhas independentes.</p>
+
+            <div class="role-switch" role="group" aria-label="Tipo de acesso">
+              <button type="button" class="role-option" [class.selected]="role() === 'Customer'"
+                [attr.aria-pressed]="role() === 'Customer'" (click)="role.set('Customer')">
+                <ion-icon name="person-outline"></ion-icon>
+                Sou cliente
+              </button>
+              <button type="button" class="role-option" [class.selected]="role() === 'Seller'"
+                [attr.aria-pressed]="role() === 'Seller'" (click)="role.set('Seller')">
+                <ion-icon name="storefront-outline"></ion-icon>
+                Sou lojista
+              </button>
+            </div>
 
             <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
               <div class="input-group">
@@ -70,6 +84,10 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
     .signup-call { text-align: center; margin-top: 20px; font-size: 13px; color: var(--c-muted); }
     .signup-call a { color: var(--c-accent); text-decoration: none; font-weight: 500; }
+    .role-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .role-option { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--c-border); border-radius: var(--radius-lg); background: var(--app-surface); color: var(--c-text); font-size: 14px; font-weight: 500; cursor: pointer; }
+    .role-option.selected { border-color: var(--c-accent); color: var(--c-accent); background: var(--app-brand-soft); }
+    .role-option ion-icon { font-size: 18px; }
     .login-visual-side { flex: 1; background: linear-gradient(135deg, var(--app-brand-soft), var(--app-surface-soft)); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     @media (max-width: 768px) { .login-visual-side { display: none; } }
     .blob { position: absolute; border-radius: 50%; opacity: 0.10; }
@@ -82,25 +100,32 @@ export class ForgotPasswordPageComponent {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly form = this.fb.nonNullable.group({ email: ['', [Validators.required, Validators.email]] });
   readonly loading = signal(false);
+  readonly role = signal<AccountRole>(this.readInitialRole());
 
   submit() {
     if (this.form.invalid || this.loading()) return;
+    const role = this.role();
     this.loading.set(true);
-    this.auth.forgotPassword({ email: this.form.getRawValue().email }).subscribe({
+    this.auth.forgotPassword({ email: this.form.getRawValue().email, role }).subscribe({
       next: () => {
         this.loading.set(false);
         // The backend returns a uniform response regardless of whether the account exists, so the
         // user is always sent to the "check your e-mail" step to avoid account enumeration.
         const email = this.form.getRawValue().email;
-        this.router.navigate(['/recuperar-senha/email-enviado'], { queryParams: { email } });
+        this.router.navigate(['/recuperar-senha/email-enviado'], { queryParams: { email, role } });
       },
       error: () => {
         this.loading.set(false);
         this.toast.showError('Erro ao enviar o e-mail. Tente novamente.');
       }
     });
+  }
+
+  private readInitialRole(): AccountRole {
+    return this.route.snapshot.queryParamMap.get('role') === 'Customer' ? 'Customer' : 'Seller';
   }
 }

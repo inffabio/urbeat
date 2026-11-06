@@ -21,6 +21,8 @@ import {
   UpdateCustomerProfileRequest,
   SellerProfileResponse,
   UpdateSellerProfileRequest,
+  ChangePasswordRequest,
+  AccountRole,
 } from '../../shared/models/auth.model';
 
 const TOKEN_KEY = 'urbeat_token';
@@ -175,12 +177,19 @@ export class AuthService {
     return this.api.post<ForgotPasswordResponse>('/api/auth/forgot-password', req);
   }
 
-  validateResetToken(token: string): Observable<ValidateResetTokenResponse> {
-    return this.api.get<ValidateResetTokenResponse>(`/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`);
+  validateResetToken(token: string, role?: AccountRole): Observable<ValidateResetTokenResponse> {
+    const roleQuery = role ? `&role=${encodeURIComponent(role)}` : '';
+    return this.api.get<ValidateResetTokenResponse>(
+      `/api/auth/validate-reset-token?token=${encodeURIComponent(token)}${roleQuery}`,
+    );
   }
 
   resetPassword(req: ResetPasswordRequest): Observable<ResetPasswordResponse> {
     return this.api.post<ResetPasswordResponse>('/api/auth/reset-password', req);
+  }
+
+  changePassword(req: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.api.post<{ message: string }>('/api/auth/change-password', req);
   }
 
   updateEmail(req: UpdateEmailRequest): Observable<{ message: string }> {

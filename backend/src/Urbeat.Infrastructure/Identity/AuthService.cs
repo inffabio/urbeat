@@ -1,21 +1,23 @@
-﻿using Serilog;
+﻿using System.Security.Claims;
 using Hangfire;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Security;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Repositories;
 using Urbeat.Domain.Security;
 using Urbeat.Infrastructure.Jobs;
 using Urbeat.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Urbeat.Infrastructure.Identity;
 
 public sealed class AuthService : IAuthService
 {
-    private const string CustomerRole = "Customer";
-    private const string SellerRole = "Seller";
+    private const string AdminRole = "Admin";
 
     private readonly UserManager<IdentityUser<Guid>> _userManager;
     private readonly IJwtTokenService _jwtTokenService;
@@ -25,6 +27,7 @@ public sealed class AuthService : IAuthService
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly IEmailChangeChallengeService _emailChangeChallengeService;
+    private readonly IdentityOptions _identityOptions;
 
     public AuthService(
         UserManager<IdentityUser<Guid>> userManager,
@@ -34,7 +37,8 @@ public sealed class AuthService : IAuthService
         ApplicationDbContext dbContext,
         IEfUnitOfWork efUnitOfWork,
         IBackgroundJobClient backgroundJobClient,
-        IEmailChangeChallengeService emailChangeChallengeService)
+        IEmailChangeChallengeService emailChangeChallengeService,
+        IOptions<IdentityOptions> identityOptions)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
@@ -44,16 +48,39 @@ public sealed class AuthService : IAuthService
         _efUnitOfWork = efUnitOfWork;
         _backgroundJobClient = backgroundJobClient;
         _emailChangeChallengeService = emailChangeChallengeService;
+        _identityOptions = identityOptions.Value;
     }
 
-    public Task<RegistrationResultDto> RegisterCustomerAsync(RegisterUserRequestDto request, CancellationToken cancellationToken = default)
+    public Task<RegistrationResultDto> RegisterCustomerAsync(
+        RegisterUserRequestDto request,
+        Guid? authenticatedUserId = null,
+        IReadOnlyCollection<string>? authenticatedRoles = null,
+        CancellationToken cancellationToken = default)
     {
-        return RegisterAsync(request, CustomerRole, "CustomerRegistered", cancellationToken);
+        return RegisterAsync(
+            request,
+            AccountRoles.Customer,
+            UserRoleType.Customer,
+            "CustomerRegistered",
+            authenticatedUserId,
+            authenticatedRoles,
+            cancellationToken);
     }
 
-    public Task<RegistrationResultDto> RegisterSellerAsync(RegisterUserRequestDto request, CancellationToken cancellationToken = default)
+    public Task<RegistrationResultDto> RegisterSellerAsync(
+        RegisterUserRequestDto request,
+        Guid? authenticatedUserId = null,
+        IReadOnlyCollection<string>? authenticatedRoles = null,
+        CancellationToken cancellationToken = default)
     {
-        return RegisterAsync(request, SellerRole, "SellerRegistered", cancellationToken);
+        return RegisterAsync(
+            request,
+            AccountRoles.Seller,
+            UserRoleType.Seller,
+            "SellerRegistered",
+            authenticatedUserId,
+            authenticatedRoles,
+            cancellationToken);
     }
 
     public async Task<LoginResultDto> LoginAsync(
@@ -83,6 +110,202 @@ public sealed class AuthService : IAuthService
             };
         }
 
+        // Admin keeps the legacy single-password flow and never touches UserRoleCredentials.
+        if (string.Equals(requiredRole, AdminRole, StringComparison.OrdinalIgnoreCase))
+        {
+            return await LoginLegacyAsync(user, request, normalizedEmail, ipAddress, cancellationToken);
+        }
+
+        if (!AccountRoles.TryParseCredentialRole(requiredRole, out var credentialRole))
+        {
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                IsForbidden = true,
+                Error = "Acesso não autorizado para este tipo de conta."
+            };
+        }
+
+        return await LoginWithRoleCredentialAsync(user, request, credentialRole, normalizedEmail, ipAddress, cancellationToken);
+    }
+
+    private async Task<LoginResultDto> LoginWithRoleCredentialAsync(
+        IdentityUser<Guid> user,
+        LoginRequestDto request,
+        UserRoleType credentialRole,
+        string normalizedEmail,
+        string? ipAddress,
+        CancellationToken cancellationToken)
+    {
+        var roleName = AccountRoles.ToRoleName(credentialRole);
+        var credential = await FindTrackedCredentialAsync(user.Id, credentialRole, cancellationToken);
+
+        // A user may own the other role only: never validate that other role's password here and
+        // never reveal its existence. Missing credential behaves like bad credentials.
+        if (credential is null)
+        {
+            Log.Warning("{EventType} | Login failed | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}",
+                "USER_LOGIN_FAILED", user.Id, normalizedEmail, roleName, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: "LoginFailed",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: $"Login failed for {normalizedEmail}: no credential for the requested role.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                Error = "E-mail ou senha incorretos."
+            };
+        }
+
+        var utcNow = DateTime.UtcNow;
+        if (credential.LockoutEndUtc is { } lockoutEnd && lockoutEnd > utcNow)
+        {
+            Log.Warning("{EventType} | Login locked out | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}",
+                "USER_LOGIN_LOCKED", user.Id, normalizedEmail, roleName, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: "LoginLockedOut",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: $"Login blocked for {normalizedEmail} as {roleName}: role credential is locked out.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                IsLockedOut = true,
+                Error = "Conta bloqueada. Tente novamente mais tarde."
+            };
+        }
+
+        var verification = _userManager.PasswordHasher.VerifyHashedPassword(user, credential.PasswordHash, request.Password);
+        if (verification == PasswordVerificationResult.Failed)
+        {
+            credential.AccessFailedCount++;
+            var maxFailedAttempts = Math.Max(1, _identityOptions.Lockout.MaxFailedAccessAttempts);
+            var isNowLockedOut = credential.AccessFailedCount >= maxFailedAttempts;
+            if (isNowLockedOut)
+            {
+                credential.LockoutEndUtc = utcNow.Add(_identityOptions.Lockout.DefaultLockoutTimeSpan);
+                credential.AccessFailedCount = 0;
+            }
+
+            credential.MarkAsUpdated();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            Log.Warning("{EventType} | Login failed | UserId={UserId} | Email={Email} | Role={Role} | LockedOut={LockedOut} | IP={IpAddress}",
+                isNowLockedOut ? "USER_LOGIN_LOCKED" : "USER_LOGIN_FAILED", user.Id, normalizedEmail, roleName, isNowLockedOut, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: isNowLockedOut ? "LoginLockedOut" : "LoginFailed",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: isNowLockedOut
+                    ? $"Login blocked for {normalizedEmail} as {roleName}: lockout threshold reached."
+                    : $"Login failed for {normalizedEmail} as {roleName}: invalid password.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                IsLockedOut = isNowLockedOut,
+                Error = "Senha incorreta."
+            };
+        }
+
+        // Defensive: a credential without the Identity role would issue a token with a context
+        // the rest of the API does not recognize. Treat it as invalid credentials.
+        if (!await _userManager.IsInRoleAsync(user, roleName))
+        {
+            Log.Warning("{EventType} | Login forbidden | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}",
+                "USER_LOGIN_FORBIDDEN", user.Id, normalizedEmail, roleName, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: "LoginForbidden",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: $"Login denied for {normalizedEmail}: missing role {roleName}.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                Error = "E-mail ou senha incorretos."
+            };
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            Log.Warning("{EventType} | Login email not confirmed | UserId={UserId} | Email={Email} | IP={IpAddress}",
+                "USER_LOGIN_EMAIL_NOT_CONFIRMED", user.Id, normalizedEmail, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: "LoginEmailNotConfirmed",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: $"Login denied for {normalizedEmail}: e-mail not confirmed.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                IsEmailNotConfirmed = true,
+                Error = "E-mail not confirmed. Please check your inbox to confirm your account."
+            };
+        }
+
+        credential.AccessFailedCount = 0;
+        credential.LockoutEndUtc = null;
+        if (verification == PasswordVerificationResult.SuccessRehashNeeded)
+        {
+            credential.PasswordHash = HashPassword(user, request.Password);
+        }
+
+        credential.MarkAsUpdated();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Only the requested context goes into the token, even when the user owns both roles.
+        var tokenResponse = await IssueTokensAsync(
+            user,
+            normalizedEmail,
+            [roleName],
+            roleName,
+            cancellationToken);
+
+        Log.Information("{EventType} | Login succeeded | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}",
+            "USER_LOGGED_IN", user.Id, normalizedEmail, roleName, ipAddress);
+        await WriteAuditLogAsync(
+            userId: user.Id,
+            auditEvent: "LoginSucceeded",
+            entity: nameof(IdentityUser<Guid>),
+            entityId: user.Id,
+            description: $"Login succeeded for {normalizedEmail} as {roleName}.",
+            ipAddress: ipAddress,
+            cancellationToken);
+
+        return BuildSuccessfulLoginResult(tokenResponse);
+    }
+
+    /// <summary>
+    /// Admin (and any future non-credential role) authenticates against the legacy
+    /// AspNetUsers.PasswordHash exactly as before. No UserRoleCredentials row is read.
+    /// </summary>
+    private async Task<LoginResultDto> LoginLegacyAsync(
+        IdentityUser<Guid> user,
+        LoginRequestDto request,
+        string normalizedEmail,
+        string? ipAddress,
+        CancellationToken cancellationToken)
+    {
         if (await _userManager.IsLockedOutAsync(user))
         {
             Log.Warning("{EventType} | Login locked out | UserId={UserId} | Email={Email} | IP={IpAddress}", "USER_LOGIN_LOCKED", user.Id, normalizedEmail, ipAddress);
@@ -131,15 +354,15 @@ public sealed class AuthService : IAuthService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (!roles.Contains(requiredRole, StringComparer.OrdinalIgnoreCase))
+        if (!roles.Contains(AdminRole, StringComparer.OrdinalIgnoreCase))
         {
-            Log.Warning("{EventType} | Login forbidden | UserId={UserId} | Email={Email} | RequiredRole={RequiredRole} | IP={IpAddress}", "USER_LOGIN_FORBIDDEN", user.Id, normalizedEmail, requiredRole, ipAddress);
+            Log.Warning("{EventType} | Login forbidden | UserId={UserId} | Email={Email} | IP={IpAddress}", "USER_LOGIN_FORBIDDEN", user.Id, normalizedEmail, ipAddress);
             await WriteAuditLogAsync(
                 userId: user.Id,
                 auditEvent: "LoginForbidden",
                 entity: nameof(IdentityUser<Guid>),
                 entityId: user.Id,
-                description: $"Login denied for {normalizedEmail}: missing role {requiredRole}.",
+                description: $"Login denied for {normalizedEmail}: missing admin role.",
                 ipAddress: ipAddress,
                 cancellationToken);
 
@@ -173,38 +396,21 @@ public sealed class AuthService : IAuthService
         }
 
         await _userManager.ResetAccessFailedCountAsync(user);
-        var tokenResponse = _jwtTokenService.GenerateToken(user.Email ?? normalizedEmail, user.Id, roles.ToArray());
 
-        await _refreshTokenRepository.AddAsync(new RefreshToken
-        {
-            UserId = user.Id,
-            TokenHash = RefreshTokenHasher.Hash(tokenResponse.RefreshToken),
-            ExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
-        }, cancellationToken);
+        var tokenResponse = await IssueTokensAsync(user, normalizedEmail, roles.ToArray(), refreshRole: null, cancellationToken);
 
-        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
-
-        Log.Information("{EventType} | Login succeeded | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}", "USER_LOGGED_IN", user.Id, normalizedEmail, requiredRole, ipAddress);
+        Log.Information("{EventType} | Login succeeded | UserId={UserId} | Email={Email} | Role={Role} | IP={IpAddress}",
+            "USER_LOGGED_IN", user.Id, normalizedEmail, AdminRole, ipAddress);
         await WriteAuditLogAsync(
             userId: user.Id,
             auditEvent: "LoginSucceeded",
             entity: nameof(IdentityUser<Guid>),
             entityId: user.Id,
-            description: $"Login succeeded for {normalizedEmail} as {requiredRole}.",
+            description: $"Login succeeded for {normalizedEmail} as {AdminRole}.",
             ipAddress: ipAddress,
             cancellationToken);
 
-        return new LoginResultDto
-        {
-            Succeeded = true,
-            Token = new AuthTokenResponseDto
-            {
-                AccessToken = tokenResponse.AccessToken,
-                ExpiresAtUtc = tokenResponse.ExpiresAtUtc
-            },
-            RefreshToken = tokenResponse.RefreshToken,
-            RefreshTokenExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
-        };
+        return BuildSuccessfulLoginResult(tokenResponse);
     }
 
     public async Task<AuthTokenPairDto?> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
@@ -213,24 +419,57 @@ public sealed class AuthService : IAuthService
 
         // Atomic, one-time claim: the token is revoked before the new pair is issued. A replayed
         // or concurrent request with the same token observes a null claim and is rejected.
-        var claimedUserId = await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
-        if (claimedUserId is null || !Guid.TryParse(claimedUserId, out var userId))
+        var claim = await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
+        if (claim is null || !Guid.TryParse(claim.UserId, out var userId))
         {
             return null;
         }
 
-        var user = await _userManager.FindByIdAsync(claimedUserId);
+        var user = await _userManager.FindByIdAsync(claim.UserId);
         if (user is null)
         {
             return null;
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
-        var tokenResponse = _jwtTokenService.GenerateToken(user.Email ?? string.Empty, user.Id, roles.ToArray());
+        string[] roles;
+        string? refreshRole = claim.Role;
+        if (claim.Role is null)
+        {
+            // Legacy token issued before role-aware sessions. Keep it usable until the chain is
+            // replaced, but converge to a single context when the account owns only one of the
+            // credential roles. Accounts with both roles stay ambiguous and keep the old behavior.
+            var allRoles = (await _userManager.GetRolesAsync(user)).ToArray();
+            var credentialRoles = allRoles
+                .Where(roleName => AccountRoles.TryParseCredentialRole(roleName, out _))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (credentialRoles.Length == 1)
+            {
+                refreshRole = credentialRoles[0];
+                roles = credentialRoles;
+            }
+            else
+            {
+                roles = allRoles;
+            }
+        }
+        else
+        {
+            if (!await _userManager.IsInRoleAsync(user, claim.Role))
+            {
+                return null;
+            }
+
+            roles = [claim.Role];
+        }
+
+        var tokenResponse = _jwtTokenService.GenerateToken(user.Email ?? string.Empty, user.Id, roles);
 
         await _refreshTokenRepository.AddAsync(new RefreshToken
         {
             UserId = user.Id,
+            Role = refreshRole,
             TokenHash = RefreshTokenHasher.Hash(tokenResponse.RefreshToken),
             ExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
         }, cancellationToken);
@@ -247,18 +486,66 @@ public sealed class AuthService : IAuthService
         Log.Information("{EventType} | Logout processed | TokenRevoked", "USER_LOGGED_OUT");
     }
 
+    private async Task<AuthTokenPairDto> IssueTokensAsync(
+        IdentityUser<Guid> user,
+        string email,
+        string[] roles,
+        string? refreshRole,
+        CancellationToken cancellationToken)
+    {
+        var tokenResponse = _jwtTokenService.GenerateToken(email, user.Id, roles);
+
+        await _refreshTokenRepository.AddAsync(new RefreshToken
+        {
+            UserId = user.Id,
+            Role = refreshRole,
+            TokenHash = RefreshTokenHasher.Hash(tokenResponse.RefreshToken),
+            ExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
+        }, cancellationToken);
+
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        return tokenResponse;
+    }
+
+    private static LoginResultDto BuildSuccessfulLoginResult(AuthTokenPairDto tokenResponse)
+    {
+        return new LoginResultDto
+        {
+            Succeeded = true,
+            Token = new AuthTokenResponseDto
+            {
+                AccessToken = tokenResponse.AccessToken,
+                ExpiresAtUtc = tokenResponse.ExpiresAtUtc
+            },
+            RefreshToken = tokenResponse.RefreshToken,
+            RefreshTokenExpiresAtUtc = tokenResponse.RefreshTokenExpiresAtUtc
+        };
+    }
+
     private async Task<RegistrationResultDto> RegisterAsync(
         RegisterUserRequestDto request,
         string role,
+        UserRoleType credentialRole,
         string auditEvent,
+        Guid? authenticatedUserId,
+        IReadOnlyCollection<string>? authenticatedRoles,
         CancellationToken cancellationToken)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var contractorName = role == SellerRole && !string.IsNullOrWhiteSpace(request.FullName)
+        var contractorName = credentialRole == UserRoleType.Seller && !string.IsNullOrWhiteSpace(request.FullName)
             ? request.FullName.Trim()
             : null;
 
-        var outcome = await RunRegistrationCoreAsync(request, role, auditEvent, normalizedEmail, contractorName, cancellationToken);
+        var outcome = await RunRegistrationCoreAsync(
+            request,
+            role,
+            credentialRole,
+            auditEvent,
+            normalizedEmail,
+            contractorName,
+            authenticatedUserId,
+            authenticatedRoles,
+            cancellationToken);
 
         if (!outcome.Result.Succeeded)
         {
@@ -288,20 +575,23 @@ public sealed class AuthService : IAuthService
     private async Task<RegistrationOutcome> RunRegistrationCoreAsync(
         RegisterUserRequestDto request,
         string role,
+        UserRoleType credentialRole,
         string auditEvent,
         string normalizedEmail,
         string? contractorName,
+        Guid? authenticatedUserId,
+        IReadOnlyCollection<string>? authenticatedRoles,
         CancellationToken cancellationToken)
     {
-        // The seller promotion (FullName claim + role) must be atomic so a failure never leaves a
-        // Seller role without FullName. EF InMemory (integration tests) does not support
-        // transactions and executes the same operations sequentially without one.
+        // The seller promotion (FullName claim + role + credential) must be atomic so a failure
+        // never leaves a Seller role without a credential. EF InMemory (integration tests) does
+        // not support transactions and executes the same operations sequentially without one.
         await using var transaction = _dbContext.Database.IsRelational()
             ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
             : null;
 
-        // Re-registering an e-mail that is already a seller must surface the "account exists" error.
-        // The existing-user check therefore runs before any profile update.
+        // Re-registering an e-mail that already owns the role must surface the "account exists"
+        // error. The existing-user check therefore runs before any profile update.
         var userAlreadyExists = await _userManager.FindByEmailAsync(normalizedEmail);
         if (userAlreadyExists is not null)
         {
@@ -318,17 +608,23 @@ public sealed class AuthService : IAuthService
                     },
                     AuditUserId: userAlreadyExists.Id,
                     AuditEvent: $"{auditEvent}Failed",
-                    AuditDescription: $"Registration failed for {normalizedEmail}: user already exists.",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: user already has the {role} role.",
                     EnqueueConfirmationUserId: null);
             }
 
-            // Promotion path: a non-seller account is being promoted. Ownership of the existing
-            // account must be proven first: the supplied password has to match the account being
-            // promoted. Without this check anyone who learns an e-mail could attach the Seller role
-            // and overwrite the contractor name, taking over the account. The failure is generic so
-            // it does not reveal whether the password or the account was the problem.
-            var promotionPasswordValid = await _userManager.CheckPasswordAsync(userAlreadyExists, request.Password);
-            if (!promotionPasswordValid)
+            // Promotion path. Ownership of the existing identity must be proven before a new role
+            // and password are attached: either the caller is authenticated as that very user or
+            // the supplied CurrentPassword matches an existing credential. The new role password
+            // itself is never used as proof of the old account. The failure is generic so it does
+            // not reveal the other role's existence.
+            var hasOwnershipProof = await HasExistingAccountProofAsync(
+                userAlreadyExists,
+                request.CurrentPassword,
+                authenticatedUserId,
+                authenticatedRoles,
+                cancellationToken);
+
+            if (!hasOwnershipProof)
             {
                 Log.Warning("{EventType} | Registration failed | Email={Email}", "USER_REGISTER_FAILED", normalizedEmail);
 
@@ -340,13 +636,53 @@ public sealed class AuthService : IAuthService
                     },
                     AuditUserId: userAlreadyExists.Id,
                     AuditEvent: $"{auditEvent}Failed",
-                    AuditDescription: $"Registration failed for {normalizedEmail}: existing account password mismatch.",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: existing account ownership was not proven.",
                     EnqueueConfirmationUserId: null);
             }
 
-            // The FullName claim is persisted before the role so a failed claim never leaves a Seller
-            // role without FullName on a non-transactional provider (InMemory). Every IdentityResult
-            // is validated. Contractor names are not unique: any number of sellers may share a name.
+            var credentialAlreadyExists = await _dbContext.UserRoleCredentials
+                .AnyAsync(x => x.UserId == userAlreadyExists.Id && x.Role == credentialRole, cancellationToken);
+            if (credentialAlreadyExists)
+            {
+                // Inconsistent state (role missing but credential present): never overwrite.
+                Log.Warning("{EventType} | Registration failed (credential already exists) | Email={Email} | Role={Role}",
+                    "USER_REGISTER_FAILED", normalizedEmail, role);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = ["An account with this e-mail already exists."]
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Registration failed for {normalizedEmail}: a credential for {role} already exists.",
+                    EnqueueConfirmationUserId: null);
+            }
+
+            var passwordValidation = await ValidatePasswordAsync(userAlreadyExists, request.Password);
+            if (!passwordValidation.Succeeded)
+            {
+                var errors = passwordValidation.Errors.Select(x => x.Description).ToArray();
+                Log.Warning("{EventType} | Registration failed (password) | Email={Email} | Errors={Errors}",
+                    "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = errors
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Password validation failed for {normalizedEmail}: {string.Join("; ", errors)}",
+                    EnqueueConfirmationUserId: null);
+            }
+
+            // The FullName claim is persisted before the role so a failed claim never leaves a
+            // Seller role without FullName on a non-transactional provider (InMemory). Every
+            // IdentityResult is validated. Contractor names are not unique: any number of sellers
+            // may share a name.
             if (contractorName is not null)
             {
                 var upsertNameResult = await UpsertFullNameClaimAsync(userAlreadyExists, contractorName);
@@ -368,9 +704,14 @@ public sealed class AuthService : IAuthService
                 }
             }
 
+            var promotionCredential = await CreateCredentialAsync(userAlreadyExists, credentialRole, request.Password, cancellationToken);
+
             var addRoleResult = await _userManager.AddToRoleAsync(userAlreadyExists, role);
             if (!addRoleResult.Succeeded)
             {
+                _dbContext.UserRoleCredentials.Remove(promotionCredential);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
                 var errors = addRoleResult.Errors.Select(x => x.Description).ToArray();
                 Log.Warning("{EventType} | Registration failed (role) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", errors));
 
@@ -391,7 +732,8 @@ public sealed class AuthService : IAuthService
                 await transaction.CommitAsync(cancellationToken);
             }
 
-            Log.Information("{EventType} | Added {Role} role to existing user | Email={Email}", auditEvent, role, normalizedEmail);
+            Log.Information("{EventType} | Added {Role} role and independent credential to existing user | Email={Email}",
+                auditEvent, role, normalizedEmail);
 
             var confirmationPending = !userAlreadyExists.EmailConfirmed;
 
@@ -401,15 +743,16 @@ public sealed class AuthService : IAuthService
                     Succeeded = true,
                     UserId = userAlreadyExists.Id,
                     EmailConfirmationPending = confirmationPending,
+                    RoleAddedToExistingAccount = true,
                     // A confirmed account has no pending e-mail to change; issuing a challenge there
                     // would hand out an unnecessary credential.
                     EmailChangeChallenge = confirmationPending
                         ? await BuildEmailChangeChallengeAsync(userAlreadyExists, normalizedEmail)
                         : null
                 },
-                AuditUserId: null,
-                AuditEvent: null,
-                AuditDescription: null,
+                AuditUserId: userAlreadyExists.Id,
+                AuditEvent: $"{auditEvent}RoleAdded",
+                AuditDescription: $"{role} access added to existing identity {normalizedEmail}; the other role credential was preserved.",
                 EnqueueConfirmationUserId: confirmationPending ? userAlreadyExists.Id : null);
         }
 
@@ -417,9 +760,9 @@ public sealed class AuthService : IAuthService
         {
             var cleanDoc = new string(request.Document.Where(char.IsDigit).ToArray());
 
-            if (role != SellerRole)
+            if (credentialRole != UserRoleType.Seller)
             {
-                var usersWithDoc = await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("Document", cleanDoc));
+                var usersWithDoc = await _userManager.GetUsersForClaimAsync(new Claim("Document", cleanDoc));
                 var existingUser = usersWithDoc.FirstOrDefault();
                 if (existingUser is not null)
                 {
@@ -440,9 +783,12 @@ public sealed class AuthService : IAuthService
 
                     // The pending account may only be resumed by someone who can prove ownership of
                     // it, so the e-mail change challenge is issued only when the supplied password
-                    // validates the existing (unconfirmed) account. Otherwise the flow still resends
-                    // the confirmation e-mail to the real owner but never exposes a challenge.
-                    var pendingOwnerPasswordValid = await _userManager.CheckPasswordAsync(existingUser, request.Password);
+                    // validates an existing credential. Otherwise the flow still resends the
+                    // confirmation e-mail to the real owner but never exposes a challenge.
+                    var pendingOwnerPasswordValid = await VerifyAnyExistingCredentialAsync(
+                        existingUser,
+                        request.Password,
+                        cancellationToken);
 
                     return new RegistrationOutcome(
                         Result: new RegistrationResultDto
@@ -496,10 +842,11 @@ public sealed class AuthService : IAuthService
                 AuditDescription: $"Registration failed for {normalizedEmail}: {string.Join("; ", errors)}",
                 EnqueueConfirmationUserId: null);
         }
+
         if (!string.IsNullOrWhiteSpace(request.Document))
         {
             var cleanDoc = new string(request.Document.Where(char.IsDigit).ToArray());
-            var documentClaimResult = await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("Document", cleanDoc));
+            var documentClaimResult = await _userManager.AddClaimAsync(user, new Claim("Document", cleanDoc));
             if (!documentClaimResult.Succeeded)
             {
                 var errors = documentClaimResult.Errors.Select(x => x.Description).ToArray();
@@ -521,7 +868,7 @@ public sealed class AuthService : IAuthService
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
-            var fullNameClaimResult = await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", request.FullName.Trim()));
+            var fullNameClaimResult = await _userManager.AddClaimAsync(user, new Claim("FullName", request.FullName.Trim()));
             if (!fullNameClaimResult.Succeeded)
             {
                 var errors = fullNameClaimResult.Errors.Select(x => x.Description).ToArray();
@@ -541,11 +888,15 @@ public sealed class AuthService : IAuthService
             }
         }
 
+        var newUserCredential = await CreateCredentialAsync(user, credentialRole, request.Password, cancellationToken);
+
         var roleResult = await _userManager.AddToRoleAsync(user, role);
         if (!roleResult.Succeeded)
         {
             Log.Warning("{EventType} | Registration failed (role) | Email={Email} | Errors={Errors}", "USER_REGISTER_FAILED", normalizedEmail, string.Join("; ", roleResult.Errors.Select(x => x.Description)));
             var errors = roleResult.Errors.Select(x => x.Description).ToArray();
+            _dbContext.UserRoleCredentials.Remove(newUserCredential);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             await TryRemoveUserAsync(user);
 
             return new RegistrationOutcome(
@@ -573,12 +924,114 @@ public sealed class AuthService : IAuthService
                 Succeeded = true,
                 UserId = user.Id,
                 EmailConfirmationPending = true,
+                RoleAddedToExistingAccount = false,
                 EmailChangeChallenge = await BuildEmailChangeChallengeAsync(user, normalizedEmail)
             },
             AuditUserId: user.Id,
             AuditEvent: auditEvent,
             AuditDescription: $"User {request.FullName} registered as {role} ({normalizedEmail}).",
             EnqueueConfirmationUserId: user.Id);
+    }
+
+    /// <summary>
+    /// Ownership proof for adding a role to an existing identity: the caller is authenticated as
+    /// that user, or knows the password of a credential the account already owns. During the
+    /// migration window (no credential rows yet) the legacy password also proves ownership.
+    /// </summary>
+    private async Task<bool> HasExistingAccountProofAsync(
+        IdentityUser<Guid> user,
+        string? currentPassword,
+        Guid? authenticatedUserId,
+        IReadOnlyCollection<string>? authenticatedRoles,
+        CancellationToken cancellationToken)
+    {
+        if (authenticatedUserId == user.Id && authenticatedRoles is { Count: > 0 })
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentPassword))
+        {
+            return false;
+        }
+
+        return await VerifyAnyExistingCredentialAsync(user, currentPassword, cancellationToken);
+    }
+
+    private async Task<bool> VerifyAnyExistingCredentialAsync(
+        IdentityUser<Guid> user,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        var credentials = await _dbContext.UserRoleCredentials
+            .AsNoTracking()
+            .Where(x => x.UserId == user.Id)
+            .Select(x => x.PasswordHash)
+            .ToListAsync(cancellationToken);
+
+        if (credentials.Count > 0)
+        {
+            return credentials.Any(hash =>
+                _userManager.PasswordHasher.VerifyHashedPassword(user, hash, password) != PasswordVerificationResult.Failed);
+        }
+
+        // Migration fallback only: no per-role credential exists yet. Proving knowledge of the
+        // legacy password is still proof of ownership, never an authentication source.
+        if (string.IsNullOrWhiteSpace(user.PasswordHash))
+        {
+            return false;
+        }
+
+        return await _userManager.CheckPasswordAsync(user, password);
+    }
+
+    private async Task<UserRoleCredential> CreateCredentialAsync(
+        IdentityUser<Guid> user,
+        UserRoleType role,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        var credential = new UserRoleCredential
+        {
+            UserId = user.Id,
+            Role = role,
+            PasswordHash = HashPassword(user, password),
+            AccessFailedCount = 0,
+            LockoutEndUtc = null
+        };
+
+        _dbContext.UserRoleCredentials.Add(credential);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return credential;
+    }
+
+    private string HashPassword(IdentityUser<Guid> user, string password)
+        => _userManager.PasswordHasher.HashPassword(user, password);
+
+    private async Task<IdentityResult> ValidatePasswordAsync(IdentityUser<Guid> user, string password)
+    {
+        var errors = new List<IdentityError>();
+        foreach (var validator in _userManager.PasswordValidators)
+        {
+            var result = await validator.ValidateAsync(_userManager, user, password);
+            if (!result.Succeeded)
+            {
+                errors.AddRange(result.Errors);
+            }
+        }
+
+        return errors.Count == 0
+            ? IdentityResult.Success
+            : IdentityResult.Failed(errors.ToArray());
+    }
+
+    private Task<UserRoleCredential?> FindTrackedCredentialAsync(
+        Guid userId,
+        UserRoleType role,
+        CancellationToken cancellationToken)
+    {
+        return _dbContext.UserRoleCredentials
+            .SingleOrDefaultAsync(x => x.UserId == userId && x.Role == role, cancellationToken);
     }
 
     private async Task<string?> BuildEmailChangeChallengeAsync(IdentityUser<Guid> user, string fallbackEmail)
@@ -606,7 +1059,7 @@ public sealed class AuthService : IAuthService
 
         if (existingClaim is null)
         {
-            return await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("FullName", normalizedFullName));
+            return await _userManager.AddClaimAsync(user, new Claim("FullName", normalizedFullName));
         }
 
         if (string.Equals(existingClaim.Value, normalizedFullName, StringComparison.Ordinal))
@@ -614,7 +1067,7 @@ public sealed class AuthService : IAuthService
             return IdentityResult.Success;
         }
 
-        return await _userManager.ReplaceClaimAsync(user, existingClaim, new System.Security.Claims.Claim("FullName", normalizedFullName));
+        return await _userManager.ReplaceClaimAsync(user, existingClaim, new Claim("FullName", normalizedFullName));
     }
 
     private async Task TryRemoveUserAsync(IdentityUser<Guid> user)
@@ -660,21 +1113,43 @@ public sealed class AuthService : IAuthService
 
     public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request, CancellationToken cancellationToken = default)
     {
+        if (!AccountRoles.TryParseCredentialRole(request.Role, out var credentialRole))
+        {
+            return false;
+        }
+
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null) return false;
 
-        // Invalidate previous tokens for this user
-        var existingTokens = _dbContext.PasswordResetTokens.Where(t => t.UserId == user.Id && !t.Used);
-        foreach (var t in existingTokens) t.Used = true;
+        var credentialExists = await _dbContext.UserRoleCredentials
+            .AnyAsync(x => x.UserId == user.Id && x.Role == credentialRole, cancellationToken);
+        if (!credentialExists)
+        {
+            // Do not reveal whether the other role exists: same uniform behavior as unknown e-mail.
+            return false;
+        }
+
+        // Invalidate previous tokens for this user and role only. A Seller recovery request must
+        // never invalidate a Customer recovery token.
+        var existingTokens = await _dbContext.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && t.Role == credentialRole && !t.Used)
+            .ToListAsync(cancellationToken);
+        foreach (var token in existingTokens)
+        {
+            token.Used = true;
+        }
+
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        var token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-        var tokenHash = _userManager.PasswordHasher.HashPassword(user, token);
+        var rawToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+        var tokenHash = HashPassword(user, rawToken);
+        var roleName = AccountRoles.ToRoleName(credentialRole);
 
         _dbContext.PasswordResetTokens.Add(new PasswordResetToken
         {
             UserId = user.Id,
+            Role = credentialRole,
             TokenHash = tokenHash,
             ExpiresAt = DateTime.UtcNow.AddHours(1),
             Used = false
@@ -682,17 +1157,33 @@ public sealed class AuthService : IAuthService
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
         var userName = user.UserName ?? email;
-        var resetLink = $"https://www.urbeat.com.br/redefinir-senha?token={token}&email={Uri.EscapeDataString(email)}";
+        var resetLink = $"https://www.urbeat.com.br/redefinir-senha?token={rawToken}&email={Uri.EscapeDataString(email)}&role={roleName}";
         _backgroundJobClient.Enqueue<SendPasswordResetEmailJob>(job => job.ExecuteAsync(email, userName, resetLink));
 
-        Log.Information("{EventType} | Password reset requested | Email={Email}", "PASSWORD_RESET_REQUESTED", email);
+        // Never log the token or the reset link.
+        Log.Information("{EventType} | Password reset requested | Email={Email} | Role={Role}", "PASSWORD_RESET_REQUESTED", email, roleName);
         return true;
     }
 
-    public async Task<ValidateResetTokenResponseDto> ValidateResetTokenAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<ValidateResetTokenResponseDto> ValidateResetTokenAsync(
+        string token,
+        string? role = null,
+        CancellationToken cancellationToken = default)
     {
+        UserRoleType? requestedRole = null;
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            if (!AccountRoles.TryParseCredentialRole(role, out var parsedRole))
+            {
+                return new ValidateResetTokenResponseDto { Valid = false, Message = "Token inválido ou expirado." };
+            }
+
+            requestedRole = parsedRole;
+        }
+
         var tokens = await _dbContext.PasswordResetTokens
-            .Where(t => !t.Used && t.ExpiresAt > DateTime.UtcNow)
+            .Where(t => !t.Used && t.Role != null && t.ExpiresAt > DateTime.UtcNow)
+            .Where(t => requestedRole == null || t.Role == requestedRole)
             .ToListAsync(cancellationToken);
 
         foreach (var entity in tokens)
@@ -700,8 +1191,14 @@ public sealed class AuthService : IAuthService
             var user = await _userManager.FindByIdAsync(entity.UserId.ToString());
             if (user is null) continue;
             var result = _userManager.PasswordHasher.VerifyHashedPassword(user, entity.TokenHash, token);
-            if (result == PasswordVerificationResult.Success)
-                return new ValidateResetTokenResponseDto { Valid = true };
+            if (result != PasswordVerificationResult.Failed)
+            {
+                return new ValidateResetTokenResponseDto
+                {
+                    Valid = true,
+                    Role = entity.Role is { } matchedRole ? AccountRoles.ToRoleName(matchedRole) : null
+                };
+            }
         }
 
         return new ValidateResetTokenResponseDto { Valid = false, Message = "Token inválido ou expirado." };
@@ -709,8 +1206,22 @@ public sealed class AuthService : IAuthService
 
     public async Task<(bool Succeeded, string? Error)> ResetPasswordAsync(ResetPasswordRequestDto request, CancellationToken cancellationToken = default)
     {
+        UserRoleType? requestedRole = null;
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            if (!AccountRoles.TryParseCredentialRole(request.Role, out var parsedRole))
+            {
+                return (false, "Token inválido ou expirado.");
+            }
+
+            requestedRole = parsedRole;
+        }
+
+        // Legacy tokens without a role are deliberately not accepted: they could silently change
+        // a role the requester does not own.
         var tokens = await _dbContext.PasswordResetTokens
-            .Where(t => !t.Used && t.ExpiresAt > DateTime.UtcNow)
+            .Where(t => !t.Used && t.Role != null && t.ExpiresAt > DateTime.UtcNow)
+            .Where(t => requestedRole == null || t.Role == requestedRole)
             .ToListAsync(cancellationToken);
 
         PasswordResetToken? matchedToken = null;
@@ -720,7 +1231,7 @@ public sealed class AuthService : IAuthService
             var user = await _userManager.FindByIdAsync(entity.UserId.ToString());
             if (user is null) continue;
             var result = _userManager.PasswordHasher.VerifyHashedPassword(user, entity.TokenHash, request.Token);
-            if (result == PasswordVerificationResult.Success)
+            if (result != PasswordVerificationResult.Failed)
             {
                 matchedToken = entity;
                 matchedUser = user;
@@ -728,21 +1239,89 @@ public sealed class AuthService : IAuthService
             }
         }
 
-        if (matchedToken is null || matchedUser is null)
+        if (matchedToken is null || matchedUser is null || matchedToken.Role is null)
             return (false, "Token inválido ou expirado.");
 
-        var resetResult = await _userManager.ResetPasswordAsync(matchedUser, await _userManager.GeneratePasswordResetTokenAsync(matchedUser), request.NewPassword);
-        if (!resetResult.Succeeded)
-            return (false, resetResult.Errors.First().Description);
+        var passwordValidation = await ValidatePasswordAsync(matchedUser, request.NewPassword);
+        if (!passwordValidation.Succeeded)
+            return (false, passwordValidation.Errors.First().Description);
+
+        var credential = await FindTrackedCredentialAsync(matchedUser.Id, matchedToken.Role.Value, cancellationToken);
+        if (credential is null)
+            return (false, "Token inválido ou expirado.");
+
+        // Update only the role credential. The legacy AspNetUsers.PasswordHash stays untouched
+        // for rollback safety and is no longer the login source for Customer/Seller.
+        credential.PasswordHash = HashPassword(matchedUser, request.NewPassword);
+        credential.AccessFailedCount = 0;
+        credential.LockoutEndUtc = null;
+        credential.MarkAsUpdated();
 
         matchedToken.Used = true;
-
-        // A password reset invalidates every existing session: active refresh tokens for the user
-        // are revoked so a stolen/old refresh cookie cannot mint new access tokens after recovery.
-        await _refreshTokenRepository.RevokeAllForUserAsync(matchedUser.Id, DateTime.UtcNow, cancellationToken);
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-        Log.Information("{EventType} | Password reset completed | UserId={UserId}", "PASSWORD_RESET_COMPLETED", matchedUser.Id);
+        // Only the recovered role's sessions are revoked; the other role keeps its session.
+        // Revocation runs after the credential is persisted so a failed save cannot end a
+        // session without changing the password.
+        var roleName = AccountRoles.ToRoleName(matchedToken.Role.Value);
+        await _refreshTokenRepository.RevokeAllForUserAndRoleAsync(matchedUser.Id, roleName, DateTime.UtcNow, cancellationToken);
+
+        Log.Information("{EventType} | Password reset completed | UserId={UserId} | Role={Role}",
+            "PASSWORD_RESET_COMPLETED", matchedUser.Id, roleName);
+        return (true, null);
+    }
+
+    public async Task<(bool Succeeded, string? Error)> ChangePasswordAsync(
+        ChangePasswordRequestDto request,
+        Guid authenticatedUserId,
+        IReadOnlyCollection<string> authenticatedRoles,
+        CancellationToken cancellationToken = default)
+    {
+        if (!AccountRoles.TryParseCredentialRole(request.Role, out var credentialRole))
+        {
+            return (false, "Tipo de acesso inválido. Use Customer ou Seller.");
+        }
+
+        var roleName = AccountRoles.ToRoleName(credentialRole);
+        if (!authenticatedRoles.Contains(roleName, StringComparer.OrdinalIgnoreCase))
+        {
+            return (false, "Acesso não autorizado para este tipo de conta.");
+        }
+
+        var user = await _userManager.FindByIdAsync(authenticatedUserId.ToString());
+        if (user is null)
+        {
+            return (false, "Usuário não encontrado.");
+        }
+
+        var credential = await FindTrackedCredentialAsync(user.Id, credentialRole, cancellationToken);
+        if (credential is null)
+        {
+            return (false, "Senha atual incorreta.");
+        }
+
+        var verification = _userManager.PasswordHasher.VerifyHashedPassword(user, credential.PasswordHash, request.CurrentPassword);
+        if (verification == PasswordVerificationResult.Failed)
+        {
+            return (false, "Senha atual incorreta.");
+        }
+
+        var passwordValidation = await ValidatePasswordAsync(user, request.NewPassword);
+        if (!passwordValidation.Succeeded)
+        {
+            return (false, passwordValidation.Errors.First().Description);
+        }
+
+        credential.PasswordHash = HashPassword(user, request.NewPassword);
+        credential.AccessFailedCount = 0;
+        credential.LockoutEndUtc = null;
+        credential.MarkAsUpdated();
+        await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _refreshTokenRepository.RevokeAllForUserAndRoleAsync(user.Id, roleName, DateTime.UtcNow, cancellationToken);
+
+        Log.Information("{EventType} | Password changed | UserId={UserId} | Role={Role}",
+            "PASSWORD_CHANGED", user.Id, roleName);
         return (true, null);
     }
 

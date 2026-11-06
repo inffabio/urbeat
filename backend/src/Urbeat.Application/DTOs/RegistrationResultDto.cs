@@ -10,6 +10,12 @@ public sealed class RegistrationResultDto
 
     public bool DocumentAlreadyRegistered { get; init; }
 
+    /// <summary>
+    /// True when an existing account received the requested role and a new, independent
+    /// password instead of a brand-new identity being created.
+    /// </summary>
+    public bool RoleAddedToExistingAccount { get; init; }
+
     public string? ExistingUserEmail { get; init; }
 
     /// <summary>

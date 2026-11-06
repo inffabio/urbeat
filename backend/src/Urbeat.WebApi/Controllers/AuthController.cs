@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Security.Claims;
+using FluentValidation;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +16,9 @@ public sealed class AuthController : ControllerBase
     private readonly IValidator<RegisterUserRequestDto> _registrationValidator;
     private readonly IValidator<ConfirmEmailRequestDto> _confirmEmailValidator;
     private readonly IValidator<ResendEmailConfirmationRequestDto> _resendValidator;
+    private readonly IValidator<ForgotPasswordRequestDto> _forgotPasswordValidator;
     private readonly IValidator<ResetPasswordRequestDto> _resetPasswordValidator;
+    private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
     private readonly IAuthService _authService;
     private readonly IEmailConfirmationService _emailConfirmationService;
 
@@ -24,7 +27,9 @@ public sealed class AuthController : ControllerBase
         IValidator<RegisterUserRequestDto> registrationValidator,
         IValidator<ConfirmEmailRequestDto> confirmEmailValidator,
         IValidator<ResendEmailConfirmationRequestDto> resendValidator,
+        IValidator<ForgotPasswordRequestDto> forgotPasswordValidator,
         IValidator<ResetPasswordRequestDto> resetPasswordValidator,
+        IValidator<ChangePasswordRequestDto> changePasswordValidator,
         IAuthService authService,
         IEmailConfirmationService emailConfirmationService)
     {
@@ -32,7 +37,9 @@ public sealed class AuthController : ControllerBase
         _registrationValidator = registrationValidator;
         _confirmEmailValidator = confirmEmailValidator;
         _resendValidator = resendValidator;
+        _forgotPasswordValidator = forgotPasswordValidator;
         _resetPasswordValidator = resetPasswordValidator;
+        _changePasswordValidator = changePasswordValidator;
         _authService = authService;
         _emailConfirmationService = emailConfirmationService;
     }
@@ -50,7 +57,8 @@ public sealed class AuthController : ControllerBase
             return validationProblem;
         }
 
-        var result = await _authService.RegisterCustomerAsync(request, cancellationToken);
+        var (actorId, actorRoles) = GetAuthenticatedActor();
+        var result = await _authService.RegisterCustomerAsync(request, actorId, actorRoles, cancellationToken);
         if (!result.Succeeded)
         {
             if (result.DocumentAlreadyRegistered)
@@ -74,7 +82,10 @@ public sealed class AuthController : ControllerBase
             userId = result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
             emailChangeChallenge = result.EmailChangeChallenge,
-            message = "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
+            roleAddedToExistingAccount = result.RoleAddedToExistingAccount,
+            message = result.RoleAddedToExistingAccount
+                ? "Acesso de cliente adicionado. Sua senha de lojista continua a mesma. Verifique seu e-mail para ativar a conta."
+                : "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
         });
     }
 
@@ -91,7 +102,8 @@ public sealed class AuthController : ControllerBase
             return validationProblem;
         }
 
-        var result = await _authService.RegisterSellerAsync(request, cancellationToken);
+        var (actorId, actorRoles) = GetAuthenticatedActor();
+        var result = await _authService.RegisterSellerAsync(request, actorId, actorRoles, cancellationToken);
         if (!result.Succeeded)
         {
             if (result.DocumentAlreadyRegistered)
@@ -115,7 +127,10 @@ public sealed class AuthController : ControllerBase
             userId = result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
             emailChangeChallenge = result.EmailChangeChallenge,
-            message = "Cadastro realizado. Verifique seu e-mail para ativar sua loja."
+            roleAddedToExistingAccount = result.RoleAddedToExistingAccount,
+            message = result.RoleAddedToExistingAccount
+                ? "Acesso lojista adicionado. Sua senha de cliente continua a mesma. Verifique seu e-mail para ativar a conta."
+                : "Cadastro realizado. Verifique seu e-mail para ativar sua loja."
         });
     }
 
@@ -402,14 +417,20 @@ public sealed class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "Informe um e-mail válido." });
+        var validationResult = await _forgotPasswordValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validationResult.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray())));
+        }
 
         await _authService.ForgotPasswordAsync(request, cancellationToken);
 
-        // Uniform response regardless of whether the account exists, to prevent user enumeration.
+        // Uniform response regardless of whether the account/role exists, to prevent user enumeration.
         return Ok(new { message = "Se o e-mail estiver cadastrado, enviaremos as instruções de recuperação." });
     }
 
@@ -417,12 +438,15 @@ public sealed class AuthController : ControllerBase
     [AllowAnonymous]
     [EnableRateLimiting("password-recovery")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> ValidateResetToken([FromQuery] string token, CancellationToken cancellationToken)
+    public async Task<IActionResult> ValidateResetToken(
+        [FromQuery] string token,
+        [FromQuery] string? role,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(token))
             return BadRequest(new { valid = false, message = "Token é obrigatório." });
 
-        var result = await _authService.ValidateResetTokenAsync(token, cancellationToken);
+        var result = await _authService.ValidateResetTokenAsync(token, role, cancellationToken);
         return Ok(result);
     }
 
@@ -448,6 +472,42 @@ public sealed class AuthController : ControllerBase
         return Ok(new { message = "Senha alterada com sucesso." });
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    [EnableRateLimiting("password-recovery")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request, CancellationToken cancellationToken)
+    {
+        var validationResult = await _changePasswordValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validationResult.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var (actorId, actorRoles) = GetAuthenticatedActor();
+        if (actorId is null)
+        {
+            return Unauthorized();
+        }
+
+        // The token must carry the context being changed; an admin token never manages these rows.
+        if (!actorRoles.Contains(request.Role, StringComparer.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        var (succeeded, error) = await _authService.ChangePasswordAsync(request, actorId.Value, actorRoles, cancellationToken);
+        if (!succeeded)
+            return BadRequest(new { message = error ?? "Não foi possível alterar a senha." });
+
+        return Ok(new { message = "Senha alterada com sucesso." });
+    }
+
     [HttpPost("update-email")]
     [AllowAnonymous]
     [EnableRateLimiting("password-recovery")]
@@ -463,5 +523,22 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new { message = error ?? "Não foi possível atualizar o e-mail." });
 
         return Ok(new { message = "E-mail atualizado. Um novo link de confirmação foi enviado." });
+    }
+
+    private (Guid? ActorId, IReadOnlyCollection<string> Roles) GetAuthenticatedActor()
+    {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return (null, Array.Empty<string>());
+        }
+
+        var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var actorId = Guid.TryParse(idValue, out var parsed) ? parsed : (Guid?)null;
+        var roles = User.FindAll(ClaimTypes.Role)
+            .Select(claim => claim.Value)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray();
+
+        return (actorId, roles);
     }
 }

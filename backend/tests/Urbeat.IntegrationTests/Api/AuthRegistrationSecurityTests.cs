@@ -42,6 +42,7 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
             FullName = "Atacante Takeover",
             Email = email,
             Password = attackerPassword,
+            CurrentPassword = attackerPassword,
             PhoneNumber = "11966666666"
         });
 
@@ -79,6 +80,7 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
             FullName = $"Contratante Confirmado {Guid.NewGuid():N}",
             Email = email,
             Password = password,
+            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
 
@@ -110,6 +112,7 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
             FullName = $"Contratante Pendente {Guid.NewGuid():N}",
             Email = email,
             Password = password,
+            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
 

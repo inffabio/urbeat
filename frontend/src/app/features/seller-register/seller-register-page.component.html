@@ -84,22 +84,44 @@
             </div>
           </div>
 
+          <!-- Já tem conta? -->
+          <div class="field">
+            <label for="currentPassword">Já tem conta urbeat? <span class="field-optional">(opcional)</span></label>
+            <div class="input-wrap">
+              <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
+              <input
+                id="currentPassword" [type]="showCurrentPassword() ? 'text' : 'password'"
+                placeholder="Senha atual da sua conta"
+                autocomplete="current-password"
+                [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event); onFieldInput('currentPassword')"
+                name="currentPassword"
+              />
+              <button type="button" class="eye-btn" (click)="toggleCurrentPassword()" aria-label="Mostrar senha atual">
+                <ion-icon [name]="showCurrentPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+            </div>
+            <p class="field-hint">
+              Preencha apenas se este e-mail já usa o urbeat como cliente. É a senha do acesso cliente, usada só para confirmar que a conta é sua.
+            </p>
+          </div>
+
           <!-- Senha -->
           <div class="field">
-            <label for="password">Senha</label>
+            <label for="password">Senha do acesso lojista</label>
             <div class="input-wrap">
               <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
               <input
                 id="password" [type]="showPassword() ? 'text' : 'password'"
-                placeholder="Crie uma senha"
+                placeholder="Crie a senha do acesso lojista"
+                autocomplete="new-password"
                 [ngModel]="password()" (ngModelChange)="password.set($event); onFieldInput('password')"
                 name="password" [class.input-err]="errors()['password']"
               />
-              <button type="button" class="eye-btn" (click)="togglePassword()">
+              <button type="button" class="eye-btn" (click)="togglePassword()" aria-label="Mostrar senha do acesso lojista">
                 <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
               </button>
             </div>
-            <p class="field-hint">Minimo de 8 caracteres. Deve conter letras maiusculas, minusculas, numeros e simbolos.</p>
+            <p class="field-hint">Esta senha vale só para o acesso lojista e não altera a senha de cliente. Minimo de 8 caracteres, com maiusculas, minusculas, numeros e simbolos.</p>
             <div class="strength-bar" style="margin-top:6px">
               <div class="strength-fill" [style.width]="(strengthScore()/5)*100+'%'" [style.background]="strengthColor()"></div>
             </div>

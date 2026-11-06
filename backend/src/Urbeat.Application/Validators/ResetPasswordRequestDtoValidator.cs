@@ -1,8 +1,9 @@
 ﻿using FluentValidation;
+using Urbeat.Application.DTOs;
 
 namespace Urbeat.Application.Validators;
 
-public sealed class ResetPasswordRequestDtoValidator : AbstractValidator<DTOs.ResetPasswordRequestDto>
+public sealed class ResetPasswordRequestDtoValidator : AbstractValidator<ResetPasswordRequestDto>
 {
     public ResetPasswordRequestDtoValidator()
     {
@@ -19,5 +20,10 @@ public sealed class ResetPasswordRequestDtoValidator : AbstractValidator<DTOs.Re
 
         RuleFor(x => x.ConfirmPassword)
             .Equal(x => x.NewPassword).WithMessage("As senhas não coincidem.");
+
+        RuleFor(x => x.Role)
+            .Must(RecoveryRoleValidator.IsCredentialRole)
+            .WithMessage("Tipo de acesso inválido. Use Customer ou Seller.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Role));
     }
 }

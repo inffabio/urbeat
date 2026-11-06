@@ -258,6 +258,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.Configure<EncryptionOptions>(configuration.GetSection(EncryptionOptions.SectionName));
         services.AddScoped<AdminUserSeeder>();
+        services.AddScoped<UserRoleCredentialBackfillService>();
         services.AddScoped<CuisineTypeSeeder>();
         services.AddScoped<DeliveryTimeSeeder>();
         services.AddScoped<DemoDataSeeder>();

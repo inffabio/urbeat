@@ -195,6 +195,7 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
             FullName = baseName,
             Email = customerEmail,
             Password = "SenhaForte123",
+            CurrentPassword = "SenhaForte123",
             PhoneNumber = "11977777777"
         });
 
@@ -232,6 +233,7 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
             FullName = promotedName,
             Email = customerEmail,
             Password = password,
+            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
         promoteResponse.StatusCode.Should().Be(HttpStatusCode.Created);

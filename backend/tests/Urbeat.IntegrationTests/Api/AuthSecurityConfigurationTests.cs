@@ -62,7 +62,8 @@ public sealed class RateLimitingTests : IClassFixture<TestWebApplicationFactory>
         {
             var response = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordRequestDto
             {
-                Email = $"ratelimit.{Guid.NewGuid():N}@urbeat.local"
+                Email = $"ratelimit.{Guid.NewGuid():N}@urbeat.local",
+                Role = "Customer"
             });
             lastStatus = response.StatusCode;
         }

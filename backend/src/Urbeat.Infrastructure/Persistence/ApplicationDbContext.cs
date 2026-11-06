@@ -16,6 +16,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<UserRoleCredential> UserRoleCredentials => Set<UserRoleCredential>();
+
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -111,6 +113,31 @@ public sealed class ApplicationDbContext
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.TokenHash).IsUnique();
             entity.Property(x => x.TokenHash).HasMaxLength(64);
+            entity.Property(x => x.Role).HasMaxLength(20);
+        });
+
+        builder.Entity<UserRoleCredential>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            // One credential per person and role. AspNetUsers keeps a single identity per e-mail,
+            // so the same e-mail can have Customer and Seller rows with independent passwords.
+            entity.HasIndex(x => new { x.UserId, x.Role }).IsUnique();
+            entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.Property(x => x.PasswordHash).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.AccessFailedCount).HasDefaultValue(0);
+            entity.Property(x => x.LockoutEndUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne<IdentityUser<Guid>>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.UserId);
+            entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(x => x.TokenHash).HasMaxLength(500).IsRequired();
         });
 
         builder.Entity<AuditLog>(entity =>

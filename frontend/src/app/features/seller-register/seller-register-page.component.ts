@@ -25,9 +25,11 @@ export class SellerRegisterPageComponent {
   readonly document = signal('');
   readonly whatsapp = signal('');
   readonly email = signal('');
+  readonly currentPassword = signal('');
   readonly password = signal('');
   readonly confirmPassword = signal('');
 
+  readonly showCurrentPassword = signal(false);
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
 
@@ -152,6 +154,10 @@ export class SellerRegisterPageComponent {
     return d2 === parseInt(cnpj[13]);
   }
 
+  toggleCurrentPassword(): void {
+    this.showCurrentPassword.update((v) => !v);
+  }
+
   togglePassword(): void {
     this.showPassword.update((v) => !v);
   }
@@ -215,29 +221,39 @@ export class SellerRegisterPageComponent {
 
     this.loading.set(true);
 
-    if (this.auth.isAuthenticated()) {
-      this.auth.logout();
-    }
-
+    // The current session is intentionally NOT cleared: when the signed-in customer adds a
+    // seller access, the bearer token proves ownership of the existing account and the customer
+    // password/session must survive the operation.
     const req: RegisterCustomerRequest = {
       fullName: this.fullName().trim(),
       email: this.email().trim(),
       password: this.password(),
       phoneNumber: this.whatsapp().replace(/\D/g, ''),
+      document: this.document().replace(/\D/g, ''),
     };
-      
-    // Patch para enviar document, tipagem no TS pode não ter document dependendo de model, forçamos com as
-    (req as any).document = this.document().replace(/\D/g, '');
+
+    const currentPassword = this.currentPassword().trim();
+    if (currentPassword) {
+      req.currentPassword = currentPassword;
+    }
 
     this.auth.registerSeller(req).subscribe({
       next: (res) => {
         this.loading.set(false);
         if (res.emailConfirmationPending) {
           this.persistEmailChangeChallenge(this.email().trim(), res.emailChangeChallenge);
-          this.toastService.showSuccess('Cadastro realizado! Enviamos um link de confirmação para o seu e-mail.');
+          this.toastService.showSuccess(
+            res.roleAddedToExistingAccount
+              ? 'Acesso lojista criado! Sua senha de cliente continua a mesma. Enviamos um link de confirmação para o seu e-mail.'
+              : 'Cadastro realizado! Enviamos um link de confirmação para o seu e-mail.',
+          );
           this.router.navigate(['/confirmacao-email'], { queryParams: { email: this.email().trim(), userId: res.userId } });
         } else {
-          this.toastService.showSuccess('Conta de vendedor ativada! Faça login para continuar.');
+          this.toastService.showSuccess(
+            res.roleAddedToExistingAccount
+              ? 'Acesso lojista criado! Sua senha de cliente continua a mesma.'
+              : 'Conta de vendedor ativada! Faça login para continuar.',
+          );
           this.router.navigate(['/login-vendedor']);
         }
       },
@@ -259,7 +275,10 @@ export class SellerRegisterPageComponent {
             this.toastService.showError('CPF já cadastrado.');
           }
         } else if (err?.status === 409) {
-          this.toastService.showError('Este e-mail já está em uso');
+          // Generic on purpose: never reveal which role already exists for this e-mail.
+          this.toastService.showError(
+            'Não foi possível adicionar o acesso lojista. Se este e-mail já pertence a uma conta urbeat, informe a senha atual da conta para confirmar.',
+          );
         } else if (err?.error?.errors && Array.isArray(err.error.errors) && err.error.errors.length > 0) {
           this.toastService.showError(err.error.errors.join(' '));
         } else {
