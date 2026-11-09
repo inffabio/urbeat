@@ -23,17 +23,32 @@ param(
     [string]$VaultName = "urbeat",
 
     [Parameter(Mandatory=$false)]
-    [string]$AppDir = "/opt/urbeat"
+    [string]$AppDir = "/opt/urbeat",
+
+    # Public Meta App ID (not a secret). Optional: leave empty to keep the manual profile
+    # picture update disabled. Pass it explicitly when invoking this script.
+    [Parameter(Mandatory=$false)]
+    [string]$MetaAppId = ""
 )
+
+# Graph API version written to the generated .env. Keep it in sync with
+# WhatsAppOptions.DefaultGraphApiVersion (backend/src/Urbeat.Infrastructure/Services/WhatsApp).
+$WhatsAppGraphApiVersion = "v26.0"
 
 . (Join-Path $PSScriptRoot "oci-ssh.ps1")
 . (Join-Path $PSScriptRoot "deploy-env.ps1")
+. (Join-Path $PSScriptRoot "oci-context.ps1")
 
 # Suppress OCI CLI file permission warnings that break JSON parsing
 $env:OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING = "True"
 
 Write-Host "🌍 Setting up Urbeat Environment..." -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
+
+if ($MetaAppId -and $MetaAppId -notmatch '^\d+$') {
+    Write-Host "❌ MetaAppId must contain digits only." -ForegroundColor Red
+    exit 1
+}
 
 # Resolve SSH key path
 $resolvedKeyPath = (Resolve-Path $SSHKeyPath -ErrorAction SilentlyContinue).Path
@@ -81,6 +96,87 @@ foreach ($prop in $secretsMap.PSObject.Properties) {
     } else {
         Write-Host " ❌ (not found or error)" -ForegroundColor Red
     }
+}
+
+# Resolves a Vault secret by display name when configs/secrets-map.json has no OCID for it.
+# The OCID list is fetched once and cached for the whole run.
+$vaultSecretsByName = $null
+function Resolve-VaultSecretByName {
+    param([string]$SecretName)
+
+    if ($null -eq $script:vaultSecretsByName) {
+        $script:vaultSecretsByName = @{}
+        $compartmentId = $env:OCI_COMPARTMENT_OCID
+        if (-not [string]::IsNullOrWhiteSpace($compartmentId)) {
+            try {
+                $rawList = oci vault secret list --compartment-id $compartmentId --all 2>$null
+                $json = $rawList -join "`n"
+                if (-not [string]::IsNullOrWhiteSpace($json)) {
+                    foreach ($secret in ($json | ConvertFrom-Json).data) {
+                        $name = $secret.'secret-name'
+                        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+                        if ($secret.'lifecycle-state' -in @('ACTIVE', 'UPDATING')) {
+                            $script:vaultSecretsByName[$name] = $secret.id
+                        }
+                    }
+                }
+            } catch {
+                # Best-effort: the caller reports unresolved names without stopping the deploy.
+            }
+        }
+    }
+
+    $ocid = $script:vaultSecretsByName[$SecretName]
+    if ([string]::IsNullOrWhiteSpace($ocid)) { return $null }
+    return Get-VaultSecretByOcid -SecretOcid $ocid
+}
+
+# ─────────────────────────────────────────
+# WhatsApp Cloud API (Meta): map the four Vault display names already used by the
+# application and only emit configuration for values that actually resolved. A missing
+# secret disables the webhook instead of writing an empty .env value; production then
+# starts normally and the webhook endpoints stay fail-closed (403/401).
+# ─────────────────────────────────────────
+$whatsAppSecretBindings = [ordered]@{
+    "WhatsApp__WebhookVerifyToken" = "WhatsAppWebhooksToken"
+    "WhatsApp__AppSecret"          = "MetaChaveApp"
+    "WhatsApp__WabaId"             = "MetaWhatsappWABA"
+    "WhatsApp__AccessToken"        = "MetaTokenWhatsapp"
+}
+
+$whatsAppEnvLines = [System.Collections.Generic.List[string]]::new()
+$missingWhatsAppSecrets = [System.Collections.Generic.List[string]]::new()
+
+foreach ($binding in $whatsAppSecretBindings.GetEnumerator()) {
+    $vaultName = $binding.Value
+    $value = $envVars[$vaultName]
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        $value = Resolve-VaultSecretByName -SecretName $vaultName
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            $envVars[$vaultName] = $value
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        $missingWhatsAppSecrets.Add($vaultName)
+        continue
+    }
+
+    $whatsAppEnvLines.Add("$($binding.Key)=$value")
+}
+
+$whatsAppWebhookEnabled = $missingWhatsAppSecrets.Count -eq 0
+$whatsAppEnvLines.Add("WhatsApp__WebhookEnabled=$(if ($whatsAppWebhookEnabled) { 'true' } else { 'false' })")
+$whatsAppEnvLines.Add("WhatsApp__PhoneNumberId=1436364406224525")
+$whatsAppEnvLines.Add("WhatsApp__GraphApiVersion=$WhatsAppGraphApiVersion")
+if (-not [string]::IsNullOrWhiteSpace($MetaAppId)) {
+    $whatsAppEnvLines.Add("WhatsApp__MetaAppId=$MetaAppId")
+}
+$whatsAppEnvBlock = $whatsAppEnvLines -join "`n"
+
+if ($missingWhatsAppSecrets.Count -gt 0) {
+    Write-Host "  ⚠️ WhatsApp webhook disabled; unresolved Vault secrets: $($missingWhatsAppSecrets -join ', ')" -ForegroundColor Yellow
+    Write-Host "     Add their OCIDs to configs/secrets-map.json, or set OCI_COMPARTMENT_OCID so they are resolved by display name." -ForegroundColor Yellow
 }
 
 # ─────────────────────────────────────────
@@ -159,6 +255,12 @@ CLOUDINARY_API_SECRET=$($envVars['CLOUDINARY_API_SECRET'])
 Cloudinary__CloudName=$($envVars['CLOUDINARY_CLOUD_NAME'])
 Cloudinary__ApiKey=$($envVars['CLOUDINARY_API_KEY'])
 Cloudinary__ApiSecret=$($envVars['CLOUDINARY_API_SECRET'])
+
+# ─── WhatsApp Cloud API (Meta) ───────────────────────────────
+# Only secrets resolved from the Vault are written (WhatsAppWebhooksToken/MetaChaveApp/
+# MetaWhatsappWABA/MetaTokenWhatsapp). Empty lines are never emitted: a missing secret sets
+# WhatsApp__WebhookEnabled=false and the API starts with the webhook fail-closed.
+$whatsAppEnvBlock
 
 # ─── Customer Verification SMS ───────────────────────────────
 CUSTOMER_VERIFICATION_CHANNEL=Sms

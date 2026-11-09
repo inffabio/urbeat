@@ -4,6 +4,7 @@ using Hangfire.InMemory;
 using Hangfire.PostgreSql;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
+using Urbeat.Application.WhatsApp;
 using Urbeat.Domain.Repositories;
 using Urbeat.Infrastructure.Data;
 using Urbeat.Infrastructure.Identity;
@@ -18,6 +19,7 @@ using Urbeat.Infrastructure.Services;
 using Urbeat.Infrastructure.Security;
 using Urbeat.Infrastructure.Services.Email;
 using Urbeat.Infrastructure.Services.Payments;
+using Urbeat.Infrastructure.Services.WhatsApp;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +53,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<MockPixOptions>, MockPixOptionsValidator>();
         services.Configure<AsaasWebhookOptions>(configuration.GetSection(AsaasWebhookOptions.SectionName));
         services.Configure<AsaasSubscriptionOptions>(configuration.GetSection(AsaasSubscriptionOptions.SectionName));
+        services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
+        services.AddOptions<WhatsAppOptions>().ValidateOnStart();
+        services.AddSingleton<IValidateOptions<WhatsAppOptions>, WhatsAppOptionsValidator>();
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<EmailConfirmationOptions>(configuration.GetSection(EmailConfirmationOptions.SectionName));
         services.Configure<DeliveryRouteOptions>(configuration.GetSection(DeliveryRouteOptions.SectionName));
@@ -174,6 +179,31 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
         services.AddScoped<ISubscriptionWebhookService, SubscriptionWebhookService>();
+        services.AddScoped<IWhatsAppWebhookService, WhatsAppWebhookService>();
+        services.AddScoped<IWhatsAppStoreMessageComposer, WhatsAppStoreMessageComposer>();
+        services.AddScoped<IWhatsAppBusinessProfileService, WhatsAppBusinessProfileService>();
+        services.AddHttpClient<IWhatsAppMessageSender, WhatsAppCloudApiMessageSender>((provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<WhatsAppOptions>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+        })
+            .AddPolicyHandler(GetWhatsAppRetryPolicy());
+        services.AddHttpClient(WhatsAppHttpClients.Graph, (provider, client) =>
+        {
+            var options = provider.GetRequiredService<IOptions<WhatsAppOptions>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+        })
+            // The Resumable Upload session is opened with the access token in the documented
+            // `access_token` query parameter, so request logging must not echo the URL.
+            .RemoveAllLoggers();
+        services.AddHttpClient(WhatsAppHttpClients.ProfileImage, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.MaxResponseContentBufferSize = 6 * 1024 * 1024;
+        })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+            // The configured logo URL may contain a query string; do not let HttpClient log it.
+            .RemoveAllLoggers();
         services.AddScoped<IOrderPaymentStrategyFactory, OrderPaymentStrategyFactory>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddSingleton<IMockPixClock, SystemClock>();
@@ -322,6 +352,15 @@ public static class InfrastructureServiceCollectionExtensions
             .CircuitBreakerAsync(
                 handledEventsAllowedBeforeBreaking: 5,
                 durationOfBreak: TimeSpan.FromSeconds(30));
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetWhatsAppRetryPolicy()
+    {
+        // Cloud API message sends are not idempotent: only a throttled request (429) is retried
+        // because Meta did not accept it. Server/transport errors are surfaced to the caller.
+        return Policy<HttpResponseMessage>
+            .HandleResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromMilliseconds(250 * retryAttempt));
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetViaCepRetryPolicy()

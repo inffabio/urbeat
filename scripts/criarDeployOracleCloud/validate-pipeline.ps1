@@ -108,6 +108,35 @@ if ($errors.Count -gt 0) {
 }
 
 # ─────────────────────────────────────────
+# WhatsApp configuration invariants
+# ─────────────────────────────────────────
+# The application only requires the WhatsApp secrets when WebhookEnabled is true. The environment
+# script must map the four Vault display names, resolve them by name when secrets-map.json has no
+# OCID, and never emit empty values that would override the appsettings defaults.
+$environmentScriptPath = Join-Path $scriptRoot "03-setup-environment.ps1"
+if (Test-Path -LiteralPath $environmentScriptPath -PathType Leaf) {
+    $environmentContent = Get-Content -LiteralPath $environmentScriptPath -Raw
+    foreach ($vaultSecretName in @(
+        "WhatsAppWebhooksToken",
+        "MetaChaveApp",
+        "MetaWhatsappWABA",
+        "MetaTokenWhatsapp"
+    )) {
+        if ($environmentContent -notmatch [regex]::Escape($vaultSecretName)) {
+            $errors.Add("03-setup-environment.ps1 must map the Vault secret '$vaultSecretName'.")
+        }
+    }
+    if ($environmentContent -notmatch 'WhatsApp__WebhookEnabled') {
+        $errors.Add("03-setup-environment.ps1 must emit WhatsApp__WebhookEnabled so production starts without WhatsApp secrets.")
+    }
+    if ($environmentContent -notmatch 'Resolve-VaultSecretByName') {
+        $errors.Add("03-setup-environment.ps1 must resolve WhatsApp secrets by Vault display name when secrets-map.json has no OCID.")
+    }
+} else {
+    $errors.Add("03-setup-environment.ps1 is missing.")
+}
+
+# ─────────────────────────────────────────
 # Deploy hardening invariants
 # ─────────────────────────────────────────
 

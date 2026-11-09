@@ -120,6 +120,17 @@ services:
       Cloudinary__CloudName: "${CLOUDINARY_CLOUD_NAME}"
       Cloudinary__ApiKey: "${CLOUDINARY_API_KEY}"
       Cloudinary__ApiSecret: "${CLOUDINARY_API_SECRET}"
+      # WhatsApp Cloud API (Meta)
+      WhatsApp__WebhookEnabled: "${WhatsApp__WebhookEnabled:-false}"
+      WhatsApp__WebhookVerifyToken: "${WhatsApp__WebhookVerifyToken:-}"
+      WhatsApp__AppSecret: "${WhatsApp__AppSecret:-}"
+      WhatsApp__WabaId: "${WhatsApp__WabaId:-}"
+      WhatsApp__AccessToken: "${WhatsApp__AccessToken:-}"
+      WhatsApp__PhoneNumberId: "${WhatsApp__PhoneNumberId:-1436364406224525}"
+      WhatsApp__GraphApiVersion: "${WhatsApp__GraphApiVersion:-v26.0}"
+      # Public Meta App ID (not a secret); empty disables the manual profile picture update.
+      WhatsApp__MetaAppId: "${WhatsApp__MetaAppId:-}"
+      WhatsApp__ProfilePictureUrl: "${WhatsApp__ProfilePictureUrl:-https://urbeat.com.br/assets/images/urbeat-logo.jpg}"
     depends_on:
       db:
         condition: service_healthy

@@ -819,7 +819,7 @@ Histórico de status do pagamento.
 
 ## 8. Webhooks
 
-Ambos `[AllowAnonymous]`.
+Todas as rotas `[AllowAnonymous]`.
 
 ### POST `/api/webhooks/mercadopago`
 Recebe notificações de pagamento do Mercado Pago.
@@ -832,6 +832,76 @@ Recebe notificações de assinatura do Asaas. Valida header `asaas-access-token`
 
 **Request:** raw JSON body + header
 **Response 200:** `{ "received": true }`
+
+### GET `/api/webhooks/whatsapp`
+Verifica a assinatura do webhook da Meta. Exige `hub.mode=subscribe`, `hub.verify_token`
+igual ao token configurado e `hub.challenge` não vazio.
+
+**Response 200:** o valor de `hub.challenge`, em `text/plain`.
+**Response 403:** token, modo ou challenge inválidos. A resposta não revela o token esperado.
+
+### POST `/api/webhooks/whatsapp`
+Recebe eventos da WhatsApp Cloud API. O corpo bruto é validado com
+`X-Hub-Signature-256` (HMAC-SHA256 usando o App Secret da Meta) antes de qualquer
+desserialização. Eventos de mensagem e de status são persistidos de forma idempotente por
+`(Provider, EventKey)` (`meta:message:{id}` e `meta:status:{id}:{status}`).
+
+**Request:** raw JSON body + header `X-Hub-Signature-256: sha256=<hex>`
+**Response 200:** `{ "received": true }` — também para reentregas duplicadas
+**Response 400:** JSON inválido
+**Response 401:** assinatura ausente/inválida ou integração sem App Secret configurado
+
+Configuração (seção `WhatsApp`, via variáveis de ambiente `WhatsApp__*`):
+
+| Chave | Variável de ambiente | Origem esperada |
+|---|---|---|
+| `WebhookEnabled` | `WhatsApp__WebhookEnabled` | `true` somente quando os quatro segredos do Vault estiverem resolvidos (padrão `false`) |
+| `WebhookVerifyToken` | `WhatsApp__WebhookVerifyToken` | Vault `WhatsAppWebhooksToken` |
+| `AppSecret` | `WhatsApp__AppSecret` | Vault `MetaChaveApp` |
+| `WabaId` | `WhatsApp__WabaId` | Vault `MetaWhatsappWABA` |
+| `AccessToken` | `WhatsApp__AccessToken` | Vault `MetaTokenWhatsapp` |
+| `MetaAppId` | `WhatsApp__MetaAppId` | App ID público da Meta (não é segredo) |
+| `ProfilePictureUrl` | `WhatsApp__ProfilePictureUrl` | URL HTTPS pública da logo institucional (padrão `https://urbeat.com.br/assets/images/urbeat-logo.jpg`) |
+| `PhoneNumberId` | `WhatsApp__PhoneNumberId` | Phone Number ID da Cloud API |
+| `GraphApiVersion` | `WhatsApp__GraphApiVersion` | versão da Graph API; padrão centralizado em `WhatsAppOptions.DefaultGraphApiVersion` (`v26.0`, versão suportada pela Meta) |
+
+Os segredos só são obrigatórios quando `WhatsApp__WebhookEnabled=true`. Sem eles a API sobe
+normalmente e os endpoints do webhook permanecem fechados: `GET` responde `403` e `POST` responde
+`401`; o envio de mensagens responde `not_configured`. O script de deploy só grava valores que
+resolveu do Vault, resolve os quatro nomes por display name quando `configs/secrets-map.json` não
+tem OCID e marca `WhatsApp__WebhookEnabled=false` (com aviso) quando algum segredo falta — nunca
+gera chaves vazias. Com `PhoneNumberId` configurado, eventos cujo `metadata.phone_number_id` é de
+outro número são reconhecidos (`200`) e ignorados, sem persistência.
+
+O envio de mensagens usa `IWhatsAppMessageSender` internamente e não existe endpoint público de
+envio nesta etapa. Nenhum token é devolvido por DTOs, health checks ou logs.
+
+#### Mensagens com logo da loja
+
+`IWhatsAppMessageSender.SendImageMessageAsync` envia uma mensagem `type=image` com `image.link`
+(URL HTTPS pública) e `image.caption` opcional. A URL é validada no servidor (HTTPS absoluto, sem
+credenciais, sem localhost/loopback/rede privada) e nunca é registrada em log. O compositor
+`IWhatsAppStoreMessageComposer.SendStoreLogoMessageAsync(storeLogoUrl, recipient, caption?)` é
+**interno e ainda não está roteado por nenhum fluxo de negócio**: o webhook atual não resolve loja
+nem responde automaticamente. Ele existe apenas como ponto reutilizável para quando um fluxo
+(por exemplo, atendimento por loja) já tiver resolvido a loja e o destinatário; chamar o compositor
+é responsabilidade desse fluxo futuro.
+
+#### Foto do perfil do número
+
+A foto do perfil é **global para o Phone Number ID** (não é por loja). `MetaAppId` é público e
+necessário apenas para atualizar a foto; sem ele a operação responde `not_configured` e o startup
+permanece válido. A operação é manual, idempotente e documentada na seção 9 (Administração), usando
+a logo institucional configurada em `ProfilePictureUrl`.
+
+O serviço `IWhatsAppBusinessProfileService` executa o fluxo Resumable Upload da Meta conforme a
+documentação oficial: `POST /{AppId}/uploads` com `file_name`, `file_length`, `file_type` e o token
+no parâmetro `access_token`; `POST /upload:{sessão}` com `Authorization: OAuth` e `file_offset: 0`;
+e `POST /{PhoneNumberId}/whatsapp_business_profile` com `Authorization: Bearer`. O cliente HTTP do
+fluxo tem o log de requests desativado para que a URL da sessão (que contém o token) nunca seja
+registrada. A logo é baixada apenas de URL HTTPS pública configurada, com timeout, limite de 5 MB e
+tipos `image/jpeg`/`image/png`. Não há execução automática em startup, webhook ou request, e
+handle/token não são armazenados.
 
 ---
 
@@ -846,6 +916,17 @@ Ping de verificação.
 ```json
 { "area": "admin", "message": "Admin authorized." }
 ```
+
+### POST `/api/admin/whatsapp/profile-picture`
+Aplica a logo institucional configurada em `WhatsApp__ProfilePictureUrl` à foto do perfil do
+Phone Number ID. Exige `WhatsApp__MetaAppId` (App ID público da Meta) e as credenciais de envio;
+sem eles responde `not_configured`. A operação é idempotente, não roda em startup/webhook e não
+armazena token nem handle.
+
+**Request:** sem corpo
+**Response 200:** `{ "success": true }`
+**Response 503:** `{ "success": false, "errorCode": "not_configured" }`
+**Response 502:** `{ "success": false, "errorCode": "<código-sanitizado>" }`
 
 ### GET `/api/admin/plans`
 Lista planos de assinatura.

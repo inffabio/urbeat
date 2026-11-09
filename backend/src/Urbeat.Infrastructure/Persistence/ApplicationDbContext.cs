@@ -50,6 +50,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<PaymentWebhookEvent> PaymentWebhookEvents => Set<PaymentWebhookEvent>();
 
+    public DbSet<WhatsAppWebhookEvent> WhatsAppWebhookEvents => Set<WhatsAppWebhookEvent>();
+
     public DbSet<PaymentStatusHistory> PaymentStatusHistories => Set<PaymentStatusHistory>();
 
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -511,6 +513,24 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.EventKey).HasMaxLength(150);
             entity.Property(x => x.GatewayTransactionId).HasMaxLength(100);
             entity.Property(x => x.Payload).HasColumnType("text");
+        });
+
+        builder.Entity<WhatsAppWebhookEvent>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.Provider, x.EventKey }).IsUnique();
+            entity.HasIndex(x => x.MessageId);
+            entity.HasIndex(x => x.ReceivedAtUtc);
+            entity.Property(x => x.Provider).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.EventKey).HasMaxLength(200).IsRequired();
+            entity.Property(x => x.EventType).HasMaxLength(80).IsRequired();
+            entity.Property(x => x.MessageId).HasMaxLength(120);
+            entity.Property(x => x.PhoneNumberId).HasMaxLength(40);
+            entity.Property(x => x.SenderWaId).HasMaxLength(40);
+            entity.Property(x => x.EventTimestamp).HasMaxLength(40);
+            entity.Property(x => x.Payload).HasColumnType("text").IsRequired();
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.Property(x => x.ProcessingError).HasMaxLength(1000);
         });
 
         builder.Entity<PaymentStatusHistory>(entity =>

@@ -1,6 +1,7 @@
 ﻿using Urbeat.Application.Interfaces;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
+using Urbeat.Infrastructure.Services.WhatsApp;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["AsaasWebhook:Token"] = "test-asaas-token",
+                ["WhatsApp:WebhookEnabled"] = "true",
+                ["WhatsApp:WebhookVerifyToken"] = "test-whatsapp-verify-token",
+                ["WhatsApp:AppSecret"] = "test-whatsapp-app-secret",
+                ["WhatsApp:AccessToken"] = "test-whatsapp-access-token",
+                ["WhatsApp:PhoneNumberId"] = "1436364406224525",
+                ["WhatsApp:GraphApiVersion"] = WhatsAppOptions.DefaultGraphApiVersion,
                 ["Outbox:WorkerEnabled"] = "false"
             });
         });
