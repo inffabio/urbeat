@@ -18,18 +18,24 @@ public sealed class OutboxHealthCheckTests
         ApplicationDbContext db,
         OutboxOptions options,
         IOutboxWorkerLiveness? liveness = null,
-        HangfireRuntime? runtime = null)
+        HangfireRuntime? runtime = null,
+        OutboxHealthCountsCache? countsCache = null,
+        TimeProvider? timeProvider = null)
     {
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-        services.AddScoped(_ => db);
+        // The fixture context is shared by every probe in a test, so it must not be disposed when
+        // the health check's per-probe scope ends.
+        services.AddSingleton(_ => db);
         var provider = services.BuildServiceProvider();
 
         return new OutboxHealthCheck(
             provider.GetRequiredService<IServiceScopeFactory>(),
             liveness ?? new OutboxWorkerLiveness(),
             Options.Create(options),
-            runtime ?? HangfireRuntime.Create(HangfireRole.All));
+            runtime ?? HangfireRuntime.Create(HangfireRole.All),
+            countsCache ?? new OutboxHealthCountsCache(TimeSpan.FromSeconds(5), TimeProvider.System),
+            timeProvider ?? TimeProvider.System);
     }
 
     private static ApplicationDbContext CreateDb()
@@ -264,5 +270,75 @@ public sealed class OutboxHealthCheckTests
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Data["deliveriesFailed"].Should().Be(1);
         result.Data["communicationsFailed"].Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_ShouldReuseDatabaseCounts_WithinCacheWindow_AndRefreshAfterIt()
+    {
+        using var db = CreateDb();
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        var countsCache = new OutboxHealthCountsCache(TimeSpan.FromSeconds(5), clock);
+
+        var liveness = new OutboxWorkerLiveness();
+        liveness.RecordHeartbeat(clock.GetUtcNow());
+
+        var check = CreateCheck(db, WorkerOptions(), liveness, countsCache: countsCache, timeProvider: clock);
+
+        var first = await check.CheckHealthAsync(new HealthCheckContext());
+        first.Status.Should().Be(HealthStatus.Healthy);
+
+        db.OutboxMessages.Add(new OutboxMessage
+        {
+            Type = "OrderCreated",
+            AggregateId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            AvailableAtUtc = DateTime.UtcNow,
+            Status = OutboxMessageStatus.Failed,
+            LastError = "boom"
+        });
+        await db.SaveChangesAsync();
+
+        // Still inside the cache window: the snapshot is reused and the new row is not counted yet.
+        var cached = await check.CheckHealthAsync(new HealthCheckContext());
+        cached.Status.Should().Be(HealthStatus.Healthy);
+
+        clock.UtcNow = clock.UtcNow.AddSeconds(6);
+
+        var refreshed = await check.CheckHealthAsync(new HealthCheckContext());
+        refreshed.Status.Should().Be(HealthStatus.Degraded);
+        refreshed.Data["failed"].Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_ShouldStillReportStaleWorker_WhenCountsComeFromCache()
+    {
+        using var db = CreateDb();
+        var clock = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        var countsCache = new OutboxHealthCountsCache(TimeSpan.FromSeconds(30), clock);
+
+        var liveness = new OutboxWorkerLiveness();
+        liveness.RecordHeartbeat(clock.GetUtcNow());
+
+        var check = CreateCheck(db, WorkerOptions(staleAfter: TimeSpan.FromMinutes(2)), liveness, countsCache: countsCache, timeProvider: clock);
+
+        (await check.CheckHealthAsync(new HealthCheckContext())).Status.Should().Be(HealthStatus.Healthy);
+
+        clock.UtcNow = clock.UtcNow.AddMinutes(5);
+
+        // Heartbeats are never cached, so staleness is reported even though the counts are reused.
+        var result = await check.CheckHealthAsync(new HealthCheckContext());
+        result.Status.Should().Be(HealthStatus.Unhealthy);
+    }
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        public ManualTimeProvider(DateTimeOffset utcNow)
+        {
+            UtcNow = utcNow;
+        }
+
+        public DateTimeOffset UtcNow { get; set; }
+
+        public override DateTimeOffset GetUtcNow() => UtcNow;
     }
 }

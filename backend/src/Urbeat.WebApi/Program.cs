@@ -7,6 +7,7 @@ using Urbeat.WebApi.DependencyInjection;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Middlewares;
 using Hangfire;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using Serilog;
@@ -164,7 +165,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// /health keeps its previous semantics and remains the endpoint used by the container healthcheck
+// and deployment verification: image health checks return 200 when the process is Healthy or
+// Degraded and 503 when a dependency is Unhealthy. /health/live answers without touching
+// PostgreSQL/Redis (safe for liveness probes under load) and /health/ready runs the same
+// dependency checks for orchestration/readiness probes.
 app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 
 app.MapHub<Urbeat.WebApi.Hubs.SellerNotificationHub>("/hubs/seller-notifications");
 app.MapHub<Urbeat.WebApi.Hubs.CustomerNotificationHub>("/hubs/customer-notifications");

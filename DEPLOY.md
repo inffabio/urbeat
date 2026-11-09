@@ -95,11 +95,18 @@ Nos trechos abaixo, quando um bloco comeca com `ssh`, execute antes o `port-knoc
 | Configurar loja | /configurar-loja |
 | Confirmacao email | /confirmacao-email · /confirmar-email |
 | API | https://api.urbeat.com.br |
-| Health | https://api.urbeat.com.br/health |
+| Health (compatível, verifica dependências) | https://api.urbeat.com.br/health |
+| Health liveness (sem PostgreSQL/Redis) | https://api.urbeat.com.br/health/live |
+| Health readiness (verifica dependências) | https://api.urbeat.com.br/health/ready |
 | Swagger | https://api.urbeat.com.br/swagger |
 | Hangfire | https://api.urbeat.com.br/hangfire (Basic Auth — ver `.env`) |
 | Grafana | http://136.248.115.135:3000 (SSH tunnel) |
 | Prometheus | http://136.248.115.135:9090 (SSH tunnel) |
+
+`/health` mantém o contrato usado pelo healthcheck dos containers e pelos scripts de deploy:
+responde `200` quando o processo está saudável ou degradado e `503` quando uma dependência está
+indisponível. `/health/live` responde sem consultar PostgreSQL/Redis (probe barato de liveness) e
+`/health/ready` executa as mesmas verificações de dependência de `/health`.
 
 ---
 

@@ -50,9 +50,36 @@ PUBLIC_PATH=/api/public/plans k6 run scripts/load/urbeat-api-smoke.js
 | --- | --- | --- |
 | `BASE_URL` | `http://localhost:5000` | API origin; must not include credentials, query, or fragment. |
 | `PUBLIC_PATH` | empty | Optional public read-only path on `BASE_URL`. |
-| `VUS` | `1` | Virtual users for the constant-VU scenario. |
-| `DURATION` | `30s` | k6 duration (`30s`, `2m`, `1h`). |
+| `SCENARIO` | `smoke` | `smoke` (constant VUs) or `ramp` (ramping VUs, then hold). |
+| `VUS` | `1` | Virtual users for the constant scenario, or the target for the ramp scenario. |
+| `DURATION` | `30s` | Duration of the run, or the hold stage at the target VU count for `ramp`. |
+| `RAMP_UP_DURATION` | `30s` | Ramp-up stage used only by `SCENARIO=ramp`. |
 | `SLEEP_SECONDS` | `1` | Pause between iterations to keep the test gentle. |
+
+## Ramp-up scenario
+
+`SCENARIO=ramp` starts at zero, reaches `VUS` over `RAMP_UP_DURATION`, and then holds that load for
+`DURATION`. It is still read-only and uses the same health/public requests, but it separates
+warm-up latency from steady-state behavior:
+
+```bash
+BASE_URL=http://localhost:5000 \
+PUBLIC_PATH=/api/public/plans \
+SCENARIO=ramp \
+VUS=50 \
+RAMP_UP_DURATION=1m \
+DURATION=2m \
+k6 run scripts/load/urbeat-api-smoke.js
+```
+
+```powershell
+pwsh ./scripts/load/run-urbeat-api-smoke.ps1 `
+  -Scenario ramp `
+  -Vus 50 `
+  -RampUpDuration 1m `
+  -Duration 2m `
+  -PublicPath /api/public/plans
+```
 
 ## Low-load run against an authorized URL
 

@@ -20,7 +20,13 @@
     Number of virtual users. Defaults to 1; keep it low for smoke tests.
 
 .PARAMETER Duration
-    k6 scenario duration, for example 30s or 2m. Defaults to 30s.
+    k6 hold duration at the target VU count, for example 30s or 2m. Defaults to 30s.
+
+.PARAMETER Scenario
+    smoke (constant VUs) or ramp (ramping VUs). Defaults to smoke.
+
+.PARAMETER RampUpDuration
+    Ramp-up stage duration used when -Scenario ramp. Defaults to 30s.
 
 .PARAMETER SleepSeconds
     Pause between iterations. Defaults to 1 second to keep the test gentle.
@@ -33,6 +39,9 @@
 
 .EXAMPLE
     ./run-urbeat-api-smoke.ps1 -BaseUrl https://staging.example.com -AllowRemote -Vus 2 -Duration 30s -PublicPath /api/public/plans
+
+.EXAMPLE
+    ./run-urbeat-api-smoke.ps1 -Scenario ramp -Vus 50 -RampUpDuration 1m -Duration 2m -PublicPath /api/public/plans
 #>
 
 [CmdletBinding()]
@@ -46,6 +55,12 @@ param(
 
     [ValidatePattern('^\d+(s|m|h)$')]
     [string]$Duration = "30s",
+
+    [ValidateSet("smoke", "ramp")]
+    [string]$Scenario = "smoke",
+
+    [ValidatePattern('^\d+(s|m|h)$')]
+    [string]$RampUpDuration = "30s",
 
     [ValidateRange(0, 60)]
     [int]$SleepSeconds = 1,
@@ -105,6 +120,8 @@ $previousEnvironment = @{
     PUBLIC_PATH = $env:PUBLIC_PATH
     VUS = $env:VUS
     DURATION = $env:DURATION
+    RAMP_UP_DURATION = $env:RAMP_UP_DURATION
+    SCENARIO = $env:SCENARIO
     SLEEP_SECONDS = $env:SLEEP_SECONDS
 }
 
@@ -115,6 +132,8 @@ try {
     $env:PUBLIC_PATH = $PublicPath
     $env:VUS = [string]$Vus
     $env:DURATION = $Duration
+    $env:RAMP_UP_DURATION = $RampUpDuration
+    $env:SCENARIO = $Scenario
     $env:SLEEP_SECONDS = [string]$SleepSeconds
 
     $displayPublicPath = $PublicPath
@@ -122,7 +141,10 @@ try {
         $displayPublicPath = "(not configured)"
     }
 
-    Write-Host "urbeat API smoke test: base=$normalizedBaseUrl publicPath=$displayPublicPath vus=$Vus duration=$Duration" -ForegroundColor Cyan
+    Write-Host "urbeat API smoke test: base=$normalizedBaseUrl publicPath=$displayPublicPath scenario=$Scenario vus=$Vus duration=$Duration" -ForegroundColor Cyan
+    if ($Scenario -eq "ramp") {
+        Write-Host "Ramp-up: 0 -> $Vus VUs over $RampUpDuration, then hold for $Duration." -ForegroundColor Cyan
+    }
     Write-Host "GET-only; health-only runs do not measure the order flow." -ForegroundColor Yellow
 
     & $k6Command.Source run $scriptPath

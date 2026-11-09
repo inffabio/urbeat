@@ -25,18 +25,24 @@ public sealed class OutboxHealthCheck : IHealthCheck
     private readonly IOutboxWorkerLiveness _liveness;
     private readonly OutboxOptions _options;
     private readonly HangfireRuntime _hangfireRuntime;
+    private readonly OutboxHealthCountsCache _countsCache;
+    private readonly TimeProvider _timeProvider;
     private readonly bool _runsLocalWorker;
 
     public OutboxHealthCheck(
         IServiceScopeFactory scopeFactory,
         IOutboxWorkerLiveness liveness,
         IOptions<OutboxOptions> options,
-        HangfireRuntime hangfireRuntime)
+        HangfireRuntime hangfireRuntime,
+        OutboxHealthCountsCache countsCache,
+        TimeProvider timeProvider)
     {
         _scopeFactory = scopeFactory;
         _liveness = liveness;
         _options = options.Value;
         _hangfireRuntime = hangfireRuntime;
+        _countsCache = countsCache;
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
         // In the split deployment the outbox runs in the worker processes. The in-memory liveness
         // marker of the web process is then meaningless and must not mark the API unhealthy.
@@ -47,45 +53,29 @@ public sealed class OutboxHealthCheck : IHealthCheck
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        // Database counters are coalesced and reused for a short window (see
+        // OutboxHealthCountsCache). The heartbeat below is always read live from memory, so worker
+        // staleness is never hidden by the cache.
+        var counts = await _countsCache
+            .GetAsync(LoadCountsAsync, cancellationToken)
+            .ConfigureAwait(false);
 
-        // Legacy message projection. Kept for compatibility with existing dashboards; deliveries
-        // below are the authoritative processing unit.
-        var messagePending = await dbContext.OutboxMessages
-            .CountAsync(x => x.Status == OutboxMessageStatus.Pending, cancellationToken);
-        var messageProcessing = await dbContext.OutboxMessages
-            .CountAsync(x => x.Status == OutboxMessageStatus.Processing, cancellationToken);
-        var messageProcessed = await dbContext.OutboxMessages
-            .CountAsync(x => x.Status == OutboxMessageStatus.Processed, cancellationToken);
-        var messageFailed = await dbContext.OutboxMessages
-            .CountAsync(x => x.Status == OutboxMessageStatus.Failed, cancellationToken);
+        var messagePending = counts.MessagePending;
+        var messageProcessing = counts.MessageProcessing;
+        var messageProcessed = counts.MessageProcessed;
+        var messageFailed = counts.MessageFailed;
 
-        var deliveryPending = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Status == OutboxHandlerDeliveryStatus.Pending, cancellationToken);
-        var deliveryProcessing = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Status == OutboxHandlerDeliveryStatus.Processing, cancellationToken);
-        var deliveryProcessed = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Status == OutboxHandlerDeliveryStatus.Processed, cancellationToken);
-        var deliveryFailed = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Status == OutboxHandlerDeliveryStatus.Failed, cancellationToken);
+        var deliveryPending = counts.DeliveryPending;
+        var deliveryProcessing = counts.DeliveryProcessing;
+        var deliveryProcessed = counts.DeliveryProcessed;
+        var deliveryFailed = counts.DeliveryFailed;
 
-        var businessPending = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Channel == OutboxChannel.Business
-                && (x.Status == OutboxHandlerDeliveryStatus.Pending
-                    || x.Status == OutboxHandlerDeliveryStatus.Processing), cancellationToken);
-        var businessFailed = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Channel == OutboxChannel.Business
-                && x.Status == OutboxHandlerDeliveryStatus.Failed, cancellationToken);
-        var communicationsPending = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Channel == OutboxChannel.Communications
-                && (x.Status == OutboxHandlerDeliveryStatus.Pending
-                    || x.Status == OutboxHandlerDeliveryStatus.Processing), cancellationToken);
-        var communicationsFailed = await dbContext.OutboxHandlerDeliveries
-            .CountAsync(x => x.Channel == OutboxChannel.Communications
-                && x.Status == OutboxHandlerDeliveryStatus.Failed, cancellationToken);
+        var businessPending = counts.BusinessPending;
+        var businessFailed = counts.BusinessFailed;
+        var communicationsPending = counts.CommunicationsPending;
+        var communicationsFailed = counts.CommunicationsFailed;
 
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
         var lastHeartbeat = _liveness.LastHeartbeatUtc;
         var totalMessageBacklog = messagePending + messageProcessing;
 
@@ -141,5 +131,61 @@ public sealed class OutboxHealthCheck : IHealthCheck
         }
 
         return HealthCheckResult.Healthy("Outbox worker healthy.", data);
+    }
+
+    private async Task<OutboxHealthCounts> LoadCountsAsync(CancellationToken cancellationToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Two grouped queries replace the previous twelve independent COUNTs. The status index on
+        // OutboxMessages and the (channel, status) index on OutboxHandlerDeliveries keep each
+        // aggregate bounded to a single scan, and OutboxHealthCountsCache prevents a burst of
+        // probes from repeating them.
+        var messageCounts = await dbContext.OutboxMessages
+            .AsNoTracking()
+            .GroupBy(x => x.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var deliveryCounts = await dbContext.OutboxHandlerDeliveries
+            .AsNoTracking()
+            .GroupBy(x => new { x.Channel, x.Status })
+            .Select(group => new { group.Key.Channel, group.Key.Status, Count = group.Count() })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var messageByStatus = messageCounts.ToDictionary(x => x.Status, x => x.Count);
+        var deliveryByChannelStatus = deliveryCounts.ToDictionary(
+            x => (x.Channel, x.Status),
+            x => x.Count);
+
+        int MessageCount(OutboxMessageStatus status)
+            => messageByStatus.TryGetValue(status, out var count) ? count : 0;
+
+        int DeliveryCount(OutboxHandlerDeliveryStatus status)
+            => deliveryCounts.Where(x => x.Status == status).Sum(x => x.Count);
+
+        int ChannelCount(OutboxChannel channel, OutboxHandlerDeliveryStatus status)
+            => deliveryByChannelStatus.TryGetValue((channel, status), out var count) ? count : 0;
+
+        // Legacy message projection. Kept for compatibility with existing dashboards; deliveries
+        // below are the authoritative processing unit.
+        return new OutboxHealthCounts(
+            MessagePending: MessageCount(OutboxMessageStatus.Pending),
+            MessageProcessing: MessageCount(OutboxMessageStatus.Processing),
+            MessageProcessed: MessageCount(OutboxMessageStatus.Processed),
+            MessageFailed: MessageCount(OutboxMessageStatus.Failed),
+            DeliveryPending: DeliveryCount(OutboxHandlerDeliveryStatus.Pending),
+            DeliveryProcessing: DeliveryCount(OutboxHandlerDeliveryStatus.Processing),
+            DeliveryProcessed: DeliveryCount(OutboxHandlerDeliveryStatus.Processed),
+            DeliveryFailed: DeliveryCount(OutboxHandlerDeliveryStatus.Failed),
+            BusinessPending: ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Pending)
+                + ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Processing),
+            BusinessFailed: ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Failed),
+            CommunicationsPending: ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Pending)
+                + ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Processing),
+            CommunicationsFailed: ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Failed));
     }
 }

@@ -142,7 +142,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IEmailChangeChallengeService, EmailChangeChallengeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICuisineTypeService, CuisineTypeService>();
-        services.AddScoped<IPlanService, PlanService>();
+        services.AddSingleton<PublicPlanOfferCache>();
+        services.AddScoped<PlanService>();
+        services.AddScoped<IPlanService>(provider => new CachedPlanService(
+            provider.GetRequiredService<PlanService>(),
+            provider.GetRequiredService<PublicPlanOfferCache>(),
+            provider.GetRequiredService<IServiceScopeFactory>()));
         services.AddScoped<IStoreService, StoreService>();
         services.AddScoped<IStoreReadRepository, StoreReadRepository>();
         services.AddScoped<IStoreAddressService, StoreAddressService>();

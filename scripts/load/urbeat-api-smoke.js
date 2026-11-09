@@ -7,11 +7,13 @@
 // - Never call login, checkout, store creation, WhatsApp, or any mutating endpoint.
 //
 // Configuration (environment variables):
-// - BASE_URL        API origin. Default: http://localhost:5000
-// - PUBLIC_PATH     Optional safe public GET path, e.g. /api/public/plans
-// - VUS             Virtual users. Default: 1
-// - DURATION        Scenario duration. Default: 30s
-// - SLEEP_SECONDS   Pause between iterations. Default: 1
+// - BASE_URL          API origin. Default: http://localhost:5000
+// - PUBLIC_PATH       Optional safe public GET path, e.g. /api/public/plans
+// - VUS               Virtual users (target for ramp). Default: 1
+// - DURATION          Hold duration at the target VU count. Default: 30s
+// - RAMP_UP_DURATION  Ramp-up stage duration when SCENARIO=ramp. Default: 30s
+// - SCENARIO          smoke (constant VUs) or ramp (ramping VUs). Default: smoke
+// - SLEEP_SECONDS     Pause between iterations. Default: 1
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
@@ -20,6 +22,7 @@ const DEFAULT_BASE_URL = 'http://localhost:5000';
 const HEALTH_PATH = '/health';
 const DEFAULT_VUS = 1;
 const DEFAULT_DURATION = '30s';
+const DEFAULT_RAMP_UP_DURATION = '30s';
 const DEFAULT_SLEEP_SECONDS = 1;
 const REQUEST_TIMEOUT = '10s';
 
@@ -64,6 +67,20 @@ function readDuration(name, fallback) {
   const value = String(raw).trim();
   if (!/^\d+(s|m|h)$/.test(value)) {
     fail(name + ' must use the k6 duration format, e.g. 30s, 2m, or 1h. Received: ' + raw);
+  }
+
+  return value;
+}
+
+function readChoice(name, allowed, fallback) {
+  const raw = __ENV[name];
+  if (raw === undefined || raw === null || String(raw).trim() === '') {
+    return fallback;
+  }
+
+  const value = String(raw).trim().toLowerCase();
+  if (allowed.indexOf(value) < 0) {
+    fail(name + ' must be one of: ' + allowed.join(', ') + '. Received: ' + raw);
   }
 
   return value;
@@ -117,6 +134,8 @@ const BASE_URL = normalizeBaseUrl(__ENV.BASE_URL || DEFAULT_BASE_URL);
 const PUBLIC_PATH = normalizePublicPath(__ENV.PUBLIC_PATH);
 const VUS = readPositiveInt('VUS', DEFAULT_VUS);
 const DURATION = readDuration('DURATION', DEFAULT_DURATION);
+const RAMP_UP_DURATION = readDuration('RAMP_UP_DURATION', DEFAULT_RAMP_UP_DURATION);
+const SCENARIO = readChoice('SCENARIO', ['smoke', 'ramp'], 'smoke');
 const SLEEP_SECONDS = readNonNegativeNumber('SLEEP_SECONDS', DEFAULT_SLEEP_SECONDS);
 
 const thresholds = {
@@ -129,15 +148,32 @@ if (PUBLIC_PATH !== '') {
   thresholds['http_req_duration{endpoint:public}'] = ['p(95)<800', 'p(99)<1500'];
 }
 
+// Both scenarios are read-only and share the same iteration body. 'ramp' starts at 0 VUs, reaches
+// VUS over RAMP_UP_DURATION and then holds that load for DURATION, which isolates latency drift
+// caused by connection/thread warm-up from steady-state behavior.
+const scenarios = SCENARIO === 'ramp'
+  ? {
+      ramp: {
+        executor: 'ramping-vus',
+        startVUs: 0,
+        stages: [
+          { duration: RAMP_UP_DURATION, target: VUS },
+          { duration: DURATION, target: VUS },
+        ],
+        gracefulRampDown: '5s',
+      },
+    }
+  : {
+      smoke: {
+        executor: 'constant-vus',
+        vus: VUS,
+        duration: DURATION,
+        gracefulStop: '5s',
+      },
+    };
+
 export const options = {
-  scenarios: {
-    smoke: {
-      executor: 'constant-vus',
-      vus: VUS,
-      duration: DURATION,
-      gracefulStop: '5s',
-    },
-  },
+  scenarios: scenarios,
   thresholds: thresholds,
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
 };
@@ -145,6 +181,8 @@ export const options = {
 console.log(
   '[urbeat-api-smoke] base=' + BASE_URL +
   ' publicPath=' + (PUBLIC_PATH === '' ? '(not configured)' : PUBLIC_PATH) +
+  ' scenario=' + SCENARIO +
+  (SCENARIO === 'ramp' ? ' rampUp=' + RAMP_UP_DURATION : '') +
   ' vus=' + VUS +
   ' duration=' + DURATION
 );

@@ -23,4 +23,12 @@ public sealed class OutboxOptions
     /// stale. Used by <c>OutboxHealthCheck</c> to report real liveness rather than only backlog.
     /// </summary>
     public TimeSpan WorkerStaleAfter { get; set; } = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// How long the aggregate database counters used by <c>OutboxHealthCheck</c> are reused before
+    /// being reloaded. A short window keeps frequent probes from issuing the same count queries on
+    /// every request while still detecting dependency failures within a few seconds. Set to
+    /// <see cref="TimeSpan.Zero"/> to disable reuse (concurrent probes are still coalesced).
+    /// </summary>
+    public TimeSpan HealthCheckCacheDuration { get; set; } = TimeSpan.FromSeconds(5);
 }

@@ -42,8 +42,12 @@ public static class WebApiServiceCollectionExtensions
             options.ModelBinderProviders.Insert(0, new ShortGuidModelBinderProvider());
         });
 
+        // The outbox check is exposed by the legacy /health endpoint and by /health/ready. It keeps
+        // the authoritative backlog/failure/liveness signals but reuses its aggregate database
+        // snapshot for a short window so a burst of probes cannot multiply count queries.
+        services.AddSingleton<OutboxHealthCountsCache>();
         services.AddHealthChecks()
-            .AddCheck<OutboxHealthCheck>(OutboxHealthCheck.Name, tags: new[] { "outbox" });
+            .AddCheck<OutboxHealthCheck>(OutboxHealthCheck.Name, tags: new[] { "outbox", "ready" });
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();

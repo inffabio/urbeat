@@ -80,7 +80,10 @@ O endpoint administrativo `GET /api/outbox/summary` mantém os totais de mensage
 `deliveries.business` e `deliveries.communications` com `pending`, `processing`, `processed` e
 `failed`. `POST /api/outbox/{id}/retry` reenfileira somente as entregas em `Failed`, preservando as
 que já foram processadas. O health check `/health` reporta backlog/falhas por entrega e por canal,
-sem expor payload.
+sem expor payload. Os contadores são agregados em duas consultas e reutilizados por uma janela curta
+(`Outbox:HealthCheckCacheDuration`, padrão 5s) para que rajadas de probes não multipliquem consultas;
+o heartbeat do worker continua sendo lido a cada chamada. `/health/ready` expõe as mesmas
+verificações de dependência e `/health/live` responde sem consultar PostgreSQL/Redis.
 
 ## Jobs recorrentes
 
