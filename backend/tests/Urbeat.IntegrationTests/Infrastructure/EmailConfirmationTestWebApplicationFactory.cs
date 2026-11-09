@@ -63,6 +63,10 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
                 new SynchronousBackgroundJobClient(provider));
 
             services.AddHostedService<TestDataSeeder>();
+
+            // Tests own outbox dispatch; a background poller would mutate the shared fixture
+            // database asynchronously while assertions run.
+            services.RemoveBackgroundOutboxWorker();
         });
     }
 

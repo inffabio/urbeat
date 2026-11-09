@@ -4,6 +4,7 @@ using Hangfire.PostgreSql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Urbeat.Infrastructure.Persistence;
 
 namespace Urbeat.Infrastructure.Hangfire;
 
@@ -26,12 +27,9 @@ public static class HangfireServiceCollectionExtensions
                 return;
             }
 
-            var defaultConnection = configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(defaultConnection))
-            {
-                throw new InvalidOperationException(
-                    "ConnectionStrings:DefaultConnection is required for the Hangfire PostgreSQL storage.");
-            }
+            // The same normalized connection string used by EF Core, including the explicit pool
+            // limits, so Hangfire cannot create an unbounded Npgsql pool of its own.
+            var defaultConnection = NpgsqlPoolConfiguration.ResolveConnectionString(configuration);
 
             config.UsePostgreSqlStorage(options =>
             {

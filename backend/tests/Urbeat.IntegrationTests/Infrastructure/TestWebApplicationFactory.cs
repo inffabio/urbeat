@@ -61,6 +61,10 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             // Program.cs relies on MigrateAsync which fails on InMemory,
             // so the built-in seeders never run. Seed reference data here.
             services.AddHostedService<TestDataSeeder>();
+
+            // Tests own outbox dispatch; a background poller would mutate the shared fixture
+            // database asynchronously while assertions run.
+            services.RemoveBackgroundOutboxWorker();
         });
     }
 

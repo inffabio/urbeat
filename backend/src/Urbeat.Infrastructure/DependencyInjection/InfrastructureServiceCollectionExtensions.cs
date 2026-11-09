@@ -61,9 +61,13 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<CustomerVerificationOptions>(configuration.GetSection(CustomerVerificationOptions.SectionName));
         services.Configure<EmailChangeChallengeOptions>(configuration.GetSection(EmailChangeChallengeOptions.SectionName));
 
+        // Resolve the connection string once with explicit Npgsql pool limits. EF Core and Hangfire
+        // share the same normalized value, so neither can open an unbounded pool per process.
+        var databaseConnectionString = NpgsqlPoolConfiguration.ResolveConnectionString(configuration);
+
         services.AddDbContextPool<ApplicationDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(databaseConnectionString);
         });
 
         services

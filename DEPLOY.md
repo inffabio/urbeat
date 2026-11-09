@@ -190,6 +190,32 @@ sudo docker compose exec redis redis-cli
 KEYS *
 ```
 
+### Pool de conexoes PostgreSQL
+O backend aplica limites explicitos de pool na `ConnectionStrings:DefaultConnection`
+antes de entrega-la ao EF Core e ao Hangfire. Cada processo (API e cada worker) tem o
+seu proprio pool, portanto o valor nao e global.
+
+| Configuracao | Default | Efeito |
+| --- | --- | --- |
+| `DB_MAX_POOL_SIZE` / `Database:Pool:MaximumSize` | `10` | maximo de conexoes fisicas por pool/processo |
+| `DB_MIN_POOL_SIZE` / `Database:Pool:MinimumSize` | `0` | minimo mantido aberto (0 nao reserva backends ociosos) |
+
+Precedencia: valor explicito de `Maximum Pool Size`/`Minimum Pool Size` na propria
+connection string > secao `Database:Pool:*` > variavel `DB_*_POOL_SIZE` > default.
+O sink Serilog do banco `UrbeatLogs` usa `DB_LOGS_MAX_POOL_SIZE` (default `4`) e o mesmo
+servidor PostgreSQL.
+
+Orcamento com `max_connections=100` (default do PostgreSQL 16, sendo 3 reservadas para
+superuser): 3 processos x (10 EF + 10 Hangfire no pior caso) + 3 x 4 (Serilog) + ~2
+(exporter) = 74 conexoes no pior caso, deixando ~23 de margem. Nao aumente o pool sem
+revisar `max_connections`, o numero de processos e o numero de pools por processo.
+
+```bash
+sudo docker compose exec db psql -U postgres -d UrbeatDb -c "SHOW max_connections;"
+sudo docker compose exec db psql -U postgres -d UrbeatDb -c \
+  "SELECT usename, application_name, state, count(*) FROM pg_stat_activity GROUP BY 1,2,3 ORDER BY 4 DESC;"
+```
+
 ### Verificar o certificado SSL
 ```bash
 pwsh ./scripts/criarDeployOracleCloud/port-knock.ps1 -ServerIP 136.248.115.135
