@@ -24,12 +24,31 @@ public sealed class OutboxOperationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
     {
+        // Message-level projection: kept for compatibility with existing operational dashboards.
         var pending = await _dbContext.OutboxMessages.CountAsync(x => x.Status == OutboxMessageStatus.Pending, cancellationToken);
         var processing = await _dbContext.OutboxMessages.CountAsync(x => x.Status == OutboxMessageStatus.Processing, cancellationToken);
         var processed = await _dbContext.OutboxMessages.CountAsync(x => x.Status == OutboxMessageStatus.Processed, cancellationToken);
         var failed = await _dbContext.OutboxMessages.CountAsync(x => x.Status == OutboxMessageStatus.Failed, cancellationToken);
 
-        return Ok(new { pending, processing, processed, failed });
+        // Handler deliveries are the authoritative unit. Reporting them per channel makes a stuck
+        // communications worker visible without hiding business progress (and vice versa).
+        var deliveryCounts = await _dbContext.OutboxHandlerDeliveries
+            .GroupBy(x => new { x.Channel, x.Status })
+            .Select(group => new DeliveryCount
+            {
+                Channel = group.Key.Channel,
+                Status = group.Key.Status,
+                Count = group.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var deliveries = new
+        {
+            business = BuildChannelSummary(deliveryCounts, OutboxChannel.Business),
+            communications = BuildChannelSummary(deliveryCounts, OutboxChannel.Communications)
+        };
+
+        return Ok(new { pending, processing, processed, failed, deliveries });
     }
 
     [HttpGet("failed")]
@@ -93,12 +112,58 @@ public sealed class OutboxOperationsController : ControllerBase
             return BadRequest(new { error = "Only failed messages can be retried." });
         }
 
+        // Requeue only the failed handler deliveries. Siblings already processed stay processed, so
+        // a retry never re-sends an e-mail or SignalR push that already succeeded.
+        var failedDeliveries = await _dbContext.OutboxHandlerDeliveries
+            .Where(x => x.OutboxMessageId == id && x.Status == OutboxHandlerDeliveryStatus.Failed)
+            .ToListAsync(cancellationToken);
+
+        var now = DateTime.UtcNow;
+        foreach (var delivery in failedDeliveries)
+        {
+            delivery.Status = OutboxHandlerDeliveryStatus.Pending;
+            delivery.AvailableAtUtc = now;
+            delivery.LockedUntilUtc = null;
+            delivery.ProcessedAtUtc = null;
+            delivery.AttemptCount = 0;
+            delivery.LastError = null;
+        }
+
         message.Status = OutboxMessageStatus.Pending;
-        message.AvailableAtUtc = DateTime.UtcNow;
+        message.AvailableAtUtc = now;
+        message.ProcessedAtUtc = null;
         message.AttemptCount = 0;
+        message.LockedUntilUtc = null;
         message.LastError = null;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return NoContent();
+    }
+
+    private static object BuildChannelSummary(
+        IReadOnlyCollection<DeliveryCount> counts,
+        OutboxChannel channel)
+    {
+        int CountOf(OutboxHandlerDeliveryStatus status) =>
+            counts
+                .Where(x => x.Channel == channel && x.Status == status)
+                .Sum(x => x.Count);
+
+        return new
+        {
+            pending = CountOf(OutboxHandlerDeliveryStatus.Pending),
+            processing = CountOf(OutboxHandlerDeliveryStatus.Processing),
+            processed = CountOf(OutboxHandlerDeliveryStatus.Processed),
+            failed = CountOf(OutboxHandlerDeliveryStatus.Failed)
+        };
+    }
+
+    private sealed class DeliveryCount
+    {
+        public OutboxChannel Channel { get; init; }
+
+        public OutboxHandlerDeliveryStatus Status { get; init; }
+
+        public int Count { get; init; }
     }
 }

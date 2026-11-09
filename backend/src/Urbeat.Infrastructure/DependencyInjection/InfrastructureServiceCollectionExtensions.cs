@@ -1,12 +1,11 @@
 ﻿using System.Text;
-using Hangfire;
-using Hangfire.InMemory;
-using Hangfire.PostgreSql;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Outbox;
 using Urbeat.Application.Security;
 using Urbeat.Application.WhatsApp;
 using Urbeat.Domain.Repositories;
 using Urbeat.Infrastructure.Data;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Identity;
 using Urbeat.Infrastructure.Jobs;
 using Urbeat.Infrastructure.Persistence;
@@ -41,7 +40,7 @@ public static class InfrastructureServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IHostEnvironment environment)
     {
         services.AddScoped<IOrderReportService, OrderReportService>();
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
@@ -261,6 +260,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IOutboxWorkerLiveness, OutboxWorkerLiveness>();
         services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
         services.AddScoped<IOutboxDeliveryTracker, OutboxDeliveryTracker>();
+        services.AddSingleton<IOutboxHandlerClassifier, OutboxHandlerClassifier>();
         services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
         services.AddScoped<IOutboxEventHandler, OrderSignalRHandler>();
         services.AddScoped<IOutboxEventHandler, OrderAcceptedForPrintingSignalRHandler>();
@@ -269,7 +269,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOutboxEventHandler, PrintHandler>();
 
         var outboxOptions = configuration.GetSection(OutboxOptions.SectionName).Get<OutboxOptions>() ?? new OutboxOptions();
-        if (outboxOptions.WorkerEnabled)
+        var hangfireRuntime = HangfireRuntime.Resolve(configuration);
+        if (outboxOptions.WorkerEnabled && hangfireRuntime.RunsOutbox)
         {
             services.AddHostedService<OutboxWorker>();
         }
@@ -303,7 +304,7 @@ public static class InfrastructureServiceCollectionExtensions
     public static IServiceCollection AddInfrastructureJobs(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IHostEnvironment environment)
     {
         services.AddScoped<OperationalHeartbeatJob>();
         services.AddScoped<SellerSubscriptionNotificationJob>();
@@ -313,25 +314,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ImportUfNeighborhoodsJob>();
         services.AddScoped<GooglePlacesTextSearchImporter>();
 
-        services.AddHangfire(config =>
-        {
-            if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
-            {
-                config.UseInMemoryStorage();
-                return;
-            }
-
-            var defaultConnection = configuration.GetConnectionString("DefaultConnection");
-            config.UsePostgreSqlStorage(options =>
-            {
-                options.UseNpgsqlConnection(defaultConnection);
-            });
-        });
-
-        services.AddHangfireServer(options =>
-        {
-            options.WorkerCount = 2;
-        });
+        var hangfireRuntime = HangfireRuntime.Resolve(configuration);
+        services.AddSingleton(hangfireRuntime);
+        services.AddUrbeatHangfireStorage(configuration, environment);
+        services.AddUrbeatHangfireServer(hangfireRuntime);
 
         return services;
     }

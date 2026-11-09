@@ -58,6 +58,18 @@ Transient failures use exponential delays with jitter and a maximum attempt coun
 
 Existing direct SignalR/e-mail/SMS/print calls are replaced incrementally by outbox writes. The first migration creates the table and indexes without changing existing order data. The worker is disabled or drains safely during rollout until the migration is present. No existing secrets or payment gateway contracts are changed.
 
+## Handler Delivery Fan-Out (2026-11-09)
+
+The dispatcher no longer executes every matching handler inside the message claim. Before claiming, it performs an idempotent transactional fan-out that inserts one `OutboxHandlerDeliveries` row per matching handler, with a unique `(OutboxMessageId, HandlerKey)` constraint. Each delivery has its own status, attempts, availability, lock expiry, error, and timestamps, and is claimed independently by `Channel` with PostgreSQL `FOR UPDATE SKIP LOCKED`. This isolates failures and lets the business worker process SignalR/print handlers while the communications worker processes e-mail (and a future WhatsApp channel) without racing for the same row.
+
+Compatibility rules:
+
+- legacy `Pending` messages are fanned out on first dispatch; `Processing` messages are only fanned out after their legacy lock expires;
+- legacy `Processed`/`Failed` messages are preserved and never replayed automatically;
+- the legacy `OutboxMessages.Status` is a projection of the delivery outcomes, kept for the operations API and existing dashboards;
+- `Sequence = 0` means no ordering constraint; ordered deliveries only wait for an earlier pending/processing delivery of the same channel and aggregate;
+- the new table is created by the `AddOutboxHandlerDeliveries` migration, applied by API startup. Do not run `dotnet ef database update` against a deployment database.
+
 ## Testing
 
 - Unit tests cover event serialization, retry classification, idempotency keys, backoff, and handler routing.

@@ -1599,6 +1599,8 @@ Nunca guardar no código-fonte:
 ## Tabelas técnicas
 - `AuditLogs`
 - `OutboxMessages`
+- `OutboxHandlerDeliveries`
+- `OutboxDeliveries`
 - `InboxMessages`
 - `WebhookEvents`
 - `BackgroundJobExecutions` se necessário

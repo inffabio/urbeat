@@ -2,6 +2,7 @@
 using Hangfire.Common;
 using Hangfire.States;
 using Urbeat.Application.Interfaces;
+using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -71,7 +72,14 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
         {
             using var scope = Services.CreateScope();
             var dispatcher = scope.ServiceProvider.GetRequiredService<IOutboxDispatcher>();
-            if (await dispatcher.DispatchBatchAsync(cancellationToken) == 0)
+
+            var dispatched = 0;
+            foreach (var channel in Enum.GetValues<OutboxChannel>())
+            {
+                dispatched += await dispatcher.DispatchBatchAsync(channel, cancellationToken);
+            }
+
+            if (dispatched == 0)
             {
                 break;
             }

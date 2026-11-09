@@ -161,7 +161,16 @@ if (Test-Path -LiteralPath $applicationScript -PathType Leaf) {
         @{ Pattern = 'Assert-DeploySource'; Message = "04-deploy-application.ps1 must validate the deploy source." },
         @{ Pattern = 'deployment-manifest\.json'; Message = "04-deploy-application.ps1 must upload deployment-manifest.json." },
         @{ Pattern = '\$extractCommand\s*=\s*\$extractCommand\s*-replace\s+"`r`n",\s*"`n"'; Message = "04-deploy-application.ps1 must normalize the remote extraction command from CRLF to LF." },
-        @{ Pattern = 'ssh\s+@sshOpts\s+"\$\{SSHUser\}@\$\{ServerIP\}"\s+\$extractCommand'; Message = "04-deploy-application.ps1 must send the normalized extraction command via SSH." }
+        @{ Pattern = 'ssh\s+@sshOpts\s+"\$\{SSHUser\}@\$\{ServerIP\}"\s+\$extractCommand'; Message = "04-deploy-application.ps1 must send the normalized extraction command via SSH." },
+        @{ Pattern = 'image:\s*urbeat/backend:latest'; Message = "04-deploy-application.ps1 must tag the backend image so workers can reuse it." },
+        @{ Pattern = '(?m)^\s*worker-business:'; Message = "04-deploy-application.ps1 must define the worker-business service." },
+        @{ Pattern = '(?m)^\s*worker-communications:'; Message = "04-deploy-application.ps1 must define the worker-communications service." },
+        @{ Pattern = 'Hangfire__Role:\s*"Web"'; Message = "04-deploy-application.ps1 must run the API as Hangfire role Web." },
+        @{ Pattern = 'Hangfire__Role:\s*"Business"'; Message = "04-deploy-application.ps1 must run the business worker as Hangfire role Business." },
+        @{ Pattern = 'Hangfire__Role:\s*"Communications"'; Message = "04-deploy-application.ps1 must run the communications worker as Hangfire role Communications." },
+        @{ Pattern = 'Outbox__WorkerEnabled:\s*"true"'; Message = "04-deploy-application.ps1 must enable the outbox in the business and communications workers." },
+        @{ Pattern = 'Outbox__WorkerEnabled:\s*"false"'; Message = "04-deploy-application.ps1 must disable the outbox in the API." },
+        @{ Pattern = 'entrypoint:\s*\["dotnet",\s*"/app/worker/Urbeat\.Worker\.dll"\]'; Message = "04-deploy-application.ps1 workers must use the published Worker entrypoint." }
     )) {
         if ($applicationContent -notmatch $invariant.Pattern) {
             $errors.Add($invariant.Message)

@@ -126,6 +126,34 @@ Describe "deploy hardening invariants" {
         $content | Should Match 'New-DeploymentManifest'
     }
 
+    It "OCI application compose splits the API from Hangfire workers on a shared image" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\04-deploy-application.ps1") -Raw
+        $match = [regex]::Match($content, '(?s)\$dockerCompose = @''\r?\n(.*?)\r?\n''@')
+        $match.Success | Should Be $true
+
+        $compose = $match.Groups[1].Value
+        $compose | Should Match 'image:\s*urbeat/backend:latest'
+        $compose | Should Match '(?m)^  worker-business:'
+        $compose | Should Match '(?m)^  worker-communications:'
+
+        $backendBlock = [regex]::Match($compose, '(?ms)^  backend:\r?\n(.*?)(?=^  \S|\z)').Groups[1].Value
+        $businessBlock = [regex]::Match($compose, '(?ms)^  worker-business:\r?\n(.*?)(?=^  \S|\z)').Groups[1].Value
+        $communicationsBlock = [regex]::Match($compose, '(?ms)^  worker-communications:\r?\n(.*?)(?=^  \S|\z)').Groups[1].Value
+
+        $backendBlock | Should Match 'Hangfire__Role:\s*"Web"'
+        $backendBlock | Should Match 'Outbox__WorkerEnabled:\s*"false"'
+        $businessBlock | Should Match 'image:\s*urbeat/backend:latest'
+        $businessBlock | Should Match 'Hangfire__Role:\s*"Business"'
+        $businessBlock | Should Match 'Outbox__WorkerEnabled:\s*"true"'
+        $communicationsBlock | Should Match 'image:\s*urbeat/backend:latest'
+        $communicationsBlock | Should Match 'Hangfire__Role:\s*"Communications"'
+        $communicationsBlock | Should Match 'Outbox__WorkerEnabled:\s*"true"'
+        $businessBlock | Should Match 'entrypoint:\s*\["dotnet",\s*"/app/worker/Urbeat\.Worker\.dll"\]'
+        $communicationsBlock | Should Match 'entrypoint:\s*\["dotnet",\s*"/app/worker/Urbeat\.Worker\.dll"\]'
+        ($businessBlock -match '(?m)^\s+ports:') | Should Be $false
+        ($communicationsBlock -match '(?m)^\s+ports:') | Should Be $false
+    }
+
     It "internal deploy accepts AllowDirty and ExpectedCommit" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
 

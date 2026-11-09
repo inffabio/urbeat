@@ -1,7 +1,9 @@
 ﻿using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Hangfire;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Urbeat.Infrastructure.Data;
 
+[Queue(HangfireQueues.Business)]
 public sealed class GooglePlacesTextSearchImporter
 {
     private readonly ApplicationDbContext _dbContext;

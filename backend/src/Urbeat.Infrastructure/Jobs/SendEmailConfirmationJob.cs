@@ -1,8 +1,11 @@
-﻿using Urbeat.Application.Interfaces;
+﻿using Hangfire;
+using Urbeat.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using Urbeat.Infrastructure.Hangfire;
 
 namespace Urbeat.Infrastructure.Jobs;
 
+[Queue(HangfireQueues.Communications)]
 public sealed class SendEmailConfirmationJob
 {
     private readonly IEmailConfirmationService _emailConfirmationService;

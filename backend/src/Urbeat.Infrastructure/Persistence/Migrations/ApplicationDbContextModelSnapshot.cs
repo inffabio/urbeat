@@ -1441,6 +1441,66 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.ToTable("OutboxDeliveries", (string)null);
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.OutboxHandlerDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AggregateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("AvailableAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HandlerKey")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OutboxMessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ProcessedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OutboxMessageId", "HandlerKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_OutboxHandlerDeliveries_Message_Handler");
+
+                    b.HasIndex("Channel", "AggregateId", "Sequence")
+                        .HasDatabaseName("IX_OutboxHandlerDeliveries_Channel_Aggregate_Sequence");
+
+                    b.HasIndex("Channel", "Status", "AvailableAtUtc", "LockedUntilUtc")
+                        .HasDatabaseName("IX_OutboxHandlerDeliveries_Channel_Status_Available_Lock");
+
+                    b.ToTable("OutboxHandlerDeliveries", (string)null);
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3555,6 +3615,15 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasOne("Urbeat.Domain.Entities.Order", null)
                         .WithMany()
                         .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.OutboxHandlerDelivery", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.OutboxMessage", null)
+                        .WithMany()
+                        .HasForeignKey("OutboxMessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Hangfire;
+using Microsoft.Extensions.Logging;
+using Urbeat.Infrastructure.Hangfire;
 
 namespace Urbeat.Infrastructure.Jobs;
 
+[Queue(HangfireQueues.Business)]
 public sealed class OperationalHeartbeatJob
 {
     private readonly ILogger<OperationalHeartbeatJob> _logger;

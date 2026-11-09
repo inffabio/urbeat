@@ -1,7 +1,7 @@
 ﻿using Urbeat.Application.DependencyInjection;
 using Urbeat.Infrastructure.DependencyInjection;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Identity;
-using Urbeat.Infrastructure.Jobs;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.WebApi.DependencyInjection;
 using Urbeat.WebApi.Infrastructure;
@@ -31,6 +31,8 @@ builder.Services.AddWebApi(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
+var hangfireRuntime = app.Services.GetRequiredService<HangfireRuntime>();
+
 using (var scope = app.Services.CreateScope())
 {
     var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
@@ -43,6 +45,23 @@ using (var scope = app.Services.CreateScope())
     startupLogger.LogInformation(
         "SignalR Redis backplane {BackplaneState}.",
         signalRRedisBackplaneEnabled ? "enabled" : "disabled");
+
+    // Operational role is logged without connection strings so web and worker containers can be
+    // told apart in logs. 'All' keeps the legacy single-process behavior when Hangfire:Role is
+    // not configured.
+    startupLogger.LogInformation(
+        "Hangfire role {Role}; server {ServerState}; queues {Queues}; recurring scheduler {RecurringState}; outbox {OutboxState}.",
+        hangfireRuntime.Role,
+        hangfireRuntime.RunsServer ? "enabled" : "disabled",
+        string.Join(",", hangfireRuntime.Queues),
+        hangfireRuntime.RegistersRecurringJobs ? "enabled" : "disabled",
+        hangfireRuntime.RunsOutbox ? "local" : "remote");
+
+    if (hangfireRuntime.Role == HangfireRole.All && !builder.Environment.IsDevelopment())
+    {
+        startupLogger.LogWarning(
+            "Hangfire is running in legacy 'All' mode. Configure Hangfire:Role=Web on the API and run the dedicated workers to split job processing.");
+    }
 
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -150,15 +169,14 @@ app.MapHealthChecks("/health");
 app.MapHub<Urbeat.WebApi.Hubs.SellerNotificationHub>("/hubs/seller-notifications");
 app.MapHub<Urbeat.WebApi.Hubs.CustomerNotificationHub>("/hubs/customer-notifications");
 
-RecurringJob.AddOrUpdate<OperationalHeartbeatJob>(
-    "operational-heartbeat",
-    job => job.ExecuteAsync(),
-    Cron.Hourly);
-
-RecurringJob.AddOrUpdate<SellerSubscriptionNotificationJob>(
-    "seller-subscription-notifications",
-    job => job.ExecuteAsync(),
-    Cron.Daily);
+// Only the business role (or the legacy 'All' role) registers recurring jobs. In the split
+// deployment the API runs as 'Web' and the business worker is the single scheduler.
+if (HangfireRecurringJobs.TryRegisterBusinessJobs(
+        app.Services.GetRequiredService<IRecurringJobManager>(),
+        hangfireRuntime.Role))
+{
+    app.Logger.LogInformation("Hangfire recurring business jobs registered.");
+}
 
 app.Run();
 

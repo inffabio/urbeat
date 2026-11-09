@@ -90,6 +90,32 @@ volumes:
   prometheus-data:
     driver: local
 
+# Ambiente compartilhado entre a API e os workers Hangfire.
+# Valores sensíveis continuam vindo do .env; nada é impresso aqui.
+x-backend-environment: &backend-environment
+  ASPNETCORE_ENVIRONMENT: Production
+  DOTNET_ENVIRONMENT: Production
+  ASPNETCORE_URLS: http://+:5000
+  ConnectionStrings__DefaultConnection: ${URBEAT_DB_CONNECTION}
+  Redis__ConnectionString: "redis:6379"
+  SignalR__RedisBackplaneEnabled: "true"
+  Email__LogOnly: "false"
+  Email__Smtp__Host: ${SMTP_HOST}
+  Email__Smtp__Port: ${SMTP_PORT}
+  Email__Smtp__Username: ${SMTP_USER}
+  Email__Smtp__Password: ${SMTP_PASSWORD}
+  Email__Smtp__UseStartTls: ${SMTP_SSL}
+  Email__FromAddress: ${SMTP_FROM}
+  Email__FromName: "Urbeat"
+  Jwt__Secret: ${JWT_SECRET}
+  Jwt__Issuer: ${JWT_ISSUER}
+  Jwt__Audience: ${JWT_AUDIENCE}
+  Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES}
+  GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
+  App__FrontendUrl: ${FRONTEND_URL}
+  App__ApiUrl: ${API_URL}
+  App__CorsOrigins: ${CORS_ORIGINS}
+
 services:
 
   # ─── PostgreSQL Database ─────────────────────────────────
@@ -152,33 +178,19 @@ services:
     build:
       context: ./backend
       dockerfile: src/Urbeat.WebApi/Dockerfile
+    # Explicit shared tag consumed by both worker services. `docker compose build --no-cache`
+    # builds this image before `up -d` starts the workers.
+    image: urbeat/backend:latest
     platform: linux/arm64
     container_name: urbeat-backend
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__DefaultConnection: ${URBEAT_DB_CONNECTION}
-      Redis__ConnectionString: "redis:6379"
-      SignalR__RedisBackplaneEnabled: "true"
-      Email__LogOnly: "false"
-      Email__Smtp__Host: ${SMTP_HOST}
-      Email__Smtp__Port: ${SMTP_PORT}
-      Email__Smtp__Username: ${SMTP_USER}
-      Email__Smtp__Password: ${SMTP_PASSWORD}
-      Email__Smtp__UseStartTls: ${SMTP_SSL}
-      Email__FromAddress: ${SMTP_FROM}
-      Email__FromName: "Urbeat"
-      Jwt__Secret: ${JWT_SECRET}
-      Jwt__Issuer: ${JWT_ISSUER}
-      Jwt__Audience: ${JWT_AUDIENCE}
-      Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES}
-      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
-      App__FrontendUrl: ${FRONTEND_URL}
-      App__ApiUrl: ${API_URL}
-      App__CorsOrigins: ${CORS_ORIGINS}
+      <<: *backend-environment
+      # HTTP API only: do not consume Hangfire queues or run the outbox here.
+      Hangfire__Role: "Web"
+      Outbox__WorkerEnabled: "false"
     ports:
       - "127.0.0.1:5000:5000"
     depends_on:
@@ -201,6 +213,69 @@ services:
       options:
         max-size: "100m"
         max-file: "5"
+
+  # ─── Business Worker (Outbox + jobs de manutenção) ───────
+  worker-business:
+    image: urbeat/backend:latest
+    platform: linux/arm64
+    container_name: urbeat-worker-business
+    restart: unless-stopped
+    entrypoint: ["dotnet", "/app/worker/Urbeat.Worker.dll"]
+    env_file:
+      - .env
+    environment:
+      <<: *backend-environment
+      Hangfire__Role: "Business"
+      Outbox__WorkerEnabled: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - urbeat-network
+    healthcheck:
+      # Worker has no HTTP endpoint; the image-level web healthcheck must not apply.
+      disable: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ─── Communications Worker (WhatsApp/e-mail/notificações) ─
+  worker-communications:
+    image: urbeat/backend:latest
+    platform: linux/arm64
+    container_name: urbeat-worker-communications
+    restart: unless-stopped
+    entrypoint: ["dotnet", "/app/worker/Urbeat.Worker.dll"]
+    env_file:
+      - .env
+    environment:
+      <<: *backend-environment
+      Hangfire__Role: "Communications"
+      # Communications owns the e-mail/WhatsApp outbox channel; business stays in worker-business.
+      Outbox__WorkerEnabled: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - urbeat-network
+    healthcheck:
+      # Worker has no HTTP endpoint; the image-level web healthcheck must not apply.
+      disable: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   # ─── Angular/Ionic Frontend (Build Only) ──────────────────
   frontend:

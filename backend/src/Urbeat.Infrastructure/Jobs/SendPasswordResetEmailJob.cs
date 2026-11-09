@@ -1,9 +1,12 @@
-﻿using Urbeat.Application.Interfaces;
+﻿using Hangfire;
+using Urbeat.Application.Interfaces;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Services.Email;
 using Microsoft.Extensions.Logging;
 
 namespace Urbeat.Infrastructure.Jobs;
 
+[Queue(HangfireQueues.Communications)]
 public sealed class SendPasswordResetEmailJob
 {
     private readonly IEmailService _emailService;

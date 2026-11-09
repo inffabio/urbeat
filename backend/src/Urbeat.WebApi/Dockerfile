@@ -9,14 +9,22 @@ COPY src/Urbeat.Domain/Urbeat.Domain.csproj                 src/Urbeat.Domain/
 COPY src/Urbeat.Application/Urbeat.Application.csproj       src/Urbeat.Application/
 COPY src/Urbeat.Infrastructure/Urbeat.Infrastructure.csproj src/Urbeat.Infrastructure/
 COPY src/Urbeat.WebApi/Urbeat.WebApi.csproj                 src/Urbeat.WebApi/
+COPY src/Urbeat.Worker/Urbeat.Worker.csproj                 src/Urbeat.Worker/
 
-RUN dotnet restore "src/Urbeat.WebApi/Urbeat.WebApi.csproj"
+RUN dotnet restore "src/Urbeat.WebApi/Urbeat.WebApi.csproj" \
+    && dotnet restore "src/Urbeat.Worker/Urbeat.Worker.csproj"
 
-# Copiar o restante e publicar
+# Copiar o restante e publicar a API e o worker na mesma imagem.
 COPY src/ src/
 RUN dotnet publish "src/Urbeat.WebApi/Urbeat.WebApi.csproj" \
     -c Release \
     -o /app/publish \
+    /p:UseAppHost=false \
+    /p:DebugType=None \
+    /p:DebugSymbols=false \
+    && dotnet publish "src/Urbeat.Worker/Urbeat.Worker.csproj" \
+    -c Release \
+    -o /app/publish-worker \
     /p:UseAppHost=false \
     /p:DebugType=None \
     /p:DebugSymbols=false
@@ -38,6 +46,7 @@ RUN groupadd -r urbeat && useradd -r -g urbeat -d /app urbeat \
 USER urbeat
 
 COPY --from=build --chown=urbeat:urbeat /app/publish .
+COPY --from=build --chown=urbeat:urbeat /app/publish-worker ./worker
 
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Production \

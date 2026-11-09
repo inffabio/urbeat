@@ -1,4 +1,5 @@
 ﻿using Urbeat.Application.Interfaces;
+using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
 using Urbeat.Infrastructure.Services.WhatsApp;
@@ -72,7 +73,14 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         {
             using var scope = Services.CreateScope();
             var dispatcher = scope.ServiceProvider.GetRequiredService<IOutboxDispatcher>();
-            if (await dispatcher.DispatchBatchAsync(cancellationToken) == 0)
+
+            var dispatched = 0;
+            foreach (var channel in Enum.GetValues<OutboxChannel>())
+            {
+                dispatched += await dispatcher.DispatchBatchAsync(channel, cancellationToken);
+            }
+
+            if (dispatched == 0)
             {
                 break;
             }

@@ -106,6 +106,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<OutboxDelivery> OutboxDeliveries => Set<OutboxDelivery>();
 
+    public DbSet<OutboxHandlerDelivery> OutboxHandlerDeliveries => Set<OutboxHandlerDelivery>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -913,6 +915,7 @@ public sealed class ApplicationDbContext
         });
 
         builder.ApplyConfiguration(new OutboxMessageConfiguration());
+        builder.ApplyConfiguration(new OutboxHandlerDeliveryConfiguration());
         builder.ApplyConfiguration(new OrderPrintJobConfiguration());
 
         builder.Entity<OutboxDelivery>(entity =>

@@ -9,6 +9,7 @@ using FluentAssertions;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -60,6 +61,64 @@ public sealed class OutboxOperationsTests : IClassFixture<TestWebApplicationFact
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         body.GetProperty("pending").GetInt32().Should().BeGreaterThanOrEqualTo(0);
         body.GetProperty("failed").GetInt32().Should().BeGreaterThanOrEqualTo(0);
+        body.GetProperty("deliveries").GetProperty("business").GetProperty("pending").GetInt32()
+            .Should().BeGreaterThanOrEqualTo(0);
+        body.GetProperty("deliveries").GetProperty("communications").GetProperty("failed").GetInt32()
+            .Should().BeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    public async Task Retry_ShouldRequeueOnlyFailedDeliveries_AndKeepSiblingsProcessed()
+    {
+        var message = await SeedFailedMessageAsync();
+        var processedDeliveryId = Guid.NewGuid();
+        var failedDeliveryId = Guid.NewGuid();
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.OutboxHandlerDeliveries.AddRange(
+                new OutboxHandlerDelivery
+                {
+                    Id = processedDeliveryId,
+                    OutboxMessageId = message.Id,
+                    HandlerKey = "business.notification",
+                    Channel = OutboxChannel.Business,
+                    Status = OutboxHandlerDeliveryStatus.Processed,
+                    AvailableAtUtc = DateTime.UtcNow,
+                    ProcessedAtUtc = DateTime.UtcNow
+                },
+                new OutboxHandlerDelivery
+                {
+                    Id = failedDeliveryId,
+                    OutboxMessageId = message.Id,
+                    HandlerKey = "communications.email",
+                    Channel = OutboxChannel.Communications,
+                    Status = OutboxHandlerDeliveryStatus.Failed,
+                    AttemptCount = 4,
+                    AvailableAtUtc = DateTime.UtcNow,
+                    LastError = "invalid recipient"
+                });
+            await db.SaveChangesAsync();
+        }
+
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", BuildToken("Admin"));
+
+        var response = await client.PostAsync($"/api/outbox/{message.Id}/retry", null);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var processed = await db.OutboxHandlerDeliveries.SingleAsync(x => x.Id == processedDeliveryId);
+            var failed = await db.OutboxHandlerDeliveries.SingleAsync(x => x.Id == failedDeliveryId);
+
+            processed.Status.Should().Be(OutboxHandlerDeliveryStatus.Processed);
+            failed.Status.Should().Be(OutboxHandlerDeliveryStatus.Pending);
+            failed.AttemptCount.Should().Be(0);
+            failed.LastError.Should().BeNull();
+        }
     }
 
     [Fact]
@@ -78,7 +137,7 @@ public sealed class OutboxOperationsTests : IClassFixture<TestWebApplicationFact
         items.GetArrayLength().Should().Be(0);
 
         var summary = await client.GetFromJsonAsync<JsonElement>("/api/outbox/summary");
-        summary.GetProperty("pending").GetInt32().Should().Be(1);
+        summary.GetProperty("pending").GetInt32().Should().BeGreaterThanOrEqualTo(1);
 
         // The failed listing must never expose payload contents.
         var raw = await (await client.GetAsync("/api/outbox/failed")).Content.ReadAsStringAsync();

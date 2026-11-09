@@ -1,10 +1,13 @@
-﻿using Urbeat.Application.Interfaces;
+﻿using Hangfire;
+using Urbeat.Application.Interfaces;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Urbeat.Infrastructure.Jobs;
 
+[Queue(HangfireQueues.Business)]
 public sealed class ImportAllCitiesNeighborhoodsJob
 {
     private readonly ApplicationDbContext _dbContext;

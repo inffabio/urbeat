@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Outbox;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.WebApi.Health;
@@ -16,7 +17,8 @@ public sealed class OutboxHealthCheckTests
     private static OutboxHealthCheck CreateCheck(
         ApplicationDbContext db,
         OutboxOptions options,
-        IOutboxWorkerLiveness? liveness = null)
+        IOutboxWorkerLiveness? liveness = null,
+        HangfireRuntime? runtime = null)
     {
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
@@ -26,7 +28,8 @@ public sealed class OutboxHealthCheckTests
         return new OutboxHealthCheck(
             provider.GetRequiredService<IServiceScopeFactory>(),
             liveness ?? new OutboxWorkerLiveness(),
-            Options.Create(options));
+            Options.Create(options),
+            runtime ?? HangfireRuntime.Create(HangfireRole.All));
     }
 
     private static ApplicationDbContext CreateDb()
@@ -97,6 +100,24 @@ public sealed class OutboxHealthCheckTests
     }
 
     [Fact]
+    public async Task CheckHealthAsync_ShouldNotRequireLocalHeartbeat_WhenOutboxRunsInAnotherProcess()
+    {
+        using var db = CreateDb();
+
+        var check = CreateCheck(
+            db,
+            WorkerOptions(),
+            liveness: new OutboxWorkerLiveness(),
+            runtime: HangfireRuntime.Create(HangfireRole.Web));
+
+        var result = await check.CheckHealthAsync(new HealthCheckContext());
+
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data["workerRunsLocally"].Should().Be(false);
+        result.Data["hangfireRole"].Should().Be("Web");
+    }
+
+    [Fact]
     public async Task CheckHealthAsync_ShouldBeDegraded_WhenFailedMessagesExist()
     {
         using var db = CreateDb();
@@ -148,5 +169,100 @@ public sealed class OutboxHealthCheckTests
 
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Data["pending"].Should().Be(5);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_ShouldReportDeliveryBacklogAndFailuresPerChannel()
+    {
+        using var db = CreateDb();
+        var message = new OutboxMessage
+        {
+            Type = "OrderCreated",
+            AggregateId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            AvailableAtUtc = DateTime.UtcNow,
+            Status = OutboxMessageStatus.Pending
+        };
+        db.OutboxMessages.Add(message);
+
+        db.OutboxHandlerDeliveries.AddRange(
+            new OutboxHandlerDelivery
+            {
+                OutboxMessageId = message.Id,
+                HandlerKey = "business.notification",
+                Channel = OutboxChannel.Business,
+                Status = OutboxHandlerDeliveryStatus.Pending,
+                AvailableAtUtc = DateTime.UtcNow
+            },
+            new OutboxHandlerDelivery
+            {
+                OutboxMessageId = message.Id,
+                HandlerKey = "business.print",
+                Channel = OutboxChannel.Business,
+                Status = OutboxHandlerDeliveryStatus.Failed,
+                AvailableAtUtc = DateTime.UtcNow,
+                LastError = "printer offline"
+            },
+            new OutboxHandlerDelivery
+            {
+                OutboxMessageId = message.Id,
+                HandlerKey = "communications.email",
+                Channel = OutboxChannel.Communications,
+                Status = OutboxHandlerDeliveryStatus.Pending,
+                AvailableAtUtc = DateTime.UtcNow
+            });
+        await db.SaveChangesAsync();
+
+        var liveness = new OutboxWorkerLiveness();
+        liveness.RecordHeartbeat(DateTimeOffset.UtcNow);
+
+        var check = CreateCheck(db, WorkerOptions(), liveness);
+
+        var result = await check.CheckHealthAsync(new HealthCheckContext());
+
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Data["deliveriesPending"].Should().Be(2);
+        result.Data["deliveriesFailed"].Should().Be(1);
+        result.Data["businessPending"].Should().Be(1);
+        result.Data["businessFailed"].Should().Be(1);
+        result.Data["communicationsPending"].Should().Be(1);
+        result.Data["communicationsFailed"].Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_ShouldBeDegraded_WhenOnlyADeliveryFailed()
+    {
+        using var db = CreateDb();
+        var message = new OutboxMessage
+        {
+            Type = "OrderCreated",
+            AggregateId = Guid.NewGuid(),
+            OccurredAtUtc = DateTime.UtcNow,
+            AvailableAtUtc = DateTime.UtcNow,
+            // Projection has not converged to Failed yet; deliveries are authoritative.
+            Status = OutboxMessageStatus.Pending
+        };
+        db.OutboxMessages.Add(message);
+        db.OutboxHandlerDeliveries.Add(new OutboxHandlerDelivery
+        {
+            OutboxMessageId = message.Id,
+            HandlerKey = "communications.email",
+            Channel = OutboxChannel.Communications,
+            Status = OutboxHandlerDeliveryStatus.Failed,
+            AvailableAtUtc = DateTime.UtcNow,
+            LastError = "invalid recipient"
+        });
+        await db.SaveChangesAsync();
+
+        var liveness = new OutboxWorkerLiveness();
+        liveness.RecordHeartbeat(DateTimeOffset.UtcNow);
+
+        var check = CreateCheck(db, WorkerOptions(), liveness);
+
+        var result = await check.CheckHealthAsync(new HealthCheckContext());
+
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Data["deliveriesFailed"].Should().Be(1);
+        result.Data["communicationsFailed"].Should().Be(1);
     }
 }

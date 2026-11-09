@@ -1,8 +1,11 @@
-﻿using Urbeat.Application.Interfaces;
+﻿using Hangfire;
+using Urbeat.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using Urbeat.Infrastructure.Hangfire;
 
 namespace Urbeat.Infrastructure.Jobs;
 
+[Queue(HangfireQueues.Business)]
 public sealed class SellerSubscriptionNotificationJob
 {
     private readonly ISubscriptionNotificationService _subscriptionNotificationService;
