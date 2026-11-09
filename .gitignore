@@ -46,6 +46,9 @@ scripts/criarDeployOracleCloud/configs/*.local.json
 .impeccable/critique/
 .playwright-mcp/
 
+# Load-test generated artifacts (cleanup plans and k6 summaries)
+scripts/load/artifacts/
+
 # Certificates
 *.pem
 *.key

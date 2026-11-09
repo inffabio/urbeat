@@ -3,6 +3,11 @@
 Non-destructive k6 smoke test for the urbeat API. It only issues `GET` requests and is meant to
 show that an environment is reachable and healthy, not to validate business flows.
 
+> For the separate **mutable business-flow** scenario (synthetic sellers/stores/products and
+> concurrent pay-on-delivery orders), see [BUSINESS-LOAD.md](./BUSINESS-LOAD.md). It is strictly for
+> an explicitly authorized non-production environment and requires `-Mode Run`,
+> `-BusinessTestAuthorized`, `-Cleanup`, and `-AllowRemote` for a remote target.
+
 ## Safety boundaries
 
 - Only `GET`.
