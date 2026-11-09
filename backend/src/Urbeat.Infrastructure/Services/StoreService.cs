@@ -98,6 +98,7 @@ public sealed class StoreService : IStoreService
         // Um padrão protegido pode ser selecionado; qualquer outro nome gera uma categoria
         // privada desta loja na mesma unidade de trabalho. Categorias privadas de outra loja
         // nunca são aceitas nem reutilizadas.
+        CuisineType? privateCuisine = null;
         var cuisineName = request.CuisineType?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(cuisineName))
         {
@@ -124,24 +125,43 @@ public sealed class StoreService : IStoreService
         }
         else
         {
-            var privateCuisine = new CuisineType
+            privateCuisine = new CuisineType
             {
                 Name = cuisineName,
                 IsActive = true,
-                IsDefault = false,
-                StoreId = store.Id
+                IsDefault = false
             };
-            _dbContext.CuisineTypes.Add(privateCuisine);
-            store.CuisineTypeId = privateCuisine.Id;
         }
 
         await _dbContext.Stores.AddAsync(store, cancellationToken);
 
         await AttachDefaultSubscriptionAsync(store, ownerUserId, cancellationToken);
 
+        // Stores.CuisineTypeId -> CuisineTypes and CuisineTypes.StoreId -> Stores are two
+        // independent foreign keys. With both rows Added, EF cannot order the INSERTs and throws
+        // a circular-dependency exception before any SQL runs. Persist the store first, then the
+        // private category that points back to it, inside one transaction so a failure never
+        // leaves a store without its category or a private category without its owner.
+        await using var transaction = _dbContext.Database.IsRelational()
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
         try
         {
-            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+            if (privateCuisine is not null)
+            {
+                await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+                privateCuisine.StoreId = store.Id;
+                store.CuisineTypeId = privateCuisine.Id;
+                _dbContext.CuisineTypes.Add(privateCuisine);
+
+                await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+            }
         }
         catch (DbUpdateException exception) when (IsStoreSlugUniqueViolation(exception))
         {
@@ -164,6 +184,11 @@ public sealed class StoreService : IStoreService
             "STORE_CREATED", store.Id, ownerUserId, store.Name, store.CuisineType, ipAddress);
 
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return (true, false, false, false, _mapper.Map<StoreResponseDto>(store));
     }

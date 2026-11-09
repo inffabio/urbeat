@@ -74,6 +74,36 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Seller_ShouldCreateStore_WithWizardPendingCuisineType()
+    {
+        var client = await CreateAuthenticatedSellerAsync("store.create.pending-cuisine");
+
+        // Exact payload produced by the store wizard when the seller creates a category before
+        // the store exists: the pending category name becomes the store's cuisine type.
+        var createStoreResponse = await client.PostAsJsonAsync("/api/stores", new CreateStoreRequestDto
+        {
+            Name = "Loja Categoria Nova",
+            Slug = "loja-categoria-nova",
+            PhoneNumber = "11999999999",
+            CuisineType = "Comida Vegana",
+            SupportsDelivery = true,
+            SupportsPickup = true,
+            InitialMinute = 600,
+            FinalMinute = 1380,
+            MaxDeliveryRadiusKm = 5,
+        });
+
+        createStoreResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var store = await client.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
+        store.Should().NotBeNull();
+        store!.CuisineType.Should().Be("Comida Vegana");
+
+        var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{store.Id}/cuisine-types");
+        scoped!.Should().ContainSingle(x => x.Name == "Comida Vegana" && x.StoreId == store.Id && !x.IsDefault);
+    }
+
+    [Fact]
     public async Task Seller_ShouldNotCreateSecondStore()
     {
         var client = _factory.CreateClient(new()
