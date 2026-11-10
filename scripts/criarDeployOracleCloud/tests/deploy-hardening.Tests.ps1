@@ -163,6 +163,35 @@ Describe "deploy hardening invariants" {
         ($content -match 'psql\s+-U\s+postgres\s+-d\s+UrbeatDb') | Should Be $false
     }
 
+    It "uploads a syntactically valid verification shell script without nested single-quote escaping" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+        $match = [regex]::Match($content, '(?s)\$verifyScript = @''\r?\n(.*?)\r?\n''@')
+        $match.Success | Should Be $true
+
+        $verifyScript = $match.Groups[1].Value
+        $nestedQuote = [string][char]39 + [string][char]34 + [string][char]39 + [string][char]34 + [string][char]39
+        $verifyScript | Should Not Match $nestedQuote
+        $verifyScript | Should Match 'table_schema = current_schema\(\)'
+
+        $bash = Get-Command bash -ErrorAction SilentlyContinue
+        if ($null -eq $bash) {
+            return
+        }
+        & $bash.Source --version 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            return
+        }
+
+        $tempScript = Join-Path ([System.IO.Path]::GetTempPath()) ("verify-" + [guid]::NewGuid() + ".sh")
+        try {
+            [System.IO.File]::WriteAllText($tempScript, ($verifyScript -replace "`r`n", "`n"), [System.Text.UTF8Encoding]::new($false))
+            & $bash.Source -n $tempScript 2>$null
+            $LASTEXITCODE | Should Be 0
+        } finally {
+            Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue
+        }
+    }
+
     It "pipeline validation fails when no YAML validator is available" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\validate-pipeline.ps1") -Raw
         $content | Should Match 'No YAML validator available'

@@ -174,8 +174,8 @@ echo "🐘 POSTGRESQL"
 # configure different POSTGRES_USER/POSTGRES_DB values, so the verifier must not assume names.
 if [ "$docker_available" -eq 1 ] && docker exec urbeat-postgres sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' 2>/dev/null; then
     echo "  ✅ PostgreSQL: Ready"
-    TABLE_COUNT=$(docker exec urbeat-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"'"'urbeat'"'"';" -t 2>/dev/null | tr -d ' ')
-    echo "  📊 Tables in urbeat schema: $TABLE_COUNT"
+    TABLE_COUNT=$(docker exec urbeat-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema();" -t 2>/dev/null | tr -d ' ')
+    echo "  📊 Tables in current schema: $TABLE_COUNT"
 else
     echo "  ❌ PostgreSQL: Not ready"
     verification_failed=1
