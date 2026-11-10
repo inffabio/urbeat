@@ -43,6 +43,28 @@ public sealed class HealthCheckTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task HealthEndpoints_ShouldIgnoreOperationsTaggedChecks()
+    {
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddHealthChecks()
+                    .AddCheck(
+                        "synthetic-operations-dependency",
+                        () => HealthCheckResult.Unhealthy("synthetic operations failure"),
+                        tags: new[] { "operations" });
+            });
+        });
+
+        var client = factory.CreateClient();
+
+        // The admin operations probes must never change the container/legacy health contract.
+        (await client.GetAsync("/health")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await client.GetAsync("/health/ready")).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task HealthEndpoints_ShouldPreserveDependencyFailureSemantics()
     {
         using var factory = _factory.WithWebHostBuilder(builder =>

@@ -9,6 +9,7 @@ import {
   gridOutline,
   logOutOutline,
   menuOutline,
+  pulseOutline,
   settingsOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
@@ -27,6 +28,7 @@ addIcons({
   'grid-outline': gridOutline,
   'log-out-outline': logOutOutline,
   'menu-outline': menuOutline,
+  'pulse-outline': pulseOutline,
   'settings-outline': settingsOutline,
 });
 
@@ -45,6 +47,7 @@ export class AdminShellComponent {
 
   readonly menuItems: AdminNavItem[] = [
     { label: 'Visão geral', route: '/admin/visao-geral', icon: 'grid-outline', exact: true },
+    { label: 'Operações', route: '/admin/operacoes', icon: 'pulse-outline' },
     { label: 'Planos', route: '/admin/planos', icon: 'card-outline' },
     { label: 'Configurações', route: '/admin/configuracoes', icon: 'settings-outline' },
   ];

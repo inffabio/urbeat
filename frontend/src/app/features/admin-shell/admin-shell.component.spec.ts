@@ -65,6 +65,7 @@ describe('AdminShellComponent', () => {
     const text = fixture.nativeElement.textContent;
 
     expect(text).toContain('Visão geral');
+    expect(text).toContain('Operações');
     expect(text).toContain('Planos');
     expect(text).toContain('Configurações');
     expect(text).toContain('Sair');

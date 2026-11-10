@@ -22,7 +22,7 @@ describe('admin routes', () => {
     const admin = routes[adminIndex];
     const childPaths = (admin.children ?? []).map((child) => child.path);
 
-    expect(childPaths).toEqual(['', 'visao-geral', 'planos', 'configuracoes']);
+    expect(childPaths).toEqual(['', 'visao-geral', 'operacoes', 'planos', 'configuracoes']);
     expect(childPaths).not.toContain('dashboard');
     expect(childPaths).not.toContain('pedidos');
   });

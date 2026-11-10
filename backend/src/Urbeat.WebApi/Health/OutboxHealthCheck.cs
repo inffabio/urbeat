@@ -3,6 +3,7 @@ using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Outbox;
 using Urbeat.Infrastructure.Persistence;
+using Urbeat.WebApi.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -77,7 +78,7 @@ public sealed class OutboxHealthCheck : IHealthCheck
 
         var now = _timeProvider.GetUtcNow();
         var lastHeartbeat = _liveness.LastHeartbeatUtc;
-        var totalMessageBacklog = messagePending + messageProcessing;
+        var totalMessageBacklog = OutboxBacklogPolicy.Count(messagePending, messageProcessing);
 
         var data = new Dictionary<string, object>
         {
@@ -123,10 +124,11 @@ public sealed class OutboxHealthCheck : IHealthCheck
                 data: data);
         }
 
-        if (deliveryPending > _options.BacklogThreshold || totalMessageBacklog > _options.BacklogThreshold)
+        var totalDeliveryBacklog = OutboxBacklogPolicy.Count(deliveryPending, deliveryProcessing);
+        if (totalDeliveryBacklog > _options.BacklogThreshold || totalMessageBacklog > _options.BacklogThreshold)
         {
             return HealthCheckResult.Degraded(
-                $"Outbox backlog of {deliveryPending} pending delivery(ies) / {totalMessageBacklog} message(s) exceeds threshold {_options.BacklogThreshold}.",
+                    $"Outbox backlog of {totalDeliveryBacklog} pending/processing delivery(ies) / {totalMessageBacklog} message(s) exceeds threshold {_options.BacklogThreshold}.",
                 data: data);
         }
 
@@ -181,11 +183,13 @@ public sealed class OutboxHealthCheck : IHealthCheck
             DeliveryProcessing: DeliveryCount(OutboxHandlerDeliveryStatus.Processing),
             DeliveryProcessed: DeliveryCount(OutboxHandlerDeliveryStatus.Processed),
             DeliveryFailed: DeliveryCount(OutboxHandlerDeliveryStatus.Failed),
-            BusinessPending: ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Pending)
-                + ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Processing),
+             BusinessPending: OutboxBacklogPolicy.Count(
+                 ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Pending),
+                 ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Processing)),
             BusinessFailed: ChannelCount(OutboxChannel.Business, OutboxHandlerDeliveryStatus.Failed),
-            CommunicationsPending: ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Pending)
-                + ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Processing),
+             CommunicationsPending: OutboxBacklogPolicy.Count(
+                 ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Pending),
+                 ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Processing)),
             CommunicationsFailed: ChannelCount(OutboxChannel.Communications, OutboxHandlerDeliveryStatus.Failed));
     }
 }

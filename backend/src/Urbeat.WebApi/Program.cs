@@ -171,7 +171,12 @@ app.MapControllers();
 // Degraded and 503 when a dependency is Unhealthy. /health/live answers without touching
 // PostgreSQL/Redis (safe for liveness probes under load) and /health/ready runs the same
 // dependency checks for orchestration/readiness probes.
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    // The operations-tagged probes back the admin panel and must not change the container/legacy
+    // /health verdict. PostgreSQL is already exercised by the outbox check.
+    Predicate = registration => !registration.Tags.Contains("operations")
+});
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
     Predicate = _ => false

@@ -68,6 +68,116 @@ public sealed class OutboxOperationsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
+    public async Task GetOperations_ShouldReturnUnauthorized_WhenNoToken()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/admin/operations/outbox");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetOperations_ShouldReturnForbidden_WhenNonAdminToken()
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", BuildToken("Seller"));
+
+        var response = await client.GetAsync("/api/admin/operations/outbox");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetOperations_ShouldReturnSanitizedProjection_WhenAdminToken()
+    {
+        var now = DateTime.UtcNow;
+        var message = new OutboxMessage
+        {
+            Type = "OrderCreated",
+            AggregateId = Guid.NewGuid(),
+            Payload = "{\"recipient\":\"sensitive\",\"orderId\":\"sensitive\"}",
+            OccurredAtUtc = now.AddMinutes(-10),
+            AvailableAtUtc = now.AddMinutes(-10),
+            Status = OutboxMessageStatus.Pending,
+            LastError = "provider unavailable for sensitive recipient"
+        };
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.OutboxMessages.Add(message);
+            db.OutboxHandlerDeliveries.AddRange(
+                new OutboxHandlerDelivery
+                {
+                    OutboxMessageId = message.Id,
+                    HandlerKey = "business.notification",
+                    Channel = OutboxChannel.Business,
+                    Status = OutboxHandlerDeliveryStatus.Pending,
+                    AvailableAtUtc = now.AddMinutes(-9),
+                    CreatedAtUtc = now.AddMinutes(-9),
+                    LastError = "sensitive business error"
+                },
+                new OutboxHandlerDelivery
+                {
+                    OutboxMessageId = message.Id,
+                    HandlerKey = "communications.email",
+                    Channel = OutboxChannel.Communications,
+                    Status = OutboxHandlerDeliveryStatus.Failed,
+                    AttemptCount = 3,
+                    AvailableAtUtc = now.AddMinutes(-8),
+                    CreatedAtUtc = now.AddMinutes(-8),
+                    LastError = "sensitive communications error"
+                });
+            await db.SaveChangesAsync();
+        }
+
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", BuildToken("Admin"));
+
+        var response = await client.GetAsync("/api/admin/operations/outbox");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var raw = await response.Content.ReadAsStringAsync();
+        raw.Should().NotContain("sensitive");
+        raw.Should().NotContain("provider unavailable");
+        raw.Should().NotContain("sensitive business error");
+        raw.Should().NotContain("sensitive communications error");
+
+        var body = JsonDocument.Parse(raw).RootElement;
+        body.GetProperty("status").GetString().Should().NotBeNullOrWhiteSpace();
+        body.GetProperty("backlogThreshold").GetInt32().Should().BeGreaterThan(0);
+
+        var business = body.GetProperty("business");
+        business.GetProperty("channel").GetString().Should().Be("Business");
+        business.GetProperty("pending").GetInt32().Should().BeGreaterThanOrEqualTo(1);
+        business.GetProperty("oldestBacklogAtUtc").ValueKind.Should().Be(JsonValueKind.String);
+        business.GetProperty("oldestBacklogAgeSeconds").GetInt64().Should().BeGreaterThanOrEqualTo(0);
+
+        var communications = body.GetProperty("communications");
+        communications.GetProperty("channel").GetString().Should().Be("Communications");
+        communications.GetProperty("failed").GetInt32().Should().BeGreaterThanOrEqualTo(1);
+
+        var messages = body.GetProperty("messages");
+        messages.GetProperty("pending").GetInt32().Should().BeGreaterThanOrEqualTo(1);
+        messages.GetProperty("oldestBacklogAtUtc").ValueKind.Should().Be(JsonValueKind.String);
+
+        var workers = body.GetProperty("workers");
+        workers.GetProperty("available").ValueKind.Should().BeOneOf(JsonValueKind.True, JsonValueKind.False);
+        workers.GetProperty("status").GetString().Should().NotBeNullOrWhiteSpace();
+        workers.GetProperty("workers").ValueKind.Should().Be(JsonValueKind.Array);
+
+        var dependencyNames = body.GetProperty("dependencies")
+            .EnumerateArray()
+            .Select(item => item.GetProperty("name").GetString())
+            .ToList();
+
+        dependencyNames.Should().Contain(new[] { "api", "postgresql", "redis" });
+    }
+
+    [Fact]
     public async Task Retry_ShouldRequeueOnlyFailedDeliveries_AndKeepSiblingsProcessed()
     {
         var message = await SeedFailedMessageAsync();

@@ -2,24 +2,21 @@
 using System.Text.Json;
 using Urbeat.Application.Interfaces;
 using StackExchange.Redis;
-using Microsoft.Extensions.Options;
 
 namespace Urbeat.Infrastructure.Services;
 
-public sealed class RedisEmailTokenCache : IEmailTokenCache, IDisposable
+public sealed class RedisEmailTokenCache : IEmailTokenCache
 {
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     public const int CodeLength = 25;
     private static readonly string CodePrefix = "emailtoken:code:";
     private static readonly string RequestPrefix = "emailtoken:request:";
 
-    private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _db;
 
-    public RedisEmailTokenCache(IOptions<RedisOptions> options)
+    public RedisEmailTokenCache(IConnectionMultiplexer redis)
     {
-        _redis = ConnectionMultiplexer.Connect(options.Value.ConnectionString);
-        _db = _redis.GetDatabase();
+        _db = redis.GetDatabase();
     }
 
     public static string GenerateCode()
@@ -64,8 +61,4 @@ public sealed class RedisEmailTokenCache : IEmailTokenCache, IDisposable
         return JsonSerializer.Deserialize<EmailConfirmationRequest>(val.ToString());
     }
 
-    public void Dispose()
-    {
-        _redis.Dispose();
-    }
 }

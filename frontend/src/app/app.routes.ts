@@ -86,6 +86,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'operacoes',
+        loadComponent: () =>
+          import('./features/admin-operations/admin-operations-page.component').then(
+            (m) => m.AdminOperationsPageComponent,
+          ),
+      },
+      {
         path: 'planos',
         loadComponent: () =>
           import('./features/admin-plans/admin-plans-page.component').then(

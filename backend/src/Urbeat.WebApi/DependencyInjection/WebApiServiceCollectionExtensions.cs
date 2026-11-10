@@ -1,7 +1,9 @@
 ﻿using Urbeat.Application.Interfaces;
 using Urbeat.Infrastructure.Outbox;
+using Urbeat.Infrastructure.Services;
 using Urbeat.WebApi.Health;
 using Urbeat.WebApi.Infrastructure;
+using Urbeat.WebApi.Operations;
 using Urbeat.WebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -46,8 +48,23 @@ public static class WebApiServiceCollectionExtensions
         // the authoritative backlog/failure/liveness signals but reuses its aggregate database
         // snapshot for a short window so a burst of probes cannot multiply count queries.
         services.AddSingleton<OutboxHealthCountsCache>();
+        services.AddScoped<OutboxOperationsSnapshotReader>();
+        services.AddSingleton<OutboxOperationsSnapshotCache>();
+        services.AddSingleton<OutboxWorkerProbe>();
+        services.AddScoped<OutboxOperationsService>();
+
+        // PostgreSQL and Redis probes back the admin operations panel only. They are tagged
+        // 'operations' so the legacy /health and /health/ready contracts keep their existing scope.
         services.AddHealthChecks()
-            .AddCheck<OutboxHealthCheck>(OutboxHealthCheck.Name, tags: new[] { "outbox", "ready" });
+            .AddCheck<OutboxHealthCheck>(OutboxHealthCheck.Name, tags: new[] { "outbox", "ready" })
+            .AddCheck<PostgresHealthCheck>(
+                PostgresHealthCheck.Name,
+                tags: new[] { "operations" },
+                timeout: TimeSpan.FromSeconds(3))
+            .AddCheck<RedisHealthCheck>(
+                RedisHealthCheck.Name,
+                tags: new[] { "operations" },
+                timeout: TimeSpan.FromSeconds(3));
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();

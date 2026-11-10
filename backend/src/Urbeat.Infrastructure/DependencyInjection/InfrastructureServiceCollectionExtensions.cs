@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -253,6 +254,14 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IEmailConfirmationService, EmailConfirmationService>();
         services.AddSingleton<ISystemParameterService, SystemParameterService>();
         services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        var redisConnectionString = configuration[$"{RedisOptions.SectionName}:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            // One multiplexer is shared by application caches, SignalR and health probes. Creating
+            // a connection per request/probe exhausts sockets and hides the real Redis status.
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(redisConnectionString));
+        }
         services.AddSingleton<IShortIdCache, RedisShortIdCache>();
         services.AddSingleton<IEmailTokenCache, RedisEmailTokenCache>();
         services.AddScoped<IShortIdService, ShortIdService>();

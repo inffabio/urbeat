@@ -5,7 +5,7 @@ using StackExchange.Redis;
 
 namespace Urbeat.Infrastructure.Services;
 
-public sealed class RedisShortIdCache : IShortIdCache, IDisposable
+public sealed class RedisShortIdCache : IShortIdCache
 {
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     public const int CodeLength = 8;
@@ -13,13 +13,11 @@ public sealed class RedisShortIdCache : IShortIdCache, IDisposable
     private static readonly string GuidPrefix = "shortid:guid:";
     private static readonly string CodePrefix = "shortid:code:";
 
-    private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _db;
 
-    public RedisShortIdCache(IOptions<RedisOptions> options)
+    public RedisShortIdCache(IConnectionMultiplexer redis)
     {
-        _redis = ConnectionMultiplexer.Connect(options.Value.ConnectionString);
-        _db = _redis.GetDatabase();
+        _db = redis.GetDatabase();
     }
 
     public async Task<string?> GetCodeAsync(Guid entityId, CancellationToken ct = default)
@@ -62,8 +60,4 @@ public sealed class RedisShortIdCache : IShortIdCache, IDisposable
         });
     }
 
-    public void Dispose()
-    {
-        _redis.Dispose();
-    }
 }

@@ -1,0 +1,275 @@
+<section class="admin-page" aria-labelledby="admin-operations-title">
+  <header class="admin-page-head">
+    <p class="admin-eyebrow">Administração da plataforma</p>
+    <h1 id="admin-operations-title">Operações</h1>
+    <p class="admin-lead">
+      Acompanhe o outbox transacional, a presença dos workers e o estado resumido de PostgreSQL,
+      Redis e da API. Nenhum payload, destinatário ou credencial é exibido nesta tela.
+    </p>
+
+    <div class="admin-head-actions">
+      <button
+        type="button"
+        class="admin-action"
+        (click)="load()"
+        [disabled]="refreshing()"
+      >
+        {{ refreshing() ? 'Atualizando...' : 'Atualizar agora' }}
+      </button>
+
+      <button
+        type="button"
+        class="admin-toggle"
+        [class.is-on]="autoRefresh()"
+        [attr.aria-pressed]="autoRefresh()"
+        (click)="toggleAutoRefresh()"
+      >
+        <span class="admin-toggle-track" aria-hidden="true">
+          <span class="admin-toggle-thumb"></span>
+        </span>
+        <span>Atualização automática ({{ refreshIntervalSeconds }} s)</span>
+      </button>
+
+      <span class="admin-updated" aria-live="polite">
+        Atualizado às {{ formatUpdatedAt() }}
+      </span>
+    </div>
+  </header>
+
+  @if (permissionDenied()) {
+    <div class="admin-state is-error" role="alert">
+      <h2>Sem permissão</h2>
+      <p>Sua sessão não tem acesso ao painel operacional. Entre novamente como administrador.</p>
+    </div>
+  } @else if (loading() && !data()) {
+    <div class="admin-state" role="status" aria-live="polite">
+      <h2>Carregando operações</h2>
+      <p>Consultando contadores do outbox e dependências da plataforma.</p>
+    </div>
+  } @else if (error() && !data()) {
+    <div class="admin-state is-error" role="alert">
+      <h2>Não foi possível carregar</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="admin-action" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else if (data(); as snapshot) {
+    @if (error()) {
+      <div class="admin-inline-error" role="alert">
+        <strong>Atualização falhou.</strong>
+        <span>{{ error() }} Os dados abaixo são da última leitura bem-sucedida.</span>
+      </div>
+    }
+
+    <section
+      [class]="'admin-overall ' + statusClass(snapshot.status)"
+      aria-live="polite"
+    >
+      <div>
+        <p class="admin-overall-label">Estado geral</p>
+        <h2>{{ snapshotStatusLabel(snapshot.status) }}</h2>
+      </div>
+      <p class="admin-overall-meta">
+        Leitura gerada em {{ formatDateTime(snapshot.generatedAtUtc) }}
+      </p>
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-operations-totals">
+      <div class="admin-section-head">
+        <div>
+          <h2 id="admin-operations-totals">Outbox agora</h2>
+          <p>Contadores atuais de entregas por handler, a unidade autoritativa de processamento.</p>
+        </div>
+        <span class="admin-section-note">
+          Limite de backlog: {{ formatCount(snapshot.backlogThreshold) }}
+        </span>
+      </div>
+
+      <div class="admin-metric-grid">
+        <article class="admin-metric">
+          <span>Pendentes</span>
+          <strong>{{ formatCount(snapshot.totals.pending) }}</strong>
+        </article>
+        <article class="admin-metric">
+          <span>Processando</span>
+          <strong>{{ formatCount(snapshot.totals.processing) }}</strong>
+        </article>
+        <article class="admin-metric">
+          <span>Processadas</span>
+          <strong>{{ formatCount(snapshot.totals.processed) }}</strong>
+        </article>
+        <article class="admin-metric" [class.is-warning]="snapshot.totals.failed > 0">
+          <span>Falhas</span>
+          <strong>{{ formatCount(snapshot.totals.failed) }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-operations-channels">
+      <div class="admin-section-head">
+        <div>
+          <h2 id="admin-operations-channels">Canais de processamento</h2>
+          <p>Negócio e comunicações são consumidos por workers separados.</p>
+        </div>
+        <span class="admin-section-note">
+          Backlog total: {{ formatCount(backlog(snapshot.totals)) }}
+        </span>
+      </div>
+
+      <div class="admin-channel-grid">
+        @for (channel of channels(); track channel.channel) {
+          <article class="admin-channel">
+            <header class="admin-channel-head">
+              <h3>{{ channelLabel(channel.channel) }}</h3>
+              <span class="admin-channel-backlog">
+                backlog {{ formatCount(backlog(channel)) }}
+              </span>
+            </header>
+
+            <dl class="admin-channel-counts">
+              <div>
+                <dt>Pendentes</dt>
+                <dd>{{ formatCount(channel.pending) }}</dd>
+              </div>
+              <div>
+                <dt>Processando</dt>
+                <dd>{{ formatCount(channel.processing) }}</dd>
+              </div>
+              <div>
+                <dt>Processadas</dt>
+                <dd>{{ formatCount(channel.processed) }}</dd>
+              </div>
+              <div [class.is-warning]="channel.failed > 0">
+                <dt>Falhas</dt>
+                <dd>{{ formatCount(channel.failed) }}</dd>
+              </div>
+            </dl>
+
+            <div class="admin-channel-age">
+              <span>Entrega mais antiga na fila</span>
+              <strong>{{ formatAge(channel.oldestBacklogAgeSeconds) }}</strong>
+              @if (channel.oldestBacklogAtUtc) {
+                <small>Desde {{ formatDateTime(channel.oldestBacklogAtUtc) }}</small>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-operations-messages">
+      <div class="admin-section-head">
+        <div>
+          <h2 id="admin-operations-messages">Mensagens do outbox</h2>
+          <p>Projeção de mensagens, útil para diferenciar fã-out de falha de handler.</p>
+        </div>
+        <span class="admin-section-note">
+          Backlog {{ formatCount(backlog(snapshot.messages)) }}
+        </span>
+      </div>
+
+      <div class="admin-metric-grid is-compact">
+        <article class="admin-metric">
+          <span>Pendentes</span>
+          <strong>{{ formatCount(snapshot.messages.pending) }}</strong>
+        </article>
+        <article class="admin-metric">
+          <span>Processando</span>
+          <strong>{{ formatCount(snapshot.messages.processing) }}</strong>
+        </article>
+        <article class="admin-metric">
+          <span>Processadas</span>
+          <strong>{{ formatCount(snapshot.messages.processed) }}</strong>
+        </article>
+        <article class="admin-metric" [class.is-warning]="snapshot.messages.failed > 0">
+          <span>Falhas</span>
+          <strong>{{ formatCount(snapshot.messages.failed) }}</strong>
+        </article>
+      </div>
+
+      <p class="admin-age-line">
+        Mensagem mais antiga na fila:
+        <strong>{{ formatAge(snapshot.messages.oldestBacklogAgeSeconds) }}</strong>
+        @if (snapshot.messages.oldestBacklogAtUtc) {
+          <span> · desde {{ formatDateTime(snapshot.messages.oldestBacklogAtUtc) }}</span>
+        }
+      </p>
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-operations-workers">
+      <div class="admin-section-head">
+        <div>
+          <h2 id="admin-operations-workers">Workers</h2>
+          <p>Heartbeat observado no Hangfire e no processo que atende esta API.</p>
+        </div>
+        <span [class]="'admin-status-chip ' + statusClass(snapshot.workers.status)">
+          {{ snapshotStatusLabel(snapshot.workers.status) }}
+        </span>
+      </div>
+
+      @if (snapshot.workers.message) {
+        <p class="admin-section-warning">{{ snapshot.workers.message }}</p>
+      }
+
+      @if (snapshot.workers.workers.length) {
+        <div class="admin-worker-grid">
+          @for (worker of snapshot.workers.workers; track worker.role + worker.source) {
+            <article class="admin-worker">
+              <header>
+                <h3>{{ workerRoleLabel(worker.role) }}</h3>
+                <span [class]="'admin-status-chip ' + statusClass(worker.status)">
+                  {{ snapshotStatusLabel(worker.status) }}
+                </span>
+              </header>
+              <p class="admin-worker-meta">
+                Origem: {{ workerSourceLabel(worker.source) }} · Filas:
+                {{ worker.queues.join(', ') || '—' }}
+              </p>
+              <p class="admin-worker-meta">
+                Último heartbeat: {{ formatDateTime(worker.lastHeartbeatUtc) }}
+                @if (worker.heartbeatAgeSeconds !== null) {
+                  <span> · {{ formatAge(worker.heartbeatAgeSeconds) }} atrás</span>
+                }
+              </p>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="admin-state is-empty" role="status">
+          <h2>Nenhum worker visível</h2>
+          <p>O Hangfire não retornou workers de outbox nesta leitura.</p>
+        </div>
+      }
+    </section>
+
+    <section class="admin-section" aria-labelledby="admin-operations-dependencies">
+      <div class="admin-section-head">
+        <div>
+          <h2 id="admin-operations-dependencies">Dependências</h2>
+          <p>Estado resumido das verificações de saúde, sem detalhes de conexão.</p>
+        </div>
+      </div>
+
+      <ul class="admin-dependency-list">
+        @for (dependency of snapshot.dependencies; track dependency.name) {
+          <li class="admin-dependency">
+            <span class="admin-dependency-name">{{ dependencyLabel(dependency.name) }}</span>
+            <span [class]="'admin-status-chip ' + statusClass(dependency.status)">
+              {{ snapshotStatusLabel(dependency.status) }}
+            </span>
+            <span class="admin-dependency-duration">
+              {{ formatDuration(dependency.durationMs) }}
+            </span>
+            @if (dependency.message) {
+              <span class="admin-dependency-message">{{ dependency.message }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+
+    <p class="admin-footnote">
+      Taxas de processamento não são exibidas nesta etapa. Os contadores refletem o estado atual do
+      outbox e podem variar entre leituras.
+    </p>
+  }
+</section>
