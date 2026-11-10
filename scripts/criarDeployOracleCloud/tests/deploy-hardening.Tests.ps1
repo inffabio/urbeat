@@ -154,13 +154,20 @@ Describe "deploy hardening invariants" {
         ($content -match 'LogWarning\(exception, "Seeding skipped') | Should Be $false
     }
 
-    It "deployment verification reads PostgreSQL credentials from the container environment" {
+    It "deployment verification checks PostgreSQL with dynamic pg_isready credentials only" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
 
         $content | Should Match 'docker exec urbeat-postgres sh -c ''pg_isready -U "\$POSTGRES_USER" -d "\$POSTGRES_DB"'''
-        $content | Should Match 'docker exec urbeat-postgres sh -c ''psql -U "\$POSTGRES_USER" -d "\$POSTGRES_DB"'
         ($content -match 'pg_isready\s+-U\s+postgres\s+-d\s+UrbeatDb') | Should Be $false
-        ($content -match 'psql\s+-U\s+postgres\s+-d\s+UrbeatDb') | Should Be $false
+    }
+
+    It "does not count PostgreSQL tables or use nested quoting in the readiness check" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+        $postgresqlSection = [regex]::Match($content, '(?s)# PostgreSQL\r?\n(.*?)(?=\r?\n# Redis and workers)').Groups[1].Value
+
+        $postgresqlSection | Should Not Match 'TABLE_COUNT'
+        $postgresqlSection | Should Not Match '\bpsql\b'
+        $postgresqlSection | Should Not Match ([string][char]39 + [string][char]34 + [string][char]39 + [string][char]34 + [string][char]39)
     }
 
     It "uploads a syntactically valid verification shell script without nested single-quote escaping" {
@@ -171,7 +178,6 @@ Describe "deploy hardening invariants" {
         $verifyScript = $match.Groups[1].Value
         $nestedQuote = [string][char]39 + [string][char]34 + [string][char]39 + [string][char]34 + [string][char]39
         $verifyScript | Should Not Match $nestedQuote
-        $verifyScript | Should Match 'table_schema = current_schema\(\)'
         ($verifyScript -match "sh -c '[^\r\n]*tr -d ' '") | Should Be $false
 
         $bash = Get-Command bash -ErrorAction SilentlyContinue
