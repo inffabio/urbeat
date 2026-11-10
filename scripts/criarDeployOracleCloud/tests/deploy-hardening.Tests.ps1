@@ -199,6 +199,16 @@ Describe "deploy hardening invariants" {
         }
     }
 
+    It "does not leak PowerShell escape backticks into the final bash status checks" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+
+        $content | Should Match '(?m)^if \[ "\$verification_failed" -ne 0 \]; then$'
+        $content | Should Match '(?m)^exit "\$verification_failed"$'
+        $content | Should Not Match '(?m)^if \[ "`\$verification_failed" -ne 0 \]; then$'
+        $content | Should Not Match '(?m)^exit "`\$verification_failed"$'
+        $content | Should Match 'status=`\$\?; rm -f /tmp/verify\.sh; exit `\$status'
+    }
+
     It "pipeline validation fails when no YAML validator is available" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\validate-pipeline.ps1") -Raw
         $content | Should Match 'No YAML validator available'

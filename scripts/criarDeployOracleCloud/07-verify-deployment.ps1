@@ -245,13 +245,13 @@ fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ "`$verification_failed" -ne 0 ]; then
+if [ "$verification_failed" -ne 0 ]; then
     echo "❌ Verification completed with failures."
 else
     echo "✅ Verification completed!"
 fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-exit "`$verification_failed"
+exit "$verification_failed"
 '@
 
 $tempVerify = [System.IO.Path]::GetTempFileName() + ".sh"
