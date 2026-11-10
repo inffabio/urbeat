@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Npgsql;
+using System.Reflection;
 
 namespace Urbeat.UnitTests.Infrastructure.Services;
 
@@ -119,6 +121,145 @@ public sealed class CustomerOtpServiceTests
         refreshToken.Role.Should().Be("Customer");
     }
 
+    [Fact]
+    public async Task CreateCustomerSession_creates_customer_and_persists_session_graph_in_one_final_unit_of_work()
+    {
+        await using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.CreateVersion7(), Name = "Loja", Slug = "loja",
+            PhoneNumber = "22999990000", IsOpen = true
+        };
+        db.Stores.Add(store);
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingVerificationMessageSender());
+        var result = await service.CreateCustomerSessionAsync(BuildStartRequest(store.Id));
+
+        result.Response.Succeeded.Should().BeTrue();
+        (await db.Users.CountAsync()).Should().Be(1);
+        (await db.Roles.CountAsync(x => x.NormalizedName == "CUSTOMER")).Should().Be(1);
+        (await db.UserRoles.CountAsync()).Should().Be(1);
+        (await db.UserRoleCredentials.CountAsync(x => x.Role == UserRoleType.Customer)).Should().Be(1);
+        (await db.StoreCustomers.CountAsync()).Should().Be(1);
+        (await db.UserClaims.CountAsync(x => x.ClaimType == "FullName")).Should().Be(1);
+        (await db.CustomerAddresses.CountAsync(x => x.IsPrimary)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CreateCustomerSession_updates_existing_claim_and_keeps_only_new_address_primary()
+    {
+        await using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.CreateVersion7(), Name = "Loja", Slug = "loja",
+            PhoneNumber = "22999990000", IsOpen = true
+        };
+        var user = new IdentityUser<Guid>
+        {
+            Id = Guid.CreateVersion7(), UserName = "maria@email.com", Email = "maria@email.com",
+            NormalizedEmail = "MARIA@EMAIL.COM", NormalizedUserName = "MARIA@EMAIL.COM",
+            EmailConfirmed = true, PasswordHash = "existing-hash", PhoneNumber = "22911112222"
+        };
+        db.Stores.Add(store);
+        db.Users.Add(user);
+        db.UserClaims.Add(new IdentityUserClaim<Guid>
+        {
+            UserId = user.Id, ClaimType = "FullName", ClaimValue = "Nome antigo"
+        });
+        db.CustomerAddresses.Add(new CustomerAddress
+        {
+            UserId = user.Id, Cep = "28000000", Street = "Rua antiga", Number = "1",
+            Neighborhood = "Centro", City = "Campos", State = "RJ", IsPrimary = true
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingVerificationMessageSender());
+        var result = await service.CreateCustomerSessionAsync(BuildStartRequest(store.Id));
+
+        result.Response.Succeeded.Should().BeTrue();
+        (await db.UserClaims.SingleAsync(x => x.UserId == user.Id && x.ClaimType == "FullName"))
+            .ClaimValue.Should().Be("Maria Oliveira");
+        (await db.CustomerAddresses.CountAsync(x => x.UserId == user.Id && x.IsPrimary)).Should().Be(1);
+        (await db.CustomerAddresses.CountAsync(x => x.UserId == user.Id)).Should().Be(2);
+        (await db.StoreCustomers.CountAsync()).Should().Be(1);
+        (await db.UserRoles.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CreateCustomerSession_uses_the_user_manager_lookup_normalizer()
+    {
+        await using var db = CreateDbContext();
+        var store = new Store
+        {
+            OwnerUserId = Guid.CreateVersion7(), Name = "Loja", Slug = "loja",
+            PhoneNumber = "22999990000", IsOpen = true
+        };
+        var user = new IdentityUser<Guid>
+        {
+            Id = Guid.CreateVersion7(), UserName = "Maria@Email.com", Email = "Maria@Email.com",
+            NormalizedEmail = "configured:maria@email.com", NormalizedUserName = "configured:maria@email.com",
+            EmailConfirmed = true, PasswordHash = "existing-hash"
+        };
+        db.Stores.Add(store);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingVerificationMessageSender(), new PrefixLookupNormalizer());
+        var result = await service.CreateCustomerSessionAsync(BuildStartRequest(store.Id));
+
+        result.Response.Succeeded.Should().BeTrue();
+        (await db.Users.CountAsync()).Should().Be(1);
+        (await db.Users.SingleAsync()).Id.Should().Be(user.Id);
+    }
+
+    [Fact]
+    public void CustomerSession_unique_violation_detection_does_not_match_unrelated_constraints()
+    {
+        var exception = new DbUpdateException("unexpected", new PostgresException(
+            "duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation,
+            constraintName: "IX_AnotherTable_AnotherColumn"));
+
+        var method = typeof(CustomerOtpService).GetMethod(
+            "IsCustomerSessionConcurrencyViolation", BindingFlags.NonPublic | BindingFlags.Static);
+
+        method.Should().NotBeNull();
+        method!.Invoke(null, [exception]).Should().Be(false);
+    }
+
+    // The unit suite uses EF InMemory, which cannot produce PostgreSQL commit failures or
+    // Identity unique-index races. Keep those provider-specific decisions covered by focused
+    // classification tests; the relational integration suite remains the place for live races.
+    [Theory]
+    [InlineData(PostgresErrorCodes.SerializationFailure)]
+    [InlineData(PostgresErrorCodes.DeadlockDetected)]
+    public void CustomerSession_serialization_detection_accepts_direct_postgres_exception(string sqlState)
+    {
+        var exception = new PostgresException("transaction conflict", "ERROR", "ERROR", sqlState);
+
+        var method = typeof(CustomerOtpService).GetMethod(
+            "IsSerializationFailure", BindingFlags.NonPublic | BindingFlags.Static);
+
+        method.Should().NotBeNull();
+        method!.Invoke(null, [exception]).Should().Be(true);
+    }
+
+    [Theory]
+    [InlineData("UserNameIndex")]
+    [InlineData("EmailIndex")]
+    public void CustomerSession_unique_violation_detection_accepts_identity_user_indexes(string constraintName)
+    {
+        var exception = new DbUpdateException("unexpected", new PostgresException(
+            "duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation,
+            constraintName: constraintName));
+
+        var method = typeof(CustomerOtpService).GetMethod(
+            "IsCustomerSessionConcurrencyViolation", BindingFlags.NonPublic | BindingFlags.Static);
+
+        method.Should().NotBeNull();
+        method!.Invoke(null, [exception]).Should().Be(true);
+    }
+
     private static ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -127,7 +268,10 @@ public sealed class CustomerOtpServiceTests
         return new ApplicationDbContext(options);
     }
 
-    private static CustomerOtpService CreateService(ApplicationDbContext db, RecordingVerificationMessageSender sender)
+    private static CustomerOtpService CreateService(
+        ApplicationDbContext db,
+        RecordingVerificationMessageSender sender,
+        ILookupNormalizer? lookupNormalizer = null)
     {
         var userStore = new Mock<IUserStore<IdentityUser<Guid>>>();
         var userEmailStore = userStore.As<IUserEmailStore<IdentityUser<Guid>>>();
@@ -177,7 +321,7 @@ public sealed class CustomerOtpServiceTests
             new PasswordHasher<IdentityUser<Guid>>(),
             Array.Empty<IUserValidator<IdentityUser<Guid>>>(),
             Array.Empty<IPasswordValidator<IdentityUser<Guid>>>(),
-            new UpperInvariantLookupNormalizer(),
+            lookupNormalizer ?? new UpperInvariantLookupNormalizer(),
             new IdentityErrorDescriber(),
             null!,
             NullLogger<UserManager<IdentityUser<Guid>>>.Instance);
@@ -230,5 +374,12 @@ public sealed class CustomerOtpServiceTests
             Code = code;
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class PrefixLookupNormalizer : ILookupNormalizer
+    {
+        public string? NormalizeEmail(string? email) => email is null ? null : $"configured:{email.ToLowerInvariant()}";
+
+        public string? NormalizeName(string? name) => name is null ? null : $"configured:{name.ToLowerInvariant()}";
     }
 }

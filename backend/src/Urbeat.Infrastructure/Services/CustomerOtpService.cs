@@ -7,7 +7,9 @@ using Urbeat.Domain.Security;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -16,6 +18,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
     private const string CustomerRole = "Customer";
     private const int CodeLength = 4;
     private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(1);
+    private const int MaxConcurrencyRetries = 3;
 
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<IdentityUser<Guid>> _userManager;
@@ -78,7 +81,7 @@ public sealed class CustomerOtpService : ICustomerOtpService
             await _userManager.UpdateAsync(user);
         }
 
-        UpsertFullNameClaim(user.Id, request.Customer.FullName);
+        await UpsertFullNameClaimAsync(user.Id, request.Customer.FullName, cancellationToken);
         await EnsureCustomerRoleAsync(user.Id, cancellationToken);
         await EnsureCustomerCredentialAsync(user, cancellationToken);
         await EnsureStoreCustomerAsync(store.Id, user.Id, cancellationToken);
@@ -129,9 +132,85 @@ public sealed class CustomerOtpService : ICustomerOtpService
             throw new InvalidOperationException("Loja não encontrada.");
         }
 
+        for (var attempt = 0; ; attempt++)
+        {
+            IDbContextTransaction? transaction = null;
+            var committed = false;
+            var retry = false;
+            if (_dbContext.Database.IsRelational())
+            {
+                // This operation changes identity, role, credential, store link, address and
+                // token state. Serializable also prevents two sessions for the same user from
+                // both observing the same primary-address set.
+                transaction = await _dbContext.Database.BeginTransactionAsync(
+                    System.Data.IsolationLevel.Serializable, cancellationToken);
+            }
+
+            try
+            {
+                var result = await CreateCustomerSessionCoreAsync(request, cancellationToken);
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                committed = true;
+                return result;
+            }
+            catch (DbUpdateException exception) when (IsCustomerSessionConcurrencyViolation(exception) && attempt < MaxConcurrencyRetries)
+            {
+                retry = true;
+            }
+            catch (DbUpdateException exception) when (IsSerializationFailure(exception) && attempt < MaxConcurrencyRetries)
+            {
+                retry = true;
+            }
+            catch (PostgresException exception) when (IsSerializationFailure(exception) && attempt < MaxConcurrencyRetries)
+            {
+                // Npgsql can surface a serialization/deadlock failure directly from CommitAsync,
+                // rather than wrapping it in DbUpdateException.
+                retry = true;
+            }
+            finally
+            {
+                if (transaction is not null)
+                {
+                    try
+                    {
+                        if (!committed)
+                        {
+                            // Cleanup must not be cancelled: the context cannot be reused until
+                            // the failed transaction has been rolled back and disposed.
+                            await transaction.RollbackAsync(CancellationToken.None);
+                        }
+                    }
+                    finally
+                    {
+                        await transaction.DisposeAsync();
+                    }
+                }
+
+                if (retry)
+                {
+                    // The complete graph is rebuilt from committed state on the next attempt.
+                    // This also detaches entities left Added/Modified by UserManager.CreateAsync.
+                    _dbContext.ChangeTracker.Clear();
+                }
+            }
+        }
+    }
+
+    private async Task<CustomerSessionResultDto> CreateCustomerSessionCoreAsync(
+        StartCustomerVerificationRequestDto request,
+        CancellationToken cancellationToken)
+    {
         var phone = DigitsOnly(request.Customer.PhoneNumber);
-        var email = request.Customer.Email.Trim().ToLowerInvariant();
-        var user = await _userManager.FindByEmailAsync(email);
+        var email = request.Customer.Email.Trim();
+        // UserManager.FindByEmailAsync has no cancellation-token overload. Use the exact
+        // normalizer configured in UserManager while retaining a cancellable EF query.
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken);
         if (user is null)
         {
             user = new IdentityUser<Guid>
@@ -154,11 +233,16 @@ public sealed class CustomerOtpService : ICustomerOtpService
         }
         else
         {
-            user.PhoneNumber = phone;
-            await _userManager.UpdateAsync(user);
+            // The direct EF lookup returns a tracked user. Defer this
+            // change to the single checkout SaveChanges below; UpdateAsync would issue a
+            // second identity write before the rest of the session is assembled.
+            if (!string.Equals(user.PhoneNumber, phone, StringComparison.Ordinal))
+            {
+                user.PhoneNumber = phone;
+            }
         }
 
-        UpsertFullNameClaim(user.Id, request.Customer.FullName);
+        await UpsertFullNameClaimAsync(user.Id, request.Customer.FullName, cancellationToken);
         await EnsureCustomerRoleAsync(user.Id, cancellationToken);
         await EnsureCustomerCredentialAsync(user, cancellationToken);
         await EnsureStoreCustomerAsync(request.StoreId, user.Id, cancellationToken);
@@ -325,6 +409,10 @@ public sealed class CustomerOtpService : ICustomerOtpService
 
     private async Task<CustomerAddress> SaveCustomerAddressAsync(Guid userId, CustomerVerificationAddressDto request, CancellationToken cancellationToken)
     {
+        // CustomerAddresses intentionally has no unique primary-address index in the current
+        // schema. CreateCustomerSession uses a serializable transaction so concurrent sessions
+        // for one user are retried instead of silently leaving two primaries; do not add a
+        // speculative migration here.
         var existingPrimary = await _dbContext.CustomerAddresses
             .Where(x => x.UserId == userId && x.IsPrimary)
             .ToListAsync(cancellationToken);
@@ -352,28 +440,69 @@ public sealed class CustomerOtpService : ICustomerOtpService
 
     private async Task EnsureCustomerRoleAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var role = await _dbContext.Roles.SingleOrDefaultAsync(x => x.NormalizedName == CustomerRole.ToUpperInvariant(), cancellationToken);
-        if (role is null)
-        {
-            role = new IdentityRole<Guid>(CustomerRole)
-            {
-                Id = Guid.CreateVersion7(),
-                NormalizedName = CustomerRole.ToUpperInvariant()
-            };
-            _dbContext.Roles.Add(role);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        var hasRole = await _dbContext.UserRoles.AnyAsync(x => x.UserId == userId && x.RoleId == role.Id, cancellationToken);
+        var roleId = await GetCustomerRoleIdAsync(cancellationToken);
+        var hasRole = await _dbContext.UserRoles.AnyAsync(x => x.UserId == userId && x.RoleId == roleId, cancellationToken);
         if (!hasRole)
         {
             _dbContext.UserRoles.Add(new IdentityUserRole<Guid>
             {
                 UserId = userId,
-                RoleId = role.Id
+                RoleId = roleId
             });
         }
     }
+
+    private async Task<Guid> GetCustomerRoleIdAsync(CancellationToken cancellationToken)
+    {
+        var normalizedRole = _userManager.NormalizeName(CustomerRole);
+        var role = await _dbContext.Roles
+            .SingleOrDefaultAsync(x => x.NormalizedName == normalizedRole, cancellationToken);
+        if (role is not null)
+        {
+            return role.Id;
+        }
+
+        // Do not save here: the caller owns one transaction for the entire session graph.
+        // A concurrent role insert is handled by the bounded whole-operation retry.
+        role = new IdentityRole<Guid>(CustomerRole)
+        {
+            Id = Guid.CreateVersion7(),
+            NormalizedName = normalizedRole
+        };
+        _dbContext.Roles.Add(role);
+        return role.Id;
+    }
+
+    private static bool IsCustomerSessionConcurrencyViolation(DbUpdateException exception) =>
+        exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: var constraintName,
+            MessageText: var messageText
+        } && IsCustomerSessionConstraint(constraintName, messageText);
+
+    private static bool IsCustomerSessionConstraint(string? constraintName, string messageText) =>
+        HasConstraint(constraintName, messageText, "RoleNameIndex")
+        || HasConstraint(constraintName, messageText, "UserNameIndex")
+        || HasConstraint(constraintName, messageText, "EmailIndex")
+        || HasConstraint(constraintName, messageText, "IX_UserRoleCredentials_UserId_Role")
+        || HasConstraint(constraintName, messageText, "IX_StoreCustomers_StoreId_CustomerUserId");
+
+    private static bool HasConstraint(string? constraintName, string messageText, string expected) =>
+        string.Equals(constraintName, expected, StringComparison.OrdinalIgnoreCase)
+        || messageText.Contains(expected, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSerializationFailure(Exception exception) =>
+        exception switch
+        {
+            PostgresException postgresException => IsSerializationSqlState(postgresException.SqlState),
+            DbUpdateException { InnerException: PostgresException postgresException } =>
+                IsSerializationSqlState(postgresException.SqlState),
+            _ => false
+        };
+
+    private static bool IsSerializationSqlState(string sqlState) =>
+        sqlState is PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected;
 
     /// <summary>
     /// Checkout creates the identity without a password form. Ensure the Customer role always has
@@ -423,10 +552,11 @@ public sealed class CustomerOtpService : ICustomerOtpService
         }
     }
 
-    private void UpsertFullNameClaim(Guid userId, string fullName)
+    private async Task UpsertFullNameClaimAsync(Guid userId, string fullName, CancellationToken cancellationToken)
     {
         var normalizedFullName = fullName.Trim();
-        var claim = _dbContext.UserClaims.SingleOrDefault(x => x.UserId == userId && x.ClaimType == "FullName");
+        var claim = await _dbContext.UserClaims
+            .SingleOrDefaultAsync(x => x.UserId == userId && x.ClaimType == "FullName", cancellationToken);
         if (claim is null)
         {
             _dbContext.UserClaims.Add(new IdentityUserClaim<Guid>
