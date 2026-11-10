@@ -38,8 +38,10 @@ public static class NpgsqlPoolConfiguration
     /// <summary>
     /// Per-process ceiling for the API and each worker. With three application processes (API plus
     /// two workers) and, in the worst case, one Npgsql pool for EF Core and another for Hangfire,
-    /// 3 x 2 x 10 = 60 connections. The logs sink, the Postgres exporter and maintenance sessions
-    /// still fit below the PostgreSQL default of 100 connections.
+    /// four application processes (two API replicas and two workers) and, in the worst case, one
+    /// Npgsql pool for EF Core and another for Hangfire, 4 x 2 x 10 = 80 connections. The OCI
+    /// deployment reserves a 90-connection application budget and leaves headroom for observability
+    /// and maintenance sessions below PostgreSQL's default of 100 connections.
     /// </summary>
     public const int DefaultMaximumPoolSize = 10;
 

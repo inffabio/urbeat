@@ -1,4 +1,5 @@
-﻿using Urbeat.Application.DependencyInjection;
+﻿using System.Data.Common;
+using Urbeat.Application.DependencyInjection;
 using Urbeat.Infrastructure.DependencyInjection;
 using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Identity;
@@ -73,6 +74,7 @@ using (var scope = app.Services.CreateScope())
     // test harness seeds its own reference data.
     if (dbContext.Database.IsRelational())
     {
+        await using var startupLock = await PostgresStartupLock.AcquireAsync(dbContext, startupLogger);
         await dbContext.Database.MigrateAsync();
 
         try
@@ -101,7 +103,11 @@ using (var scope = app.Services.CreateScope())
         }
         catch (Exception exception)
         {
-            startupLogger.LogWarning(exception, "Seeding skipped because the data store is unavailable.");
+            // These seeders establish required reference/configuration data. Keep the exception in
+            // the startup log and rethrow it: a relational process must not report healthy while
+            // only part of the mandatory startup state was persisted.
+            startupLogger.LogError(exception, "Mandatory relational startup seeding failed; aborting startup.");
+            throw;
         }
 
         // The per-role credential backfill is part of schema/consistency migration, not optional
@@ -201,6 +207,60 @@ if (HangfireRecurringJobs.TryRegisterBusinessJobs(
 app.Run();
 
 public partial class Program;
+
+/// <summary>
+/// Serializes relational migrations and startup seeders across API replicas. PostgreSQL advisory
+/// locks are session-scoped, so the connection remains open for the complete critical section.
+/// Other relational providers and the in-memory test provider continue without this PostgreSQL-only
+/// lock. Seeders remain idempotent; the lock prevents concurrent replicas from racing them.
+/// </summary>
+internal sealed class PostgresStartupLock : IAsyncDisposable
+{
+    private const int LockKey1 = 0x55524254; // "URBT"
+    private const int LockKey2 = 20261028;
+    private readonly DbConnection? _connection;
+    private readonly bool _acquired;
+
+    private PostgresStartupLock(DbConnection? connection, bool acquired)
+    {
+        _connection = connection;
+        _acquired = acquired;
+    }
+
+    public static async Task<PostgresStartupLock> AcquireAsync(
+        ApplicationDbContext dbContext,
+        Microsoft.Extensions.Logging.ILogger logger,
+        CancellationToken cancellationToken = default)
+    {
+        var providerName = dbContext.Database.ProviderName;
+        if (string.IsNullOrWhiteSpace(providerName)
+            || !providerName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase))
+        {
+            return new PostgresStartupLock(null, acquired: false);
+        }
+
+        var connection = dbContext.Database.GetDbConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT pg_advisory_lock({LockKey1}, {LockKey2});";
+        await command.ExecuteNonQueryAsync(cancellationToken);
+        logger.LogInformation("Acquired PostgreSQL startup lock for migrations and seeders.");
+        return new PostgresStartupLock(connection, acquired: true);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_connection is null || !_acquired)
+        {
+            return;
+        }
+
+        await using var command = _connection.CreateCommand();
+        command.CommandText = $"SELECT pg_advisory_unlock({LockKey1}, {LockKey2});";
+        await command.ExecuteNonQueryAsync();
+        await _connection.CloseAsync();
+    }
+}
 
 public static class BusinessMetrics
 {

@@ -50,23 +50,41 @@ echo "  CPU: $(nproc) cores"
 echo "  RAM: $(free -h | grep Mem | awk '{print $2}') total, $(free -h | grep Mem | awk '{print $7}') available"
 echo "  Disk: $(df -h / | tail -1 | awk '{print $4}') available"
 
+# Every failed essential check contributes to this value. Optional monitoring UI
+# (Grafana) is reported but deliberately does not block verification.
+verification_failed=0
+
 # Docker Status
 echo ""
 echo "🐳 DOCKER STATUS"
+docker_available=0
+compose_available=0
 if command -v docker &> /dev/null; then
+    docker_available=1
     echo "  Version: $(docker --version)"
-    echo "  Compose: $(docker compose version)"
+    if ! docker info >/dev/null 2>&1; then
+        echo "  ❌ Docker daemon is unavailable!"
+        verification_failed=1
+        docker_available=0
+    fi
+    if docker compose version >/dev/null 2>&1; then
+        compose_available=1
+        echo "  Compose: $(docker compose version)"
+    else
+        echo "  ❌ Docker Compose plugin is unavailable!"
+        verification_failed=1
+    fi
     echo ""
     echo "  📦 CONTAINERS:"
     docker ps --format "  {{.Names}}\t{{.Status}}"
 else
     echo "  ❌ Docker not installed!"
+    verification_failed=1
 fi
 
 # Service Health Checks
 echo ""
 echo "🏥 SERVICE HEALTH CHECKS"
-
 check_service() {
     local name=$1
     local url=$2
@@ -75,22 +93,58 @@ check_service() {
         echo "  ✅ $name: OK (HTTP $response)"
     else
         echo "  ❌ $name: FAILED (HTTP $response)"
+        verification_failed=1
+    fi
+}
+
+# Public API health is intentionally an exact 200 check. Do not follow redirects here:
+# an HTTPS/proxy misconfiguration must not be reported as a healthy API.
+check_exact_200() {
+    local name=$1
+    local url=$2
+    local response=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 5 "$url" 2>/dev/null || true)
+    if [ "$response" = "200" ]; then
+        echo "  ✅ $name: OK (HTTP 200)"
+    else
+        echo "  ❌ $name: FAILED (HTTP $response; expected HTTP 200)"
+        verification_failed=1
     fi
 }
 
 check_service "Frontend (nginx/domain)" "https://www.urbeat.com.br/"
-check_service "Backend API (localhost:5000)" "http://localhost:5000/health"
+check_service "Backend API replica 1 (localhost:5001)" "http://localhost:5001/health"
+check_service "Backend API replica 2 (localhost:5002)" "http://localhost:5002/health"
 check_service "Prometheus (localhost:9090)" "http://localhost:9090/-/healthy"
-check_service "Grafana (localhost:3000)" "http://localhost:3000/api/health"
+echo "  ℹ️ Grafana (localhost:3000): optional; not a verification blocker"
+grafana_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://localhost:3000/api/health" 2>/dev/null)
+if [ "$grafana_response" = "200" ]; then
+    echo "  ✅ Grafana (optional): OK (HTTP $grafana_response)"
+else
+    echo "  ⚠️ Grafana (optional): unavailable (HTTP $grafana_response)"
+fi
 
 # NGINX Status
 echo ""
 echo "🌐 NGINX STATUS"
 if systemctl is-active --quiet nginx; then
     echo "  ✅ NGINX: Running"
-    echo "  Config test: $(sudo nginx -t 2>&1 | tail -1)"
+    if sudo nginx -t >/tmp/urbeat-nginx-test.log 2>&1; then
+        echo "  Config test: $(tail -1 /tmp/urbeat-nginx-test.log)"
+    else
+        echo "  ❌ NGINX config test: INVALID"
+        sed 's/^/    /' /tmp/urbeat-nginx-test.log
+        verification_failed=1
+    fi
 else
     echo "  ❌ NGINX: Not running"
+    verification_failed=1
+    if sudo nginx -t >/tmp/urbeat-nginx-test.log 2>&1; then
+        echo "  Config test: valid, but NGINX is stopped"
+    else
+        echo "  ❌ NGINX config test: INVALID"
+        sed 's/^/    /' /tmp/urbeat-nginx-test.log
+        verification_failed=1
+    fi
 fi
 
 # Check enabled sites
@@ -102,7 +156,7 @@ ls /etc/nginx/sites-enabled/ | while read f; do echo "    - $f"; done
 echo ""
 echo "🌍 DOMAIN CHECKS"
 check_service "www.urbeat.com.br" "http://www.urbeat.com.br"
-check_service "api.urbeat.com.br" "http://api.urbeat.com.br/health"
+check_exact_200 "api.urbeat.com.br (HTTPS health)" "https://api.urbeat.com.br/health"
 
 # SSL Certificates
 echo ""
@@ -116,36 +170,90 @@ fi
 # PostgreSQL
 echo ""
 echo "🐘 POSTGRESQL"
-if docker exec urbeat-postgres pg_isready -U urbeatPostg -d urbeatdb 2>/dev/null; then
+# Read the database credentials exported by the PostgreSQL image itself. The deployment can
+# configure different POSTGRES_USER/POSTGRES_DB values, so the verifier must not assume names.
+if [ "$docker_available" -eq 1 ] && docker exec urbeat-postgres sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' 2>/dev/null; then
     echo "  ✅ PostgreSQL: Ready"
-    TABLE_COUNT=$(docker exec urbeat-postgres psql -U urbeatPostg -d urbeatdb -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='urbeat';" -t 2>/dev/null | tr -d ' ')
+    TABLE_COUNT=$(docker exec urbeat-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"'"'urbeat'"'"';" -t 2>/dev/null | tr -d ' ')
     echo "  📊 Tables in urbeat schema: $TABLE_COUNT"
 else
     echo "  ❌ PostgreSQL: Not ready"
+    verification_failed=1
+fi
+
+# Redis and workers are essential runtime components, not merely informational containers.
+echo ""
+echo "🔄 REDIS AND WORKERS"
+if [ "$docker_available" -eq 1 ] && docker exec urbeat-redis redis-cli ping 2>/dev/null | grep -q '^PONG$'; then
+    echo "  ✅ Redis: Ready"
+else
+    echo "  ❌ Redis: Not ready"
+    verification_failed=1
+fi
+
+check_container() {
+    local name=$1
+    local details=$(docker inspect -f '{{.State.Running}}|{{.State.Status}}|{{.State.Restarting}}|{{.RestartCount}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null)
+    if [ -z "$details" ]; then
+        echo "  ❌ $name: unavailable"
+        verification_failed=1
+        return
+    fi
+    IFS='|' read -r running status restarting restart_count health <<< "$details"
+    if [ "$running" = "true" ] && [ "$status" = "running" ] && [ "$restarting" = "false" ] && [ "$restart_count" -lt 3 ] && { [ "$health" = "none" ] || [ "$health" = "healthy" ]; }; then
+        if [ "$health" = "none" ]; then
+            echo "  ✅ $name: Running (no healthcheck configured; restart count $restart_count)"
+        else
+            echo "  ✅ $name: Running/healthy (restart count $restart_count)"
+        fi
+    else
+        echo "  ❌ $name: unhealthy or crash-looping (state=$status restarting=$restarting restarts=$restart_count health=$health)"
+        verification_failed=1
+    fi
+}
+if [ "$docker_available" -eq 1 ]; then
+    check_container urbeat-worker-business
+    check_container urbeat-worker-communications
+else
+    echo "  ❌ Workers: cannot inspect without Docker"
+    verification_failed=1
 fi
 
 # Docker Volumes
 echo ""
 echo "💾 DOCKER VOLUMES"
-docker volume ls --format "  {{.Name}}\t{{.Driver}}" | grep urbeat || true
+if [ "$docker_available" -eq 1 ]; then
+    docker volume ls --format "  {{.Name}}\t{{.Driver}}" | grep urbeat || true
+fi
 
 # Recent logs summary
 echo ""
 echo "📋 RECENT LOGS (last 5 lines per service)"
 echo ""
 echo "  --- Backend ---"
+if [ "$docker_available" -eq 1 ]; then
 docker logs urbeat-backend --tail=5 2>/dev/null | sed 's/^/  /'
+echo "  --- Backend replica 2 ---"
+docker logs urbeat-backend-2 --tail=5 2>/dev/null | sed 's/^/  /'
 echo ""
 echo "  --- Frontend build ---"
 docker logs urbeat-frontend-build --tail=5 2>/dev/null | sed 's/^/  /'
 echo ""
 echo "  --- PostgreSQL ---"
 docker logs urbeat-postgres --tail=5 2>/dev/null | sed 's/^/  /'
+else
+    echo "  Docker unavailable; container logs omitted."
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Verification completed!"
+if [ "`$verification_failed" -ne 0 ]; then
+    echo "❌ Verification completed with failures."
+else
+    echo "✅ Verification completed!"
+fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+exit "`$verification_failed"
 '@
 
 $tempVerify = [System.IO.Path]::GetTempFileName() + ".sh"
@@ -156,8 +264,16 @@ $cleanVerifyScript = $verifyScript -replace "`r`n", "`n"
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $tempVerify "${SSHUser}@${ServerIP}:/tmp/verify.sh"
-Send-PortKnock -ServerIP $ServerIP
-ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/verify.sh && /tmp/verify.sh && rm /tmp/verify.sh"
-
-Remove-Item $tempVerify -Force
+try {
+    scp @scpOpts $tempVerify "${SSHUser}@${ServerIP}:/tmp/verify.sh"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to upload verification script (scp exit code $LASTEXITCODE)."
+    }
+    Send-PortKnock -ServerIP $ServerIP
+    ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/verify.sh; /tmp/verify.sh; status=`$?; rm -f /tmp/verify.sh; exit `$status"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Deployment verification failed (ssh exit code $LASTEXITCODE)."
+    }
+} finally {
+    Remove-Item $tempVerify -Force -ErrorAction SilentlyContinue
+}

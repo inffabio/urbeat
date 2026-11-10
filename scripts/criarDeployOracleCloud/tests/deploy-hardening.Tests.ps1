@@ -4,12 +4,12 @@ Describe "deploy source helpers" {
     }
 
     It "computes a stable SHA256 for a file" {
-        $tmp = New-TemporaryFile
+        $tmp = [System.IO.Path]::GetTempFileName()
         try {
-            [System.IO.File]::WriteAllText($tmp.FullName, "urbeat", [System.Text.UTF8Encoding]::new($false))
-            (Get-FileSha256 -Path $tmp.FullName) | Should Match '^[0-9a-f]{64}$'
+            [System.IO.File]::WriteAllText($tmp, "urbeat", [System.Text.UTF8Encoding]::new($false))
+            (Get-FileSha256 -Path $tmp) | Should Match '^[0-9a-f]{64}$'
         } finally {
-            Remove-Item -LiteralPath $tmp.FullName -Force
+            Remove-Item -LiteralPath $tmp -Force
         }
     }
 
@@ -110,6 +110,65 @@ Describe "Assert-DeploySource" {
 }
 
 Describe "deploy hardening invariants" {
+    It "NGINX configuration aborts on upload, remote execution, and reload failures" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\05-configure-nginx.ps1") -Raw
+        $content | Should Match 'Failed to upload'
+        $content | Should Match 'Failed to install'
+        $content | Should Match 'Remote nginx configuration failed'
+        $content | Should Match 'systemctl reload nginx'
+        $content | Should Match 'nginx -t'
+    }
+
+    It "deployment verification treats infrastructure failures as blockers and Grafana as optional" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+        $content | Should Match 'Docker Compose plugin is unavailable'
+        $content | Should Match 'NGINX config test: INVALID'
+        $content | Should Match 'Redis: Not ready'
+        $content | Should Match 'Workers: cannot inspect without Docker'
+        $content | Should Match 'optional; not a verification blocker'
+    }
+
+    It "requires an exact HTTPS 200 for the public API and inspects worker restart state" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+        $content | Should Match 'check_exact_200 "api\.urbeat\.com\.br \(HTTPS health\)" "https://api\.urbeat\.com\.br/health"'
+        $content | Should Match 'expected HTTP 200'
+        $content | Should Match '\{\.RestartCount\}'
+        $content | Should Match '\{\.State\.Restarting\}'
+        $content | Should Match 'crash-looping'
+        $content | Should Match 'health.*none.*healthy'
+    }
+
+    It "makes the remote Redis PING a deployment gate" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\04-deploy-application.ps1") -Raw
+        $content | Should Match 'redis-cli PING'
+        $content | Should Match "grep -q '\^PONG\$'"
+        $content | Should Match 'Redis indispon.*abortando deploy'
+        $content | Should Match 'exit 1'
+    }
+
+    It "does not report relational startup green after mandatory seeding failure" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\..\backend\src\Urbeat.WebApi\Program.cs") -Raw
+        $content | Should Match 'if \(dbContext\.Database\.IsRelational\(\)\)'
+        $content | Should Match 'LogError\(exception, "Mandatory relational startup seeding failed; aborting startup\."\)'
+        $content | Should Match 'catch \(Exception exception\)[\s\S]*?LogError\(exception, "Mandatory relational startup seeding failed; aborting startup\."\)[\s\S]*?throw;'
+        ($content -match 'LogWarning\(exception, "Seeding skipped') | Should Be $false
+    }
+
+    It "deployment verification reads PostgreSQL credentials from the container environment" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\07-verify-deployment.ps1") -Raw
+
+        $content | Should Match 'docker exec urbeat-postgres sh -c ''pg_isready -U "\$POSTGRES_USER" -d "\$POSTGRES_DB"'''
+        $content | Should Match 'docker exec urbeat-postgres sh -c ''psql -U "\$POSTGRES_USER" -d "\$POSTGRES_DB"'
+        ($content -match 'pg_isready\s+-U\s+postgres\s+-d\s+UrbeatDb') | Should Be $false
+        ($content -match 'psql\s+-U\s+postgres\s+-d\s+UrbeatDb') | Should Be $false
+    }
+
+    It "pipeline validation fails when no YAML validator is available" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\validate-pipeline.ps1") -Raw
+        $content | Should Match 'No YAML validator available'
+        $content | Should Match 'Ruby/Psych'
+    }
+
     It "OCI application step accepts AllowDirty and ExpectedCommit" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\04-deploy-application.ps1") -Raw
 

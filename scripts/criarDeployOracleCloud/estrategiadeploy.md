@@ -1553,6 +1553,10 @@ Write-Host "  🔒 https://api.urbeat.com.br" -ForegroundColor Cyan
 
 ### `scripts/07-verify-deployment.ps1`
 
+> A verificação do PostgreSQL não assume nomes fixos de usuário ou banco. Ela executa
+> `pg_isready` e `psql` dentro do container usando `POSTGRES_USER` e `POSTGRES_DB`
+> exportados pelo próprio container, sem exibir senha ou connection string no relatório.
+
 ```powershell
 <#
 .SYNOPSIS
@@ -1661,9 +1665,9 @@ fi
 # PostgreSQL
 echo ""
 echo "🐘 POSTGRESQL"
-if docker exec urbeat-postgres pg_isready -U urbeatPostg -d urbeatdb 2>/dev/null; then
+if docker exec urbeat-postgres sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' 2>/dev/null; then
     echo "  ✅ PostgreSQL: Ready"
-    TABLE_COUNT=$(docker exec urbeat-postgres psql -U urbeatPostg -d urbeatdb -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='urbeat';" -t 2>/dev/null | tr -d ' ')
+    TABLE_COUNT=$(docker exec urbeat-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"'"'urbeat'"'"';" -t 2>/dev/null | tr -d ' ')
     echo "  📊 Tables in urbeat schema: $TABLE_COUNT"
 else
     echo "  ❌ PostgreSQL: Not ready"
@@ -2055,3 +2059,11 @@ ssh -L 9090:localhost:9090 -i ~/.ssh/id_rsa ubuntu@136.248.115.135 -N
 - [ ] ✅ All secrets stored in Oracle Vault
 - [ ] ✅ `.env` file has `chmod 600`
 - [ ] ✅ No credentials in any config files
+# Validação local e critérios de verificação
+
+`validate-pipeline.ps1` não considera a pipeline válida quando não há um validador YAML
+disponível. Ele usa PyYAML, Ruby/Psych ou `docker compose config` (este último valida apenas
+Compose e exige um parser adicional para `prometheus.yml`); caso contrário, falha explicitamente.
+O relatório de `07-verify-deployment.ps1` acumula falhas de Docker/Compose, NGINX, PostgreSQL,
+Redis, APIs e workers e retorna código diferente de zero. Grafana é monitoramento opcional e é
+reportado como aviso, não como blocker.

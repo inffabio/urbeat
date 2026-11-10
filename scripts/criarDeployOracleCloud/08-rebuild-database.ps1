@@ -89,27 +89,58 @@ if [[ "`$RESET_DATABASE" != 'true' ]]; then
   exit 0
 fi
 
-echo 'Parando o backend antes da recriacao...'
-"`${COMPOSE[@]}" stop backend
+SERVICES_TO_RESTORE=(backend backend-replica-2 worker-business worker-communications)
+restore_services() {
+  local restore_status=0
+  echo 'Restaurando APIs e workers...' >&2
+  "`${COMPOSE[@]}" up -d "`${SERVICES_TO_RESTORE[@]}" || restore_status=`$?
+  if [[ `$restore_status -ne 0 ]]; then
+    echo 'ATENCAO: nao foi possivel restaurar todos os servicos automaticamente.' >&2
+  fi
+  return `$restore_status
+}
+
+restore_on_exit() {
+  local operation_status=`$?
+  local restore_status=0
+  trap - EXIT
+  restore_services || restore_status=`$?
+  if [[ `$operation_status -ne 0 ]]; then
+    exit `$operation_status
+  fi
+  exit `$restore_status
+}
+trap restore_on_exit EXIT
+
+echo 'Parando explicitamente APIs e workers antes da recriacao...'
+"`${COMPOSE[@]}" stop "`${SERVICES_TO_RESTORE[@]}"
 
 echo 'Recriando apenas o banco da aplicacao...'
 "`${COMPOSE[@]}" exec -T postgres sh -c 'psql -U "`$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS `$POSTGRES_DB WITH (FORCE);" -c "CREATE DATABASE `$POSTGRES_DB OWNER `$POSTGRES_USER;"'
 "`${COMPOSE[@]}" exec -T postgres sh -c 'psql -U "`$POSTGRES_USER" -d "`$POSTGRES_DB" -v ON_ERROR_STOP=1 -c '\''CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'\'' -c '\''CREATE EXTENSION IF NOT EXISTS pg_trgm;'\'' -c '\''CREATE EXTENSION IF NOT EXISTS unaccent;'\'''
 
 echo 'Subindo o backend; o startup aplicara as migrations versionadas...'
-"`${COMPOSE[@]}" up -d backend
+"`${COMPOSE[@]}" up -d "`${SERVICES_TO_RESTORE[@]}"
+healthy=false
 for attempt in {1..60}; do
-  status=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/health || true)
-  if [[ "`$status" == '200' ]]; then
-    echo 'Backend saudavel e migrations aplicadas pelo startup.'
-    exit 0
+  status1=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5001/health || true)
+  status2=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5002/health || true)
+  if [[ "`$status1" == '200' && "`$status2" == '200' ]]; then
+    echo 'As duas APIs estao saudaveis e as migrations foram aplicadas pelo startup.'
+    healthy=true
+    break
   fi
+  echo "Tentativa `$attempt/60 (HTTP `$status1/`$status2)" >&2
   sleep 5
 done
 
-echo 'Backend nao ficou saudavel apos a recriacao. Consulte os logs.' >&2
-"`${COMPOSE[@]}" logs --tail=100 backend >&2 || true
-exit 1
+if [[ "`$healthy" != 'true' ]]; then
+  echo 'As APIs nao ficaram saudaveis apos a recriacao. Consulte os logs.' >&2
+  "`${COMPOSE[@]}" logs --tail=100 backend backend-replica-2 >&2 || true
+  exit 1
+fi
+
+echo 'Recriacao concluida; o trap restaurara e verificara os servicos antes de sair.'
 "@
 
 $tempScript = [System.IO.Path]::GetTempFileName() + ".sh"

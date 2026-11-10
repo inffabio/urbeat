@@ -80,7 +80,18 @@ function Get-FileSha256 {
         [Parameter(Mandatory = $true)][string]$Path
     )
 
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    if (Get-Command Get-FileHash -ErrorAction SilentlyContinue) {
+        return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+
+    # Windows PowerShell 2 compatibility for the local validation runner.
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [System.IO.File]::ReadAllBytes($Path)
+        return ([System.BitConverter]::ToString($sha256.ComputeHash($bytes)) -replace '-', '').ToLowerInvariant()
+    } finally {
+        $sha256.Dispose()
+    }
 }
 
 function New-DeploymentManifest {

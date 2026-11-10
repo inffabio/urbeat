@@ -102,11 +102,6 @@ foreach ($script in $scripts) {
     }
 }
 
-if ($errors.Count -gt 0) {
-    $errors | ForEach-Object { Write-Error $_ }
-    exit 1
-}
-
 # ─────────────────────────────────────────
 # WhatsApp configuration invariants
 # ─────────────────────────────────────────
@@ -178,6 +173,71 @@ if (Test-Path -LiteralPath $applicationScript -PathType Leaf) {
     }
 } else {
     $errors.Add("04-deploy-application.ps1 is missing.")
+}
+
+# Parse YAML structurally. A validator is mandatory: silently skipping this check can report a
+# broken Compose file as valid. Prefer PyYAML, then Ruby/Psych, then docker compose config.
+$yamlFiles = @((Join-Path $scriptRoot "..\..\docker\docker-compose.yml"), (Join-Path $scriptRoot "..\..\docker\prometheus\prometheus.yml"))
+$applicationContent = Get-Content -LiteralPath (Join-Path $scriptRoot "04-deploy-application.ps1") -Raw
+$composeMatch = [regex]::Match($applicationContent, '(?s)\$dockerCompose = @''\r?\n(.*?)\r?\n''@')
+$generatedCompose = $null
+if ($composeMatch.Success) {
+    $generatedCompose = Join-Path ([System.IO.Path]::GetTempPath()) ("urbeat-compose-" + [guid]::NewGuid() + ".yml")
+    [System.IO.File]::WriteAllText($generatedCompose, $composeMatch.Groups[1].Value, [System.Text.UTF8Encoding]::new($false))
+    $yamlFiles += $generatedCompose
+} else { $errors.Add("04-deploy-application.ps1: docker-compose heredoc could not be extracted for YAML validation.") }
+
+$python = Get-Command python -ErrorAction SilentlyContinue
+if (-not $python) { $python = Get-Command python3 -ErrorAction SilentlyContinue }
+$ruby = Get-Command ruby -ErrorAction SilentlyContinue
+$validatedWithParser = $false
+try {
+    if ($python) {
+        & $python.Source -c "import yaml" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            $validatedWithParser = $true
+            foreach ($yamlFile in $yamlFiles) { & $python.Source -c "import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))" $yamlFile; if ($LASTEXITCODE -ne 0) { $errors.Add("Invalid YAML: $yamlFile") } }
+        }
+    }
+    if (-not $validatedWithParser -and $ruby) {
+        $validatedWithParser = $true
+        foreach ($yamlFile in $yamlFiles) { & $ruby.Source -e 'require "yaml"; YAML.safe_load(File.read(ARGV[0]), aliases: true)' $yamlFile; if ($LASTEXITCODE -ne 0) { $errors.Add("Invalid YAML (Ruby/Psych): $yamlFile") } }
+    }
+    if (-not $validatedWithParser) {
+        $docker = Get-Command docker -ErrorAction SilentlyContinue
+        if ($docker) {
+            $validatedWithParser = $true
+            foreach ($yamlFile in @($yamlFiles[0])) { & $docker.Source compose -f $yamlFile config --quiet; if ($LASTEXITCODE -ne 0) { $errors.Add("docker compose rejected $yamlFile.") } }
+            if ($yamlFiles.Count -gt 1) { $errors.Add("Docker Compose validated the Compose file, but cannot validate non-Compose YAML (prometheus.yml); install Python with PyYAML or Ruby/Psych.") }
+        }
+    }
+    if (-not $validatedWithParser) { $errors.Add("No YAML validator available. Install Python with PyYAML, Ruby/Psych, or Docker Compose.") }
+} finally { if ($generatedCompose) { Remove-Item -LiteralPath $generatedCompose -Force -ErrorAction SilentlyContinue } }
+
+# Compose performs an additional schema/interpolation check when available. It is intentionally
+# best-effort here because production .env values are not present in a local validation run.
+$docker = Get-Command docker -ErrorAction SilentlyContinue
+$localCompose = Join-Path $scriptRoot "..\..\docker\docker-compose.yml"
+if ($docker) {
+    & $docker.Source compose -f $localCompose config --quiet 2>$null
+    if ($LASTEXITCODE -ne 0) { $errors.Add("docker compose config rejected $localCompose.") }
+}
+
+# Multi-replica API topology invariants. Keep these checks local and textual: validation must not
+# require OCI, Docker, secrets, or a running database.
+$nginxScript = Join-Path $scriptRoot "05-configure-nginx.ps1"
+if (Test-Path -LiteralPath $nginxScript -PathType Leaf) {
+    $nginxContent = Get-Content -LiteralPath $nginxScript -Raw
+    foreach ($invariant in @(
+        @{ Pattern = 'least_conn;'; Message = "05-configure-nginx.ps1 must use least_conn." },
+        @{ Pattern = '127\.0\.0\.1:5001'; Message = "05-configure-nginx.ps1 must include API replica port 5001." },
+        @{ Pattern = '127\.0\.0\.1:5002'; Message = "05-configure-nginx.ps1 must include API replica port 5002." },
+        @{ Pattern = 'proxy_set_header Upgrade \$http_upgrade;'; Message = "05-configure-nginx.ps1 must preserve WebSocket upgrade headers." }
+    )) {
+        if ($nginxContent -notmatch $invariant.Pattern) { $errors.Add($invariant.Message) }
+    }
+} else {
+    $errors.Add("05-configure-nginx.ps1 is missing.")
 }
 
 $dockerScript = Join-Path $scriptRoot "02-install-docker-aarch64.ps1"

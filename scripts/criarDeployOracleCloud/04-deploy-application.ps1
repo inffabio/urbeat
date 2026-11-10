@@ -115,6 +115,12 @@ x-backend-environment: &backend-environment
   App__FrontendUrl: ${FRONTEND_URL}
   App__ApiUrl: ${API_URL}
   App__CorsOrigins: ${CORS_ORIGINS}
+  # Explicit per-process Npgsql budget. Four application processes (two APIs and two workers)
+  # may each open at most 10 primary-database connections; logs use a separate sink pool.
+  DB_MAX_POOL_SIZE: ${DB_MAX_POOL_SIZE:-10}
+  DB_MIN_POOL_SIZE: ${DB_MIN_POOL_SIZE:-0}
+  DB_LOGS_MAX_POOL_SIZE: ${DB_LOGS_MAX_POOL_SIZE:-1}
+  Serilog__WriteTo__1__Args__connectionString: "Host=postgres;Port=5432;Database=UrbeatLogs;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Maximum Pool Size=${DB_LOGS_MAX_POOL_SIZE:-1};Minimum Pool Size=0"
 
 services:
 
@@ -173,7 +179,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  # ─── .NET 9 Backend API ───────────────────────────────────
+  # ─── .NET 9 Backend API replica 1 ─────────────────────────
   backend:
     build:
       context: ./backend
@@ -192,7 +198,7 @@ services:
       Hangfire__Role: "Web"
       Outbox__WorkerEnabled: "false"
     ports:
-      - "127.0.0.1:5000:5000"
+      - "127.0.0.1:5001:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -202,6 +208,41 @@ services:
       - urbeat-network
     volumes:
       - ./logs/backend:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # ─── .NET 9 Backend API replica 2 ─────────────────────────
+  backend-replica-2:
+    image: urbeat/backend:latest
+    platform: linux/arm64
+    container_name: urbeat-backend-2
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      <<: *backend-environment
+      Hangfire__Role: "Web"
+      Outbox__WorkerEnabled: "false"
+    ports:
+      - "127.0.0.1:5002:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - urbeat-network
+    volumes:
+      - ./logs/backend-2:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
@@ -385,7 +426,7 @@ scrape_configs:
   - job_name: 'urbeat-backend'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:5000']
+      - targets: ['backend:5000', 'backend-replica-2:5000']
     scrape_interval: 15s
 
   - job_name: 'urbeat-frontend'
@@ -455,6 +496,40 @@ BEGIN
 END $$;
 '@
 
+# Validate generated YAML before any remote file is replaced. A parser is mandatory; never report
+# the deployment as valid merely because PyYAML is not installed.
+function Assert-YamlContent {
+    param([Parameter(Mandatory=$true)][string]$Content, [Parameter(Mandatory=$true)][string]$Name)
+
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) { $python = Get-Command python3 -ErrorAction SilentlyContinue }
+    $tempYaml = [System.IO.Path]::GetTempFileName()
+    try {
+        if ($python) {
+            & $python.Source -c "import yaml" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                [System.IO.File]::WriteAllText($tempYaml, ($Content -replace "`r`n", "`n"), [System.Text.UTF8Encoding]::new($false))
+                & $python.Source -c "import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))" $tempYaml
+                if ($LASTEXITCODE -ne 0) { throw "YAML inválido em $Name (PyYAML)." }
+                return
+            }
+        }
+        $ruby = Get-Command ruby -ErrorAction SilentlyContinue
+        if ($ruby) {
+            [System.IO.File]::WriteAllText($tempYaml, ($Content -replace "`r`n", "`n"), [System.Text.UTF8Encoding]::new($false))
+            & $ruby.Source -e 'require "yaml"; YAML.safe_load(File.read(ARGV[0]), aliases: true)' $tempYaml
+            if ($LASTEXITCODE -ne 0) { throw "YAML inválido em $Name (Ruby/Psych)." }
+            return
+        }
+        throw "Nenhum validador YAML disponível para $Name. Instale Python com PyYAML ou Ruby/Psych."
+    } finally {
+        Remove-Item -LiteralPath $tempYaml -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Assert-YamlContent -Content $dockerCompose -Name "docker-compose.yml"
+Assert-YamlContent -Content $prometheusConfig -Name "prometheus.yml"
+
 # ─────────────────────────────────────────
 # Upload all configuration files
 # ─────────────────────────────────────────
@@ -502,6 +577,29 @@ $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyCheckin
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 Send-PortKnock -ServerIP $ServerIP
 ssh @sshOpts "${SSHUser}@${ServerIP}" "sudo mkdir -p $AppDir/configs/postgres && sudo chown -R ${SSHUser}:${SSHUser} $AppDir/configs"
+if ($LASTEXITCODE -ne 0) { throw "Failed to prepare remote configuration directories (ssh exit code $LASTEXITCODE)." }
+
+# Preserve the live compose and image references before replacing any configuration. This is a
+# manual rollback aid; the deploy is intentionally not advertised as atomic.
+$backupCommand = @"
+set -e
+cd $AppDir
+BACKUP_DIR="backups/deploy-prechange-`$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "`$BACKUP_DIR"
+if [ -f docker-compose.yml ]; then cp docker-compose.yml "`$BACKUP_DIR/docker-compose.previous.yml"; fi
+if [ -f docker-compose.yml ]; then
+  # Validate interpolation without persisting rendered environment values or secrets.
+  docker compose config >/dev/null
+  docker compose images > "`$BACKUP_DIR/docker-images.previous.txt" || true
+else
+  echo "No previous compose found; initial deployment."
+fi
+echo "Previous deployment state saved in `$BACKUP_DIR"
+"@
+$backupCommand = $backupCommand -replace "`r`n", "`n"
+Send-PortKnock -ServerIP $ServerIP
+ssh @sshOpts "${SSHUser}@${ServerIP}" $backupCommand
+if ($LASTEXITCODE -ne 0) { throw "Remote deployment preflight/backup failed (ssh exit code $LASTEXITCODE)." }
 
 # Upload files
 Upload-FileToServer -Content $dockerCompose -RemotePath $AppDir -FileName "docker-compose.yml"
@@ -658,32 +756,57 @@ set -e
 echo "🚀 Starting Urbeat deployment..."
 cd $AppDir
 
+BACKUP_DIR="$AppDir/backups/deploy-`$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "`$BACKUP_DIR"
+if [ -f docker-compose.yml ]; then
+  cp docker-compose.yml "`$BACKUP_DIR/docker-compose.previous.yml"
+  # Validate the live file, but never write interpolated (secret-bearing) output to disk.
+  docker compose config >/dev/null
+  docker compose images > "`$BACKUP_DIR/docker-images.previous.txt" || true
+fi
+echo "📦 Previous compose/image state recorded in `$BACKUP_DIR"
+
 echo "📋 Deployment manifest:"
 cat $AppDir/deployment-manifest.json 2>/dev/null || echo "   (manifest not found)"
 echo ""
 
 echo "🔨 Building Docker images (aarch64)..."
+docker compose config >/dev/null
 docker compose build --no-cache
 
 echo "🔄 Starting services..."
 docker compose up -d --remove-orphans
 
-echo "⏳ Waiting for backend to be healthy..."
+echo "⏳ Waiting for both API replicas to be healthy..."
+healthy=false
 for i in `$(seq 1 60); do
-  STATUS=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/health 2>/dev/null || echo '000')
-  if [ "`$STATUS" = "200" ]; then
-    echo "   Backend healthy (HTTP 200)"
+  STATUS1=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5001/health 2>/dev/null || echo '000')
+  STATUS2=`$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5002/health 2>/dev/null || echo '000')
+  if [ "`$STATUS1" = "200" ] && [ "`$STATUS2" = "200" ]; then
+    echo "   API replicas healthy (HTTP 200/200)"
+    healthy=true
     break
   fi
-  echo "   tentativa `$i/60 (HTTP `$STATUS)"
+  echo "   tentativa `$i/60 (HTTP `$STATUS1/`$STATUS2)"
   sleep 3
 done
+if [ "`$healthy" != "true" ]; then
+  echo "❌ API replicas did not become healthy after 60 attempts (HTTP `$STATUS1/`$STATUS2)." >&2
+  docker compose ps >&2 || true
+  docker compose logs --tail=100 backend backend-replica-2 >&2 || true
+  exit 1
+fi
 
-echo "🧹 Limpando cache Redis..."
-docker compose exec -T redis redis-cli FLUSHALL 2>/dev/null && echo "   Cache Redis limpo." || echo "   Redis indisponivel, pulando..."
+echo "🔎 Verificando Redis compartilhado (sem FLUSHALL)..."
+if docker compose exec -T redis redis-cli PING 2>/dev/null | grep -q '^PONG$'; then
+  echo "   Redis disponivel."
+else
+  echo "❌ Redis indisponivel; abortando deploy." >&2
+  exit 1
+fi
 
 echo "🔄 Executando migrations (via health check)..."
-curl -s -o /dev/null -w '   Migrations HTTP %{http_code}\n' http://localhost:5000/health || echo "   Backend ainda iniciando migrations..."
+curl -s -o /dev/null -w '   Migrations HTTP %{http_code}\n' http://localhost:5001/health || echo "   Backend ainda iniciando migrations..."
 
 echo "📧 Verificando servidor de email..."
 SMTP_HOST=`$(grep -oP '^SMTP_HOST=\K.*' .env 2>/dev/null | head -1)

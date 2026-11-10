@@ -23,6 +23,8 @@ param(
     [string]$SSHKeyPath = "~/.ssh/id_ed25519"
 )
 
+$ErrorActionPreference = "Stop"
+
 . (Join-Path $PSScriptRoot "oci-ssh.ps1")
 
 Write-Host "🌐 Configuring NGINX Reverse Proxy..." -ForegroundColor Cyan
@@ -57,7 +59,7 @@ server {
 
     # Proxy API requests to the .NET Backend
     location /api/ {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass http://urbeat_api;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -76,7 +78,7 @@ server {
 
     # Proxy SignalR Hubs to the .NET Backend
     location /hubs/ {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass http://urbeat_api;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -158,11 +160,13 @@ $nginxBackend = @'
 # ═══════════════════════════════════════════════════════════
 # NGINX - URBEAT BACKEND API
 # Domain: api.urbeat.com.br
-# Proxy: localhost:5000 (.NET 9 Docker Container)
+# Proxy: localhost:5001 and localhost:5002 (.NET 9 Docker containers)
 # ═══════════════════════════════════════════════════════════
 
 upstream urbeat_api {
-    server 127.0.0.1:5000;
+    least_conn;
+    server 127.0.0.1:5001 max_fails=3 fail_timeout=10s;
+    server 127.0.0.1:5002 max_fails=3 fail_timeout=10s;
     keepalive 32;
 }
 
@@ -199,10 +203,26 @@ server {
         client_max_body_size 50M;
     }
 
-    # Health check endpoint
-    location /health {
+    # Health endpoints must remain distinct; a prefix proxy_pass to /health would
+    # incorrectly rewrite /health/ready and /health/live.
+    location = /health {
         proxy_pass http://urbeat_api/health;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log off;
+    }
+
+    location = /health/ready {
+        proxy_pass http://urbeat_api/health/ready;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log off;
+    }
+
+    location = /health/live {
+        proxy_pass http://urbeat_api/health/live;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
         access_log off;
     }
 
@@ -270,18 +290,25 @@ function Upload-NginxConfig {
     $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
     $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
     Send-PortKnock -ServerIP $ServerIP
-    scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+    try {
+        scp @scpOpts $tempFile "${SSHUser}@${ServerIP}:/tmp/$FileName" | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to upload $FileName (scp exit code $LASTEXITCODE)."
+        }
 
-    if ($LASTEXITCODE -eq 0) {
         Send-PortKnock -ServerIP $ServerIP
         ssh @sshOpts "${SSHUser}@${ServerIP}" `
             "sudo mv /tmp/$FileName /etc/nginx/sites-available/$FileName && echo '✅ Moved to sites-available'"
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to install $FileName on the remote host (ssh exit code $LASTEXITCODE)."
+        }
         Write-Host " ✅" -ForegroundColor Green
-    } else {
+    } catch {
         Write-Host " ❌" -ForegroundColor Red
+        throw
+    } finally {
+        Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
     }
-
-    Remove-Item $tempFile -Force
 }
 
 Upload-NginxConfig -Content $nginxFrontend -FileName "urbeat-frontend.conf"
@@ -310,13 +337,18 @@ sudo rm -f /etc/nginx/sites-enabled/urbeat.conf
 sudo rm -f /etc/nginx/sites-available/urbeat.conf
 
 echo "🔍 Testing NGINX configuration..."
-sudo nginx -t
+if ! sudo nginx -t; then
+    echo "❌ NGINX configuration has errors!"
+    exit 1
+fi
 
-if [ $? -eq 0 ]; then
-    echo "✅ NGINX configuration is valid"
+echo "✅ NGINX configuration is valid"
     if sudo systemctl is-active --quiet nginx; then
         echo "🔄 Reloading NGINX..."
-        sudo systemctl reload nginx
+        if ! sudo systemctl reload nginx; then
+            echo "❌ NGINX reload failed!"
+            exit 1
+        fi
         echo "✅ NGINX reloaded successfully"
        else
            if pgrep -x nginx >/dev/null 2>&1; then
@@ -333,14 +365,13 @@ if [ $? -eq 0 ]; then
                done
            fi
            echo "▶️ Starting NGINX under systemd..."
-           sudo systemctl enable --now nginx
+        if ! sudo systemctl enable --now nginx; then
+            echo "❌ NGINX start failed!"
+            exit 1
+        fi
            echo "✅ NGINX started successfully"
        fi
-    sudo systemctl status nginx --no-pager
-else
-    echo "❌ NGINX configuration has errors!"
-    exit 1
-fi
+sudo systemctl status nginx --no-pager
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -358,11 +389,19 @@ $cleanScript = $nginxSetupScript -replace "`r`n", "`n"
 $sshOpts = @("-p", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 $scpOpts = @("-P", $SSHPort, "-i", $resolvedKeyPath, "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", "-o", "ConnectTimeout=180", "-o", "GSSAPIAuthentication=no")
 Send-PortKnock -ServerIP $ServerIP
-scp @scpOpts $tempNginxScript "${SSHUser}@${ServerIP}:/tmp/nginx-setup.sh" | Out-Null
-Send-PortKnock -ServerIP $ServerIP
-ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/nginx-setup.sh && /tmp/nginx-setup.sh && rm /tmp/nginx-setup.sh"
-
-Remove-Item $tempNginxScript -Force
+try {
+    scp @scpOpts $tempNginxScript "${SSHUser}@${ServerIP}:/tmp/nginx-setup.sh" | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to upload nginx setup script (scp exit code $LASTEXITCODE)."
+    }
+    Send-PortKnock -ServerIP $ServerIP
+    ssh @sshOpts "${SSHUser}@${ServerIP}" "chmod +x /tmp/nginx-setup.sh && /tmp/nginx-setup.sh; status=`$?; rm -f /tmp/nginx-setup.sh; exit `$status"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Remote nginx configuration failed (ssh exit code $LASTEXITCODE)."
+    }
+} finally {
+    Remove-Item $tempNginxScript -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
 Write-Host "🎉 NGINX configuration completed!" -ForegroundColor Green
