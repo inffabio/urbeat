@@ -172,6 +172,7 @@ Describe "deploy hardening invariants" {
         $nestedQuote = [string][char]39 + [string][char]34 + [string][char]39 + [string][char]34 + [string][char]39
         $verifyScript | Should Not Match $nestedQuote
         $verifyScript | Should Match 'table_schema = current_schema\(\)'
+        ($verifyScript -match "sh -c '[^\r\n]*tr -d ' '") | Should Be $false
 
         $bash = Get-Command bash -ErrorAction SilentlyContinue
         if ($null -eq $bash) {
