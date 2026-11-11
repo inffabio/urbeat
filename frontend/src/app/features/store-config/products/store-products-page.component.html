@@ -117,7 +117,7 @@
     </dialog>
 
     <!-- 2. Cadastrar produto -->
-    <section class="block-section">
+    <section #productEditor class="block-section product-editor">
       <h2 class="block-heading"><span class="section-num">2.</span> Cadastrar produtos</h2>
       <p class="block-sub">Adicione os produtos que seus clientes poderao pedir.</p>
 
@@ -524,7 +524,7 @@
       <div class="catalog-tools">
         <div class="catalog-search-wrap">
           <ion-icon name="search-outline" class="catalog-search-icon"></ion-icon>
-          <input type="text" class="catalog-search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(0)" placeholder="Buscar produtos..." />
+          <input type="text" class="catalog-search-input" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(0)" placeholder="Buscar produtos..." aria-label="Buscar produtos" />
         </div>
         <select class="catalog-filter-select" [ngModel]="categoryFilterId()" (ngModelChange)="categoryFilterId.set($event); currentPage.set(0)" aria-label="Filtrar por categoria">
           <option value="">Todas as categorias</option>
@@ -545,21 +545,21 @@
                   @if (productPriceLabel(product)) { <span class="catalog-product-price-label">{{ productPriceLabel(product) }}</span> }
                   <strong class="catalog-product-price-value">{{ productPriceValue(product) }}</strong>
                 </p>
-                <p class="catalog-product-name">{{ product.name }}</p>
+                <p class="catalog-product-name">{{ product.name || 'Produto sem nome' }}</p>
                 <span class="catalog-product-category">{{ product.categoryName || 'Sem categoria' }}</span>
               </div>
             </div>
              <div class="catalog-product-actions">
-               <button class="catalog-edit-btn" type="button" (click)="$event.stopPropagation(); selectProduct(product)" aria-label="Editar {{ product.name }}" title="Editar produto">
-                 <ion-icon name="pencil-outline"></ion-icon>
+               <button class="catalog-edit-btn" type="button" (click)="$event.stopPropagation(); selectProduct(product)" [attr.aria-label]="'Editar produto ' + (product.name || 'sem nome')" [attr.title]="'Editar produto ' + (product.name || 'sem nome')">
+                 <ion-icon name="pencil-outline" aria-hidden="true"></ion-icon>
                </button>
-               <button class="catalog-copy-btn" (click)="$event.stopPropagation(); copyProductOptions(product)" aria-label="Copiar opcoes de {{ product.name }}">
+               <button class="catalog-copy-btn" type="button" (click)="$event.stopPropagation(); copyProductOptions(product)" [attr.aria-label]="'Copiar opções de ' + (product.name || 'produto sem nome')" title="Copiar opções do produto">
                  Copiar
                </button>
-              <button class="catalog-toggle-btn" (click)="$event.stopPropagation(); togglePreview(product.id)">
-                <ion-icon [name]="expandedId() === product.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+              <button class="catalog-toggle-btn" type="button" (click)="$event.stopPropagation(); togglePreview(product.id)" [attr.aria-label]="(expandedId() === product.id ? 'Recolher' : 'Expandir') + ' detalhes de ' + (product.name || 'produto sem nome')" [attr.title]="expandedId() === product.id ? 'Recolher detalhes' : 'Expandir detalhes'">
+                <ion-icon [name]="expandedId() === product.id ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
               </button>
-              <button class="catalog-delete-btn" (click)="$event.stopPropagation(); deleteLocalProduct(product)"><ion-icon name="trash-outline"></ion-icon></button>
+              <button class="catalog-delete-btn" type="button" (click)="$event.stopPropagation(); deleteLocalProduct(product)" [attr.aria-label]="'Excluir produto ' + (product.name || 'sem nome')" title="Excluir produto"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>
             </div>
             @if (expandedId() === product.id) {
               <div class="catalog-preview">

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -29,6 +29,8 @@ export class StoreProductsPageComponent extends StoreProductsState {
   private readonly wizardRouter = inject(Router);
   private readonly wizardToast = inject(ToastService);
 
+  @ViewChild('productEditor') private productEditor?: ElementRef<HTMLElement>;
+
   override newProduct(): void {
     if (!this.allowDraftSwitch()) return;
     super.newProduct();
@@ -41,6 +43,30 @@ export class StoreProductsPageComponent extends StoreProductsState {
     super.selectProduct(product);
     this.formDirty.set(false);
     this.saveStatus.set('idle');
+    this.scrollToProductEditor();
+  }
+
+  /**
+   * The catalog lives beside the editor on desktop and below it on mobile.
+   * After loading a product, bring the editor into view once the selected
+   * product has been rendered. The dashboard keeps its existing behavior.
+   */
+  private scrollToProductEditor(): void {
+    if (this.isDashboardView()) return;
+    const editor = this.productEditor?.nativeElement;
+    if (!editor) return;
+
+    const scroll = (): void => {
+      const target = this.productEditor?.nativeElement;
+      if (!target || typeof target.scrollIntoView !== 'function') return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(scroll);
+      return;
+    }
+    setTimeout(scroll, 0);
   }
 
   override copyProductOptions(product: Product): void {

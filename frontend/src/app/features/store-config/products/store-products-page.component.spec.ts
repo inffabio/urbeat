@@ -1616,6 +1616,167 @@ describe('StoreProductsPageComponent — option groups', () => {
     });
   });
 
+  describe('wizard product catalog editing layout', () => {
+    const template = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, '../../../shared/styles/store-products.shared.scss'), 'utf8');
+
+    function styleRule(selector: string): string {
+      const selectorIdx = styles.indexOf(`${selector} {`);
+      expect(selectorIdx).toBeGreaterThan(-1);
+      const openBrace = styles.indexOf('{', selectorIdx);
+      return styles.slice(openBrace + 1, styles.indexOf('}', openBrace));
+    }
+
+    function ruleFrom(marker: string, selector: string): string {
+      const scopeIdx = styles.indexOf(marker);
+      expect(scopeIdx).toBeGreaterThan(-1);
+      const scoped = styles.slice(scopeIdx);
+      const selectorIdx = scoped.indexOf(`${selector} {`);
+      expect(selectorIdx).toBeGreaterThan(-1);
+      const openBrace = scoped.indexOf('{', selectorIdx);
+      return scoped.slice(openBrace + 1, scoped.indexOf('}', openBrace));
+    }
+
+    function wizardRule(selector: string): string {
+      return ruleFrom('.wizard-content:not(.is-dashboard) {\n  .product-editor {', selector);
+    }
+
+    function dashboardRule(selector: string): string {
+      return ruleFrom('.wizard-content.is-dashboard {', selector);
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      delete (HTMLElement.prototype as any).scrollIntoView;
+    });
+
+    it('exposes a stable editor anchor that clears the sticky wizard header', () => {
+      expect(template).toContain('#productEditor');
+      expect(template).toMatch(/<section[^>]*#productEditor[^>]*class="[^"]*product-editor/);
+
+      const rule = wizardRule('.product-editor');
+      expect(rule).toContain('scroll-margin-top');
+    });
+
+    it('scrolls to the editor after loading a product into the form', () => {
+      const fixture = TestBed.createComponent(StoreProductsPageComponent);
+      const page = fixture.componentInstance;
+      page.products.set([sampleProduct({ id: 'p-scroll', name: 'Pizza' })]);
+      fixture.detectChanges();
+
+      const editor = fixture.nativeElement.querySelector('.product-editor') as HTMLElement;
+      expect(editor).not.toBeNull();
+
+      const scrollIntoView = jest.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+        callback(0);
+        return 0;
+      });
+
+      page.selectProduct(page.products()[0]);
+
+      expect(page.selectedId()).toBe('p-scroll');
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    });
+
+    it('uses a pencil icon with a contextual accessible label and title to edit', () => {
+      const editButton = template.match(/<button class="catalog-edit-btn"[\s\S]*?<\/button>/)?.[0] ?? '';
+
+      expect(editButton).toContain('name="pencil-outline"');
+      expect(editButton).toContain('[attr.aria-label]="\'Editar produto \' + (product.name || \'sem nome\')"');
+      expect(editButton).toContain('[attr.title]="\'Editar produto \' + (product.name || \'sem nome\')"');
+    });
+
+    it('renders the product name in the catalog and falls back only when it is missing', () => {
+      const fixture = TestBed.createComponent(StoreProductsPageComponent);
+      const page = fixture.componentInstance;
+      page.products.set([
+        sampleProduct({ id: 'named', name: 'Bolo de cenoura' }),
+        sampleProduct({ id: 'unnamed', name: '' }),
+      ]);
+      fixture.detectChanges();
+
+      const names = Array.from(
+        fixture.nativeElement.querySelectorAll('.catalog-product-name') as NodeListOf<HTMLElement>,
+      ).map(name => name.textContent?.trim());
+
+      expect(names).toEqual(['Bolo de cenoura', 'Produto sem nome']);
+      expect(template).toContain("{{ product.name || 'Produto sem nome' }}");
+    });
+
+    it('keeps product info and actions in independent areas and stacks actions on narrow screens', () => {
+      expect(wizardRule('.catalog-product')).toContain('grid-template-columns: minmax(0, 1fr) auto');
+      expect(styleRule('.catalog-product-main')).toContain('min-width: 0');
+      expect(wizardRule('.catalog-product-main')).toContain('overflow: hidden');
+      expect(styleRule('.catalog-product-actions')).toContain('min-width: 0');
+      expect(wizardRule('.catalog-product-actions')).toContain('flex-wrap: nowrap');
+
+      const narrowCatalog = styles.slice(styles.lastIndexOf('@media (max-width: 720px)'));
+      expect(narrowCatalog).toContain('.wizard-content:not(.is-dashboard) {');
+      expect(narrowCatalog).toContain('.catalog-product {');
+      expect(narrowCatalog).toContain('grid-template-columns: minmax(0, 1fr);');
+      expect(narrowCatalog).toContain('.catalog-product-actions {');
+      expect(narrowCatalog).toContain('grid-column: 1 / -1;');
+    });
+
+    it('lets the product name wrap into two safe lines instead of hiding it', () => {
+      const rule = wizardRule('.catalog-product-name');
+
+      expect(rule).toContain('-webkit-line-clamp: 2');
+      expect(rule).not.toContain('white-space: nowrap');
+      expect(rule).toContain('overflow-wrap: anywhere');
+      expect(styleRule('.catalog-product-name')).toContain('text-overflow: ellipsis');
+    });
+
+    it('keeps search and category filter inside the catalog card and stacks them when narrow', () => {
+      expect(wizardRule('.catalog-search-input')).toContain('min-width: 0');
+      expect(wizardRule('.catalog-filter-select')).toContain('min-width: 0');
+
+      const narrowTools = styles.slice(styles.lastIndexOf('@media (max-width: 560px)'));
+      expect(narrowTools).toContain('.wizard-content:not(.is-dashboard) .catalog-tools {');
+      expect(narrowTools).toContain('grid-template-columns: 1fr;');
+    });
+
+    it('renders the expanded preview with compact padding and gaps', () => {
+      const rule = wizardRule('.catalog-preview');
+
+      expect(rule).toContain('padding: 10px 12px');
+      expect(rule).toContain('gap: 6px');
+    });
+
+    it('scopes every catalog refinement to the wizard instead of the shared base rules', () => {
+      expect(styleRule('.catalog-tools')).toContain('minmax(200px, 230px)');
+      expect(styleRule('.catalog-product')).toContain('gap: 16px');
+      expect(styleRule('.catalog-product')).not.toContain('gap: 12px');
+      expect(styleRule('.catalog-product-name')).toContain('white-space: nowrap');
+      expect(styleRule('.catalog-product-actions')).toContain('flex-wrap: wrap');
+      expect(styleRule('.catalog-preview')).toContain('padding: 14px 16px');
+
+      expect(wizardRule('.catalog-tools')).toContain('minmax(170px, 210px)');
+      expect(wizardRule('.catalog-product')).toContain('gap: 12px');
+      expect(wizardRule('.catalog-preview')).toContain('padding: 10px 12px');
+    });
+
+    it('keeps the dashboard catalog on its original layout explicitly', () => {
+      expect(dashboardRule('.catalog-tools')).toContain('minmax(200px, 230px)');
+      expect(dashboardRule('.catalog-product')).toContain('gap: 16px');
+      expect(dashboardRule('.catalog-product')).toContain('padding: 12px 16px');
+      expect(dashboardRule('.catalog-product-main')).toContain('gap: 16px');
+      expect(dashboardRule('.catalog-product-name')).toContain('white-space: nowrap');
+      expect(dashboardRule('.catalog-product-actions')).toContain('flex-wrap: wrap');
+      expect(dashboardRule('.catalog-preview')).toContain('padding: 14px 16px');
+      expect(dashboardRule('.catalog-preview')).toContain('gap: 10px');
+
+      const dashboardBlock = styles.slice(styles.indexOf('.wizard-content.is-dashboard {'));
+      expect(dashboardBlock).toContain('.catalog-edit-btn,');
+      expect(dashboardBlock).toContain('.catalog-copy-btn {');
+      expect(dashboardBlock).toContain('.catalog-toggle-btn,');
+      expect(dashboardBlock).toContain('.catalog-delete-btn {');
+      expect(dashboardBlock).toContain('width: 42px');
+    });
+  });
+
   function sampleProduct(overrides: Partial<any> = {}): any {
     return {
       id: 'product1',
