@@ -68,6 +68,12 @@
   align-items: start;
 }
 
+/* Wizard pages must clear the sticky progress header; the dashboard keeps its own spacing. */
+.wizard-content:not(.is-dashboard) .products-layout {
+  margin-top: 0;
+  padding-top: 20px;
+}
+
 .products-layout.editor-focused {
   grid-template-columns: minmax(0, 1fr) minmax(400px, 440px);
 }

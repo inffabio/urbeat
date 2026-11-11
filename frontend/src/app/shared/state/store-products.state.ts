@@ -6,8 +6,8 @@ import { SubscriptionBannerStatus } from '../components/subscription-banner/subs
 import { StoreService } from '../../core/services/store.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Product, ProductCategory, ProductOptionGroup, ProductOptionGroupTemplate, ProductOptionItem, ProductVariation, ProductSaleMode, ProductWeightConfig } from '../models/product.model';
-import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, PRODUCT_IMAGE_MAX_BYTES, imageSizeError, isAllowedImageFile } from '../utils/image-upload.utils';
+import { Product, ProductAdditional, ProductCategory, ProductChoiceOption, ProductOptionGroup, ProductOptionGroupTemplate, ProductOptionItem, ProductVariation, ProductSaleMode, ProductWeightConfig } from '../models/product.model';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR, isAllowedImageFile } from '../utils/image-upload.utils';
 import { compressImage } from '../utils/image-compression.utils';
 
 addIcons({
@@ -113,6 +113,14 @@ export abstract class StoreProductsState implements OnInit {
   readonly weightConfig = signal<WeightConfigForm>({ pricePerKg: '', minGrams: '', maxGrams: '', incrementGrams: '', isEstimated: false });
 
   readonly optionGroups = signal<ProductOptionGroup[]>([]);
+  /**
+   * Draft-scoped additionals and choice options. They are loaded when an
+   * existing product is selected and replaced by the copy flow, because the
+   * copied draft has no `selectedId` and therefore no `currentProduct` to read
+   * them from when the creation payload is built.
+   */
+  readonly draftAdditionals = signal<ProductAdditional[]>([]);
+  readonly draftChoiceOptions = signal<ProductChoiceOption[]>([]);
   readonly availableOptionGroups = signal<ProductOptionGroupTemplate[]>([]);
   private groupCounter = 0;
 
@@ -712,6 +720,10 @@ export abstract class StoreProductsState implements OnInit {
     this.tagMaisVendido.set(product.isBestSeller ?? false);
     this.tagNovidade.set(product.isNew ?? false);
     this.tagPriority.set(product.tagPriority ? product.tagPriority.split(',').filter(Boolean) : []);
+    // Keep the draft independent from the list object so editing a selected
+    // product never mutates the cached catalog entry.
+    this.draftAdditionals.set((product.additionals ?? []).map(a => ({ ...a })));
+    this.draftChoiceOptions.set((product.choiceOptions ?? []).map(c => ({ ...c })));
 
     const sm = product.saleMode as ProductSaleMode || 'single';
     this.saleMode.set(sm);
@@ -765,22 +777,31 @@ export abstract class StoreProductsState implements OnInit {
     }, 0);
   }
 
+  /**
+   * Copies every editable field of a persisted product into a brand new draft.
+   * The copy never keeps `selectedId`, so saving it creates another product.
+   */
   copyProductOptions(product: Product): void {
-    this.draftToken++;
-    if (this.selectedId()) {
-      this.selectedId.set(null);
-      this.productName.set('');
-      this.productDesc.set('');
-      this.productPrice.set('0,00');
-      this.productCatId.set('');
-      this.productImage.set('');
-      this.productImagePreview.set(null);
-      this.isProductActive.set(true);
-      this.tagDestaque.set(false);
-      this.tagMaisVendido.set(false);
-      this.tagNovidade.set(false);
-      this.tagPriority.set([]);
+    if (this.isSaving()) {
+      this.toast.showInfo('Aguarde o salvamento do produto em andamento.');
+      return;
     }
+
+    this.draftToken++;
+    this.selectedId.set(null);
+
+    this.productName.set(product.name);
+    this.productDesc.set(product.description ?? '');
+    this.productPrice.set(this.formatBRL(product.price));
+    this.productCatId.set(product.categoryId);
+    const imageUrl = product.imageUrl ?? '';
+    this.productImage.set(imageUrl);
+    this.productImagePreview.set(imageUrl || null);
+    this.isProductActive.set(product.isAvailable);
+    this.tagDestaque.set(product.isFeatured ?? false);
+    this.tagMaisVendido.set(product.isBestSeller ?? false);
+    this.tagNovidade.set(product.isNew ?? false);
+    this.tagPriority.set(product.tagPriority ? product.tagPriority.split(',').filter(Boolean) : []);
 
     const saleMode = product.saleMode ?? 'single';
     this.saleMode.set(saleMode);
@@ -832,8 +853,14 @@ export abstract class StoreProductsState implements OnInit {
       return match ? Math.max(max, parseInt(match[1], 10)) : max;
     }, 0);
     this.expandedGroupId.set(copiedGroups[0]?.id ?? null);
+
+    // Nested persisted ids are regenerated so the copy never reuses ids that
+    // belong to the source product.
+    this.draftAdditionals.set((product.additionals ?? []).map(a => ({ ...a, id: this.uid() })));
+    this.draftChoiceOptions.set((product.choiceOptions ?? []).map(c => ({ ...c, id: this.uid() })));
+
     this.markDirty();
-    this.toast.showSuccess('Opcoes copiadas para o produto em criacao.');
+    this.toast.showSuccess('Produto completo copiado para um novo produto.');
   }
 
   // ── Save ─────────────────────────────────────────────────
@@ -917,8 +944,6 @@ export abstract class StoreProductsState implements OnInit {
     const sid = this.storeId();
     if (!sid) return Promise.resolve(false);
 
-    const currentProduct = existingId ? this.products().find(p => p.id === existingId) : null;
-
     const variations = this.buildVariationsPayload(sm);
 
     const body: any = {
@@ -934,8 +959,10 @@ export abstract class StoreProductsState implements OnInit {
       isNew: this.tagNovidade(),
       tagPriority: this.tagPriority().join(','),
       saleMode: sm,
-      additionals: currentProduct?.additionals ?? [],
-      choiceOptions: currentProduct?.choiceOptions ?? [],
+      // The draft owns these collections: a copied draft has no selected id,
+      // so `currentProduct` cannot be used as the source after a copy.
+      additionals: this.draftAdditionals().map(a => ({ ...a })),
+      choiceOptions: this.draftChoiceOptions().map(c => ({ ...c })),
       variations,
       optionGroups: this.optionGroups().map(g => ({
         id: g.id,
@@ -1156,6 +1183,8 @@ export abstract class StoreProductsState implements OnInit {
     this.fixedWeightVariations.set([]);
     this.weightConfig.set({ pricePerKg: '', minGrams: '', maxGrams: '', incrementGrams: '', isEstimated: false });
     this.optionGroups.set([]);
+    this.draftAdditionals.set([]);
+    this.draftChoiceOptions.set([]);
     this.groupCounter = 0;
   }
 
@@ -1172,15 +1201,24 @@ export abstract class StoreProductsState implements OnInit {
       return;
     }
 
-    if (rawFile.size > PRODUCT_IMAGE_MAX_BYTES) {
-      this.toast.showError(imageSizeError('6 MB'));
+    this.uploadingImage.set(true);
+    let file = rawFile;
+    try {
+      // The backend limit is authoritative, but compressing first avoids a rejected
+      // upload and keeps large photos usable. Unsupported/unreadable raster files are
+      // returned unchanged and fall through to the explicit limit check below.
+      file = await compressImage(rawFile);
+    } catch {
+      file = rawFile;
+    }
+
+    if (file.size > IMAGE_MAX_BYTES) {
+      this.toast.showError(IMAGE_OVER_LIMIT_ERROR);
+      this.uploadingImage.set(false);
       input.value = '';
       return;
     }
 
-    this.uploadingImage.set(true);
-    let file = rawFile;
-    try { file = await compressImage(rawFile, { maxWidth: 1200, quality: 0.75 }); } catch { file = rawFile; }
     this.storeService.uploadImage(file, 'products').subscribe({
       next: (res) => {
         this.productImage.set(res.url);

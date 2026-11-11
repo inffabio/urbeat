@@ -226,22 +226,96 @@ describe('SellerProductsPageComponent', () => {
       expect(component.formDirty()).toBe(true);
     });
 
-    it('keeps copying options without the wizard discard confirmation in the dashboard', () => {
+    it('copies the complete product without the wizard discard confirmation in the dashboard', () => {
       const { fixture, component } = renderEditor();
       component.markDirty();
       const confirmSpy = jest.spyOn(window, 'confirm');
 
-      component.copyProductOptions({
+      const source = {
         ...component.products()[0],
-        saleMode: 'size',
-        variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 }],
-      } as any);
+        id: 'product-source',
+        name: 'Pizza Margherita',
+        description: 'Molho e mussarela',
+        categoryId: 'cat-1',
+        price: 49.9,
+        imageUrl: 'https://img.test/margherita.jpg',
+        isAvailable: false,
+        isFeatured: true,
+        isBestSeller: true,
+        isNew: true,
+        tagPriority: 'destaque,mais_vendido,novidade',
+        saleMode: 'size' as const,
+        variations: [
+          { id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+        ],
+        optionGroups: [
+          {
+            id: 'g1',
+            name: 'Bordas',
+            isRequired: false,
+            choiceType: 'multiple' as const,
+            minChoices: 0,
+            maxChoices: 2,
+            displayOrder: 1,
+            items: [{ id: 'i1', name: 'Catupiry', price: 5, displayOrder: 1 }],
+          },
+        ],
+        additionals: [{ id: 'a1', name: 'Bacon', price: 5, isActive: true, isRequired: false, displayOrder: 1 }],
+        choiceOptions: [{ id: 'c1', name: 'Borda recheada', price: 4, isActive: true, isRequired: false, displayOrder: 1 }],
+      };
+
+      component.copyProductOptions(source);
 
       expect(confirmSpy).not.toHaveBeenCalled();
       expect(component.selectedId()).toBeNull();
+      expect(component.productName()).toBe('Pizza Margherita');
+      expect(component.productDesc()).toBe('Molho e mussarela');
+      expect(component.productPrice()).toBe('49,90');
+      expect(component.productCatId()).toBe('cat-1');
+      expect(component.productImage()).toBe('https://img.test/margherita.jpg');
+      expect(component.productImagePreview()).toBe('https://img.test/margherita.jpg');
+      expect(component.isProductActive()).toBe(false);
+      expect(component.tagDestaque()).toBe(true);
+      expect(component.tagMaisVendido()).toBe(true);
+      expect(component.tagNovidade()).toBe(true);
       expect(component.sizeVariations()).toHaveLength(1);
+      expect(component.optionGroups()).toHaveLength(1);
+      expect(component.optionGroups()[0].id).not.toBe('g1');
+      expect(component.optionGroups()[0].items[0].id).not.toBe('i1');
+      expect(component.draftAdditionals()).toEqual([
+        expect.objectContaining({ name: 'Bacon', price: 5, isActive: true }),
+      ]);
+      expect(component.draftChoiceOptions()).toEqual([
+        expect.objectContaining({ name: 'Borda recheada', price: 4, isActive: true }),
+      ]);
       expect(component.formDirty()).toBe(true);
       void fixture;
+    });
+
+    it('creates a new product from the copied draft keeping additionals and choice options', () => {
+      const { component } = renderEditor();
+      const source = {
+        ...component.products()[0],
+        id: 'product-source',
+        name: 'Pizza Margherita',
+        description: 'Molho e mussarela',
+        imageUrl: 'https://img.test/margherita.jpg',
+        additionals: [{ id: 'a1', name: 'Bacon', price: 5, isActive: true, isRequired: false, displayOrder: 1 }],
+        choiceOptions: [{ id: 'c1', name: 'Borda recheada', price: 4, isActive: true, isRequired: false, displayOrder: 1 }],
+      };
+      component.copyProductOptions(source);
+      storeServiceMock.createProduct.mockReturnValue(of({ id: 'product-new', optionGroups: [] }));
+
+      component.saveProduct();
+
+      expect(storeServiceMock.updateProduct).not.toHaveBeenCalled();
+      expect(storeServiceMock.createProduct).toHaveBeenCalledWith('store-1', expect.objectContaining({
+        name: 'Pizza Margherita',
+        description: 'Molho e mussarela',
+        imageUrl: 'https://img.test/margherita.jpg',
+        additionals: [expect.objectContaining({ name: 'Bacon', price: 5, isActive: true })],
+        choiceOptions: [expect.objectContaining({ name: 'Borda recheada', price: 4, isActive: true })],
+      }));
     });
   });
 

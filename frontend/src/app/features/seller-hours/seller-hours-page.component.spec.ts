@@ -32,6 +32,7 @@ describe('SellerHoursPageComponent', () => {
 
   const toastServiceMock = {
     showError: jest.fn(),
+    showInfo: jest.fn(),
     showSuccess: jest.fn(),
     showGrouped: jest.fn(),
   };
@@ -119,7 +120,7 @@ describe('SellerHoursPageComponent', () => {
     expect(fixture.nativeElement.querySelector('.btn-primary-app').disabled).toBe(false);
   });
 
-  it('places the copy button inline on the first shift row before the remove button, without a second line', async () => {
+  it('places a copy button inline on every shift row before the remove button, without a second line', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -152,8 +153,8 @@ describe('SellerHoursPageComponent', () => {
       expect(inputs.length).toBe(2);
       expect(group.querySelectorAll('.time-box ion-icon').length).toBe(2);
 
-      const removeShift = group.querySelector('.remove-shift');
-      expect(removeShift).toBeTruthy();
+      expect(group.querySelector('.remove-shift')).toBeTruthy();
+      expect(group.querySelector('.copy-action')).toBeTruthy();
     }
 
     const firstGroup = shiftGroups[0] as HTMLElement;
@@ -167,12 +168,108 @@ describe('SellerHoursPageComponent', () => {
       (child: Element) => child.classList.contains('copy-action'),
     );
     expect(directCopyChild).toBe(false);
-    expect(segundaRow.querySelectorAll('.copy-action').length).toBe(1);
+    expect(segundaRow.querySelectorAll('.copy-action').length).toBe(2);
 
     const dayLabels = fixture.nativeElement.querySelectorAll('.settings-row .day-summary strong');
     expect(dayLabels.length).toBe(7);
     expect(dayLabels[0].textContent!.trim()).toBe('Segunda-feira');
     expect(dayLabels[dayLabels.length - 1].textContent!.trim()).toBe('Domingo');
+  });
+
+  it('copies only the first shift of a two-shift day from its row action', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component.schedule.update(s => ({
+      ...s,
+      segunda: {
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '10:00' },
+          { startTime: '11:00', endTime: '13:00' },
+        ],
+      },
+      terca: {
+        isOpen: true,
+        shifts: [{ startTime: '20:00', endTime: '22:00' }],
+      },
+    }));
+    fixture.detectChanges();
+
+    const segundaRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+    const copyButtons = Array.from(segundaRow.querySelectorAll('.copy-action')) as HTMLButtonElement[];
+    expect(copyButtons).toHaveLength(2);
+    expect(copyButtons.map(button => button.getAttribute('aria-label'))).toEqual([
+      'Copiar turno 1 de Segunda-feira',
+      'Copiar turno 2 de Segunda-feira',
+    ]);
+    expect(copyButtons.every(button => button.type === 'button')).toBe(true);
+
+    copyButtons[0].click();
+    fixture.detectChanges();
+
+    expect(component.copySourceShift()).toMatchObject({ dayId: 'segunda', shiftIndex: 0 });
+    expect(component.copySourceShiftNumber()).toBe(1);
+    expect(component.copySourceDayLabel()).toBe('Segunda-feira');
+
+    component.toggleCopyTarget('terca');
+    component.confirmCopy();
+
+    expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
+      .toEqual(['08:00-10:00', '20:00-22:00']);
+    expect(component.schedule().segunda.shifts).toHaveLength(2);
+  });
+
+  it('copies the third shift individually and reports the conflicting destination', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component.schedule.update(s => ({
+      ...s,
+      segunda: {
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '09:00' },
+          { startTime: '10:00', endTime: '11:00' },
+          { startTime: '14:00', endTime: '16:00' },
+        ],
+      },
+      terca: {
+        isOpen: true,
+        shifts: [{ startTime: '15:00', endTime: '18:00' }],
+      },
+      quarta: {
+        isOpen: true,
+        shifts: [{ startTime: '20:00', endTime: '22:00' }],
+      },
+    }));
+    fixture.detectChanges();
+
+    const segundaRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+    const copyButtons = segundaRow.querySelectorAll('.copy-action') as NodeListOf<HTMLButtonElement>;
+    expect(copyButtons).toHaveLength(3);
+
+    copyButtons[2].click();
+    fixture.detectChanges();
+
+    expect(component.copySourceShiftNumber()).toBe(3);
+    component.toggleCopyTarget('terca');
+    component.toggleCopyTarget('quarta');
+    component.confirmCopy();
+
+    expect(component.schedule().quarta.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
+      .toEqual(['14:00-16:00', '20:00-22:00']);
+    expect(component.schedule().terca.shifts).toHaveLength(1);
+    expect(toastServiceMock.showGrouped).toHaveBeenCalled();
+    const messages = (toastServiceMock.showGrouped.mock.calls as Array<[Array<{ text: string }>]>)
+      .flatMap(([lines]) => lines.map(line => line.text))
+      .join('\n');
+    expect(messages).toContain('Terça-feira');
+    expect(messages).toContain('sobreposição');
   });
 
   it('lays each day out as a compact grid with copy and remove inline in the shift group', () => {

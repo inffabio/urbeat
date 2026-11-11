@@ -176,13 +176,6 @@
   font-weight: 700;
 }
 
-.action-slot {
-  display: block;
-  width: 44px;
-  height: 44px;
-  margin-top: 18px;
-}
-
 .day-error {
   grid-column: 1 / -1;
   color: var(--hours-muted);
@@ -487,7 +480,6 @@
     align-self: center;
     justify-self: end;
   }
-  .shift-group > .action-slot { margin-top: 0; }
 
   .interval-label { grid-column: 1 / -1; padding-bottom: 0; }
   .hours-meta-grid { grid-template-columns: 1fr; }

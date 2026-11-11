@@ -619,55 +619,246 @@ describe('StoreProductsPageComponent — option groups', () => {
   });
 
   describe('copyProductOptions', () => {
-    it('should start a new draft with copied options and blank product identity fields', () => {
-      const source = sampleProduct({
-        saleMode: 'size',
-        categoryId: 'cat1',
-        price: 29.9,
+    function fullProduct(overrides: Partial<any> = {}): any {
+      return sampleProduct({
+        id: 'source-product',
+        name: 'Pizza Margherita',
+        description: 'Molho, mussarela e manjericão',
+        categoryId: 'cat-pizzas',
+        categoryName: 'Pizzas',
+        price: 49.9,
+        imageUrl: 'https://img.test/margherita.jpg',
+        isAvailable: false,
         isFeatured: true,
         isBestSeller: true,
-        tagPriority: 'destaque,mais_vendido',
+        isNew: true,
+        tagPriority: 'destaque,mais_vendido,novidade',
+        saleMode: 'size',
         variations: [
-          { id: 'v1', name: 'Media', description: '30 cm', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+          { id: 'var-source-1', name: 'Média', description: '30 cm', price: 49.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+          { id: 'var-source-2', name: 'Grande', description: '40 cm', price: 59.9, isDefault: false, isActive: true, isRequired: false, displayOrder: 2 },
         ],
         optionGroups: [
-          { id: 'g1', name: 'Bordas', isRequired: false, choiceType: 'multiple', minChoices: 0, maxChoices: 2, displayOrder: 1, items: [{ id: 'i1', name: 'Catupiry', price: 5, displayOrder: 1 }] },
+          {
+            id: 'group-source',
+            templateId: 'tpl-bordas',
+            name: 'Bordas',
+            isRequired: true,
+            choiceType: 'single',
+            minChoices: 1,
+            maxChoices: 1,
+            displayOrder: 1,
+            items: [{ id: 'item-source', name: 'Catupiry', price: 6, displayOrder: 1 }],
+          },
         ],
+        additionals: [
+          { id: 'additional-source', name: 'Bacon extra', price: 7.5, isActive: true, isRequired: false, displayOrder: 1 },
+        ],
+        choiceOptions: [
+          { id: 'choice-source', name: 'Borda recheada', price: 8, isActive: true, isRequired: false, displayOrder: 1 },
+        ],
+        ...overrides,
       });
+    }
 
+    it('copies every editable field of the persisted product into a new draft', () => {
+      const source = fullProduct();
+      component.products.set([source]);
       component.selectProduct(sampleProduct({ id: 'editing', name: 'Produto sendo editado' }));
+
       component.copyProductOptions(source);
 
       expect(component.selectedId()).toBeNull();
-      expect(component.productName()).toBe('');
-      expect(component.productDesc()).toBe('');
-      expect(component.productImage()).toBe('');
-      expect(component.productCatId()).toBe('');
-      expect(component.productPrice()).toBe('0,00');
+      expect(component.productName()).toBe('Pizza Margherita');
+      expect(component.productDesc()).toBe('Molho, mussarela e manjericão');
+      expect(component.productPrice()).toBe('49,90');
+      expect(component.productCatId()).toBe('cat-pizzas');
+      expect(component.productImage()).toBe('https://img.test/margherita.jpg');
+      expect(component.productImagePreview()).toBe('https://img.test/margherita.jpg');
+      expect(component.isProductActive()).toBe(false);
+      expect(component.tagDestaque()).toBe(true);
+      expect(component.tagMaisVendido()).toBe(true);
+      expect(component.tagNovidade()).toBe(true);
+      expect(component.tagPriority()).toEqual(['destaque', 'mais_vendido', 'novidade']);
       expect(component.saleMode()).toBe('size');
-      expect(component.sizeVariations()[0]).toEqual(expect.objectContaining({ name: 'Media', description: '30 cm', price: '39,90', isDefault: true, isActive: true }));
-      expect(component.sizeVariations()[0].uid).not.toBe('v1');
-      expect(component.optionGroups()[0].items[0].name).toBe('Catupiry');
-      expect(component.optionGroups()[0].id).not.toBe('g1');
-      expect(component.optionGroups()[0].items[0].id).not.toBe('i1');
-      expect(component.tagDestaque()).toBe(false);
-      expect(component.tagMaisVendido()).toBe(false);
+      expect(component.sizeVariations().map(v => v.name)).toEqual(['Média', 'Grande']);
+      expect(component.sizeVariations()[0]).toEqual(expect.objectContaining({
+        description: '30 cm',
+        price: '49,90',
+        isDefault: true,
+        isActive: true,
+      }));
+      expect(component.optionGroups()).toHaveLength(1);
+      expect(component.optionGroups()[0]).toEqual(expect.objectContaining({
+        templateId: 'tpl-bordas',
+        name: 'Bordas',
+        isRequired: true,
+        choiceType: 'single',
+        minChoices: 1,
+        maxChoices: 1,
+      }));
+      expect(component.optionGroups()[0].items[0]).toEqual(expect.objectContaining({ name: 'Catupiry', price: 6 }));
+      expect(component.draftAdditionals()).toEqual([
+        expect.objectContaining({ name: 'Bacon extra', price: 7.5, isActive: true, isRequired: false, displayOrder: 1 }),
+      ]);
+      expect(component.draftChoiceOptions()).toEqual([
+        expect.objectContaining({ name: 'Borda recheada', price: 8, isActive: true, isRequired: false, displayOrder: 1 }),
+      ]);
+      expect(component.expandedGroupId()).toBe(component.optionGroups()[0].id);
       expect(component.formDirty()).toBe(true);
+      expect(toastMock.showSuccess).toHaveBeenCalledWith('Produto completo copiado para um novo produto.');
     });
 
-    it('should copy options into the current draft instead of creating another product when already creating', () => {
+    it('regenerates the nested ids instead of reusing the persisted ones', () => {
+      const source = fullProduct();
+      component.copyProductOptions(source);
+
+      expect(component.selectedId()).toBeNull();
+      expect(component.optionGroups()[0].id).not.toBe('group-source');
+      expect(component.optionGroups()[0].id).not.toBe(source.id);
+      expect(component.optionGroups()[0].items[0].id).not.toBe('item-source');
+      expect(component.sizeVariations()[0].uid).not.toBe('var-source-1');
+      expect(component.sizeVariations()[1].uid).not.toBe('var-source-2');
+      expect(component.draftAdditionals()[0].id).not.toBe('additional-source');
+      expect(component.draftChoiceOptions()[0].id).not.toBe('choice-source');
+
+      const generatedIds = [
+        component.optionGroups()[0].id,
+        component.optionGroups()[0].items[0].id,
+        component.sizeVariations()[0].uid,
+        component.sizeVariations()[1].uid,
+        component.draftAdditionals()[0].id,
+        component.draftChoiceOptions()[0].id,
+      ];
+      expect(new Set(generatedIds).size).toBe(generatedIds.length);
+    });
+
+    it('keeps the copy independent from the source when the draft is edited', () => {
+      const source = fullProduct();
+      component.products.set([source]);
+      component.copyProductOptions(source);
+
+      const groupId = component.optionGroups()[0].id!;
+      const itemId = component.optionGroups()[0].items[0].id!;
+      component.productName.set('Pizza copiada editada');
+      component.productDesc.set('Descrição do rascunho');
+      component.productCatId.set('cat-outra');
+      component.productImage.set('https://img.test/outra.jpg');
+      component.tagDestaque.set(false);
+      component.updateGroupName(groupId, 'Bordas novas');
+      component.updateOptionItemName(groupId, itemId, 'Cheddar');
+      component.sizeVariations.update(list => list.map((v, index) => index === 0 ? { ...v, name: 'Broto' } : v));
+      component.draftAdditionals.update(list => list.map(a => ({ ...a, name: 'Bacon do rascunho' })));
+      component.draftChoiceOptions.update(list => list.map(c => ({ ...c, name: 'Borda do rascunho' })));
+
+      expect(component.productName()).toBe('Pizza copiada editada');
+      expect(component.draftAdditionals()[0].name).toBe('Bacon do rascunho');
+
+      expect(source.name).toBe('Pizza Margherita');
+      expect(source.description).toBe('Molho, mussarela e manjericão');
+      expect(source.categoryId).toBe('cat-pizzas');
+      expect(source.imageUrl).toBe('https://img.test/margherita.jpg');
+      expect(source.isFeatured).toBe(true);
+      expect(source.optionGroups[0].name).toBe('Bordas');
+      expect(source.optionGroups[0].items[0].name).toBe('Catupiry');
+      expect(source.variations[0].name).toBe('Média');
+      expect(source.additionals[0].name).toBe('Bacon extra');
+      expect(source.choiceOptions[0].name).toBe('Borda recheada');
+    });
+
+    it('does not share mutable objects with the source when the source changes later', () => {
+      const source = fullProduct();
+      component.copyProductOptions(source);
+
+      source.additionals[0].name = 'Adicional alterado na origem';
+      source.choiceOptions[0].name = 'Opção alterada na origem';
+      source.optionGroups[0].name = 'Grupo alterado na origem';
+      source.optionGroups[0].items[0].name = 'Item alterado na origem';
+      source.variations[0].name = 'Variação alterada na origem';
+
+      expect(component.draftAdditionals()[0].name).toBe('Bacon extra');
+      expect(component.draftChoiceOptions()[0].name).toBe('Borda recheada');
+      expect(component.optionGroups()[0].name).toBe('Bordas');
+      expect(component.optionGroups()[0].items[0].name).toBe('Catupiry');
+      expect(component.sizeVariations()[0].name).toBe('Média');
+    });
+
+    it('sends the copied additionals and choice options in the create payload with selectedId null', async () => {
+      component.storeId.set('store-1');
+      component.copyProductOptions(fullProduct());
+      storeServiceMock.createProduct.mockReturnValue(of(sampleProduct({ id: 'new-product' })));
+
+      expect(component.selectedId()).toBeNull();
+      await component.saveDraft();
+
+      expect(storeServiceMock.updateProduct).not.toHaveBeenCalled();
+      expect(storeServiceMock.createProduct).toHaveBeenCalledWith('store-1', expect.objectContaining({
+        name: 'Pizza Margherita',
+        description: 'Molho, mussarela e manjericão',
+        price: 49.9,
+        categoryId: 'cat-pizzas',
+        imageUrl: 'https://img.test/margherita.jpg',
+        isAvailable: false,
+        isFeatured: true,
+        isBestSeller: true,
+        isNew: true,
+        tagPriority: 'destaque,mais_vendido,novidade',
+        saleMode: 'size',
+        additionals: [expect.objectContaining({ name: 'Bacon extra', price: 7.5, isActive: true, isRequired: false, displayOrder: 1 })],
+        choiceOptions: [expect.objectContaining({ name: 'Borda recheada', price: 8, isActive: true, isRequired: false, displayOrder: 1 })],
+        variations: [
+          expect.objectContaining({ name: 'Média', description: '30 cm', price: 49.9, isDefault: true, isActive: true, displayOrder: 1 }),
+          expect.objectContaining({ name: 'Grande', description: '40 cm', price: 59.9, isDefault: false, isActive: true, displayOrder: 2 }),
+        ],
+      }));
+
+      const body = storeServiceMock.createProduct.mock.calls[0][1];
+      expect(body.optionGroups[0]).toEqual(expect.objectContaining({ name: 'Bordas', choiceType: 'single', minChoices: 1, maxChoices: 1 }));
+      expect(body.optionGroups[0].items[0]).toEqual(expect.objectContaining({ name: 'Catupiry', price: 6, displayOrder: 1 }));
+      expect(body.additionals[0].id).not.toBe('additional-source');
+      expect(body.choiceOptions[0].id).not.toBe('choice-source');
+    });
+
+    it('copies fixed weight variations and the variable weight configuration', () => {
+      component.copyProductOptions(fullProduct({
+        saleMode: 'fixed_weight',
+        variations: [
+          { id: 'var-source-1', name: '500 g', weightGrams: 500, price: 25, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
+        ],
+      }));
+
+      expect(component.fixedWeightVariations()).toEqual([
+        expect.objectContaining({ weight: '500', unit: 'g', price: '25,00', isDefault: true, isActive: true }),
+      ]);
+      expect(component.fixedWeightVariations()[0].uid).not.toBe('var-source-1');
+
+      component.copyProductOptions(fullProduct({
+        saleMode: 'variable_weight',
+        price: 0,
+        weightConfig: { id: 'weight-source', pricePerKg: 59.9, minGrams: 200, maxGrams: 2000, incrementGrams: 100, isEstimated: true },
+      }));
+
+      expect(component.saleMode()).toBe('variable_weight');
+      expect(component.weightConfig()).toEqual({ pricePerKg: '59,90', minGrams: '200', maxGrams: '2000', incrementGrams: '100', isEstimated: true });
+    });
+
+    it('replaces the current draft with the complete copy instead of creating another product', () => {
       component.newProduct();
       component.productName.set('Rascunho atual');
       component.productDesc.set('Descricao atual');
       component.productImage.set('https://img.test/produto.jpg');
       component.productImagePreview.set('https://img.test/produto.jpg');
 
-      component.copyProductOptions(sampleProduct({ saleMode: 'variable_weight', weightConfig: { id: 'w1', pricePerKg: 59.9, minGrams: 200, maxGrams: 2000, incrementGrams: 100, isEstimated: true } }));
+      component.copyProductOptions(fullProduct({
+        saleMode: 'variable_weight',
+        price: 0,
+        weightConfig: { id: 'w1', pricePerKg: 59.9, minGrams: 200, maxGrams: 2000, incrementGrams: 100, isEstimated: true },
+      }));
 
       expect(component.selectedId()).toBeNull();
-      expect(component.productName()).toBe('Rascunho atual');
-      expect(component.productDesc()).toBe('Descricao atual');
-      expect(component.productImage()).toBe('https://img.test/produto.jpg');
+      expect(component.productName()).toBe('Pizza Margherita');
+      expect(component.productDesc()).toBe('Molho, mussarela e manjericão');
+      expect(component.productImage()).toBe('https://img.test/margherita.jpg');
       expect(component.saleMode()).toBe('variable_weight');
       expect(component.weightConfig()).toEqual({ pricePerKg: '59,90', minGrams: '200', maxGrams: '2000', incrementGrams: '100', isEstimated: true });
     });
@@ -728,6 +919,40 @@ describe('StoreProductsPageComponent — option groups', () => {
       const priceIdx = styles.indexOf('.catalog-product-price');
       const priceBlock = styles.slice(priceIdx, styles.indexOf('.catalog-product-price-label', priceIdx + 1));
       expect(priceBlock).toContain('flex-direction: row;');
+    });
+  });
+
+  describe('wizard header spacing', () => {
+    const styles = readFileSync(resolve(__dirname, '../../../shared/styles/store-products.shared.scss'), 'utf8');
+    const wizardSelector = '.wizard-content:not(.is-dashboard) .products-layout';
+
+    function readRule(selector: string): string {
+      const selectorIdx = styles.indexOf(selector);
+      expect(selectorIdx).toBeGreaterThan(-1);
+      const openBrace = styles.indexOf('{', selectorIdx);
+      return styles.slice(openBrace + 1, styles.indexOf('}', openBrace));
+    }
+
+    function classSpecificity(selector: string): number {
+      return (selector.match(/\.[\w-]+/g) ?? []).length;
+    }
+
+    it('gives the wizard product layout a top offset below the sticky progress header', () => {
+      const rule = readRule(wizardSelector);
+
+      expect(rule).toContain('padding-top: 20px');
+      expect(rule).toContain('margin-top: 0');
+    });
+
+    it('does not let the compact mobile layout rule reset the wizard top offset', () => {
+      expect(styles).toContain(wizardSelector);
+      expect(classSpecificity(wizardSelector)).toBeGreaterThan(classSpecificity('.products-layout'));
+    });
+
+    it('keeps the dashboard mobile spacing untouched', () => {
+      const mobileBlock = styles.slice(styles.lastIndexOf('@media (max-width: 500px)'));
+
+      expect(mobileBlock).toContain('.products-layout { padding: 0 10px; margin-top: 20px; }');
     });
   });
 
@@ -1127,7 +1352,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       await saving;
     });
 
-    it('asks for confirmation before copying options over a dirty draft and keeps it on cancel', () => {
+    it('asks for confirmation before copying the product over a dirty draft and keeps the draft on cancel', () => {
       startDirtyDraft();
       const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
 
@@ -1142,21 +1367,32 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(component.formDirty()).toBe(true);
     });
 
-    it('copies options after confirmation and keeps the copied draft pending', () => {
+    it('copies the complete product after confirmation and keeps the copied draft pending', () => {
       startDirtyDraft();
       jest.spyOn(window, 'confirm').mockReturnValue(true);
 
       component.copyProductOptions(sampleProduct({
+        name: 'Pizza Margherita',
+        description: 'Molho e mussarela',
+        imageUrl: 'https://img.test/margherita.jpg',
         saleMode: 'size',
         variations: [{ id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true }],
+        additionals: [{ id: 'a1', name: 'Bacon', price: 5, isActive: true, isRequired: false, displayOrder: 1 }],
+        choiceOptions: [{ id: 'c1', name: 'Borda recheada', price: 4, isActive: true, isRequired: false, displayOrder: 1 }],
       }));
 
-      expect(component.productName()).toBe('Pizza');
+      expect(component.selectedId()).toBeNull();
+      expect(component.productName()).toBe('Pizza Margherita');
+      expect(component.productDesc()).toBe('Molho e mussarela');
+      expect(component.productImage()).toBe('https://img.test/margherita.jpg');
+      expect(component.productImagePreview()).toBe('https://img.test/margherita.jpg');
       expect(component.sizeVariations()).toHaveLength(1);
+      expect(component.draftAdditionals()).toHaveLength(1);
+      expect(component.draftChoiceOptions()).toHaveLength(1);
       expect(component.formDirty()).toBe(true);
     });
 
-    it('does not copy options over the editor while a save is in flight', async () => {
+    it('does not overwrite the editor with a copied product while a save is in flight', async () => {
       startDirtyDraft();
       const save$ = new Subject<any>();
       storeServiceMock.createProduct.mockReturnValue(save$);
@@ -1169,6 +1405,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       }));
 
       expect(confirmSpy).not.toHaveBeenCalled();
+      expect(toastMock.showInfo).toHaveBeenCalledWith('Aguarde o salvamento do produto em andamento.');
       expect(component.productName()).toBe('Pizza');
       expect(component.sizeVariations()).toEqual([]);
 
@@ -1220,6 +1457,7 @@ describe('StoreProductsPageComponent — option groups', () => {
 
     const originalImage = window.Image;
     const originalFileReader = window.FileReader;
+    const originalCreateElement = document.createElement.bind(document);
 
     beforeEach(() => {
       storeServiceMock.uploadImage.mockReturnValue(of({ url: 'https://img.test/uploaded.png' }));
@@ -1228,6 +1466,7 @@ describe('StoreProductsPageComponent — option groups', () => {
     afterEach(() => {
       window.Image = originalImage;
       window.FileReader = originalFileReader;
+      jest.restoreAllMocks();
     });
 
     it('uploads SVG originals without browser compression', async () => {
@@ -1255,13 +1494,72 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(toastMock.showError).toHaveBeenCalledWith(expect.stringContaining('Formato'));
     });
 
-    it('rejects files above the documented 6 MB product limit', async () => {
-      const file = new File([new Uint8Array(6 * 1024 * 1024 + 1)], 'product.png', { type: 'image/png' });
+    it('rejects files that are still above 1 MB after compression', async () => {
+      (window as unknown as { Image: unknown }).Image = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        width = 0;
+        height = 0;
+        set src(_value: string) {
+          this.onerror?.();
+        }
+      };
+      const file = new File([new Uint8Array(2 * 1024 * 1024)], 'product.png', { type: 'image/png' });
 
       await component.onImageSelected(fileEvent(file));
 
       expect(storeServiceMock.uploadImage).not.toHaveBeenCalled();
-      expect(toastMock.showError).toHaveBeenCalledWith(expect.stringContaining('6 MB'));
+      expect(toastMock.showError).toHaveBeenCalledWith(expect.stringContaining('1 MB'));
+    });
+
+    it('uploads the compressed file instead of the oversized original', async () => {
+      (window as unknown as { FileReader: unknown }).FileReader = class {
+        onerror: (() => void) | null = null;
+        onabort: (() => void) | null = null;
+        onload: ((event: { target: { result: string } }) => void) | null = null;
+        readAsDataURL() {
+          this.onload?.({ target: { result: 'data:image/png;base64,AAAA' } });
+        }
+      };
+      (window as unknown as { Image: unknown }).Image = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        naturalWidth = 1600;
+        naturalHeight = 900;
+        width = 1600;
+        height = 900;
+        set src(_value: string) {
+          this.onload?.();
+        }
+      };
+      const toBlob = jest.fn((callback: BlobCallback, type?: string) => {
+        callback(new Blob([new Uint8Array(500)], { type }));
+      });
+      jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: jest.fn(() => ({
+              drawImage: jest.fn(),
+              clearRect: jest.fn(),
+              fillRect: jest.fn(),
+            })),
+            toBlob,
+          } as unknown as HTMLElement;
+        }
+        return originalCreateElement(tagName);
+      });
+      const file = new File([new Uint8Array(1024 * 1024 + 100)], 'product.png', { type: 'image/png' });
+
+      await component.onImageSelected(fileEvent(file));
+
+      expect(toBlob).toHaveBeenCalled();
+      expect(storeServiceMock.uploadImage).toHaveBeenCalledWith(expect.any(File), 'products');
+      const uploaded = storeServiceMock.uploadImage.mock.calls[0][0] as File;
+      expect(uploaded).not.toBe(file);
+      expect(uploaded.size).toBe(500);
+      expect(uploaded.size).toBeLessThanOrEqual(1024 * 1024);
     });
 
     it('falls back to the original file when the browser cannot decode it', async () => {

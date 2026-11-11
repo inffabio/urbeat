@@ -91,26 +91,22 @@
                     (valueChange)="updateTime(day.id, i, 'endTime', $event)"
                     (draftChange)="setDraftState($event.fieldId, $event.hasDraft)"
                   />
-                  @if (i === 0) {
-                    <button
-                      type="button"
-                      class="btn-icon copy-action"
-                      (click)="openCopyModal(day.id)"
-                      [disabled]="syncAll() || !schedule()[day.id]?.isOpen || schedule()[day.id]?.shifts?.length === 0"
-                      [attr.aria-label]="'Copiar horários de ' + day.label"
-                      title="Copiar horários"
-                    >
-                      <ion-icon name="copy-outline"></ion-icon>
-                    </button>
-                  } @else {
-                    <span class="action-slot" aria-hidden="true"></span>
-                  }
+                  <button
+                    type="button"
+                    class="btn-icon copy-action"
+                    (click)="openCopyModal(day.id, i)"
+                    [disabled]="syncAll()"
+                    [attr.aria-label]="'Copiar turno ' + (i + 1) + ' de ' + day.label"
+                    [title]="'Copiar turno ' + (i + 1) + ' de ' + day.label"
+                  >
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </button>
                   <button
                     type="button"
                     class="btn-icon remove-shift"
                     (click)="removeShift(day.id, i)"
                     [attr.aria-label]="'Remover turno ' + (i + 1) + ' de ' + day.label"
-                    title="Remover turno"
+                    [title]="'Remover turno ' + (i + 1) + ' de ' + day.label"
                   >
                     <ion-icon name="trash-outline"></ion-icon>
                   </button>
@@ -182,7 +178,7 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Copiar turnos</ion-title>
+        <ion-title>Copiar turno</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="closeCopyModal()">
             <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -193,7 +189,9 @@
     <ion-content>
       <div class="copy-modal-body">
         <p class="copy-modal-desc">
-          @if (copySourceDay(); as src) { Copiar os turnos de <strong>{{ getDayShort(src) }}</strong> para: }
+          @if (copySourceShift()) {
+            Copiar turno <strong>{{ copySourceShiftNumber() }}</strong> de <strong>{{ copySourceDayLabel() }}</strong> para:
+          }
         </p>
         <div class="copy-options">
           @for (day of copyTargetDays(); track day.id) {
@@ -206,7 +204,7 @@
         <div class="copy-modal-divider"></div>
         <div class="copy-modal-actions">
           <button type="button" class="btn-cancel-modal" (click)="closeCopyModal()">Cancelar</button>
-          <button type="button" class="btn-primary-app btn-orange" (click)="confirmCopy()" [disabled]="copyTargets().size === 0">Copiar horários</button>
+          <button type="button" class="btn-primary-app btn-orange" (click)="confirmCopy()" [disabled]="copyTargets().size === 0">Copiar turno</button>
         </div>
       </div>
     </ion-content>

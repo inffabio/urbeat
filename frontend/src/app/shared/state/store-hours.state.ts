@@ -38,6 +38,13 @@ interface Preset {
   shifts: { start: string; end: string }[];
 }
 
+interface CopySourceShift {
+  dayId: string;
+  shiftIndex: number;
+  /** Snapshot taken when the modal opens, so later edits do not change the copy. */
+  shift: Shift;
+}
+
 const WEEKDAYS: WeekDay[] = [
   { id: 'domingo', label: 'Domingo', short: 'Dom', dayOfWeek: 0 },
   { id: 'segunda', label: 'Segunda-feira', short: 'Seg', dayOfWeek: 1 },
@@ -90,7 +97,12 @@ export abstract class StoreHoursState implements OnInit {
   readonly hasChanges = signal(false);
   readonly syncAll = signal(false);
   readonly activePreset = signal<string | null>(null);
-  readonly copySourceDay = signal<string | null>(null);
+  readonly copySourceShift = signal<CopySourceShift | null>(null);
+  readonly copySourceShiftNumber = computed(() => (this.copySourceShift()?.shiftIndex ?? 0) + 1);
+  readonly copySourceDayLabel = computed(() => {
+    const source = this.copySourceShift();
+    return source ? this.getDayLabel(source.dayId) : '';
+  });
   readonly isCopyModalOpen = signal(false);
   readonly copyTargets = signal<Set<string>>(new Set());
 
@@ -108,6 +120,10 @@ export abstract class StoreHoursState implements OnInit {
 
   getDayShort(dayId: string): string {
     return WEEKDAYS.find(d => d.id === dayId)?.short ?? '';
+  }
+
+  getDayLabel(dayId: string): string {
+    return WEEKDAYS.find(d => d.id === dayId)?.label ?? '';
   }
 
   readonly weeklyHours = computed(() => {
@@ -131,9 +147,10 @@ export abstract class StoreHoursState implements OnInit {
     return m > 0 ? `${h}h ${m}min` : `${h}h`;
   });
 
-  readonly copyTargetDays = computed(() =>
-    WEEKDAYS.filter(d => d.id !== this.copySourceDay())
-  );
+  readonly copyTargetDays = computed(() => {
+    const sourceDayId = this.copySourceShift()?.dayId;
+    return WEEKDAYS.filter(d => d.id !== sourceDayId && !!this.schedule()[d.id]?.isOpen);
+  });
 
   ngOnInit(): void {
     this.initDefaultSchedule();
@@ -278,10 +295,12 @@ export abstract class StoreHoursState implements OnInit {
 
   isOvernight(dayId: string, index: number): boolean {
     const shift = this.schedule()[dayId]?.shifts[index];
+    return !!shift && this.isOvernightShift(shift);
+  }
+
+  private isOvernightShift(shift: Shift): boolean {
     if (!shift?.startTime || !shift?.endTime) return false;
-    const [sh, sm] = shift.startTime.split(':').map(Number);
-    const [eh, em] = shift.endTime.split(':').map(Number);
-    return (eh * 60 + em) <= (sh * 60 + sm);
+    return this.toMinutes(shift.endTime) <= this.toMinutes(shift.startTime);
   }
 
   getShiftCount(dayId: string): string {
@@ -343,15 +362,19 @@ export abstract class StoreHoursState implements OnInit {
     this.toast.showInfo('Todos os horários foram removidos.');
   }
 
-  openCopyModal(dayId: string): void {
-    this.copySourceDay.set(dayId);
+  openCopyModal(dayId: string, shiftIndex: number): void {
+    const day = this.schedule()[dayId];
+    const shift = day?.shifts?.[shiftIndex];
+    if (!day?.isOpen || !shift) return;
+
+    this.copySourceShift.set({ dayId, shiftIndex, shift: { ...shift } });
     this.copyTargets.set(new Set());
     this.isCopyModalOpen.set(true);
   }
 
   closeCopyModal(): void {
     this.isCopyModalOpen.set(false);
-    this.copySourceDay.set(null);
+    this.copySourceShift.set(null);
     this.copyTargets.set(new Set());
   }
 
@@ -364,22 +387,124 @@ export abstract class StoreHoursState implements OnInit {
   }
 
   confirmCopy(): void {
+    const source = this.copySourceShift();
+    if (!source) {
+      this.closeCopyModal();
+      return;
+    }
+
     const targets = [...this.copyTargets()];
     if (targets.length === 0) {
       this.toast.showInfo('Selecione pelo menos um dia.');
       return;
     }
-    const source = this.schedule()[this.copySourceDay()!];
-    this.schedule.update(s => {
-      const copy = { ...s };
-      for (const t of targets) {
-         copy[t] = { isOpen: source.isOpen, shifts: this.sortShifts(source.shifts.map(sh => ({ ...sh }))) };
+
+    const applied = new Map<string, Shift>();
+    const overlapping: string[] = [];
+    const limited: string[] = [];
+
+    for (const targetId of targets) {
+      const day = this.schedule()[targetId];
+      // Closing the day while the modal is open makes it an invalid destination.
+      if (!day?.isOpen || targetId === source.dayId) continue;
+
+      const label = this.getDayLabel(targetId);
+      if (day.shifts.length >= this.maxShiftsPerDay) {
+        limited.push(label);
+        continue;
       }
-      return copy;
-    });
-    this.markDirty();
+
+      const candidate: Shift = {
+        key: createShiftKey(),
+        startTime: source.shift.startTime,
+        endTime: source.shift.endTime,
+      };
+      if (this.conflictsWithDay(targetId, candidate)) {
+        overlapping.push(label);
+        continue;
+      }
+      applied.set(targetId, candidate);
+    }
+
+    if (applied.size > 0) {
+      this.schedule.update(s => {
+        const copy = { ...s };
+        for (const [dayId, candidate] of applied) {
+          copy[dayId] = { ...copy[dayId], shifts: this.sortShifts([...copy[dayId].shifts, candidate]) };
+        }
+        return copy;
+      });
+      this.markDirty();
+    }
+
     this.closeCopyModal();
-    this.toast.showInfo(`Horários copiados para ${targets.length} ${targets.length === 1 ? 'dia' : 'dias'}.`);
+    this.reportCopyResult(source.shiftIndex, applied.size, overlapping, limited);
+  }
+
+  private reportCopyResult(shiftIndex: number, copiedCount: number, overlapping: string[], limited: string[]): void {
+    const shiftNumber = shiftIndex + 1;
+    const copiedLabel = `${copiedCount} ${copiedCount === 1 ? 'dia' : 'dias'}`;
+    const warnings: Array<{ type: 'warning' | 'success'; text: string }> = [
+      ...limited.map(label => ({
+        type: 'warning' as const,
+        text: `${label} não recebeu o turno: limite de ${this.maxShiftsPerDay} turnos por dia.`,
+      })),
+      ...overlapping.map(label => ({
+        type: 'warning' as const,
+        text: `${label} não recebeu o turno: sobreposição com um turno existente.`,
+      })),
+    ];
+
+    if (warnings.length === 0) {
+      if (copiedCount === 0) {
+        this.toast.showInfo('Nenhum dia recebeu o turno.');
+        return;
+      }
+      this.toast.showInfo(`Turno ${shiftNumber} copiado para ${copiedLabel}.`);
+      return;
+    }
+
+    this.toast.showGrouped([
+      ...(copiedCount > 0
+        ? [{ type: 'success' as const, text: `Turno ${shiftNumber} copiado para ${copiedLabel}.` }]
+        : []),
+      ...warnings,
+    ]);
+  }
+
+  /**
+   * True when the candidate shift would overlap an existing shift on the destination day,
+   * be invaded by an overnight shift of the previous day, or cross midnight into the next day.
+   */
+  private conflictsWithDay(dayId: string, candidate: Shift): boolean {
+    const day = this.schedule()[dayId];
+    if (!day?.isOpen) return true;
+    if (day.shifts.some(shift => this.shiftsOverlap(shift, candidate))) return true;
+
+    if (candidate.startTime) {
+      const start = this.toMinutes(candidate.startTime);
+      const previousDay = this.schedule()[this.getPreviousDayId(dayId)];
+      const invadedByPreviousOvernight = !!previousDay?.isOpen
+        && previousDay.shifts.some(shift => this.isOvernightShift(shift) && start < this.toMinutes(shift.endTime));
+      if (invadedByPreviousOvernight) return true;
+    }
+
+    if (!this.isOvernightShift(candidate)) return false;
+
+    const nextDay = this.schedule()[this.getNextDayId(dayId)];
+    if (!nextDay?.isOpen) return false;
+    const end = this.toMinutes(candidate.endTime);
+    return nextDay.shifts.some(shift => shift.startTime && this.toMinutes(shift.startTime) < end);
+  }
+
+  private getNextDayId(dayId: string): string {
+    const index = WEEKDAYS.findIndex(day => day.id === dayId);
+    return WEEKDAYS[(index + 1) % WEEKDAYS.length].id;
+  }
+
+  private getPreviousDayId(dayId: string): string {
+    const index = WEEKDAYS.findIndex(day => day.id === dayId);
+    return WEEKDAYS[(index - 1 + WEEKDAYS.length) % WEEKDAYS.length].id;
   }
 
   validateDay(dayId: string): string | null {
