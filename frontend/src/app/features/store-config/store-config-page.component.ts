@@ -23,8 +23,15 @@ import { createStepperSteps } from '../../shared/config/wizard-steps.config';
 import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
 import { WizardFooterComponent } from '../../shared/components/wizard-footer/wizard-footer.component';
 import { MediaUploadComponent } from '../../shared/components/media-upload/media-upload.component';
+import { compressImage } from '../../shared/utils/image-compression.utils';
+import { IMAGE_MAX_BYTES, ImageOverLimitError } from '../../shared/utils/image-upload.utils';
 
 const STORE_URL_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// The create/update store contract still requires a positive delivery radius.
+// The editable value lives in the delivery step, so this page only preserves
+// the persisted value (or this server-compatible default for new stores).
+const DEFAULT_MAX_DELIVERY_RADIUS_KM = 10;
 
 // Register icons to prevent Ionic standalone warnings
 addIcons({
@@ -92,8 +99,9 @@ export class StoreConfigPageComponent implements OnInit {
   readonly supportsPickup = signal(true);
   readonly initialMinute = signal<number | null>(null);
   readonly finalMinute = signal<number | null>(null);
-  readonly maxDeliveryRadiusKm = signal<number>(10);
   readonly minimumOrderValue = signal('25,00');
+  /** Persisted radius preserved for the store payload; edited in the delivery step. */
+  private persistedMaxDeliveryRadiusKm = DEFAULT_MAX_DELIVERY_RADIUS_KM;
 
   // Section 4 – URL
   readonly storeUrl = signal('');
@@ -400,7 +408,9 @@ export class StoreConfigPageComponent implements OnInit {
     this.supportsPickup.set(atendimento.pickup);
     this.initialMinute.set(store.initialMinute ?? null);
     this.finalMinute.set(store.finalMinute ?? null);
-    this.maxDeliveryRadiusKm.set(store.maxDeliveryRadiusKm ?? 10);
+    this.persistedMaxDeliveryRadiusKm = Number(store.maxDeliveryRadiusKm) > 0
+      ? Number(store.maxDeliveryRadiusKm)
+      : DEFAULT_MAX_DELIVERY_RADIUS_KM;
 
     if (store.bannerUrl) {
       this.bannerPreview.set(store.bannerUrl);
@@ -813,10 +823,6 @@ export class StoreConfigPageComponent implements OnInit {
       this.toast.showError('O tempo inicial não pode ser maior que o tempo final.');
       return false;
     }
-    if (!this.maxDeliveryRadiusKm() || this.maxDeliveryRadiusKm() <= 0) {
-      this.toast.showError('Informe o raio máximo de entrega em km.');
-      return false;
-    }
     const storeUrlValidationError = this.storeUrlError();
     if (storeUrlValidationError) {
       this.storeUrlErrorVisible.set(true);
@@ -842,7 +848,7 @@ export class StoreConfigPageComponent implements OnInit {
       supportsPickup: this.supportsPickup(),
       initialMinute: this.initialMinute() ?? undefined,
       finalMinute: this.finalMinute() ?? undefined,
-      maxDeliveryRadiusKm: this.maxDeliveryRadiusKm(),
+      maxDeliveryRadiusKm: this.persistedMaxDeliveryRadiusKm,
       ...(logoUrl !== undefined && { logoUrl }),
       ...(bannerUrl !== undefined && { bannerUrl }),
     });
@@ -880,7 +886,22 @@ export class StoreConfigPageComponent implements OnInit {
 
     const uploadImageIfNew = async (type: string, file: File | null): Promise<string | undefined> => {
       if (!file) return undefined;
-      const res = await import('rxjs').then(x => x.firstValueFrom(this.storeService.uploadImage(file, type)));
+
+      // Compress before uploading so logo/banner use the same 950 KiB target as
+      // product images. SVG/AVIF are returned untouched by the utility.
+      let compressed = file;
+      try {
+        compressed = await compressImage(file);
+      } catch {
+        compressed = file;
+      }
+
+      if (compressed.size > IMAGE_MAX_BYTES) {
+        // The backend would reject this upload; fail early with an actionable message.
+        throw new ImageOverLimitError();
+      }
+
+      const res = await import('rxjs').then(x => x.firstValueFrom(this.storeService.uploadImage(compressed, type)));
       return res.url;
     };
 
@@ -894,6 +915,7 @@ export class StoreConfigPageComponent implements OnInit {
       let finalStore = savedStore;
 
       const uploadFailureMessage = (err: unknown): string => {
+        if (err instanceof ImageOverLimitError) return err.message;
         const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
         return typeof backendMessage === 'string' && backendMessage.trim()
           ? backendMessage

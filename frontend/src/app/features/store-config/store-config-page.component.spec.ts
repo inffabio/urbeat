@@ -12,22 +12,27 @@ import { CuisineTypeDto, StoreResponse } from '../../shared/models/store.model';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// The 15 protected default categories, in the alphabetical order the UI must render.
+// The 20 protected default categories, in the alphabetical order the UI must render.
 const DEFAULT_CUISINE_TYPE_NAMES = [
-  'Açaiteria',
+  'Açaíteria',
+  'Batata Recheada',
+  'Cachorro-quente (Hot Dog)',
   'Cafeteria',
-  'Churrascaria',
-  'Comida Árabe',
+  'Caldos e Sopas',
   'Comida Japonesa',
-  'Comida Mexicana',
+  'Comida Saudável (Fitness)',
+  'Confeitaria',
+  'Creperia',
   'Doceria',
+  'Espetinhos e Churrasco',
   'Hamburgueria',
-  'Lanches',
   'Marmitaria',
+  'Massas e Lasanhas',
   'Padaria',
   'Pastelaria',
   'Pizzaria',
-  'Sucos e Vitaminas',
+  'Salgaderia',
+  'Sorveteria',
   'Tapiocaria',
 ];
 
@@ -189,7 +194,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     beforeEach(() => {
@@ -198,10 +202,10 @@ describe('StoreConfigPageComponent', () => {
 
     it('starts a new store with an empty cuisineType even though defaults are loaded', () => {
       expect(component.cuisineType()).toBe('');
-      expect(component.cuisineTypes().length).toBe(15);
+      expect(component.cuisineTypes().length).toBe(20);
     });
 
-    it('renders the 15 protected defaults sorted with localeCompare pt-BR', () => {
+    it('renders the 20 protected defaults sorted with localeCompare pt-BR', () => {
       expect(component.sortedCuisineTypes().map((c) => c.name)).toEqual(DEFAULT_CUISINE_TYPE_NAMES);
 
       fixture.detectChanges();
@@ -209,6 +213,55 @@ describe('StoreConfigPageComponent', () => {
         .map((option: HTMLOptionElement) => (option.textContent ?? '').trim())
         .filter((name: string) => name && name !== 'Selecione...');
       expect(optionNames).toEqual(DEFAULT_CUISINE_TYPE_NAMES);
+    });
+
+    it('renders every option exactly as the category name, without numbering or extra text', () => {
+      fixture.detectChanges();
+      const optionNames = [...fixture.nativeElement.querySelectorAll('select[name="cuisineType"] option')]
+        .map((option: HTMLOptionElement) => (option.textContent ?? '').trim())
+        .filter((name: string) => name && name !== 'Selecione...');
+
+      expect(optionNames).toHaveLength(20);
+      expect(optionNames.some((name: string) => /^\d+[.)\s-]/.test(name))).toBe(false);
+      expect(optionNames).toEqual([...optionNames].sort((a, b) => a.localeCompare(b, 'pt-BR')));
+    });
+
+    it('keeps a legacy category outside the defaults as a private option, sorted with the defaults', () => {
+      const legacy: CuisineTypeDto = {
+        id: 'legacy-lanches',
+        name: 'Lanches',
+        isDefault: false,
+        storeId: 'store-1',
+      };
+      mockStoreService.getMyStore.mockReturnValue(of({
+        id: 'store-1',
+        name: 'Loja',
+        slug: 'loja',
+        phoneNumber: '11999999999',
+        cuisineType: 'Lanches',
+        isOpen: true,
+        supportsDelivery: true,
+        supportsPickup: true,
+        minimumOrderValue: 25,
+      }));
+      mockStoreService.getStoreAddress.mockReturnValue(of({
+        street: 'Rua',
+        number: '1',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'Rio',
+        state: 'RJ',
+        zipCode: '20040-010',
+      }));
+      mockStoreService.getStoreCuisineTypes.mockReturnValue(of([...DEFAULT_CUISINE_TYPES, legacy]));
+
+      component.ngOnInit();
+
+      const names = component.sortedCuisineTypes().map((c) => c.name);
+      expect(component.cuisineType()).toBe('Lanches');
+      expect(names).toContain('Lanches');
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'pt-BR')));
+      expect(names.filter((name) => name === 'Lanches')).toHaveLength(1);
     });
 
     it('blocks goNext and shows an inline error when the category is empty', async () => {
@@ -940,7 +993,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     const slugConflictError = {
@@ -1076,7 +1128,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     function mockSuccessfulSave(): void {
@@ -1241,7 +1292,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     function mockStoreCreation(): void {
@@ -1295,6 +1345,106 @@ describe('StoreConfigPageComponent', () => {
       expect(component.saveStatus()).toBe('error');
     });
 
+    it('compresses the selected logo before uploading it', async () => {
+      jest.clearAllMocks();
+      mockStoreCreation();
+      mockStoreService.updateStore.mockReturnValue(of({ id: 'store-1' }));
+      mockStoreService.uploadImage.mockReturnValue(of({ url: 'https://res.cloudinary.com/demo/new-logo.png' }));
+      const router = TestBed.inject(Router);
+      jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      fillValidForm();
+      component.storeUrl.set('minha-loja');
+
+      const originalImage = window.Image;
+      const originalFileReader = window.FileReader;
+      const originalCreateElement = document.createElement.bind(document);
+      (window as unknown as { FileReader: unknown }).FileReader = class {
+        onerror: (() => void) | null = null;
+        onabort: (() => void) | null = null;
+        onload: ((event: { target: { result: string } }) => void) | null = null;
+        readAsDataURL() {
+          this.onload?.({ target: { result: 'data:image/png;base64,AAAA' } });
+        }
+      };
+      (window as unknown as { Image: unknown }).Image = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        naturalWidth = 1600;
+        naturalHeight = 900;
+        width = 1600;
+        height = 900;
+        set src(_value: string) {
+          this.onload?.();
+        }
+      };
+      const toBlob = jest.fn((callback: BlobCallback, type?: string) => {
+        callback(new Blob([new Uint8Array(500)], { type }));
+      });
+      const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: jest.fn(() => ({ drawImage: jest.fn(), clearRect: jest.fn(), fillRect: jest.fn() })),
+            toBlob,
+          } as unknown as HTMLElement;
+        }
+        return originalCreateElement(tagName);
+      });
+
+      const file = new File([new Uint8Array(1536 * 1024)], 'logo.png', { type: 'image/png' });
+      component.logoFile.set(file);
+
+      try {
+        await component.goNext();
+      } finally {
+        window.Image = originalImage;
+        window.FileReader = originalFileReader;
+        createElementSpy.mockRestore();
+      }
+
+      expect(toBlob).toHaveBeenCalled();
+      expect(mockStoreService.uploadImage).toHaveBeenCalledWith(expect.any(File), 'logo');
+      const uploaded = mockStoreService.uploadImage.mock.calls[0][0] as File;
+      expect(uploaded).not.toBe(file);
+      expect(uploaded.size).toBe(500);
+      expect(uploaded.size).toBeLessThanOrEqual(1024 * 1024);
+    });
+
+    it('does not upload and shows a clear message when the file stays above 1 MB', async () => {
+      jest.clearAllMocks();
+      mockStoreCreation();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      fillValidForm();
+      component.storeUrl.set('minha-loja');
+
+      const originalImage = window.Image;
+      (window as unknown as { Image: unknown }).Image = class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        width = 0;
+        height = 0;
+        set src(_value: string) {
+          this.onerror?.();
+        }
+      };
+      component.logoFile.set(new File([new Uint8Array(2 * 1024 * 1024)], 'logo.png', { type: 'image/png' }));
+
+      try {
+        await component.goNext();
+      } finally {
+        window.Image = originalImage;
+      }
+
+      expect(mockStoreService.uploadImage).not.toHaveBeenCalled();
+      expect(mockToastService.showError).toHaveBeenCalledWith(expect.stringContaining('1 MB'));
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.saveStatus()).toBe('error');
+      consoleError.mockRestore();
+    });
+
     it('preserves the existing media URL and advances when no new image is selected', async () => {
       jest.clearAllMocks();
       mockStoreService.updateStore.mockReturnValue(of({ id: 'store-1' }));
@@ -1337,7 +1487,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     it('populates storeName from the store and contractorName from the seller profile for an existing store', () => {
@@ -1437,7 +1586,6 @@ describe('StoreConfigPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     }
 
     function savedStore(name: string) {
@@ -1627,6 +1775,106 @@ describe('StoreConfigPageComponent', () => {
       await component.goNext();
 
       expect(mockSellerShellFacade.mergeStore).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('delivery radius ownership', () => {
+    function fillValidForm(): void {
+      component.storeName.set('Minha Loja');
+      component.contractorName.set('Contratante Teste');
+      component.cuisineType.set('Hamburgueria');
+      component.whatsapp.set('(11) 99999-9999');
+      component.cep.set('20040-010');
+      component.street.set('Rua Exemplo');
+      component.number.set('10');
+      component.neighborhood.set('Centro');
+      component.city.set('Rio de Janeiro');
+      component.state.set('RJ');
+      component.initialMinute.set(30);
+      component.finalMinute.set(60);
+    }
+
+    function mockCreateFlow(): void {
+      mockStoreService.createStore.mockReturnValue(of({ id: 'store-1' }));
+      mockStoreService.upsertStoreAddress.mockReturnValue(of({}));
+      mockStoreService.updateDeliveryConfig.mockReturnValue(of({}));
+    }
+
+    it('does not render or expose the delivery radius on the store page', () => {
+      const template = readFileSync(resolve(__dirname, 'store-config-page.component.html'), 'utf8');
+
+      expect(template).not.toContain('Raio máximo');
+      expect(template).not.toMatch(/name="maxDeliveryRadiusKm"/);
+      expect((component as unknown as Record<string, unknown>)['maxDeliveryRadiusKm']).toBeUndefined();
+
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('input[name="maxDeliveryRadiusKm"]')).toBeNull();
+    });
+
+    it('advances without any radius validation', async () => {
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      mockCreateFlow();
+      fillValidForm();
+      component.storeUrl.set('minha-loja');
+
+      await component.goNext();
+
+      expect(mockToastService.showError).not.toHaveBeenCalledWith('Informe o raio máximo de entrega em km.');
+      expect(navigateSpy).toHaveBeenCalledWith(['/configurar-loja/horarios']);
+    });
+
+    // The create/update store contract still requires a positive radius
+    // (backend validation), so the page sends the persisted backend value
+    // without exposing it: the delivery step owns the editable configuration.
+    it('sends the backend radius contract when creating a store without user input', async () => {
+      jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      mockCreateFlow();
+      fillValidForm();
+      component.storeUrl.set('minha-loja');
+
+      await component.goNext();
+
+      expect(mockStoreService.createStore).toHaveBeenCalledWith(
+        expect.objectContaining({ maxDeliveryRadiusKm: 10 }),
+      );
+    });
+
+    it('preserves the persisted radius on update so the delivery step stays authoritative', async () => {
+      jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      mockStoreService.getMyStore.mockReturnValue(of({
+        id: 'store-1',
+        name: 'Loja',
+        slug: 'loja',
+        phoneNumber: '11999999999',
+        cuisineType: 'Hamburgueria',
+        isOpen: true,
+        supportsDelivery: true,
+        supportsPickup: true,
+        minimumOrderValue: 25,
+        maxDeliveryRadiusKm: 7,
+      }));
+      mockStoreService.getStoreAddress.mockReturnValue(of({
+        street: 'Rua',
+        number: '1',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'Rio',
+        state: 'RJ',
+        zipCode: '20040-010',
+      }));
+      mockStoreService.updateStore.mockReturnValue(of({ id: 'store-1' }));
+
+      component.ngOnInit();
+      fillValidForm();
+      component.storeUrl.set('loja');
+
+      await component.goNext();
+
+      expect(mockStoreService.updateStore).toHaveBeenCalledWith(
+        'store-1',
+        expect.objectContaining({ maxDeliveryRadiusKm: 7 }),
+      );
     });
   });
 });

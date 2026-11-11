@@ -87,6 +87,131 @@ describe('StoreDeliveryPageComponent', () => {
     expect(styles).toContain('--background: var(--app-wizard-bg);');
   });
 
+  describe('neighborhood wizard controls', () => {
+    function loadStore(overrides: Record<string, unknown> = {}) {
+      storeServiceMock.getMyStore!.mockReturnValue(of({ ...mockStore, ...overrides }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([]));
+      storeServiceMock.updateDeliveryConfig!.mockReturnValue(of({} as any));
+      fixture.detectChanges();
+      // The initial load hydrates the radius while the first view is being
+      // created, so one extra pass reflects the hydrated value in the DOM.
+      fixture.detectChanges();
+    }
+
+    function radiusInput(): HTMLInputElement {
+      const input = fixture.nativeElement.querySelector('#delivery-radius') as HTMLInputElement | null;
+      expect(input).toBeTruthy();
+      return input as HTMLInputElement;
+    }
+
+    it('labels the neighborhood picker as Selecionar Bairros', () => {
+      loadStore();
+
+      const button = fixture.nativeElement.querySelector('.btn-select-neighborhoods') as HTMLElement | null;
+      expect(button).toBeTruthy();
+      expect((button?.textContent ?? '').trim()).toContain('Selecionar Bairros');
+      expect(button?.tagName).toBe('BUTTON');
+      expect(button?.getAttribute('type')).not.toBe('submit');
+      expect(fixture.nativeElement.textContent).not.toContain('Inserir Bairros');
+    });
+
+    it('applies the soft success tokens and a 44px touch target to the neighborhood picker', () => {
+      const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+      const styles = readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+      expect(template).toMatch(/class="btn-outline btn-select-neighborhoods"/);
+      expect(styles).toMatch(/\.btn-select-neighborhoods\s*\{[^}]*background:\s*var\(--app-success-soft\)/s);
+      expect(styles).toMatch(/\.btn-select-neighborhoods\s*\{[^}]*min-height:\s*44px/s);
+      // Dark text keeps WCAG AA contrast on the soft green background.
+      expect(styles).toMatch(/\.btn-select-neighborhoods\s*\{[^}]*color:\s*var\(--app-text-primary\)/s);
+      expect(styles).toContain('outline: 2px solid var(--app-success-green);');
+    });
+
+    it('removes the top bulk fee action while keeping the modal bulk fee control', () => {
+      loadStore();
+      const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+
+      expect(template).not.toContain('Aplicar valor a todos');
+      expect(template).not.toContain('applyBulkFeeToAll');
+      expect((component as unknown as Record<string, unknown>)['applyBulkFeeToAll']).toBeUndefined();
+      expect(template).toContain('aria-label="Taxa em lote"');
+    });
+
+    it('renders the exact empty message without the centered navigate icon', () => {
+      loadStore();
+
+      const empties = Array.from(fixture.nativeElement.querySelectorAll('.empty-areas')) as HTMLElement[];
+      const empty = empties.find((element) => !element.hidden);
+      expect(empty).toBeTruthy();
+      expect((empty?.textContent ?? '').trim()).toBe(
+        "Nenhum bairro cadastrado. Use o botão 'selecionar Bairros' para selecionar",
+      );
+      expect(empty?.querySelector('ion-icon')).toBeNull();
+      expect(readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8'))
+        .not.toContain('navigate-outline');
+    });
+
+    it('shows the delivery radius next to the map action with the persisted value', async () => {
+      loadStore({ maxDeliveryRadiusKm: 7 });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const input = radiusInput();
+      const mapButton = Array.from(fixture.nativeElement.querySelectorAll('.btn-bar button') as NodeListOf<HTMLButtonElement>)
+        .find((button) => (button.textContent ?? '').includes('Visualizar mapa'));
+      const label = fixture.nativeElement.querySelector('label[for="delivery-radius"]') as HTMLLabelElement | null;
+
+      expect(input.value).toBe('7');
+      expect(input.getAttribute('min')).toBe('1');
+      expect(input.getAttribute('step')).toBe('1');
+      expect(input.getAttribute('inputmode')).toBe('numeric');
+      expect(label?.textContent).toContain('Raio máximo (km)');
+      expect(mapButton).toBeTruthy();
+      expect(mapButton?.nextElementSibling?.classList.contains('radius-field')).toBe(true);
+      expect(fixture.nativeElement.querySelectorAll('#delivery-radius')).toHaveLength(1);
+    });
+
+    it('queries neighborhoods and marks the draft dirty when the radius changes', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-1', neighborhood: 'Pinheiros', city: 'Sao Paulo', latitude: -23.5667, longitude: -46.6833 },
+      ]));
+
+      const input = radiusInput();
+      input.value = '8';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(storeServiceMock.getDeliveryNeighborhoodsByStore).toHaveBeenLastCalledWith('store-123', 8);
+      expect(component.maxDeliveryRadiusKm()).toBe(8);
+      expect(component.formDirty()).toBe(true);
+      expect(component.deliveryNeighborhoods().map((n) => n.neighborhood)).toContain('Pinheiros');
+    });
+
+    it('exposes the radius validation error through aria attributes', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+
+      const input = radiusInput();
+      input.value = '0';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+      expect(input.getAttribute('aria-describedby')).toContain('delivery-radius-error');
+      expect(fixture.nativeElement.querySelector('#delivery-radius-error')?.textContent)
+        .toContain('Informe um raio maior que zero.');
+    });
+
+    it('renders a single radius control in the dashboard view', () => {
+      routerMock.url = '/app/loja-teste/entrega';
+      loadStore({ maxDeliveryRadiusKm: 6 });
+
+      expect(fixture.nativeElement.querySelectorAll('#delivery-radius')).toHaveLength(1);
+      expect(fixture.nativeElement.querySelectorAll('label[for="delivery-radius"]')).toHaveLength(1);
+    });
+  });
+
   describe('neighborhood loading', () => {
     it('should show empty modal list when no neighborhoods exist', () => {
       storeServiceMock.getMyStore!.mockReturnValue(of(mockStore));

@@ -6,20 +6,25 @@ public static class CuisineTypeDefaults
 {
     public static readonly IReadOnlyList<string> Names =
     [
-        "Açaiteria",
+        "Açaíteria",
+        "Batata Recheada",
+        "Cachorro-quente (Hot Dog)",
         "Cafeteria",
-        "Churrascaria",
-        "Comida Árabe",
+        "Caldos e Sopas",
         "Comida Japonesa",
-        "Comida Mexicana",
+        "Comida Saudável (Fitness)",
+        "Confeitaria",
+        "Creperia",
         "Doceria",
+        "Espetinhos e Churrasco",
         "Hamburgueria",
-        "Lanches",
         "Marmitaria",
+        "Massas e Lasanhas",
         "Padaria",
         "Pastelaria",
         "Pizzaria",
-        "Sucos e Vitaminas",
+        "Salgaderia",
+        "Sorveteria",
         "Tapiocaria"
     ];
 

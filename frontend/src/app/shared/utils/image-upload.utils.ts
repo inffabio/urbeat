@@ -1,3 +1,5 @@
+import { DEFAULT_COMPRESSION_TARGET_BYTES } from './image-compression.utils';
+
 export const ACCEPTED_IMAGE_EXTENSIONS = ['avif', 'png', 'svg', 'webp', 'jpg', 'jpeg'] as const;
 
 export const ACCEPTED_IMAGE_MIME_TYPES = [
@@ -29,9 +31,29 @@ export const IMAGE_ACCEPT_ATTRIBUTE = [
   ...ACCEPTED_IMAGE_EXTENSIONS.map((extension) => `.${extension}`),
 ].join(',');
 
+/** Client-side target for automatic compression, leaving margin below the backend limit. */
+export const IMAGE_TARGET_MAX_BYTES = DEFAULT_COMPRESSION_TARGET_BYTES;
+
+/** Authoritative per-upload limit, mirrored from `StoreMediaUploadValidator.MaxBytes` (1 MiB). */
+export const IMAGE_MAX_BYTES = 1024 * 1024;
+
+/**
+ * @deprecated The legacy product endpoint still documents a 6 MB limit. New upload
+ * flows must compress against `IMAGE_TARGET_MAX_BYTES` and reject above `IMAGE_MAX_BYTES`.
+ */
 export const PRODUCT_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
 
 export const IMAGE_FORMAT_ERROR = 'Formato não aceito. Use AVIF, PNG, SVG, WEBP, JPG ou JPEG.';
+
+export const IMAGE_OVER_LIMIT_ERROR = 'A imagem deve ter no máximo 1 MB. Escolha um arquivo menor.';
+
+/** Thrown when a selected image is still above the authoritative limit after compression. */
+export class ImageOverLimitError extends Error {
+  constructor() {
+    super(IMAGE_OVER_LIMIT_ERROR);
+    this.name = 'ImageOverLimitError';
+  }
+}
 
 export function getFileExtension(fileName: string): string {
   const dotIndex = fileName.lastIndexOf('.');

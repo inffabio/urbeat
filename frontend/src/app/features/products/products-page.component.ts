@@ -9,7 +9,8 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ProductCategory } from '../../shared/models/product.model';
-import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, PRODUCT_IMAGE_MAX_BYTES, imageSizeError, isAllowedImageFile } from '../../shared/utils/image-upload.utils';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR, isAllowedImageFile } from '../../shared/utils/image-upload.utils';
+import { compressImage } from '../../shared/utils/image-compression.utils';
 
 interface ProductAdditionalItem {
   id?: string;
@@ -303,7 +304,7 @@ export class ProductsPageComponent implements OnInit {
     return value.toFixed(2).replace('.', ',');
   }
 
-  onImageSelected(event: Event): void {
+  async onImageSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
@@ -314,18 +315,27 @@ export class ProductsPageComponent implements OnInit {
       return;
     }
 
-    if (file.size > PRODUCT_IMAGE_MAX_BYTES) {
-      this.toast.showError(imageSizeError('6 MB'));
-      input.value = '';
-      return;
-    }
-
     const sid = this.storeId();
     const pid = this.selectedProduct()?.id;
     if (!sid || !pid) return;
 
+    let uploadFile = file;
+    try {
+      // The backend limit is authoritative, but compressing first avoids a rejected
+      // upload and keeps large photos usable. SVG/AVIF are returned untouched.
+      uploadFile = await compressImage(file);
+    } catch {
+      uploadFile = file;
+    }
+
+    if (uploadFile.size > IMAGE_MAX_BYTES) {
+      this.toast.showError(IMAGE_OVER_LIMIT_ERROR);
+      input.value = '';
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', uploadFile);
     this.api.post<any>(`/api/stores/${sid}/products/${pid}/images`, formData).subscribe({
       next: (res) => {
         this.productForm.update((p) => ({ ...p, imageUrl: res.imageUrl }));
@@ -336,7 +346,7 @@ export class ProductsPageComponent implements OnInit {
         if (status === 413) {
           // This legacy endpoint is not matched by the interceptor's upload-image rule,
           // so the component must surface the size limit itself.
-          this.toast.showError(imageSizeError('6 MB'));
+          this.toast.showError(IMAGE_OVER_LIMIT_ERROR);
         } else {
           const backendMessage = (err as { error?: { error?: string } } | null)?.error?.error;
           this.toast.showError(typeof backendMessage === 'string' && backendMessage.trim() ? backendMessage : 'Erro ao enviar imagem.');

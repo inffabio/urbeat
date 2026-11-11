@@ -422,45 +422,39 @@ public sealed class StoreMediaUploadValidatorTests
     }
 
     [Fact]
-    public void Enforces_logo_and_banner_limits()
+    public void Enforces_the_unified_one_megabyte_limit_for_logo_and_banner()
     {
-        var oversizedLogo = CreateFile("logo.png", "image/png", PngPaddedTo(2 * 1024 * 1024 + 1, Png()));
-        var oversizedBanner = CreateFile("banner.png", "image/png", PngPaddedTo(5 * 1024 * 1024 + 1, Png()));
+        var oversizedLogo = CreateFile("logo.png", "image/png", PngPaddedTo(1024 * 1024 + 1, Png()));
+        var oversizedBanner = CreateFile("banner.png", "image/png", PngPaddedTo(1024 * 1024 + 1, Png()));
 
         StoreMediaUploadValidator.Validate(oversizedLogo, "logo")
-            .Should().Be("A logo deve ter no máximo 2 MB.");
+            .Should().Be("A logo deve ter no máximo 1 MB.");
         StoreMediaUploadValidator.Validate(oversizedBanner, "banner")
-            .Should().Be("O banner deve ter no máximo 5 MB.");
+            .Should().Be("O banner deve ter no máximo 1 MB.");
     }
 
     [Fact]
     public void Accepts_logo_and_banner_at_the_exact_size_boundary()
     {
-        var logoAtLimit = CreateFile("logo.png", "image/png", PngPaddedTo(2 * 1024 * 1024, Png()));
-        var bannerAtLimit = CreateFile("banner.png", "image/png", PngPaddedTo(5 * 1024 * 1024, Png()));
+        var logoAtLimit = CreateFile("logo.png", "image/png", PngPaddedTo(1024 * 1024, Png()));
+        var bannerAtLimit = CreateFile("banner.png", "image/png", PngPaddedTo(1024 * 1024, Png()));
 
         StoreMediaUploadValidator.Validate(logoAtLimit, "logo").Should().BeNull();
         StoreMediaUploadValidator.Validate(bannerAtLimit, "banner").Should().BeNull();
     }
 
     [Fact]
-    public void Enforces_product_six_megabyte_limit_from_api_contract()
+    public void Enforces_the_unified_one_megabyte_limit_for_products_and_store_media()
     {
-        var productAtLimit = CreateFile("product.png", "image/png", PngPaddedTo(6 * 1024 * 1024, Png()));
-        var productOverLimit = CreateFile("product.png", "image/png", PngPaddedTo(6 * 1024 * 1024 + 1, Png()));
+        var productAtLimit = CreateFile("product.png", "image/png", PngPaddedTo(1024 * 1024, Png()));
+        var productOverLimit = CreateFile("product.png", "image/png", PngPaddedTo(1024 * 1024 + 1, Png()));
+        var storeMediaOverLimit = CreateFile("asset.png", "image/png", PngPaddedTo(1024 * 1024 + 1, Png()));
 
         StoreMediaUploadValidator.Validate(productAtLimit, "products").Should().BeNull();
         StoreMediaUploadValidator.Validate(productOverLimit, "products")
-            .Should().Be("A imagem do produto deve ter no máximo 6 MB.");
-    }
-
-    [Fact]
-    public void Enforces_the_default_product_limit_for_store_media_type()
-    {
-        var overDefault = CreateFile("asset.png", "image/png", PngPaddedTo(6 * 1024 * 1024 + 1, Png()));
-
-        StoreMediaUploadValidator.Validate(overDefault, "store-media")
-            .Should().Be("A imagem do produto deve ter no máximo 6 MB.");
+            .Should().Be("A imagem do produto deve ter no máximo 1 MB.");
+        StoreMediaUploadValidator.Validate(storeMediaOverLimit, "store-media")
+            .Should().Be("A imagem deve ter no máximo 1 MB.");
     }
 
     private static byte[] ValidContentFor(string fileName)

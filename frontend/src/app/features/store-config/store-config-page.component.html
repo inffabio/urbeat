@@ -217,14 +217,6 @@
                   [ngModel]="minimumOrderValue()" (ngModelChange)="onMoneyInput($event)" name="minOrder" />
               </div>
             </div>
-            <div>
-              <label class="config-label">Raio máximo (km)</label>
-              <div style="height:44px;border:1px solid var(--c-border);border-radius:8px;background:var(--c-white);display:flex;align-items:center;padding:0 0.85rem;transition:0.15s;max-width:180px;" [style.border-color]="'var(--c-border)'">
-                <input type="number" min="1" step="1" placeholder="10"
-                  [ngModel]="maxDeliveryRadiusKm()" (ngModelChange)="maxDeliveryRadiusKm.set(+$event || 0)"
-                  name="maxDeliveryRadiusKm" style="border:none;outline:none;background:transparent;font-size:0.9rem;font-family:inherit;color:var(--c-text);width:100%;" />
-              </div>
-            </div>
           </div>
         </div>
 

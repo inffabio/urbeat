@@ -724,19 +724,6 @@ export class StoreDeliveryPageComponent implements OnInit {
     this.bulkFeeValue.set(num.toFixed(2).replace('.', ','));
   }
 
-  async applyBulkFeeToAll(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Aplicar valor a todos os bairros',
-      message: 'Defina um valor de entrega que será aplicado a todas as áreas cadastradas.',
-      inputs: [{ name: 'fee', type: 'text', placeholder: '0,00' }],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Aplicar', handler: (data) => { const digits = (data.fee || '').replace(/\D/g, ''); const num = parseFloat(digits) / 100; if (!isNaN(num)) { const formatted = num.toFixed(2).replace('.', ','); for (let i = 0; i < this.areas.length; i++) { this.areas.at(i).patchValue({ deliveryFee: formatted }); } } } }
-      ]
-    });
-    await alert.present();
-  }
-
   toggleFreeShippingToday(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.freeShippingToday.set(input.checked);

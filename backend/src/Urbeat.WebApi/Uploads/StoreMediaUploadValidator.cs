@@ -8,14 +8,21 @@ namespace Urbeat.WebApi.Uploads;
 
 public static class StoreMediaUploadValidator
 {
-    public const long LogoMaxBytes = 2L * 1024 * 1024;
-    public const long BannerMaxBytes = 5L * 1024 * 1024;
-    public const long ProductMaxBytes = 6L * 1024 * 1024;
+    /// <summary>Unified authoritative upload limit for every media category (1 MiB).</summary>
+    public const long MaxBytes = 1L * 1024 * 1024;
+
+    public const long LogoMaxBytes = MaxBytes;
+    public const long BannerMaxBytes = MaxBytes;
+    public const long ProductMaxBytes = MaxBytes;
 
     public const string InvalidUploadTypeMessage = "Tipo de mídia inválido.";
 
     private const string InvalidFormatMessage = "Formato de imagem não permitido.";
     private const string InvalidContentMessage = "O arquivo de imagem é inválido ou está corrompido.";
+    private const string LogoSizeMessage = "A logo deve ter no máximo 1 MB.";
+    private const string BannerSizeMessage = "O banner deve ter no máximo 1 MB.";
+    private const string ProductSizeMessage = "A imagem do produto deve ter no máximo 1 MB.";
+    private const string StoreMediaSizeMessage = "A imagem deve ter no máximo 1 MB.";
 
     // Canonical upload categories accepted by the API. The value is used both to
     // select the size limit and to build the Cloudinary folder, so anything else
@@ -142,14 +149,19 @@ public static class StoreMediaUploadValidator
 
     private static string? ValidateSize(long length, string? type)
     {
+        if (length <= MaxBytes)
+        {
+            return null;
+        }
+
         var normalizedType = type?.Trim().ToLowerInvariant() ?? string.Empty;
 
         return normalizedType switch
         {
-            "logo" when length > LogoMaxBytes => "A logo deve ter no máximo 2 MB.",
-            "banner" when length > BannerMaxBytes => "O banner deve ter no máximo 5 MB.",
-            _ when length > ProductMaxBytes => "A imagem do produto deve ter no máximo 6 MB.",
-            _ => null,
+            "logo" => LogoSizeMessage,
+            "banner" => BannerSizeMessage,
+            "products" => ProductSizeMessage,
+            _ => StoreMediaSizeMessage,
         };
     }
 
@@ -188,7 +200,7 @@ public static class StoreMediaUploadValidator
         while ((read = stream.Read(chunk, 0, chunk.Length)) > 0)
         {
             total += read;
-            if (total > ProductMaxBytes)
+            if (total > MaxBytes)
             {
                 throw new InvalidOperationException("Upload exceeds the maximum supported size.");
             }

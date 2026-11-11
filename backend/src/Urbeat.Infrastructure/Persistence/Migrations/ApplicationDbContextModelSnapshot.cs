@@ -359,53 +359,26 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Açaiteria",
+                            Name = "Açaíteria",
                             NormalizedName = "acaiteria"
                         },
                         new
                         {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000003"),
+                            Id = new Guid("b1000000-0000-0000-0000-000000000018"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Comida Árabe",
-                            NormalizedName = "comida arabe"
+                            Name = "Batata Recheada",
+                            NormalizedName = "batata recheada"
                         },
                         new
                         {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000004"),
+                            Id = new Guid("b1000000-0000-0000-0000-000000000019"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Comida Japonesa",
-                            NormalizedName = "comida japonesa"
-                        },
-                        new
-                        {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000005"),
-                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            IsDefault = true,
-                            Name = "Hamburgueria",
-                            NormalizedName = "hamburgueria"
-                        },
-                        new
-                        {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000006"),
-                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            IsDefault = true,
-                            Name = "Lanches",
-                            NormalizedName = "lanches"
-                        },
-                        new
-                        {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000007"),
-                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            IsDefault = true,
-                            Name = "Pizzaria",
-                            NormalizedName = "pizzaria"
+                            Name = "Cachorro-quente (Hot Dog)",
+                            NormalizedName = "cachorro-quente (hot dog)"
                         },
                         new
                         {
@@ -418,21 +391,48 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000010"),
+                            Id = new Guid("b1000000-0000-0000-0000-000000000020"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Churrascaria",
-                            NormalizedName = "churrascaria"
+                            Name = "Caldos e Sopas",
+                            NormalizedName = "caldos e sopas"
                         },
                         new
                         {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000011"),
+                            Id = new Guid("b1000000-0000-0000-0000-000000000004"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Comida Mexicana",
-                            NormalizedName = "comida mexicana"
+                            Name = "Comida Japonesa",
+                            NormalizedName = "comida japonesa"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000021"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Comida Saudável (Fitness)",
+                            NormalizedName = "comida saudavel (fitness)"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000022"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Confeitaria",
+                            NormalizedName = "confeitaria"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000023"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Creperia",
+                            NormalizedName = "creperia"
                         },
                         new
                         {
@@ -445,12 +445,39 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000024"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Espetinhos e Churrasco",
+                            NormalizedName = "espetinhos e churrasco"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000005"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Hamburgueria",
+                            NormalizedName = "hamburgueria"
+                        },
+                        new
+                        {
                             Id = new Guid("b1000000-0000-0000-0000-000000000013"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
                             Name = "Marmitaria",
                             NormalizedName = "marmitaria"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000025"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Massas e Lasanhas",
+                            NormalizedName = "massas e lasanhas"
                         },
                         new
                         {
@@ -472,12 +499,30 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b1000000-0000-0000-0000-000000000016"),
+                            Id = new Guid("b1000000-0000-0000-0000-000000000007"),
                             CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDefault = true,
-                            Name = "Sucos e Vitaminas",
-                            NormalizedName = "sucos e vitaminas"
+                            Name = "Pizzaria",
+                            NormalizedName = "pizzaria"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000026"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Salgaderia",
+                            NormalizedName = "salgaderia"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000027"),
+                            CreatedAtUtc = new DateTime(2026, 7, 28, 23, 47, 40, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDefault = true,
+                            Name = "Sorveteria",
+                            NormalizedName = "sorveteria"
                         },
                         new
                         {

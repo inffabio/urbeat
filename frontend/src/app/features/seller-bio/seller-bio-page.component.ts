@@ -11,6 +11,8 @@ import { PendingChangesComponent } from '../../core/guards/pending-changes.guard
 import { ConfigSubnavComponent } from '../seller-shell/config-subnav.component';
 import { StoreResponse } from '../../shared/models/store.model';
 import { MediaUploadComponent } from '../../shared/components/media-upload/media-upload.component';
+import { compressImage } from '../../shared/utils/image-compression.utils';
+import { IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR } from '../../shared/utils/image-upload.utils';
 
 addIcons({
   'call-outline': callOutline,
@@ -153,10 +155,24 @@ export class SellerBioPageComponent implements OnInit, OnDestroy, PendingChanges
     this.saving.set(true);
     let uploadFailed = false;
 
-    const upload = (file: File | null, type: 'logo' | 'banner', message: string): Promise<string | null> => {
-      if (!file) return Promise.resolve(null);
+    const upload = async (file: File | null, type: 'logo' | 'banner', message: string): Promise<string | null> => {
+      if (!file) return null;
+
+      let compressed = file;
+      try {
+        compressed = await compressImage(file);
+      } catch {
+        compressed = file;
+      }
+
+      if (compressed.size > IMAGE_MAX_BYTES) {
+        uploadFailed = true;
+        this.toast.showError(IMAGE_OVER_LIMIT_ERROR);
+        return null;
+      }
+
       return new Promise((resolve) => {
-        this.stores.uploadImage(file, type).subscribe({
+        this.stores.uploadImage(compressed, type).subscribe({
           next: (r) => resolve(r.url),
           error: (err: unknown) => {
             uploadFailed = true;

@@ -2,7 +2,10 @@ import {
   ACCEPTED_IMAGE_EXTENSIONS,
   ACCEPTED_IMAGE_MIME_TYPES,
   IMAGE_ACCEPT_ATTRIBUTE,
-  PRODUCT_IMAGE_MAX_BYTES,
+  IMAGE_MAX_BYTES,
+  IMAGE_OVER_LIMIT_ERROR,
+  IMAGE_TARGET_MAX_BYTES,
+  ImageOverLimitError,
   getFileExtension,
   isAllowedImageFile,
 } from './image-upload.utils';
@@ -65,7 +68,18 @@ describe('image-upload.utils', () => {
     expect(getFileExtension('noextension')).toBe('');
   });
 
-  it('uses the documented 6 MB product limit', () => {
-    expect(PRODUCT_IMAGE_MAX_BYTES).toBe(6 * 1024 * 1024);
+  it('separates the 950 KiB compression target from the authoritative 1 MiB limit', () => {
+    expect(IMAGE_TARGET_MAX_BYTES).toBe(950 * 1024);
+    expect(IMAGE_MAX_BYTES).toBe(1024 * 1024);
+    expect(IMAGE_MAX_BYTES).toBeGreaterThan(IMAGE_TARGET_MAX_BYTES);
+  });
+
+  it('exposes a clear over-limit error for files that cannot be compressed enough', () => {
+    const error = new ImageOverLimitError();
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe('ImageOverLimitError');
+    expect(error.message).toBe(IMAGE_OVER_LIMIT_ERROR);
+    expect(IMAGE_OVER_LIMIT_ERROR).toContain('1 MB');
   });
 });

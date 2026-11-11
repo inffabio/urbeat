@@ -38,17 +38,36 @@
 
 
       <div class="btn-bar">
-        <button class="btn-outline" (click)="openNeighborhoodModal(-1)">
-          <ion-icon name="add"></ion-icon> Inserir Bairros
+        <button type="button" class="btn-outline btn-select-neighborhoods" (click)="openNeighborhoodModal(-1)">
+          <ion-icon name="add" aria-hidden="true"></ion-icon> Selecionar Bairros
         </button>
-        <button class="btn-outline" (click)="applyBulkFeeToAll()">
-          <ion-icon name="cash-outline"></ion-icon> Aplicar valor a todos
+        <button type="button" class="btn-outline" (click)="openMap()">
+          <ion-icon name="map-outline" aria-hidden="true"></ion-icon> Visualizar mapa
         </button>
-        <button class="btn-outline" (click)="openMap()">
-          <ion-icon name="map-outline"></ion-icon> Visualizar mapa
-        </button>
-        <button class="btn-outline btn-clear-all-mobile" (click)="clearAllAreas()" [hidden]="areas.length === 0">
-          <ion-icon name="trash-outline"></ion-icon> Excluir todos
+        <div class="radius-field">
+          <label class="radius-label" for="delivery-radius">Raio máximo (km)</label>
+          <div class="radius-input-wrap">
+            <input id="delivery-radius" class="radius-input" type="number" min="1" step="1" inputmode="numeric"
+              [ngModel]="radiusInputValue()" (ngModelChange)="onDeliveryRadiusChange($event)"
+              [disabled]="isSaving() || isRestoring()"
+              [attr.aria-invalid]="radiusValidationError()"
+              [attr.aria-describedby]="radiusDescribedBy()" />
+            <span class="radius-suffix">km</span>
+          </div>
+          @if (radiusValidationError()) {
+            <span class="radius-error" id="delivery-radius-error" role="alert">Informe um raio maior que zero.</span>
+          } @else {
+            <span class="radius-hint" id="delivery-radius-hint">{{ deliveryNeighborhoods().length }} bairros disponíveis</span>
+          }
+          @if (radiusPreviewError()) {
+            <span class="radius-error" id="delivery-radius-preview-error" role="alert">{{ radiusPreviewErrorMessage }}</span>
+          }
+          @if (isRadiusUpdating()) {
+            <span class="radius-pending" role="status">Atualizando bairros...</span>
+          }
+        </div>
+        <button type="button" class="btn-outline btn-clear-all-mobile" (click)="clearAllAreas()" [hidden]="areas.length === 0">
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon> Excluir todos
         </button>
       </div>
 
@@ -112,8 +131,7 @@
           </div>
 
         <div class="empty-areas" [hidden]="areas.length > 0">
-          <ion-icon name="navigate-outline"></ion-icon>
-          <p>Nenhum bairro cadastrado. Use o modal "Inserir Bairros" para selecionar.</p>
+          <p>Nenhum bairro cadastrado. Use o botão 'selecionar Bairros' para selecionar</p>
         </div>
 
         <div class="empty-areas" [hidden]="areas.length === 0 || filteredAreaIndices().length > 0">

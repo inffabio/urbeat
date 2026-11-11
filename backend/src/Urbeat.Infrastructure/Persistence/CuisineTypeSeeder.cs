@@ -57,7 +57,7 @@ public sealed class CuisineTypeSeeder
             selected.Add(existing);
         }
 
-        // Only the 15 approved names may carry the protected flag. Legacy defaults outside the list
+        // Only the 20 approved names may carry the protected flag. Legacy defaults outside the list
         // are demoted here and handled as legacy rows below.
         var selectedIds = selected.Select(x => x.Id).ToHashSet();
         foreach (var category in globalCategories)
@@ -68,8 +68,11 @@ public sealed class CuisineTypeSeeder
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // Legacy rule for global categories that are not one of the 15 approved defaults:
-    // - referenced by a store -> copy once per referencing store and rewire, preserving the value;
+    // Legacy rule for global categories that are not one of the 20 approved defaults:
+    // - referenced by a store -> keep the exact saved value through a private category of that
+    //   store and rewire; an existing private row with the same normalized key keeps its id and
+    //   store link (the text is aligned to the legacy value, so no unique index is violated and
+    //   no duplicate row is created);
     // - referenced by no store -> remove, so no unapproved global remains selectable.
     private async Task HandleLegacyGlobalCategoriesAsync(CancellationToken cancellationToken)
     {
@@ -100,9 +103,38 @@ public sealed class CuisineTypeSeeder
             .Where(x => x.CuisineTypeId != null && legacyIds.Contains(x.CuisineTypeId.Value))
             .ToListAsync(cancellationToken);
 
+        var referencingStoreIds = referencingStores.Select(x => x.Id).ToHashSet();
+        var privateCategories = new List<CuisineType>();
+        if (referencingStoreIds.Count > 0)
+        {
+            privateCategories = await _dbContext.CuisineTypes
+                .Where(x => x.StoreId != null && referencingStoreIds.Contains(x.StoreId.Value))
+                .ToListAsync(cancellationToken);
+        }
+
         foreach (var store in referencingStores)
         {
             var legacy = legacyGlobals.First(x => x.Id == store.CuisineTypeId);
+
+            // The scoped unique index is (StoreId, NormalizedName). Reusing a private row with the
+            // same normalized key is the only way to keep the original text without failing the
+            // index or duplicating the category; the name is aligned to the legacy value so the
+            // store never loses what it had saved.
+            var existingPrivate = privateCategories.FirstOrDefault(x =>
+                x.StoreId == store.Id && x.NormalizedName == legacy.NormalizedName);
+
+            if (existingPrivate is not null)
+            {
+                if (!string.Equals(existingPrivate.Name, legacy.Name, StringComparison.Ordinal))
+                {
+                    existingPrivate.Name = legacy.Name;
+                }
+
+                existingPrivate.IsDefault = false;
+                store.CuisineTypeId = existingPrivate.Id;
+                continue;
+            }
+
             var privateCopy = new CuisineType
             {
                 Name = legacy.Name,
@@ -112,6 +144,7 @@ public sealed class CuisineTypeSeeder
             };
 
             _dbContext.CuisineTypes.Add(privateCopy);
+            privateCategories.Add(privateCopy);
             store.CuisineTypeId = privateCopy.Id;
         }
 

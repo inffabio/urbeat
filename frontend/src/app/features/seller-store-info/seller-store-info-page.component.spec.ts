@@ -266,7 +266,6 @@ describe('SellerStoreInfoPageComponent', () => {
       component.state.set('RJ');
       component.initialMinute.set(30);
       component.finalMinute.set(60);
-      component.maxDeliveryRadiusKm.set(10);
     };
 
     it('sends supportsDelivery and supportsPickup through updateStore', async () => {

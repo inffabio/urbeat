@@ -176,7 +176,7 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
     public async Task Seller_ShouldListStoreScopedCuisineTypes_WithDefaultsAndPrivateCategories()
     {
         var client = await CreateAuthenticatedSellerAsync("store.cuisine.list");
-        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-list", "Lanches");
+        var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-list", "Pizzaria");
 
         var defaults = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
         defaults.Should().NotBeNullOrEmpty();
@@ -246,7 +246,7 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
         var storeId = await CreateStoreAndGetIdAsync(client, "cuisine-delete", "Comida Baiana");
 
         var scoped = await client.GetFromJsonAsync<List<CuisineTypeResponseDto>>($"/api/stores/{storeId}/cuisine-types");
-        var protectedCategory = scoped!.Single(x => x.Name == "Lanches");
+        var protectedCategory = scoped!.Single(x => x.Name == "Pizzaria");
         var inUseCategory = scoped!.Single(x => x.Name == "Comida Baiana");
 
         var protectedDelete = await client.DeleteAsync($"/api/stores/{storeId}/cuisine-types/{protectedCategory.Id}");
@@ -311,14 +311,14 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
             Name = "Loja cuisine-update-global",
             Slug = "cuisine-update-global",
             PhoneNumber = "11999999999",
-            CuisineType = "comida arabe",
+            CuisineType = "comida japonesa",
             MaxDeliveryRadiusKm = 5,
         });
 
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var store = await client.GetFromJsonAsync<StoreResponseDto>("/api/stores/my-store");
-        store!.CuisineType.Should().Be("Comida Árabe");
+        store!.CuisineType.Should().Be("Comida Japonesa");
     }
 
     [Fact]

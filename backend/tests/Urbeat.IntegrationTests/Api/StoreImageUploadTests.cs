@@ -160,20 +160,27 @@ public sealed class StoreImageUploadTests : IClassFixture<TestWebApplicationFact
         message.Should().Contain("Formato");
     }
 
-    [Fact]
-    public async Task UploadImage_rejects_product_over_six_megabytes()
+    [Theory]
+    [InlineData("logo", "logo.png", "A logo deve ter no máximo 1 MB.")]
+    [InlineData("banner", "banner.png", "O banner deve ter no máximo 1 MB.")]
+    [InlineData("products", "product.png", "A imagem do produto deve ter no máximo 1 MB.")]
+    [InlineData("store-media", "asset.png", "A imagem deve ter no máximo 1 MB.")]
+    public async Task UploadImage_rejects_media_over_the_unified_one_megabyte_limit(
+        string type,
+        string fileName,
+        string expectedMessage)
     {
         var client = await CreateAuthenticatedSellerAsync();
 
-        var oversized = new byte[6 * 1024 * 1024 + 1];
+        var oversized = new byte[1024 * 1024 + 1];
         Png().CopyTo(oversized, 0);
 
-        using var content = BuildFileContent(oversized, "product.png", "image/png");
-        var response = await client.PostAsync("/api/stores/upload-image?type=products", content);
+        using var content = BuildFileContent(oversized, fileName, "image/png");
+        var response = await client.PostAsync($"/api/stores/upload-image?type={type}", content);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var message = await ReadErrorMessageAsync(response);
-        message.Should().Contain("6 MB");
+        message.Should().Contain(expectedMessage);
     }
 
     [Fact]

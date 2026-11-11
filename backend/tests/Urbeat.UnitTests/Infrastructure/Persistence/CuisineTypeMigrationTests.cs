@@ -236,3 +236,291 @@ public sealed class CuisineTypeMigrationTests
         down.OfType<DropIndexOperation>().Should().Contain(x => x.Name == "IX_CuisineTypes_NormalizedName");
     }
 }
+
+public sealed class UpdateDefaultCuisineTypesMigrationTests
+{
+    private static readonly string[] NewDefaultNames =
+    [
+        "Batata Recheada",
+        "Cachorro-quente (Hot Dog)",
+        "Caldos e Sopas",
+        "Comida Saudável (Fitness)",
+        "Confeitaria",
+        "Creperia",
+        "Espetinhos e Churrasco",
+        "Massas e Lasanhas",
+        "Salgaderia",
+        "Sorveteria"
+    ];
+
+    private static readonly string[] RemovedDefaultNames =
+    [
+        "Comida Árabe",
+        "Churrascaria",
+        "Comida Mexicana",
+        "Lanches",
+        "Sucos e Vitaminas"
+    ];
+
+    private readonly UpdateDefaultCuisineTypes _migration = new();
+
+    private IReadOnlyList<SqlOperation> UpSqlOperations => _migration.UpOperations
+        .OfType<SqlOperation>()
+        .ToList();
+
+    private string UpSql => string.Join(
+        "\n",
+        UpSqlOperations.Select(operation => operation.Sql));
+
+    private IReadOnlyList<SqlOperation> DownSqlOperations => _migration.DownOperations
+        .OfType<SqlOperation>()
+        .ToList();
+
+    private string DownSql => string.Join(
+        "\n",
+        DownSqlOperations.Select(operation => operation.Sql));
+
+    private SqlOperation UpInsertDefaultsOperation => UpSqlOperations
+        .Single(x => x.Sql.Contains("INSERT INTO \"CuisineTypes\"", StringComparison.Ordinal)
+            && x.Sql.Contains("Açaíteria", StringComparison.Ordinal));
+
+    private SqlOperation DownRestoreDefaultsOperation => DownSqlOperations
+        .Single(x => x.Sql.Contains("INSERT INTO \"CuisineTypes\"", StringComparison.Ordinal)
+            && x.Sql.Contains("Sucos e Vitaminas", StringComparison.Ordinal));
+
+    [Fact]
+    public void Up_ShouldNotBlindlyDeleteLegacyRows()
+    {
+        _migration.UpOperations.OfType<DeleteDataOperation>().Should().BeEmpty();
+        _migration.UpOperations.OfType<UpdateDataOperation>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Up_ShouldInsertEveryNewDefault_GuardedByNotExists()
+    {
+        var insertSql = UpInsertDefaultsOperation.Sql;
+
+        foreach (var name in NewDefaultNames)
+        {
+            insertSql.Should().Contain($"'{name}'");
+        }
+
+        insertSql.Should().Contain("NOT EXISTS");
+        insertSql.Should().Contain("\"StoreId\" IS NULL");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000018'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000027'::uuid");
+    }
+
+    [Fact]
+    public void Up_ShouldReuseStableIdsForRetainedDefaults()
+    {
+        var insertSql = UpInsertDefaultsOperation.Sql;
+
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000001'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000004'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000005'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000007'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000009'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000012'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000013'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000014'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000015'::uuid");
+        insertSql.Should().Contain("'b1000000-0000-0000-0000-000000000017'::uuid");
+    }
+
+    [Fact]
+    public void Up_ShouldRenameLegacyAcaiteria_InsteadOfDuplicatingIt()
+    {
+        var renameSql = UpSqlOperations
+            .Single(x => x.Sql.Contains("SET \"Name\" = v.\"Name\"", StringComparison.Ordinal))
+            .Sql;
+
+        renameSql.Should().Contain("'Açaíteria'");
+        renameSql.Should().Contain("'acaiteria'");
+        renameSql.Should().Contain("\"StoreId\" IS NULL");
+    }
+
+    [Fact]
+    public void Up_ShouldCopyAndRewireReferencedLegacyGlobals_BeforeDeletingGlobals()
+    {
+        var copyIndex = UpSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("_CuisineTypeLegacyCopyMap", StringComparison.Ordinal))
+            .index;
+
+        var deleteIndex = UpSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("DELETE FROM \"CuisineTypes\"", StringComparison.Ordinal))
+            .index;
+
+        copyIndex.Should().BeLessThan(deleteIndex, "stores must keep their saved category before the global is removed");
+
+        var copySql = UpSqlOperations[copyIndex].Sql;
+        copySql.Should().Contain("gen_random_uuid()");
+        copySql.Should().Contain("UPDATE \"Stores\"");
+        copySql.Should().Contain("SET \"CuisineTypeId\"");
+        copySql.Should().Contain("\"IsDefault\", \"StoreId\", \"CreatedAtUtc\"");
+        copySql.Should().Contain("false");
+    }
+
+    [Fact]
+    public void Up_ShouldPreserveLegacyText_WhenPrivateCategoryHasTheSameNormalizedName()
+    {
+        var copySql = UpSqlOperations
+            .Single(x => x.Sql.Contains("_CuisineTypeLegacyCopyMap", StringComparison.Ordinal))
+            .Sql;
+
+        // Deterministic target selection: an exact name match wins, then the lowest id.
+        copySql.Should().Contain("ORDER BY (pc.\"Name\" = c.\"Name\") DESC, pc.\"Id\" ASC");
+
+        // The conflicting private row keeps its id and store link but receives the exact legacy
+        // text, so no unique index is violated and the store value is not lost.
+        copySql.Should().Contain("UPDATE \"CuisineTypes\" AS pc");
+        copySql.Should().Contain("SET \"Name\" = c.\"Name\"");
+        copySql.Should().Contain("pc.\"StoreId\" IS NOT NULL");
+        copySql.Should().Contain("pc.\"Name\" <> c.\"Name\"");
+        copySql.Should().Contain("WHERE NOT EXISTS");
+    }
+
+    [Fact]
+    public void Up_ShouldDeleteOnlyGlobalsOutsideTheApprovedList()
+    {
+        var deleteSql = UpSqlOperations
+            .Single(x => x.Sql.Contains("DELETE FROM \"CuisineTypes\"", StringComparison.Ordinal))
+            .Sql;
+
+        deleteSql.Should().Contain("\"StoreId\" IS NULL");
+        deleteSql.Should().Contain("NOT IN");
+        deleteSql.Should().Contain("'acaiteria'");
+        deleteSql.Should().Contain("'tapiocaria'");
+        deleteSql.Should().NotContain("'lanches'");
+        deleteSql.Should().NotContain("\"IsDefault\" = false");
+    }
+
+    [Fact]
+    public void Up_ShouldMarkOnlyApprovedGlobalsAsDefault()
+    {
+        var flagSql = UpSqlOperations
+            .Single(x => x.Sql.Contains("\"IsDefault\" = (", StringComparison.Ordinal))
+            .Sql;
+
+        flagSql.Should().Contain("\"StoreId\" IS NULL");
+        flagSql.Should().Contain("'pizzaria'");
+        flagSql.Should().Contain("'comida saudavel (fitness)'");
+        flagSql.Should().NotContain("'lanches'");
+    }
+
+    [Fact]
+    public void Up_ShouldPreserveStoresCuisineTypeIdColumn()
+    {
+        _migration.UpOperations.OfType<DropColumnOperation>()
+            .Should().NotContain(x => x.Table == "Stores" && x.Name == "CuisineTypeId");
+
+        UpSql.Should().Contain("UPDATE \"Stores\"");
+    }
+
+    [Fact]
+    public void Up_ShouldNotTouchCategoriesFromOtherDomains()
+    {
+        _migration.UpOperations.OfType<SqlOperation>()
+            .Should().NotContain(x => x.Sql.Contains("\"ProductCategories\"", StringComparison.Ordinal));
+        _migration.UpOperations.OfType<DropTableOperation>()
+            .Should().NotContain(x => x.Name == "ProductCategories");
+    }
+
+    [Fact]
+    public void Down_ShouldNotBlindlyDeleteRows()
+    {
+        _migration.DownOperations.OfType<DeleteDataOperation>().Should().BeEmpty();
+        _migration.DownOperations.OfType<UpdateDataOperation>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Down_ShouldCopyAndRewireReferencedGlobals_BeforeRemovingThem()
+    {
+        var copyIndex = DownSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("_CuisineTypeLegacyCopyMap", StringComparison.Ordinal))
+            .index;
+
+        var deleteIndex = DownSqlOperations
+            .Select((operation, index) => (operation, index))
+            .First(x => x.operation.Sql.Contains("DELETE FROM \"CuisineTypes\"", StringComparison.Ordinal))
+            .index;
+
+        copyIndex.Should().BeLessThan(deleteIndex);
+
+        var copySql = DownSqlOperations[copyIndex].Sql;
+        copySql.Should().Contain("gen_random_uuid()");
+        copySql.Should().Contain("UPDATE \"Stores\"");
+        copySql.Should().Contain("SET \"CuisineTypeId\"");
+    }
+
+    [Fact]
+    public void Down_ShouldPreserveLegacyText_WhenPrivateCategoryHasTheSameNormalizedName()
+    {
+        var copySql = DownSqlOperations
+            .Single(x => x.Sql.Contains("_CuisineTypeLegacyCopyMap", StringComparison.Ordinal))
+            .Sql;
+
+        copySql.Should().Contain("ORDER BY (pc.\"Name\" = c.\"Name\") DESC, pc.\"Id\" ASC");
+        copySql.Should().Contain("UPDATE \"CuisineTypes\" AS pc");
+        copySql.Should().Contain("SET \"Name\" = c.\"Name\"");
+        copySql.Should().Contain("pc.\"Name\" <> c.\"Name\"");
+    }
+
+    [Fact]
+    public void Down_ShouldRestoreRemovedDefaults_GuardedByNotExists()
+    {
+        var restoreSql = DownRestoreDefaultsOperation.Sql;
+
+        foreach (var name in RemovedDefaultNames)
+        {
+            restoreSql.Should().Contain($"'{name}'");
+        }
+
+        restoreSql.Should().Contain("NOT EXISTS");
+        restoreSql.Should().Contain("c.\"StoreId\" IS NULL");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000003'::uuid");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000006'::uuid");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000010'::uuid");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000011'::uuid");
+        restoreSql.Should().Contain("'b1000000-0000-0000-0000-000000000016'::uuid");
+    }
+
+    [Fact]
+    public void Down_ShouldRestoreLegacyAcaiteriaName()
+    {
+        var renameSql = DownSqlOperations
+            .Single(x => x.Sql.Contains("SET \"Name\" = v.\"Name\"", StringComparison.Ordinal))
+            .Sql;
+
+        renameSql.Should().Contain("'Açaiteria'");
+        renameSql.Should().Contain("'acaiteria'");
+        renameSql.Should().Contain("\"StoreId\" IS NULL");
+    }
+
+    [Fact]
+    public void Down_ShouldMarkOnlyPreviousApprovedGlobalsAsDefault()
+    {
+        var flagSql = DownSqlOperations
+            .Single(x => x.Sql.Contains("\"IsDefault\" = (", StringComparison.Ordinal))
+            .Sql;
+
+        flagSql.Should().Contain("'acaiteria'");
+        flagSql.Should().Contain("'sucos e vitaminas'");
+        flagSql.Should().NotContain("'acaiiteria'");
+    }
+
+    [Fact]
+    public void Down_ShouldDeleteOnlyGlobalsOutsideThePreviousApprovedList()
+    {
+        var deleteSql = DownSqlOperations
+            .Single(x => x.Sql.Contains("DELETE FROM \"CuisineTypes\"", StringComparison.Ordinal))
+            .Sql;
+
+        deleteSql.Should().Contain("\"StoreId\" IS NULL");
+        deleteSql.Should().Contain("'acaiteria'");
+        deleteSql.Should().NotContain("'acaiiteria'");
+    }
+}

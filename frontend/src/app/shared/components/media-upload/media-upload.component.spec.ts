@@ -126,19 +126,31 @@ describe('MediaUploadComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Dimensão recomendada: 1200 x 400 px.');
   });
 
-  it('rejects unsupported formats and files above the logo limit', () => {
+  it('rejects unsupported formats and non-compressible files above the limit', () => {
     const unsupported = new File(['x'], 'asset.gif', { type: 'image/gif' });
     component.onFileSelected(fileEvent(unsupported));
     expect(selected).not.toHaveBeenCalled();
     expect(component.errorMessage()).toContain('Formato');
+    expect(component.errorMessage()).not.toContain('1 MB');
 
-    const oversized = new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'logo.png', { type: 'image/png' });
-    component.onFileSelected(fileEvent(oversized));
+    // SVG cannot be re-encoded in the browser, so an oversized one has no path to
+    // fit the limit and must be rejected before upload.
+    const oversizedSvg = new File([new Uint8Array(1024 * 1024 + 1)], 'logo.svg', { type: 'image/svg+xml' });
+    component.onFileSelected(fileEvent(oversizedSvg));
     expect(selected).not.toHaveBeenCalled();
-    expect(component.errorMessage()).toContain('2 MB');
+    expect(component.errorMessage()).toContain('1 MB');
   });
 
-  it('uses the banner limit and emits removal requests', () => {
+  it('accepts oversized raster images so they can be compressed before upload', () => {
+    const oversized = new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'logo.png', { type: 'image/png' });
+
+    component.onFileSelected(fileEvent(oversized));
+
+    expect(selected).toHaveBeenCalledWith(oversized);
+    expect(component.errorMessage()).toBeNull();
+  });
+
+  it('accepts a banner of any compressible size and emits removal requests', () => {
     fixture.componentRef.setInput('kind', 'banner');
     fixture.detectChanges();
 
@@ -178,13 +190,13 @@ describe('MediaUploadComponent', () => {
     expect(selected).not.toHaveBeenCalled();
   });
 
-  it('resets the file input after an oversized selection', () => {
-    const oversized = new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'logo.png', { type: 'image/png' });
+  it('resets the file input after an oversized non-compressible selection', () => {
+    const oversized = new File([new Uint8Array(1024 * 1024 + 1)], 'logo.svg', { type: 'image/svg+xml' });
     const { event, input } = fileEventWithInput(oversized);
 
     component.onFileSelected(event);
 
-    expect(component.errorMessage()).toContain('2 MB');
+    expect(component.errorMessage()).toContain('1 MB');
     expect(input.value).toBe('');
   });
 

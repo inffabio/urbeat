@@ -196,20 +196,25 @@ public sealed class ApplicationDbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasData(
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000001"), Name = "Açaiteria", NormalizedName = "acaiteria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000003"), Name = "Comida Árabe", NormalizedName = "comida arabe", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000004"), Name = "Comida Japonesa", NormalizedName = "comida japonesa", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000005"), Name = "Hamburgueria", NormalizedName = "hamburgueria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000006"), Name = "Lanches", NormalizedName = "lanches", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000007"), Name = "Pizzaria", NormalizedName = "pizzaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000001"), Name = "Açaíteria", NormalizedName = "acaiteria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000018"), Name = "Batata Recheada", NormalizedName = "batata recheada", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000019"), Name = "Cachorro-quente (Hot Dog)", NormalizedName = "cachorro-quente (hot dog)", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000009"), Name = "Cafeteria", NormalizedName = "cafeteria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000010"), Name = "Churrascaria", NormalizedName = "churrascaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000011"), Name = "Comida Mexicana", NormalizedName = "comida mexicana", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000020"), Name = "Caldos e Sopas", NormalizedName = "caldos e sopas", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000004"), Name = "Comida Japonesa", NormalizedName = "comida japonesa", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000021"), Name = "Comida Saudável (Fitness)", NormalizedName = "comida saudavel (fitness)", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000022"), Name = "Confeitaria", NormalizedName = "confeitaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000023"), Name = "Creperia", NormalizedName = "creperia", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000012"), Name = "Doceria", NormalizedName = "doceria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000024"), Name = "Espetinhos e Churrasco", NormalizedName = "espetinhos e churrasco", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000005"), Name = "Hamburgueria", NormalizedName = "hamburgueria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000013"), Name = "Marmitaria", NormalizedName = "marmitaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000025"), Name = "Massas e Lasanhas", NormalizedName = "massas e lasanhas", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000014"), Name = "Padaria", NormalizedName = "padaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000015"), Name = "Pastelaria", NormalizedName = "pastelaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
-                new { Id = new Guid("b1000000-0000-0000-0000-000000000016"), Name = "Sucos e Vitaminas", NormalizedName = "sucos e vitaminas", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000007"), Name = "Pizzaria", NormalizedName = "pizzaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000026"), Name = "Salgaderia", NormalizedName = "salgaderia", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
+                new { Id = new Guid("b1000000-0000-0000-0000-000000000027"), Name = "Sorveteria", NormalizedName = "sorveteria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc },
                 new { Id = new Guid("b1000000-0000-0000-0000-000000000017"), Name = "Tapiocaria", NormalizedName = "tapiocaria", IsActive = true, IsDefault = true, CreatedAtUtc = cuisineTypeSeedCreatedAtUtc }
             );
         });

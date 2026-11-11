@@ -3,7 +3,8 @@ import { Component, computed, input, OnDestroy, output, signal } from '@angular/
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cloudUploadOutline, trashOutline } from 'ionicons/icons';
-import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, imageSizeError, isAllowedImageFile } from '../../utils/image-upload.utils';
+import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR, isAllowedImageFile } from '../../utils/image-upload.utils';
+import { canCompressImage } from '../../utils/image-compression.utils';
 
 type MediaKind = 'logo' | 'banner';
 
@@ -35,7 +36,7 @@ export class MediaUploadComponent implements OnDestroy {
   private readonly localPreviewUrl = signal<string | null>(null);
 
   readonly acceptedMimeTypes = IMAGE_ACCEPT_ATTRIBUTE;
-  readonly maxSizeLabel = computed(() => this.kind() === 'logo' ? '2 MB' : '5 MB');
+  readonly maxSizeLabel = computed(() => '1 MB');
   readonly emptyTitle = computed(() => this.kind() === 'logo' ? 'Envie a logo da loja' : 'Envie o banner da loja');
   readonly effectivePreviewUrl = computed(() => this.localPreviewUrl() ?? this.previewUrl());
 
@@ -44,7 +45,7 @@ export class MediaUploadComponent implements OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    const maxBytes = this.kind() === 'logo' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+    const maxBytes = IMAGE_MAX_BYTES;
     if (!isAllowedImageFile(file)) {
       this.errorMessage.set(IMAGE_FORMAT_ERROR);
       // Reset so selecting the same invalid file again still fires a change event.
@@ -52,8 +53,11 @@ export class MediaUploadComponent implements OnDestroy {
       return;
     }
 
-    if (file.size > maxBytes) {
-      this.errorMessage.set(imageSizeError(this.maxSizeLabel()));
+    // Raster images above the limit are compressed before upload, so rejecting them
+    // here would skip the compression step. Formats the browser cannot re-encode
+    // (SVG/AVIF) have no way to shrink and are rejected immediately.
+    if (!canCompressImage(file) && file.size > maxBytes) {
+      this.errorMessage.set(IMAGE_OVER_LIMIT_ERROR);
       input.value = '';
       return;
     }
