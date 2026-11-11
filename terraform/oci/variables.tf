@@ -1,0 +1,16 @@
+variable "tenancy_ocid" { type = string; default = ""; description = "OCI tenancy OCID supplied locally for ApiKey; never a secret."; validation { condition = var.auth != "ApiKey" || can(regex("^ocid1\.tenancy\.", var.tenancy_ocid)); error_message = "tenancy_ocid must be a tenancy OCID when auth=ApiKey." } }
+variable "compartment_ocid" { type = string; description = "Existing compartment to inventory/import." }
+variable "region" { type = string; description = "OCI region."; validation { condition = length(trimspace(var.region)) > 0; error_message = "region is required." } }
+variable "profile" { type = string; default = "DEFAULT"; description = "Local OCI config profile used only by ApiKey authentication." }
+variable "auth" { type = string; default = "ApiKey"; description = "OCI provider auth enum: ApiKey, InstancePrincipal, or ResourcePrincipal."; validation { condition = contains(["ApiKey", "InstancePrincipal", "ResourcePrincipal"], var.auth); error_message = "Use the OCI provider values ApiKey, InstancePrincipal, or ResourcePrincipal." } }
+variable "instance_ocid" { type = string; description = "Existing instance OCID, supplied after inventory/import." }
+variable "architecture" { type = string; default = "aarch64"; validation { condition = var.architecture == "aarch64"; error_message = "Only the existing aarch64 topology is supported." } }
+variable "domain_names" { type = list(string); default = []; validation { condition = alltrue([for d in var.domain_names : can(regex("^[a-z0-9.-]+$", d))]); error_message = "domain_names must contain DNS names." } }
+variable "api_ports" { type = map(number); default = { api_1 = 5001, api_2 = 5002 }; validation { condition = var.api_ports == { api_1 = 5001, api_2 = 5002 }; error_message = "API ports must remain 5001 and 5002." } }
+variable "host_paths" { type = map(string); default = { root = "/opt/urbeat", docker = "/opt/urbeat/docker", config = "/opt/urbeat/docker/generated", frontend = "/opt/urbeat/frontend-dist", uploads = "/opt/urbeat/uploads" } }
+variable "enabled_services" { type = set(string); default = ["api", "workers", "postgres", "redis", "prometheus", "grafana"]; validation { condition = length(setsubtract(var.enabled_services, ["api", "workers", "postgres", "redis", "prometheus", "grafana"])) == 0; error_message = "enabled_services contains an unsupported service. Nginx is host/systemd managed." } }
+variable "image_tags" { type = map(string); default = {}; description = "Informational release references; never triggers rollout." }
+variable "vault_references" { type = map(string); default = {}; description = "Logical names to Vault OCIDs or runtime paths; values are not secret content." }
+variable "tls_paths" { type = object({ certificate = string, key = string }); default = { certificate = "/etc/letsencrypt/live/urbeat.com.br/fullchain.pem", key = "/etc/letsencrypt/live/urbeat.com.br/privkey.pem" } }
+variable "tags" { type = map(string); default = {}; validation { condition = alltrue([for k in ["environment", "system", "owner", "managed-by", "schema-version"] : contains(keys(var.tags), k)]); error_message = "Required governance tags are missing." } }
+variable "service_flags" { type = map(bool); default = { frontend = true, certbot = true, node_exporter = true, postgres_exporter = true } }

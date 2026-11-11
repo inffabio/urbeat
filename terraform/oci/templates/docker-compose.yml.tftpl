@@ -1,0 +1,60 @@
+# RENDER/SCAFFOLD-ONLY. Not the production Compose replacement.
+# Contract reference: docker/docker-compose.yml (db/webapi/init-db) and
+# 04-deploy-application.ps1 (postgres/backend variant) still require reconciliation.
+name: urbeat
+networks:
+  urbeat_net: { driver: bridge }
+volumes:
+  pgdata: {}
+  redis-data: {}
+  grafana-data: {}
+  prometheus-data: {}
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: ["${runtime_env_file}"]
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data", "${compose_root}/init-db:/docker-entrypoint-initdb.d:ro"]
+    networks: [urbeat_net]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U postgres -d UrbeatDb"], interval: 5s, timeout: 5s, retries: 12 }
+  redis:
+    image: redis:7-alpine
+    volumes: ["redis-data:/data"]
+    networks: [urbeat_net]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 10 }
+  webapi:
+    image: "${api_image}"
+    env_file: ["${runtime_env_file}"]
+    environment: { Hangfire__Role: "Web", Outbox__WorkerEnabled: "false" }
+    ports: ["127.0.0.1:${api_port_1}:8080"]
+    depends_on: { db: { condition: service_healthy }, redis: { condition: service_healthy } }
+    networks: [urbeat_net]
+  webapi_replica_2:
+    image: "${api_image}"
+    env_file: ["${runtime_env_file}"]
+    environment: { Hangfire__Role: "Web", Outbox__WorkerEnabled: "false" }
+    ports: ["127.0.0.1:${api_port_2}:8080"]
+    depends_on: { db: { condition: service_healthy }, redis: { condition: service_healthy } }
+    networks: [urbeat_net]
+  worker-business:
+    image: "${api_image}"
+    env_file: ["${runtime_env_file}"]
+    entrypoint: ["dotnet", "/app/worker/Urbeat.Worker.dll"]
+    environment: { Hangfire__Role: "Business", Outbox__WorkerEnabled: "true" }
+    depends_on: { db: { condition: service_healthy }, redis: { condition: service_healthy }, webapi: { condition: service_healthy } }
+    networks: [urbeat_net]
+  worker-communications:
+    image: "${api_image}"
+    env_file: ["${runtime_env_file}"]
+    entrypoint: ["dotnet", "/app/worker/Urbeat.Worker.dll"]
+    environment: { Hangfire__Role: "Communications", Outbox__WorkerEnabled: "true" }
+    depends_on: { db: { condition: service_healthy }, redis: { condition: service_healthy }, webapi: { condition: service_healthy } }
+    networks: [urbeat_net]
+  prometheus:
+    image: prom/prometheus:latest
+    volumes: ["${config_path}/prometheus.yml:/etc/prometheus/prometheus.yml:ro", "prometheus-data:/prometheus"]
+    networks: [urbeat_net]
+  grafana:
+    image: grafana/grafana:latest
+    volumes: ["grafana-data:/var/lib/grafana", "${config_path}/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro"]
+    networks: [urbeat_net]

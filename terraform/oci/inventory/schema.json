@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["capturedAtUtc", "referenceCommit", "profileName", "region", "compartment", "resources", "ownership"],
+  "properties": {
+    "capturedAtUtc": { "type": "string", "format": "date-time" },
+    "referenceCommit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "profileName": { "type": "string" }, "region": { "type": "string" },
+    "compartment": { "type": "object", "required": ["ocidReference"] },
+    "resources": { "type": "array", "items": { "type": "object", "required": ["resourceType", "displayName", "terraformAddress", "source", "owner", "importStatus"] } },
+    "ownership": { "type": "object" }
+  }
+}

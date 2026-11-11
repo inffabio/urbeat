@@ -1,6 +1,11 @@
 <#
 .SYNOPSIS
-    Performs local, non-destructive validation of the OCI deployment pipeline.
+    Performs local, non-destructive validation of the legacy OCI deployment pipeline.
+
+.DESCRIPTION
+    This validator covers the existing PowerShell pipeline and its local invariants.
+    Terraform is an explicit, separate gate handled by terraform-preflight.ps1 and
+    is intentionally not required here.
 #>
 
 $ErrorActionPreference = "Stop"

@@ -1,0 +1,4 @@
+[
+  { "terraformAddress": "module.compute.instance", "resourceType": "oci_core_instance", "importId": "<INSTANCE_OCID>", "source": "inventory.json", "approved": false },
+  { "terraformAddress": "module.network.vcn", "resourceType": "oci_core_vcn", "importId": "<VCN_OCID>", "source": "inventory.json", "approved": false }
+]

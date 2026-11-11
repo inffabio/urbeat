@@ -1,0 +1,15 @@
+tenancy_ocid     = "<TENANCY_OCID>"
+compartment_ocid = "<COMPARTMENT_OCID>"
+instance_ocid    = "<INSTANCE_OCID>"
+region           = "<OCI_REGION>"
+profile          = "DEFAULT"
+auth             = "ApiKey"
+architecture     = "aarch64"
+domain_names     = []
+tags = {
+  environment = "production"
+  system = "urbeat"
+  owner = "platform"
+  managed-by = "terraform"
+  schema-version = "1"
+}

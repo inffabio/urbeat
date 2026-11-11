@@ -1,0 +1,13 @@
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+*.tfplan.json
+*.tfvars
+!*.tfvars.example
+backend.hcl
+inventory.json
+import-map.json
+rendered/
+*.pem
+*.key

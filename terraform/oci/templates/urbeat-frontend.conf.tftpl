@@ -1,0 +1,13 @@
+# FUTURE HOST TEMPLATE ONLY: 05-configure-nginx.ps1 is the current consumer.
+server {
+  listen 80;
+  listen [::]:80;
+  server_name ${frontend_server_names};
+  root ${frontend_path};
+  index index.html;
+  client_max_body_size ${client_max_body_size};
+  location /api/ { proxy_pass http://urbeat_api; proxy_http_version 1.1; proxy_set_header Host $host; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_read_timeout 300s; }
+  location /hubs/ { proxy_pass http://urbeat_api; proxy_http_version 1.1; proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade"; proxy_set_header Host $host; proxy_read_timeout 3600s; }
+  location /downloads/ { alias ${downloads_path}/; autoindex off; }
+  location / { try_files $uri $uri/ /index.html; }
+}

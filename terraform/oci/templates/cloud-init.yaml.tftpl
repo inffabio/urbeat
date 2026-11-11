@@ -1,0 +1,42 @@
+#cloud-config
+package_update: true
+packages: [docker.io, docker-compose-plugin]
+write_files:
+  - path: ${config_path}/docker-compose.yml
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, compose)}
+  - path: ${config_path}/urbeat-frontend.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, nginx_frontend)}
+  - path: ${config_path}/urbeat-api.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, nginx_api)}
+  - path: ${config_path}/urbeat-monitoring.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, nginx_monitoring)}
+  - path: ${config_path}/prometheus.yml
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, prometheus)}
+  - path: ${config_path}/grafana-datasources.yml
+    owner: root:root
+    permissions: '0644'
+    content: |
+${indent(6, grafana)}
+runcmd:
+  - [mkdir, -p, "${config_path}", "${uploads_path}", /var/lib/urbeat]
+  # The protected runtime env is delivered by the Vault/pipeline stage. Do not
+  # create it or print it here; this check is intentionally non-blocking.
+  - [sh, -c, "if [ -f '${runtime_env_file}' ]; then echo 'urbeat runtime env is present'; else echo 'urbeat runtime env is pending pipeline delivery'; fi"]
+  - [sh, -c, "printf '%s\\n' '{\"templateHash\":\"${template_hash}\",\"configPath\":\"${config_path}\",\"applicationImage\":\"${api_image}\"}' > /var/lib/urbeat/terraform-config.json"]
+  - [chmod, '0644', /var/lib/urbeat/terraform-config.json]
+# Bootstrap only: no image pull, restart, migration, release, or rollback.
