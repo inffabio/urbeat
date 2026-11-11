@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -45,8 +46,16 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
 
         resendResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await resendResponse.Content.ReadFromJsonAsync<JsonElement>();
-        body.GetProperty("succeeded").GetBoolean().Should().BeTrue();
-        body.GetProperty("alreadyConfirmed").GetBoolean().Should().BeFalse();
+        ShouldBeGenericAcknowledgement(body);
+
+        // The response only acknowledges an accepted/enqueued request. The deadline is a
+        // server-calculated UX hint so the page can restart its cooldown consistently.
+        DateTimeOffset.TryParse(
+            body.GetProperty("resendAvailableAtUtc").GetString(),
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind,
+            out var resendAvailableAtUtc).Should().BeTrue();
+        resendAvailableAtUtc.UtcDateTime.Should().BeAfter(DateTime.UtcNow);
 
         await _factory.DispatchOutboxAsync();
 
@@ -86,6 +95,10 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
         });
 
         resendResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await resendResponse.Content.ReadFromJsonAsync<JsonElement>();
+        // Privacy: an already-confirmed address must be indistinguishable from an unknown or
+        // pending one, so the confirmation state is never part of the public response.
+        ShouldBeGenericAcknowledgement(body);
         _factory.EmailService.FindLastByRecipient(email).Should().BeNull("the service must not resend e-mails for confirmed accounts");
     }
 
@@ -103,6 +116,8 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
 
         // Privacy: always returns 200 OK, but no email is sent.
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        ShouldBeGenericAcknowledgement(body);
         _factory.EmailService.FindLastByRecipient(unknown).Should().BeNull();
     }
 
@@ -145,6 +160,41 @@ public sealed class ResendEmailConfirmationFlowTests : IClassFixture<EmailConfir
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         await _factory.DispatchOutboxAsync();
         _factory.EmailService.FindLastByRecipient(email).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Resend_ShouldReturnTooManyRequests_WhenTheRateLimitIsExceeded()
+    {
+        using var factory = new EmailConfirmationTestWebApplicationFactory(
+            rolePromotionPermitLimit: 10000,
+            emailResendPermitLimit: 1);
+        var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var request = new ResendEmailConfirmationRequestDto
+        {
+            Email = NewEmail("rate-limit"),
+        };
+
+        var first = await client.PostAsJsonAsync("/api/auth/email/resend-confirmation", request);
+        var second = await client.PostAsJsonAsync("/api/auth/email/resend-confirmation", request);
+
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+        second.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
+
+    /// <summary>
+    /// Asserts the public privacy contract of the resend endpoint: unknown, pending and
+    /// already-confirmed addresses must yield the same acknowledgement and the same shape.
+    /// </summary>
+    private static void ShouldBeGenericAcknowledgement(JsonElement body)
+    {
+        body.TryGetProperty("alreadyConfirmed", out _).Should().BeFalse(
+            "the public resend contract must not disclose whether the e-mail is unknown, pending or confirmed");
+        body.EnumerateObject().Select(property => property.Name).Should()
+            .BeEquivalentTo("succeeded", "message", "resendAvailableAtUtc");
+        body.GetProperty("succeeded").GetBoolean().Should().BeTrue();
+        body.GetProperty("message").GetString().Should()
+            .Be("Se o e-mail estiver cadastrado, um link de confirmação foi enviado.");
+        body.GetProperty("resendAvailableAtUtc").ValueKind.Should().Be(JsonValueKind.String);
     }
 
     private static string NewEmail(string prefix) => $"{prefix}.{Guid.NewGuid():N}@urbeat.test";

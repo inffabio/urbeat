@@ -157,24 +157,44 @@ public sealed class EmailConfirmationService : IEmailConfirmationService
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _userManager.FindByEmailAsync(normalizedEmail);
 
+        // The deadline is calculated before branching so unknown, already-confirmed and pending
+        // addresses all receive the same shape. It is a client cooldown hint; the request rate
+        // limiter (not this value) protects the endpoint.
+        var resendAvailableAtUtc = _options.ResendCooldownSeconds > 0
+            ? DateTime.UtcNow.AddSeconds(_options.ResendCooldownSeconds)
+            : (DateTime?)null;
+
         // For privacy, we always return success — do not reveal whether the e-mail exists.
         if (user is null)
         {
             _logger.LogInformation("{EventType} | Resend skipped (user not found) | Email={Email}",
                 "EMAIL_RESEND_SKIPPED", normalizedEmail);
-            return new EmailConfirmationResultDto { Succeeded = true };
+            return new EmailConfirmationResultDto
+            {
+                Succeeded = true,
+                ResendAvailableAtUtc = resendAvailableAtUtc,
+            };
         }
 
         if (user.EmailConfirmed)
         {
-            return new EmailConfirmationResultDto { Succeeded = true, AlreadyConfirmed = true };
+            return new EmailConfirmationResultDto
+            {
+                Succeeded = true,
+                AlreadyConfirmed = true,
+                ResendAvailableAtUtc = resendAvailableAtUtc,
+            };
         }
 
         await SendConfirmationEmailAsync(user.Id, cancellationToken);
         await WriteAuditLogAsync(user.Id, "EmailConfirmationResent",
             $"Confirmation e-mail resent to {user.Email}.", cancellationToken);
 
-        return new EmailConfirmationResultDto { Succeeded = true };
+        return new EmailConfirmationResultDto
+        {
+            Succeeded = true,
+            ResendAvailableAtUtc = resendAvailableAtUtc,
+        };
     }
 
     private string BuildConfirmUrl(string shortCode)

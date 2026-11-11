@@ -83,18 +83,35 @@
         Clique no link do e-mail para ativar sua conta.
       </p>
 
-      <div class="timer-box">
-        <ion-icon name="time-outline"></ion-icon>
-        <span>Tempo restante para confirmar: <strong>{{ formatTime() }}</strong></span>
-      </div>
+      @if (resendCooldownActive()) {
+        <div class="timer-box">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>Você poderá solicitar um novo e-mail em <strong>{{ formatTime() }}</strong></span>
+        </div>
+      }
 
       @if (!showChangeEmail()) {
         <p class="confirm-hint">
-          Não recebeu? Verifique o spam ou clique abaixo para reenviar.
+          @if (resendCooldownActive()) {
+            Não recebeu? Aguarde o tempo indicado para solicitar um novo envio.
+          } @else {
+            Não recebeu? Verifique o spam ou clique abaixo para reenviar.
+          }
         </p>
 
-        <button type="button" class="btn-resend" (click)="resend()" [disabled]="resending()">
-          @if (resending()) { <span class="spinner"></span> Reenviando... } @else { Reenviar e-mail }
+        <button
+          type="button"
+          class="btn-resend"
+          (click)="resend()"
+          [disabled]="resending() || resendCooldownActive()"
+        >
+          @if (resending()) {
+            <span class="spinner"></span> Reenviando...
+          } @else if (resendCooldownActive()) {
+            Reenviar em {{ formatTime() }}
+          } @else {
+            Reenviar e-mail
+          }
         </button>
       }
 
@@ -114,8 +131,19 @@
 
           <p class="change-or">ou</p>
 
-          <button type="button" class="btn-resend" (click)="resend()" [disabled]="resending()">
-            @if (resending()) { <span class="spinner"></span> Reenviando... } @else { Reenviar e-mail }
+          <button
+            type="button"
+            class="btn-resend"
+            (click)="resend()"
+            [disabled]="resending() || resendCooldownActive()"
+          >
+            @if (resending()) {
+              <span class="spinner"></span> Reenviando...
+            } @else if (resendCooldownActive()) {
+              Reenviar em {{ formatTime() }}
+            } @else {
+              Reenviar e-mail
+            }
           </button>
         </div>
       }

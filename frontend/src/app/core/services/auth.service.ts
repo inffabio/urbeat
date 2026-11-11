@@ -13,6 +13,7 @@ import {
   ConfirmRolePromotionRequest,
   ConfirmRolePromotionResponse,
   ResendConfirmationRequest,
+  ResendConfirmationResponse,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   ValidateResetTokenResponse,
@@ -87,8 +88,8 @@ export class AuthService {
     return this.api.post<ConfirmEmailResponse>(`/api/auth/email/confirm/${code}`, {});
   }
 
-  resendConfirmation(req: ResendConfirmationRequest): Observable<ConfirmEmailResponse> {
-    return this.api.post<ConfirmEmailResponse>('/api/auth/email/resend-confirmation', req);
+  resendConfirmation(req: ResendConfirmationRequest): Observable<ResendConfirmationResponse> {
+    return this.api.post<ResendConfirmationResponse>('/api/auth/email/resend-confirmation', req);
   }
 
   /**

@@ -27,6 +27,7 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
 {
     private readonly string _databaseName = $"urbeat-email-tests-{Guid.NewGuid()}";
     private readonly int _rolePromotionPermitLimit;
+    private readonly int _emailResendPermitLimit;
     private readonly ISaveChangesInterceptor? _saveChangesInterceptor;
     private readonly IReadOnlyList<ISaveChangesInterceptor> _additionalSaveChangesInterceptors;
 
@@ -37,10 +38,12 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
 
     internal EmailConfirmationTestWebApplicationFactory(
         int rolePromotionPermitLimit,
+        int emailResendPermitLimit = 10000,
         ISaveChangesInterceptor? saveChangesInterceptor = null,
         IReadOnlyList<ISaveChangesInterceptor>? additionalSaveChangesInterceptors = null)
     {
         _rolePromotionPermitLimit = rolePromotionPermitLimit;
+        _emailResendPermitLimit = emailResendPermitLimit;
         _saveChangesInterceptor = saveChangesInterceptor;
         _additionalSaveChangesInterceptors = additionalSaveChangesInterceptors ?? [];
     }
@@ -65,6 +68,12 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
                 // Promotion tests create multiple accounts and challenges in one test run.
                 ["RateLimiting:RolePromotionPermitLimit"] = _rolePromotionPermitLimit.ToString(),
                 ["RateLimiting:RolePromotionWindowSeconds"] = "60",
+                // Registration/login keep a generous budget for the suite; resend has its own
+                // bucket, so a rate-limit test can lower it without affecting the auth flow.
+                ["RateLimiting:AuthPermitLimit"] = "10000",
+                ["RateLimiting:AuthWindowSeconds"] = "60",
+                ["RateLimiting:EmailResendPermitLimit"] = _emailResendPermitLimit.ToString(),
+                ["RateLimiting:EmailResendWindowSeconds"] = "60",
                 // Explicitly weaker Argon2id parameters for the test process only. Production keeps
                 // the strong defaults from appsettings.json (64 MiB, t=3, p=2).
                 ["PasswordHashing:Argon2id:MemorySizeKb"] = "8192",

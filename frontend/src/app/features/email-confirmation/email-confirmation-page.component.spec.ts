@@ -15,6 +15,19 @@ describe('EmailConfirmationPageComponent', () => {
   };
   let toastMock: { showSuccess: jest.Mock; showError: jest.Mock; showWarning: jest.Mock };
 
+  // Public resend contract: unknown, pending and already-confirmed addresses must be
+  // indistinguishable, so the response exposes no `alreadyConfirmed` field.
+  type ResendResponse = {
+    succeeded: boolean;
+    message: string;
+    resendAvailableAtUtc?: string | null;
+  };
+
+  function useFakeClock(): void {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+  }
+
   function configure(
     queryParams: Record<string, string>,
     routeFragment: string | null = null,
@@ -63,6 +76,9 @@ describe('EmailConfirmationPageComponent', () => {
   }
 
   afterEach(() => {
+    fixture?.destroy();
+    jest.useRealTimers();
+    sessionStorage.clear();
     delete (window as unknown as { __urbeatPromotionFragment?: unknown }).__urbeatPromotionFragment;
     window.history.replaceState({}, '', '/');
   });
@@ -277,5 +293,413 @@ describe('EmailConfirmationPageComponent', () => {
     expect(component.email()).toBe('novo@urbeat.local');
     expect(component.userId()).toBe('user-1');
     expect(authServiceMock.confirmRolePromotion).not.toHaveBeenCalled();
+  });
+
+  describe('resend cooldown', () => {
+    it('leaves the first resend immediately available on normal entry', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+
+      // Opening the page is not a resend: there is no accepted request, so a cooldown would block
+      // the one action the person needs when the confirmation e-mail never arrived.
+      expect(component.resendCooldownActive()).toBe(false);
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.showChangeEmail()).toBe(false);
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.textContent).not.toContain('Você poderá solicitar um novo e-mail em');
+
+      const resendButton = host.querySelector<HTMLButtonElement>('.btn-resend');
+      expect(resendButton).not.toBeNull();
+      expect(resendButton!.disabled).toBe(false);
+      expect(resendButton!.textContent).toContain('Reenviar e-mail');
+
+      resendButton!.click();
+      fixture.detectChanges();
+
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(1);
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledWith({
+        email: 'novo@urbeat.local',
+      });
+    });
+
+    it('unlocks the change-email section and keeps the resend available when the cooldown expires', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(120);
+
+      jest.advanceTimersByTime(120_000);
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.resendCooldownActive()).toBe(false);
+      expect(component.showChangeEmail()).toBe(true);
+
+      // The interval must stop at zero: further ticks cannot make the value negative or
+      // re-trigger the change-email state.
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.showChangeEmail()).toBe(true);
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.change-email-section')).not.toBeNull();
+      const resendButton = host.querySelector<HTMLButtonElement>(
+        '.change-email-section .btn-resend',
+      );
+      expect(resendButton).not.toBeNull();
+      expect(resendButton!.disabled).toBe(false);
+      expect(resendButton!.textContent).toContain('Reenviar e-mail');
+    });
+
+    it('starts the cooldown only after an accepted resend and never claims delivery', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({
+          succeeded: true,
+          message: 'Se o e-mail estiver cadastrado, um link de confirmação foi enviado.',
+          resendAvailableAtUtc: new Date(Date.now() + 120_000).toISOString(),
+        }),
+      );
+
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(120);
+      expect(component.showChangeEmail()).toBe(false);
+      expect(component.resending()).toBe(false);
+      expect(toastMock.showSuccess).toHaveBeenCalledWith(
+        expect.stringContaining('Se o e-mail estiver cadastrado'),
+      );
+      expect(toastMock.showSuccess.mock.calls[0][0]).not.toContain('reenviado');
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(119);
+
+      // A duplicated interval would decrement twice per second.
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(118);
+    });
+
+    it('restarts the cooldown when a new resend is accepted after the previous one expired', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+      jest.advanceTimersByTime(120_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.showChangeEmail()).toBe(true);
+
+      component.resend();
+      fixture.detectChanges();
+
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(2);
+      expect(component.secondsLeft()).toBe(120);
+      expect(component.showChangeEmail()).toBe(false);
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(119);
+    });
+
+    it('rejects a direct resend call during the cooldown and accepts it again after it expires', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(1);
+      expect(component.resendCooldownActive()).toBe(true);
+
+      // The template disables the button, but the accepted-request cooldown must also block a
+      // direct call (programmatic click, stale binding or a second surface) from issuing another
+      // request; the guard cannot live only in `[disabled]`.
+      component.resend();
+      fixture.detectChanges();
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(1);
+      expect(component.resending()).toBe(false);
+
+      jest.advanceTimersByTime(120_000);
+      fixture.detectChanges();
+      expect(component.resendCooldownActive()).toBe(false);
+
+      component.resend();
+      fixture.detectChanges();
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(2);
+      expect(component.secondsLeft()).toBe(120);
+    });
+
+    it('uses the deadline returned by the server instead of the local fallback', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({
+          succeeded: true,
+          message: 'ok',
+          resendAvailableAtUtc: new Date(Date.now() + 30_000).toISOString(),
+        }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(30);
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(29);
+    });
+
+    it('falls back to 120 seconds when an older server response omits the deadline', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(120);
+    });
+
+    it('does not start the cooldown when the resend request fails', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        throwError(() => ({ status: 500 })),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.resendCooldownActive()).toBe(false);
+      // A failed request was not accepted, so the change-email section is not unlocked and the
+      // regular resend button stays available for an immediate retry.
+      expect(component.showChangeEmail()).toBe(false);
+      expect(component.resending()).toBe(false);
+      expect(toastMock.showError).toHaveBeenCalledWith('Erro ao reenviar. Tente novamente.');
+
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.showChangeEmail()).toBe(false);
+    });
+
+    it('allows retrying after an error and starts the cooldown only on success', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })))
+        .mockReturnValueOnce(
+          of<ResendResponse>({ succeeded: true, message: 'ok' }),
+        );
+
+      fixture.detectChanges();
+
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.resending()).toBe(false);
+
+      component.resend();
+      fixture.detectChanges();
+
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(2);
+      expect(component.secondsLeft()).toBe(120);
+      expect(component.showChangeEmail()).toBe(false);
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(119);
+    });
+
+    it('releases the button and shows a specific message on HTTP 429 without starting a timer', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        throwError(() => ({ status: 429 })),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.resendCooldownActive()).toBe(false);
+      expect(component.resending()).toBe(false);
+      expect(toastMock.showWarning).toHaveBeenCalledWith(
+        expect.stringContaining('Muitas solicitações'),
+      );
+      expect(toastMock.showError).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+    });
+
+    it('ignores repeated clicks while the resend request is in flight', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      const pending = new Subject<ResendResponse>();
+      authServiceMock.resendConfirmation.mockReturnValue(pending.asObservable());
+
+      fixture.detectChanges();
+      component.resend();
+      component.resend();
+
+      expect(authServiceMock.resendConfirmation).toHaveBeenCalledTimes(1);
+      expect(component.resending()).toBe(true);
+
+      pending.next({ succeeded: true, message: 'ok' });
+      pending.complete();
+      fixture.detectChanges();
+
+      expect(component.resending()).toBe(false);
+      expect(component.secondsLeft()).toBe(120);
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(119);
+    });
+
+    it('restarts the cooldown after a successful e-mail change', async () => {
+      sessionStorage.setItem('urbeat.emailChangeChallenge:old@urbeat.local', 'challenge');
+      await configure({ email: 'old@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+      authServiceMock.updateEmail.mockReturnValue(of({ message: 'ok' }));
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+      jest.advanceTimersByTime(120_000);
+      fixture.detectChanges();
+      expect(component.showChangeEmail()).toBe(true);
+
+      component.newEmail.set('new@urbeat.local');
+      component.changeEmail();
+      fixture.detectChanges();
+
+      expect(component.email()).toBe('new@urbeat.local');
+      expect(component.showChangeEmail()).toBe(false);
+      expect(component.secondsLeft()).toBe(120);
+
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(119);
+    });
+
+    it('clears the interval on destroy and leaves the first resend available when recreated', async () => {
+      await configure({ email: 'novo@urbeat.local', userId: 'user-1' });
+      useFakeClock();
+      authServiceMock.resendConfirmation.mockReturnValue(
+        of<ResendResponse>({ succeeded: true, message: 'ok' }),
+      );
+
+      fixture.detectChanges();
+      component.resend();
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(120);
+
+      jest.advanceTimersByTime(5000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(115);
+
+      fixture.destroy();
+
+      // If ngOnDestroy did not clear the interval, the destroyed component would keep ticking.
+      jest.advanceTimersByTime(10_000);
+      expect(component.secondsLeft()).toBe(115);
+
+      fixture = TestBed.createComponent(EmailConfirmationPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      // Reload/navigation must not persist or resurrect the previous cooldown: the server rate
+      // limiter stays authoritative and the first resend is available again.
+      expect(component.secondsLeft()).toBe(0);
+      expect(component.resendCooldownActive()).toBe(false);
+      jest.advanceTimersByTime(1000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+    });
+
+    it('does not start the regular-flow timer while confirming a promotion', async () => {
+      await configure({ promotionToken: 'opaque-token', role: 'Seller' });
+      useFakeClock();
+      authServiceMock.confirmRolePromotion.mockReturnValue(
+        of({
+          succeeded: true,
+          alreadyApplied: false,
+          role: 'Seller',
+          emailConfirmationPending: false,
+          message: 'ok',
+        }),
+      );
+
+      fixture.detectChanges();
+
+      expect(component.promotionMode()).toBe(true);
+      expect(component.secondsLeft()).toBe(0);
+
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+    });
+
+    it('does not start the regular-flow timer for a promotion-pending message', async () => {
+      await configure({
+        promotionPending: 'true',
+        role: 'Seller',
+        email: 'cliente@urbeat.local',
+      });
+      useFakeClock();
+
+      fixture.detectChanges();
+
+      expect(component.promotionPending()).toBe(true);
+      expect(component.secondsLeft()).toBe(0);
+
+      jest.advanceTimersByTime(10_000);
+      fixture.detectChanges();
+      expect(component.secondsLeft()).toBe(0);
+    });
   });
 });

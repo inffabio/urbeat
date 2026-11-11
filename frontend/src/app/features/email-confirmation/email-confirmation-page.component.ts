@@ -5,9 +5,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { AccountRole } from '../../shared/models/auth.model';
+import { AccountRole, ResendConfirmationResponse } from '../../shared/models/auth.model';
 
 type PromotionState = 'idle' | 'confirming' | 'succeeded' | 'already' | 'error';
+
+/** Visual resend cooldown used when the server response has no deadline (older API contract). */
+const DEFAULT_RESEND_COOLDOWN_SECONDS = 120;
 
 @Component({
   selector: 'app-email-confirmation-page',
@@ -27,10 +30,19 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
   readonly userId = signal('');
   readonly emailChangeChallenge = signal('');
   readonly resending = signal(false);
-  readonly secondsLeft = signal(120);
   readonly showChangeEmail = signal(false);
   readonly newEmail = signal('');
   readonly changingEmail = signal(false);
+
+  // The cooldown is derived from a single deadline instead of decrementing a counter on every
+  // tick. A restart only replaces the deadline, so duplicated intervals cannot drift the value.
+  private readonly cooldownDeadlineMs = signal(0);
+  private readonly clockMs = signal(Date.now());
+  readonly secondsLeft = computed(() => {
+    const remainingMs = this.cooldownDeadlineMs() - this.clockMs();
+    return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
+  });
+  readonly resendCooldownActive = computed(() => this.secondsLeft() > 0);
 
   // Role promotion has its own explicit state. A promotion token is never posted to the e-mail
   // confirmation or e-mail change endpoints.
@@ -51,7 +63,7 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
     this.promotionRole() === 'Customer' ? null : '/cadastro',
   );
 
-  private timerInterval: any;
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
   private promotionReferrerMeta: HTMLMetaElement | null = null;
 
   ngOnInit(): void {
@@ -90,7 +102,10 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
     this.email.set(email);
     this.userId.set(this.route.snapshot.queryParamMap.get('userId') ?? '');
     this.emailChangeChallenge.set(this.readEmailChangeChallenge(email));
-    this.startTimer();
+    // Opening the page is not an accepted resend request. No artificial cooldown is started and
+    // nothing is persisted, so the first resend is available immediately after a reload or a
+    // navigation; the server rate limiter remains the authority on repeated requests.
+    this.resetResendCooldown();
   }
 
   /**
@@ -154,7 +169,7 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.timerInterval);
+    this.stopTimer();
     this.promotionReferrerMeta?.remove();
     this.promotionReferrerMeta = null;
   }
@@ -196,18 +211,57 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
     this.promotionReferrerMeta = meta;
   }
 
-  private startTimer(): void {
-    clearInterval(this.timerInterval);
+  /** Clears any pending visual cooldown so the resend action is immediately available. */
+  private resetResendCooldown(): void {
+    this.stopTimer();
+    this.clockMs.set(Date.now());
+    this.cooldownDeadlineMs.set(0);
+  }
+
+  /**
+   * Starts (or restarts) the visual resend cooldown. It is only called after the server accepted a
+   * resend/e-mail-change request, never when the page merely opens. The deadline comes from the
+   * server when available and is only a UX hint: an old cached contract falls back to 120 seconds,
+   * and a deadline already in the past means the resend button is immediately available.
+   */
+  private startResendCooldown(deadlineMs?: number): void {
+    this.stopTimer();
+
+    const now = Date.now();
+    const deadline = deadlineMs !== undefined && Number.isFinite(deadlineMs)
+      ? Math.max(deadlineMs, now)
+      : now + DEFAULT_RESEND_COOLDOWN_SECONDS * 1000;
+
+    this.cooldownDeadlineMs.set(deadline);
+    this.clockMs.set(now);
+
+    if (this.secondsLeft() <= 0) {
+      this.showChangeEmail.set(true);
+      return;
+    }
+
+    this.showChangeEmail.set(false);
     this.timerInterval = setInterval(() => {
-      this.secondsLeft.update(v => {
-        if (v <= 1) {
-          clearInterval(this.timerInterval);
-          this.showChangeEmail.set(true);
-          return 0;
-        }
-        return v - 1;
-      });
+      this.clockMs.set(Date.now());
+      if (this.secondsLeft() <= 0) {
+        this.stopTimer();
+        this.showChangeEmail.set(true);
+      }
     }, 1000);
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval === null) return;
+    clearInterval(this.timerInterval);
+    this.timerInterval = null;
+  }
+
+  private resolveResendDeadline(response?: ResendConfirmationResponse | null): number | undefined {
+    const raw = response?.resendAvailableAtUtc;
+    if (!raw) return undefined;
+
+    const parsed = Date.parse(raw);
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   formatTime(): string {
@@ -218,16 +272,32 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
   }
 
   resend(): void {
-    const e = this.email();
-    if (!e || this.resending()) return;
+    const e = this.email().trim();
+    // The cooldown is enforced here as well as in the template `[disabled]`: an accepted resend
+    // already consumed the server budget, and the guard must not depend on the button state.
+    if (!e || this.resending() || this.resendCooldownActive()) return;
+
     this.resending.set(true);
     this.auth.resendConfirmation({ email: e }).subscribe({
-      next: () => {
+      next: (res) => {
         this.resending.set(false);
-        this.toast.showSuccess('E-mail reenviado! Verifique sua caixa de entrada.');
+        // The backend only acknowledges that the request was accepted/enqueued; delivery is
+        // asynchronous and is intentionally not claimed.
+        this.startResendCooldown(this.resolveResendDeadline(res));
+        this.toast.showSuccess(
+          'Solicitação de reenvio enviada. Se o e-mail estiver cadastrado, você receberá um novo link de confirmação.',
+        );
       },
-      error: () => {
+      error: (err) => {
+        // A rejected request was never accepted, so the cooldown is neither started nor restarted
+        // here: the button is released and the server decides when the next attempt is allowed.
         this.resending.set(false);
+        if (err?.status === 429) {
+          this.toast.showWarning(
+            'Muitas solicitações de reenvio. Aguarde alguns minutos e tente novamente.',
+          );
+          return;
+        }
         this.toast.showError('Erro ao reenviar. Tente novamente.');
       },
     });
@@ -255,10 +325,10 @@ export class EmailConfirmationPageComponent implements OnInit, OnDestroy {
         this.changingEmail.set(false);
         this.email.set(newE);
         this.newEmail.set('');
-        this.showChangeEmail.set(false);
-        this.secondsLeft.set(120);
-        this.startTimer();
-        this.toast.showSuccess('E-mail atualizado! Um novo link foi enviado.');
+        this.startResendCooldown();
+        this.toast.showSuccess(
+          'E-mail atualizado! Solicitação de novo link de confirmação enviada.',
+        );
       },
       error: (err) => {
         this.changingEmail.set(false);

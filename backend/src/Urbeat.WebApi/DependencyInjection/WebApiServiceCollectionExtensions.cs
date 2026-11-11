@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Threading.RateLimiting;
@@ -103,19 +104,30 @@ public static class WebApiServiceCollectionExtensions
         // The promotion policy is resolved at request time so test/ops overrides that are added to
         // the configuration after this method runs (WebApplicationFactory) still take effect.
         services.Configure<RateLimitingOptions>(configuration.GetSection(RateLimitingOptions.SectionName));
+        // The resend bucket is the authoritative protection for the public resend endpoint; the
+        // client cooldown hint is independent from it, so only its own limit/window are validated.
+        services.AddOptions<RateLimitingOptions>().ValidateOnStart();
+        services.AddSingleton<IValidateOptions<RateLimitingOptions>, RateLimitingOptionsValidator>();
 
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            options.AddPolicy("auth", httpContext => RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                factory: _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = rateLimitingOptions.AuthPermitLimit,
-                    Window = TimeSpan.FromSeconds(rateLimitingOptions.AuthWindowSeconds),
-                    QueueLimit = 0
-                }));
+            options.AddPolicy("auth", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.AuthPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.AuthWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
 
             options.AddPolicy("password-recovery", httpContext => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -129,7 +141,7 @@ public static class WebApiServiceCollectionExtensions
             options.AddPolicy("role-promotion", httpContext =>
             {
                 var current = httpContext.RequestServices
-                    .GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<RateLimitingOptions>>()
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
                     .CurrentValue;
 
                 return RateLimitPartition.GetFixedWindowLimiter(
@@ -138,6 +150,24 @@ public static class WebApiServiceCollectionExtensions
                     {
                         PermitLimit = current.RolePromotionPermitLimit,
                         Window = TimeSpan.FromSeconds(current.RolePromotionWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
+
+            // Resend has its own bucket: sharing "auth" would let a resend attempt exhaust (or be
+            // exhausted by) login/registration traffic, and the frontend cooldown is only a hint.
+            options.AddPolicy("email-resend", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.EmailResendPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.EmailResendWindowSeconds),
                         QueueLimit = 0
                     });
             });

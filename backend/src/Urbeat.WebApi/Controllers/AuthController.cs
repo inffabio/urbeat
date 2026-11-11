@@ -391,8 +391,10 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("email/resend-confirmation")]
+    [EnableRateLimiting("email-resend")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequestDto request, CancellationToken cancellationToken)
     {
         var validationResult = await _resendValidator.ValidateAsync(request, cancellationToken);
@@ -407,11 +409,14 @@ public sealed class AuthController : ControllerBase
 
         var result = await _emailConfirmationService.ResendAsync(request, cancellationToken);
 
-        // Privacy: always 200 OK regardless of whether the user exists.
+        // Privacy: always 200 OK with the same shape and message for unknown, pending and
+        // already-confirmed addresses. The confirmation state (`AlreadyConfirmed`) is intentionally
+        // NOT exposed here so the endpoint cannot be used to enumerate accounts; the deadline is a
+        // client cooldown hint and the message only acknowledges the accepted request, not delivery.
         return Ok(new
         {
             succeeded = result.Succeeded,
-            alreadyConfirmed = result.AlreadyConfirmed,
+            resendAvailableAtUtc = result.ResendAvailableAtUtc,
             message = "Se o e-mail estiver cadastrado, um link de confirmação foi enviado."
         });
     }

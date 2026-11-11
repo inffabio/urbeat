@@ -29,6 +29,23 @@ public sealed class RateLimitingOptions
     /// <summary>Window, in seconds, for the role promotion limit.</summary>
     public int RolePromotionWindowSeconds { get; set; } = 300;
 
+    /// <summary>
+    /// Permit limit for confirmation e-mail resend requests. It is intentionally separate from the
+    /// general auth budget so resend traffic neither consumes nor is throttled by login/register
+    /// traffic. This limiter is the authoritative protection for repeated resends; the client
+    /// cooldown hint (<c>EmailConfirmation:ResendCooldownSeconds</c>) is a distinct, non-binding UX
+    /// value, so a client that honours the hint simply never reaches this limit.
+    /// </summary>
+    public int EmailResendPermitLimit { get; set; } = 3;
+
+    /// <summary>
+    /// Window, in seconds, for the confirmation e-mail resend limit. It is independent from the
+    /// client cooldown hint (<c>EmailConfirmation:ResendCooldownSeconds</c>) on purpose: the hint may
+    /// be shorter or longer than this window, and only this limiter keeps the endpoint safe. Both
+    /// must stay positive; <see cref="RateLimitingOptionsValidator"/> fails startup otherwise.
+    /// </summary>
+    public int EmailResendWindowSeconds { get; set; } = 120;
+
     /// <summary>Permit limit for the public tokenized route endpoints.</summary>
     public int PublicRoutePermitLimit { get; set; } = 120;
 

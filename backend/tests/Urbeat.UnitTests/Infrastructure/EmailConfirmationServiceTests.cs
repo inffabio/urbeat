@@ -389,6 +389,37 @@ public sealed class EmailConfirmationServiceTests
     }
 
     [Fact]
+    public async Task ResendAsync_ShouldReturnServerCalculatedUtcCooldownDeadline()
+    {
+        var userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(m => m.FindByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((IdentityUser<Guid>?)null);
+
+        using var db = CreateDbContext();
+        var options = DefaultOptions();
+        options.ResendCooldownSeconds = 120;
+
+        var sut = new EmailConfirmationService(
+            userManagerMock.Object,
+            Options.Create(options),
+            db,
+            new Mock<IEmailTokenCache>().Object,
+            new Mock<IOutboxWriter>().Object,
+            NullLogger<EmailConfirmationService>.Instance);
+
+        var before = DateTime.UtcNow;
+        var result = await sut.ResendAsync(new ResendEmailConfirmationRequestDto { Email = "ghost@urbeat.local" });
+
+        var deadline = result.ResendAvailableAtUtc;
+        result.Succeeded.Should().BeTrue();
+        deadline.Should().NotBeNull();
+        deadline!.Value.Kind.Should().Be(DateTimeKind.Utc);
+        deadline!.Value.Should()
+            .BeOnOrAfter(before.AddSeconds(119))
+            .And.BeOnOrBefore(DateTime.UtcNow.AddSeconds(121));
+    }
+
+    [Fact]
     public async Task ResendAsync_ShouldReturnAlreadyConfirmed_WhenEmailIsConfirmed()
     {
         var user = new IdentityUser<Guid>
