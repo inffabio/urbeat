@@ -80,6 +80,55 @@ public sealed class ApplicationDbContextModelTests
         index.Should().NotBeNull();
         index!.IsUnique.Should().BeTrue();
         entityType.FindProperty(nameof(UserRoleCredential.PasswordHash))!.GetMaxLength().Should().Be(500);
+
+        // A promotion credential is linked to at most one pending request, which is what lets an
+        // interrupted promotion be retried without duplicating or adopting a foreign credential.
+        var linkIndex = entityType.GetIndexes().SingleOrDefault(x =>
+            x.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(UserRoleCredential.RolePromotionRequestId)
+            }));
+
+        linkIndex.Should().NotBeNull();
+        linkIndex!.IsUnique.Should().BeTrue();
+        linkIndex.GetFilter().Should().Be("\"RolePromotionRequestId\" IS NOT NULL");
+
+        // The link is a nullable FK with ON DELETE SET NULL: deleting a request never deletes a real
+        // credential, and credentials created outside the promotion flow keep the column null.
+        var linkForeignKey = entityType.GetForeignKeys().SingleOrDefault(x =>
+            x.Properties.Any(property => property.Name == nameof(UserRoleCredential.RolePromotionRequestId)));
+        linkForeignKey.Should().NotBeNull();
+        linkForeignKey!.PrincipalEntityType.ClrType.Should().Be(typeof(RolePromotionRequest));
+        linkForeignKey.IsRequired.Should().BeFalse();
+        linkForeignKey.DeleteBehavior.Should().Be(DeleteBehavior.SetNull);
+    }
+
+    [Fact]
+    public void RolePromotionRequest_ShouldHaveSinglePendingRequestPerUserAndRole()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"urbeat-model-{Guid.NewGuid()}")
+            .Options;
+        using var db = new ApplicationDbContext(options);
+
+        var entityType = db.Model.FindEntityType(typeof(RolePromotionRequest));
+        entityType.Should().NotBeNull();
+
+        var pendingIndex = entityType!.GetIndexes().SingleOrDefault(x =>
+            x.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(RolePromotionRequest.UserId),
+                nameof(RolePromotionRequest.TargetRole)
+            }));
+
+        pendingIndex.Should().NotBeNull();
+        pendingIndex!.IsUnique.Should().BeTrue();
+        pendingIndex.GetFilter().Should().Be(
+            "\"ConsumedAtUtc\" IS NULL AND \"SupersededAtUtc\" IS NULL");
+        entityType.FindProperty(nameof(RolePromotionRequest.ConcurrencyVersion))!
+            .IsConcurrencyToken.Should().BeTrue();
+        entityType.FindProperty(nameof(RolePromotionRequest.ClaimedBy)).Should().NotBeNull(
+            "the lease must record which attempt owns it so MarkApplied can validate it");
     }
 
     [Fact]

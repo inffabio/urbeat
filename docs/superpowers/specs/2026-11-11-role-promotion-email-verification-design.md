@@ -88,6 +88,15 @@ do e-mail.
   reutilizar uma mensagem genérica de confirmação de cadastro ou troca de e-mail.
 - Reutilizar a tela de confirmação somente com um parâmetro explícito de tipo de
   operação e dados mínimos; não colocar token sensível em logs ou mensagens.
+- Ler o token de promoção uma única vez na tela de confirmação e removê-lo
+  imediatamente da URL (`history.replaceState`/navegação com `replaceUrl`),
+  mantendo-o apenas em memória e nunca em `localStorage`/`sessionStorage`. O
+  token viaja no **fragmento** da URL (`#promotionToken=...`), nunca na query
+  string: o fragmento não é enviado ao servidor, não aparece em logs de proxy e
+  não vaza pelo header `Referer`. O `index.html` captura o fragmento em memória e
+  o remove antes do Angular/analytics; a tela também lê o fragmento como fallback
+  e nunca aceita `?promotionToken=`. A confirmação também aplica
+  `Referrer-Policy: no-referrer` global.
 - Após confirmação, concluir o fluxo de criação/login do papel correto.
 
 ## Copy aprovado do e-mail
@@ -127,6 +136,94 @@ Equipe urbeat
 O fluxo inverso usa a mesma estrutura, substituindo “acesso de lojista” por
 “acesso de cliente” e “use o urbeat também como lojista” por “use o urbeat também
 como cliente”.
+
+## Durabilidade, concorrência e retomada
+
+- O token de confirmação é derivado com HMAC-SHA256 do identificador da solicitação
+  e de uma chave **dedicada** (`RolePromotionChallenge:SigningKey`). Não há fallback
+  para `Jwt:Secret` nem para a chave de troca de e-mail, e nenhum valor padrão é
+  distribuído no repositório. Nada do token é persistido além do seu SHA-256, e o
+  job de e-mail reconstrói o link a partir da solicitação persistida. Assim, perda
+  de cache, reinício de worker, job atrasado dentro dos 30 minutos ou queda entre o
+  commit e o enfileiramento não deixam a solicitação sem forma de envio.
+- A entrega usa um lease persistido (`EmailSendingAtUtc` + `EmailSendAttemptId`).
+  O job só envia depois de reivindicar o lease; a recuperação só reenfileira
+  solicitações cujo lease está ausente ou expirado. Assim, enfileiramento duplicado,
+  job atrasado e varredura de recuperação não geram envio concorrente, e um worker
+  que caiu deixa de bloquear a entrega após o lease expirar.
+- `EmailSentAtUtc` só é gravado depois que o provedor aceitou a mensagem. O
+  `Message-Id`/chave de idempotência é determinístico por `requestId`
+  (`role-promotion-<requestId>`, sem `:` para continuar sendo um dot-atom válido do
+  `Message-Id`), nunca derivado do token ou da senha, para permitir
+  deduplicação pelo MTA em retentativas. SMTP puro continua sendo pelo menos uma vez
+  se o processo cair depois do aceite e antes da gravação; o lease elimina as
+  duplicidades evitáveis.
+- Existe no máximo uma solicitação pendente por identidade/papel: a criação é
+  serializada por um advisory lock transacional e protegida por um índice único
+  parcial (`ConsumedAtUtc IS NULL AND SupersededAtUtc IS NULL`). Uma nova
+  solicitação para o mesmo papel **reutiliza** a pendente enquanto ela estiver
+  válida: o link já entregue nunca é invalidado, a senha pendente não pode ser
+  trocada antes de expirar e a resposta continua genérica. Somente uma
+  solicitação expirada é substituída — nesse caso não há link válido a perder, e
+  uma falha na gravação da nova não deixa a conta sem nada que já funcionasse.
+- Um cooldown persistente por identidade (`RolePromotionChallenge:CreationCooldownSeconds`,
+  padrão 120s) impede que uma solicitação para o outro papel dispare um segundo
+  e-mail dentro da janela. A chave usada nos logs é um HMAC do e-mail
+  normalizado sob a chave dedicada (`IdentityKey`), nunca o endereço em claro, e
+  nenhuma resposta distingue existência de conta, papel pendente ou supressão.
+- A confirmação reserva o desafio por um lease curto (`ClaimedAtUtc` +
+  `ClaimedBy`, o id da tentativa) e só grava `ConsumedAtUtc` depois de aplicar
+  papel e credencial. `MarkAppliedAsync` exige `requestId` + `ClaimedBy` e faz
+  update condicional no lease ainda válido: se o lease expirou ou foi assumido por
+  outra tentativa, o request **não** é marcado como aplicado e a confirmação
+  responde erro (recarregando/abortando), nunca sucesso. Uma falha no meio não
+  consome o link, e uma repetição depois de aplicação parcial responde de forma
+  idempotente sem duplicar papel ou credencial. No PostgreSQL tudo ocorre na
+  mesma transação; quando o provedor não suporta transação (InMemory usado nos
+  testes), a aplicação libera o lease e compensa credencial, papel, claim
+  `FullName` e `EmailConfirmed` antes de responder a falha, verificando cada
+  `IdentityResult` e o estado final. A compensação só remove o que a tentativa
+  comprovadamente criou: a credencial pelo **id** gerado e pelo
+  `RolePromotionRequestId` da requisição, o papel apenas se a própria tentativa o
+  atribuiu, e claim/`EmailConfirmed` apenas se a tentativa os alterou. Uma
+  credencial ou papel criados por cadastro/confirmação concorrente nunca são
+  removidos nem sobrescritos. A compensação não é tratada como rollback
+  garantido: se um passo falhar, a falha é auditada
+  (`RolePromotionCompensationFailed`), a resposta continua sendo de erro e o
+  estado residual é escolhido para ser retomável — a credencial é removida antes
+  do papel e uma nova tentativa conclui a aplicação reaproveitando um papel
+  órfão, sem duplicar papel ou credencial.
+- A credencial criada pela promoção guarda `UserRoleCredential.RolePromotionRequestId`
+  (coluna opcional, índice único parcial e FK para `RolePromotionRequests` com
+  `ON DELETE SET NULL`; credenciais normais permanecem com a coluna nula). Se a
+  gravação da credencial vencer e a do papel falhar, a repetição do mesmo link
+  reaproveita essa credencial e conclui papel/claim/`EmailConfirmed` e o `Applied`
+  sem duplicar nada. Uma credencial sem vínculo (ou ligada a outra solicitação)
+  **nunca** é adotada nem sobrescrita: a confirmação falha de forma genérica, o
+  caso é auditado e a remediação é explícita (reenvio do link da solicitação que a
+  originou ou intervenção operacional).
+- A auditoria posterior a uma promoção já commitada é **não fatal**: se a escrita
+  do `AuditLog` falhar depois do sucesso (ou do commit), o erro é logado para
+  retry/outbox e o usuário continua recebendo a confirmação de sucesso. Nenhum
+  token, senha ou hash é incluído na descrição da auditoria.
+- Rate limiting continua particionado por `RemoteIpAddress`, que só reflete
+  `X-Forwarded-For` de proxies confiáveis. `ForwardedHeaders` lê
+  `ForwardedHeaders:KnownProxies`/`KnownNetworks`; configuração vazia falha
+  fechada. Em produção apenas a rede privada do Docker (`172.16.0.0/12`, onde o
+  nginx roda) é confiável, e o nginx envia `X-Real-IP`/`X-Forwarded-For`; um
+  cliente externo não consegue forjar o IP usado pelo rate limiting.
+
+## Configuração da chave de promoção
+
+- `RolePromotionChallenge:SigningKey` é obrigatória e validada no startup
+  (`ValidateOnStart`): vazia, placeholder conhecido, menos de 32 caracteres ou com
+  entropia insuficiente impedem a aplicação de iniciar. A mensagem de erro nunca
+  imprime o valor.
+- Em produção, forneça o valor por variável de ambiente/secret store
+  (`RolePromotionChallenge__SigningKey`), por exemplo com 32+ bytes aleatórios
+  gerados por CSPRNG. Nenhum segredo real deve ser commitado.
+- O `appsettings.json` mantém a chave vazia apenas como documentação do nome da
+  configuração; testes e factories fornecem uma chave explícita de teste.
 
 ## Segurança e compatibilidade
 

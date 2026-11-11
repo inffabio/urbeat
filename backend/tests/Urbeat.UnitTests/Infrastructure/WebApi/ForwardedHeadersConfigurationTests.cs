@@ -103,4 +103,26 @@ public sealed class ForwardedHeadersConfigurationTests
         options.KnownProxies.Should().NotContain(IPAddress.Parse("203.0.113.10"));
         options.KnownNetworks.Should().NotContain(network => network.Contains(IPAddress.Parse("203.0.113.10")));
     }
+
+    [Fact]
+    public void ProductionConfiguration_ShouldTrustOnlyThePrivateDockerNetworkForForwardedHeaders()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "appsettings.Production.json");
+        File.Exists(path).Should().BeTrue("the production configuration must ship with the WebApi");
+
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile(path, optional: false)
+            .Build();
+
+        var options = ForwardedHeadersConfiguration.Create(configuration);
+
+        // The nginx container is the only peer allowed to rewrite RemoteIpAddress. Nothing from the
+        // public internet is trusted, so X-Forwarded-For cannot be used to bypass the IP rate limiter.
+        // (The framework keeps its loopback defaults when no explicit proxy is configured.)
+        options.KnownProxies.Should().NotContain(IPAddress.Parse("8.8.8.8"));
+        options.KnownProxies.Should().NotContain(IPAddress.Parse("203.0.113.10"));
+        options.KnownNetworks.Should().Contain(network => network.Contains(IPAddress.Parse("172.20.0.5")));
+        options.KnownNetworks.Should().NotContain(network => network.Contains(IPAddress.Parse("8.8.8.8")));
+        options.KnownNetworks.Should().NotContain(network => network.Contains(IPAddress.Parse("203.0.113.10")));
+    }
 }

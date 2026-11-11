@@ -80,14 +80,16 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         await _factory.ConfirmEmailAsync(email);
         var customerHashBefore = (await GetCredentialAsync(email, UserRoleType.Customer))!.PasswordHash;
 
+        await AuthenticateAsAsync(client, "customer", email, CustomerPassword);
+
         var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = "Contratante Promovido",
             Email = email,
             Password = NewSellerPassword,
-            CurrentPassword = CustomerPassword,
             PhoneNumber = "11988888888"
         });
+        client.DefaultRequestHeaders.Authorization = null;
         promote.StatusCode.Should().Be(HttpStatusCode.Created, await promote.Content.ReadAsStringAsync());
 
         var payload = await promote.Content.ReadFromJsonAsync<JsonElement>();
@@ -111,14 +113,16 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         await _factory.ConfirmEmailAsync(email);
         var sellerHashBefore = (await GetCredentialAsync(email, UserRoleType.Seller))!.PasswordHash;
 
+        await AuthenticateAsAsync(client, "seller", email, SellerPassword);
+
         var promote = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
         {
             FullName = "Cliente Promovido",
             Email = email,
             Password = NewCustomerPassword,
-            CurrentPassword = SellerPassword,
             PhoneNumber = "11977777777"
         });
+        client.DefaultRequestHeaders.Authorization = null;
         promote.StatusCode.Should().Be(HttpStatusCode.Created, await promote.Content.ReadAsStringAsync());
 
         var sellerHashAfter = (await GetCredentialAsync(email, UserRoleType.Seller))!.PasswordHash;
@@ -146,7 +150,7 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
     }
 
     [Fact]
-    public async Task AddRoleWithoutOwnershipProof_ShouldBeRejected()
+    public async Task AddRoleWithoutOwnershipProof_ShouldOnlyCreateAPendingChallenge()
     {
         var email = UniqueEmail("no-proof");
         var client = CreateClient();
@@ -161,11 +165,16 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
             PhoneNumber = "11988888888"
         });
 
-        promote.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        promote.StatusCode.Should().Be(HttpStatusCode.Created);
+        var payload = await promote.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("rolePromotionPending").GetBoolean().Should().BeTrue();
+
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var user = await db.Users.SingleAsync(x => x.Email == email);
         (await db.UserRoleCredentials.AnyAsync(x => x.UserId == user.Id && x.Role == UserRoleType.Seller)).Should().BeFalse();
+        (await db.RolePromotionRequests.AnyAsync(x =>
+            x.UserId == user.Id && x.TargetRole == UserRoleType.Seller && x.ConsumedAtUtc == null)).Should().BeTrue();
     }
 
     [Fact]
@@ -447,12 +456,15 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         (await RegisterAsync(client, "customer", email, CustomerPassword)).StatusCode.Should().Be(HttpStatusCode.Created);
         await _factory.ConfirmEmailAsync(email);
 
-        var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+        // Promotion uses a fresh client/token so the returned client keeps no stale Authorization
+        // header for the subsequent login/password tests.
+        var promotionClient = CreateClient();
+        await AuthenticateAsAsync(promotionClient, "customer", email, CustomerPassword);
+        var promote = await promotionClient.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = "Contratante Dual",
             Email = email,
             Password = SellerPassword,
-            CurrentPassword = CustomerPassword,
             PhoneNumber = "11988888888"
         });
         promote.StatusCode.Should().Be(HttpStatusCode.Created, await promote.Content.ReadAsStringAsync());
@@ -460,11 +472,20 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         return (email, client);
     }
 
+    private static async Task AuthenticateAsAsync(HttpClient client, string role, string email, string password)
+    {
+        var login = await LoginAsync(client, role, email, password);
+        login.StatusCode.Should().Be(HttpStatusCode.OK, await login.Content.ReadAsStringAsync());
+        var token = await ReadAccessTokenAsync(login);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+
     private async Task InsertResetTokenAsync(string email, UserRoleType role, string rawToken)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var tokenHasher = scope.ServiceProvider.GetRequiredService<Urbeat.Application.Interfaces.ITokenHasher>();
         var user = await userManager.FindByEmailAsync(email);
         user.Should().NotBeNull();
 
@@ -472,7 +493,7 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         {
             UserId = user!.Id,
             Role = role,
-            TokenHash = userManager.PasswordHasher.HashPassword(user, rawToken),
+            TokenHash = tokenHasher.Hash(rawToken),
             ExpiresAt = DateTime.UtcNow.AddHours(1),
             Used = false
         });

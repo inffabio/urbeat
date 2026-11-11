@@ -20,6 +20,15 @@ public sealed class RateLimitingOptions
     /// <summary>Window, in seconds, for the password recovery limit.</summary>
     public int PasswordRecoveryWindowSeconds { get; set; } = 300;
 
+    /// <summary>
+    /// Permit limit for registration and role promotion confirmation. This flow can trigger an
+    /// e-mail to an existing account, so it has its own stricter budget.
+    /// </summary>
+    public int RolePromotionPermitLimit { get; set; } = 20;
+
+    /// <summary>Window, in seconds, for the role promotion limit.</summary>
+    public int RolePromotionWindowSeconds { get; set; } = 300;
+
     /// <summary>Permit limit for the public tokenized route endpoints.</summary>
     public int PublicRoutePermitLimit { get; set; } = 120;
 

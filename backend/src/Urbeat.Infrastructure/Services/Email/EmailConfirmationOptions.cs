@@ -7,4 +7,7 @@ public sealed class EmailConfirmationOptions
     public string FrontendBaseUrl { get; set; } = "http://localhost:4200";
 
     public string ConfirmPath { get; set; } = "/confirm-email";
+
+    /// <summary>Frontend page that confirms a pending second-role promotion.</summary>
+    public string RolePromotionPath { get; set; } = "/confirmacao-email";
 }

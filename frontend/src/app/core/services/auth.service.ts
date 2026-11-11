@@ -10,6 +10,8 @@ import {
   AuthTokenResponse,
   ConfirmEmailRequest,
   ConfirmEmailResponse,
+  ConfirmRolePromotionRequest,
+  ConfirmRolePromotionResponse,
   ResendConfirmationRequest,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
@@ -87,6 +89,15 @@ export class AuthService {
 
   resendConfirmation(req: ResendConfirmationRequest): Observable<ConfirmEmailResponse> {
     return this.api.post<ConfirmEmailResponse>('/api/auth/email/resend-confirmation', req);
+  }
+
+  /**
+   * Confirms a pending second-role promotion. This endpoint is distinct from registration e-mail
+   * confirmation and e-mail change; a promotion token is never accepted by those flows.
+   */
+  confirmRolePromotion(token: string): Observable<ConfirmRolePromotionResponse> {
+    const request: ConfirmRolePromotionRequest = { token };
+    return this.api.post<ConfirmRolePromotionResponse>('/api/auth/role-promotion/confirm', request);
   }
 
   saveToken(res: AuthTokenResponse): void {

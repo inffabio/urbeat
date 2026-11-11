@@ -255,5 +255,76 @@ h1 {
   background: var(--app-brand-soft);
 }
 
+/* Role promotion states */
+.spinner-lg {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--app-brand-shadow);
+  border-top-color: var(--c-primary);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 0.7s linear infinite;
+}
+
+.confirm-status {
+  font-size: 1rem;
+  color: var(--c-muted);
+}
+
+.confirm-icon-wrap.info-state {
+  background: var(--app-brand-shadow);
+}
+
+.confirm-icon-wrap.info-state ion-icon {
+  color: var(--c-primary);
+}
+
+.confirm-icon-wrap.success {
+  background: var(--app-success-green-soft);
+}
+
+.confirm-icon-wrap.success ion-icon {
+  color: var(--app-success-green);
+}
+
+.confirm-icon-wrap.error-state {
+  background: var(--app-error-bg);
+}
+
+.confirm-icon-wrap.error-state ion-icon {
+  color: var(--app-brand);
+}
+
+.btn-go {
+  display: inline-block;
+  min-height: 44px;
+  box-sizing: border-box;
+  text-decoration: none;
+  padding: 0.8rem 2rem;
+  background: var(--c-primary);
+  color: var(--app-surface);
+  border: none;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-go:hover {
+  background: var(--c-primary-deep);
+  transform: translateY(-1px);
+}
+
+.btn-go.outline {
+  background: transparent;
+  color: var(--c-primary);
+  border: 1.5px solid var(--c-primary);
+}
+
+.btn-go.outline:hover {
+  background: var(--app-brand-shadow);
+}
+
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

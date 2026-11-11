@@ -19,6 +19,7 @@ public sealed class AuthController : ControllerBase
     private readonly IValidator<ForgotPasswordRequestDto> _forgotPasswordValidator;
     private readonly IValidator<ResetPasswordRequestDto> _resetPasswordValidator;
     private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
+    private readonly IValidator<ConfirmRolePromotionRequestDto> _confirmRolePromotionValidator;
     private readonly IAuthService _authService;
     private readonly IEmailConfirmationService _emailConfirmationService;
 
@@ -30,6 +31,7 @@ public sealed class AuthController : ControllerBase
         IValidator<ForgotPasswordRequestDto> forgotPasswordValidator,
         IValidator<ResetPasswordRequestDto> resetPasswordValidator,
         IValidator<ChangePasswordRequestDto> changePasswordValidator,
+        IValidator<ConfirmRolePromotionRequestDto> confirmRolePromotionValidator,
         IAuthService authService,
         IEmailConfirmationService emailConfirmationService)
     {
@@ -40,12 +42,13 @@ public sealed class AuthController : ControllerBase
         _forgotPasswordValidator = forgotPasswordValidator;
         _resetPasswordValidator = resetPasswordValidator;
         _changePasswordValidator = changePasswordValidator;
+        _confirmRolePromotionValidator = confirmRolePromotionValidator;
         _authService = authService;
         _emailConfirmationService = emailConfirmationService;
     }
 
     [HttpPost("register/customer")]
-    [EnableRateLimiting("auth")]
+    [EnableRateLimiting("role-promotion")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -79,18 +82,21 @@ public sealed class AuthController : ControllerBase
         BusinessMetrics.NewUsers.Inc();
         return StatusCode(StatusCodes.Status201Created, new
         {
-            userId = result.UserId,
+            userId = result.RolePromotionPending ? null : result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
             emailChangeChallenge = result.EmailChangeChallenge,
             roleAddedToExistingAccount = result.RoleAddedToExistingAccount,
-            message = result.RoleAddedToExistingAccount
-                ? "Acesso de cliente adicionado. Sua senha de lojista continua a mesma. Verifique seu e-mail para ativar a conta."
-                : "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
+            rolePromotionPending = result.RolePromotionPending,
+            message = result.RolePromotionPending
+                ? "Se este e-mail já pertence a uma conta urbeat, enviamos um link para confirmar o novo acesso de cliente."
+                : result.RoleAddedToExistingAccount
+                    ? "Acesso de cliente adicionado. Sua senha de lojista continua a mesma."
+                    : "Cadastro realizado. Verifique seu e-mail para ativar sua conta."
         });
     }
 
     [HttpPost("register/seller")]
-    [EnableRateLimiting("auth")]
+    [EnableRateLimiting("role-promotion")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -124,13 +130,60 @@ public sealed class AuthController : ControllerBase
         BusinessMetrics.NewUsers.Inc();
         return StatusCode(StatusCodes.Status201Created, new
         {
-            userId = result.UserId,
+            userId = result.RolePromotionPending ? null : result.UserId,
             emailConfirmationPending = result.EmailConfirmationPending,
             emailChangeChallenge = result.EmailChangeChallenge,
             roleAddedToExistingAccount = result.RoleAddedToExistingAccount,
-            message = result.RoleAddedToExistingAccount
-                ? "Acesso lojista adicionado. Sua senha de cliente continua a mesma. Verifique seu e-mail para ativar a conta."
-                : "Cadastro realizado. Verifique seu e-mail para ativar sua loja."
+            rolePromotionPending = result.RolePromotionPending,
+            message = result.RolePromotionPending
+                ? "Se este e-mail já pertence a uma conta urbeat, enviamos um link para confirmar o novo acesso de lojista."
+                : result.RoleAddedToExistingAccount
+                    ? "Acesso lojista adicionado. Sua senha de cliente continua a mesma."
+                    : "Cadastro realizado. Verifique seu e-mail para ativar sua loja."
+        });
+    }
+
+    [HttpPost("role-promotion/confirm")]
+    [AllowAnonymous]
+    [EnableRateLimiting("role-promotion")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ConfirmRolePromotion(
+        [FromBody] ConfirmRolePromotionRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validationResult = await _confirmRolePromotionValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validationResult.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    keySelector: group => group.Key,
+                    elementSelector: group => group.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var result = await _authService.ConfirmRolePromotionAsync(request.Token, cancellationToken);
+        if (!result.Succeeded)
+        {
+            // Generic on purpose: expired, replayed after failure, wrong purpose and unknown tokens
+            // are indistinguishable to an unauthenticated caller.
+            return BadRequest(new { message = result.Error ?? "Link de confirmação inválido ou expirado." });
+        }
+
+        var accessLabel = string.Equals(result.Role, "Seller", StringComparison.OrdinalIgnoreCase)
+            ? "lojista"
+            : "cliente";
+
+        return Ok(new
+        {
+            succeeded = true,
+            alreadyApplied = result.AlreadyApplied,
+            role = result.Role,
+            emailConfirmationPending = result.EmailConfirmationPending,
+            message = result.AlreadyApplied
+                ? $"Este acesso de {accessLabel} já estava confirmado."
+                : $"Acesso de {accessLabel} confirmado. Sua senha atual não foi alterada."
         });
     }
 

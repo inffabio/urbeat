@@ -16,6 +16,13 @@ public sealed class RegistrationResultDto
     /// </summary>
     public bool RoleAddedToExistingAccount { get; init; }
 
+    /// <summary>
+    /// True when the requested role belongs to an existing identity but the caller is not
+    /// authenticated as its owner. No role or credential is created until the e-mail challenge is
+    /// confirmed; the response intentionally stays generic about the other role.
+    /// </summary>
+    public bool RolePromotionPending { get; init; }
+
     public string? ExistingUserEmail { get; init; }
 
     /// <summary>

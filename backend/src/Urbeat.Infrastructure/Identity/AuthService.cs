@@ -2,6 +2,7 @@
 using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Urbeat.Application.DTOs;
@@ -27,6 +28,8 @@ public sealed class AuthService : IAuthService
     private readonly IEfUnitOfWork _efUnitOfWork;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly IEmailChangeChallengeService _emailChangeChallengeService;
+    private readonly IRolePromotionChallengeService _rolePromotionChallengeService;
+    private readonly ITokenHasher _tokenHasher;
     private readonly IdentityOptions _identityOptions;
 
     public AuthService(
@@ -38,6 +41,8 @@ public sealed class AuthService : IAuthService
         IEfUnitOfWork efUnitOfWork,
         IBackgroundJobClient backgroundJobClient,
         IEmailChangeChallengeService emailChangeChallengeService,
+        IRolePromotionChallengeService rolePromotionChallengeService,
+        ITokenHasher tokenHasher,
         IOptions<IdentityOptions> identityOptions)
     {
         _userManager = userManager;
@@ -48,6 +53,8 @@ public sealed class AuthService : IAuthService
         _efUnitOfWork = efUnitOfWork;
         _backgroundJobClient = backgroundJobClient;
         _emailChangeChallengeService = emailChangeChallengeService;
+        _rolePromotionChallengeService = rolePromotionChallengeService;
+        _tokenHasher = tokenHasher;
         _identityOptions = identityOptions.Value;
     }
 
@@ -554,19 +561,42 @@ public sealed class AuthService : IAuthService
 
         if (outcome.AuditEvent is not null)
         {
-            await WriteAuditLogAsync(
-                userId: outcome.AuditUserId,
-                auditEvent: outcome.AuditEvent,
-                entity: nameof(IdentityUser<Guid>),
-                entityId: outcome.AuditUserId,
-                description: outcome.AuditDescription!,
-                ipAddress: null,
-                cancellationToken);
+            if (outcome.Result.Succeeded)
+            {
+                // The registration/promotion is already committed at this point. An audit failure
+                // must not turn the successful operation into an error for the caller.
+                await TryWriteAuditLogAfterCommitAsync(
+                    userId: outcome.AuditUserId,
+                    auditEvent: outcome.AuditEvent,
+                    entity: nameof(IdentityUser<Guid>),
+                    entityId: outcome.AuditUserId,
+                    description: outcome.AuditDescription!,
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await WriteAuditLogAsync(
+                    userId: outcome.AuditUserId,
+                    auditEvent: outcome.AuditEvent,
+                    entity: nameof(IdentityUser<Guid>),
+                    entityId: outcome.AuditUserId,
+                    description: outcome.AuditDescription!,
+                    ipAddress: null,
+                    cancellationToken);
+            }
         }
 
         if (outcome.EnqueueConfirmationUserId is { } enqueueUserId)
         {
             _backgroundJobClient.Enqueue<SendEmailConfirmationJob>(job => job.ExecuteAsync(enqueueUserId));
+        }
+
+        if (outcome.EnqueueRolePromotionRequestId is { } rolePromotionRequestId)
+        {
+            // The durable payload is only the request id. The token is re-derived from the persisted
+            // request by the job, and the recurring recovery sweep re-enqueues any pending request
+            // whose delivery was lost between the commit and this call.
+            _backgroundJobClient.Enqueue<SendRolePromotionEmailJob>(job => job.ExecuteAsync(rolePromotionRequestId));
         }
 
         return outcome.Result;
@@ -612,53 +642,12 @@ public sealed class AuthService : IAuthService
                     EnqueueConfirmationUserId: null);
             }
 
-            // Promotion path. Ownership of the existing identity must be proven before a new role
-            // and password are attached: either the caller is authenticated as that very user or
-            // the supplied CurrentPassword matches an existing credential. The new role password
-            // itself is never used as proof of the old account. The failure is generic so it does
-            // not reveal the other role's existence.
-            var hasOwnershipProof = await HasExistingAccountProofAsync(
-                userAlreadyExists,
-                request.CurrentPassword,
-                authenticatedUserId,
-                authenticatedRoles,
-                cancellationToken);
-
-            if (!hasOwnershipProof)
-            {
-                Log.Warning("{EventType} | Registration failed | Email={Email}", "USER_REGISTER_FAILED", normalizedEmail);
-
-                return new RegistrationOutcome(
-                    Result: new RegistrationResultDto
-                    {
-                        Succeeded = false,
-                        Errors = ["An account with this e-mail already exists."]
-                    },
-                    AuditUserId: userAlreadyExists.Id,
-                    AuditEvent: $"{auditEvent}Failed",
-                    AuditDescription: $"Registration failed for {normalizedEmail}: existing account ownership was not proven.",
-                    EnqueueConfirmationUserId: null);
-            }
-
-            var credentialAlreadyExists = await _dbContext.UserRoleCredentials
-                .AnyAsync(x => x.UserId == userAlreadyExists.Id && x.Role == credentialRole, cancellationToken);
-            if (credentialAlreadyExists)
-            {
-                // Inconsistent state (role missing but credential present): never overwrite.
-                Log.Warning("{EventType} | Registration failed (credential already exists) | Email={Email} | Role={Role}",
-                    "USER_REGISTER_FAILED", normalizedEmail, role);
-
-                return new RegistrationOutcome(
-                    Result: new RegistrationResultDto
-                    {
-                        Succeeded = false,
-                        Errors = ["An account with this e-mail already exists."]
-                    },
-                    AuditUserId: userAlreadyExists.Id,
-                    AuditEvent: $"{auditEvent}Failed",
-                    AuditDescription: $"Registration failed for {normalizedEmail}: a credential for {role} already exists.",
-                    EnqueueConfirmationUserId: null);
-            }
+            // Promotion path. A bearer token for this very identity is the only immediate proof of
+            // ownership. Knowing the e-mail (or the old CurrentPassword compatibility field) is
+            // never enough: an anonymous request only creates a pending e-mail challenge, and the
+            // role/credential are attached after the owner confirms the link.
+            var isAuthenticatedOwner = authenticatedUserId == userAlreadyExists.Id
+                && authenticatedRoles is { Count: > 0 };
 
             var passwordValidation = await ValidatePasswordAsync(userAlreadyExists, request.Password);
             if (!passwordValidation.Succeeded)
@@ -677,6 +666,141 @@ public sealed class AuthService : IAuthService
                     AuditEvent: $"{auditEvent}Failed",
                     AuditDescription: $"Password validation failed for {normalizedEmail}: {string.Join("; ", errors)}",
                     EnqueueConfirmationUserId: null);
+            }
+
+            var existingCredential = await _dbContext.UserRoleCredentials
+                .SingleOrDefaultAsync(x => x.UserId == userAlreadyExists.Id && x.Role == credentialRole, cancellationToken);
+            if (existingCredential is not null)
+            {
+                // The role is missing (checked above), so this credential is a leftover from an
+                // interrupted promotion. It is never overwritten and never adopted implicitly: only
+                // the pending request that produced it can complete it, and doing so still requires
+                // the single-use e-mail link (proving mailbox control) for the same request.
+                var linkedRequestIsActive = existingCredential.RolePromotionRequestId is { } linkedRequestId
+                    && await _dbContext.RolePromotionRequests
+                        .AsNoTracking()
+                        .AnyAsync(x => x.Id == linkedRequestId
+                                       && x.UserId == userAlreadyExists.Id
+                                       && x.TargetRole == credentialRole
+                                       && x.ConsumedAtUtc == null
+                                       && x.SupersededAtUtc == null
+                                       && x.ExpiresAtUtc > DateTime.UtcNow,
+                            cancellationToken);
+
+                if (!linkedRequestIsActive)
+                {
+                    // Ambiguous origin: never overwrite the credential nor claim it for a new
+                    // promotion. The failure is audited so the leftover can be remediated explicitly
+                    // (support/ops) without granting a role through this path.
+                    Log.Warning("{EventType} | Registration failed (unlinked credential) | Email={Email} | Role={Role}",
+                        "USER_REGISTER_FAILED", normalizedEmail, role);
+
+                    return new RegistrationOutcome(
+                        Result: new RegistrationResultDto
+                        {
+                            Succeeded = false,
+                            Errors = ["An account with this e-mail already exists."]
+                        },
+                        AuditUserId: userAlreadyExists.Id,
+                        AuditEvent: $"{auditEvent}Failed",
+                        AuditDescription: $"Registration failed for {normalizedEmail}: a {role} credential exists without a link to a pending promotion request; manual remediation is required.",
+                        EnqueueConfirmationUserId: null);
+                }
+
+                // Reuse the still-pending request that owns the credential. No new e-mail is
+                // enqueued when the existing link was already delivered; confirming it completes the
+                // promotion by reusing the credential instead of duplicating it.
+                var resumedRequest = await _rolePromotionChallengeService.CreateAsync(
+                    new RolePromotionRequestData
+                    {
+                        UserId = userAlreadyExists.Id,
+                        Email = normalizedEmail,
+                        TargetRole = credentialRole,
+                        PasswordHash = HashPassword(userAlreadyExists, request.Password),
+                        FullName = contractorName
+                    },
+                    cancellationToken);
+
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                Log.Information(
+                    "{EventType} | Role promotion resumed for an interrupted credential | RequestId={RequestId} | UserId={UserId} | Role={Role}",
+                    "ROLE_PROMOTION_RESUMED",
+                    resumedRequest.RequestId,
+                    userAlreadyExists.Id,
+                    role);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = true,
+                        // Same generic response as a normal promotion: an anonymous caller learns
+                        // nothing about the identity state.
+                        UserId = null,
+                        EmailConfirmationPending = false,
+                        RoleAddedToExistingAccount = false,
+                        RolePromotionPending = true
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}PromotionPending",
+                    AuditDescription: $"{role} promotion for existing identity {normalizedEmail} was resumed from a credential left by an interrupted attempt; the role remains pending until the existing e-mail challenge is confirmed.",
+                    EnqueueConfirmationUserId: null,
+                    EnqueueRolePromotionRequestId: resumedRequest.EmailDeliveryPending
+                        ? resumedRequest.RequestId
+                        : null);
+            }
+
+            if (!isAuthenticatedOwner)
+            {
+                // Never attach the role or the new credential based on the e-mail alone. The
+                // password is hashed before persistence; the raw value is discarded with the
+                // request object. The response is intentionally generic about the other role.
+                var promotionRequest = await _rolePromotionChallengeService.CreateAsync(
+                    new RolePromotionRequestData
+                    {
+                        UserId = userAlreadyExists.Id,
+                        Email = normalizedEmail,
+                        TargetRole = credentialRole,
+                        PasswordHash = HashPassword(userAlreadyExists, request.Password),
+                        FullName = contractorName
+                    },
+                    cancellationToken);
+
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                Log.Information(
+                    "{EventType} | Role promotion pending e-mail confirmation | RequestId={RequestId} | UserId={UserId} | Role={Role} | Reused={Reused} | Suppressed={Suppressed}",
+                    "ROLE_PROMOTION_PENDING",
+                    promotionRequest.RequestId,
+                    userAlreadyExists.Id,
+                    role,
+                    promotionRequest.ReusedExisting,
+                    promotionRequest.DeliverySuppressed);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = true,
+                        // Do not hand the existing identity id or its confirmation state to an
+                        // anonymous requester: the response only states that a challenge is pending.
+                        UserId = null,
+                        EmailConfirmationPending = false,
+                        RoleAddedToExistingAccount = false,
+                        RolePromotionPending = true
+                    },
+                    AuditUserId: userAlreadyExists.Id,
+                    AuditEvent: $"{auditEvent}PromotionPending",
+                    AuditDescription: $"{role} promotion requested for existing identity {normalizedEmail}; role and credential remain pending until the e-mail challenge is confirmed.",
+                    EnqueueConfirmationUserId: null,
+                    EnqueueRolePromotionRequestId: promotionRequest.EmailDeliveryPending
+                        ? promotionRequest.RequestId
+                        : null);
             }
 
             // The FullName claim is persisted before the role so a failed claim never leaves a
@@ -933,31 +1057,6 @@ public sealed class AuthService : IAuthService
             EnqueueConfirmationUserId: user.Id);
     }
 
-    /// <summary>
-    /// Ownership proof for adding a role to an existing identity: the caller is authenticated as
-    /// that user, or knows the password of a credential the account already owns. During the
-    /// migration window (no credential rows yet) the legacy password also proves ownership.
-    /// </summary>
-    private async Task<bool> HasExistingAccountProofAsync(
-        IdentityUser<Guid> user,
-        string? currentPassword,
-        Guid? authenticatedUserId,
-        IReadOnlyCollection<string>? authenticatedRoles,
-        CancellationToken cancellationToken)
-    {
-        if (authenticatedUserId == user.Id && authenticatedRoles is { Count: > 0 })
-        {
-            return true;
-        }
-
-        if (string.IsNullOrWhiteSpace(currentPassword))
-        {
-            return false;
-        }
-
-        return await VerifyAnyExistingCredentialAsync(user, currentPassword, cancellationToken);
-    }
-
     private async Task<bool> VerifyAnyExistingCredentialAsync(
         IdentityUser<Guid> user,
         string password,
@@ -1087,7 +1186,8 @@ public sealed class AuthService : IAuthService
         Guid? AuditUserId,
         string? AuditEvent,
         string? AuditDescription,
-        Guid? EnqueueConfirmationUserId);
+        Guid? EnqueueConfirmationUserId,
+        Guid? EnqueueRolePromotionRequestId = null);
 
     private async Task WriteAuditLogAsync(
         Guid? userId,
@@ -1143,7 +1243,7 @@ public sealed class AuthService : IAuthService
         await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
         var rawToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-        var tokenHash = HashPassword(user, rawToken);
+        var tokenHash = _tokenHasher.Hash(rawToken);
         var roleName = AccountRoles.ToRoleName(credentialRole);
 
         _dbContext.PasswordResetTokens.Add(new PasswordResetToken
@@ -1190,8 +1290,7 @@ public sealed class AuthService : IAuthService
         {
             var user = await _userManager.FindByIdAsync(entity.UserId.ToString());
             if (user is null) continue;
-            var result = _userManager.PasswordHasher.VerifyHashedPassword(user, entity.TokenHash, token);
-            if (result != PasswordVerificationResult.Failed)
+            if (_tokenHasher.Verify(token, entity.TokenHash))
             {
                 return new ValidateResetTokenResponseDto
                 {
@@ -1230,8 +1329,7 @@ public sealed class AuthService : IAuthService
         {
             var user = await _userManager.FindByIdAsync(entity.UserId.ToString());
             if (user is null) continue;
-            var result = _userManager.PasswordHasher.VerifyHashedPassword(user, entity.TokenHash, request.Token);
-            if (result != PasswordVerificationResult.Failed)
+            if (_tokenHasher.Verify(request.Token, entity.TokenHash))
             {
                 matchedToken = entity;
                 matchedUser = user;
@@ -1408,6 +1506,978 @@ public sealed class AuthService : IAuthService
         Log.Information("{EventType} | Email updated for confirmation | UserId={UserId} | Old={OldEmail} | New={NewEmail}", "EMAIL_UPDATED", user.Id, actualEmail, newEmail);
         return (true, null);
     }
+
+    public async Task<ConfirmRolePromotionResultDto> ConfirmRolePromotionAsync(
+        string token,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = _dbContext.Database.IsRelational()
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        var validation = await _rolePromotionChallengeService.ValidateAndConsumeAsync(token, cancellationToken);
+        if (!validation.IsValid)
+        {
+            var activeTransaction = transaction;
+
+            if (validation.Status == RolePromotionChallengeStatus.AlreadyConsumed)
+            {
+                // The consume attempt lost a concurrency race or replayed an old link. Roll back
+                // before querying: a failed PostgreSQL statement aborts the transaction, so the
+                // idempotency check must run outside it.
+                if (transaction is not null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    activeTransaction = null;
+                }
+
+                // A concurrency conflict leaves the losing entity marked as modified. Clear it so
+                // the idempotency query and the audit insert cannot retry the aborted consume.
+                _dbContext.ChangeTracker.Clear();
+
+                var replay = await BuildAlreadyAppliedPromotionResultAsync(validation.Request, cancellationToken);
+                if (replay is not null)
+                {
+                    Log.Information(
+                        "{EventType} | Role promotion replay is idempotent | UserId={UserId} | Role={Role}",
+                        "ROLE_PROMOTION_REPLAY",
+                        validation.Request?.UserId,
+                        replay.Role);
+                    await TryWriteAuditLogAfterCommitAsync(
+                        validation.Request?.UserId,
+                        "RolePromotionReplay",
+                        nameof(RolePromotionRequest),
+                        validation.Request?.Id,
+                        $"Role promotion confirmation replayed for {validation.Request?.NormalizedEmail}; the existing role and credential were preserved.",
+                        cancellationToken);
+
+                    return new ConfirmRolePromotionResultDto
+                    {
+                        Succeeded = true,
+                        AlreadyApplied = true,
+                        Role = replay.Role,
+                        EmailConfirmationPending = replay.EmailConfirmationPending
+                    };
+                }
+            }
+
+            return await FailRolePromotionAsync(
+                activeTransaction,
+                validation.Request?.UserId,
+                validation.Request?.NormalizedEmail,
+                $"challenge rejected with status {validation.Status}",
+                validation.ClaimAttemptId,
+                validation.Request?.Id ?? Guid.Empty,
+                cancellationToken);
+        }
+
+        var request = validation.Request!;
+        var claimAttemptId = validation.ClaimAttemptId;
+        if (claimAttemptId is null || claimAttemptId == Guid.Empty)
+        {
+            // A valid challenge always carries the attempt that owns the lease. Without it the
+            // request must not be applied, because it could close a challenge another attempt owns.
+            return await FailRolePromotionAsync(
+                transaction,
+                userId: request.UserId,
+                email: request.NormalizedEmail,
+                reason: "the challenge claim attempt is missing",
+                claimAttemptId: null,
+                claimRequestId: request.Id,
+                cancellationToken);
+        }
+
+        var roleName = AccountRoles.ToRoleName(request.TargetRole);
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        if (user is null
+            || !string.Equals(
+                (user.Email ?? string.Empty).Trim().ToLowerInvariant(),
+                request.NormalizedEmail,
+                StringComparison.Ordinal))
+        {
+            return await FailRolePromotionAsync(
+                transaction,
+                request.UserId,
+                request.NormalizedEmail,
+                "identity or e-mail no longer matches the pending request",
+                claimAttemptId,
+                request.Id,
+                cancellationToken);
+        }
+
+        var roleAlreadyExists = await _userManager.IsInRoleAsync(user, roleName);
+        var existingCredential = await _dbContext.UserRoleCredentials
+            .SingleOrDefaultAsync(x => x.UserId == user.Id && x.Role == request.TargetRole, cancellationToken);
+
+        if (roleAlreadyExists && existingCredential is not null)
+        {
+            var emailConfirmedChanged = false;
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                emailConfirmedChanged = true;
+                var confirmResult = await _userManager.UpdateAsync(user);
+                if (!confirmResult.Succeeded)
+                {
+                    return await FailRolePromotionAsync(
+                        transaction,
+                        user.Id,
+                        request.NormalizedEmail,
+                        $"e-mail confirmation update failed: {string.Join("; ", confirmResult.Errors.Select(x => x.Description))}",
+                        claimAttemptId,
+                        request.Id,
+                        cancellationToken);
+                }
+            }
+
+            // The role and credential already exist (a previous attempt crashed before the request
+            // was marked). Record the application so the request stops being the active pending one;
+            // no duplicate credential is created.
+            var applied = await _rolePromotionChallengeService.MarkAppliedAsync(
+                request.Id,
+                claimAttemptId.Value,
+                cancellationToken);
+
+            if (!applied)
+            {
+                // The lease expired or another attempt took over: never report success. The e-mail
+                // confirmation flag set above is reverted on providers without a transaction; the
+                // role/credential were not written by this attempt, so they are left untouched.
+                if (emailConfirmedChanged)
+                {
+                    await CompensateFailedRolePromotionAsync(
+                        transaction,
+                        new RolePromotionCompensationPlan(
+                            RequestId: request.Id,
+                            UserId: user.Id,
+                            TargetRole: request.TargetRole,
+                            CredentialId: null,
+                            RoleName: roleName,
+                            RoleAssignedByThisAttempt: false,
+                            PreviousFullNameClaim: null,
+                            FullNameChanged: false,
+                            AppliedFullName: null,
+                            EmailConfirmedAssignedByThisAttempt: true),
+                        request.NormalizedEmail,
+                        cancellationToken);
+                }
+
+                return await FailRolePromotionAsync(
+                    transaction,
+                    user.Id,
+                    request.NormalizedEmail,
+                    "the confirmation lease is no longer valid",
+                    claimAttemptId,
+                    request.Id,
+                    cancellationToken);
+            }
+
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+
+            await TryWriteAuditLogAfterCommitAsync(
+                user.Id,
+                "RolePromotionReplay",
+                nameof(RolePromotionRequest),
+                request.Id,
+                $"Role promotion already applied for {request.NormalizedEmail} as {roleName}; no duplicate credential was created.",
+                cancellationToken);
+
+            return new ConfirmRolePromotionResultDto
+            {
+                Succeeded = true,
+                AlreadyApplied = true,
+                Role = roleName,
+                EmailConfirmationPending = false
+            };
+        }
+
+        // A pending request only exists while the identity owns neither the role nor the credential.
+        // Finding the role without the credential therefore means an earlier attempt of this very
+        // request wrote the role and could not compensate it (the credential is compensated first).
+        // The owner is confirming the same request again, so the attempt is completed by reusing the
+        // leftover role instead of rejecting the account forever with an "inconsistent state" error.
+        var roleLeftoverFromEarlierAttempt = roleAlreadyExists;
+
+        // The mirror case: the credential was written and the role assignment failed. Only a
+        // credential linked to this exact request belongs to this promotion and may be reused; any
+        // other credential has an ambiguous origin and must never be adopted or overwritten.
+        var credentialLeftoverFromEarlierAttempt = existingCredential is not null;
+        if (credentialLeftoverFromEarlierAttempt
+            && existingCredential!.RolePromotionRequestId != request.Id)
+        {
+            return await FailRolePromotionAsync(
+                transaction,
+                user.Id,
+                request.NormalizedEmail,
+                "a credential for the target role exists without a link to this request; manual remediation is required",
+                claimAttemptId,
+                request.Id,
+                cancellationToken);
+        }
+
+        if (!credentialLeftoverFromEarlierAttempt && string.IsNullOrWhiteSpace(request.PasswordHash))
+        {
+            // Corrupt pending data: never create a credential with an empty password.
+            return await FailRolePromotionAsync(
+                transaction,
+                user.Id,
+                request.NormalizedEmail,
+                "the stored password hash is empty",
+                claimAttemptId,
+                request.Id,
+                cancellationToken);
+        }
+
+        Claim? previousFullNameClaim = null;
+        var fullNameChanged = false;
+        string? appliedFullName = null;
+        Guid? createdCredentialId = null;
+        if (request.TargetRole == UserRoleType.Seller && !string.IsNullOrWhiteSpace(request.FullName))
+        {
+            var normalizedFullName = request.FullName.Trim();
+            previousFullNameClaim = (await _userManager.GetClaimsAsync(user))
+                .FirstOrDefault(claim => claim.Type == "FullName");
+            fullNameChanged = !string.Equals(
+                previousFullNameClaim?.Value,
+                normalizedFullName,
+                StringComparison.Ordinal);
+            if (fullNameChanged)
+            {
+                appliedFullName = normalizedFullName;
+            }
+
+            var claimResult = await UpsertFullNameClaimAsync(user, normalizedFullName);
+            if (!claimResult.Succeeded)
+            {
+                return await FailRolePromotionAsync(
+                    transaction,
+                    user.Id,
+                    request.NormalizedEmail,
+                    $"FullName claim update failed: {string.Join("; ", claimResult.Errors.Select(x => x.Description))}",
+                    claimAttemptId,
+                    request.Id,
+                    cancellationToken);
+            }
+        }
+
+        if (!credentialLeftoverFromEarlierAttempt)
+        {
+            var credential = new UserRoleCredential
+            {
+                UserId = user.Id,
+                Role = request.TargetRole,
+                PasswordHash = request.PasswordHash,
+                AccessFailedCount = 0,
+                LockoutEndUtc = null,
+                // The link is what makes a retry after a failed compensation recoverable: only the
+                // request that created the credential may finish it by reusing this row.
+                RolePromotionRequestId = request.Id
+            };
+
+            _dbContext.UserRoleCredentials.Add(credential);
+            createdCredentialId = credential.Id;
+
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                // The claim may already be persisted on a provider without transactions. Compensate
+                // it (and detach the failed credential) before surfacing the failure; PostgreSQL
+                // rolls the whole transaction back instead.
+                await CompensateFailedRolePromotionAsync(
+                    transaction,
+                    new RolePromotionCompensationPlan(
+                        RequestId: request.Id,
+                        UserId: user.Id,
+                        TargetRole: request.TargetRole,
+                        CredentialId: createdCredentialId,
+                        RoleName: roleName,
+                        RoleAssignedByThisAttempt: false,
+                        PreviousFullNameClaim: previousFullNameClaim,
+                        FullNameChanged: fullNameChanged,
+                        AppliedFullName: appliedFullName,
+                        EmailConfirmedAssignedByThisAttempt: false),
+                    request.NormalizedEmail,
+                    cancellationToken);
+
+                if (transaction is null)
+                {
+                    await ReleaseClaimBestEffortAsync(request.Id, claimAttemptId.Value, cancellationToken);
+                }
+                throw;
+            }
+        }
+
+        if (!roleLeftoverFromEarlierAttempt)
+        {
+            IdentityResult addRoleResult;
+            try
+            {
+                addRoleResult = await _userManager.AddToRoleAsync(user, roleName);
+            }
+            catch (Exception)
+            {
+                // A persistence exception (as opposed to a validation failure) must also undo the
+                // credential and claim already written. The role is not removed here: the exception
+                // does not prove this attempt wrote it, and a credential from another operation must
+                // never be touched.
+                await CompensateFailedRolePromotionAsync(
+                    transaction,
+                    new RolePromotionCompensationPlan(
+                        RequestId: request.Id,
+                        UserId: user.Id,
+                        TargetRole: request.TargetRole,
+                        CredentialId: createdCredentialId,
+                        RoleName: roleName,
+                        RoleAssignedByThisAttempt: false,
+                        PreviousFullNameClaim: previousFullNameClaim,
+                        FullNameChanged: fullNameChanged,
+                        AppliedFullName: appliedFullName,
+                        EmailConfirmedAssignedByThisAttempt: false),
+                    request.NormalizedEmail,
+                    cancellationToken);
+
+                if (transaction is null)
+                {
+                    await ReleaseClaimBestEffortAsync(request.Id, claimAttemptId.Value, cancellationToken);
+                }
+                throw;
+            }
+
+            if (!addRoleResult.Succeeded)
+            {
+                // Undo the credential and the claim too, so the retry is not a partial apply. The
+                // role assignment failed, so this attempt did not create a role to remove.
+                await CompensateFailedRolePromotionAsync(
+                    transaction,
+                    new RolePromotionCompensationPlan(
+                        RequestId: request.Id,
+                        UserId: user.Id,
+                        TargetRole: request.TargetRole,
+                        CredentialId: createdCredentialId,
+                        RoleName: roleName,
+                        RoleAssignedByThisAttempt: false,
+                        PreviousFullNameClaim: previousFullNameClaim,
+                        FullNameChanged: fullNameChanged,
+                        AppliedFullName: appliedFullName,
+                        EmailConfirmedAssignedByThisAttempt: false),
+                    request.NormalizedEmail,
+                    cancellationToken);
+
+                return await FailRolePromotionAsync(
+                    transaction,
+                    user.Id,
+                    request.NormalizedEmail,
+                    $"role assignment failed: {string.Join("; ", addRoleResult.Errors.Select(x => x.Description))}",
+                    claimAttemptId,
+                    request.Id,
+                    cancellationToken);
+            }
+        }
+
+        // Clicking the single-use link delivered to the address proves control of that mailbox, so
+        // an identity that was still pending confirmation becomes usable in the same transaction.
+        var emailConfirmedAssignedByThisAttempt = false;
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            emailConfirmedAssignedByThisAttempt = true;
+
+            IdentityResult confirmResult;
+            try
+            {
+                confirmResult = await _userManager.UpdateAsync(user);
+            }
+            catch (Exception)
+            {
+                await CompensateFailedRolePromotionAsync(
+                    transaction,
+                    new RolePromotionCompensationPlan(
+                        RequestId: request.Id,
+                        UserId: user.Id,
+                        TargetRole: request.TargetRole,
+                        CredentialId: createdCredentialId,
+                        RoleName: roleName,
+                        RoleAssignedByThisAttempt: !roleLeftoverFromEarlierAttempt,
+                        PreviousFullNameClaim: previousFullNameClaim,
+                        FullNameChanged: fullNameChanged,
+                        AppliedFullName: appliedFullName,
+                        EmailConfirmedAssignedByThisAttempt: emailConfirmedAssignedByThisAttempt),
+                    request.NormalizedEmail,
+                    cancellationToken);
+
+                if (transaction is null)
+                {
+                    await ReleaseClaimBestEffortAsync(request.Id, claimAttemptId.Value, cancellationToken);
+                }
+                throw;
+            }
+
+            if (!confirmResult.Succeeded)
+            {
+                // The role and credential were already written before this step. Without a
+                // transaction they must be undone explicitly, together with the claim and the
+                // e-mail confirmation flag, otherwise a retry would start from a half-applied state.
+                await CompensateFailedRolePromotionAsync(
+                    transaction,
+                    new RolePromotionCompensationPlan(
+                        RequestId: request.Id,
+                        UserId: user.Id,
+                        TargetRole: request.TargetRole,
+                        CredentialId: createdCredentialId,
+                        RoleName: roleName,
+                        RoleAssignedByThisAttempt: !roleLeftoverFromEarlierAttempt,
+                        PreviousFullNameClaim: previousFullNameClaim,
+                        FullNameChanged: fullNameChanged,
+                        AppliedFullName: appliedFullName,
+                        EmailConfirmedAssignedByThisAttempt: emailConfirmedAssignedByThisAttempt),
+                    request.NormalizedEmail,
+                    cancellationToken);
+
+                return await FailRolePromotionAsync(
+                    transaction,
+                    user.Id,
+                    request.NormalizedEmail,
+                    $"e-mail confirmation update failed: {string.Join("; ", confirmResult.Errors.Select(x => x.Description))}",
+                    claimAttemptId,
+                    request.Id,
+                    cancellationToken);
+            }
+        }
+
+        // Only now, after the role, claims and independent credential are persisted, the challenge
+        // is marked as applied. A failure above rolls the attempt back (PostgreSQL) or leaves the
+        // request untouched (InMemory), so the owner can retry the same link without duplicating
+        // anything; the checks above make a later replay idempotent. The marker is conditional on
+        // this attempt still holding the lease: an expired/taken-over lease must never be closed by
+        // a caller that lost it.
+        var markedApplied = await _rolePromotionChallengeService.MarkAppliedAsync(
+            request.Id,
+            claimAttemptId.Value,
+            cancellationToken);
+
+        if (!markedApplied)
+        {
+            // Do not compensate the role/credential here: another attempt may own them now. The
+            // transaction rollback removes this attempt's writes on PostgreSQL; on a provider
+            // without transactions the idempotent retry closes the request. The response is an error.
+            return await FailRolePromotionAsync(
+                transaction,
+                user.Id,
+                request.NormalizedEmail,
+                "the confirmation lease is no longer valid",
+                claimAttemptId,
+                request.Id,
+                cancellationToken);
+        }
+
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+
+        Log.Information(
+            "{EventType} | Role promotion confirmed | UserId={UserId} | Role={Role}",
+            "ROLE_PROMOTION_CONFIRMED",
+            user.Id,
+            roleName);
+        await TryWriteAuditLogAfterCommitAsync(
+            user.Id,
+            "RolePromotionConfirmed",
+            nameof(RolePromotionRequest),
+            request.Id,
+            $"{roleName} access and an independent credential were added to {request.NormalizedEmail} after e-mail confirmation.",
+            cancellationToken);
+
+        return new ConfirmRolePromotionResultDto
+        {
+            Succeeded = true,
+            AlreadyApplied = false,
+            Role = roleName,
+            EmailConfirmationPending = false
+        };
+    }
+
+    private async Task<ConfirmRolePromotionResultDto?> BuildAlreadyAppliedPromotionResultAsync(
+        RolePromotionRequest? request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+        {
+            return null;
+        }
+
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+        if (user is null
+            || !string.Equals(
+                (user.Email ?? string.Empty).Trim().ToLowerInvariant(),
+                request.NormalizedEmail,
+                StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var roleName = AccountRoles.ToRoleName(request.TargetRole);
+        if (!await _userManager.IsInRoleAsync(user, roleName))
+        {
+            return null;
+        }
+
+        var credentialExists = await _dbContext.UserRoleCredentials
+            .AnyAsync(x => x.UserId == user.Id && x.Role == request.TargetRole, cancellationToken);
+        if (!credentialExists)
+        {
+            return null;
+        }
+
+        return new ConfirmRolePromotionResultDto
+        {
+            Succeeded = true,
+            AlreadyApplied = true,
+            Role = roleName,
+            EmailConfirmationPending = !user.EmailConfirmed
+        };
+    }
+
+    private async Task<ConfirmRolePromotionResultDto> FailRolePromotionAsync(
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction,
+        Guid? userId,
+        string? email,
+        string reason,
+        Guid? claimAttemptId,
+        Guid claimRequestId,
+        CancellationToken cancellationToken)
+    {
+        if (transaction is not null)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+        }
+
+        // Rollback leaves the tracked entities in their modified state; clearing prevents the audit
+        // insert from accidentally re-persisting a consumed challenge or a half-applied credential.
+        _dbContext.ChangeTracker.Clear();
+
+        if (transaction is null && claimAttemptId is { } attemptId && attemptId != Guid.Empty)
+        {
+            // On PostgreSQL the rollback already removed the lease taken inside the transaction. On
+            // a provider without transactions the lease is persisted, so it must be released
+            // explicitly; otherwise a failure would block an immediate retry until the lease expires.
+            await ReleaseClaimBestEffortAsync(claimRequestId, attemptId, cancellationToken);
+        }
+
+        Log.Warning(
+            "{EventType} | Role promotion confirmation failed | UserId={UserId} | Email={Email} | Reason={Reason}",
+            "ROLE_PROMOTION_CONFIRMATION_FAILED",
+            userId,
+            email,
+            reason);
+
+        await WriteAuditLogAsync(
+            userId,
+            "RolePromotionConfirmationFailed",
+            nameof(RolePromotionRequest),
+            entityId: null,
+            description: $"Role promotion confirmation failed: {reason}.",
+            ipAddress: null,
+            cancellationToken);
+
+        return new ConfirmRolePromotionResultDto
+        {
+            Succeeded = false,
+            Error = "Link de confirmação inválido ou expirado."
+        };
+    }
+
+    private async Task ReleaseClaimBestEffortAsync(
+        Guid requestId,
+        Guid claimAttemptId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _rolePromotionChallengeService.ReleaseClaimAsync(
+                requestId,
+                claimAttemptId,
+                cancellationToken);
+        }
+        catch (Exception releaseException)
+        {
+            // The original failure (or the rejection) is what the caller must see. A lease that
+            // could not be released expires on its own, so recovery is still possible.
+            Log.Warning(
+                releaseException,
+                "{EventType} | Could not release the role promotion claim | RequestId={RequestId}",
+                "ROLE_PROMOTION_CLAIM_RELEASE_FAILED",
+                requestId);
+        }
+    }
+
+    /// <summary>
+    /// Writes an audit entry for an operation that already succeeded (and, for relational
+    /// deployments, already committed). A failure here must not turn a successful promotion into an
+    /// error for the owner: the security-relevant state is already persisted, so the audit failure is
+    /// logged for retry/outbox follow-up instead of being surfaced. The token and password are never
+    /// part of the description.
+    /// </summary>
+    private async Task TryWriteAuditLogAfterCommitAsync(
+        Guid? userId,
+        string auditEvent,
+        string entity,
+        Guid? entityId,
+        string description,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await WriteAuditLogAsync(
+                userId,
+                auditEvent,
+                entity,
+                entityId,
+                description,
+                ipAddress: null,
+                cancellationToken);
+        }
+        catch (Exception auditException)
+        {
+            Log.Warning(
+                auditException,
+                "{EventType} | Post-commit audit write failed | Event={AuditEvent} | UserId={UserId} | EntityId={EntityId}",
+                "ROLE_PROMOTION_AUDIT_WRITE_FAILED",
+                auditEvent,
+                userId,
+                entityId);
+        }
+    }
+
+    /// <summary>
+    /// Compensates a failed attempt outside a database transaction and reports when the compensation
+    /// itself could not be completed. PostgreSQL rolls the attempt back, so there is nothing to
+    /// compensate there. An incomplete compensation is never turned into a success: the caller still
+    /// fails the request, the failure is audited, and the leftover state is repaired by the next
+    /// confirmation attempt. No password, token or e-mail content is logged.
+    /// </summary>
+    private async Task CompensateFailedRolePromotionAsync(
+        IDbContextTransaction? transaction,
+        RolePromotionCompensationPlan plan,
+        string? normalizedEmail,
+        CancellationToken cancellationToken)
+    {
+        if (transaction is not null)
+        {
+            return;
+        }
+
+        var compensation = await TryCompensateRolePromotionAsync(plan, cancellationToken);
+
+        if (compensation.Succeeded)
+        {
+            return;
+        }
+
+        Log.Error(
+            "{EventType} | Role promotion compensation is incomplete | UserId={UserId} | Role={Role} | FailedSteps={FailedSteps}",
+            "ROLE_PROMOTION_COMPENSATION_FAILED",
+            plan.UserId,
+            plan.RoleName,
+            string.Join(", ", compensation.FailedSteps));
+
+        try
+        {
+            await WriteAuditLogAsync(
+                plan.UserId,
+                "RolePromotionCompensationFailed",
+                nameof(RolePromotionRequest),
+                entityId: null,
+                $"Role promotion compensation for {normalizedEmail} as {plan.RoleName} could not complete ({string.Join(", ", compensation.FailedSteps)}); the next confirmation attempt repairs the leftover state.",
+                ipAddress: null,
+                cancellationToken);
+        }
+        catch (Exception auditException)
+        {
+            // The original failure is what the caller must see; the audit write never masks it.
+            Log.Warning(
+                auditException,
+                "{EventType} | Role promotion compensation audit failed | UserId={UserId}",
+                "ROLE_PROMOTION_COMPENSATION_AUDIT_FAILED",
+                plan.UserId);
+        }
+    }
+
+    /// <summary>
+    /// Reverts only the effects this attempt provably created: the credential row identified by the
+    /// id generated for this attempt and linked to this request, the role only when this attempt
+    /// assigned it, and the claim/confirmation flag only when this attempt changed them. A credential
+    /// or role created by a concurrent registration is never removed or overwritten. Every step
+    /// result is checked and a failure aborts the remaining steps, so the caller knows the
+    /// compensation is incomplete instead of assuming a rollback. The credential is removed before
+    /// the role, because a failure in the middle must never leave a credential without its role.
+    /// </summary>
+    private async Task<RolePromotionCompensationResult> TryCompensateRolePromotionAsync(
+        RolePromotionCompensationPlan plan,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (plan.CredentialId is { } credentialId)
+            {
+                var credentialFailure = await ExecuteCompensationStepAsync("Credential", async () =>
+                {
+                    // The id, the owner, the role and the request link are all required. A
+                    // credential created by another operation (different id, no link) is never
+                    // selected, even if it targets the same role.
+                    var storedCredential = await _dbContext.UserRoleCredentials
+                        .SingleOrDefaultAsync(
+                            x => x.Id == credentialId
+                                 && x.UserId == plan.UserId
+                                 && x.Role == plan.TargetRole
+                                 && x.RolePromotionRequestId == plan.RequestId,
+                            cancellationToken);
+
+                    if (storedCredential is null)
+                    {
+                        return IdentityResult.Success;
+                    }
+
+                    _dbContext.UserRoleCredentials.Remove(storedCredential);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    return IdentityResult.Success;
+                });
+                if (credentialFailure is not null)
+                {
+                    return new RolePromotionCompensationResult(false, [credentialFailure]);
+                }
+            }
+
+            if (plan.RoleAssignedByThisAttempt)
+            {
+                var roleFailure = await ExecuteCompensationStepAsync("Role", async () =>
+                {
+                    var current = await _userManager.FindByIdAsync(plan.UserId.ToString());
+                    if (current is null || !await _userManager.IsInRoleAsync(current, plan.RoleName))
+                    {
+                        return IdentityResult.Success;
+                    }
+
+                    return await _userManager.RemoveFromRoleAsync(current, plan.RoleName);
+                });
+                if (roleFailure is not null)
+                {
+                    return new RolePromotionCompensationResult(false, [roleFailure]);
+                }
+            }
+
+            if (plan.FullNameChanged)
+            {
+                var claimFailure = await ExecuteCompensationStepAsync("FullNameClaim", async () =>
+                {
+                    var current = await _userManager.FindByIdAsync(plan.UserId.ToString());
+                    if (current is null)
+                    {
+                        return IdentityResult.Success;
+                    }
+
+                    var currentClaim = (await _userManager.GetClaimsAsync(current))
+                        .FirstOrDefault(claim => claim.Type == "FullName");
+
+                    // If our write never became the stored value (or another operation replaced it),
+                    // there is nothing this attempt may revert: it does not own the current claim.
+                    if (plan.AppliedFullName is not null
+                        && !string.Equals(currentClaim?.Value, plan.AppliedFullName, StringComparison.Ordinal))
+                    {
+                        return IdentityResult.Success;
+                    }
+
+                    if (plan.PreviousFullNameClaim is null)
+                    {
+                        return currentClaim is null
+                            ? IdentityResult.Success
+                            : await _userManager.RemoveClaimAsync(current, currentClaim);
+                    }
+
+                    if (currentClaim is null)
+                    {
+                        return await _userManager.AddClaimAsync(current, plan.PreviousFullNameClaim);
+                    }
+
+                    return string.Equals(currentClaim.Value, plan.PreviousFullNameClaim.Value, StringComparison.Ordinal)
+                        ? IdentityResult.Success
+                        : await _userManager.ReplaceClaimAsync(current, currentClaim, plan.PreviousFullNameClaim);
+                });
+                if (claimFailure is not null)
+                {
+                    return new RolePromotionCompensationResult(false, [claimFailure]);
+                }
+            }
+
+            if (plan.EmailConfirmedAssignedByThisAttempt)
+            {
+                var confirmationFailure = await ExecuteCompensationStepAsync("EmailConfirmed", async () =>
+                {
+                    var current = await _userManager.FindByIdAsync(plan.UserId.ToString());
+                    if (current is null || !current.EmailConfirmed)
+                    {
+                        return IdentityResult.Success;
+                    }
+
+                    current.EmailConfirmed = false;
+                    return await _userManager.UpdateAsync(current);
+                });
+                if (confirmationFailure is not null)
+                {
+                    return new RolePromotionCompensationResult(false, [confirmationFailure]);
+                }
+            }
+
+            var verificationFailure = await VerifyRolePromotionCompensationAsync(plan, cancellationToken);
+
+            return verificationFailure is null
+                ? RolePromotionCompensationResult.Success
+                : new RolePromotionCompensationResult(false, [verificationFailure]);
+        }
+        catch (Exception compensationException)
+        {
+            Log.Warning(
+                compensationException,
+                "{EventType} | Role promotion compensation failed | UserId={UserId} | Role={Role}",
+                "ROLE_PROMOTION_COMPENSATION_FAILED",
+                plan.UserId,
+                plan.RoleName);
+            return new RolePromotionCompensationResult(false, ["Unexpected"]);
+        }
+        finally
+        {
+            // Never let the audit insert re-persist a compensated change.
+            _dbContext.ChangeTracker.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Runs one compensation step from a clean change tracker and converts an
+    /// <see cref="IdentityResult"/> failure or a persistence exception into a reported step failure.
+    /// The step name is the only detail that reaches the logs.
+    /// </summary>
+    private async Task<string?> ExecuteCompensationStepAsync(string step, Func<Task<IdentityResult>> action)
+    {
+        try
+        {
+            // A failed step may leave tracked entities that a later SaveChanges would re-persist.
+            _dbContext.ChangeTracker.Clear();
+
+            var result = await action();
+            return result.Succeeded ? null : $"{step} ({DescribeIdentityErrors(result)})";
+        }
+        catch (Exception exception)
+        {
+            Log.Warning(
+                exception,
+                "{EventType} | Role promotion compensation step failed | Step={Step}",
+                "ROLE_PROMOTION_COMPENSATION_STEP_FAILED",
+                step);
+            return $"{step} ({exception.GetType().Name})";
+        }
+    }
+
+    /// <summary>
+    /// Confirms the compensated state instead of trusting the step calls. Returns the failing check
+    /// name, or <see langword="null"/> when the identity no longer carries an effect of the attempt.
+    /// </summary>
+    private async Task<string?> VerifyRolePromotionCompensationAsync(
+        RolePromotionCompensationPlan plan,
+        CancellationToken cancellationToken)
+    {
+        _dbContext.ChangeTracker.Clear();
+
+        if (plan.CredentialId is { } credentialId)
+        {
+            var credentialStillExists = await _dbContext.UserRoleCredentials
+                .AnyAsync(
+                    x => x.Id == credentialId
+                         && x.UserId == plan.UserId
+                         && x.Role == plan.TargetRole
+                         && x.RolePromotionRequestId == plan.RequestId,
+                    cancellationToken);
+            if (credentialStillExists)
+            {
+                return "CredentialVerification";
+            }
+        }
+
+        var current = await _userManager.FindByIdAsync(plan.UserId.ToString());
+        if (current is null)
+        {
+            return null;
+        }
+
+        if (plan.RoleAssignedByThisAttempt && await _userManager.IsInRoleAsync(current, plan.RoleName))
+        {
+            return "RoleVerification";
+        }
+
+        if (plan.FullNameChanged)
+        {
+            var storedClaim = (await _userManager.GetClaimsAsync(current))
+                .FirstOrDefault(claim => claim.Type == "FullName");
+
+            // If our write never became the stored value (or another operation replaced it), this
+            // attempt does not own the current claim and there is nothing to verify or revert.
+            var claimNotOwnedByThisAttempt = plan.AppliedFullName is not null
+                && !string.Equals(storedClaim?.Value, plan.AppliedFullName, StringComparison.Ordinal);
+
+            if (!claimNotOwnedByThisAttempt)
+            {
+                var reverted = plan.PreviousFullNameClaim is null
+                    ? storedClaim is null
+                    : storedClaim is not null
+                      && string.Equals(storedClaim.Value, plan.PreviousFullNameClaim.Value, StringComparison.Ordinal);
+                if (!reverted)
+                {
+                    return "FullNameClaimVerification";
+                }
+            }
+        }
+
+        if (plan.EmailConfirmedAssignedByThisAttempt && current.EmailConfirmed)
+        {
+            return "EmailConfirmedVerification";
+        }
+
+        return null;
+    }
+
+    private static string DescribeIdentityErrors(IdentityResult result)
+    {
+        var codes = result.Errors.Select(error => error.Code).Distinct().ToArray();
+        return codes.Length == 0 ? "unknown" : string.Join(", ", codes);
+    }
+
+    private sealed record RolePromotionCompensationResult(bool Succeeded, IReadOnlyList<string> FailedSteps)
+    {
+        public static RolePromotionCompensationResult Success { get; } = new(true, []);
+    }
+
+    /// <summary>
+    /// Exactly what one confirmation attempt may undo. CredentialId is the id generated for the row
+    /// this attempt inserted (never a lookup by user/role), and the role/claim/confirmation flags are
+    /// true only when this attempt performed that step. A concurrent operation that created its own
+    /// credential/role between the steps is therefore never touched.
+    /// </summary>
+    private sealed record RolePromotionCompensationPlan(
+        Guid RequestId,
+        Guid UserId,
+        UserRoleType TargetRole,
+        Guid? CredentialId,
+        string RoleName,
+        bool RoleAssignedByThisAttempt,
+        Claim? PreviousFullNameClaim,
+        bool FullNameChanged,
+        string? AppliedFullName,
+        bool EmailConfirmedAssignedByThisAttempt);
 
     private async Task ConsumeEmailChangeChallengeAsync(IdentityUser<Guid> user)
     {

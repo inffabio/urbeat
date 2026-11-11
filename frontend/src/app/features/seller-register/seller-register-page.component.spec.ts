@@ -58,7 +58,10 @@ describe('SellerRegisterPageComponent', () => {
     component.confirmPassword.set('Senha@123');
   }
 
-  function submit(response: typeof registerResponse): void {
+  function submit(response: typeof registerResponse & {
+    rolePromotionPending?: boolean;
+    roleAddedToExistingAccount?: boolean;
+  }): void {
     fillValidForm();
     authServiceMock.registerSeller.mockReturnValue(of(response));
     component.submit();
@@ -72,26 +75,21 @@ describe('SellerRegisterPageComponent', () => {
     expect(authServiceMock.logout).not.toHaveBeenCalled();
   });
 
-  it('sends the new seller password separately from the current account password', () => {
-    fillValidForm();
-    component.currentPassword.set('SenhaClienteAtual1');
-    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
-
-    component.submit();
-
-    expect(authServiceMock.registerSeller).toHaveBeenCalledWith(
-      expect.objectContaining({
-        password: 'Senha@123',
-        currentPassword: 'SenhaClienteAtual1',
-      }),
-    );
-  });
-
-  it('does not send currentPassword when the field is empty', () => {
+  it('never sends an existing account password', () => {
     submit(registerResponse);
 
     const request = authServiceMock.registerSeller.mock.calls[0][0];
-    expect(request.currentPassword).toBeUndefined();
+    expect(request).not.toHaveProperty('currentPassword');
+  });
+
+  it('does not render the current-password field nor keep its state', () => {
+    fixture.detectChanges();
+
+    const html = fixture.nativeElement as HTMLElement;
+    expect(html.querySelector('#currentPassword')).toBeNull();
+    expect(html.textContent).not.toContain('Já tem conta urbeat?');
+    expect((component as unknown as Record<string, unknown>)['currentPassword']).toBeUndefined();
+    expect((component as unknown as Record<string, unknown>)['showCurrentPassword']).toBeUndefined();
   });
 
   it('sends the document without relying on untyped casts', () => {
@@ -114,16 +112,30 @@ describe('SellerRegisterPageComponent', () => {
     );
   });
 
-  it('uses a generic conflict message that does not reveal the existing role', () => {
+  it('uses a generic conflict message that never asks for an existing password', () => {
     fillValidForm();
     authServiceMock.registerSeller.mockReturnValue(throwError(() => ({ status: 409 })));
 
     component.submit();
 
     expect(toastMock.showError).toHaveBeenCalledWith(
-      'Não foi possível adicionar o acesso lojista. Se este e-mail já pertence a uma conta urbeat, informe a senha atual da conta para confirmar.',
+      'Não foi possível adicionar o acesso lojista com este e-mail.',
     );
     expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
+  it('shows the pending promotion message and keeps the session when e-mail ownership must be confirmed', () => {
+    authServiceMock.isAuthenticated.mockReturnValue(true);
+    submit({ ...registerResponse, rolePromotionPending: true, emailConfirmationPending: false });
+
+    expect(toastMock.showSuccess).toHaveBeenCalledWith(
+      'Se este e-mail já pertence a uma conta urbeat, enviamos um link para confirmar o novo acesso de lojista. Sua senha atual não foi alterada.',
+    );
+    expect(authServiceMock.logout).not.toHaveBeenCalled();
+    expect(routerMock.navigate).toHaveBeenCalledWith(
+      ['/confirmacao-email'],
+      { queryParams: { email: 'novo@vendedor.com', promotionPending: true, role: 'Seller' } },
+    );
   });
 
   it('navigates to /login-vendedor when the account is immediately activated', () => {

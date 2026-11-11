@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -7,7 +7,11 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
+using Urbeat.Application.Interfaces;
+using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Urbeat.IntegrationTests.Api;
 
@@ -189,13 +193,23 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
             PhoneNumber = "11977777777"
         });
         customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await _factory.ConfirmEmailAsync(customerEmail);
+
+        var login = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = customerEmail,
+            Password = "SenhaForte123"
+        });
+        login.StatusCode.Should().Be(HttpStatusCode.OK);
+        var accessToken = (await login.Content.ReadFromJsonAsync<AuthTokenResponseDto>())!.AccessToken;
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = baseName,
             Email = customerEmail,
             Password = "SenhaForte123",
-            CurrentPassword = "SenhaForte123",
             PhoneNumber = "11977777777"
         });
 
@@ -227,13 +241,23 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
             PhoneNumber = "11977777777"
         });
         customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await _factory.ConfirmEmailAsync(customerEmail);
+
+        var login = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = customerEmail,
+            Password = password
+        });
+        login.StatusCode.Should().Be(HttpStatusCode.OK);
+        var accessToken = (await login.Content.ReadFromJsonAsync<AuthTokenResponseDto>())!.AccessToken;
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = promotedName,
             Email = customerEmail,
             Password = password,
-            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
         promoteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -470,6 +494,170 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
         var newTokenRefresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
         newTokenRefresh.Headers.Add("Cookie", newCookie);
         (await client.SendAsync(newTokenRefresh)).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RegisterCustomer_ShouldPersistArgon2idCredentialHash()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var email = $"argon-register.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Hash Teste",
+            Email = email,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created, await registerResponse.Content.ReadAsStringAsync());
+
+        var hash = await GetCredentialHashAsync(email, UserRoleType.Customer);
+        hash.Should().StartWith("$urbeat-argon2id$v=1$");
+    }
+
+    [Fact]
+    public async Task Login_ShouldMigrateLegacyPbkdf2CredentialToArgon2id()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var email = $"argon-legacy.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Legado Teste",
+            Email = email,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await _factory.ConfirmEmailAsync(email);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+            var user = await userManager.FindByEmailAsync(email);
+            user.Should().NotBeNull();
+
+            var credential = await db.UserRoleCredentials
+                .SingleAsync(x => x.UserId == user!.Id && x.Role == UserRoleType.Customer);
+            credential.PasswordHash = new PasswordHasher<IdentityUser<Guid>>().HashPassword(user!, password);
+            credential.MarkAsUpdated();
+            await db.SaveChangesAsync();
+        }
+
+        (await GetCredentialHashAsync(email, UserRoleType.Customer))
+            .Should().NotStartWith("$urbeat-argon2id$", "the legacy PBKDF2 hash must be stored before login");
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, await loginResponse.Content.ReadAsStringAsync());
+
+        (await GetCredentialHashAsync(email, UserRoleType.Customer)).Should().StartWith("$urbeat-argon2id$v=1$");
+    }
+
+    [Fact]
+    public async Task ResetPassword_ShouldPersistArgon2idCredentialHash()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var email = $"argon-reset.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        const string newPassword = "NovaSenhaForte456!";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Reset Teste",
+            Email = email,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await _factory.ConfirmEmailAsync(email);
+
+        var rawToken = $"reset-{Guid.NewGuid():N}";
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var tokenHasher = scope.ServiceProvider.GetRequiredService<ITokenHasher>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+            var user = await userManager.FindByEmailAsync(email);
+            user.Should().NotBeNull();
+
+            db.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user!.Id,
+                Role = UserRoleType.Customer,
+                TokenHash = tokenHasher.Hash(rawToken),
+                ExpiresAt = DateTime.UtcNow.AddHours(1),
+                Used = false
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var resetResponse = await client.PostAsJsonAsync("/api/auth/reset-password", new ResetPasswordRequestDto
+        {
+            Token = rawToken,
+            NewPassword = newPassword,
+            ConfirmPassword = newPassword,
+            Role = "Customer"
+        });
+        resetResponse.StatusCode.Should().Be(HttpStatusCode.OK, await resetResponse.Content.ReadAsStringAsync());
+
+        (await GetCredentialHashAsync(email, UserRoleType.Customer)).Should().StartWith("$urbeat-argon2id$v=1$");
+    }
+
+    [Fact]
+    public async Task ChangePassword_ShouldPersistArgon2idCredentialHash()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var email = $"argon-change.{Guid.NewGuid():N}@urbeat.local";
+        const string password = "SenhaForte123";
+        const string newPassword = "NovaSenhaForte456!";
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Change Teste",
+            Email = email,
+            Password = password,
+            PhoneNumber = "11977777777"
+        });
+        registerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await _factory.ConfirmEmailAsync(email);
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var accessToken = (await loginResponse.Content.ReadFromJsonAsync<AuthTokenResponseDto>())!.AccessToken;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        var changeResponse = await client.PostAsJsonAsync("/api/auth/change-password", new ChangePasswordRequestDto
+        {
+            Role = "Customer",
+            CurrentPassword = password,
+            NewPassword = newPassword,
+            ConfirmPassword = newPassword
+        });
+        changeResponse.StatusCode.Should().Be(HttpStatusCode.OK, await changeResponse.Content.ReadAsStringAsync());
+
+        (await GetCredentialHashAsync(email, UserRoleType.Customer)).Should().StartWith("$urbeat-argon2id$v=1$");
+    }
+
+    private async Task<string> GetCredentialHashAsync(string email, UserRoleType role)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var user = await db.Users.SingleAsync(x => x.Email == email);
+        var credential = await db.UserRoleCredentials
+            .AsNoTracking()
+            .SingleAsync(x => x.UserId == user.Id && x.Role == role);
+        return credential.PasswordHash;
     }
 
     private async Task<IList<Claim>> GetUserClaimsAsync(string email)

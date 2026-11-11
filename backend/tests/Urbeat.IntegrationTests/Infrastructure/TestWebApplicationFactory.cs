@@ -33,7 +33,18 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["WhatsApp:AccessToken"] = "test-whatsapp-access-token",
                 ["WhatsApp:PhoneNumberId"] = "1436364406224525",
                 ["WhatsApp:GraphApiVersion"] = WhatsAppOptions.DefaultGraphApiVersion,
-                ["Outbox:WorkerEnabled"] = "false"
+                ["Outbox:WorkerEnabled"] = "false",
+                // Dedicated, explicit test key: production has no default and fails closed without
+                // a valid RolePromotionChallenge:SigningKey.
+                ["RolePromotionChallenge:SigningKey"] = "urbeat-integration-tests-role-promotion-signing-key-2026",
+                // Registration/promotion tests exercise many accounts from the same test client.
+                ["RateLimiting:RolePromotionPermitLimit"] = "10000",
+                ["RateLimiting:RolePromotionWindowSeconds"] = "1",
+                // Explicitly weaker Argon2id parameters for the test process only. Production keeps
+                // the strong defaults from appsettings.json (64 MiB, t=3, p=2).
+                ["PasswordHashing:Argon2id:MemorySizeKb"] = "8192",
+                ["PasswordHashing:Argon2id:Iterations"] = "2",
+                ["PasswordHashing:Argon2id:DegreeOfParallelism"] = "1"
             });
         });
 

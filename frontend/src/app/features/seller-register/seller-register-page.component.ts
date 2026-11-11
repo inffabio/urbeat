@@ -25,11 +25,9 @@ export class SellerRegisterPageComponent {
   readonly document = signal('');
   readonly whatsapp = signal('');
   readonly email = signal('');
-  readonly currentPassword = signal('');
   readonly password = signal('');
   readonly confirmPassword = signal('');
 
-  readonly showCurrentPassword = signal(false);
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
 
@@ -154,10 +152,6 @@ export class SellerRegisterPageComponent {
     return d2 === parseInt(cnpj[13]);
   }
 
-  toggleCurrentPassword(): void {
-    this.showCurrentPassword.update((v) => !v);
-  }
-
   togglePassword(): void {
     this.showPassword.update((v) => !v);
   }
@@ -223,7 +217,7 @@ export class SellerRegisterPageComponent {
 
     // The current session is intentionally NOT cleared: when the signed-in customer adds a
     // seller access, the bearer token proves ownership of the existing account and the customer
-    // password/session must survive the operation.
+    // password/session must survive the operation. No existing password is ever requested here.
     const req: RegisterCustomerRequest = {
       fullName: this.fullName().trim(),
       email: this.email().trim(),
@@ -232,22 +226,31 @@ export class SellerRegisterPageComponent {
       document: this.document().replace(/\D/g, ''),
     };
 
-    const currentPassword = this.currentPassword().trim();
-    if (currentPassword) {
-      req.currentPassword = currentPassword;
-    }
-
     this.auth.registerSeller(req).subscribe({
       next: (res) => {
         this.loading.set(false);
-        if (res.emailConfirmationPending) {
+        if (res.rolePromotionPending) {
+          // The e-mail already belongs to an urbeat account. Nothing was changed yet: the owner
+          // must confirm the single-use link sent to that address.
+          this.toastService.showSuccess(
+            'Se este e-mail já pertence a uma conta urbeat, enviamos um link para confirmar o novo acesso de lojista. Sua senha atual não foi alterada.',
+          );
+          this.router.navigate(['/confirmacao-email'], {
+            queryParams: { email: this.email().trim(), promotionPending: true, role: 'Seller' },
+          });
+        } else if (res.emailConfirmationPending) {
           this.persistEmailChangeChallenge(this.email().trim(), res.emailChangeChallenge);
           this.toastService.showSuccess(
             res.roleAddedToExistingAccount
               ? 'Acesso lojista criado! Sua senha de cliente continua a mesma. Enviamos um link de confirmação para o seu e-mail.'
               : 'Cadastro realizado! Enviamos um link de confirmação para o seu e-mail.',
           );
-          this.router.navigate(['/confirmacao-email'], { queryParams: { email: this.email().trim(), userId: res.userId } });
+          this.router.navigate(['/confirmacao-email'], {
+            queryParams: {
+              email: this.email().trim(),
+              ...(res.userId ? { userId: res.userId } : {}),
+            },
+          });
         } else {
           this.toastService.showSuccess(
             res.roleAddedToExistingAccount
@@ -275,9 +278,10 @@ export class SellerRegisterPageComponent {
             this.toastService.showError('CPF já cadastrado.');
           }
         } else if (err?.status === 409) {
-          // Generic on purpose: never reveal which role already exists for this e-mail.
+          // Generic on purpose: never reveal which role already exists for this e-mail and never
+          // ask for an existing password, which is not part of this flow anymore.
           this.toastService.showError(
-            'Não foi possível adicionar o acesso lojista. Se este e-mail já pertence a uma conta urbeat, informe a senha atual da conta para confirmar.',
+            'Não foi possível adicionar o acesso lojista com este e-mail.',
           );
         } else if (err?.error?.errors && Array.isArray(err.error.errors) && err.error.errors.length > 0) {
           this.toastService.showError(err.error.errors.join(' '));

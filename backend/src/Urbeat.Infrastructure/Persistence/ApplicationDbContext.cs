@@ -20,6 +20,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public DbSet<RolePromotionRequest> RolePromotionRequests => Set<RolePromotionRequest>();
+
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public DbSet<Store> Stores => Set<Store>();
@@ -126,6 +128,21 @@ public sealed class ApplicationDbContext
             // One credential per person and role. AspNetUsers keeps a single identity per e-mail,
             // so the same e-mail can have Customer and Seller rows with independent passwords.
             entity.HasIndex(x => new { x.UserId, x.Role }).IsUnique();
+            // A role promotion request creates at most one credential, and a credential belongs to
+            // at most one request. The filtered unique index keeps that link unambiguous, which is
+            // what lets a retry reuse the leftover credential safely.
+            entity.HasIndex(x => x.RolePromotionRequestId)
+                .IsUnique()
+                .HasFilter("\"RolePromotionRequestId\" IS NOT NULL");
+            // A promotion credential points at the request that created it. Deleting a request must
+            // never delete the credential (it is a real login secret), so the link is nullable and
+            // set to null; credentials created outside the promotion flow keep it null.
+            entity.HasOne<RolePromotionRequest>()
+                .WithMany()
+                .HasForeignKey(x => x.RolePromotionRequestId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_UserRoleCredentials_RolePromotionRequests");
             entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).IsRequired();
             entity.Property(x => x.PasswordHash).HasMaxLength(500).IsRequired();
             entity.Property(x => x.AccessFailedCount).HasDefaultValue(0);
@@ -142,6 +159,36 @@ public sealed class ApplicationDbContext
             entity.HasIndex(x => x.UserId);
             entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
             entity.Property(x => x.TokenHash).HasMaxLength(500).IsRequired();
+        });
+
+        builder.Entity<RolePromotionRequest>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            // At most one pending (neither applied nor superseded) request per identity and target
+            // role. The partial index makes the invariant authoritative in PostgreSQL even if two
+            // nodes race past the advisory lock.
+            entity.HasIndex(x => new { x.UserId, x.TargetRole })
+                .IsUnique()
+                .HasFilter("\"ConsumedAtUtc\" IS NULL AND \"SupersededAtUtc\" IS NULL");
+            entity.HasIndex(x => new { x.EmailSentAtUtc, x.EmailSendingAtUtc, x.ExpiresAtUtc })
+                .HasDatabaseName("IX_RolePromotionRequests_EmailDeliverySweep");
+            entity.Property(x => x.NormalizedEmail).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.TargetRole).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.Property(x => x.PasswordHash).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.FullName).HasMaxLength(150);
+            entity.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.ExpiresAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ClaimedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ConsumedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.SupersededAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.EmailSentAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.EmailSendingAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ConcurrencyVersion).HasDefaultValue(0).IsConcurrencyToken();
+            entity.HasOne<IdentityUser<Guid>>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<AuditLog>(entity =>

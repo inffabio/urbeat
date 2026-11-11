@@ -376,13 +376,14 @@ sudo docker compose up -d --force-recreate webapi   # aplicar
 **Impacto:**
 - `JWT_SECRET` → invalida todos os tokens JWT ativos (usuarios precisam logar de novo)
 - `ENCRYPTION_KEY` → invalida campos criptografados
+- `ROLE_PROMOTION_SIGNING_KEY` → invalida links de promocao de papel ainda pendentes (o dono precisa solicitar novamente). Nao tem valor padrao: API e workers falham ao iniciar se estiver ausente, vazia ou for placeholder.
 - `POSTGRES_PASSWORD` → exige restart do container `db` E atualizar a string no `.env`
 - `HANGFIRE_PASSWORD` → muda so o basic auth do `/hangfire`
 - `ADMIN_PASSWORD` → **NAO altera** o admin ja criado no banco; so vale na 1a seed
 
 Geracao de segredos novos:
 ```bash
-openssl rand -hex 32      # JWT_SECRET, ENCRYPTION_KEY
+openssl rand -hex 32      # JWT_SECRET, ENCRYPTION_KEY, ROLE_PROMOTION_SIGNING_KEY
 openssl rand -hex 12      # HANGFIRE_PASSWORD
 ```
 
@@ -472,6 +473,7 @@ ADMIN_PASSWORD=…              # senha do admin (so no 1o seed)
 HANGFIRE_USER=admin
 HANGFIRE_PASSWORD=…           # 24 hex chars
 ENCRYPTION_KEY=…              # 64 hex chars
+ROLE_PROMOTION_SIGNING_KEY=…  # 64 hex chars, dedicada a promocao de papel (sem default)
 FRONTEND_BASE_URL=https://urbeat.com.br
 LETSENCRYPT_EMAIL=admin@urbeat.com.br
 GRAFANA_USER=admin
@@ -618,3 +620,39 @@ sudo docker system df
 - **Hangfire:** https://api.urbeat.com.br/hangfire — `admin / <ver .env>`
 - **Grafana:** http://136.248.115.135:3000 (SSH tunnel — enviar port knocking antes do tunnel)
 - **Prometheus:** http://136.248.115.135:9090 (SSH tunnel — enviar port knocking antes do tunnel)
+
+---
+
+## Hash de senhas (Argon2id)
+
+As senhas de Customer/Seller/Admin usam **Argon2id** (versao 19). Nao existe **pepper** e nenhum
+segredo novo deve ser criado no OCI Vault ou no `.env`: o salt e aleatorio por hash e vai gravado
+junto do proprio hash, no formato versionado `$urbeat-argon2id$v=1$m=...,t=...,p=...$salt$subkey`.
+
+Parametros iniciais (nao secretos), em `appsettings.json`:
+
+```json
+"PasswordHashing": {
+  "Argon2id": {
+    "MemorySizeKb": 65536,
+    "Iterations": 3,
+    "DegreeOfParallelism": 2,
+    "SaltSizeBytes": 16,
+    "HashSizeBytes": 32
+  }
+}
+```
+
+- **Custo esperado:** ~64 MiB de memoria e algumas dezenas de milissegundos por login/registro. O
+  custo e por requisicao; mantenha o rate limiting e o lockout existentes.
+- **Calibracao:** meca o tempo de login e a memoria livre do `urbeat_webapi`. Se o ambiente nao
+  sustentar o custo, reduza primeiro `Iterations` e depois `MemorySizeKb`, respeitando os limites
+  validados no startup (memoria minima 8 MiB / maxima 256 MiB, iteracoes 1-10, paralelismo 1-8).
+  A aplicacao falha no startup se um valor estiver fora desses limites.
+- **Compatibilidade:** hashes PBKDF2/ASP.NET Identity antigos continuam validos e sao regravados em
+  Argon2id no primeiro login bem-sucedido. Nao e necessario resetar senhas.
+- **Rollback:** os parametros e o algoritmo ficam gravados em cada hash, entao voltar a configuracao
+  anterior nao invalida senhas ja migradas; apenas novos hashes passam a usar os parametros
+  anteriores. Nao ha migration de banco nem secret a remover.
+- **Tokens e PINs:** tokens de confirmacao/promocao/reset usam SHA-256 versionado (`ITokenHasher`) e
+  PINs de entrega usam seu hasher dedicado. Nenhum deles passa por Argon2id.

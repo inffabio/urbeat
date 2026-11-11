@@ -9,7 +9,7 @@
           Crie sua conta e comece agora<br /><span class="accent">seu delivery profissional</span>
         </h1>
         <p class="register-subtitle">
-          E rapido, facil e voce ainda ganha <strong>7 dias gratis</strong> para testar.
+          É rápido, fácil e você ainda ganha <strong>7 dias grátis</strong> para testar.
         </p>
 
         <div class="divider-row">
@@ -84,27 +84,6 @@
             </div>
           </div>
 
-          <!-- Já tem conta? -->
-          <div class="field">
-            <label for="currentPassword">Já tem conta urbeat? <span class="field-optional">(opcional)</span></label>
-            <div class="input-wrap">
-              <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
-              <input
-                id="currentPassword" [type]="showCurrentPassword() ? 'text' : 'password'"
-                placeholder="Senha atual da sua conta"
-                autocomplete="current-password"
-                [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event); onFieldInput('currentPassword')"
-                name="currentPassword"
-              />
-              <button type="button" class="eye-btn" (click)="toggleCurrentPassword()" aria-label="Mostrar senha atual">
-                <ion-icon [name]="showCurrentPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-              </button>
-            </div>
-            <p class="field-hint">
-              Preencha apenas se este e-mail já usa o urbeat como cliente. É a senha do acesso cliente, usada só para confirmar que a conta é sua.
-            </p>
-          </div>
-
           <!-- Senha -->
           <div class="field">
             <label for="password">Senha do acesso lojista</label>
@@ -121,16 +100,16 @@
                 <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
               </button>
             </div>
-            <p class="field-hint">Esta senha vale só para o acesso lojista e não altera a senha de cliente. Minimo de 8 caracteres, com maiusculas, minusculas, numeros e simbolos.</p>
+            <p class="field-hint">Esta senha vale só para o acesso lojista e não altera a senha de cliente. Nunca pedimos sua senha atual por e-mail. Mínimo de 8 caracteres, com maiúsculas, minúsculas, números e símbolos.</p>
             <div class="strength-bar" style="margin-top:6px">
               <div class="strength-fill" [style.width]="(strengthScore()/5)*100+'%'" [style.background]="strengthColor()"></div>
             </div>
             <div class="strength-criteria">
               <span [class.met]="passwordStrength().length">● {{ passwordStrength().length ? '✅' : '○' }} 8+ caracteres</span>
-              <span [class.met]="passwordStrength().upper">● {{ passwordStrength().upper ? '✅' : '○' }} 1 maiuscula</span>
-              <span [class.met]="passwordStrength().lower">● {{ passwordStrength().lower ? '✅' : '○' }} 1 minuscula</span>
-              <span [class.met]="passwordStrength().number">● {{ passwordStrength().number ? '✅' : '○' }} 1 numero</span>
-              <span [class.met]="passwordStrength().special">● {{ passwordStrength().special ? '✅' : '○' }} 1 simbolo</span>
+              <span [class.met]="passwordStrength().upper">● {{ passwordStrength().upper ? '✅' : '○' }} 1 maiúscula</span>
+              <span [class.met]="passwordStrength().lower">● {{ passwordStrength().lower ? '✅' : '○' }} 1 minúscula</span>
+              <span [class.met]="passwordStrength().number">● {{ passwordStrength().number ? '✅' : '○' }} 1 número</span>
+              <span [class.met]="passwordStrength().special">● {{ passwordStrength().special ? '✅' : '○' }} 1 símbolo</span>
             </div>
             @if (errors()['password']) {
               <span class="field-error">{{ errors()['password'] }}</span>
@@ -176,7 +155,7 @@
 
         <!-- Terms -->
         <p class="terms">
-          Ao criar sua conta, voce concorda com nossos
+          Ao criar sua conta, você concorda com nossos
           <a href="#">Termos de uso</a> e <a href="#">Politica de privacidade</a>.
         </p>
       </div>

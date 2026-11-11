@@ -1,4 +1,7 @@
-﻿namespace Urbeat.Infrastructure.Services.Email;
+﻿using System.Net;
+using Urbeat.Domain.Entities;
+
+namespace Urbeat.Infrastructure.Services.Email;
 
 internal static class EmailTemplates
 {
@@ -64,6 +67,60 @@ internal static class EmailTemplates
         return (subject, html);
     }
 
+    /// <summary>
+    /// Role promotion e-mail. It is deliberately distinct from the registration confirmation and
+    /// e-mail change messages: it explains that only the new role is being added, that no password
+    /// is requested by e-mail and that the link is single-use for 30 minutes.
+    /// </summary>
+    public static (string Subject, string HtmlBody) BuildRolePromotionConfirmation(
+        UserRoleType targetRole,
+        string confirmUrl,
+        int expiresMinutes)
+    {
+        var isSeller = targetRole == UserRoleType.Seller;
+        var roleLabel = isSeller ? "lojista" : "cliente";
+        var otherRoleLabel = isSeller ? "cliente" : "lojista";
+        var subject = $"Confirme seu novo acesso de {roleLabel} no urbeat";
+
+        var body = isSeller
+            ? """
+                <p style="margin:0 0 16px 0;">Foi solicitado o acréscimo de um acesso de lojista à sua conta urbeat usando este endereço de e-mail.</p>
+                <p style="margin:0;">Para confirmar e ativar esse acesso, clique no botão abaixo.</p>
+                """
+            : """
+                <p style="margin:0 0 16px 0;">Foi solicitado o acréscimo de um acesso de cliente à sua conta urbeat usando este endereço de e-mail.</p>
+                <p style="margin:0;">Para confirmar e ativar esse acesso, clique no botão abaixo.</p>
+                """;
+
+        body += $$"""
+
+            <p style="margin:24px 0 8px 0;font-weight:700;color:#18181B;">Essa confirmação:</p>
+            <ul style="margin:0 0 16px 20px;padding:0;">
+              <li>não altera seu acesso de {{otherRoleLabel}};</li>
+              <li>não altera sua senha atual;</li>
+              <li>não solicita sua senha por e-mail;</li>
+              <li>permite que você use o urbeat também como {{roleLabel}}.</li>
+            </ul>
+            """;
+
+        var html = BaseLayout(
+            preheader: $"Confirme o novo acesso de {roleLabel} na sua conta urbeat.",
+            title: $"Novo acesso de {roleLabel}",
+            greeting: "Olá!",
+            body: body,
+            buttonText: $"Confirmar acesso de {roleLabel}",
+            buttonUrl: confirmUrl,
+            notice: $"Este link é válido por <strong>{expiresMinutes} minutos</strong> e pode ser usado apenas uma vez.",
+            footer: $"""
+                <p style="margin:0 0 8px 0;">Se você não solicitou esse acesso, ignore esta mensagem. Nenhuma alteração será realizada.</p>
+                <p style="margin:0;">Por segurança, o urbeat nunca solicita sua senha por e-mail.</p>
+                <p style="margin:16px 0 0 0;">Atenciosamente,<br />Equipe urbeat</p>
+                """,
+            signature: string.Empty);
+
+        return (subject, html);
+    }
+
     private static string BaseLayout(
         string preheader,
         string title,
@@ -72,8 +129,18 @@ internal static class EmailTemplates
         string buttonText,
         string buttonUrl,
         string notice,
-        string footer)
+        string footer,
+        string signature = "— Equipe UrBeat")
     {
+        var signatureHtml = string.IsNullOrWhiteSpace(signature)
+            ? string.Empty
+            : $"<p style=\"margin:12px 0 0 0;font-weight:700;color:#18181B;\">{signature}</p>";
+
+        // The confirmation URL is the only attacker-influenced fragment (opaque token) rendered in
+        // the template. Encode it so a malformed link can never inject markup into the e-mail.
+        var safeButtonUrl = WebUtility.HtmlEncode(buttonUrl);
+        var safeButtonText = WebUtility.HtmlEncode(buttonText);
+
         return $$"""
             <!DOCTYPE html>
             <html lang="pt-BR">
@@ -119,7 +186,7 @@ internal static class EmailTemplates
                       <!-- ══ Botão CTA ══ -->
                       <tr>
                         <td align="left" style="padding:28px 40px 8px 40px;">
-                          <a href="{{buttonUrl}}" style="display:inline-block;background:#6EAF4A;color:#FFFFFF;text-decoration:none;padding:15px 30px;border-radius:999px;font-weight:700;font-size:15px;letter-spacing:0.01em;">{{buttonText}} &rarr;</a>
+                          <a href="{{safeButtonUrl}}" style="display:inline-block;background:#6EAF4A;color:#FFFFFF;text-decoration:none;padding:15px 30px;border-radius:999px;font-weight:700;font-size:15px;letter-spacing:0.01em;">{{safeButtonText}} &rarr;</a>
                         </td>
                       </tr>
 
@@ -140,7 +207,7 @@ internal static class EmailTemplates
                       <tr>
                         <td style="padding:24px 40px 0 40px;color:#71717A;font-size:13px;line-height:1.55;">
                           <p style="margin:0 0 6px 0;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-                          <p style="margin:0;word-break:break-all;color:#2E7D32;"><a href="{{buttonUrl}}" style="color:#2E7D32;">{{buttonUrl}}</a></p>
+                          <p style="margin:0;word-break:break-all;color:#2E7D32;"><a href="{{safeButtonUrl}}" style="color:#2E7D32;">{{safeButtonUrl}}</a></p>
                         </td>
                       </tr>
 
@@ -151,7 +218,7 @@ internal static class EmailTemplates
                             <tr>
                               <td style="border-top:1px solid #E8EDE6;padding-top:20px;color:#71717A;font-size:13px;line-height:1.6;">
                                 {{footer}}
-                                <p style="margin:12px 0 0 0;font-weight:700;color:#18181B;">— Equipe UrBeat</p>
+                                {{signatureHtml}}
                                 <p style="margin:8px 0 0 0;color:#A1A1AA;font-size:12px;">UrBeat &middot; Seu delivery, seu lucro.</p>
                               </td>
                             </tr>

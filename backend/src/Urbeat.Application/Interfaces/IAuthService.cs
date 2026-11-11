@@ -42,4 +42,12 @@ public interface IAuthService
         CancellationToken cancellationToken = default);
 
     Task<(bool Succeeded, string? Error)> UpdateEmailAsync(UpdateEmailRequestDto request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Confirms a pending second-role promotion using its opaque, single-use token. The role and
+    /// the new independent credential are applied atomically; replay is idempotent.
+    /// </summary>
+    Task<ConfirmRolePromotionResultDto> ConfirmRolePromotionAsync(
+        string token,
+        CancellationToken cancellationToken = default);
 }

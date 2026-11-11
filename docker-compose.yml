@@ -53,6 +53,9 @@ services:
       Jwt__Issuer: "urbeat"
       Jwt__Audience: "urbeat-api"
       Jwt__ExpirationMinutes: "60"
+      # Dedicated role promotion signing key. Required (no default): the API fails at startup when
+      # it is empty/placeholder. Generate a random value, e.g. `openssl rand -base64 48`.
+      RolePromotionChallenge__SigningKey: "${ROLE_PROMOTION_SIGNING_KEY:-}"
       Email__LogOnly: "true"
     ports:
       - "5000:5000"

@@ -100,6 +100,10 @@ public static class WebApiServiceCollectionExtensions
         var rateLimitingOptions = configuration.GetSection(RateLimitingOptions.SectionName).Get<RateLimitingOptions>()
             ?? new RateLimitingOptions();
 
+        // The promotion policy is resolved at request time so test/ops overrides that are added to
+        // the configuration after this method runs (WebApplicationFactory) still take effect.
+        services.Configure<RateLimitingOptions>(configuration.GetSection(RateLimitingOptions.SectionName));
+
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -121,6 +125,22 @@ public static class WebApiServiceCollectionExtensions
                     Window = TimeSpan.FromSeconds(rateLimitingOptions.PasswordRecoveryWindowSeconds),
                     QueueLimit = 0
                 }));
+
+            options.AddPolicy("role-promotion", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.RolePromotionPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.RolePromotionWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
 
             options.AddPolicy("public-route", httpContext => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",

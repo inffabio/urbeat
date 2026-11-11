@@ -20,7 +20,7 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
     }
 
     [Fact]
-    public async Task RegisterSeller_ShouldNotPromote_WhenExistingAccountPasswordDoesNotMatch()
+    public async Task RegisterSeller_ShouldNotPromote_WithoutConfirmedOwnership()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var email = $"takeover.{Guid.NewGuid():N}@urbeat.local";
@@ -46,7 +46,12 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
             PhoneNumber = "11966666666"
         });
 
-        promoteResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        // Typing the e-mail, or even a guessed current password, never promotes the identity. The
+        // request is only recorded and an e-mail challenge is sent to the real owner.
+        promoteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var payload = await promoteResponse.Content.ReadFromJsonAsync<JsonElement>();
+        payload.GetProperty("rolePromotionPending").GetBoolean().Should().BeTrue();
+        payload.GetProperty("roleAddedToExistingAccount").GetBoolean().Should().BeFalse();
 
         using var scope = _factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
@@ -75,12 +80,21 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
         customerResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         await _factory.ConfirmEmailAsync(email);
 
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login/customer", new LoginRequestDto
+        {
+            Email = email,
+            Password = password
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var token = (await loginResponse.Content.ReadFromJsonAsync<AuthTokenResponseDto>())!.AccessToken;
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = $"Contratante Confirmado {Guid.NewGuid():N}",
             Email = email,
             Password = password,
-            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
 
@@ -89,10 +103,11 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
         payload.GetProperty("emailConfirmationPending").GetBoolean().Should().BeFalse();
         payload.TryGetProperty("emailChangeChallenge", out var challenge).Should().BeTrue();
         challenge.ValueKind.Should().Be(JsonValueKind.Null);
+        payload.GetProperty("rolePromotionPending").GetBoolean().Should().BeFalse();
     }
 
     [Fact]
-    public async Task RegisterSeller_ShouldIssueEmailChangeChallenge_WhenPromotingUnconfirmedAccount()
+    public async Task RegisterSeller_ShouldReturnPendingPromotion_WhenExistingAccountIsUnconfirmed()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var email = $"pending.promote.{Guid.NewGuid():N}@urbeat.local";
@@ -112,14 +127,20 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
             FullName = $"Contratante Pendente {Guid.NewGuid():N}",
             Email = email,
             Password = password,
-            CurrentPassword = password,
             PhoneNumber = "11977777777"
         });
 
         promoteResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var payload = await promoteResponse.Content.ReadFromJsonAsync<JsonElement>();
-        payload.GetProperty("emailConfirmationPending").GetBoolean().Should().BeTrue();
-        payload.GetProperty("emailChangeChallenge").GetString().Should().NotBeNullOrWhiteSpace();
+        payload.GetProperty("rolePromotionPending").GetBoolean().Should().BeTrue();
+        payload.GetProperty("emailConfirmationPending").GetBoolean().Should().BeFalse();
+        payload.GetProperty("userId").ValueKind.Should().Be(JsonValueKind.Null);
+        payload.GetProperty("emailChangeChallenge").ValueKind.Should().Be(JsonValueKind.Null);
+
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var user = await userManager.FindByEmailAsync(email);
+        (await userManager.IsInRoleAsync(user!, "Seller")).Should().BeFalse();
     }
 
     [Fact]

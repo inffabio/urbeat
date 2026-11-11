@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -61,6 +62,20 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<DeliveryRouteOptions>(configuration.GetSection(DeliveryRouteOptions.SectionName));
         services.Configure<CustomerVerificationOptions>(configuration.GetSection(CustomerVerificationOptions.SectionName));
         services.Configure<EmailChangeChallengeOptions>(configuration.GetSection(EmailChangeChallengeOptions.SectionName));
+        // Argon2id parameters are operational (non-secret). There is intentionally no pepper and no
+        // Vault/secret entry: the random salt travels inside the hash. ValidateOnStart rejects a
+        // cost that could exhaust memory/CPU on login or registration.
+        services.AddOptions<Argon2idPasswordHasherOptions>()
+            .Bind(configuration.GetSection(Argon2idPasswordHasherOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<Argon2idPasswordHasherOptions>, Argon2idPasswordHasherOptionsValidator>();
+        // Role promotion has its own dedicated signing key. ValidateOnStart makes a deployment
+        // without a valid (non-placeholder, high-entropy) value fail at startup instead of signing
+        // links with a fallback secret.
+        services.AddOptions<RolePromotionChallengeOptions>()
+            .Bind(configuration.GetSection(RolePromotionChallengeOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<RolePromotionChallengeOptions>, RolePromotionChallengeOptionsValidator>();
 
         // Resolve the connection string once with explicit Npgsql pool limits. EF Core and Hangfire
         // share the same normalized value, so neither can open an unbounded pool per process.
@@ -91,6 +106,11 @@ public static class InfrastructureServiceCollectionExtensions
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        // User credentials use Argon2id while legacy ASP.NET Identity PBKDF2 hashes remain valid and
+        // report SuccessRehashNeeded. Tokens and delivery PINs deliberately do not go through it.
+        services.Replace(ServiceDescriptor.Scoped<IPasswordHasher<IdentityUser<Guid>>, Argon2idPasswordHasher>());
+        services.AddSingleton<ITokenHasher, TokenHasher>();
 
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret));
@@ -141,6 +161,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IEmailChangeChallengeService, EmailChangeChallengeService>();
+        services.AddScoped<IRolePromotionChallengeService, RolePromotionChallengeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICuisineTypeService, CuisineTypeService>();
         services.AddSingleton<PublicPlanOfferCache>();
@@ -327,6 +348,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<OperationalHeartbeatJob>();
         services.AddScoped<SellerSubscriptionNotificationJob>();
         services.AddScoped<SendEmailConfirmationJob>();
+        services.AddScoped<SendRolePromotionEmailJob>();
+        services.AddScoped<RolePromotionEmailRecoveryJob>();
         services.AddScoped<ImportAllCitiesNeighborhoodsJob>();
         services.AddScoped<ImportStoreNeighborhoodsJob>();
         services.AddScoped<ImportUfNeighborhoodsJob>();

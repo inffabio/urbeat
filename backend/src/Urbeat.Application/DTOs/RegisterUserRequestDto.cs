@@ -14,9 +14,10 @@ public sealed class RegisterUserRequestDto
     public string? Document { get; init; }
 
     /// <summary>
-    /// Proof that the caller owns an existing account when a new role is being added to an
-    /// e-mail that already exists. It is the password of any role the user already owns (or,
-    /// during migration only, the legacy password). It is never stored.
+    /// Wire-compatibility only. Older clients may still send it, but the server deliberately
+    /// ignores it: ownership of an existing identity is proven by the bearer token of that
+    /// identity or by a confirmed single-use e-mail promotion challenge, never by a password
+    /// supplied alongside the new role. It is never stored.
     /// </summary>
     public string? CurrentPassword { get; init; }
 }

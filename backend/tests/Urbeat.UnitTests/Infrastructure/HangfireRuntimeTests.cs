@@ -118,7 +118,8 @@ public sealed class HangfireRuntimeTests
         Type[] communicationJobs =
         [
             typeof(SendEmailConfirmationJob),
-            typeof(SendPasswordResetEmailJob)
+            typeof(SendPasswordResetEmailJob),
+            typeof(SendRolePromotionEmailJob)
         ];
 
         communicationJobs
@@ -134,6 +135,7 @@ public sealed class HangfireRuntimeTests
         [
             typeof(OperationalHeartbeatJob),
             typeof(SellerSubscriptionNotificationJob),
+            typeof(RolePromotionEmailRecoveryJob),
             typeof(ImportAllCitiesNeighborhoodsJob),
             typeof(ImportStoreNeighborhoodsJob),
             typeof(ImportUfNeighborhoodsJob),
@@ -194,7 +196,8 @@ public sealed class HangfireRuntimeTests
         registered.Should().BeTrue();
         manager.Registrations.Select(registration => registration.Id).Should().BeEquivalentTo(
             HangfireRecurringJobs.OperationalHeartbeatJobId,
-            HangfireRecurringJobs.SellerSubscriptionNotificationJobId);
+            HangfireRecurringJobs.SellerSubscriptionNotificationJobId,
+            HangfireRecurringJobs.RolePromotionEmailRecoveryJobId);
 #pragma warning disable CS0618 // Hangfire 1.8 stores the recurring queue on RecurringJobOptions.
         manager.Registrations
             .All(registration => registration.Options is not null

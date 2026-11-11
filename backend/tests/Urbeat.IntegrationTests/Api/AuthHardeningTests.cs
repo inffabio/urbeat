@@ -76,6 +76,7 @@ public sealed class AuthHardeningTests : IClassFixture<TestWebApplicationFactory
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+            var tokenHasher = scope.ServiceProvider.GetRequiredService<Urbeat.Application.Interfaces.ITokenHasher>();
             var user = await userManager.FindByEmailAsync(email);
             user.Should().NotBeNull();
 
@@ -83,7 +84,7 @@ public sealed class AuthHardeningTests : IClassFixture<TestWebApplicationFactory
             {
                 UserId = user!.Id,
                 Role = UserRoleType.Customer,
-                TokenHash = userManager.PasswordHasher.HashPassword(user, rawToken),
+                TokenHash = tokenHasher.Hash(rawToken),
                 ExpiresAt = DateTime.UtcNow.AddHours(1),
                 Used = false
             });

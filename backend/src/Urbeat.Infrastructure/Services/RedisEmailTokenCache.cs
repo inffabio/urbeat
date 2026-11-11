@@ -60,5 +60,4 @@ public sealed class RedisEmailTokenCache : IEmailTokenCache
         if (!val.HasValue) return null;
         return JsonSerializer.Deserialize<EmailConfirmationRequest>(val.ToString());
     }
-
 }

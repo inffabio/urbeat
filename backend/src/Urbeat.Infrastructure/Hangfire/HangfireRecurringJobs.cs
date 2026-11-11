@@ -11,6 +11,7 @@ public static class HangfireRecurringJobs
 {
     public const string OperationalHeartbeatJobId = "operational-heartbeat";
     public const string SellerSubscriptionNotificationJobId = "seller-subscription-notifications";
+    public const string RolePromotionEmailRecoveryJobId = "role-promotion-email-recovery";
 
     public static bool IsRecurringScheduler(HangfireRole role) =>
         role is HangfireRole.Business or HangfireRole.All;
@@ -40,6 +41,15 @@ public static class HangfireRecurringJobs
             SellerSubscriptionNotificationJobId,
             job => job.ExecuteAsync(),
             Cron.Daily,
+            new RecurringJobOptions { QueueName = HangfireQueues.Business });
+
+        // Every minute: re-enqueue promotion e-mails whose original enqueue was lost between the
+        // database commit and the Hangfire call. The grace period inside the job prevents duplicates
+        // on the normal path. The enqueued delivery job runs on the communications queue.
+        manager.AddOrUpdate<RolePromotionEmailRecoveryJob>(
+            RolePromotionEmailRecoveryJobId,
+            job => job.ExecuteAsync(),
+            Cron.Minutely(),
             new RecurringJobOptions { QueueName = HangfireQueues.Business });
 #pragma warning restore CS0618
 

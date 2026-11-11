@@ -3,23 +3,36 @@ export type AccountRole = 'Customer' | 'Seller';
 export interface RegisterCustomerRequest {
   fullName: string;
   email: string;
-  /** New password for the role being registered. */
+  /** New password for the role being registered. It is independent from the other role. */
   password: string;
   phoneNumber: string;
   document?: string;
-  /**
-   * Proof of ownership when this e-mail already belongs to an urbeat account. It is the
-   * existing role password (never the new role password) and is only sent on promotion.
-   */
-  currentPassword?: string;
 }
 
 export interface RegisterResponse {
   succeeded: boolean;
-  userId: string;
+  /** Omitted/null for an anonymous promotion request so the existing identity is not disclosed. */
+  userId?: string | null;
   emailConfirmationPending: boolean;
   emailChangeChallenge?: string;
   roleAddedToExistingAccount?: boolean;
+  /**
+   * The e-mail already belongs to an urbeat identity and the caller is not signed in as its
+   * owner. No role/credential was created; a single-use confirmation link was sent instead.
+   */
+  rolePromotionPending?: boolean;
+}
+
+export interface ConfirmRolePromotionRequest {
+  token: string;
+}
+
+export interface ConfirmRolePromotionResponse {
+  succeeded: boolean;
+  alreadyApplied: boolean;
+  role?: AccountRole | null;
+  emailConfirmationPending: boolean;
+  message: string;
 }
 
 export interface LoginRequest {

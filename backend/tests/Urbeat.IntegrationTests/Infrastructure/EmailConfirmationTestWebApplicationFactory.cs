@@ -7,6 +7,7 @@ using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,24 @@ namespace Urbeat.IntegrationTests.Infrastructure;
 public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"urbeat-email-tests-{Guid.NewGuid()}";
+    private readonly int _rolePromotionPermitLimit;
+    private readonly ISaveChangesInterceptor? _saveChangesInterceptor;
+    private readonly IReadOnlyList<ISaveChangesInterceptor> _additionalSaveChangesInterceptors;
+
+    public EmailConfirmationTestWebApplicationFactory()
+        : this(rolePromotionPermitLimit: 10000)
+    {
+    }
+
+    internal EmailConfirmationTestWebApplicationFactory(
+        int rolePromotionPermitLimit,
+        ISaveChangesInterceptor? saveChangesInterceptor = null,
+        IReadOnlyList<ISaveChangesInterceptor>? additionalSaveChangesInterceptors = null)
+    {
+        _rolePromotionPermitLimit = rolePromotionPermitLimit;
+        _saveChangesInterceptor = saveChangesInterceptor;
+        _additionalSaveChangesInterceptors = additionalSaveChangesInterceptors ?? [];
+    }
 
     public FakeEmailService EmailService { get; } = new();
 
@@ -39,7 +58,18 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
                 ["AsaasWebhook:Token"] = "test-asaas-token",
                 ["EmailConfirmation:FrontendBaseUrl"] = "https://app.urbeat.test",
                 ["EmailConfirmation:ConfirmPath"] = "/confirm-email",
-                ["Outbox:WorkerEnabled"] = "false"
+                ["EmailConfirmation:RolePromotionPath"] = "/confirmacao-email",
+                ["Outbox:WorkerEnabled"] = "false",
+                // Explicit test key; there is no production default.
+                ["RolePromotionChallenge:SigningKey"] = "urbeat-integration-tests-role-promotion-signing-key-2026",
+                // Promotion tests create multiple accounts and challenges in one test run.
+                ["RateLimiting:RolePromotionPermitLimit"] = _rolePromotionPermitLimit.ToString(),
+                ["RateLimiting:RolePromotionWindowSeconds"] = "60",
+                // Explicitly weaker Argon2id parameters for the test process only. Production keeps
+                // the strong defaults from appsettings.json (64 MiB, t=3, p=2).
+                ["PasswordHashing:Argon2id:MemorySizeKb"] = "8192",
+                ["PasswordHashing:Argon2id:Iterations"] = "2",
+                ["PasswordHashing:Argon2id:DegreeOfParallelism"] = "1"
             });
         });
 
@@ -53,6 +83,16 @@ public sealed class EmailConfirmationTestWebApplicationFactory : WebApplicationF
             services.AddDbContextPool<ApplicationDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_databaseName);
+
+                if (_saveChangesInterceptor is not null)
+                {
+                    options.AddInterceptors(_saveChangesInterceptor);
+                }
+
+                if (_additionalSaveChangesInterceptors.Count > 0)
+                {
+                    options.AddInterceptors(_additionalSaveChangesInterceptors.ToArray());
+                }
             });
 
             services.RemoveAll<IEmailService>();

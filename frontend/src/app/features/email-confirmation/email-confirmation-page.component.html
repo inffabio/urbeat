@@ -9,6 +9,73 @@
         <img src="assets/images/urbeat-logo.jpg" alt="urbeat" class="confirm-logo" width="130" />
       </div>
 
+      @if (promotionMode()) {
+        @if (promotionPending()) {
+          <div class="confirm-icon-wrap info-state">
+            <ion-icon name="mail-outline"></ion-icon>
+          </div>
+          <h1>Confirme seu novo acesso de {{ promotionRoleLabel() }}</h1>
+          <p class="confirm-desc">
+            Se este e-mail já pertence a uma conta urbeat, enviamos um link para
+            <strong>{{ email() }}</strong> confirmar o novo acesso de {{ promotionRoleLabel() }}.
+          </p>
+          <p class="confirm-hint">
+            O link é válido por 30 minutos e pode ser usado apenas uma vez. Sua senha atual não foi
+            alterada e o urbeat nunca solicita sua senha por e-mail.
+          </p>
+        } @else if (promotionState() === 'confirming') {
+          <div class="spinner-lg"></div>
+          <p class="confirm-status">Confirmando seu novo acesso de {{ promotionRoleLabel() }}...</p>
+        } @else if (promotionState() === 'succeeded') {
+          <div class="confirm-icon-wrap success">
+            <ion-icon name="checkmark-circle"></ion-icon>
+          </div>
+          <h1>Novo acesso de {{ promotionRoleLabel() }} ativado!</h1>
+          <p class="confirm-desc">
+            Sua senha do outro acesso continua a mesma. Você já pode entrar usando a senha que criou
+            para o acesso de {{ promotionRoleLabel() }}.
+          </p>
+          @if (promotionLoginRoute(); as loginRoute) {
+            <a [routerLink]="[loginRoute]" class="btn-go">Ir para o login</a>
+          } @else {
+            <p class="confirm-hint">
+              Para usar seu acesso de cliente, entre na loja em que você faz seus pedidos usando a
+              senha de cliente que você acabou de criar.
+            </p>
+          }
+        } @else if (promotionState() === 'already') {
+          <div class="confirm-icon-wrap success">
+            <ion-icon name="checkmark-circle"></ion-icon>
+          </div>
+          <h1>Acesso de {{ promotionRoleLabel() }} já confirmado</h1>
+          <p class="confirm-desc">
+            Este novo acesso já estava ativo. Nenhuma senha foi alterada.
+          </p>
+          @if (promotionLoginRoute(); as loginRoute) {
+            <a [routerLink]="[loginRoute]" class="btn-go">Ir para o login</a>
+          } @else {
+            <p class="confirm-hint">
+              Use sua senha de cliente normalmente na loja em que você faz seus pedidos.
+            </p>
+          }
+        } @else {
+          <div class="confirm-icon-wrap error-state">
+            <ion-icon name="close-circle"></ion-icon>
+          </div>
+          <h1>Não foi possível confirmar o novo acesso</h1>
+          <p class="confirm-desc">
+            O link pode ter expirado ou já ter sido usado. Solicite novamente o cadastro do novo
+            acesso; sua senha atual permanece a mesma.
+          </p>
+          @if (promotionRetryRoute(); as retryRoute) {
+            <a [routerLink]="[retryRoute]" class="btn-go outline">Solicitar novamente</a>
+          } @else {
+            <p class="confirm-hint">
+              Solicite o novo acesso de cliente novamente pela loja em que você faz seus pedidos.
+            </p>
+          }
+        }
+      } @else {
       <h1>Verifique seu e-mail</h1>
 
       <p class="confirm-desc">
@@ -23,7 +90,7 @@
 
       @if (!showChangeEmail()) {
         <p class="confirm-hint">
-          Nao recebeu? Verifique o spam ou clique abaixo para reenviar.
+          Não recebeu? Verifique o spam ou clique abaixo para reenviar.
         </p>
 
         <button type="button" class="btn-resend" (click)="resend()" [disabled]="resending()">
@@ -33,8 +100,8 @@
 
       @if (showChangeEmail()) {
         <div class="change-email-section">
-          <p class="change-title">E-mail nao chegou?</p>
-          <p class="change-hint">Voce pode alterar o e-mail cadastrado e receber um novo link de confirmacao.</p>
+          <p class="change-title">E-mail não chegou?</p>
+          <p class="change-hint">Você pode alterar o e-mail cadastrado e receber um novo link de confirmação.</p>
 
           <div class="input-wrap">
             <ion-icon name="mail-outline" class="input-icon-left"></ion-icon>
@@ -54,6 +121,7 @@
       }
 
       <a [routerLink]="['/cadastro']" class="back-link">Voltar para o cadastro</a>
+      }
     </div>
   </div>
 </ion-content>

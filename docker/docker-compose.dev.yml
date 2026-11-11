@@ -92,6 +92,9 @@ services:
       Hangfire__DashboardUser: "${HANGFIRE_USER:-admin}"
       Hangfire__DashboardPassword: "${HANGFIRE_PASSWORD:-urbeat-hangfire}"
       Encryption__Key: "${ENCRYPTION_KEY:-CHANGE_ME_MINIMUM_32_CHARS_ENCRYPTION_KEY}"
+      # Dedicated role promotion signing key. Intentionally has no default: the API/workers fail
+      # at startup when it is empty or a known placeholder.
+      RolePromotionChallenge__SigningKey: "${ROLE_PROMOTION_SIGNING_KEY:-}"
       EmailConfirmation__FrontendBaseUrl: "${FRONTEND_BASE_URL:-http://localhost}"
       Email__FromAddress: "${SMTP_FROM:-contato@urbeat.com.br}"
       Email__FromName: "Urbeat"

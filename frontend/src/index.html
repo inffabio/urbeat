@@ -8,6 +8,41 @@
     <meta name="theme-color" content="#D54A51" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
+    <!-- Never leak the current URL (including a promotion fragment) to third parties or analytics
+         via the Referer header. Promotion tokens travel only in the fragment and are stripped as
+         soon as they are read. -->
+    <meta name="referrer" content="no-referrer" />
+    <script>
+      // A promotion token arrives in the URL fragment. Capture it into memory and scrub the address
+      // before Angular, analytics or any third-party script can read it. The fragment is never sent
+      // to the server; removing it this early also keeps it out of page_location and history.
+      (function () {
+        try {
+          var hash = window.location.hash;
+          if (!hash || hash.indexOf('promotionToken=') === -1) {
+            return;
+          }
+
+          var params = new URLSearchParams(hash.replace(/^#/, ''));
+          var token = params.get('promotionToken');
+          var role = params.get('role');
+          if (token) {
+            window.__urbeatPromotionFragment = { token: token, role: role };
+          }
+
+          params.delete('promotionToken');
+          params.delete('role');
+          var remaining = params.toString();
+          window.history.replaceState(
+            window.history.state,
+            '',
+            window.location.pathname + window.location.search + (remaining ? '#' + remaining : '')
+          );
+        } catch (e) {
+          // No-op: the Angular component still reads the fragment directly as a fallback.
+        }
+      })();
+    </script>
     <link rel="manifest" href="manifest.webmanifest" />
     
     <!-- SEO Primary -->
