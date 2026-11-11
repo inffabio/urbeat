@@ -90,6 +90,44 @@ do e-mail.
   operação e dados mínimos; não colocar token sensível em logs ou mensagens.
 - Após confirmação, concluir o fluxo de criação/login do papel correto.
 
+## Copy aprovado do e-mail
+
+### Acesso de lojista
+
+**Assunto:** `Confirme seu novo acesso de lojista no urbeat`
+
+```text
+Olá!
+
+Foi solicitado o acréscimo de um acesso de lojista à sua conta urbeat usando este endereço de e-mail.
+
+Para confirmar e ativar esse acesso, clique no botão abaixo:
+
+[Confirmar acesso de lojista]
+
+Essa confirmação:
+
+- não altera seu acesso de cliente;
+- não altera sua senha atual;
+- não solicita sua senha por e-mail;
+- permite que você use o urbeat também como lojista.
+
+Este link é válido por 30 minutos e pode ser usado apenas uma vez.
+
+Se você não solicitou esse acesso, ignore esta mensagem. Nenhuma alteração será realizada.
+
+Por segurança, o urbeat nunca solicita sua senha por e-mail.
+
+Atenciosamente,
+Equipe urbeat
+```
+
+### Acesso de cliente
+
+O fluxo inverso usa a mesma estrutura, substituindo “acesso de lojista” por
+“acesso de cliente” e “use o urbeat também como lojista” por “use o urbeat também
+como cliente”.
+
 ## Segurança e compatibilidade
 
 - O servidor permanece autoritativo para posse de conta, papel, senha, expiração
