@@ -7,6 +7,7 @@ import { OrderService } from '../../core/services/order.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { SellerPrintingService } from '../seller-printing/seller-printing.service';
+import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 import { SellerSubscriptionBillingStatus } from '../../shared/models/subscription.model';
@@ -72,6 +73,13 @@ function salesFixture(overrides: Partial<PagedStoreSales> = {}): PagedStoreSales
 }
 
 describe('SellerDashboardPageComponent', () => {
+  it('labels a ready pickup order as ready for pickup', () => {
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+
+    expect(fixture.componentInstance.statusLabel(OrderStatus.Ready, FulfillmentType.PickUp)).toBe('Pronto para retirada');
+    expect(fixture.componentInstance.statusLabel(OrderStatus.Ready, FulfillmentType.Delivery)).toBe('Pronto');
+  });
+
   let orderServiceMock: {
     getStoreAnalytics: jest.Mock;
     getStoreSales: jest.Mock;

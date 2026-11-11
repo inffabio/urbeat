@@ -28,6 +28,17 @@ export interface OrderHistoryEntry {
   notes?: string;
 }
 
+export interface PickupStoreAddress {
+  zipCode: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  complement?: string | null;
+  reference?: string | null;
+}
+
 export interface OrderDetails {
   id: string;
   code: string;
@@ -65,6 +76,7 @@ export interface OrderDetails {
   addressState?: string;
   addressComplement?: string;
   addressReference?: string;
+  pickupStoreAddress?: PickupStoreAddress | null;
   notes?: string;
   items: OrderItem[];
   history: OrderHistoryEntry[];

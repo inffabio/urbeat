@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { FulfillmentType } from '../../../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../../../shared/enums/order-status.enum';
 import { PaymentMethod } from '../../../../shared/enums/payment-method.enum';
 import { OrderSummary } from '../../../../shared/models/order.model';
@@ -19,14 +20,14 @@ export class RecentOrdersListComponent {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 
-  statusLabel(status: OrderStatus): string {
+  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType): string {
     switch (status) {
       case OrderStatus.Received:
         return 'Recebido';
       case OrderStatus.Preparing:
         return 'Preparando';
       case OrderStatus.Ready:
-        return 'Pronto';
+        return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
       case OrderStatus.OnDelivery:
         return 'Saiu para entrega';
       case OrderStatus.Delivered:

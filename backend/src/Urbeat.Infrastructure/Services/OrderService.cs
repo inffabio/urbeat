@@ -60,7 +60,7 @@ public sealed class OrderService : IOrderService
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == orderId && x.CustomerUserId == customerUserId, cancellationToken);
 
-        return order is null ? null : await LoadDetailsAsync(order, cancellationToken, includeDeliveryPin: true);
+        return order is null ? null : await LoadDetailsAsync(order, cancellationToken, includeDeliveryPin: true, includePickupStoreAddress: true);
     }
 
     public async Task<PagedOrderSummaryResponseDto> ListStoreOrdersAsync(
@@ -680,6 +680,14 @@ public sealed class OrderService : IOrderService
             return new UpdateOrderStatusResultDto { InvalidTransition = true };
         }
 
+        // Pickup is complete when the store marks it Ready. Keep the generic state
+        // machine compatible with delivery, but never enter delivery states here.
+        if (order.FulfillmentType == FulfillmentType.PickUp
+            && request.NewStatus is OrderStatus.OnDelivery or OrderStatus.Delivered)
+        {
+            return new UpdateOrderStatusResultDto { InvalidTransition = true };
+        }
+
         if (request.NewStatus == OrderStatus.OnDelivery)
         {
             var driverResult = await PrepareOnDeliveryAsync(
@@ -1007,7 +1015,7 @@ public sealed class OrderService : IOrderService
         {
             return new UpdateOrderConfirmationResultDto
             {
-                Order = await LoadDetailsAsync(order, cancellationToken)
+                Order = await LoadDetailsAsync(order, cancellationToken, includePickupStoreAddress: true)
             };
         }
 
@@ -1028,7 +1036,7 @@ public sealed class OrderService : IOrderService
 
         return new UpdateOrderConfirmationResultDto
         {
-            Order = await LoadDetailsAsync(order, cancellationToken)
+            Order = await LoadDetailsAsync(order, cancellationToken, includePickupStoreAddress: true)
         };
     }
 
@@ -1063,7 +1071,9 @@ public sealed class OrderService : IOrderService
             };
         }
 
-        if (order.Status != OrderStatus.Delivered)
+        var isPickup = order.FulfillmentType == FulfillmentType.PickUp;
+        if ((!isPickup && order.Status != OrderStatus.Delivered)
+            || (isPickup && order.Status != OrderStatus.Ready))
         {
             return new CompleteSellerOrderResultDto { InvalidState = true };
         }
@@ -1116,7 +1126,8 @@ public sealed class OrderService : IOrderService
     private async Task<OrderDetailsResponseDto> LoadDetailsAsync(
         Order order,
         CancellationToken cancellationToken,
-        bool includeDeliveryPin = false)
+        bool includeDeliveryPin = false,
+        bool includePickupStoreAddress = false)
     {
         var itemRows = await _dbContext.OrderItems
             .AsNoTracking()
@@ -1179,32 +1190,36 @@ public sealed class OrderService : IOrderService
             })
             .ToListAsync(cancellationToken);
 
-        var assignment = await (
-            from current in _dbContext.OrderDeliveryAssignments.AsNoTracking()
-            join driver in _dbContext.DeliveryDrivers.AsNoTracking()
-                on current.DeliveryDriverId equals driver.Id
-            where current.OrderId == order.Id
-            select new
-            {
-                current.DeliveryDriverId,
-                DriverName = driver.FullName,
-                current.DeliveryStartedAtUtc
-            }
-        ).SingleOrDefaultAsync(cancellationToken);
+        var assignment = order.FulfillmentType == FulfillmentType.Delivery
+            ? await (
+                from current in _dbContext.OrderDeliveryAssignments.AsNoTracking()
+                join driver in _dbContext.DeliveryDrivers.AsNoTracking()
+                    on current.DeliveryDriverId equals driver.Id
+                where current.OrderId == order.Id
+                select new
+                {
+                    current.DeliveryDriverId,
+                    DriverName = driver.FullName,
+                    current.DeliveryStartedAtUtc
+                }
+            ).SingleOrDefaultAsync(cancellationToken)
+            : null;
 
-        var routeInfo = await (
-            from stop in _dbContext.DeliveryRouteOrders.AsNoTracking()
-            join route in _dbContext.DeliveryRoutes.AsNoTracking() on stop.DeliveryRouteId equals route.Id
-            where stop.OrderId == order.Id
-            orderby route.CreatedAtUtc descending
-            select new
-            {
-                RouteId = route.Id,
-                route.RevokedAtUtc,
-                route.CompletedAtUtc,
-                route.ExpiresAtUtc
-            }
-        ).FirstOrDefaultAsync(cancellationToken);
+        var routeInfo = order.FulfillmentType == FulfillmentType.Delivery
+            ? await (
+                from stop in _dbContext.DeliveryRouteOrders.AsNoTracking()
+                join route in _dbContext.DeliveryRoutes.AsNoTracking() on stop.DeliveryRouteId equals route.Id
+                where stop.OrderId == order.Id
+                orderby route.CreatedAtUtc descending
+                select new
+                {
+                    RouteId = route.Id,
+                    route.RevokedAtUtc,
+                    route.CompletedAtUtc,
+                    route.ExpiresAtUtc
+                }
+            ).FirstOrDefaultAsync(cancellationToken)
+            : null;
 
         string? deliveryPin = null;
         if (includeDeliveryPin
@@ -1271,9 +1286,34 @@ public sealed class OrderService : IOrderService
             AddressState = order.AddressState,
             AddressComplement = order.AddressComplement,
             AddressReference = order.AddressReference,
+            PickupStoreAddress = includePickupStoreAddress
+                && order.FulfillmentType == FulfillmentType.PickUp
+                && HasCompletePickupStoreAddress(order)
+                ? new PickupStoreAddressResponseDto
+                {
+                    ZipCode = order.PickupStoreAddressZipCode!,
+                    Street = order.PickupStoreAddressStreet!,
+                    Number = order.PickupStoreAddressNumber!,
+                    Neighborhood = order.PickupStoreAddressNeighborhood!,
+                    City = order.PickupStoreAddressCity!,
+                    State = order.PickupStoreAddressState!,
+                    Complement = order.PickupStoreAddressComplement,
+                    Reference = order.PickupStoreAddressReference
+                }
+                : null,
             Notes = order.Notes,
             Items = items,
             History = history
         };
+    }
+
+    private static bool HasCompletePickupStoreAddress(Order order)
+    {
+        return !string.IsNullOrWhiteSpace(order.PickupStoreAddressZipCode)
+            && !string.IsNullOrWhiteSpace(order.PickupStoreAddressStreet)
+            && !string.IsNullOrWhiteSpace(order.PickupStoreAddressNumber)
+            && !string.IsNullOrWhiteSpace(order.PickupStoreAddressNeighborhood)
+            && !string.IsNullOrWhiteSpace(order.PickupStoreAddressCity)
+            && !string.IsNullOrWhiteSpace(order.PickupStoreAddressState);
     }
 }

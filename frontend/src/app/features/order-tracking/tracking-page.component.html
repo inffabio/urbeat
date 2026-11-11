@@ -107,6 +107,32 @@
         }
       </div>
 
+      @if (pickupStoreAddress(); as address) {
+        <section class="card pickup-store-address-card" aria-labelledby="pickup-store-address-title">
+          <div class="pickup-store-address-heading">
+            <span class="round-icon" aria-hidden="true">
+              <ion-icon name="storefront-outline" aria-hidden="true"></ion-icon>
+            </span>
+            <div>
+              <h2 id="pickup-store-address-title">Retirada na loja</h2>
+              <p class="pickup-store-address-label">Endereço da loja</p>
+            </div>
+          </div>
+          <p class="pickup-store-order-code">{{ orderCode() }}</p>
+          <address>
+            <span>{{ address.street }}, {{ address.number }}</span>
+            <span>{{ address.neighborhood }}, {{ address.city }} - {{ address.state }}</span>
+            <span>CEP: {{ address.zipCode }}</span>
+            @if (address.complement?.trim()) {
+              <span>Complemento: {{ address.complement }}</span>
+            }
+            @if (address.reference?.trim()) {
+              <span>Referência: {{ address.reference }}</span>
+            }
+          </address>
+        </section>
+      }
+
       <div class="card items-card">
         <h2>Itens do pedido</h2>
         <ul class="order-items" role="list">

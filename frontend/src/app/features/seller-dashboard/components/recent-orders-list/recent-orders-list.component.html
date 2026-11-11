@@ -16,7 +16,7 @@
       <article class="recent-order" role="row">
         <strong data-label="Pedido">#{{ order.code }}</strong>
         <span data-label="Cliente">{{ order.customerName || 'Cliente' }}</span>
-        <span data-label="Status" class="badge-soft" [class]="'badge-soft ' + statusTone(order.status)">{{ statusLabel(order.status) }}</span>
+        <span data-label="Status" class="badge-soft" [class]="'badge-soft ' + statusTone(order.status)">{{ statusLabel(order.status, order.fulfillmentType) }}</span>
         <span data-label="Pagamento" class="badge-soft badge-money">{{ paymentLabel(order.paymentMethod) }}</span>
         <strong data-label="Valor" class="order-total">{{ formatCurrency(order.total) }}</strong>
       </article>

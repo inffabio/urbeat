@@ -8,6 +8,7 @@ import { StoreContextService } from '../../core/services/store-context.service';
 import { formatSaoPauloDate } from '../../core/utils/sao-paulo-date.helper';
 import { OrderDetails } from '../../shared/models/order.model';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
+import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { BrlCurrencyPipe } from '../../shared/pipes/brl-currency.pipe';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
@@ -37,13 +38,13 @@ export class CustomerOrdersPageComponent {
       .sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime()),
   );
 
-  statusLabel(status: OrderStatus): string {
+  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType): string {
     switch (status) {
       case OrderStatus.Created: return 'Criado';
       case OrderStatus.PendingPayment: return 'Aguardando pagamento';
       case OrderStatus.Received: return 'Recebido';
       case OrderStatus.Preparing: return 'Preparando';
-      case OrderStatus.Ready: return 'Pronto';
+      case OrderStatus.Ready: return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
       case OrderStatus.OnDelivery: return 'Saiu para entrega';
       case OrderStatus.Delivered: return 'Entregue';
       case OrderStatus.Cancelled: return 'Cancelado';

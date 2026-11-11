@@ -120,6 +120,46 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('renders the pickup store snapshot below the timeline with accessible address content', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      pickupStoreAddress: {
+        zipCode: '28010000', street: 'Rua da Loja', number: '42', neighborhood: 'Centro',
+        city: 'Campos', state: 'RJ', complement: 'Sala 2', reference: 'Ao lado da praça',
+      },
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.css('.pickup-store-address-card'));
+    expect(card).not.toBeNull();
+    expect(card.nativeElement.textContent).toContain('Retirada na loja');
+    expect(card.nativeElement.textContent).toContain('Endereço da loja');
+    expect(card.nativeElement.textContent).toContain('Pedido #');
+    expect(card.nativeElement.textContent).toContain('Rua da Loja, 42');
+    expect(card.nativeElement.textContent).toContain('Sala 2');
+    expect(card.nativeElement.textContent).toContain('Ao lado da praça');
+    expect(card.nativeElement.querySelector('ion-icon').getAttribute('aria-hidden')).toBe('true');
+    expect(card.nativeElement.compareDocumentPosition(fixture.debugElement.query(By.css('.items-card')).nativeElement)
+      & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fixture.destroy();
+  });
+
+  it.each([
+    ['delivery', { ...baseOrder, pickupStoreAddress: { zipCode: '28010000', street: 'Rua', number: '1', neighborhood: 'Centro', city: 'Campos', state: 'RJ' } }],
+    ['pickup without snapshot', { ...baseOrder, fulfillmentType: FulfillmentType.PickUp, pickupStoreAddress: null }],
+    ['pickup with incomplete snapshot', { ...baseOrder, fulfillmentType: FulfillmentType.PickUp, pickupStoreAddress: { zipCode: '', street: 'Rua', number: '1', neighborhood: 'Centro', city: 'Campos', state: 'RJ' } }],
+  ])('does not render a pickup address card for %s', (_name, order) => {
+    getOrderMock.mockReturnValue(of(order));
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('.pickup-store-address-card'))).toBeNull();
+    fixture.destroy();
+  });
+
   it('renders the full delivery status sequence including Pronto', () => {
     const fixture = TestBed.createComponent(TrackingPageComponent);
     fixture.detectChanges();
@@ -286,16 +326,16 @@ describe('TrackingPageComponent', () => {
       .queryAll(By.css('.status-step .status-label'))
       .map((el) => el.nativeElement.textContent.trim());
 
-    expect(labels).toEqual(['Recebido', 'Preparando', 'Pronto', 'Entregue']);
+    expect(labels).toEqual(['Recebido', 'Preparando', 'Pronto para retirada']);
 
     fixture.destroy();
   });
 
-  it('ends the four-step pickup track at the last dot when the order is delivered', () => {
+  it('ends the pickup track at Ready without a delivery terminal step', () => {
     getOrderMock.mockReturnValue(of({
       ...baseOrder,
       fulfillmentType: FulfillmentType.PickUp,
-      status: OrderStatus.Delivered,
+       status: OrderStatus.Ready,
     }));
 
     const fixture = TestBed.createComponent(TrackingPageComponent);
@@ -304,11 +344,11 @@ describe('TrackingPageComponent', () => {
     const scroll = fixture.debugElement.query(By.css('.status-bar-scroll'));
     const steps = fixture.debugElement.queryAll(By.css('.status-step'));
 
-    expect(steps.length).toBe(4);
-    expect(scroll.nativeElement.style.getPropertyValue('--track-inset')).toBe('12.5%');
+    expect(steps.length).toBe(3);
+    expect(scroll.nativeElement.style.getPropertyValue('--track-inset')).toBe('16.666666666666668%');
     expect(scroll.nativeElement.style.getPropertyValue('--track-ratio')).toBe('1');
-    expect(scroll.nativeElement.classList).toContain('is-delivered');
-    expect(steps[3].nativeElement.getAttribute('aria-current')).toBe('step');
+    expect(scroll.nativeElement.classList).not.toContain('is-delivered');
+    expect(steps[2].nativeElement.getAttribute('aria-current')).toBe('step');
 
     fixture.destroy();
   });

@@ -30,6 +30,7 @@ import {
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { SellerPrintingService } from '../seller-printing/seller-printing.service';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
+import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { DashboardPeriodFilterComponent } from './components/dashboard-period-filter/dashboard-period-filter.component';
 import { DashboardSalesGridComponent } from './components/dashboard-sales-grid/dashboard-sales-grid.component';
@@ -633,13 +634,13 @@ export class SellerDashboardPageComponent implements OnInit {
     }
   }
 
-  statusLabel(status: OrderStatus): string {
+  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType): string {
     switch (status) {
       case OrderStatus.Created: return 'Criado';
       case OrderStatus.PendingPayment: return 'Aguardando pagamento';
       case OrderStatus.Received: return 'Recebido';
       case OrderStatus.Preparing: return 'Preparando';
-      case OrderStatus.Ready: return 'Pronto';
+      case OrderStatus.Ready: return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
       case OrderStatus.OnDelivery: return 'Saiu para entrega';
       case OrderStatus.Delivered: return 'Entregue';
       case OrderStatus.Cancelled: return 'Cancelado';

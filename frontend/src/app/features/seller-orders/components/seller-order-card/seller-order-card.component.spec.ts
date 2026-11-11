@@ -1,8 +1,16 @@
 import { TestBed } from '@angular/core/testing';
+import { FulfillmentType } from '../../../../shared/enums/fulfillment-type.enum';
 import { OrderStatus } from '../../../../shared/enums/order-status.enum';
 import { SellerOrderCardComponent } from './seller-order-card.component';
 
 describe('SellerOrderCardComponent', () => {
+  it('labels a ready pickup order as ready for pickup', () => {
+    const fixture = TestBed.createComponent(SellerOrderCardComponent);
+
+    expect(fixture.componentInstance.statusLabel(OrderStatus.Ready, FulfillmentType.PickUp)).toBe('Pronto para retirada');
+    expect(fixture.componentInstance.statusLabel(OrderStatus.Ready, FulfillmentType.Delivery)).toBe('Pronto');
+  });
+
   it('renders order code, total and status action', () => {
     const fixture = TestBed.createComponent(SellerOrderCardComponent);
     fixture.componentRef.setInput('order', {

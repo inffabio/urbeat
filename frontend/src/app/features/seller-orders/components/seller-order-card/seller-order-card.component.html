@@ -12,7 +12,7 @@
   </div>
 
   <div class="order-meta">
-    <span>{{ statusLabel(order().status) }}</span>
+    <span>{{ statusLabel(order().status, order().fulfillmentType) }}</span>
     <span>{{ formatTime(order().createdAtUtc) }}</span>
   </div>
 

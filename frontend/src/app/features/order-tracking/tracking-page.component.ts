@@ -8,7 +8,7 @@ import { OrderService } from '../../core/services/order.service';
 import { CustomerOrderTrackingService } from '../../core/services/customer-order-tracking.service';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { formatSaoPauloTime } from '../../core/utils/sao-paulo-date.helper';
-import { OrderDetails, OrderItem } from '../../shared/models/order.model';
+import { OrderDetails, OrderItem, PickupStoreAddress } from '../../shared/models/order.model';
 import { OrderStatus } from '../../shared/enums/order-status.enum';
 import { FulfillmentType } from '../../shared/enums/fulfillment-type.enum';
 import { PaymentMethod } from '../../shared/enums/payment-method.enum';
@@ -79,7 +79,10 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
    * actual `Delivered` status stops the accordion sweep; intermediate states
    * can share the same numeric ratio, so ratio is not a valid signal here.
    */
-  readonly delivered = computed(() => this.order()?.status === OrderStatus.Delivered);
+  readonly delivered = computed(() => {
+    const order = this.order();
+    return order?.status === OrderStatus.Delivered && order.fulfillmentType === FulfillmentType.Delivery;
+  });
 
   readonly loading = computed(() => this.order() === null && !this.invalidOrder() && !this.unavailable());
 
@@ -99,6 +102,14 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   });
 
   readonly isPickup = computed(() => this.order()?.fulfillmentType === FulfillmentType.PickUp);
+
+  readonly pickupStoreAddress = computed<PickupStoreAddress | null>(() => {
+    const order = this.order();
+    const address = order?.pickupStoreAddress;
+    if (order?.fulfillmentType !== FulfillmentType.PickUp || !address) return null;
+    const required = [address.zipCode, address.street, address.number, address.neighborhood, address.city, address.state];
+    return required.every((value) => value.trim().length > 0) ? address : null;
+  });
 
   readonly etaLabel = computed(() => (this.isPickup() ? 'Retirada no local' : 'Previsão de entrega'));
 
@@ -121,9 +132,11 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
     const defs: { status: OrderStatus; label: string }[] = [
       { status: OrderStatus.Received, label: 'Recebido' },
       { status: OrderStatus.Preparing, label: 'Preparando' },
-      { status: OrderStatus.Ready, label: 'Pronto' },
-      ...(isPickup ? [] : [{ status: OrderStatus.OnDelivery, label: 'Saiu para entregar' }]),
-      { status: OrderStatus.Delivered, label: 'Entregue' },
+      { status: OrderStatus.Ready, label: isPickup ? 'Pronto para retirada' : 'Pronto' },
+      ...(isPickup ? [] : [
+        { status: OrderStatus.OnDelivery, label: 'Saiu para entregar' },
+        { status: OrderStatus.Delivered, label: 'Entregue' },
+      ]),
     ];
     if (!o) return defs.map((d) => ({ ...d, state: 'future' as const }));
     return defs.map((d) => {

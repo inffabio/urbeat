@@ -1103,6 +1103,38 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PickupStoreAddressCity")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("PickupStoreAddressComplement")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("PickupStoreAddressNeighborhood")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("PickupStoreAddressNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("PickupStoreAddressReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PickupStoreAddressState")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("PickupStoreAddressStreet")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("PickupStoreAddressZipCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
                     b.Property<DateTime?>("SellerCompletedAtUtc")
                         .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone");

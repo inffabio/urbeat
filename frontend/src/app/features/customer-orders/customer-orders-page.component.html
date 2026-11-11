@@ -14,7 +14,7 @@
             <button type="button" class="order-card" (click)="goToOrder(order.id)">
               <span class="order-card-top">
                 <strong class="order-code">Pedido #{{ order.code }}</strong>
-                <span class="order-status">{{ statusLabel(order.status) }}</span>
+                <span class="order-status">{{ statusLabel(order.status, order.fulfillmentType) }}</span>
               </span>
               <span class="order-meta">
                 <span>{{ itemCount(order) }} {{ itemCount(order) === 1 ? 'item' : 'itens' }}</span>
@@ -40,7 +40,7 @@
             <button type="button" class="order-card" (click)="goToOrder(order.id)">
               <span class="order-card-top">
                 <strong class="order-code">Pedido #{{ order.code }}</strong>
-                <span class="order-status">{{ statusLabel(order.status) }}</span>
+                <span class="order-status">{{ statusLabel(order.status, order.fulfillmentType) }}</span>
               </span>
               <span class="order-meta">
                 <span>{{ itemCount(order) }} {{ itemCount(order) === 1 ? 'item' : 'itens' }}</span>

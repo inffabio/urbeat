@@ -76,6 +76,8 @@ public sealed class OrderOutboxIntegrationTests : IDisposable
         payload.StoreId.Should().Be(store.Id);
         payload.CustomerUserId.Should().Be(customerUserId);
         payload.SellerUserId.Should().Be(store.OwnerUserId);
+        message.Payload.Should().NotContain("PickupStoreAddress");
+        message.Payload.Should().NotContain("DeliveryPin");
     }
 
     [Fact]
@@ -175,8 +177,19 @@ public sealed class OrderOutboxIntegrationTests : IDisposable
             SaleMode = "single",
             IsAvailable = true
         };
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            ZipCode = "01001000",
+            Street = "Rua da Loja",
+            Number = "42",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP"
+        };
         _db.Stores.Add(store);
         _db.Products.Add(product);
+        _db.StoreAddresses.Add(storeAddress);
         await _db.SaveChangesAsync();
         return (store, product, customerUserId);
     }

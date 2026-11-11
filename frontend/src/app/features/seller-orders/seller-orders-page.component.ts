@@ -945,7 +945,8 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   }
 
   canComplete(order: OrderSummary): boolean {
-    return order.status === OrderStatus.Delivered
+    return (order.status === OrderStatus.Delivered
+       || (this.isPickup(order) && order.status === OrderStatus.Ready))
       && !order.sellerCompletedAtUtc
       && (!!order.deliveryConfirmedAtUtc || this.isPickup(order));
   }
@@ -1555,13 +1556,13 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       : '';
   }
 
-  statusLabel(status?: OrderStatus): string {
+  statusLabel(status?: OrderStatus, fulfillmentType?: FulfillmentType): string {
     switch (status) {
       case OrderStatus.Created: return 'Criado';
       case OrderStatus.PendingPayment: return 'Aguardando pagamento';
       case OrderStatus.Received: return 'Recebido';
       case OrderStatus.Preparing: return 'Preparando';
-      case OrderStatus.Ready: return 'Pronto';
+      case OrderStatus.Ready: return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
       case OrderStatus.OnDelivery: return 'Saiu para entrega';
       case OrderStatus.Delivered: return 'Entregue';
       case OrderStatus.Cancelled: return 'Cancelado';
@@ -1590,7 +1591,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         return { kind: 'advance', label: 'Marcar como pronto', nextStatus: OrderStatus.Ready, css: 'action-orange' };
       case OrderStatus.Ready:
         return this.isPickup(order)
-          ? { kind: 'advance', label: 'Concluir retirada', nextStatus: OrderStatus.Delivered, css: 'action-blue' }
+          ? (this.canComplete(order)
+            ? { kind: 'complete', label: 'Concluir retirada', css: 'action-green' }
+            : null)
           : { kind: 'advance', label: 'Saiu para entrega', nextStatus: OrderStatus.OnDelivery, css: 'action-blue' };
       case OrderStatus.OnDelivery:
         return { kind: 'advance', label: 'Marcar como entregue', nextStatus: OrderStatus.Delivered, css: 'action-purple' };

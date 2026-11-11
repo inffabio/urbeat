@@ -86,6 +86,26 @@ public sealed class CheckoutService : ICheckoutService
 
         var isDelivery = request.FulfillmentType == FulfillmentType.Delivery;
 
+        StoreAddress? pickupStoreAddress = null;
+        if (!isDelivery && persistOrder)
+        {
+            pickupStoreAddress = await _dbContext.StoreAddresses
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.StoreId == store.Id, cancellationToken);
+
+            if (pickupStoreAddress is null
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.ZipCode)
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.Street)
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.Number)
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.Neighborhood)
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.City)
+                || string.IsNullOrWhiteSpace(pickupStoreAddress.State))
+            {
+                Serilog.Log.Warning("{EventType} | Checkout failed | StoreId={StoreId} | Reason=pickup_store_address_missing | IP={IpAddress}", "ORDER_CREATE_FAILED", request.StoreId, ipAddress);
+                return new CheckoutResultDto { AddressNotFound = true };
+            }
+        }
+
         CustomerAddress? address = null;
         if (isDelivery && request.CustomerAddressId.HasValue && customerUserId.HasValue)
         {
@@ -340,6 +360,17 @@ public sealed class CheckoutService : ICheckoutService
             // order snapshot, so a later address edit cannot move an order in progress.
             order.DeliveryLatitude = address.Latitude;
             order.DeliveryLongitude = address.Longitude;
+        }
+        else if (pickupStoreAddress is not null)
+        {
+            order.PickupStoreAddressZipCode = pickupStoreAddress.ZipCode.Trim();
+            order.PickupStoreAddressStreet = pickupStoreAddress.Street.Trim();
+            order.PickupStoreAddressNumber = pickupStoreAddress.Number.Trim();
+            order.PickupStoreAddressNeighborhood = pickupStoreAddress.Neighborhood.Trim();
+            order.PickupStoreAddressCity = pickupStoreAddress.City.Trim();
+            order.PickupStoreAddressState = pickupStoreAddress.State.Trim();
+            order.PickupStoreAddressComplement = pickupStoreAddress.Complement?.Trim();
+            order.PickupStoreAddressReference = pickupStoreAddress.Reference?.Trim();
         }
 
         order.Code = await GenerateOrderCodeAsync(cancellationToken);

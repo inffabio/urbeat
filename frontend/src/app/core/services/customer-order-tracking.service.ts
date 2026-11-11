@@ -28,14 +28,10 @@ export class CustomerOrderTrackingService {
   readonly unavailableOrderIds = signal<string[]>([]);
   readonly hasTrackedOrders = computed(() => this.trackedIds().length > 0);
   readonly activeOrders = computed(() =>
-    this.trackedOrders().filter(
-      (order) => order.status !== OrderStatus.Delivered && order.status !== OrderStatus.Cancelled,
-    ),
+    this.trackedOrders().filter((order) => !this.isTerminal(order)),
   );
   readonly finishedOrders = computed(() =>
-    this.trackedOrders().filter(
-      (order) => order.status === OrderStatus.Delivered || order.status === OrderStatus.Cancelled,
-    ),
+    this.trackedOrders().filter((order) => this.isTerminal(order)),
   );
 
   private readonly trackedIds = signal<string[]>([]);
@@ -57,6 +53,12 @@ export class CustomerOrderTrackingService {
   private orderStatusListener?: (data: OrderStatusUpdateEvent) => void;
   private customerStateUnsubscribe?: () => void;
   private tokenSubscription?: Subscription;
+
+  private isTerminal(order: OrderDetails): boolean {
+    return order.status === OrderStatus.Cancelled
+      || order.status === OrderStatus.Delivered
+      || (order.fulfillmentType === FulfillmentType.PickUp && order.status === OrderStatus.Ready);
+  }
 
   trackOrder(orderId: string): void {
     if (!orderId) return;
@@ -326,7 +328,7 @@ export class CustomerOrderTrackingService {
       if (this.isOrderUnavailable(id)) return false;
       const order = orders.find((item) => item.id === id);
       if (!order) return true;
-      if (order.status === OrderStatus.Cancelled) return false;
+      if (this.isTerminal(order)) return false;
       if (order.status === OrderStatus.Delivered) return this.awaitsDeliveryConfirmation(order);
       return true;
     });
@@ -378,11 +380,8 @@ export class CustomerOrderTrackingService {
       return;
     }
     const order = this.trackedOrders().find((o) => o.id === orderId);
-    if (
-      order &&
-      (order.status === OrderStatus.Cancelled
-        || (order.status === OrderStatus.Delivered && !this.awaitsDeliveryConfirmation(order)))
-    ) {
+    if (order && this.isTerminal(order)
+      && !(order.status === OrderStatus.Delivered && this.awaitsDeliveryConfirmation(order))) {
       this.recoveringOrders.delete(orderId);
       return;
     }
@@ -450,10 +449,7 @@ export class CustomerOrderTrackingService {
     const orders = this.trackedOrders();
     return this.trackedIds().filter((id) => {
       const order = orders.find((o) => o.id === id);
-      return (
-        !this.isOrderUnavailable(id) &&
-        (!order || (order.status !== OrderStatus.Delivered && order.status !== OrderStatus.Cancelled))
-      );
+      return !this.isOrderUnavailable(id) && (!order || !this.isTerminal(order));
     });
   }
 

@@ -33,14 +33,14 @@ export class SellerOrderCardComponent {
 
   readonly OrderStatus = OrderStatus;
 
-  statusLabel(status: OrderStatus): string {
+  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType): string {
     switch (status) {
       case OrderStatus.Received:
         return 'Recebido';
       case OrderStatus.Preparing:
         return 'Preparando';
       case OrderStatus.Ready:
-        return 'Pronto';
+        return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
       case OrderStatus.OnDelivery:
         return 'Em entrega';
       case OrderStatus.Delivered:
@@ -65,6 +65,7 @@ export class SellerOrderCardComponent {
           { label: 'Cancelar', nextStatus: OrderStatus.Cancelled, variant: 'danger' },
         ];
       case OrderStatus.Ready:
+        if (this.order().fulfillmentType === FulfillmentType.PickUp) return [];
         return [
           { label: 'Saiu para entrega', nextStatus: OrderStatus.OnDelivery },
           { label: 'Entregue no balcão', nextStatus: OrderStatus.Delivered, variant: 'secondary' },

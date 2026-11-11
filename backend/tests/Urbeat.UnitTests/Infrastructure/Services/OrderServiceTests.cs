@@ -142,6 +142,114 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task OrderDetails_ShouldExposePickupSnapshotOnlyToAuthorizedCustomer()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var otherCustomerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "PICKUP1",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Ready,
+            PickupStoreAddressZipCode = "01001000",
+            PickupStoreAddressStreet = "Rua do Pedido",
+            PickupStoreAddressNumber = "42",
+            PickupStoreAddressNeighborhood = "Centro",
+            PickupStoreAddressCity = "Sao Paulo",
+            PickupStoreAddressState = "SP",
+            DeliveryPinEncrypted = "encrypted-pin"
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var customer = await _sut.GetCustomerOrderAsync(customerUserId, order.Id);
+        var seller = await _sut.GetStoreOrderAsync(sellerUserId, order.Id);
+        var unauthorized = await _sut.GetCustomerOrderAsync(otherCustomerUserId, order.Id);
+
+        customer.Should().NotBeNull();
+        customer!.PickupStoreAddress!.Street.Should().Be("Rua do Pedido");
+        customer.DeliveryPin.Should().BeNull();
+        seller.Should().NotBeNull();
+        seller!.PickupStoreAddress.Should().BeNull();
+        seller.DeliveryPin.Should().BeNull();
+        unauthorized.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeliveryOrderDetails_ShouldNotExposePickupSnapshot_EvenWhenLegacyFieldsArePopulated()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "DELIVERY1",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Received,
+            PickupStoreAddressZipCode = "01001000",
+            PickupStoreAddressStreet = "Nunca Retornar",
+            PickupStoreAddressNumber = "1",
+            PickupStoreAddressNeighborhood = "Centro",
+            PickupStoreAddressCity = "Sao Paulo",
+            PickupStoreAddressState = "SP",
+            DeliveryPinEncrypted = "encrypted-pin"
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var customer = await _sut.GetCustomerOrderAsync(customerUserId, order.Id);
+        var seller = await _sut.GetStoreOrderAsync(sellerUserId, order.Id);
+
+        customer!.PickupStoreAddress.Should().BeNull();
+        customer.DeliveryPin.Should().BeNull();
+        seller!.PickupStoreAddress.Should().BeNull();
+        seller.DeliveryPin.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task LegacyPickupOrderDetails_ShouldNotInventCurrentStoreAddress_WhenSnapshotIsNull()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste", PhoneNumber = "11999999999" };
+        _db.Stores.Add(store);
+        _db.StoreAddresses.Add(new StoreAddress
+        {
+            StoreId = store.Id,
+            ZipCode = "01001000",
+            Street = "Endereco Atual",
+            Number = "99",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP"
+        });
+        var order = new Order
+        {
+            Code = "OLDPICK1",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Ready
+        };
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetCustomerOrderAsync(customerUserId, order.Id);
+
+        result.Should().NotBeNull();
+        result!.PickupStoreAddress.Should().BeNull();
+        result.AddressStreet.Should().BeNull();
+    }
+
+    [Fact]
     public async Task ListStoreOrdersAsync_ShouldReturnSellerOrderSummaryWithOperationalDetails()
     {
         var sellerUserId = Guid.NewGuid();
@@ -1061,7 +1169,7 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CompleteForSellerBoardAsync_ShouldComplete_PickUpDelivered_WithoutDeliveryConfirmedAtUtc()
+    public async Task CompleteForSellerBoardAsync_ShouldComplete_PickUpReady_WithoutDeliveryConfirmedAtUtc()
     {
         var sellerUserId = Guid.NewGuid();
         var customerUserId = Guid.NewGuid();
@@ -1072,7 +1180,7 @@ public sealed class OrderServiceTests : IDisposable
             CustomerUserId = customerUserId,
             StoreId = store.Id,
             FulfillmentType = FulfillmentType.PickUp,
-            Status = OrderStatus.Delivered,
+            Status = OrderStatus.Ready,
             Total = 42.5m
         };
         _db.Stores.Add(store);

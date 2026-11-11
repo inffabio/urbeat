@@ -338,6 +338,14 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.AddressState).HasMaxLength(2);
             entity.Property(x => x.AddressComplement).HasMaxLength(120);
             entity.Property(x => x.AddressReference).HasMaxLength(200);
+            entity.Property(x => x.PickupStoreAddressZipCode).HasMaxLength(8);
+            entity.Property(x => x.PickupStoreAddressStreet).HasMaxLength(120);
+            entity.Property(x => x.PickupStoreAddressNumber).HasMaxLength(20);
+            entity.Property(x => x.PickupStoreAddressNeighborhood).HasMaxLength(80);
+            entity.Property(x => x.PickupStoreAddressCity).HasMaxLength(80);
+            entity.Property(x => x.PickupStoreAddressState).HasMaxLength(2);
+            entity.Property(x => x.PickupStoreAddressComplement).HasMaxLength(120);
+            entity.Property(x => x.PickupStoreAddressReference).HasMaxLength(200);
             entity.Property(x => x.Notes).HasMaxLength(500);
             entity.Property(x => x.Subtotal).HasPrecision(10, 2);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);

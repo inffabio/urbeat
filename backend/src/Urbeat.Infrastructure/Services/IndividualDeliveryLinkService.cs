@@ -196,6 +196,11 @@ public sealed class IndividualDeliveryLinkService : IIndividualDeliveryLinkServi
             return new PublicDeliveryRoutePinResultDto { Gone = true };
         }
 
+        if (order.FulfillmentType != FulfillmentType.Delivery)
+        {
+            return new PublicDeliveryRoutePinResultDto { InvalidState = true, RemainingAttempts = 0 };
+        }
+
         // Repeating a confirmation is idempotent and never counts as an error.
         if (order.DeliveryConfirmedAtUtc is not null)
         {

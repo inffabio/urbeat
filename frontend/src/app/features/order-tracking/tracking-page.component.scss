@@ -406,6 +406,49 @@
   }
 }
 
+.pickup-store-address-card {
+  margin-bottom: 26px;
+
+  h2 {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin: 0;
+  }
+}
+
+.pickup-store-address-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: 16px;
+}
+
+.pickup-store-address-label {
+  color: var(--app-text-secondary);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.pickup-store-order-code {
+  color: var(--app-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 12px 52px;
+}
+
+.pickup-store-address-card address {
+  color: var(--app-text-secondary);
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-style: normal;
+  gap: 4px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  padding-left: 52px;
+}
+
 .order-items {
   list-style: none;
   margin: 0;

@@ -65,6 +65,54 @@ public sealed class CheckoutServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ConfirmAsync_ShouldCopyPickupStoreAddressSnapshot()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), BuildPickupRequest(store, product), "127.0.0.1");
+
+        var persisted = await _db.Orders.SingleAsync(order => order.Id == result.Confirmation!.OrderId);
+        persisted.PickupStoreAddressZipCode.Should().Be("01001000");
+        persisted.PickupStoreAddressStreet.Should().Be("Rua da Loja");
+        persisted.PickupStoreAddressNumber.Should().Be("42");
+        persisted.PickupStoreAddressNeighborhood.Should().Be("Centro");
+        persisted.PickupStoreAddressCity.Should().Be("Sao Paulo");
+        persisted.PickupStoreAddressState.Should().Be("SP");
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldKeepPickupAddressSnapshot_WhenStoreAddressChangesAfterOrderCreation()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), BuildPickupRequest(store, product), "127.0.0.1");
+
+        var storeAddress = await _db.StoreAddresses.SingleAsync(x => x.StoreId == store.Id);
+        storeAddress.Street = "Rua Nova da Loja";
+        storeAddress.Number = "999";
+        storeAddress.Neighborhood = "Novo Bairro";
+        await _db.SaveChangesAsync();
+
+        var persisted = await _db.Orders.AsNoTracking().SingleAsync(order => order.Id == result.Confirmation!.OrderId);
+
+        persisted.PickupStoreAddressStreet.Should().Be("Rua da Loja");
+        persisted.PickupStoreAddressNumber.Should().Be("42");
+        persisted.PickupStoreAddressNeighborhood.Should().Be("Centro");
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectPickupWithoutCompleteStoreAddressBeforePersistingOrder()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+        var address = await _db.StoreAddresses.SingleAsync(x => x.StoreId == store.Id);
+        address.Street = string.Empty;
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), BuildPickupRequest(store, product), "127.0.0.1");
+
+        result.AddressNotFound.Should().BeTrue();
+        (await _db.Orders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
     public async Task ConfirmAsync_ShouldGenerateUniqueOrderCodes_WhenConfirmingMultipleOrders()
     {
         var (store, product) = await SeedPickupStoreAsync();
@@ -402,9 +450,20 @@ public sealed class CheckoutServiceTests : IDisposable
             SaleMode = "single",
             IsAvailable = true
         };
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            ZipCode = "01001000",
+            Street = "Rua da Loja",
+            Number = "42",
+            Neighborhood = "Centro",
+            City = "Sao Paulo",
+            State = "SP"
+        };
 
         _db.Stores.Add(store);
         _db.Products.Add(product);
+        _db.StoreAddresses.Add(storeAddress);
         await _db.SaveChangesAsync();
 
         return (store, product);

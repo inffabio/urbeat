@@ -844,6 +844,11 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             return new PublicDeliveryRouteAccessResultDto { Gone = true };
         }
 
+        if (route.Orders.Any(stop => stop.Order?.FulfillmentType != FulfillmentType.Delivery))
+        {
+            return new PublicDeliveryRouteAccessResultDto { NotFound = true };
+        }
+
         return new PublicDeliveryRouteAccessResultDto
         {
             Route = await MapPublicRouteAsync(route, cancellationToken)
@@ -882,6 +887,11 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
         }
 
         var order = stop.Order;
+
+        if (order.FulfillmentType != FulfillmentType.Delivery)
+        {
+            return new PublicDeliveryRoutePinResultDto { InvalidState = true, RemainingAttempts = 0 };
+        }
 
         // Retrying the same already-confirmed stop is idempotent and never counts as an error.
         if (order.DeliveryConfirmedAtUtc is not null)

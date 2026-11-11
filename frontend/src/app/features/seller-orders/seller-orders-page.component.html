@@ -528,7 +528,7 @@
           @if (selected.customerPhoneNumber) { <div><strong>Contato:</strong> {{ selected.customerPhoneNumber }}</div> }
           @if (selected.address) { <div><strong>Endereço:</strong> {{ selected.address }}</div> }
           @if (selected.fulfillmentType !== undefined && selected.fulfillmentType !== null) { <div><strong>Tipo de entrega:</strong> {{ fulfillmentLabel(selected.fulfillmentType) }}</div> }
-          @if (selected.status !== undefined && selected.status !== null) { <div><strong>Status:</strong> {{ statusLabel(selected.status) }}</div> }
+          @if (selected.status !== undefined && selected.status !== null) { <div><strong>Status:</strong> {{ statusLabel(selected.status, selected.fulfillmentType) }}</div> }
           @if (selected.createdAtUtc) { <div><strong>Data:</strong> {{ formatOrderDate(selected.createdAtUtc) }}</div> }
           @if (selected.notes) { <div><strong>Notas do pedido:</strong> {{ selected.notes }}</div> }
           <div><strong>Pagamento:</strong> {{ paymentLabel(selected.paymentMethod) }}</div>

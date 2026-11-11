@@ -79,6 +79,8 @@ public sealed class OrderDetailsResponseDto
 
     public string? AddressReference { get; init; }
 
+    public PickupStoreAddressResponseDto? PickupStoreAddress { get; init; }
+
     public string? Notes { get; init; }
 
     public IReadOnlyCollection<OrderItemResponseDto> Items { get; init; } = [];

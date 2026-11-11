@@ -126,6 +126,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     public async Task PickupOrder_ShouldNotAcceptDeliveryDriverAssignment()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("A");
+        await SetStoreAddressAsync(sellerClient, storeId);
         var driver = await CreateSimpleDriverAsync(
             sellerClient, "Entregador Pickup", "11999990001", null, isActive: true);
 
@@ -135,6 +136,52 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             $"/api/orders/store/{pickupOrderId}/delivery-driver",
             new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task PickupOrder_ShouldRejectRouteLinkAndPinOperations_WithoutCreatingDeliveryEffects()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("PICKUP-EFFECTS");
+        await SetStoreAddressAsync(sellerClient, storeId);
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Entregador Pickup Efeitos", "11999990011", null, isActive: true);
+        var pickupOrderId = await CreateOrderAsync(sellerClient, storeId, FulfillmentType.PickUp, null);
+        int routeCountBefore;
+        using (var baselineScope = _factory.Services.CreateScope())
+        {
+            var baselineDb = baselineScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            routeCountBefore = await baselineDb.DeliveryRoutes.AsNoTracking().CountAsync();
+        }
+
+        var route = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store",
+            new CreateDeliveryRouteRequestDto
+            {
+                DeliveryDriverId = driver.Id,
+                OrderIds = [pickupOrderId]
+            });
+        route.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var link = await sellerClient.PostAsync(
+            $"/api/orders/store/{pickupOrderId}/delivery-link", null);
+        link.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var publicPinAttempt = await _factory.CreateClient(new() { AllowAutoRedirect = false }).PostAsJsonAsync(
+            $"/api/public/deliveries/{pickupOrderId}/deliver",
+            new ConfirmDeliveryPinRequestDto { Pin = "8888" });
+        publicPinAttempt.StatusCode.Should().NotBe(HttpStatusCode.OK);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await db.OrderDeliveryAssignments.AsNoTracking().AnyAsync(x => x.OrderId == pickupOrderId))
+            .Should().BeFalse();
+        (await db.DeliveryRouteOrders.AsNoTracking().AnyAsync(x => x.OrderId == pickupOrderId))
+            .Should().BeFalse();
+        (await db.DeliveryRoutes.AsNoTracking().CountAsync()).Should().Be(routeCountBefore);
+        var storedOrder = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == pickupOrderId);
+        storedOrder.DeliveryLinkTokenHash.Should().BeNull();
+        storedOrder.DeliveryPinHash.Should().BeNull();
+        storedOrder.DeliveryPinEncrypted.Should().BeNull();
     }
 
     [Fact]
@@ -1616,6 +1663,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     public async Task Pickup_ShouldBeCompletedWithoutDriverOrPin()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("PICKUP");
+        await SetStoreAddressAsync(sellerClient, storeId);
         var order = await CreateOrderAsync(
             sellerClient,
             storeId,
@@ -1633,7 +1681,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var delivered = await sellerClient.PatchAsJsonAsync(
             $"/api/orders/{order}/status",
             new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
-        delivered.StatusCode.Should().Be(HttpStatusCode.OK, await delivered.Content.ReadAsStringAsync());
+        delivered.StatusCode.Should().Be(HttpStatusCode.BadRequest, await delivered.Content.ReadAsStringAsync());
 
         var complete = await sellerClient.PostAsync($"/api/orders/{order}/complete", null);
         complete.StatusCode.Should().Be(HttpStatusCode.OK, await complete.Content.ReadAsStringAsync());
@@ -1641,7 +1689,7 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var stored = await db.Orders.AsNoTracking().SingleAsync(x => x.Id == order);
-        stored.Status.Should().Be(OrderStatus.Delivered);
+        stored.Status.Should().Be(OrderStatus.Ready);
         stored.SellerCompletedAtUtc.Should().NotBeNull();
         (await db.OrderDeliveryAssignments.AsNoTracking().AnyAsync(x => x.OrderId == order))
             .Should().BeFalse("pickup must never require a motoboy or delivery PIN");

@@ -264,7 +264,7 @@
               <span>{{ order.customerName || 'Cliente' }}</span>
             </div>
             <span class="badge-soft" [class]="'badge-soft ' + statusBadgeClass(order.status)">
-              {{ statusLabel(order.status) }}
+              {{ statusLabel(order.status, order.fulfillmentType) }}
             </span>
           </div>
         } @empty {

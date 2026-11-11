@@ -2625,7 +2625,7 @@ describe('SellerOrdersPageComponent', () => {
     expect(text).not.toContain('R$ 4,00');
   });
 
-  it('offers Concluir retirada for a pickup order in Ready status, advancing straight to Delivered', () => {
+  it('offers Concluir retirada for a pickup order in Ready status without changing status', () => {
     orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
       if (status === OrderStatus.Ready) {
         return of({ items: [buildOrder({ id: 'pickup-ready', code: 'PU-1', status: OrderStatus.Ready, fulfillmentType: FulfillmentType.PickUp, total: 40 })], totalItems: 1 });
@@ -2643,21 +2643,10 @@ describe('SellerOrdersPageComponent', () => {
     const action = fixture.componentInstance.cardAction(
       fixture.componentInstance.statusGroups().ready[0],
     );
-    expect(action).toEqual({ kind: 'advance', label: 'Concluir retirada', nextStatus: OrderStatus.Delivered, css: 'action-blue' });
-
-    fixture.componentInstance.confirmAdvance(
-      fixture.componentInstance.statusGroups().ready[0],
-      (action as any).nextStatus,
-      (action as any).label,
-    );
-    fixture.componentInstance.executeAdvance();
-
-    expect(orderServiceMock.updateStoreOrderStatus).toHaveBeenCalledWith(
-      'pickup-ready',
-      OrderStatus.Delivered,
-      'Atualizado pelo painel do lojista',
-      undefined,
-    );
+    expect(action).toEqual({ kind: 'complete', label: 'Concluir retirada', css: 'action-green' });
+    expect(fixture.componentInstance.canComplete(fixture.componentInstance.statusGroups().ready[0])).toBe(true);
+    fixture.componentInstance.completeOrder(fixture.componentInstance.statusGroups().ready[0]);
+    expect(orderServiceMock.completeOrder).toHaveBeenCalledWith('pickup-ready');
   });
 
   it('keeps other order details when a single prefetch fails and exposes a retry state', () => {

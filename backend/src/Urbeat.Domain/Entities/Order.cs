@@ -28,6 +28,22 @@ public sealed class Order : BaseEntity
 
     public string? AddressReference { get; set; }
 
+    public string? PickupStoreAddressZipCode { get; set; }
+
+    public string? PickupStoreAddressStreet { get; set; }
+
+    public string? PickupStoreAddressNumber { get; set; }
+
+    public string? PickupStoreAddressNeighborhood { get; set; }
+
+    public string? PickupStoreAddressCity { get; set; }
+
+    public string? PickupStoreAddressState { get; set; }
+
+    public string? PickupStoreAddressComplement { get; set; }
+
+    public string? PickupStoreAddressReference { get; set; }
+
     /// <summary>
     /// Delivery destination coordinates captured at checkout from the customer address.
     /// They intentionally are a snapshot: editing the address later must not move an order
