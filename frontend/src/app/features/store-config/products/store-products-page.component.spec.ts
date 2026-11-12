@@ -618,6 +618,94 @@ describe('StoreProductsPageComponent — option groups', () => {
     });
   });
 
+  describe('special classification editor', () => {
+    it('exposes one selectable classification plus the empty option', () => {
+      expect(component.specialClassificationOptions.map(option => option.label))
+        .toEqual(['Nenhuma', 'Ofertas', 'Mais vendido', 'Novidade']);
+      expect(component.specialClassificationOptions.map(option => option.value))
+        .toEqual([null, 'Offers', 'BestSeller', 'New']);
+    });
+
+    it('loads the persisted classification when editing', () => {
+      component.selectProduct(sampleProduct({ specialClassification: 'Offers' }));
+      expect(component.specialClassification()).toBe('Offers');
+
+      component.selectProduct(sampleProduct({ specialClassification: 'BestSeller' }));
+      expect(component.specialClassification()).toBe('BestSeller');
+
+      component.selectProduct(sampleProduct({ specialClassification: 'New' }));
+      expect(component.specialClassification()).toBe('New');
+
+      component.selectProduct(sampleProduct({ specialClassification: null }));
+      expect(component.specialClassification()).toBeNull();
+    });
+
+    it('reads legacy booleans only as a fallback with Offers precedence', () => {
+      component.selectProduct(sampleProduct({
+        specialClassification: undefined,
+        isFeatured: true,
+        isBestSeller: true,
+        isNew: true,
+      }));
+      expect(component.specialClassification()).toBe('Offers');
+    });
+
+    it('sends exactly one nullable classification and no legacy flags in the payload', async () => {
+      component.storeId.set('store-1');
+      component.productName.set('X-Bacon');
+      component.productCatId.set('cat-1');
+      component.productPrice.set('25,00');
+      component.productImage.set('https://img.test/x-bacon.png');
+      component.setSpecialClassification('Offers');
+      storeServiceMock.createProduct.mockReturnValue(of(sampleProduct({ id: 'new-product' })));
+
+      await component.saveDraft();
+
+      const body = storeServiceMock.createProduct.mock.calls[0][1];
+      expect(body.specialClassification).toBe('Offers');
+      expect(body).not.toHaveProperty('isFeatured');
+      expect(body).not.toHaveProperty('isBestSeller');
+      expect(body).not.toHaveProperty('isNew');
+      expect(body).not.toHaveProperty('tagPriority');
+    });
+
+    it('clears the classification in the update payload', async () => {
+      component.storeId.set('store-1');
+      component.selectProduct(sampleProduct({ id: 'p-existing', specialClassification: 'New' }));
+      component.setSpecialClassification(null);
+      storeServiceMock.updateProduct.mockReturnValue(of(sampleProduct({ id: 'p-existing' })));
+
+      await component.saveDraft();
+
+      const body = storeServiceMock.updateProduct.mock.calls[0][2];
+      expect(body.specialClassification).toBeNull();
+    });
+
+    it('filters the administrative list by classification', () => {
+      component.products.set([
+        sampleProduct({ id: 'p1', name: 'X-Bacon', specialClassification: 'Offers' }),
+        sampleProduct({ id: 'p2', name: 'Batata', specialClassification: 'BestSeller' }),
+        sampleProduct({ id: 'p3', name: 'X-Salada', specialClassification: null }),
+      ]);
+
+      component.specialClassificationFilter.set('Offers');
+
+      expect(component.filteredProducts().map(product => product.name)).toEqual(['X-Bacon']);
+    });
+
+    it('does not expose product classification as Destaque in the shared editor template', () => {
+      const wizard = readFileSync(resolve(__dirname, 'store-products-page.component.html'), 'utf8');
+      const dashboard = readFileSync(resolve(__dirname, '../../seller-products/seller-products-page.component.html'), 'utf8');
+
+      expect(wizard).not.toContain('tagDestaque');
+      expect(dashboard).not.toContain('tagDestaque');
+      expect(wizard).not.toContain('Destaque');
+      expect(dashboard).not.toContain('Destaque');
+      expect(wizard).toContain('Classificacao especial');
+      expect(dashboard).toContain('Classificação especial');
+    });
+  });
+
   describe('copyProductOptions', () => {
     function fullProduct(overrides: Partial<any> = {}): any {
       return sampleProduct({
@@ -629,10 +717,7 @@ describe('StoreProductsPageComponent — option groups', () => {
         price: 49.9,
         imageUrl: 'https://img.test/margherita.jpg',
         isAvailable: false,
-        isFeatured: true,
-        isBestSeller: true,
-        isNew: true,
-        tagPriority: 'destaque,mais_vendido,novidade',
+        specialClassification: 'BestSeller',
         saleMode: 'size',
         variations: [
           { id: 'var-source-1', name: 'Média', description: '30 cm', price: 49.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
@@ -676,10 +761,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(component.productImage()).toBe('https://img.test/margherita.jpg');
       expect(component.productImagePreview()).toBe('https://img.test/margherita.jpg');
       expect(component.isProductActive()).toBe(false);
-      expect(component.tagDestaque()).toBe(true);
-      expect(component.tagMaisVendido()).toBe(true);
-      expect(component.tagNovidade()).toBe(true);
-      expect(component.tagPriority()).toEqual(['destaque', 'mais_vendido', 'novidade']);
+      expect(component.specialClassification()).toBe('BestSeller');
       expect(component.saleMode()).toBe('size');
       expect(component.sizeVariations().map(v => v.name)).toEqual(['Média', 'Grande']);
       expect(component.sizeVariations()[0]).toEqual(expect.objectContaining({
@@ -744,7 +826,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       component.productDesc.set('Descrição do rascunho');
       component.productCatId.set('cat-outra');
       component.productImage.set('https://img.test/outra.jpg');
-      component.tagDestaque.set(false);
+      component.setSpecialClassification(null);
       component.updateGroupName(groupId, 'Bordas novas');
       component.updateOptionItemName(groupId, itemId, 'Cheddar');
       component.sizeVariations.update(list => list.map((v, index) => index === 0 ? { ...v, name: 'Broto' } : v));
@@ -758,7 +840,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(source.description).toBe('Molho, mussarela e manjericão');
       expect(source.categoryId).toBe('cat-pizzas');
       expect(source.imageUrl).toBe('https://img.test/margherita.jpg');
-      expect(source.isFeatured).toBe(true);
+      expect(source.specialClassification).toBe('BestSeller');
       expect(source.optionGroups[0].name).toBe('Bordas');
       expect(source.optionGroups[0].items[0].name).toBe('Catupiry');
       expect(source.variations[0].name).toBe('Média');
@@ -799,10 +881,7 @@ describe('StoreProductsPageComponent — option groups', () => {
         categoryId: 'cat-pizzas',
         imageUrl: 'https://img.test/margherita.jpg',
         isAvailable: false,
-        isFeatured: true,
-        isBestSeller: true,
-        isNew: true,
-        tagPriority: 'destaque,mais_vendido,novidade',
+        specialClassification: 'BestSeller',
         saleMode: 'size',
         additionals: [expect.objectContaining({ name: 'Bacon extra', price: 7.5, isActive: true, isRequired: false, displayOrder: 1 })],
         choiceOptions: [expect.objectContaining({ name: 'Borda recheada', price: 8, isActive: true, isRequired: false, displayOrder: 1 })],
@@ -1004,7 +1083,7 @@ describe('StoreProductsPageComponent — option groups', () => {
 
     it('distinguishes an empty dirty form from an editable draft and never claims a save', async () => {
       component.storeId.set('store-1');
-      component.toggleTag('destaque');
+      component.setSpecialClassification('Offers');
 
       await component.saveDraft();
 
@@ -1051,10 +1130,10 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(component.formDirty()).toBe(true);
     });
 
-    it('marks the form dirty when a product tag is toggled', () => {
+    it('marks the form dirty when the special classification changes', () => {
       component.formDirty.set(false);
 
-      component.toggleTag('novidade');
+      component.setSpecialClassification('New');
 
       expect(component.formDirty()).toBe(true);
     });
@@ -1083,25 +1162,23 @@ describe('StoreProductsPageComponent — option groups', () => {
       expect(complete).toHaveBeenCalled();
     });
 
-    it('marks the form dirty when the tag priority order changes', () => {
-      component.toggleTag('destaque');
-      component.toggleTag('mais_vendido');
+    it('keeps a single selected classification when another one is chosen', () => {
+      component.setSpecialClassification('Offers');
       component.formDirty.set(false);
 
-      component.movePriorityUp('mais_vendido');
+      component.setSpecialClassification('BestSeller');
 
-      expect(component.tagPriority()).toEqual(['mais_vendido', 'destaque']);
+      expect(component.specialClassification()).toBe('BestSeller');
       expect(component.formDirty()).toBe(true);
     });
 
-    it('marks the form dirty when moving a tag priority down', () => {
-      component.toggleTag('destaque');
-      component.toggleTag('mais_vendido');
+    it('clears the classification with the empty option', () => {
+      component.setSpecialClassification('New');
       component.formDirty.set(false);
 
-      component.movePriorityDown('destaque');
+      component.setSpecialClassification(null);
 
-      expect(component.tagPriority()).toEqual(['mais_vendido', 'destaque']);
+      expect(component.specialClassification()).toBeNull();
       expect(component.formDirty()).toBe(true);
     });
 
@@ -1160,7 +1237,7 @@ describe('StoreProductsPageComponent — option groups', () => {
 
     it('does not advance with an empty dirty form that cannot be persisted', async () => {
       component.storeId.set('store-1');
-      component.toggleTag('destaque');
+      component.setSpecialClassification('Offers');
 
       await component.goNext();
 
@@ -1746,20 +1823,20 @@ describe('StoreProductsPageComponent — option groups', () => {
     });
 
     it('scopes every catalog refinement to the wizard instead of the shared base rules', () => {
-      expect(styleRule('.catalog-tools')).toContain('minmax(200px, 230px)');
+      expect(styleRule('.catalog-tools')).toContain('minmax(160px, 200px)');
       expect(styleRule('.catalog-product')).toContain('gap: 16px');
       expect(styleRule('.catalog-product')).not.toContain('gap: 12px');
       expect(styleRule('.catalog-product-name')).toContain('white-space: nowrap');
       expect(styleRule('.catalog-product-actions')).toContain('flex-wrap: wrap');
       expect(styleRule('.catalog-preview')).toContain('padding: 14px 16px');
 
-      expect(wizardRule('.catalog-tools')).toContain('minmax(170px, 210px)');
+      expect(wizardRule('.catalog-tools')).toContain('minmax(150px, 190px)');
       expect(wizardRule('.catalog-product')).toContain('gap: 12px');
       expect(wizardRule('.catalog-preview')).toContain('padding: 10px 12px');
     });
 
     it('keeps the dashboard catalog on its original layout explicitly', () => {
-      expect(dashboardRule('.catalog-tools')).toContain('minmax(200px, 230px)');
+      expect(dashboardRule('.catalog-tools')).toContain('minmax(190px, 220px)');
       expect(dashboardRule('.catalog-product')).toContain('gap: 16px');
       expect(dashboardRule('.catalog-product')).toContain('padding: 12px 16px');
       expect(dashboardRule('.catalog-product-main')).toContain('gap: 16px');
@@ -1788,9 +1865,7 @@ describe('StoreProductsPageComponent — option groups', () => {
       price: 20,
       imageUrl: 'https://img.test/pizza.jpg',
       isAvailable: true,
-      isFeatured: false,
-      isBestSeller: false,
-      isNew: false,
+      specialClassification: null,
       displayOrder: 1,
       saleMode: 'single',
       additionals: [],

@@ -107,12 +107,10 @@ public sealed class ProductService : IProductService
             PromotionalPrice = request.PromotionalPrice,
             ImageUrl = request.ImageUrl?.Trim(),
             IsAvailable = request.IsAvailable,
-            IsFeatured = request.IsFeatured,
+            SpecialClassification = request.SpecialClassification,
             DisplayOrder = request.DisplayOrder,
             StockEnabled = request.StockEnabled,
             StockQuantity = request.StockQuantity,
-            IsBestSeller = request.IsBestSeller,
-            IsNew = request.IsNew,
             TagPriority = request.TagPriority,
             SaleMode = NormalizeSaleMode(request.SaleMode),
             Price = NormalizeBasePrice(request),
@@ -226,12 +224,10 @@ public sealed class ProductService : IProductService
                     .SetProperty(p => p.PromotionalPrice, request.PromotionalPrice)
                     .SetProperty(p => p.ImageUrl, newImageUrl)
                     .SetProperty(p => p.IsAvailable, request.IsAvailable)
-                    .SetProperty(p => p.IsFeatured, request.IsFeatured)
+                    .SetProperty(p => p.SpecialClassification, request.SpecialClassification)
                     .SetProperty(p => p.DisplayOrder, request.DisplayOrder)
                     .SetProperty(p => p.StockEnabled, request.StockEnabled)
                     .SetProperty(p => p.StockQuantity, request.StockQuantity)
-                    .SetProperty(p => p.IsBestSeller, request.IsBestSeller)
-                    .SetProperty(p => p.IsNew, request.IsNew)
                     .SetProperty(p => p.TagPriority, request.TagPriority)
                     .SetProperty(p => p.SaleMode, saleMode)
                     .SetProperty(p => p.UpdatedAtUtc, DateTime.UtcNow),
@@ -300,12 +296,10 @@ public sealed class ProductService : IProductService
             product.PromotionalPrice = request.PromotionalPrice;
             product.ImageUrl = newImageUrl;
             product.IsAvailable = request.IsAvailable;
-            product.IsFeatured = request.IsFeatured;
+            product.SpecialClassification = request.SpecialClassification;
             product.DisplayOrder = request.DisplayOrder;
             product.StockEnabled = request.StockEnabled;
             product.StockQuantity = request.StockQuantity;
-            product.IsBestSeller = request.IsBestSeller;
-            product.IsNew = request.IsNew;
             product.TagPriority = request.TagPriority;
             product.SaleMode = saleMode;
             product.MarkAsUpdated();
@@ -469,6 +463,11 @@ public sealed class ProductService : IProductService
         Guid ownerUserId, Guid storeId, BatchUpsertProductsRequestDto request,
         string? ipAddress, CancellationToken cancellationToken = default)
     {
+        // O endpoint substitui todo o catálogo. Falhar aqui, antes de qualquer escrita,
+        // evita apagar imagens/produtos quando o payload chega sem a coleção de itens.
+        var items = request.Items ?? throw new ArgumentException(
+            "A lista de itens do batch é obrigatória.", nameof(request));
+
         var store = await _dbContext.Stores.SingleOrDefaultAsync(x => x.Id == storeId, cancellationToken);
         if (store is null || store.OwnerUserId != ownerUserId)
             return [];
@@ -493,7 +492,7 @@ public sealed class ProductService : IProductService
 
         var created = new List<Product>();
         var order = 0;
-        foreach (var item in request.Items)
+        foreach (var item in items)
         {
             var product = new Product
             {
@@ -504,7 +503,8 @@ public sealed class ProductService : IProductService
                 Price = item.Price,
                 ImageUrl = item.ImageUrl?.Trim(),
                 IsAvailable = item.IsAvailable,
-                DisplayOrder = item.DisplayOrder > 0 ? item.DisplayOrder : order
+                DisplayOrder = item.DisplayOrder > 0 ? item.DisplayOrder : order,
+                SpecialClassification = item.SpecialClassification
             };
             _dbContext.Products.Add(product);
             created.Add(product);

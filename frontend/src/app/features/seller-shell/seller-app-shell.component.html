@@ -126,6 +126,8 @@
       class="mini-btn sound-btn"
       (click)="toggleSound()"
       [attr.aria-pressed]="facade.soundEnabled()"
+      [attr.aria-label]="sidebarCollapsed() && !mobile ? soundToggleLabel() : null"
+      [title]="sidebarCollapsed() && !mobile ? soundToggleLabel() : ''"
     >
       <ion-icon
         [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"
@@ -190,10 +192,6 @@
           <span>{{ facade.storeName() }}</span>
         </div>
       </header>
-
-      @if (facade.soundNeedsActivation()) {
-        <button type="button" class="activation-banner" (click)="enableSound()">Ativar som de pedidos</button>
-      }
 
       @if (facade.store()?.isSubscriptionBlocked) {
         <div class="subscription-banner" role="alert">

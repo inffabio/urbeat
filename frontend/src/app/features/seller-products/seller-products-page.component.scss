@@ -8,7 +8,7 @@
 
 .product-filter-bar {
   display: grid;
-  grid-template-columns: minmax(240px, 1.4fr) 1fr 1fr auto auto;
+  grid-template-columns: minmax(240px, 1.4fr) 1fr 1fr 1fr auto auto;
   gap: 12px;
   margin: 18px 0;
 }
@@ -198,6 +198,22 @@
   color: var(--app-text-primary);
   font-size: 16px;
   font-weight: 800;
+}
+
+.product-special-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  margin-left: 8px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--app-brand-soft, #FDECEE);
+  color: var(--app-brand, #D54A51);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .product-desc {

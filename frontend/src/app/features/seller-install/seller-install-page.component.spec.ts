@@ -34,6 +34,8 @@ describe('SellerInstallPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Driver Windows da POS-58');
     expect(fixture.nativeElement.textContent).toContain('Ordem ideal de instalação');
     expect(fixture.nativeElement.textContent).toContain('Plataformas recomendadas');
+    expect(fixture.nativeElement.textContent).toContain('Use o botão de som na barra lateral do painel.');
+    expect(fixture.nativeElement.textContent).not.toContain('Ative o som de pedidos no topo do painel.');
     expect(fixture.nativeElement.textContent).toContain('Use o menu do navegador para instalar o urbeat.');
   });
 

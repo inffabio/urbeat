@@ -34,7 +34,7 @@
     <div id="store-categories" class="store-categories">
       <app-category-tabs
         [tabs]="categoryTabs()"
-        [activeId]="activeCategoryId()"
+        [activeId]="highlightedCategoryId()"
         (select)="scrollToCategory($event)">
       </app-category-tabs>
     </div>

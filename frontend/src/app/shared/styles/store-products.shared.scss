@@ -905,95 +905,37 @@
   .saved-group-meta { display: none; }
 }
 
-/* ─── 12. Tags / Organization ───────────────────────────── */
+/* ─── 12. Classificação especial ────────────────────────── */
 
-.tag-toggles {
+.special-classification-field {
   display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.tag-toggle {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 0 15px;
-  min-width: 116px;
-  height: 42px;
-  border: 1px solid #e7e9f3;
-  border-radius: 12px;
-  background: #fff;
-  cursor: pointer;
-  font-weight: 650;
-  transition: .15s;
-
-  &.active {
-    border-color: #ff4b1f;
-    background: #fff1ea;
-    color: #ff4b1f;
-    font-weight: 700;
-  }
 }
 
-.tag-priority-section { margin-top: 18px; }
-
-.tag-priority-title {
+.special-classification-title {
   font-size: 13px;
   font-weight: 700;
   color: #111426;
-  margin: 0 0 10px;
 }
 
-.tag-priority-list { display: flex; flex-direction: column; gap: 6px; }
+.special-classification-select {
+  max-width: 320px;
+}
 
-.tag-priority-item {
-  display: flex;
+.catalog-product-special {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 14px;
-  border: 1px solid #e7e9f3;
-  border-radius: 10px;
-  background: #f5f6fb;
-}
-
-.tag-priority-num {
-  font-size: 13px;
+  min-height: 20px;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fff1ea;
+  color: #ff4b1f;
+  font-size: 10px;
   font-weight: 800;
-  color: #7d8298;
-}
-
-.tag-priority-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 650;
-  color: #111426;
-}
-
-.tag-priority-arrows {
-  display: flex;
-  gap: 4px;
-}
-
-.tag-arrow {
-  border: 1px solid #e7e9f3;
-  border-radius: 8px;
-  background: #fff;
-  color: #7d8298;
-  font-size: 11px;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-
-  &:hover:not(:disabled) { background: #f5f6fb; color: #111426; }
-  &:disabled { opacity: .35; cursor: not-allowed; }
-}
-
-.tag-priority-hint {
-  font-size: 11px;
-  color: #7d8298;
-  margin-top: 10px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
 }
 
 /* ─── 13. Save button ───────────────────────────────────── */
@@ -1113,7 +1055,7 @@
 
 .catalog-tools {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 230px);
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 200px) minmax(150px, 180px);
   gap: 12px;
   padding: 16px 20px;
   align-items: center;
@@ -1801,7 +1743,7 @@
   }
 
   .catalog-tools {
-    grid-template-columns: minmax(0, 1fr) minmax(170px, 210px);
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 190px) minmax(140px, 170px);
   }
 
   .catalog-search-wrap {
@@ -1937,6 +1879,7 @@
 }
 
 @media (max-width: 560px) {
+  .wizard-content .catalog-tools,
   .wizard-content:not(.is-dashboard) .catalog-tools {
     grid-template-columns: 1fr;
   }
@@ -1945,7 +1888,7 @@
 /* Dashboard safeguard: keep the catalog exactly on its original layout. */
 .wizard-content.is-dashboard {
   .catalog-tools {
-    grid-template-columns: minmax(0, 1fr) minmax(200px, 230px);
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 220px) minmax(170px, 200px);
   }
 
   .catalog-search-wrap {

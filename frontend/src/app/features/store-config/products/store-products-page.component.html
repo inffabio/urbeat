@@ -447,36 +447,21 @@
     <!-- 4. Organizacao -->
     <section class="block-section">
       <h2 class="block-heading"><span class="section-num">4.</span> Organizacao</h2>
-      <p class="block-sub">Destaque seu produto nas secoes especiais do cardapio.</p>
+      <p class="block-sub">Escolha uma classificacao especial para o produto.</p>
       <div class="prod-card">
-        <div class="tag-toggles">
-          <label class="tag-toggle" [class.active]="tagDestaque()" (click)="toggleTag('destaque')">
-            <input type="checkbox" class="prod-check" [checked]="tagDestaque()" /><span>Destaque</span>
-          </label>
-          <label class="tag-toggle" [class.active]="tagMaisVendido()" (click)="toggleTag('mais_vendido')">
-            <input type="checkbox" class="prod-check" [checked]="tagMaisVendido()" /><span>Mais vendido</span>
-          </label>
-          <label class="tag-toggle" [class.active]="tagNovidade()" (click)="toggleTag('novidade')">
-            <input type="checkbox" class="prod-check" [checked]="tagNovidade()" /><span>Novidade</span>
-          </label>
-        </div>
-        @if (showTagPriority()) {
-          <div class="tag-priority-section">
-            <p class="tag-priority-title">Ordem de exibicao</p>
-            <div class="tag-priority-list">
-              @for (tag of orderedPriority(); track $index; let idx = $index) {
-                <div class="tag-priority-item">
-                  <span class="tag-priority-num">{{ idx + 1 }}o</span>
-                  <span class="tag-priority-name">{{ tagLabels[tag]?.name }}</span>
-                  <div class="tag-priority-arrows">
-                    <button class="tag-arrow" (click)="movePriorityUp(tag)" [disabled]="idx === 0">&#9650;</button>
-                    <button class="tag-arrow" (click)="movePriorityDown(tag)" [disabled]="idx === orderedPriority().length - 1">&#9660;</button>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
+        <label class="special-classification-field" for="special-classification">
+          <span class="special-classification-title">Classificacao especial</span>
+          <select
+            id="special-classification"
+            class="catalog-filter-select special-classification-select"
+            [ngModel]="specialClassification()"
+            (ngModelChange)="setSpecialClassification($event)"
+            aria-label="Classificacao especial do produto">
+            @for (option of specialClassificationOptions; track option.label) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
       </div>
     </section>
 
@@ -532,6 +517,12 @@
             <option [value]="cat.id">{{ cat.name }}</option>
           }
         </select>
+        <select class="catalog-filter-select" [ngModel]="specialClassificationFilter()" (ngModelChange)="specialClassificationFilter.set($event); currentPage.set(0)" aria-label="Filtrar por classificacao especial">
+          <option value="">Todas as classificacoes</option>
+          @for (option of specialClassificationFilterOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
       </div>
       <div class="catalog-list">
         @for (product of pagedProducts(); track product.id) {
@@ -546,7 +537,12 @@
                   <strong class="catalog-product-price-value">{{ productPriceValue(product) }}</strong>
                 </p>
                 <p class="catalog-product-name">{{ product.name || 'Produto sem nome' }}</p>
-                <span class="catalog-product-category">{{ product.categoryName || 'Sem categoria' }}</span>
+                <span class="catalog-product-category">
+                  {{ product.categoryName || 'Sem categoria' }}
+                  @if (productSpecialClassification(product); as classification) {
+                    <span class="catalog-product-special">{{ specialClassificationLabel(classification) }}</span>
+                  }
+                </span>
               </div>
             </div>
              <div class="catalog-product-actions">

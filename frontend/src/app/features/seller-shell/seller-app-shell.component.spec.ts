@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, Routes } from '@angular/router';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { AuthService } from '../../core/services/auth.service';
 import { routes } from '../../app.routes';
 import { SellerShellFacade } from './seller-shell.facade';
@@ -71,10 +73,12 @@ describe('SellerAppShellComponent', () => {
     expect(facadeMock.init).toHaveBeenCalled();
   });
 
-  it('should show activate sound action when audio needs activation', () => {
+  it('keeps the sound control in the sidebar instead of a dashboard shortcut', () => {
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Ativar som de pedidos');
+    expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Ativar som de pedidos');
+    expect(fixture.nativeElement.querySelector('.sound-btn')).not.toBeNull();
   });
 
   it('should render the documented dashboard navigation entries', () => {
@@ -174,6 +178,8 @@ describe('SellerAppShellComponent', () => {
   });
 
   it('enables sound through the facade when toggled from the disabled state', () => {
+    facadeMock.soundEnabled.mockReturnValue(false);
+    facadeMock.soundNeedsActivation.mockReturnValue(false);
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('.sound-btn').click();
@@ -193,40 +199,140 @@ describe('SellerAppShellComponent', () => {
     expect(facadeMock.enableSound).not.toHaveBeenCalled();
   });
 
-  it('keeps the sound toggle as an independent mute control while activation is pending', () => {
-    facadeMock.soundEnabled.mockReturnValue(true);
-    facadeMock.soundNeedsActivation.mockReturnValue(true);
-    fixture.detectChanges();
+  describe('sidebar sound toggle', () => {
+    it('activates audio from the sidebar when sound is enabled but needs browser activation', async () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(true);
 
-    const toggle = fixture.nativeElement.querySelector('.sound-btn');
-    expect(toggle.textContent).toContain('Som ligado');
-    expect(toggle.querySelector('ion-icon').getAttribute('name')).toBe('volume-high-outline');
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+      fixture.componentInstance.toggleSound();
+      await Promise.resolve();
 
-    toggle.click();
+      expect(facadeMock.enableSound).toHaveBeenCalled();
+      expect(facadeMock.disableSound).not.toHaveBeenCalled();
+    });
 
-    // Turning sound off must never depend on the activation invite: the banner is
-    // the only place that unlocks audio, the toggle always mutes.
-    expect(facadeMock.disableSound).toHaveBeenCalled();
-    expect(facadeMock.enableSound).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
+    it('disables an already activated sound from the sidebar', () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+
+      fixture.componentInstance.toggleSound();
+
+      expect(facadeMock.disableSound).toHaveBeenCalled();
+      expect(facadeMock.enableSound).not.toHaveBeenCalled();
+    });
+
+    it('enables sound from the sidebar when it is disabled', () => {
+      facadeMock.soundEnabled.mockReturnValue(false);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+
+      fixture.componentInstance.toggleSound();
+
+      expect(facadeMock.enableSound).toHaveBeenCalled();
+      expect(facadeMock.disableSound).not.toHaveBeenCalled();
+    });
+
+    it('unlocks audio from the mobile sidebar on the first tap without muting', async () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(true);
+      fixture.detectChanges();
+
+      fixture.nativeElement.querySelector('.mobile-menu-btn').click();
+      fixture.detectChanges();
+
+      const mobileToggle = fixture.nativeElement.querySelector('.mobile-sidebar .sound-btn') as HTMLButtonElement;
+      expect(mobileToggle).not.toBeNull();
+      expect(mobileToggle.textContent).toContain('Som ligado');
+
+      mobileToggle.click();
+      await Promise.resolve();
+
+      expect(facadeMock.enableSound).toHaveBeenCalled();
+      expect(facadeMock.disableSound).not.toHaveBeenCalled();
+    });
   });
 
-  it('hides the activation banner when audio does not need activation', () => {
-    facadeMock.soundNeedsActivation.mockReturnValue(false);
-    fixture.detectChanges();
+  describe('collapsed sidebar sound toggle accessible name', () => {
+    function collapsedSoundButton(): HTMLButtonElement {
+      fixture.componentInstance.sidebarCollapsed.set(true);
+      fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).not.toContain('Ativar som de pedidos');
-    expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+      return fixture.nativeElement.querySelector('.desktop-sidebar .sound-btn') as HTMLButtonElement;
+    }
+
+    it('announces activation while the sound is off', () => {
+      facadeMock.soundEnabled.mockReturnValue(false);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+
+      const toggle = collapsedSoundButton();
+
+      expect(toggle.textContent).toContain('Som desligado');
+      expect(toggle.getAttribute('aria-label')).toBe('Ativar som de pedidos');
+      expect(toggle.getAttribute('title')).toBe('Ativar som de pedidos');
+    });
+
+    it('announces the pending browser unlock while sound is enabled but not activated', () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(true);
+
+      const toggle = collapsedSoundButton();
+
+      expect(toggle.getAttribute('aria-label')).toBe('Liberar som de pedidos');
+      expect(toggle.getAttribute('title')).toBe('Liberar som de pedidos');
+    });
+
+    it('announces muting once the sound is enabled and already unlocked', () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+
+      const toggle = collapsedSoundButton();
+
+      expect(toggle.getAttribute('aria-label')).toBe('Silenciar som de pedidos');
+      expect(toggle.getAttribute('title')).toBe('Silenciar som de pedidos');
+    });
+
+    it('keeps relying on the visible copy while the sidebar is expanded', () => {
+      facadeMock.soundEnabled.mockReturnValue(true);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+      fixture.detectChanges();
+
+      const toggle = fixture.nativeElement.querySelector('.desktop-sidebar .sound-btn') as HTMLButtonElement;
+
+      expect(toggle.textContent).toContain('Som ligado');
+      expect(toggle.getAttribute('aria-label')).toBeNull();
+      expect(toggle.getAttribute('title')).toBe('');
+    });
+
+    it('keeps the accessible name in sync when the collapsed state changes', () => {
+      facadeMock.soundEnabled.mockReturnValue(false);
+      facadeMock.soundNeedsActivation.mockReturnValue(false);
+      fixture.detectChanges();
+
+      const ariaLabel = () =>
+        (fixture.nativeElement.querySelector('.desktop-sidebar .sound-btn') as HTMLButtonElement)
+          .getAttribute('aria-label');
+
+      expect(ariaLabel()).toBeNull();
+
+      fixture.componentInstance.sidebarCollapsed.set(true);
+      fixture.detectChanges();
+      expect(ariaLabel()).toBe('Ativar som de pedidos');
+
+      facadeMock.soundEnabled.mockReturnValue(true);
+      fixture.detectChanges();
+      expect(ariaLabel()).toBe('Silenciar som de pedidos');
+
+      fixture.componentInstance.sidebarCollapsed.set(false);
+      fixture.detectChanges();
+      expect(ariaLabel()).toBeNull();
+    });
   });
 
-  it('requests playback unlock when the activation banner is clicked', () => {
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
+  it('declares the sound controls in the sidebar and the detached window only', () => {
+    const template = readFileSync(resolve(__dirname, './seller-app-shell.component.html'), 'utf8');
 
-    fixture.nativeElement.querySelector('.activation-banner').click();
-
-    expect(facadeMock.enableSound).toHaveBeenCalled();
+    expect(template).not.toContain('class="activation-banner"');
+    expect(template).toContain('class="mini-btn sound-btn"');
+    expect(template).toContain('class="detached-sound-bar"');
   });
 
   it('links every dashboard logo variant to the storefront in a new tab', () => {
@@ -351,7 +457,7 @@ describe('SellerAppShellComponent', () => {
         .find((button) => button.textContent?.includes('Silenciar'))!;
       mute.click();
       expect(facadeMock.disableSound).toHaveBeenCalledTimes(1);
-      // The existing dashboard banner stays out of the detached chrome.
+      // The dashboard has no activation banner at all, including here.
       expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
     });
 
@@ -377,7 +483,8 @@ describe('SellerAppShellComponent', () => {
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('.detached-sound-bar')).toBeNull();
-      expect(fixture.nativeElement.querySelector('.activation-banner')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.activation-banner')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.sound-btn')).not.toBeNull();
     });
 
     it('restores the dashboard chrome after leaving the detached route', async () => {

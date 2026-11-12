@@ -6,9 +6,10 @@ import { SubscriptionBannerStatus } from '../components/subscription-banner/subs
 import { StoreService } from '../../core/services/store.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Product, ProductAdditional, ProductCategory, ProductChoiceOption, ProductOptionGroup, ProductOptionGroupTemplate, ProductOptionItem, ProductVariation, ProductSaleMode, ProductWeightConfig } from '../models/product.model';
+import { Product, ProductAdditional, ProductCategory, ProductChoiceOption, ProductOptionGroup, ProductOptionGroupTemplate, ProductOptionItem, ProductVariation, ProductSaleMode, ProductSpecialClassification, ProductWeightConfig } from '../models/product.model';
 import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR, isAllowedImageFile } from '../utils/image-upload.utils';
 import { compressImage } from '../utils/image-compression.utils';
+import { PRODUCT_SPECIAL_CLASSIFICATION_LABELS, resolveProductSpecialClassification } from '../utils/product-special-classification.utils';
 
 addIcons({
   'checkmark': checkmark,
@@ -102,10 +103,19 @@ export abstract class StoreProductsState implements OnInit {
   readonly isProductActive = signal(true);
   readonly imageAccept = IMAGE_ACCEPT_ATTRIBUTE;
 
-  readonly tagDestaque = signal(false);
-  readonly tagMaisVendido = signal(false);
-  readonly tagNovidade = signal(false);
-  readonly tagPriority = signal<string[]>([]);
+  readonly specialClassification = signal<ProductSpecialClassification | null>(null);
+  readonly specialClassificationOptions: ReadonlyArray<{ value: ProductSpecialClassification | null; label: string }> = [
+    { value: null, label: 'Nenhuma' },
+    { value: 'Offers', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.Offers },
+    { value: 'BestSeller', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.BestSeller },
+    { value: 'New', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.New },
+  ];
+  readonly specialClassificationFilter = signal<ProductSpecialClassification | ''>('');
+  readonly specialClassificationFilterOptions: ReadonlyArray<{ value: ProductSpecialClassification; label: string }> = [
+    { value: 'Offers', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.Offers },
+    { value: 'BestSeller', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.BestSeller },
+    { value: 'New', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.New },
+  ];
 
   readonly saleMode = signal<ProductSaleMode>('single');
   readonly sizeVariations = signal<SizeVariation[]>([]);
@@ -171,27 +181,18 @@ export abstract class StoreProductsState implements OnInit {
 
   readonly isReorderingCategories = signal(false);
 
-  readonly selectedTags = computed(() => {
-    const tags: string[] = [];
-    if (this.tagDestaque()) tags.push('destaque');
-    if (this.tagMaisVendido()) tags.push('mais_vendido');
-    if (this.tagNovidade()) tags.push('novidade');
-    return tags;
-  });
+  specialClassificationLabel(value: ProductSpecialClassification | null | undefined): string {
+    return value ? PRODUCT_SPECIAL_CLASSIFICATION_LABELS[value] : '';
+  }
 
-  readonly showTagPriority = computed(() => this.selectedTags().length >= 2);
+  productSpecialClassification(product: Product): ProductSpecialClassification | null {
+    return resolveProductSpecialClassification(product);
+  }
 
-  readonly orderedPriority = computed(() => {
-    const current = this.tagPriority();
-    const selected = this.selectedTags();
-    return [...current.filter(t => selected.includes(t)), ...selected.filter(t => !current.includes(t))];
-  });
-
-  readonly tagLabels: Record<string, { name: string }> = {
-    destaque: { name: 'Destaque' },
-    mais_vendido: { name: 'Mais vendido' },
-    novidade: { name: 'Novidade' },
-  };
+  setSpecialClassification(value: ProductSpecialClassification | null): void {
+    this.specialClassification.set(value);
+    this.markDirty();
+  }
 
   readonly categoryProductCounts = computed(() => {
     const counts: Record<string, number> = {};
@@ -212,9 +213,12 @@ export abstract class StoreProductsState implements OnInit {
   readonly filteredProducts = computed(() => {
     const q = this.searchQuery().toLowerCase();
     const filter = this.categoryFilterId();
+    const classification = this.specialClassificationFilter();
     return this.products().filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(q) || (p.categoryName || '').toLowerCase().includes(q);
-      return matchesSearch && (!filter || p.categoryId === filter);
+      const matchesCategory = !filter || p.categoryId === filter;
+      const matchesClassification = !classification || resolveProductSpecialClassification(p) === classification;
+      return matchesSearch && matchesCategory && matchesClassification;
     });
   });
 
@@ -514,36 +518,6 @@ export abstract class StoreProductsState implements OnInit {
     if (sid) this.loadProducts(sid);
   }
 
-  // ── Priority tags ────────────────────────────────────────
-
-  movePriorityUp(tag: string) {
-    const current = this.tagPriority();
-    const idx = current.indexOf(tag);
-    if (idx <= 0) return;
-    const copy = [...current];
-    [copy[idx - 1], copy[idx]] = [copy[idx], copy[idx - 1]];
-    this.tagPriority.set(copy);
-    this.markDirty();
-  }
-
-  movePriorityDown(tag: string) {
-    const current = this.tagPriority();
-    const idx = current.indexOf(tag);
-    if (idx < 0 || idx >= current.length - 1) return;
-    const copy = [...current];
-    [copy[idx], copy[idx + 1]] = [copy[idx + 1], copy[idx]];
-    this.tagPriority.set(copy);
-    this.markDirty();
-  }
-
-  private syncTagPriority() {
-    const current = this.tagPriority();
-    const selected = this.selectedTags();
-    const cleaned = current.filter(t => selected.includes(t));
-    const added = selected.filter(t => !cleaned.includes(t));
-    this.tagPriority.set([...cleaned, ...added]);
-  }
-
   // ── Forma de venda ──────────────────────────────────────
 
   setSaleMode(mode: ProductSaleMode) {
@@ -716,10 +690,7 @@ export abstract class StoreProductsState implements OnInit {
     this.productImage.set(product.imageUrl || '');
     this.productImagePreview.set(product.imageUrl || null);
     this.isProductActive.set(product.isAvailable);
-    this.tagDestaque.set(product.isFeatured ?? false);
-    this.tagMaisVendido.set(product.isBestSeller ?? false);
-    this.tagNovidade.set(product.isNew ?? false);
-    this.tagPriority.set(product.tagPriority ? product.tagPriority.split(',').filter(Boolean) : []);
+    this.specialClassification.set(resolveProductSpecialClassification(product));
     // Keep the draft independent from the list object so editing a selected
     // product never mutates the cached catalog entry.
     this.draftAdditionals.set((product.additionals ?? []).map(a => ({ ...a })));
@@ -798,10 +769,7 @@ export abstract class StoreProductsState implements OnInit {
     this.productImage.set(imageUrl);
     this.productImagePreview.set(imageUrl || null);
     this.isProductActive.set(product.isAvailable);
-    this.tagDestaque.set(product.isFeatured ?? false);
-    this.tagMaisVendido.set(product.isBestSeller ?? false);
-    this.tagNovidade.set(product.isNew ?? false);
-    this.tagPriority.set(product.tagPriority ? product.tagPriority.split(',').filter(Boolean) : []);
+    this.specialClassification.set(resolveProductSpecialClassification(product));
 
     const saleMode = product.saleMode ?? 'single';
     this.saleMode.set(saleMode);
@@ -953,11 +921,8 @@ export abstract class StoreProductsState implements OnInit {
       price,
       imageUrl: this.productImage() || null,
       isAvailable: this.isProductActive(),
-      isFeatured: this.tagDestaque(),
+      specialClassification: this.specialClassification(),
       displayOrder: this.products().length,
-      isBestSeller: this.tagMaisVendido(),
-      isNew: this.tagNovidade(),
-      tagPriority: this.tagPriority().join(','),
       saleMode: sm,
       // The draft owns these collections: a copied draft has no selected id,
       // so `currentProduct` cannot be used as the source after a copy.
@@ -1174,10 +1139,7 @@ export abstract class StoreProductsState implements OnInit {
     this.productImage.set('');
     this.productImagePreview.set(null);
     this.isProductActive.set(true);
-    this.tagDestaque.set(false);
-    this.tagMaisVendido.set(false);
-    this.tagNovidade.set(false);
-    this.tagPriority.set([]);
+    this.specialClassification.set(null);
     this.saleMode.set('single');
     this.sizeVariations.set([]);
     this.fixedWeightVariations.set([]);
@@ -1260,14 +1222,6 @@ export abstract class StoreProductsState implements OnInit {
   nextPage() { if (this.currentPage() < this.totalPages() - 1) this.currentPage.update(p => p + 1); }
 
   togglePreview(productId: string) { this.expandedId.update(id => id === productId ? null : productId); }
-
-  toggleTag(type: string) {
-    if (type === 'destaque') this.tagDestaque.update(v => !v);
-    if (type === 'mais_vendido') this.tagMaisVendido.update(v => !v);
-    if (type === 'novidade') this.tagNovidade.update(v => !v);
-    this.syncTagPriority();
-    this.markDirty();
-  }
 
   private uid(): string {
     const ms = Date.now();

@@ -25,7 +25,7 @@ describe('SellerProductsPageComponent', () => {
         price: 28.9,
         imageUrl: '',
         isAvailable: true,
-        isFeatured: false,
+        specialClassification: null,
         displayOrder: 1,
         additionals: [],
         choiceOptions: [],
@@ -240,10 +240,7 @@ describe('SellerProductsPageComponent', () => {
         price: 49.9,
         imageUrl: 'https://img.test/margherita.jpg',
         isAvailable: false,
-        isFeatured: true,
-        isBestSeller: true,
-        isNew: true,
-        tagPriority: 'destaque,mais_vendido,novidade',
+        specialClassification: 'BestSeller',
         saleMode: 'size' as const,
         variations: [
           { id: 'v1', name: 'Grande', price: 39.9, isDefault: true, isActive: true, isRequired: false, displayOrder: 1 },
@@ -275,9 +272,7 @@ describe('SellerProductsPageComponent', () => {
       expect(component.productImage()).toBe('https://img.test/margherita.jpg');
       expect(component.productImagePreview()).toBe('https://img.test/margherita.jpg');
       expect(component.isProductActive()).toBe(false);
-      expect(component.tagDestaque()).toBe(true);
-      expect(component.tagMaisVendido()).toBe(true);
-      expect(component.tagNovidade()).toBe(true);
+      expect(component.specialClassification()).toBe('BestSeller');
       expect(component.sizeVariations()).toHaveLength(1);
       expect(component.optionGroups()).toHaveLength(1);
       expect(component.optionGroups()[0].id).not.toBe('g1');
@@ -450,7 +445,7 @@ describe('SellerProductsPageComponent', () => {
         price: 0,
         imageUrl: 'https://img.test/pizza.png',
         isAvailable: true,
-        isFeatured: false,
+        specialClassification: null,
         displayOrder: 1,
         saleMode: 'size' as const,
         additionals: [],
@@ -737,6 +732,38 @@ describe('SellerProductsPageComponent', () => {
           }),
         ],
       }));
+    });
+  });
+
+  describe('special classification listing', () => {
+    it('shows the classification label and filters by it', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.products.set([
+        { ...component.products()[0], id: 'p1', name: 'X-Bacon', specialClassification: 'Offers' },
+        { ...component.products()[0], id: 'p2', name: 'Batata', specialClassification: 'BestSeller' },
+        { ...component.products()[0], id: 'p3', name: 'X-Salada', specialClassification: null },
+      ]);
+
+      component.specialClassificationFilter.set('Offers');
+      fixture.detectChanges();
+
+      expect(component.filteredProducts().map(product => product.name)).toEqual(['X-Bacon']);
+      expect(fixture.nativeElement.textContent).toContain('Ofertas');
+      expect(fixture.nativeElement.querySelector('.product-special-badge')?.textContent).toContain('Ofertas');
+    });
+
+    it('resets the classification filter with the other filters', () => {
+      const fixture = TestBed.createComponent(SellerProductsPageComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.specialClassificationFilter.set('New');
+      component.clearFilters();
+
+      expect(component.specialClassificationFilter()).toBe('');
     });
   });
 });

@@ -12,14 +12,27 @@ import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 
 import { StorePublicDetails } from '../../shared/models/store.model';
-import { Product, ProductCategory } from '../../shared/models/product.model';
+import { Product, ProductCategory, ProductSpecialClassification } from '../../shared/models/product.model';
 import { CartItem } from '../../shared/models/cart-item.model';
+import { resolveProductSpecialClassification } from '../../shared/utils/product-special-classification.utils';
 
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { StoreMetricsComponent } from '../../shared/components/store-metrics/store-metrics.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CategoryTabsComponent, CategoryTab } from '../../shared/components/category-tabs/category-tabs.component';
 import { FoodDeliverySpinnerComponent } from '../../shared/components/food-delivery-spinner/food-delivery-spinner.component';
+
+interface StoreProductSection {
+  id: string;
+  name: string;
+  products: Product[];
+}
+
+const SPECIAL_SECTION_CONFIG: ReadonlyArray<{ value: ProductSpecialClassification; name: string }> = [
+  { value: 'Offers', name: 'Ofertas' },
+  { value: 'BestSeller', name: 'Mais vendidos' },
+  { value: 'New', name: 'Novidades' },
+];
 
 @Component({
   selector: 'app-store-page',
@@ -47,6 +60,11 @@ export class StorePageComponent implements OnInit, OnDestroy {
   readonly categories = signal<ProductCategory[]>([]);
   readonly products = signal<Product[]>([]);
   readonly activeCategoryId = signal<string | null>(null);
+  /**
+   * Seção destacada pela rolagem. Separada de `activeCategoryId` porque no modo `Todos`
+   * o scrollspy só deve mover a pílula, sem filtrar o feed.
+   */
+  private readonly scrollSpySectionId = signal<string | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal(false);
   readonly catalogError = signal(false);
@@ -78,8 +96,19 @@ export class StorePageComponent implements OnInit, OnDestroy {
   readonly categoryTabs = computed<CategoryTab[]>(() => {
     return [
       { id: this.TODOS_ID, name: 'Todos' },
+      ...this.specialSections().map((section) => ({ id: section.id, name: section.name })),
       ...this.storeCategories().map((category) => ({ id: category.id, name: category.name })),
     ];
+  });
+
+  /**
+   * Pílula visual: uma seleção explícita sempre manda; em `Todos` o scrollspy
+   * acompanha a seção visível sem alterar o filtro do feed.
+   */
+  readonly highlightedCategoryId = computed(() => {
+    const selectedId = this.activeCategoryId();
+    if (selectedId && selectedId !== this.TODOS_ID) return selectedId;
+    return this.scrollSpySectionId() ?? this.TODOS_ID;
   });
 
   private readonly orderedProducts = computed(() => {
@@ -103,8 +132,8 @@ export class StorePageComponent implements OnInit, OnDestroy {
     );
   });
 
-  readonly productSections = computed(() => {
-    const result: { id: string; name: string; products: Product[] }[] = [];
+  readonly categoryProductSections = computed<StoreProductSection[]>(() => {
+    const result: StoreProductSection[] = [];
     const products = this.orderedProducts();
 
     for (const cat of this.storeCategories()) {
@@ -115,6 +144,36 @@ export class StorePageComponent implements OnInit, OnDestroy {
     }
 
     return result;
+  });
+
+  /**
+   * Vitrines especiais derivadas da mesma lista de produtos já carregada. Cada seção
+   * mantém seu próprio array; o mesmo produto pode aparecer na vitrine e na categoria.
+   */
+  readonly specialSections = computed<StoreProductSection[]>(() => {
+    const products = this.orderedProducts();
+    return SPECIAL_SECTION_CONFIG
+      .map((config) => ({
+        id: `special:${config.value}`,
+        name: config.name,
+        products: products.filter((product) => resolveProductSpecialClassification(product) === config.value),
+      }))
+      .filter((section) => section.products.length > 0);
+  });
+
+  /** `Todos` mostra as vitrines especiais disponíveis antes das categorias do lojista. */
+  readonly allSections = computed<StoreProductSection[]>(() => [
+    ...this.specialSections(),
+    ...this.categoryProductSections(),
+  ]);
+
+  readonly productSections = computed<StoreProductSection[]>(() => {
+    const activeId = this.activeCategoryId();
+    if (!activeId || activeId === this.TODOS_ID) return this.allSections();
+    if (activeId.startsWith('special:')) {
+      return this.specialSections().filter((section) => section.id === activeId);
+    }
+    return this.categoryProductSections().filter((section) => section.id === activeId);
   });
 
   readonly statusText = computed(() => {
@@ -185,6 +244,7 @@ export class StorePageComponent implements OnInit, OnDestroy {
     this.categories.set([]);
     this.products.set([]);
     this.activeCategoryId.set(this.TODOS_ID);
+    this.scrollSpySectionId.set(null);
     this.loadError.set(false);
     this.catalogError.set(false);
 
@@ -236,6 +296,7 @@ export class StorePageComponent implements OnInit, OnDestroy {
     this.activeCategoryId.set(saved.activeCategoryId && tabIds.has(saved.activeCategoryId)
       ? saved.activeCategoryId
       : (this.categoryTabs()[0]?.id ?? this.TODOS_ID));
+    this.scrollSpySectionId.set(null);
   }
 
   ngOnDestroy(): void {
@@ -251,23 +312,32 @@ export class StorePageComponent implements OnInit, OnDestroy {
   }
 
   private updateActiveCategoryFromScroll(): void {
+    // When a pill filters the feed down to a single section, scrolling must not
+    // override the explicit selection. The scrollspy only drives Todos.
+    const selectedId = this.activeCategoryId();
+    if (selectedId && selectedId !== this.TODOS_ID) return;
+
     const scrollContainer = this.getScrollContainer();
     const containerTop = scrollContainer.getBoundingClientRect().top;
     const activationLine = containerTop + this.getCategoryScrollOffset();
     let activeId = this.TODOS_ID;
 
-    for (const sectionData of this.productSections()) {
+    // Todos keeps every shelf and category in the feed, so the spy walks all of them
+    // and only moves the pill highlight.
+    for (const sectionData of this.allSections()) {
       const section = document.getElementById(`cat-${sectionData.id}`);
       const title = section?.querySelector<HTMLElement>('h2') ?? section;
       if (!title || title.getBoundingClientRect().top > activationLine) break;
       activeId = sectionData.id;
     }
 
-    this.activeCategoryId.set(activeId);
+    this.scrollSpySectionId.set(activeId);
   }
 
   scrollToCategory(categoryId: string): void {
     this.activeCategoryId.set(categoryId);
+    // Returning to Todos resets the highlight to the top; the next scroll re-runs the spy.
+    if (categoryId === this.TODOS_ID) this.scrollSpySectionId.set(this.TODOS_ID);
     const el = categoryId === this.TODOS_ID
       ? document.getElementById('cat-top')
       : this.findCategorySection(categoryId);
@@ -386,6 +456,7 @@ export class StorePageComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.activeCategoryId.set(this.TODOS_ID);
+    this.scrollSpySectionId.set(null);
   }
 
   goToProduct(product: Product): void {

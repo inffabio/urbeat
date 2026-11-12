@@ -33,6 +33,10 @@ public sealed class PublicCatalogController : ControllerBase
         return Ok(products);
     }
 
+    /// <summary>
+    /// Endpoint legado de produtos em destaque. A semântica atual é "Ofertas":
+    /// retorna apenas produtos com <c>SpecialClassification == Offers</c>.
+    /// </summary>
     [HttpGet("products/featured")]
     [ProducesResponseType<IReadOnlyCollection<ProductResponseDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ListFeaturedProducts([FromRoute] Guid storeId, CancellationToken cancellationToken)

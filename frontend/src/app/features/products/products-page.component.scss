@@ -122,6 +122,12 @@ label {
 .select { appearance: none; }
 .textarea { min-height: 80px; resize: vertical; }
 
+.classification-filter {
+  min-height: 44px;
+  margin-bottom: var(--space-3);
+  font-size: 13px;
+}
+
 .money-wrap {
   display: flex;
   align-items: center;

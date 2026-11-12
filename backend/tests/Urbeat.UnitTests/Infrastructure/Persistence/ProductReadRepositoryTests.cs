@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Urbeat.Application.Mappings;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Enums;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Persistence.ReadRepositories;
 using Microsoft.EntityFrameworkCore;
@@ -70,5 +71,57 @@ public sealed class ProductReadRepositoryTests : IDisposable
         var result = await _sut.ListAvailableProductsByStoreAsync(storeId);
 
         result.Select(x => x.Name).Should().Equal("X-burguer");
+    }
+
+    [Fact]
+    public async Task ListAvailableProductsByStoreAsync_ShouldReturnClassifiedProductsOnceWithTheirClassification()
+    {
+        var storeId = Guid.NewGuid();
+        var category = new ProductCategory { StoreId = storeId, Name = "Lanches", DisplayOrder = 1, IsActive = true };
+        _db.ProductCategories.Add(category);
+        await _db.SaveChangesAsync();
+
+        _db.Products.AddRange(
+            new Product { StoreId = storeId, CategoryId = category.Id, Name = "X-Bacon", Price = 25m, IsAvailable = true, DisplayOrder = 1, SpecialClassification = ProductSpecialClassification.Offers },
+            new Product { StoreId = storeId, CategoryId = category.Id, Name = "Batata", Price = 12m, IsAvailable = true, DisplayOrder = 2, SpecialClassification = ProductSpecialClassification.BestSeller },
+            new Product { StoreId = storeId, CategoryId = category.Id, Name = "Brownie", Price = 9m, IsAvailable = true, DisplayOrder = 3, SpecialClassification = ProductSpecialClassification.New },
+            new Product { StoreId = storeId, CategoryId = category.Id, Name = "X-Salada", Price = 22m, IsAvailable = true, DisplayOrder = 4 });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ListAvailableProductsByStoreAsync(storeId);
+
+        result.Should().HaveCount(4);
+        result.Select(x => x.Id).Should().OnlyHaveUniqueItems();
+        result.Single(x => x.Name == "X-Bacon").SpecialClassification.Should().Be(ProductSpecialClassification.Offers);
+        result.Single(x => x.Name == "Batata").SpecialClassification.Should().Be(ProductSpecialClassification.BestSeller);
+        result.Single(x => x.Name == "Brownie").SpecialClassification.Should().Be(ProductSpecialClassification.New);
+        result.Single(x => x.Name == "X-Salada").SpecialClassification.Should().BeNull();
+        result.Select(x => x.Name).Should().Equal("X-Bacon", "Batata", "Brownie", "X-Salada");
+    }
+
+    [Fact]
+    public async Task ListFeaturedProductsByStoreAsync_ShouldReturnOnlyOffers()
+    {
+        var storeId = Guid.NewGuid();
+        var activeCategory = new ProductCategory { StoreId = storeId, Name = "Lanches", DisplayOrder = 1, IsActive = true };
+        var inactiveCategory = new ProductCategory { StoreId = storeId, Name = "Inativa", DisplayOrder = 2, IsActive = false };
+        _db.ProductCategories.AddRange(activeCategory, inactiveCategory);
+        await _db.SaveChangesAsync();
+
+        _db.Products.AddRange(
+            new Product { StoreId = storeId, CategoryId = activeCategory.Id, Name = "X-Bacon", Price = 25m, IsAvailable = true, SpecialClassification = ProductSpecialClassification.Offers },
+            new Product { StoreId = storeId, CategoryId = activeCategory.Id, Name = "Batata", Price = 12m, IsAvailable = true, SpecialClassification = ProductSpecialClassification.BestSeller },
+            new Product { StoreId = storeId, CategoryId = activeCategory.Id, Name = "Brownie", Price = 9m, IsAvailable = true, SpecialClassification = ProductSpecialClassification.New },
+            new Product { StoreId = storeId, CategoryId = activeCategory.Id, Name = "Sem classificacao", Price = 7m, IsAvailable = true },
+            // Legacy flag alone is not authoritative anymore.
+            new Product { StoreId = storeId, CategoryId = activeCategory.Id, Name = "Legado destaque", Price = 8m, IsAvailable = true, IsFeatured = true },
+            // Offers in an inactive category must not reach the public catalog.
+            new Product { StoreId = storeId, CategoryId = inactiveCategory.Id, Name = "Oferta inativa", Price = 6m, IsAvailable = true, SpecialClassification = ProductSpecialClassification.Offers });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ListFeaturedProductsByStoreAsync(storeId);
+
+        result.Select(x => x.Name).Should().Equal("X-Bacon");
+        result.Single().SpecialClassification.Should().Be(ProductSpecialClassification.Offers);
     }
 }

@@ -12,6 +12,7 @@ import {
   SubscriptionBannerComponent,
 } from '../../shared/components/subscription-banner/subscription-banner.component';
 import { StoreProductsState } from '../../shared/state/store-products.state';
+import { resolveProductSpecialClassification } from '../../shared/utils/product-special-classification.utils';
 
 @Component({
   selector: 'app-seller-products-page',
@@ -81,6 +82,7 @@ export class SellerProductsPageComponent extends StoreProductsState {
     this.searchQuery.set('');
     this.categoryFilterId.set('');
     this.statusFilter.set('all');
+    this.specialClassificationFilter.set('');
     this.currentPage.set(0);
   }
 
@@ -92,6 +94,7 @@ export class SellerProductsPageComponent extends StoreProductsState {
     const q = this.searchQuery().toLowerCase();
     const filter = this.categoryFilterId();
     const status = this.statusFilter();
+    const classification = this.specialClassificationFilter();
 
     return this.products().filter((p) => {
       const matchesSearch = p.name.toLowerCase().includes(q) || (p.categoryName || '').toLowerCase().includes(q);
@@ -99,8 +102,10 @@ export class SellerProductsPageComponent extends StoreProductsState {
       const matchesStatus = status === 'all'
         || (status === 'active' && p.isAvailable)
         || (status === 'inactive' && !p.isAvailable);
+      const matchesClassification = !classification
+        || resolveProductSpecialClassification(p) === classification;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesCategory && matchesStatus && matchesClassification;
     });
   });
 }

@@ -2,6 +2,7 @@
 using FluentValidation;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Validators;
+using Urbeat.Domain.Enums;
 
 namespace Urbeat.UnitTests.Domain;
 
@@ -128,5 +129,63 @@ public sealed class UpdateProductRequestDtoValidatorTests
 
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(x => x.PropertyName == nameof(UpdateProductRequestDto.DisplayOrder));
+    }
+
+    [Theory]
+    [InlineData(ProductSpecialClassification.Offers)]
+    [InlineData(ProductSpecialClassification.BestSeller)]
+    [InlineData(ProductSpecialClassification.New)]
+    public async Task ValidateAsync_ShouldAcceptEachApprovedSpecialClassification(ProductSpecialClassification classification)
+    {
+        var request = new UpdateProductRequestDto
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Batata",
+            Price = 18m,
+            ImageUrl = "https://example.com/image.jpg",
+            DisplayOrder = 0,
+            SpecialClassification = classification,
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldAcceptClearingSpecialClassification()
+    {
+        var request = new UpdateProductRequestDto
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Batata",
+            Price = 18m,
+            ImageUrl = "https://example.com/image.jpg",
+            DisplayOrder = 0,
+            SpecialClassification = null,
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldRejectUnknownSpecialClassification()
+    {
+        var request = new UpdateProductRequestDto
+        {
+            CategoryId = Guid.NewGuid(),
+            Name = "Batata",
+            Price = 18m,
+            ImageUrl = "https://example.com/image.jpg",
+            DisplayOrder = 0,
+            SpecialClassification = (ProductSpecialClassification)99,
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.PropertyName == nameof(UpdateProductRequestDto.SpecialClassification));
     }
 }

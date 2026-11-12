@@ -684,6 +684,9 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.ImageUrl).HasMaxLength(500);
             entity.Property(x => x.StockQuantity).HasDefaultValue(0);
             entity.Property(x => x.SaleMode).HasMaxLength(20).HasDefaultValue("single");
+            entity.Property(x => x.SpecialClassification)
+                .HasConversion<string>()
+                .HasMaxLength(20);
             entity.HasOne(x => x.WeightConfig)
                 .WithOne()
                 .HasForeignKey<ProductWeightConfig>(x => x.ProductId)

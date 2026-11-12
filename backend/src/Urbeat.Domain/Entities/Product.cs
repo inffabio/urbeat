@@ -1,4 +1,6 @@
-﻿namespace Urbeat.Domain.Entities;
+﻿using Urbeat.Domain.Enums;
+
+namespace Urbeat.Domain.Entities;
 
 public sealed class Product : BaseEntity
 {
@@ -17,6 +19,13 @@ public sealed class Product : BaseEntity
     public string? ImageUrl { get; set; }
 
     public bool IsAvailable { get; set; } = true;
+
+    /// <summary>
+    /// Classificação especial única e opcional. Substitui os antigos booleanos de
+    /// organização (<see cref="IsFeatured"/>, <see cref="IsBestSeller"/>, <see cref="IsNew"/>),
+    /// mantidos apenas para compatibilidade de leitura/migração.
+    /// </summary>
+    public ProductSpecialClassification? SpecialClassification { get; set; }
 
     public bool IsFeatured { get; set; }
 

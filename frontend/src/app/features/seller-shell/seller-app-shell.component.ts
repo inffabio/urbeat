@@ -126,10 +126,30 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
   }
 
   toggleSound(): void {
-    // The toggle is always a mute control: it never depends on the activation
-    // invite, which lives in its own banner.
-    if (this.facade.soundEnabled()) this.facade.disableSound();
-    else void this.facade.enableSound();
+    // Browsers only allow audio after a gesture. When sound is wanted but this
+    // document is still locked, the sidebar touch is that gesture: it unlocks
+    // playback instead of muting a seller who never asked to mute.
+    if (this.facade.soundNeedsActivation()) {
+      void this.facade.enableSound();
+      return;
+    }
+
+    if (this.facade.soundEnabled()) {
+      this.facade.disableSound();
+      return;
+    }
+
+    void this.facade.enableSound();
+  }
+
+  /**
+   * The collapsed sidebar hides `.nav-text`, so the icon-only button needs the
+   * state the visible copy used to announce.
+   */
+  soundToggleLabel(): string {
+    if (!this.facade.soundEnabled()) return 'Ativar som de pedidos';
+    if (this.facade.soundNeedsActivation()) return 'Liberar som de pedidos';
+    return 'Silenciar som de pedidos';
   }
 
   toggleSidebar(): void {

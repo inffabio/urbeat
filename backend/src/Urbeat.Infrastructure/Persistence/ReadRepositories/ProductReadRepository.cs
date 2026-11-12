@@ -2,6 +2,7 @@
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Urbeat.Infrastructure.Persistence.ReadRepositories;
@@ -66,7 +67,7 @@ public sealed class ProductReadRepository : IProductReadRepository
             .Include(p => p.Variations)
             .Include(p => p.WeightConfig)
             .Include(p => p.OptionGroups).ThenInclude(g => g.Items)
-            .Where(x => x.StoreId == storeId && x.IsAvailable && x.IsFeatured)
+            .Where(x => x.StoreId == storeId && x.IsAvailable && x.SpecialClassification == ProductSpecialClassification.Offers)
             .Where(x => _dbContext.ProductCategories.Any(c =>
                 c.Id == x.CategoryId &&
                 c.StoreId == storeId &&

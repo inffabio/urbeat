@@ -10,6 +10,9 @@ export interface ProductCategory {
 
 export type ProductSaleMode = 'single' | 'size' | 'fixed_weight' | 'variable_weight';
 
+/** Classificação especial única e opcional exibida nas vitrines do cardápio. */
+export type ProductSpecialClassification = 'Offers' | 'BestSeller' | 'New';
+
 export interface Product {
   id: string;
   storeId: string;
@@ -20,12 +23,16 @@ export interface Product {
   price: number;
   imageUrl?: string;
   isAvailable: boolean;
-  isFeatured: boolean;
+  specialClassification?: ProductSpecialClassification | null;
+  /** @deprecated Legado: use `specialClassification`. Lido apenas como fallback de transição. */
+  isFeatured?: boolean;
+  /** @deprecated Legado: use `specialClassification`. Lido apenas como fallback de transição. */
+  isBestSeller?: boolean;
+  /** @deprecated Legado: use `specialClassification`. Lido apenas como fallback de transição. */
+  isNew?: boolean;
   displayOrder: number;
   stockEnabled?: boolean;
   stockQuantity?: number;
-  isBestSeller?: boolean;
-  isNew?: boolean;
   tagPriority?: string;
   saleMode?: ProductSaleMode;
   createdAtUtc?: string;

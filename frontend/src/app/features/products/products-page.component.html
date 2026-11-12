@@ -112,8 +112,13 @@
             </div>
           </div>
           <div class="field span-6">
-            <label class="check-label"><input type="checkbox" [(ngModel)]="productForm().isFeatured" /> Destaque</label>
-            <p class="hint">Mostrar como produto em destaque.</p>
+            <label for="legacy-special-classification">Classificação especial</label>
+            <select id="legacy-special-classification" class="input select" [(ngModel)]="productForm().specialClassification">
+              @for (option of specialClassificationOptions; track option.label) {
+                <option [ngValue]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <p class="hint">Opcional. Aparece na vitrine especial e continua na categoria original.</p>
           </div>
           <div class="field span-3">
             <label>Ordem</label>
@@ -232,6 +237,16 @@
           <ion-icon name="search-outline"></ion-icon>
           <input class="input" placeholder="Buscar produtos..." [(ngModel)]="searchQuery" />
         </div>
+        <select
+          class="input select classification-filter"
+          [ngModel]="classificationFilter()"
+          (ngModelChange)="classificationFilter.set($event)"
+          aria-label="Filtrar por classificação especial"
+        >
+          @for (option of classificationFilterOptions; track option.label) {
+            <option [ngValue]="option.value">{{ option.label }}</option>
+          }
+        </select>
         <div class="product-list">
           @for (prod of filteredProducts(); track prod.id) {
             <div class="prod-item" [class.selected]="selectedProduct()?.id === prod.id" (click)="selectProduct(prod)">
@@ -242,7 +257,7 @@
               }
               <div class="prod-info">
                 <div class="prod-row"><span class="prod-name">{{ prod.name }}</span><span class="prod-price">{{ prod.price | brl }}</span></div>
-                <div class="prod-row"><span class="prod-cat">{{ prod.categoryName }}</span><span class="badge" [class.badge-on]="prod.isAvailable" [class.badge-off]="!prod.isAvailable">{{ prod.isAvailable ? 'Ativo' : 'Inativo' }}</span></div>
+                <div class="prod-row"><span class="prod-cat">{{ prod.categoryName }}@if (prod.specialClassification) { <span class="badge badge-on">{{ specialClassificationLabel(prod.specialClassification) }}</span> }</span><span class="badge" [class.badge-on]="prod.isAvailable" [class.badge-off]="!prod.isAvailable">{{ prod.isAvailable ? 'Ativo' : 'Inativo' }}</span></div>
               </div>
             </div>
           } @empty {

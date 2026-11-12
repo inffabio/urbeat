@@ -18,6 +18,7 @@ public sealed class StoreProductsController : ControllerBase
     private readonly IProductService _productService;
     private readonly IValidator<CreateProductRequestDto> _createValidator;
     private readonly IValidator<UpdateProductRequestDto> _updateValidator;
+    private readonly IValidator<BatchUpsertProductsRequestDto> _batchValidator;
     private readonly IStoreService _storeService;
 
     private readonly IImageUploadService _imageUploadService;
@@ -26,12 +27,14 @@ public sealed class StoreProductsController : ControllerBase
         IProductService productService,
         IValidator<CreateProductRequestDto> createValidator,
         IValidator<UpdateProductRequestDto> updateValidator,
+        IValidator<BatchUpsertProductsRequestDto> batchValidator,
         IStoreService storeService,
         IImageUploadService imageUploadService)
     {
         _productService = productService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _batchValidator = batchValidator;
         _storeService = storeService;
         _imageUploadService = imageUploadService;
     }
@@ -220,6 +223,7 @@ public sealed class StoreProductsController : ControllerBase
 
     [HttpPost("batch")]
     [ProducesResponseType<IReadOnlyCollection<ProductResponseDto>>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> BatchUpsert(
@@ -227,6 +231,12 @@ public sealed class StoreProductsController : ControllerBase
         [FromBody] BatchUpsertProductsRequestDto request,
         CancellationToken cancellationToken)
     {
+        var validation = await _batchValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+            return ValidationProblem(new ValidationProblemDetails(validation.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray())));
+
         var ownerUserId = GetCurrentUserId();
         if (ownerUserId is null)
             return Unauthorized();

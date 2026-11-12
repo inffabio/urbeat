@@ -71,6 +71,12 @@
       <option value="active">Ativos</option>
       <option value="inactive">Inativos</option>
     </select>
+    <select class="form-select-app" [ngModel]="specialClassificationFilter()" (ngModelChange)="specialClassificationFilter.set($event); currentPage.set(0)">
+      <option value="">Classificação: Todas</option>
+      @for (option of specialClassificationFilterOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
     <button class="seller-secondary-button" type="button" (click)="clearFilters()">Limpar filtros</button>
     <button class="btn-primary-app btn-orange" type="button" (click)="newProduct()">
        <i class="bi bi-plus-lg"></i>
@@ -97,7 +103,12 @@
               <div class="product-thumb product-thumb-placeholder"></div>
             }
             <div>
-              <div class="product-name">{{ product.name }}</div>
+              <div class="product-name">
+                {{ product.name }}
+                @if (productSpecialClassification(product); as classification) {
+                  <span class="product-special-badge">{{ specialClassificationLabel(classification) }}</span>
+                }
+              </div>
               <div class="product-desc">{{ product.description || 'Sem descrição cadastrada.' }}</div>
             </div>
             <div>
@@ -432,19 +443,21 @@
 
     <section class="block-section">
       <h2 class="block-heading">Organizacao</h2>
-       <p class="block-sub">Destaque seu produto nas seções especiais do cardápio.</p>
+       <p class="block-sub">Escolha uma classificação especial para o produto.</p>
       <div class="prod-card">
-        <div class="tag-toggles">
-          <label class="tag-toggle" [class.active]="tagDestaque()" (click)="toggleTag('destaque')">
-            <input type="checkbox" class="prod-check" [checked]="tagDestaque()" /><span>Destaque</span>
-          </label>
-          <label class="tag-toggle" [class.active]="tagMaisVendido()" (click)="toggleTag('mais_vendido')">
-            <input type="checkbox" class="prod-check" [checked]="tagMaisVendido()" /><span>Mais vendido</span>
-          </label>
-          <label class="tag-toggle" [class.active]="tagNovidade()" (click)="toggleTag('novidade')">
-            <input type="checkbox" class="prod-check" [checked]="tagNovidade()" /><span>Novidade</span>
-          </label>
-        </div>
+        <label class="special-classification-field" for="special-classification">
+          <span class="special-classification-title">Classificação especial</span>
+          <select
+            id="special-classification"
+            class="catalog-filter-select special-classification-select"
+            [ngModel]="specialClassification()"
+            (ngModelChange)="setSpecialClassification($event)"
+            aria-label="Classificação especial do produto">
+            @for (option of specialClassificationOptions; track option.label) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
       </div>
     </section>
 

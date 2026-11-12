@@ -1,4 +1,4 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+﻿import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
@@ -191,5 +191,101 @@ describe('ProductsPageComponent — legacy product image upload', () => {
 
     expect(toastMock.showError).toHaveBeenCalledWith(IMAGE_OVER_LIMIT_ERROR);
     expect(input.value).toBe('');
+  });
+
+  describe('special classification filter', () => {
+    type Classification = 'Offers' | 'BestSeller' | 'New' | null;
+
+    const product = (name: string, specialClassification: Classification, categoryName = 'Lanches') => ({
+      id: name,
+      categoryId: 'cat-1',
+      categoryName,
+      name,
+      description: '',
+      price: 10,
+      isAvailable: true,
+      specialClassification,
+      displayOrder: 0,
+      additionals: [],
+      choiceOptions: [],
+      variations: [],
+    });
+
+    const visibleNames = () => component.filteredProducts().map((item) => item.name);
+
+    beforeEach(() => {
+      component.products.set([
+        product('X-Bacon', 'Offers'),
+        product('Batata', 'BestSeller'),
+        product('Brownie', 'New', 'Doces'),
+        product('X-Salada', null),
+      ] as never);
+    });
+
+    it('starts on Todas and keeps every product, including the unclassified one', () => {
+      expect(component.classificationFilter()).toBeNull();
+      expect(visibleNames()).toEqual(['X-Bacon', 'Batata', 'Brownie', 'X-Salada']);
+    });
+
+    it.each([
+      ['Offers', ['X-Bacon']],
+      ['BestSeller', ['Batata']],
+      ['New', ['Brownie']],
+    ] as const)('filters by %s and hides the other classifications', (filter, expected) => {
+      component.classificationFilter.set(filter);
+
+      expect(visibleNames()).toEqual([...expected]);
+    });
+
+    it.each([
+      ['Offers'],
+      ['BestSeller'],
+      ['New'],
+    ] as const)('never shows the unclassified product when %s is selected', (filter) => {
+      component.classificationFilter.set(filter);
+
+      expect(visibleNames()).not.toContain('X-Salada');
+    });
+
+    it('returns every product again when the filter is cleared back to null', () => {
+      component.classificationFilter.set('Offers');
+      expect(visibleNames()).toEqual(['X-Bacon']);
+
+      component.classificationFilter.set(null);
+
+      expect(visibleNames()).toEqual(['X-Bacon', 'Batata', 'Brownie', 'X-Salada']);
+    });
+
+    it('combines the classification filter with the existing search query', () => {
+      component.classificationFilter.set('Offers');
+      component.searchQuery.set('bacon');
+
+      expect(visibleNames()).toEqual(['X-Bacon']);
+
+      component.searchQuery.set('batata');
+
+      expect(visibleNames()).toEqual([]);
+    });
+
+    it('keeps the search over the category name working inside a classification filter', () => {
+      component.classificationFilter.set('New');
+      component.searchQuery.set('doces');
+
+      expect(visibleNames()).toEqual(['Brownie']);
+    });
+
+    it('renders the four approved options without the legacy Destaque label', () => {
+      storeServiceMock.getMyStore.mockReturnValue(of({ id: 'store-1' }));
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector(
+        'select[aria-label="Filtrar por classificação especial"]',
+      ) as HTMLSelectElement | null;
+      expect(select).toBeTruthy();
+      const labels = [...select!.options].map((option) => (option.textContent ?? '').trim());
+
+      expect(labels).toEqual(['Todas', 'Ofertas', 'Mais vendido', 'Novidade']);
+      expect(labels.join(' ')).not.toContain('Destaque');
+    });
   });
 });

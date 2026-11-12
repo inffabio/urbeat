@@ -381,20 +381,6 @@
   background: #f5f6fb;
 }
 
-.activation-banner {
-  margin: 14px 24px 0;
-  min-height: 46px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 16px;
-  background: #fdecee;
-  color: var(--app-brand, #d54a51);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 /*
  * The detached orders window hides the dashboard chrome, but it is a separate
  * document: browsers still need a gesture to allow audio here. This compact bar
@@ -643,7 +629,6 @@
     width: calc(100vw - 16px);
   }
 
-  .activation-banner,
   .realtime-fallback,
   .subscription-banner {
     margin-left: 14px;

@@ -81,6 +81,10 @@ public sealed class CreateProductRequestDtoValidator : AbstractValidator<CreateP
         RuleFor(x => x.DisplayOrder)
             .GreaterThanOrEqualTo(0);
 
+        RuleFor(x => x.SpecialClassification)
+            .Must(classification => classification is null || Enum.IsDefined(classification.Value))
+            .WithMessage("Classificação especial inválida. Use: Offers, BestSeller ou New.");
+
         RuleForEach(x => x.Additionals)
             .SetValidator(new ProductAdditionalDtoValidator());
 

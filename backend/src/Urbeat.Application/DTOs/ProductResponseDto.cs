@@ -1,4 +1,6 @@
-﻿namespace Urbeat.Application.DTOs;
+﻿using Urbeat.Domain.Enums;
+
+namespace Urbeat.Application.DTOs;
 
 public sealed class ProductResponseDto
 {
@@ -12,12 +14,10 @@ public sealed class ProductResponseDto
     public decimal? PromotionalPrice { get; init; }
     public string? ImageUrl { get; init; }
     public bool IsAvailable { get; init; }
-    public bool IsFeatured { get; init; }
+    public ProductSpecialClassification? SpecialClassification { get; init; }
     public int DisplayOrder { get; init; }
     public bool StockEnabled { get; init; }
     public int StockQuantity { get; init; }
-    public bool IsBestSeller { get; init; }
-    public bool IsNew { get; init; }
     public string TagPriority { get; init; } = string.Empty;
     public string SaleMode { get; init; } = "single";
     public DateTime CreatedAtUtc { get; init; }

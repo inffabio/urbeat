@@ -289,6 +289,13 @@ describe('StorePageComponent — feature logic', () => {
     });
   });
 
+  it('does not expose Destaque as a product classification on the storefront', () => {
+    const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
+
+    expect(template).not.toContain('Destaque');
+    expect(template).toContain('app-category-tabs');
+  });
+
   it('scrolls a selected category title below the sticky category bar', () => {
     const categoryBar = { getBoundingClientRect: () => ({ height: 52 }) } as HTMLElement;
     const categoryTitle = {
@@ -347,7 +354,7 @@ describe('StorePageComponent — feature logic', () => {
     jest.restoreAllMocks();
   });
 
-  it('activates the last category whose title crossed the sticky bar', () => {
+  it('highlights the last category whose title crossed the sticky bar without filtering Todos', () => {
     const categoryBar = { getBoundingClientRect: () => ({ height: 52 }) } as HTMLElement;
     const scrollContainer = {
       scrollTop: 400,
@@ -390,7 +397,9 @@ describe('StorePageComponent — feature logic', () => {
     component.activeCategoryId.set('todos');
     (component as any).updateActiveCategoryFromScroll();
 
-    expect(component.activeCategoryId()).toBe('c1');
+    expect(component.activeCategoryId()).toBe('todos');
+    expect(component.highlightedCategoryId()).toBe('c1');
+    expect(component.productSections()).toHaveLength(3);
 
     getElementById.mockRestore();
   });
@@ -417,10 +426,12 @@ describe('StorePageComponent — feature logic', () => {
     component.store.set({ id: 's1' } as any);
     component.categories.set([{ id: 'c1', storeId: 's1', name: 'Entradas', displayOrder: 1 } as any]);
     component.products.set([{ id: 'p1', storeId: 's1', categoryId: 'c1', name: 'Pastel' } as any]);
-    component.activeCategoryId.set('c1');
+    component.activeCategoryId.set('todos');
     (component as any).updateActiveCategoryFromScroll();
 
     expect(component.activeCategoryId()).toBe('todos');
+    expect(component.highlightedCategoryId()).toBe('todos');
+    expect(component.productSections()).toHaveLength(1);
 
     getElementById.mockRestore();
   });
@@ -450,8 +461,8 @@ describe('StorePageComponent — feature logic', () => {
         { id: 'c1', storeId: 's1', name: 'Entradas', displayOrder: 1 } as any,
       ]);
       component.products.set([
-        { id: 'p1', storeId: 's1', categoryId: 'c1', name: 'Pastel', displayOrder: 1, isFeatured: true } as any,
-        { id: 'p2', storeId: 's1', categoryId: 'missing', name: 'Produto solto', displayOrder: 2, isFeatured: false } as any,
+        { id: 'p1', storeId: 's1', categoryId: 'c1', name: 'Pastel', displayOrder: 1, specialClassification: null } as any,
+        { id: 'p2', storeId: 's1', categoryId: 'missing', name: 'Produto solto', displayOrder: 2, specialClassification: 'Offers' } as any,
       ]);
 
       expect(component.categoryTabs().map((tab) => tab.name)).toEqual(['Todos', 'Entradas']);
@@ -506,6 +517,276 @@ describe('StorePageComponent — feature logic', () => {
       expect(component.categoryTabs().map((tab) => tab.name)).toEqual(['Todos', 'Com produto']);
       expect(component.productSections().map((section) => section.name)).toEqual(['Com produto']);
       expect(component.productSections()[0].products.map((product) => product.id)).toEqual(['p1']);
+    });
+  });
+
+  describe('special classification sections', () => {
+    const categories = [
+      { id: 'c-lanches', storeId: 's1', name: 'Lanches', displayOrder: 1, isActive: true },
+      { id: 'c-acomp', storeId: 's1', name: 'Acompanhamentos', displayOrder: 2, isActive: true },
+      { id: 'c-bebidas', storeId: 's1', name: 'Bebidas', displayOrder: 3, isActive: true },
+      { id: 'c-sobremesas', storeId: 's1', name: 'Sobremesas', displayOrder: 4, isActive: true },
+    ];
+
+    const products = [
+      { id: 'x-bacon', storeId: 's1', categoryId: 'c-lanches', name: 'X-Bacon', displayOrder: 1, specialClassification: 'Offers' },
+      { id: 'x-salada', storeId: 's1', categoryId: 'c-lanches', name: 'X-Salada', displayOrder: 2, specialClassification: null },
+      { id: 'batata', storeId: 's1', categoryId: 'c-acomp', name: 'Batata', displayOrder: 1, specialClassification: 'BestSeller' },
+      { id: 'coca', storeId: 's1', categoryId: 'c-bebidas', name: 'Coca', displayOrder: 1, specialClassification: null },
+      { id: 'brownie', storeId: 's1', categoryId: 'c-sobremesas', name: 'Brownie', displayOrder: 1, specialClassification: 'New' },
+    ];
+
+    function seedCatalog(): void {
+      component.store.set({ id: 's1' } as any);
+      component.categories.set(categories as any);
+      component.products.set(products as any);
+    }
+
+    /**
+     * Stubs the storefront scroll geometry: the sticky category bar height, the scroll
+     * container origin and the vertical position of each section title.
+     */
+    function mockScrollTops(tops: Record<string, number>): jest.SpyInstance {
+      const categoryBar = { getBoundingClientRect: () => ({ height: 52 }) } as HTMLElement;
+      const scrollContainer = {
+        scrollTop: 400,
+        getBoundingClientRect: () => ({ top: 0 }),
+      } as unknown as HTMLElement;
+
+      return jest.spyOn(document, 'getElementById').mockImplementation((id) => {
+        if (id === 'store-categories') return categoryBar;
+        if (id === 'store-content') return scrollContainer;
+
+        const top = tops[id];
+        if (top === undefined) return null;
+
+        return {
+          id,
+          querySelector: () => ({ getBoundingClientRect: () => ({ top }) }),
+        } as unknown as HTMLElement;
+      });
+    }
+
+    it('orders the pills as Todos, special sections and seller categories', () => {
+      seedCatalog();
+
+      expect(component.categoryTabs().map((tab) => tab.name)).toEqual([
+        'Todos',
+        'Ofertas',
+        'Mais vendidos',
+        'Novidades',
+        'Lanches',
+        'Acompanhamentos',
+        'Bebidas',
+        'Sobremesas',
+      ]);
+      expect(component.categoryTabs().map((tab) => tab.id)).toEqual([
+        'todos',
+        'special:Offers',
+        'special:BestSeller',
+        'special:New',
+        'c-lanches',
+        'c-acomp',
+        'c-bebidas',
+        'c-sobremesas',
+      ]);
+    });
+
+    it('shows special sections before categories in Todos', () => {
+      seedCatalog();
+
+      expect(component.productSections().map((section) => section.name)).toEqual([
+        'Ofertas',
+        'Mais vendidos',
+        'Novidades',
+        'Lanches',
+        'Acompanhamentos',
+        'Bebidas',
+        'Sobremesas',
+      ]);
+    });
+
+    it('keeps the same product id in the special section and in its original category', () => {
+      seedCatalog();
+
+      const offers = component.productSections().find((section) => section.id === 'special:Offers')!;
+      const lanches = component.productSections().find((section) => section.id === 'c-lanches')!;
+
+      expect(offers.products.map((product) => product.id)).toEqual(['x-bacon']);
+      expect(lanches.products.map((product) => product.id)).toEqual(['x-bacon', 'x-salada']);
+      expect(offers.products[0].id).toBe(lanches.products[0].id);
+      expect(offers.products[0]).toBe(lanches.products[0]);
+    });
+
+    it('filters only the selected special section', () => {
+      seedCatalog();
+      component.activeCategoryId.set('special:BestSeller');
+
+      expect(component.productSections()).toHaveLength(1);
+      expect(component.productSections()[0].id).toBe('special:BestSeller');
+      expect(component.productSections()[0].products.map((product) => product.id)).toEqual(['batata']);
+    });
+
+    it('keeps an explicit special selection when the user scrolls', () => {
+      seedCatalog();
+      component.activeCategoryId.set('special:Offers');
+
+      (component as any).updateActiveCategoryFromScroll();
+
+      expect(component.activeCategoryId()).toBe('special:Offers');
+    });
+
+    it('keeps every section visible in Todos while the scrollspy highlights a special shelf', () => {
+      seedCatalog();
+      component.activeCategoryId.set('todos');
+
+      const getElementById = mockScrollTops({
+        'cat-special:Offers': 10,
+        'cat-special:BestSeller': 220,
+        'cat-special:New': 780,
+        'cat-c-lanches': 900,
+        'cat-c-acomp': 940,
+        'cat-c-bebidas': 990,
+        'cat-c-sobremesas': 1200,
+      });
+
+      (component as any).updateActiveCategoryFromScroll();
+
+      expect(component.activeCategoryId()).toBe('todos');
+      expect(component.highlightedCategoryId()).toBe('special:Offers');
+      expect(component.productSections().map((section) => section.id)).toEqual([
+        'special:Offers',
+        'special:BestSeller',
+        'special:New',
+        'c-lanches',
+        'c-acomp',
+        'c-bebidas',
+        'c-sobremesas',
+      ]);
+      expect(component.productSections().flatMap((section) => section.products).length).toBeGreaterThan(0);
+
+      getElementById.mockRestore();
+    });
+
+    it('keeps every section visible in Todos while the scrollspy highlights a seller category', () => {
+      seedCatalog();
+      component.activeCategoryId.set('todos');
+
+      const getElementById = mockScrollTops({
+        'cat-special:Offers': 0,
+        'cat-special:BestSeller': 10,
+        'cat-special:New': 20,
+        'cat-c-lanches': 30,
+        'cat-c-acomp': 40,
+        'cat-c-bebidas': 50,
+        'cat-c-sobremesas': 1900,
+      });
+
+      (component as any).updateActiveCategoryFromScroll();
+
+      expect(component.activeCategoryId()).toBe('todos');
+      expect(component.highlightedCategoryId()).toBe('c-bebidas');
+      expect(component.productSections()).toHaveLength(7);
+
+      getElementById.mockRestore();
+    });
+
+    it('filters and highlights only the explicitly selected special shelf', () => {
+      seedCatalog();
+
+      component.scrollToCategory('special:BestSeller');
+
+      expect(component.activeCategoryId()).toBe('special:BestSeller');
+      expect(component.highlightedCategoryId()).toBe('special:BestSeller');
+      expect(component.productSections()).toHaveLength(1);
+      expect(component.productSections()[0].id).toBe('special:BestSeller');
+    });
+
+    it('restores every section and the Todos pill when the user returns to Todos', () => {
+      seedCatalog();
+
+      component.scrollToCategory('special:BestSeller');
+      component.scrollToCategory(component.TODOS_ID);
+
+      expect(component.activeCategoryId()).toBe('todos');
+      expect(component.highlightedCategoryId()).toBe('todos');
+      expect(component.productSections()).toHaveLength(7);
+    });
+
+    it('drives the pill highlight from the scrollspy-aware state, not from the feed filter', () => {
+      const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
+
+      expect(template).toContain('[activeId]="highlightedCategoryId()"');
+    });
+
+    it('filters only the selected seller category', () => {
+      seedCatalog();
+      component.activeCategoryId.set('c-bebidas');
+
+      expect(component.productSections()).toHaveLength(1);
+      expect(component.productSections()[0].id).toBe('c-bebidas');
+      expect(component.productSections()[0].products.map((product) => product.id)).toEqual(['coca']);
+    });
+
+    it('hides empty special pills and sections', () => {
+      component.store.set({ id: 's1' } as any);
+      component.categories.set(categories as any);
+      component.products.set(products.map((product) => ({
+        ...product,
+        specialClassification: product.id === 'x-bacon' ? 'Offers' : null,
+      })) as any);
+
+      expect(component.categoryTabs().map((tab) => tab.name)).toEqual([
+        'Todos',
+        'Ofertas',
+        'Lanches',
+        'Acompanhamentos',
+        'Bebidas',
+        'Sobremesas',
+      ]);
+      expect(component.specialSections().map((section) => section.id)).toEqual(['special:Offers']);
+    });
+
+    it('does not duplicate the same product inside a special section', () => {
+      seedCatalog();
+
+      for (const section of component.productSections()) {
+        expect(new Set(section.products.map((product) => product.id)).size).toBe(section.products.length);
+      }
+    });
+
+    it('keeps an unclassified product only in its category', () => {
+      seedCatalog();
+
+      const specialIds = component.specialSections().flatMap((section) => section.products.map((product) => product.id));
+      const categoryIds = component.categoryProductSections().flatMap((section) => section.products.map((product) => product.id));
+
+      expect(specialIds).not.toContain('x-salada');
+      expect(specialIds).not.toContain('coca');
+      expect(categoryIds).toContain('x-salada');
+      expect(categoryIds).toContain('coca');
+    });
+
+    it('ignores special products outside the active catalog categories', () => {
+      component.store.set({ id: 's1' } as any);
+      component.categories.set(categories as any);
+      component.products.set([
+        ...products,
+        { id: 'lost-offer', storeId: 's1', categoryId: 'missing', name: 'Oferta solta', displayOrder: 1, specialClassification: 'Offers' },
+      ] as any);
+
+      const offers = component.specialSections().find((section) => section.id === 'special:Offers')!;
+      expect(offers.products.map((product) => product.id)).toEqual(['x-bacon']);
+    });
+
+    it('falls back to legacy flags with Offers precedence during the transition', () => {
+      component.store.set({ id: 's1' } as any);
+      component.categories.set([categories[0]] as any);
+      component.products.set([
+        { id: 'legacy', storeId: 's1', categoryId: 'c-lanches', name: 'Legado', displayOrder: 1, isFeatured: true, isBestSeller: true, isNew: true },
+      ] as any);
+
+      expect(component.specialSections().map((section) => section.id)).toEqual(['special:Offers']);
     });
   });
 

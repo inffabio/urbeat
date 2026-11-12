@@ -8,9 +8,10 @@ import { StoreService } from '../../core/services/store.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
-import { ProductCategory } from '../../shared/models/product.model';
+import { ProductCategory, ProductSpecialClassification } from '../../shared/models/product.model';
 import { IMAGE_ACCEPT_ATTRIBUTE, IMAGE_FORMAT_ERROR, IMAGE_MAX_BYTES, IMAGE_OVER_LIMIT_ERROR, isAllowedImageFile } from '../../shared/utils/image-upload.utils';
 import { compressImage } from '../../shared/utils/image-compression.utils';
+import { PRODUCT_SPECIAL_CLASSIFICATION_LABELS } from '../../shared/utils/product-special-classification.utils';
 
 interface ProductAdditionalItem {
   id?: string;
@@ -48,7 +49,7 @@ interface ProductItem {
   promotionalPrice?: number;
   imageUrl?: string;
   isAvailable: boolean;
-  isFeatured: boolean;
+  specialClassification?: ProductSpecialClassification | null;
   displayOrder: number;
   createdAtUtc?: string;
   additionals?: ProductAdditionalItem[];
@@ -97,15 +98,36 @@ export class ProductsPageComponent implements OnInit {
   readonly productForm = signal<ProductItem>(this.emptyProduct());
   readonly editingProduct = signal(false);
   readonly searchQuery = signal('');
+  readonly classificationFilter = signal<ProductSpecialClassification | null>(null);
   readonly saving = signal(false);
   readonly saveStatus = signal<'saved' | 'saving' | 'error' | null>(null);
 
+  readonly specialClassificationOptions: ReadonlyArray<{ value: ProductSpecialClassification | null; label: string }> = [
+    { value: null, label: 'Nenhuma' },
+    { value: 'Offers', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.Offers },
+    { value: 'BestSeller', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.BestSeller },
+    { value: 'New', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.New },
+  ];
+
+  readonly classificationFilterOptions: ReadonlyArray<{ value: ProductSpecialClassification | null; label: string }> = [
+    { value: null, label: 'Todas' },
+    { value: 'Offers', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.Offers },
+    { value: 'BestSeller', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.BestSeller },
+    { value: 'New', label: PRODUCT_SPECIAL_CLASSIFICATION_LABELS.New },
+  ];
+
+  specialClassificationLabel(value: ProductSpecialClassification | null | undefined): string {
+    return value ? PRODUCT_SPECIAL_CLASSIFICATION_LABELS[value] : '';
+  }
+
   readonly filteredProducts = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    if (!q) return this.products();
-    return this.products().filter((p) =>
-      p.name.toLowerCase().includes(q) || (p.categoryName ?? '').toLowerCase().includes(q),
-    );
+    const classification = this.classificationFilter();
+    return this.products().filter((p) => {
+      const matchesSearch = p.name.toLowerCase().includes(q) || (p.categoryName ?? '').toLowerCase().includes(q);
+      const matchesClassification = classification === null || p.specialClassification === classification;
+      return matchesSearch && matchesClassification;
+    });
   });
 
   ngOnInit(): void {
@@ -175,7 +197,7 @@ export class ProductsPageComponent implements OnInit {
 
   // ─── Products ─────────────────────────────────────────────
   private emptyProduct(): ProductItem {
-    return { categoryId: '', name: '', description: '', price: 0, isAvailable: true, isFeatured: false, displayOrder: 0 };
+    return { categoryId: '', name: '', description: '', price: 0, isAvailable: true, specialClassification: null, displayOrder: 0 };
   }
 
   loadProducts(): void {
@@ -185,7 +207,7 @@ export class ProductsPageComponent implements OnInit {
       next: (prods) => this.products.set(prods.map((p: any) => ({
         id: p.id, storeId: p.storeId, categoryId: p.categoryId, categoryName: p.categoryName,
         name: p.name, description: p.description, price: p.price,       promotionalPrice: p.promotionalPrice,
-        imageUrl: p.imageUrl, isAvailable: p.isAvailable, isFeatured: p.isFeatured,
+        imageUrl: p.imageUrl, isAvailable: p.isAvailable, specialClassification: p.specialClassification ?? null,
         displayOrder: p.displayOrder, createdAtUtc: p.createdAtUtc,
         additionals: p.additionals || [],
         choiceOptions: p.choiceOptions || [],
@@ -370,7 +392,7 @@ export class ProductsPageComponent implements OnInit {
       price: form.price,
       promotionalPrice: form.promotionalPrice ?? null,
       imageUrl: form.imageUrl ?? null,
-      isFeatured: form.isFeatured,
+      specialClassification: form.specialClassification ?? null,
       displayOrder: form.displayOrder,
       additionals: form.additionals || [],
       choiceOptions: form.choiceOptions || [],
