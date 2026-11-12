@@ -98,6 +98,18 @@ foreach ($prop in $secretsMap.PSObject.Properties) {
     }
 }
 
+# ─────────────────────────────────────────
+# Mandatory application secrets
+# ─────────────────────────────────────────
+# RolePromotionChallenge__SigningKey has no default (neither here nor in docker-compose.yml), so
+# the API and the workers abort at startup when it is missing. Fail here instead of shipping an
+# .env/compose pair that crash-loops on startup.
+if ([string]::IsNullOrWhiteSpace($envVars['ROLE_PROMOTION_SIGNING_KEY'])) {
+    Write-Host "`n❌ ROLE_PROMOTION_SIGNING_KEY was not resolved from the Vault." -ForegroundColor Red
+    Write-Host "   Add its OCID to configs/secrets-map.json; the API and the workers require it at startup." -ForegroundColor Yellow
+    exit 1
+}
+
 # Resolves a Vault secret by display name when configs/secrets-map.json has no OCID for it.
 # The OCID list is fetched once and cached for the whole run.
 $vaultSecretsByName = $null
@@ -234,6 +246,11 @@ JWT_ISSUER=$($envVars['URBEAT_JWT_ISSUER'])
 JWT_AUDIENCE=$($envVars['URBEAT_JWT_AUDIENCE'])
 JWT_EXPIRY_HOURS=$($envVars['URBEAT_JWT_EXPIRY_HOURS'])
 JWT_EXPIRY_MINUTES=$jwtExpiryMinutes
+
+# ─── Role Promotion Signing ──────────────────────────────────
+# Dedicated signing key for role promotion challenges. docker-compose.yml forwards it without a
+# default, so an empty value keeps the API/workers from starting.
+ROLE_PROMOTION_SIGNING_KEY=$($envVars['ROLE_PROMOTION_SIGNING_KEY'])
 
 # ─── Grafana ─────────────────────────────────────────────────
 GF_SECURITY_ADMIN_USER=$($envVars['URBEAT_GRAFANA_USER'])

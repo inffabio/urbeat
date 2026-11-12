@@ -111,6 +111,10 @@ x-backend-environment: &backend-environment
   Jwt__Issuer: ${JWT_ISSUER}
   Jwt__Audience: ${JWT_AUDIENCE}
   Jwt__ExpirationMinutes: ${JWT_EXPIRY_MINUTES}
+  # Dedicated role promotion signing key. Intentionally has no default: the API and the workers
+  # fail at startup with "RolePromotionChallenge:SigningKey is required" when it is empty or a
+  # known placeholder.
+  RolePromotionChallenge__SigningKey: ${ROLE_PROMOTION_SIGNING_KEY}
   GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
   App__FrontendUrl: ${FRONTEND_URL}
   App__ApiUrl: ${API_URL}

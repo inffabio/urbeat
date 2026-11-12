@@ -132,6 +132,14 @@ if (Test-Path -LiteralPath $environmentScriptPath -PathType Leaf) {
     if ($environmentContent -notmatch 'Resolve-VaultSecretByName') {
         $errors.Add("03-setup-environment.ps1 must resolve WhatsApp secrets by Vault display name when secrets-map.json has no OCID.")
     }
+    # RolePromotionChallenge__SigningKey is mandatory and has no default in any compose file, so the
+    # generated .env must carry the Vault secret that docker compose interpolates.
+    if ($environmentContent -notmatch '(?m)^ROLE_PROMOTION_SIGNING_KEY=\$\(\$envVars\[''ROLE_PROMOTION_SIGNING_KEY''\]\)\r?$') {
+        $errors.Add("03-setup-environment.ps1 must write ROLE_PROMOTION_SIGNING_KEY to the generated .env.")
+    }
+    if ($environmentContent -notmatch '(?ms)if \(\[string\]::IsNullOrWhiteSpace\(\$envVars\[''ROLE_PROMOTION_SIGNING_KEY''\]\)\)[\s\S]*?exit 1') {
+        $errors.Add("03-setup-environment.ps1 must abort when ROLE_PROMOTION_SIGNING_KEY does not resolve from the Vault.")
+    }
 } else {
     $errors.Add("03-setup-environment.ps1 is missing.")
 }
@@ -218,6 +226,33 @@ try {
     }
     if (-not $validatedWithParser) { $errors.Add("No YAML validator available. Install Python with PyYAML, Ruby/Psych, or Docker Compose.") }
 } finally { if ($generatedCompose) { Remove-Item -LiteralPath $generatedCompose -Force -ErrorAction SilentlyContinue } }
+
+# ─────────────────────────────────────────
+# Role promotion signing key invariant
+# ─────────────────────────────────────────
+# Every backend process (two API replicas and two Hangfire workers) must receive
+# RolePromotionChallenge__SigningKey through the shared anchor, and the interpolation must not
+# fall back to an empty default: the application fails at startup when the key is empty.
+if ($composeMatch.Success) {
+    $generatedComposeText = $composeMatch.Groups[1].Value
+    $anchorMatch = [regex]::Match($generatedComposeText, '(?ms)^x-backend-environment: &backend-environment[ \t]*\r?\n(.*?)(?=^\S)')
+    if (-not $anchorMatch.Success) {
+        $errors.Add("04-deploy-application.ps1: x-backend-environment anchor could not be extracted from the compose template.")
+    } else {
+        $backendEnvironmentBlock = $anchorMatch.Groups[1].Value
+        if ($backendEnvironmentBlock -notmatch 'RolePromotionChallenge__SigningKey:\s*\$\{ROLE_PROMOTION_SIGNING_KEY\}') {
+            $errors.Add("04-deploy-application.ps1: x-backend-environment must set RolePromotionChallenge__SigningKey from ROLE_PROMOTION_SIGNING_KEY.")
+        }
+        if ($backendEnvironmentBlock -match '\$\{ROLE_PROMOTION_SIGNING_KEY:-') {
+            $errors.Add("04-deploy-application.ps1: ROLE_PROMOTION_SIGNING_KEY must not be interpolated with an empty default.")
+        }
+    }
+
+    $mergedServices = [regex]::Matches($generatedComposeText, '(?m)^[ \t]*<<:[ \t]*\*backend-environment[ \t]*\r?$')
+    if ($mergedServices.Count -lt 4) {
+        $errors.Add("04-deploy-application.ps1: the two API replicas and both workers must merge *backend-environment (found $($mergedServices.Count)).")
+    }
+}
 
 # Compose performs an additional schema/interpolation check when available. It is intentionally
 # best-effort here because production .env values are not present in a local validation run.

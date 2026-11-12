@@ -259,6 +259,27 @@ Describe "deploy hardening invariants" {
         ($communicationsBlock -match '(?m)^\s+ports:') | Should Be $false
     }
 
+    It "OCI application compose forwards the role promotion signing key to every backend service" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\04-deploy-application.ps1") -Raw
+        $match = [regex]::Match($content, '(?s)\$dockerCompose = @''\r?\n(.*?)\r?\n''@')
+        $match.Success | Should Be $true
+
+        $compose = $match.Groups[1].Value
+        $anchor = [regex]::Match($compose, '(?ms)^x-backend-environment: &backend-environment[ \t]*\r?\n(.*?)(?=^\S)')
+
+        $anchor.Success | Should Be $true
+        $anchor.Groups[1].Value | Should Match 'RolePromotionChallenge__SigningKey:\s*\$\{ROLE_PROMOTION_SIGNING_KEY\}'
+        ($anchor.Groups[1].Value -match '\$\{ROLE_PROMOTION_SIGNING_KEY:-') | Should Be $false
+        ([regex]::Matches($compose, '(?m)^[ \t]*<<:[ \t]*\*backend-environment[ \t]*\r?$')).Count | Should Be 4
+    }
+
+    It "OCI environment step writes the role promotion signing key to the generated .env" {
+        $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\03-setup-environment.ps1") -Raw
+
+        $content | Should Match '(?m)^ROLE_PROMOTION_SIGNING_KEY=\$\(\$envVars\[''ROLE_PROMOTION_SIGNING_KEY''\]\)\r?$'
+        $content | Should Match '(?ms)if \(\[string\]::IsNullOrWhiteSpace\(\$envVars\[''ROLE_PROMOTION_SIGNING_KEY''\]\)\)[\s\S]*?exit 1'
+    }
+
     It "internal deploy accepts AllowDirty and ExpectedCommit" {
         $content = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\..\deploy-internal.ps1") -Raw
 
