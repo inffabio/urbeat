@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, NO_ERRORS_SCHEMA } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { SellerStoreInfoPageComponent } from './seller-store-info-page.component';
 import { StoreService } from '../../core/services/store.service';
@@ -24,6 +24,7 @@ describe('SellerStoreInfoPageComponent', () => {
     updateStore: jest.fn(),
     upsertStoreAddress: jest.fn(),
     updateDeliveryConfig: jest.fn(),
+    deleteStore: jest.fn(),
   };
 
   const mockAddressService = {
@@ -33,6 +34,7 @@ describe('SellerStoreInfoPageComponent', () => {
   const mockAuthService = {
     getSellerProfile: jest.fn(),
     updateSellerProfile: jest.fn(),
+    logout: jest.fn(),
   };
 
   const mockToastService = {
@@ -312,6 +314,200 @@ describe('SellerStoreInfoPageComponent', () => {
         'Selecione ao menos um tipo de atendimento: Delivery ou Retirada.',
       );
       expect(mockStoreService.updateStore).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('zona destrutiva', () => {
+    let navigate: jest.SpyInstance;
+
+    const renderWithStore = async (): Promise<void> => {
+      mockStoreService.getMyStore.mockReturnValue(of(buildStore()));
+      render();
+      await fixture.whenStable();
+    };
+
+    const dangerZone = (): HTMLElement | null =>
+      fixture.nativeElement.querySelector('.danger-zone');
+
+    const openDeleteButton = (): HTMLButtonElement | null =>
+      fixture.nativeElement.querySelector('.danger-zone > .btn-danger-app');
+
+    const deleteConfirmationInput = (): HTMLInputElement | null =>
+      fixture.nativeElement.querySelector('#deleteConfirmation');
+
+    const cancelDeleteButton = (): HTMLButtonElement | null =>
+      fixture.nativeElement.querySelector('.danger-actions .btn-outline-app');
+
+    const confirmDeleteButton = (): HTMLButtonElement | null =>
+      fixture.nativeElement.querySelector('.danger-actions .btn-danger-app');
+
+    const typeConfirmation = (value: string): void => {
+      const input = deleteConfirmationInput();
+      expect(input).not.toBeNull();
+      input!.value = value;
+      input!.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      mockStoreService.deleteStore.mockReturnValue(of(undefined));
+    });
+
+    it('hides the destructive zone when the seller has no store', async () => {
+      render();
+      await fixture.whenStable();
+
+      expect(dangerZone()).toBeNull();
+    });
+
+    it('shows the destructive zone when a store is loaded', async () => {
+      await renderWithStore();
+
+      expect(dangerZone()?.textContent).toContain('Zona destrutiva');
+      expect(dangerZone()?.textContent).toContain('Esta ação não pode ser desfeita');
+      expect(openDeleteButton()?.textContent?.trim()).toBe('Excluir loja');
+    });
+
+    it('keeps the destructive zone separated from the store information cards', async () => {
+      await renderWithStore();
+
+      const zone = dangerZone()!;
+      const infoLayout = fixture.nativeElement.querySelector('.info-layout') as HTMLElement;
+      expect(infoLayout.contains(zone)).toBe(false);
+      expect(zone.closest('.content-card')).toBeNull();
+    });
+
+    it('requires the confirmation word before calling the API', async () => {
+      await renderWithStore();
+
+      openDeleteButton()!.click();
+      fixture.detectChanges();
+
+      expect(deleteConfirmationInput()).not.toBeNull();
+      expect(confirmDeleteButton()!.disabled).toBe(true);
+
+      confirmDeleteButton()!.click();
+      fixture.detectChanges();
+      expect(mockStoreService.deleteStore).not.toHaveBeenCalled();
+
+      typeConfirmation('excluir');
+      expect(confirmDeleteButton()!.disabled).toBe(false);
+
+      confirmDeleteButton()!.click();
+      expect(mockStoreService.deleteStore).toHaveBeenCalledWith('store-123');
+    });
+
+    it('accepts the confirmation word regardless of case and spacing', async () => {
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+
+      typeConfirmation('  Excluir  ');
+
+      expect(component.canSubmitDeletion()).toBe(true);
+    });
+
+    it('cancels the confirmation without calling the API', async () => {
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      cancelDeleteButton()!.click();
+      fixture.detectChanges();
+
+      expect(mockStoreService.deleteStore).not.toHaveBeenCalled();
+      expect(deleteConfirmationInput()).toBeNull();
+      expect(openDeleteButton()).not.toBeNull();
+    });
+
+    it('navigates to the store creation wizard after a successful deletion', async () => {
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      typeConfirmation('excluir');
+      confirmDeleteButton()!.click();
+
+      expect(mockStoreService.deleteStore).toHaveBeenCalledWith('store-123');
+      expect(mockToastService.showSuccess).toHaveBeenCalledWith(
+        'Loja excluída. Crie uma nova loja quando quiser voltar a vender.',
+      );
+      expect(navigate).toHaveBeenCalledWith(['/configurar-loja']);
+      expect(component.deleting()).toBe(false);
+    });
+
+    it('logs out and redirects to the seller login on 401', async () => {
+      mockStoreService.deleteStore.mockReturnValue(throwError(() => ({ status: 401, error: {} })));
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      typeConfirmation('excluir');
+      confirmDeleteButton()!.click();
+
+      expect(mockAuthService.logout).toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith(['/login-vendedor']);
+      expect(mockToastService.showError).toHaveBeenCalledWith(
+        'Sua sessão expirou. Entre novamente para continuar.',
+      );
+      expect(component.deleting()).toBe(false);
+    });
+
+    it('reports a permission error on 403 without navigating', async () => {
+      mockStoreService.deleteStore.mockReturnValue(throwError(() => ({ status: 403, error: {} })));
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      typeConfirmation('excluir');
+      confirmDeleteButton()!.click();
+
+      expect(mockToastService.showError).toHaveBeenCalledWith(
+        'Você não tem permissão para excluir esta loja.',
+      );
+      expect(navigate).not.toHaveBeenCalled();
+      expect(mockAuthService.logout).not.toHaveBeenCalled();
+      expect(component.deleting()).toBe(false);
+      expect(component.deletePanelOpen()).toBe(false);
+    });
+
+    it('treats 404 as an already deleted store and offers the store creation wizard', async () => {
+      mockStoreService.deleteStore.mockReturnValue(throwError(() => ({ status: 404, error: {} })));
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      typeConfirmation('excluir');
+      confirmDeleteButton()!.click();
+
+      expect(mockToastService.showInfo).toHaveBeenCalledWith(
+        'Esta loja já não existe. Crie uma nova loja para voltar a vender.',
+      );
+      expect(navigate).toHaveBeenCalledWith(['/configurar-loja']);
+      expect(mockToastService.showSuccess).not.toHaveBeenCalled();
+    });
+
+    it('keeps the panel open with an inline error when the request fails unexpectedly', async () => {
+      mockStoreService.deleteStore.mockReturnValue(throwError(() => ({ status: 500, error: {} })));
+      await renderWithStore();
+
+      component.openDeletePanel();
+      fixture.detectChanges();
+      typeConfirmation('excluir');
+      confirmDeleteButton()!.click();
+      fixture.detectChanges();
+
+      expect(mockToastService.showError).toHaveBeenCalledWith(
+        'Não foi possível excluir a loja. Tente novamente.',
+      );
+      expect(component.deletePanelOpen()).toBe(true);
+      expect(component.deleting()).toBe(false);
+      expect(component.deleteError()).toBe('Não foi possível excluir a loja. Tente novamente.');
+      expect(fixture.nativeElement.querySelector('#deleteConfirmationError')?.textContent)
+        .toContain('Não foi possível excluir a loja');
+      expect(navigate).not.toHaveBeenCalled();
     });
   });
 });

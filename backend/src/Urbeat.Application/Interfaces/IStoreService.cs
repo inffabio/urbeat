@@ -12,6 +12,16 @@ public interface IStoreService
 
     Task<StoreResponseDto?> GetByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Deletes the owner's store and its store-scoped rows in a database transaction, then removes
+    /// the collected Cloudinary assets on a best-effort basis (after commit). Order history remains.
+    /// </summary>
+    Task<DeleteStoreResultDto> DeleteForOwnerAsync(
+        Guid ownerUserId,
+        Guid storeId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     Task<UpdateStoreResultDto> UpdateAsync(
         Guid ownerUserId,
         Guid storeId,

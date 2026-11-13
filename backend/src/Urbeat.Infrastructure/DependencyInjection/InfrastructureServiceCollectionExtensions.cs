@@ -321,7 +321,10 @@ public static class InfrastructureServiceCollectionExtensions
         }
         
         services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.SectionName));
+        services.Configure<CloudinaryMaintenanceOptions>(configuration.GetSection(CloudinaryMaintenanceOptions.SectionName));
         services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
+        services.AddScoped<ICloudinaryImageCatalog, CloudinaryImageCatalog>();
+        services.AddScoped<IStoreImageMaintenanceService, StoreImageMaintenanceService>();
         services.AddScoped<IPricingService, PricingService>();
         
         services.AddScoped<IStorePaymentGatewayConfigService, StorePaymentGatewayConfigService>();

@@ -18,6 +18,16 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"urbeat-tests-{Guid.NewGuid()}";
 
+    /// <summary>
+    /// Upload fake shared with the host. Deletion calls from store deletion are asserted here.
+    /// </summary>
+    public FakeImageUploadService ImageUploads { get; } = new();
+
+    /// <summary>
+    /// Cloudinary maintenance fake shared with the host. Tests seed <see cref="FakeCloudinaryImageCatalog.Resources"/>.
+    /// </summary>
+    public FakeCloudinaryImageCatalog CloudinaryCatalog { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -64,7 +74,10 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton<IShortIdCache, InMemoryShortIdCache>();
 
             services.RemoveAll<IImageUploadService>();
-            services.AddSingleton<IImageUploadService, FakeImageUploadService>();
+            services.AddSingleton<IImageUploadService>(ImageUploads);
+
+            services.RemoveAll<ICloudinaryImageCatalog>();
+            services.AddSingleton<ICloudinaryImageCatalog>(CloudinaryCatalog);
 
             services.RemoveAll(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>));
             services.AddSingleton(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>), typeof(RecordingHubContext<>));

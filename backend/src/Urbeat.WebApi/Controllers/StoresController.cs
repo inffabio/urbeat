@@ -374,6 +374,37 @@ public sealed class StoresController : ControllerBase
         return Ok(store);
     }
 
+    [HttpDelete("{storeId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteStore([FromRoute] Guid storeId, CancellationToken cancellationToken)
+    {
+        var ownerUserId = GetCurrentUserId();
+        if (ownerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _storeService.DeleteForOwnerAsync(
+            ownerUserId.Value,
+            storeId,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        return NoContent();
+    }
+
     [HttpPut("{storeId}")]
     [ProducesResponseType<StoreResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

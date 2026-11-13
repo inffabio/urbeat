@@ -283,6 +283,123 @@ textarea.form-control-app {
 .badge-green { background: #e8f8ef; color: #19b86a; }
 .badge-gray { background: #f0f1f5; color: var(--dash-muted, #7d8298); }
 
+/* ─── Zona destrutiva ─────────────────────────────────────── */
+.danger-zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 22px 24px;
+  border: 1px solid var(--app-error-border, #fecaca);
+  border-left: 4px solid var(--app-error, #d32f2f);
+  border-radius: 18px;
+  background: var(--app-error-soft, #fef2f2);
+}
+
+.danger-zone-copy {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.danger-zone-title {
+  margin: 0 0 8px;
+  color: var(--app-error, #d32f2f);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.danger-zone-text {
+  margin: 0 0 6px;
+  color: var(--app-muted-strong, #565b70);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.danger-zone-warning {
+  margin-bottom: 0;
+  color: var(--app-error, #d32f2f);
+  font-weight: 800;
+}
+
+.btn-danger-app {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--app-error, #d32f2f);
+  border-radius: 10px;
+  background: var(--app-error, #d32f2f);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.btn-danger-app:hover:not(:disabled),
+.btn-danger-app:focus-visible:not(:disabled) {
+  border-color: var(--app-brand-dark, #b63a41);
+  background: var(--app-brand-dark, #b63a41);
+  color: #fff;
+}
+
+.btn-danger-app:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--app-error, #d32f2f) 30%, transparent);
+  outline-offset: 2px;
+}
+
+.btn-danger-app:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-danger-app ion-spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.danger-confirm {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-width: 420px;
+}
+
+.danger-confirm-title {
+  margin: 0;
+  color: var(--dash-text, #111426);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.danger-confirm .form-control-app {
+  min-height: 44px;
+}
+
+.danger-error {
+  margin: 0;
+  color: var(--app-error, #d32f2f);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.danger-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.danger-actions .btn {
+  min-height: 44px;
+}
+
 @media (max-width: 720px) {
   .store-info-page { padding: 0 0 72px; }
   .dashboard-topbar { flex-direction: column; }
@@ -294,4 +411,9 @@ textarea.form-control-app {
   .dashboard-save-bar .btn { width: 100%; }
   .info-row { align-items: flex-start; flex-direction: column; gap: 5px; }
   .info-row strong { max-width: 100%; text-align: left; }
+  .danger-zone { flex-direction: column; padding: 18px; }
+  .danger-zone > .btn-danger-app { width: 100%; }
+  .danger-confirm { width: 100%; max-width: none; }
+  .danger-actions { flex-direction: column; }
+  .danger-actions .btn { width: 100%; }
 }

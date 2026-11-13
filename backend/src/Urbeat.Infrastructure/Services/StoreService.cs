@@ -198,6 +198,261 @@ public sealed class StoreService : IStoreService
         return await _storeReadRepository.GetByOwnerAsync(ownerUserId, cancellationToken);
     }
 
+    public async Task<DeleteStoreResultDto> DeleteForOwnerAsync(
+        Guid ownerUserId,
+        Guid storeId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _dbContext.Stores
+            .SingleOrDefaultAsync(x => x.Id == storeId, cancellationToken);
+
+        if (store is null)
+        {
+            Serilog.Log.Warning("{EventType} | Store deletion failed | OwnerUserId={OwnerUserId} | StoreId={StoreId} | Reason=not_found | IP={IpAddress}", "STORE_DELETE_FAILED", ownerUserId, storeId, ipAddress);
+            return new DeleteStoreResultDto
+            {
+                NotFound = true
+            };
+        }
+
+        if (store.OwnerUserId != ownerUserId)
+        {
+            Serilog.Log.Warning("{EventType} | Store deletion forbidden | OwnerUserId={OwnerUserId} | StoreId={StoreId} | IP={IpAddress}", "STORE_DELETE_FORBIDDEN", ownerUserId, storeId, ipAddress);
+            await WriteAuditLogAsync(
+                ownerUserId,
+                "StoreDeleteForbidden",
+                nameof(Store),
+                store.Id,
+                "Store deletion denied: user is not the owner.",
+                ipAddress,
+                cancellationToken);
+
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new DeleteStoreResultDto
+            {
+                Forbidden = true
+            };
+        }
+
+        // Collect the Cloudinary URLs while the rows still exist. The database mutation below is
+        // the source of truth; remote deletion happens only after the commit succeeds.
+        var assets = await CollectStoreImageUrlsAsync(store, cancellationToken);
+
+        await using var transaction = _dbContext.Database.IsRelational()
+            ? await _dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        try
+        {
+            await DeleteStoreDependentsAsync(store, cancellationToken);
+
+            _dbContext.Stores.Remove(store);
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A concurrent deletion removed the store between the read and the delete. The
+            // transaction is rolled back by disposal; report the same 404 as an already-deleted
+            // store so the endpoint stays idempotent.
+            Serilog.Log.Warning("{EventType} | Store deletion raced with another deletion | OwnerUserId={OwnerUserId} | StoreId={StoreId} | IP={IpAddress}", "STORE_DELETE_FAILED", ownerUserId, storeId, ipAddress);
+            return new DeleteStoreResultDto
+            {
+                NotFound = true
+            };
+        }
+        catch (Exception exception)
+        {
+            Serilog.Log.Error(exception, "{EventType} | Store deletion rolled back | OwnerUserId={OwnerUserId} | StoreId={StoreId} | IP={IpAddress}", "STORE_DELETE_FAILED", ownerUserId, storeId, ipAddress);
+            throw;
+        }
+
+        // Best-effort Cloudinary cleanup after commit. A remote failure must never make the
+        // already-committed database deletion look unsuccessful, and request cancellation must not
+        // leave a half-cleaned set with no audit entry.
+        var deletedAssets = 0;
+        var failedAssets = 0;
+        foreach (var imageUrl in assets)
+        {
+            try
+            {
+                await _imageUploadService.DeleteAsync(imageUrl, CancellationToken.None);
+                deletedAssets++;
+            }
+            catch (Exception exception)
+            {
+                failedAssets++;
+                Serilog.Log.Error(
+                    exception,
+                    "{EventType} | Store image deletion failed after commit | StoreId={StoreId} | ImageUrl={ImageUrl}",
+                    "STORE_DELETE_ASSET_FAILED",
+                    storeId,
+                    imageUrl);
+            }
+        }
+
+        try
+        {
+            await WriteAuditLogAsync(
+                ownerUserId,
+                "StoreDeleted",
+                nameof(Store),
+                storeId,
+                $"Store deleted. Cloudinary assets attempted={assets.Count}, deleted={deletedAssets}, failed={failedAssets}.",
+                ipAddress,
+                CancellationToken.None);
+
+            await _efUnitOfWork.SaveChangesAsync(CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            // The store is already gone; audit persistence is secondary and must not turn the
+            // successful deletion into a 500.
+            Serilog.Log.Error(exception, "{EventType} | Store deletion audit failed | StoreId={StoreId}", "STORE_DELETE_AUDIT_FAILED", storeId);
+        }
+
+        Serilog.Log.Information(
+            "{EventType} | Store deleted | StoreId={StoreId} | OwnerUserId={OwnerUserId} | Assets={Assets} | AssetsDeleted={AssetsDeleted} | AssetsFailed={AssetsFailed} | IP={IpAddress}",
+            "STORE_DELETED",
+            storeId,
+            ownerUserId,
+            assets.Count,
+            deletedAssets,
+            failedAssets,
+            ipAddress);
+
+        return new DeleteStoreResultDto
+        {
+            Deleted = true,
+            AssetsAttempted = assets.Count,
+            AssetsDeleted = deletedAssets,
+            AssetsFailed = failedAssets
+        };
+    }
+
+    private async Task<IReadOnlyList<string>> CollectStoreImageUrlsAsync(Store store, CancellationToken cancellationToken)
+    {
+        var urls = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(store.LogoUrl))
+        {
+            urls.Add(store.LogoUrl);
+        }
+
+        if (!string.IsNullOrWhiteSpace(store.BannerUrl))
+        {
+            urls.Add(store.BannerUrl);
+        }
+
+        var productImageUrls = await _dbContext.Products
+            .AsNoTracking()
+            .Where(x => x.StoreId == store.Id && x.ImageUrl != null && x.ImageUrl != string.Empty)
+            .Select(x => x.ImageUrl!)
+            .ToListAsync(cancellationToken);
+
+        urls.AddRange(productImageUrls);
+
+        return urls
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Removes store-scoped rows in an order that satisfies the restrictive foreign keys
+    /// (private cuisine type, product -> category and delivery route -> store driver). Global
+    /// reference data (<see cref="DeliveryNeighborhood"/>, <see cref="CuisineType"/> defaults and
+    /// cities) is never touched. Orders are intentionally preserved as historical records.
+    /// </summary>
+    private async Task DeleteStoreDependentsAsync(Store store, CancellationToken cancellationToken)
+    {
+        var storeId = store.Id;
+
+        // Stores.CuisineTypeId -> CuisineTypes is Restrict. When the store points at its own
+        // private category, clear the reference first; a global default category is untouched.
+        if (store.CuisineTypeId is not null)
+        {
+            var pointsToPrivateCuisine = await _dbContext.CuisineTypes
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == store.CuisineTypeId.Value && x.StoreId == storeId, cancellationToken);
+
+            if (pointsToPrivateCuisine)
+            {
+                store.CuisineTypeId = null;
+                await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        await DeleteWhereAsync(_dbContext.CuisineTypes.Where(x => x.StoreId == storeId), cancellationToken);
+
+        // DeliveryRoute -> StoreDeliveryDriver is Restrict, so routes go first.
+        await DeleteWhereAsync(_dbContext.DeliveryRoutes.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StoreDeliveryDrivers.Where(x => x.StoreId == storeId), cancellationToken);
+
+        // Products -> ProductCategory is Restrict, so products go first.
+        await DeleteWhereAsync(_dbContext.Products.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.ProductCategories.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.ProductOptionGroupTemplates.Where(x => x.StoreId == storeId), cancellationToken);
+
+        // StoreAdditional -> StoreAdditionalGroup is Restrict.
+        var storeAdditionalIds = await _dbContext.StoreAdditionals
+            .AsNoTracking()
+            .Where(x => x.StoreId == storeId)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        if (storeAdditionalIds.Count > 0)
+        {
+            // Product deletion already cascaded the normal assignments. Removing any residual row
+            // by AdditionalId keeps an inconsistent legacy row from blocking the store deletion.
+            await DeleteWhereAsync(
+                _dbContext.ProductAdditionalAssignments.Where(x => storeAdditionalIds.Contains(x.AdditionalId)),
+                cancellationToken);
+        }
+
+        await DeleteWhereAsync(_dbContext.StoreAdditionals.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StoreAdditionalGroups.Where(x => x.StoreId == storeId), cancellationToken);
+
+        await DeleteWhereAsync(_dbContext.StoreAddresses.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StoreDeliveryAreas.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StoreBusinessHours.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.Set<DeliveryTime>().Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.CustomerPhoneVerifications.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StoreCustomers.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StorePaymentGatewayConfigs.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.PaymentGatewayTransactionLogs.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.StorePrinterConfigs.Where(x => x.StoreId == storeId), cancellationToken);
+        await DeleteWhereAsync(_dbContext.OrderPrintJobs.Where(x => x.StoreId == storeId), cancellationToken);
+
+        // SellerSubscription has no FK configured but a unique StoreId; a leftover row would block
+        // the seller from creating a new store.
+        await DeleteWhereAsync(_dbContext.SellerSubscriptions.Where(x => x.StoreId == storeId), cancellationToken);
+    }
+
+    private async Task DeleteWhereAsync<TEntity>(IQueryable<TEntity> query, CancellationToken cancellationToken)
+        where TEntity : class
+    {
+        if (_dbContext.Database.IsRelational())
+        {
+            await query.ExecuteDeleteAsync(cancellationToken);
+            return;
+        }
+
+        // The InMemory provider does not support ExecuteDelete. Track and remove instead; the
+        // store deletion is saved by the caller.
+        var entities = await query.ToListAsync(cancellationToken);
+        if (entities.Count > 0)
+        {
+            _dbContext.Set<TEntity>().RemoveRange(entities);
+        }
+    }
+
     public async Task<UpdateStoreResultDto> UpdateAsync(
         Guid ownerUserId,
         Guid storeId,

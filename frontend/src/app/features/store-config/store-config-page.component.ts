@@ -53,11 +53,11 @@ addIcons({
   host: { '[class.urbeat-onboarding]': '!isDashboardView()' },
 })
 export class StoreConfigPageComponent implements OnInit {
-  private readonly storeService = inject(StoreService);
+  protected readonly storeService = inject(StoreService);
   private readonly addressService = inject(AddressService);
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly toast = inject(ToastService);
+  protected readonly authService = inject(AuthService);
+  protected readonly router = inject(Router);
+  protected readonly toast = inject(ToastService);
   private readonly sellerShell = inject(SellerShellFacade);
   readonly stepperSteps = createStepperSteps(0);
   readonly isDashboardView = computed(() => (this.router.url ?? '').startsWith('/app/'));

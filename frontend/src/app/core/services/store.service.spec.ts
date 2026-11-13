@@ -132,6 +132,33 @@ describe('StoreService', () => {
     });
   });
 
+  describe('deleteStore', () => {
+    it('deletes the store through DELETE /api/stores/{storeId} without a body', () => {
+      const completed = jest.fn();
+      service.deleteStore('store-123').subscribe({ next: completed });
+
+      const req = httpMock.expectOne('/api/stores/store-123');
+      expect(req.request.method).toBe('DELETE');
+      expect(req.request.body).toBeNull();
+      expect(req.request.url).toBe('/api/stores/store-123');
+
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      expect(completed).toHaveBeenCalledTimes(1);
+    });
+
+    it('surfaces the API error status so the caller can branch on 401/403/404', () => {
+      const error = jest.fn();
+      service.deleteStore('store-123').subscribe({ error });
+
+      httpMock
+        .expectOne('/api/stores/store-123')
+        .flush({ error: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
+
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error.mock.calls[0][0].status).toBe(403);
+    });
+  });
+
   describe('getProductOptionGroupTemplates', () => {
     it('loads the reusable option groups for the store', () => {
       const templates: ProductOptionGroupTemplate[] = [

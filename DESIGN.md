@@ -432,6 +432,14 @@ These patterns form the product detail page — variations, choices, additionals
 - **Store:** Centered `<p class="empty">` with secondary text, `padding: 32px`. Content: "Nenhum item encontrado." Appears when a search or filter returns no results.
 - **Cart:** Centered layout with large bag icon (64px, muted), heading (20px weight 800), description (secondary text), and a full-width primary button to return to the store.
 
+### 5.15 Danger Zone (seller store deletion)
+- **Placement:** A standalone card after the page content — never inside the information grid — and rendered only when the seller actually has a store (`existingStoreId`).
+- **Surface:** Error tokens only: `--app-error-soft` background, `--app-error-border` border, 4px left accent in `--app-error`, `border-radius: 18px`, padding `22px 24px`, `24px` above the previous card.
+- **Copy:** Says exactly what is destroyed, what is preserved (orders and reviews stay in the history), and that the action cannot be undone.
+- **Confirmation:** Two steps inline — the destructive button opens a panel and the final button stays disabled until the seller types `excluir` (case-insensitive, trimmed). No native `confirm()` and no modal: inline expansion keeps the flow accessible and testable.
+- **States:** loading (spinner plus disabled buttons), error (inline `role="alert"` plus toast, panel stays open for retry), success (toast plus navigation to the store creation wizard).
+- **Buttons:** `--app-error` solid fill, white text, `min-height: 44px`, full width below `720px`. Never reuse the primary bordeaux fill for a destructive action.
+
 ## 6. Do's and Don'ts
 
 ### Do:

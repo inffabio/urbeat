@@ -126,4 +126,60 @@
       </div>
     </div>
   </section>
+
+  @if (existingStoreId()) {
+    <section class="danger-zone" aria-labelledby="danger-zone-title">
+      <div class="danger-zone-copy">
+        <h2 id="danger-zone-title" class="danger-zone-title">Zona destrutiva</h2>
+        <p class="danger-zone-text">
+          Excluir a loja remove de vez o cardápio, produtos, categorias, adicionais, horários,
+          bairros, entregadores, impressão, assinatura e imagens. Pedidos e avaliações já
+          registrados continuam no histórico.
+        </p>
+        <p class="danger-zone-text danger-zone-warning">Esta ação não pode ser desfeita.</p>
+      </div>
+
+      @if (!deletePanelOpen()) {
+        <button
+          type="button"
+          class="btn btn-danger-app"
+          [disabled]="loading() || saving() || deleting()"
+          (click)="openDeletePanel()">
+          Excluir loja
+        </button>
+      } @else {
+        <div class="danger-confirm" role="group" aria-labelledby="danger-confirm-title">
+          <p id="danger-confirm-title" class="danger-confirm-title">
+            Digite <strong>excluir</strong> para confirmar
+          </p>
+          <label class="visually-hidden" for="deleteConfirmation">Confirmação da exclusão da loja</label>
+          <input
+            id="deleteConfirmation"
+            class="form-control-app"
+            type="text"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            inputmode="text"
+            [attr.aria-describedby]="deleteError() ? 'deleteConfirmationError' : null"
+            [ngModel]="deleteConfirmation()"
+            (ngModelChange)="deleteConfirmation.set($event)"
+            [disabled]="deleting()"
+            name="deleteConfirmation" />
+          @if (deleteError()) {
+            <p id="deleteConfirmationError" class="danger-error" role="alert">{{ deleteError() }}</p>
+          }
+          <div class="danger-actions">
+            <button type="button" class="btn btn-outline-app" [disabled]="deleting()" (click)="cancelDeletion()">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-danger-app" [disabled]="!canSubmitDeletion()" (click)="confirmDeletion()">
+              @if (deleting()) { <ion-spinner name="crescent" aria-hidden="true"></ion-spinner> Excluindo... }
+              @else { Excluir definitivamente }
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+  }
 </section>

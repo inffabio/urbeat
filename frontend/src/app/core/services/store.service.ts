@@ -107,6 +107,16 @@ export class StoreService {
     return this.api.put<StoreResponse>(`/api/stores/${storeId}`, req);
   }
 
+  /**
+   * Deletes the seller's store and every store-scoped record on the backend.
+   * Authorization comes from the seller token; the API returns 204 on success,
+   * 403 when the seller does not own the store and 404 when it no longer exists.
+   * Cloudinary cleanup is owned by the backend and never requires client input.
+   */
+  deleteStore(storeId: string): Observable<void> {
+    return this.api.delete<void>(`/api/stores/${storeId}`);
+  }
+
   getStoreAddress(storeId: string): Observable<StoreAddressResponse> {
     return this.api.get<StoreAddressResponse>(`/api/stores/${storeId}/address`);
   }

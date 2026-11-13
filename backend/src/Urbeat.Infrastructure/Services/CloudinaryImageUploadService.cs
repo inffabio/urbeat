@@ -83,13 +83,13 @@ public sealed class CloudinaryImageUploadService : IImageUploadService
         if (string.IsNullOrWhiteSpace(imageUrl))
             return;
 
-        // Cloudinary needs the PublicId to delete. 
-        // We can extract it from the URL: https://res.cloudinary.com/<cloud>/image/upload/v1234/<folder>/<public_id>.ext
-        var publicId = ExtractPublicIdFromUrl(imageUrl);
+        // Cloudinary destroys by PublicId. Persisted URLs and maintenance scans must derive it
+        // with the same rule, otherwise a referenced asset can be mistaken for an orphan.
+        var publicId = CloudinaryPublicId.ExtractFromUrl(imageUrl);
         if (string.IsNullOrEmpty(publicId))
         {
             _logger.LogWarning("Could not extract PublicId from URL: {ImageUrl}", imageUrl);
-            return;
+            throw new InvalidOperationException("Could not extract Cloudinary public id from the image URL.");
         }
 
         var deletionParams = new DeletionParams(publicId)
@@ -98,42 +98,14 @@ public sealed class CloudinaryImageUploadService : IImageUploadService
         };
 
         var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
-        if (deletionResult.Result != "ok")
-        {
-            _logger.LogWarning("Failed to delete image from Cloudinary. PublicId: {PublicId}. Result: {Result}", publicId, deletionResult.Result);
-        }
-    }
 
-    private static string ExtractPublicIdFromUrl(string url)
-    {
-        try
+        // "not found" is idempotent success: the desired end state (no asset) already holds.
+        if (deletionResult.Result is "ok" or "not found")
         {
-            var uri = new Uri(url);
-            var segments = uri.Segments;
-            
-            // Expected path parts typically: 
-            // /, image/, upload/, v12356/, folder/, public_id.ext
-            // We need to capture from folder onwards, removing the extension
-            
-            var uploadIndex = Array.FindIndex(segments, s => s.Equals("upload/", StringComparison.OrdinalIgnoreCase));
-            if (uploadIndex == -1 || uploadIndex + 2 >= segments.Length) 
-                return string.Empty;
-
-            // Skip "v123.../" 
-            var startIndex = uploadIndex + 2;
-            
-            var publicIdWithExtension = string.Join("", segments.Skip(startIndex));
-            var extensionIndex = publicIdWithExtension.LastIndexOf('.');
-            if (extensionIndex > 0)
-            {
-                return publicIdWithExtension.Substring(0, extensionIndex);
-            }
-
-            return publicIdWithExtension;
+            return;
         }
-        catch
-        {
-            return string.Empty;
-        }
+
+        _logger.LogWarning("Failed to delete image from Cloudinary. PublicId: {PublicId}. Result: {Result}", publicId, deletionResult.Result);
+        throw new InvalidOperationException($"Cloudinary deletion failed for public id '{publicId}': {deletionResult.Result}");
     }
 }
