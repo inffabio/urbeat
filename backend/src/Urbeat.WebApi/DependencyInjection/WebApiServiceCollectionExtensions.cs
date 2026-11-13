@@ -138,6 +138,24 @@ public static class WebApiServiceCollectionExtensions
                     QueueLimit = 0
                 }));
 
+            // Dedicated bucket for the break-glass admin recovery: a legitimate operation is one
+            // request, and repeated attempts must not be usable as a key oracle.
+            options.AddPolicy("admin-recovery", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.AdminRecoveryPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.AdminRecoveryWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
+
             options.AddPolicy("role-promotion", httpContext =>
             {
                 var current = httpContext.RequestServices

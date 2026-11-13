@@ -218,11 +218,11 @@ describe('SellerHoursPageComponent', () => {
     component.confirmCopy();
 
     expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
-      .toEqual(['08:00-10:00', '20:00-22:00']);
+      .toEqual(['08:00-10:00']);
     expect(component.schedule().segunda.shifts).toHaveLength(2);
   });
 
-  it('copies the third shift individually and reports the conflicting destination', async () => {
+  it('copies the third shift individually and replaces each selected destination', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -262,14 +262,19 @@ describe('SellerHoursPageComponent', () => {
     component.confirmCopy();
 
     expect(component.schedule().quarta.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
-      .toEqual(['14:00-16:00', '20:00-22:00']);
-    expect(component.schedule().terca.shifts).toHaveLength(1);
-    expect(toastServiceMock.showGrouped).toHaveBeenCalled();
-    const messages = (toastServiceMock.showGrouped.mock.calls as Array<[Array<{ text: string }>]>)
-      .flatMap(([lines]) => lines.map(line => line.text))
-      .join('\n');
-    expect(messages).toContain('Terça-feira');
-    expect(messages).toContain('sobreposição');
+      .toEqual(['14:00-16:00']);
+    expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
+      .toEqual(['14:00-16:00']);
+    expect(component.schedule().segunda.shifts).toHaveLength(3);
+    expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
+    expect(toastServiceMock.showInfo).toHaveBeenCalledWith('Turno 3 copiado para 2 dias.');
+  });
+
+  it('tells the user that the selected days will be replaced', () => {
+    const template = readFileSync(resolve(__dirname, 'seller-hours-page.component.html'), 'utf8');
+
+    expect(template).toContain('Os horários atuais dos dias selecionados serão substituídos.');
+    expect(template).toContain('class="copy-modal-note"');
   });
 
   it('lays each day out as a compact grid with copy and remove inline in the shift group', () => {

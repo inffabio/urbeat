@@ -1,6 +1,6 @@
 # Coleção Postman do urbeat
 
-Coleção de homologação manual da API REST do urbeat. Cobre as 170 ações expostas pelos controllers da WebApi do urbeat, incluindo os 2
+Coleção de homologação manual da API REST do urbeat. Cobre as 171 ações expostas pelos controllers da WebApi do urbeat, incluindo os 2
 webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
 
 ## 1. Escopo e o que a coleção não é
@@ -28,7 +28,7 @@ webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
    `postman/urbeat.oci.postman_environment.json` separadamente.
 4. Selecione o ambiente **urbeat · local**.
 
-Resultado esperado: 14 features, 43 subpastas e 170 requisições. Nenhuma pasta
+Resultado esperado: 14 features, 43 subpastas e 171 requisições. Nenhuma pasta
 recebe nome de controller; a origem técnica aparece na linha `Controller:` de cada
 descrição.
 
@@ -36,14 +36,14 @@ Contagens de referência:
 
 | Métrica | Valor |
 | --- | ---: |
-| Ações REST + webhooks | 170 |
-| Anônimas (`No Auth`) | 39 |
+| Ações REST + webhooks | 171 |
+| Anônimas (`No Auth`) | 40 |
 | `sellerToken` (`SellerOnly` + `Role:Seller`) | 89 |
 | `customerToken` (`CustomerOnly` + `[Authorize]`) | 19 |
 | `adminToken` | 23 |
 | `read` | 75 |
 | `write` | 38 |
-| `destructive` | 55 |
+| `destructive` | 56 |
 | `webhook` | 2 |
 
 ## 4. Ambientes
@@ -76,6 +76,14 @@ arquivo versionado. Se a infraestrutura confirmar HTTPS no subdomínio, altere
 - O admin local é criado pelo `AdminUserSeeder` a partir da configuração
   `AdminSeed`. A coleção não conhece nem grava esse e-mail/senha.
 - Preencha `adminEmail`/`adminPassword` manualmente na sessão.
+- Se a senha do admin for desconhecida, use `POST /api/auth/admin/recover-password`: a
+  feature vem desligada por padrão e exige `AdminRecovery__Enabled=true` mais
+  `AdminRecovery__Key` fornecida externamente no servidor. O alvo é exclusivamente o
+  `AdminSeed:Email` configurado (obrigatório; sem ele toda chamada recebe `403`).
+  Preencha `adminRecoveryKey`, `newAdminPassword` e `newAdminPasswordConfirm` apenas na
+  sessão.
+  A chave é de uso único; após o `204`, desabilite a feature e remova/rotacione a chave.
+  Troca de secret, reinício e deploy são manuais. Nunca versione esses valores.
 - Cliente e vendedor podem vir de `POST /api/auth/register/*` (exigem confirmação
   de e-mail) ou de contas previamente confirmadas.
 - O motoboy não possui conta, senha ou login. Cadastre-o pela loja (nome/telefone) e use os links públicos de rota/entrega.
@@ -297,7 +305,7 @@ preencha esse campo com uma URL de produção no ambiente OCI.
 Da raiz do repositório:
 
 ```powershell
-# Cobertura: controllers -> mapa -> coleção (170 ações, 14 features, 43 subpastas)
+# Cobertura: controllers -> mapa -> coleção (171 ações, 14 features, 43 subpastas)
 powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1
 
 # Estrutura, segredos, ambientes e matriz determinística do guard
@@ -315,7 +323,7 @@ esperada em cada parâmetro de path, além de auth, classe, query obrigatória e
 chaves de DTO. Ele aceita `-MapOnly` (antes da coleção existir) e `-Feature 08`
 (recorte por feature).
 `Test-PostmanCollection.ps1 -VerifyGuard` executa a matriz de decisão do guard para
-as 170 requisições em `read-only`, `write`, `destructive`,
+as 171 requisições em `read-only`, `write`, `destructive`,
 `destructive+allowWebhooks` e `runMode` inválido, além de casos sintéticos de
 divergência entre nome, método, path, host e `baseUrl`.
 

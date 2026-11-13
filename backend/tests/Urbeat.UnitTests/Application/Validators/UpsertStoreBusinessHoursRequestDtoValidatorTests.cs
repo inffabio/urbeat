@@ -51,7 +51,36 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
 
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(x => x.ErrorMessage == "Each day of week can be configured only once.");
-        result.Errors.Should().NotContain(x => x.ErrorMessage == "Overnight shifts cannot overlap the next day's shifts.");
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldAcceptCopyReplacementPayload()
+    {
+        var request = BuildRequest(
+            Day(
+                DayOfWeek.Monday,
+                true,
+                Shift("08:00", "09:00"),
+                Shift("10:00", "11:00"),
+                Shift("14:00", "16:00")),
+            Day(DayOfWeek.Tuesday, true, Shift("14:00", "16:00")));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ShouldStillRejectEqualStartAndEndTimes()
+    {
+        var request = BuildRequest(
+            Day(DayOfWeek.Monday, true, Shift("00:30", "02:00"), Shift("09:00", "09:00")));
+
+        var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(x => x.ErrorMessage == "Start and end times cannot be equal.");
     }
 
     [Fact]
@@ -66,19 +95,19 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
     }
 
     [Fact]
-    public async Task ValidateAsync_ShouldRejectOverlappingShiftsWithinTheSameDay()
+    public async Task ValidateAsync_ShouldAcceptOverlappingShiftsWithinTheSameDay()
     {
         var request = BuildRequest(
             Day(DayOfWeek.Monday, true, Shift("00:30", "02:00"), Shift("23:00", "01:00")));
 
         var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
 
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.ErrorMessage == "Shifts cannot overlap within the same day.");
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().NotContain(x => x.ErrorMessage == "Shifts cannot overlap within the same day.");
     }
 
     [Fact]
-    public async Task ValidateAsync_ShouldRejectOvernightShiftConflictWithNextDayStart()
+    public async Task ValidateAsync_ShouldAcceptOvernightShiftOverlappingNextDayStart()
     {
         var request = BuildRequest(
             Day(DayOfWeek.Monday, true, Shift("23:00", "01:00")),
@@ -86,12 +115,12 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
 
         var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
 
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.PropertyName == nameof(UpsertStoreBusinessHoursRequestDto.Items));
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ValidateAsync_ShouldRejectOvernightShiftConflictFromSundayToMonday()
+    public async Task ValidateAsync_ShouldAcceptOvernightShiftOverlappingMondayStart()
     {
         var request = BuildRequest(
             Day(DayOfWeek.Sunday, true, Shift("23:00", "01:00")),
@@ -99,12 +128,12 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
 
         var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
 
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.PropertyName == nameof(UpsertStoreBusinessHoursRequestDto.Items));
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ValidateAsync_ShouldRejectOvernightShiftConflictFromSaturdayToSunday()
+    public async Task ValidateAsync_ShouldAcceptOvernightShiftOverlappingSundayStart()
     {
         var request = BuildRequest(
             Day(DayOfWeek.Saturday, true, Shift("23:00", "01:00")),
@@ -112,8 +141,8 @@ public sealed class UpsertStoreBusinessHoursRequestDtoValidatorTests
 
         var result = await new UpsertStoreBusinessHoursRequestDtoValidator().ValidateAsync(request);
 
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(x => x.PropertyName == nameof(UpsertStoreBusinessHoursRequestDto.Items));
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
     }
 
     [Fact]

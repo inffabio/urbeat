@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -136,6 +138,38 @@ describe('StoreHoursPageComponent', () => {
     expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
       .toEqual(['11:00-13:00']);
     expect(component.schedule().segunda.shifts).toHaveLength(2);
+  });
+
+  it('replaces every shift of the destination with the copied shift', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    setMondayShifts(fixture, [{ startTime: '11:00', endTime: '13:00' }]);
+    component.schedule.update(schedule => ({
+      ...schedule,
+      terca: {
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '09:00' },
+          { startTime: '15:00', endTime: '18:00' },
+        ],
+      },
+    }));
+    fixture.detectChanges();
+
+    component.openCopyModal('segunda', 0);
+    component.toggleCopyTarget('terca');
+    component.confirmCopy();
+
+    expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
+      .toEqual(['11:00-13:00']);
+    expect(component.schedule().segunda.shifts).toHaveLength(1);
+  });
+
+  it('tells the user that the selected days will be replaced', () => {
+    const template = readFileSync(resolve(__dirname, 'store-hours-page.component.html'), 'utf8');
+
+    expect(template).toContain('Os horários atuais dos dias selecionados serão substituídos.');
+    expect(template).toContain('class="copy-modal-note"');
   });
 
   it('disables every per-shift copy action while sync all is enabled', () => {

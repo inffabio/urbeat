@@ -12,6 +12,9 @@ namespace Urbeat.WebApi.Controllers;
 [Route("api/auth")]
 public sealed class AuthController : ControllerBase
 {
+    /// <summary>Dedicated transport for the break-glass recovery key. Never read from body/query.</summary>
+    public const string AdminRecoveryKeyHeader = "X-Admin-Recovery-Key";
+
     private readonly IValidator<LoginRequestDto> _validator;
     private readonly IValidator<RegisterUserRequestDto> _registrationValidator;
     private readonly IValidator<ConfirmEmailRequestDto> _confirmEmailValidator;
@@ -20,8 +23,10 @@ public sealed class AuthController : ControllerBase
     private readonly IValidator<ResetPasswordRequestDto> _resetPasswordValidator;
     private readonly IValidator<ChangePasswordRequestDto> _changePasswordValidator;
     private readonly IValidator<ConfirmRolePromotionRequestDto> _confirmRolePromotionValidator;
+    private readonly IValidator<AdminRecoverPasswordRequestDto> _adminRecoverPasswordValidator;
     private readonly IAuthService _authService;
     private readonly IEmailConfirmationService _emailConfirmationService;
+    private readonly IAdminPasswordRecoveryService _adminPasswordRecoveryService;
 
     public AuthController(
         IValidator<LoginRequestDto> validator,
@@ -32,8 +37,10 @@ public sealed class AuthController : ControllerBase
         IValidator<ResetPasswordRequestDto> resetPasswordValidator,
         IValidator<ChangePasswordRequestDto> changePasswordValidator,
         IValidator<ConfirmRolePromotionRequestDto> confirmRolePromotionValidator,
+        IValidator<AdminRecoverPasswordRequestDto> adminRecoverPasswordValidator,
         IAuthService authService,
-        IEmailConfirmationService emailConfirmationService)
+        IEmailConfirmationService emailConfirmationService,
+        IAdminPasswordRecoveryService adminPasswordRecoveryService)
     {
         _validator = validator;
         _registrationValidator = registrationValidator;
@@ -43,8 +50,10 @@ public sealed class AuthController : ControllerBase
         _resetPasswordValidator = resetPasswordValidator;
         _changePasswordValidator = changePasswordValidator;
         _confirmRolePromotionValidator = confirmRolePromotionValidator;
+        _adminRecoverPasswordValidator = adminRecoverPasswordValidator;
         _authService = authService;
         _emailConfirmationService = emailConfirmationService;
+        _adminPasswordRecoveryService = adminPasswordRecoveryService;
     }
 
     [HttpPost("register/customer")]
@@ -564,6 +573,76 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new { message = error ?? "Não foi possível alterar a senha." });
 
         return Ok(new { message = "Senha alterada com sucesso." });
+    }
+
+    /// <summary>
+    /// Break-glass recovery for the seeded administrator when the current password is unknown.
+    /// Disabled by default; requires a dedicated external key in <see cref="AdminRecoveryKeyHeader"/>
+    /// and is one-shot: a successful use permanently burns that key. The body never carries the key.
+    /// </summary>
+    [HttpPost("admin/recover-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("admin-recovery")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> RecoverAdminPassword(
+        [FromBody] AdminRecoverPasswordRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        // Disabled or missing key configuration answers as an absent route, so the endpoint does
+        // not reveal whether the feature exists in this deployment.
+        if (!_adminPasswordRecoveryService.IsAvailable)
+        {
+            return NotFound();
+        }
+
+        var validationResult = await _adminRecoverPasswordValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validationResult.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        // The header is the only accepted transport. A single value is required; a duplicated
+        // header is rejected instead of choosing one of them.
+        if (!Request.Headers.TryGetValue(AdminRecoveryKeyHeader, out var headerValues)
+            || headerValues.Count != 1)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _adminPasswordRecoveryService.RecoverAsync(
+            request,
+            headerValues[0],
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        return result.Status switch
+        {
+            AdminPasswordRecoveryStatus.Succeeded => NoContent(),
+            AdminPasswordRecoveryStatus.NotAvailable => NotFound(),
+            AdminPasswordRecoveryStatus.InvalidKey => Unauthorized(),
+            AdminPasswordRecoveryStatus.KeyAlreadyUsed => Conflict(new
+            {
+                message = "Esta chave de recuperação já foi utilizada."
+            }),
+            AdminPasswordRecoveryStatus.TargetRejected => StatusCode(
+                StatusCodes.Status403Forbidden,
+                new { message = "Conta administrativa não autorizada para recuperação." }),
+            AdminPasswordRecoveryStatus.PasswordRejected => BadRequest(new
+            {
+                message = result.Error ?? "Não foi possível redefinir a senha do administrador."
+            }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new { message = "Não foi possível concluir a recuperação." })
+        };
     }
 
     [HttpPost("update-email")]

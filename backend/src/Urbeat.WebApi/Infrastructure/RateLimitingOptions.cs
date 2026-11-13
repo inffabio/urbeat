@@ -46,6 +46,15 @@ public sealed class RateLimitingOptions
     /// </summary>
     public int EmailResendWindowSeconds { get; set; } = 120;
 
+    /// <summary>
+    /// Permit limit for the break-glass administrative recovery endpoint. It is deliberately very
+    /// small: a legitimate operation is one request, and the endpoint must not become a key oracle.
+    /// </summary>
+    public int AdminRecoveryPermitLimit { get; set; } = 5;
+
+    /// <summary>Window, in seconds, for the administrative recovery limit.</summary>
+    public int AdminRecoveryWindowSeconds { get; set; } = 900;
+
     /// <summary>Permit limit for the public tokenized route endpoints.</summary>
     public int PublicRoutePermitLimit { get; set; } = 120;
 

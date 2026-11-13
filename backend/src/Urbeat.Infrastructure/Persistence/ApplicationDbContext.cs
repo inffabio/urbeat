@@ -20,6 +20,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public DbSet<AdminRecoveryKeyUsage> AdminRecoveryKeyUsages => Set<AdminRecoveryKeyUsage>();
+
     public DbSet<RolePromotionRequest> RolePromotionRequests => Set<RolePromotionRequest>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -159,6 +161,18 @@ public sealed class ApplicationDbContext
             entity.HasIndex(x => x.UserId);
             entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(20);
             entity.Property(x => x.TokenHash).HasMaxLength(500).IsRequired();
+        });
+
+        builder.Entity<AdminRecoveryKeyUsage>(entity =>
+        {
+            entity.ToTable("AdminRecoveryKeyUsages");
+            entity.HasKey(x => x.Id);
+            // Authoritative one-shot guard: two concurrent recoveries with the same key cannot both
+            // insert. The raw key is never stored, only its SHA-256 fingerprint.
+            entity.HasIndex(x => x.KeyFingerprint).IsUnique();
+            entity.Property(x => x.KeyFingerprint).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.IpAddress).HasMaxLength(64);
+            entity.Property(x => x.UsedAtUtc).HasColumnType("timestamp with time zone");
         });
 
         builder.Entity<RolePromotionRequest>(entity =>

@@ -399,38 +399,27 @@ export abstract class StoreHoursState implements OnInit {
       return;
     }
 
-    const applied = new Map<string, Shift>();
-    const overlapping: string[] = [];
-    const limited: string[] = [];
-
+    const applied: string[] = [];
     for (const targetId of targets) {
       const day = this.schedule()[targetId];
       // Closing the day while the modal is open makes it an invalid destination.
       if (!day?.isOpen || targetId === source.dayId) continue;
-
-      const label = this.getDayLabel(targetId);
-      if (day.shifts.length >= this.maxShiftsPerDay) {
-        limited.push(label);
-        continue;
-      }
-
-      const candidate: Shift = {
-        key: createShiftKey(),
-        startTime: source.shift.startTime,
-        endTime: source.shift.endTime,
-      };
-      if (this.conflictsWithDay(targetId, candidate)) {
-        overlapping.push(label);
-        continue;
-      }
-      applied.set(targetId, candidate);
+      applied.push(targetId);
     }
 
-    if (applied.size > 0) {
+    if (applied.length > 0) {
       this.schedule.update(s => {
         const copy = { ...s };
-        for (const [dayId, candidate] of applied) {
-          copy[dayId] = { ...copy[dayId], shifts: this.sortShifts([...copy[dayId].shifts, candidate]) };
+        for (const targetId of applied) {
+          // The copied shift replaces every shift the destination had before.
+          copy[targetId] = {
+            isOpen: true,
+            shifts: [{
+              key: createShiftKey(),
+              startTime: source.shift.startTime,
+              endTime: source.shift.endTime,
+            }],
+          };
         }
         return copy;
       });
@@ -438,73 +427,18 @@ export abstract class StoreHoursState implements OnInit {
     }
 
     this.closeCopyModal();
-    this.reportCopyResult(source.shiftIndex, applied.size, overlapping, limited);
+    this.reportCopyResult(source.shiftIndex, applied.length);
   }
 
-  private reportCopyResult(shiftIndex: number, copiedCount: number, overlapping: string[], limited: string[]): void {
-    const shiftNumber = shiftIndex + 1;
-    const copiedLabel = `${copiedCount} ${copiedCount === 1 ? 'dia' : 'dias'}`;
-    const warnings: Array<{ type: 'warning' | 'success'; text: string }> = [
-      ...limited.map(label => ({
-        type: 'warning' as const,
-        text: `${label} não recebeu o turno: limite de ${this.maxShiftsPerDay} turnos por dia.`,
-      })),
-      ...overlapping.map(label => ({
-        type: 'warning' as const,
-        text: `${label} não recebeu o turno: sobreposição com um turno existente.`,
-      })),
-    ];
-
-    if (warnings.length === 0) {
-      if (copiedCount === 0) {
-        this.toast.showInfo('Nenhum dia recebeu o turno.');
-        return;
-      }
-      this.toast.showInfo(`Turno ${shiftNumber} copiado para ${copiedLabel}.`);
+  private reportCopyResult(shiftIndex: number, copiedCount: number): void {
+    if (copiedCount === 0) {
+      this.toast.showInfo('Nenhum dia recebeu o turno.');
       return;
     }
 
-    this.toast.showGrouped([
-      ...(copiedCount > 0
-        ? [{ type: 'success' as const, text: `Turno ${shiftNumber} copiado para ${copiedLabel}.` }]
-        : []),
-      ...warnings,
-    ]);
-  }
-
-  /**
-   * True when the candidate shift would overlap an existing shift on the destination day,
-   * be invaded by an overnight shift of the previous day, or cross midnight into the next day.
-   */
-  private conflictsWithDay(dayId: string, candidate: Shift): boolean {
-    const day = this.schedule()[dayId];
-    if (!day?.isOpen) return true;
-    if (day.shifts.some(shift => this.shiftsOverlap(shift, candidate))) return true;
-
-    if (candidate.startTime) {
-      const start = this.toMinutes(candidate.startTime);
-      const previousDay = this.schedule()[this.getPreviousDayId(dayId)];
-      const invadedByPreviousOvernight = !!previousDay?.isOpen
-        && previousDay.shifts.some(shift => this.isOvernightShift(shift) && start < this.toMinutes(shift.endTime));
-      if (invadedByPreviousOvernight) return true;
-    }
-
-    if (!this.isOvernightShift(candidate)) return false;
-
-    const nextDay = this.schedule()[this.getNextDayId(dayId)];
-    if (!nextDay?.isOpen) return false;
-    const end = this.toMinutes(candidate.endTime);
-    return nextDay.shifts.some(shift => shift.startTime && this.toMinutes(shift.startTime) < end);
-  }
-
-  private getNextDayId(dayId: string): string {
-    const index = WEEKDAYS.findIndex(day => day.id === dayId);
-    return WEEKDAYS[(index + 1) % WEEKDAYS.length].id;
-  }
-
-  private getPreviousDayId(dayId: string): string {
-    const index = WEEKDAYS.findIndex(day => day.id === dayId);
-    return WEEKDAYS[(index - 1 + WEEKDAYS.length) % WEEKDAYS.length].id;
+    const shiftNumber = shiftIndex + 1;
+    const copiedLabel = `${copiedCount} ${copiedCount === 1 ? 'dia' : 'dias'}`;
+    this.toast.showInfo(`Turno ${shiftNumber} copiado para ${copiedLabel}.`);
   }
 
   validateDay(dayId: string): string | null {
@@ -525,50 +459,7 @@ export abstract class StoreHoursState implements OnInit {
         return 'Início e fim do turno não podem ser iguais.';
       }
     }
-    for (let i = 0; i < day.shifts.length; i++) {
-      for (let j = i + 1; j < day.shifts.length; j++) {
-        if (this.shiftsOverlap(day.shifts[i], day.shifts[j])) {
-          return `Turnos ${i + 1} e ${j + 1} sobrepostos.`;
-        }
-      }
-    }
     return null;
-  }
-
-  private shiftsOverlap(a: Shift, b: Shift): boolean {
-    const aStart = this.toMinutes(a.startTime);
-    let aEnd = this.toMinutes(a.endTime);
-    if (aEnd <= aStart) aEnd += 1440;
-    const bStart = this.toMinutes(b.startTime);
-    let bEnd = this.toMinutes(b.endTime);
-    if (bEnd <= bStart) bEnd += 1440;
-    return (aStart < bEnd && bStart < aEnd)
-      || (aStart < bEnd + 1440 && bStart + 1440 < aEnd)
-      || (aStart + 1440 < bEnd && bStart < aEnd + 1440);
-  }
-
-  validateCrossDayConflicts(): string[] {
-    const conflicts: string[] = [];
-    for (let index = 0; index < WEEKDAYS.length; index++) {
-      const day = this.schedule()[WEEKDAYS[index].id];
-      if (!day?.isOpen) continue;
-      const next = WEEKDAYS[(index + 1) % WEEKDAYS.length];
-      const nextDay = this.schedule()[next.id];
-      if (!nextDay?.isOpen) continue;
-      for (const shift of day.shifts) {
-        if (!shift.startTime || !shift.endTime) continue;
-        const start = this.toMinutes(shift.startTime);
-        const end = this.toMinutes(shift.endTime);
-        if (end > start) continue;
-        for (const nextShift of nextDay.shifts) {
-          if (!nextShift.startTime) continue;
-          if (this.toMinutes(nextShift.startTime) < end) {
-            conflicts.push(`${WEEKDAYS[index].label}: turno que vira o dia conflita com ${next.label}.`);
-          }
-        }
-      }
-    }
-    return conflicts;
   }
 
   private isValidTime(t: string): boolean {
@@ -618,7 +509,6 @@ export abstract class StoreHoursState implements OnInit {
       const err = this.validateDay(day.id);
       if (err) errors.push(`${day.label}: ${err}`);
     }
-    errors.push(...this.validateCrossDayConflicts());
     return errors;
   }
 

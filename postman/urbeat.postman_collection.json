@@ -650,6 +650,51 @@
               "response": []
             },
             {
+              "id": "8f3a1c2e-5b47-4d19-9a63-2f0c7e4b81d5",
+              "name": "POST /api/auth/admin/recover-password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Admin-Recovery-Key",
+                    "value": "{{adminRecoveryKey}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/admin/recover-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "admin",
+                    "recover-password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "Feature: 01 · Acesso e identidade / Confirmação e recuperação\nController: Auth.RecoverAdminPassword\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{adminEmail}}, {{adminRecoveryKey}}, {{newAdminPassword}} e {{newAdminPasswordConfirm}} preenchidas. No servidor, habilitar temporariamente AdminRecovery__Enabled=true e fornecer AdminRecovery__Key via ambiente/secret store; a feature vem desligada por padrão e não possui chave padrão.\nEfeitos: redefine a senha do administrador configurado em AdminSeed:Email, revoga as sessões existentes e consome a chave de recuperação (uso único).\nCaptura: nenhuma\nManual: sim\nOperação: executar uma única vez, confirmar 204, entrar com a nova senha, desabilitar AdminRecovery__Enabled e remover/rotacionar AdminRecovery__Key. A troca real de secret, reinício e deploy são manuais e não fazem parte da coleção.\nSegurança: a chave só é aceita no header X-Admin-Recovery-Key; body/query não autorizam. Não versionar nem colar valores reais.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"newPassword\": \"{{newAdminPassword}}\",\n  \"confirmPassword\": \"{{newAdminPasswordConfirm}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
               "id": "0d40095b-1d57-5df7-9bc1-b93c6977e5c9",
               "name": "GET /api/auth/validate-reset-token",
               "request": {
@@ -8291,6 +8336,7 @@
           "    'POST /api/auth/forgot-password',",
           "    'POST /api/auth/reset-password',",
           "    'POST /api/auth/update-email',",
+          "    'POST /api/auth/admin/recover-password',",
           "    'DELETE /api/customer/addresses/{addressId}',",
           "    'POST /api/neighborhoods/import-by-city',",
           "    'PATCH /api/stores/{storeId}/status',",

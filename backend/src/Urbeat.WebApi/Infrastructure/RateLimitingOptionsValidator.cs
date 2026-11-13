@@ -26,6 +26,18 @@ public sealed class RateLimitingOptionsValidator : IValidateOptions<RateLimiting
                 $"{RateLimitingOptions.SectionName}:EmailResendWindowSeconds must be at least 1.");
         }
 
+        if (options.AdminRecoveryPermitLimit < 1)
+        {
+            errors.Add(
+                $"{RateLimitingOptions.SectionName}:AdminRecoveryPermitLimit must be at least 1.");
+        }
+
+        if (options.AdminRecoveryWindowSeconds < 1)
+        {
+            errors.Add(
+                $"{RateLimitingOptions.SectionName}:AdminRecoveryWindowSeconds must be at least 1.");
+        }
+
         return errors.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(errors);

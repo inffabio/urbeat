@@ -36,6 +36,7 @@ $expectedGuardNames = @(
     'POST /api/auth/email/resend-confirmation',
     'POST /api/auth/forgot-password',
     'POST /api/auth/reset-password',
+    'POST /api/auth/admin/recover-password',
     'POST /api/auth/update-email',
     'DELETE /api/customer/addresses/{addressId}',
     'POST /api/neighborhoods/import-by-city',
@@ -105,7 +106,8 @@ $environmentCatalog = @(
     @('cityId','default'), @('printerPresetId','default'),
     @('customerEmail','secret'), @('newCustomerEmail','secret'), @('customerPassword','secret'),
     @('sellerEmail','secret'), @('sellerPassword','secret'), @('adminEmail','secret'),
-    @('adminPassword','secret'),
+    @('adminPassword','secret'), @('adminRecoveryKey','secret'),
+    @('newAdminPassword','secret'), @('newAdminPasswordConfirm','secret'),
     @('customerToken','secret'), @('sellerToken','secret'), @('adminToken','secret'),
     @('storeId','default'), @('cuisineTypeId','default'), @('categoryId','default'), @('productId','default'),
     @('productImageUrl','default'), @('uploadedImageUrl','default'), @('additionalId','default'),
@@ -190,7 +192,7 @@ foreach ($folder in $folders) {
     }
 }
 if ($subfolderCount -ne 43) { Fail "subpastas esperadas=43 encontradas=$subfolderCount" }
-if ($requests.Count -ne 170) { Fail "requisicoes esperadas=170 encontradas=$($requests.Count)" }
+if ($requests.Count -ne 171) { Fail "requisicoes esperadas=171 encontradas=$($requests.Count)" }
 
 $duplicateIds = @($allIds | Group-Object | Where-Object Count -gt 1)
 foreach ($g in $duplicateIds) { Fail "id duplicado: $($g.Name)" }
@@ -298,13 +300,20 @@ foreach ($r in $requests) {
     if ($accept.Count -ne 1) { Fail "Accept ausente em $($r.Name)" }
     foreach ($h in $headers) {
         if ($h.key -in @('Content-Type','Authorization')) { Fail "header proibido $($h.key) em $($r.Name)" }
-        if ($h.key -notin @('Accept','asaas-access-token')) { Fail "header inesperado $($h.key) em $($r.Name)" }
+        if ($h.key -notin @('Accept','asaas-access-token','X-Admin-Recovery-Key')) { Fail "header inesperado $($h.key) em $($r.Name)" }
     }
     if ($r.Name -eq 'POST /api/webhooks/asaas') {
         $asaas = @($headers | Where-Object { $_.key -eq 'asaas-access-token' -and $_.value -eq '{{asaasWebhookToken}}' })
         if ($asaas.Count -ne 1) { Fail 'header asaas-access-token ausente ou invalido' }
     } elseif (@($headers | Where-Object { $_.key -eq 'asaas-access-token' }).Count -gt 0) {
         Fail "header asaas fora do webhook em $($r.Name)"
+    }
+
+    if ($r.Name -eq 'POST /api/auth/admin/recover-password') {
+        $recoveryKey = @($headers | Where-Object { $_.key -eq 'X-Admin-Recovery-Key' -and $_.value -eq '{{adminRecoveryKey}}' })
+        if ($recoveryKey.Count -ne 1) { Fail 'header X-Admin-Recovery-Key ausente ou invalido' }
+    } elseif (@($headers | Where-Object { $_.key -eq 'X-Admin-Recovery-Key' }).Count -gt 0) {
+        Fail "header X-Admin-Recovery-Key fora da recuperacao administrativa em $($r.Name)"
     }
 
     $authType = [string]$r.Request.auth.type
@@ -401,7 +410,7 @@ if ($null -ne $guardText) {
 
     if ($readOnlyNames.Count -ne 6) { Fail "guard readOnlyPosts esperado=6 encontrado=$($readOnlyNames.Count)" }
     foreach ($n in $allowlistPosts) { if ($readOnlyNames -notcontains $n) { Fail "guard sem allowlist: $n" } }
-    if ($guardNames.Count -ne 57) { Fail "guard destructive esperado=57 encontrado=$($guardNames.Count)" }
+    if ($guardNames.Count -ne 58) { Fail "guard destructive esperado=58 encontrado=$($guardNames.Count)" }
     foreach ($n in $expectedGuardNames) { if ($guardNames -notcontains $n) { Fail "guard sem destrutiva: $n" } }
     foreach ($n in $guardNames) { if ($expectedGuardNames -notcontains $n) { Fail "guard com destrutiva inesperada: $n" } }
 

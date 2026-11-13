@@ -17,6 +17,19 @@ namespace Urbeat.IntegrationTests.Infrastructure;
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"urbeat-tests-{Guid.NewGuid()}";
+    private readonly bool _adminRecoveryEnabled;
+    private readonly string? _adminRecoveryKey;
+
+    public TestWebApplicationFactory()
+        : this(adminRecoveryEnabled: false, adminRecoveryKey: null)
+    {
+    }
+
+    internal TestWebApplicationFactory(bool adminRecoveryEnabled, string? adminRecoveryKey)
+    {
+        _adminRecoveryEnabled = adminRecoveryEnabled;
+        _adminRecoveryKey = adminRecoveryKey;
+    }
 
     /// <summary>
     /// Upload fake shared with the host. Deletion calls from store deletion are asserted here.
@@ -54,7 +67,13 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
                 // the strong defaults from appsettings.json (64 MiB, t=3, p=2).
                 ["PasswordHashing:Argon2id:MemorySizeKb"] = "8192",
                 ["PasswordHashing:Argon2id:Iterations"] = "2",
-                ["PasswordHashing:Argon2id:DegreeOfParallelism"] = "1"
+                ["PasswordHashing:Argon2id:DegreeOfParallelism"] = "1",
+                // Break-glass recovery is disabled and has no key by default. Tests that exercise
+                // it opt in explicitly; the key below is a test-only value.
+                ["AdminRecovery:Enabled"] = _adminRecoveryEnabled ? "true" : "false",
+                ["AdminRecovery:Key"] = _adminRecoveryKey ?? string.Empty,
+                ["RateLimiting:AdminRecoveryPermitLimit"] = "10000",
+                ["RateLimiting:AdminRecoveryWindowSeconds"] = "60"
             });
         });
 

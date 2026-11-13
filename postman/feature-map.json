@@ -182,6 +182,10 @@
       "feature": "01",
       "subfolder": "Confirmação e recuperação"
     },
+    "POST /api/auth/admin/recover-password": {
+      "feature": "01",
+      "subfolder": "Confirmação e recuperação"
+    },
     "POST /api/auth/update-email": {
       "feature": "01",
       "subfolder": "Confirmação e recuperação"

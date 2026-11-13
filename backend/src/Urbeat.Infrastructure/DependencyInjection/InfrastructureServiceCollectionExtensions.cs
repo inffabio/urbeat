@@ -47,6 +47,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IOrderReportService, OrderReportService>();
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<AdminSeedOptions>(configuration.GetSection(AdminSeedOptions.SectionName));
+        // Disabled by default and without a key default. The endpoint stays invisible until an
+        // operator supplies both AdminRecovery:Enabled=true and a key from the secret store.
+        services.Configure<AdminRecoveryOptions>(configuration.GetSection(AdminRecoveryOptions.SectionName));
         services.Configure<MercadoPagoOptions>(configuration.GetSection(MercadoPagoOptions.SectionName));
         services.AddOptions<MockPixOptions>()
             .Bind(configuration.GetSection(MockPixOptions.SectionName))
@@ -163,6 +166,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IEmailChangeChallengeService, EmailChangeChallengeService>();
         services.AddScoped<IRolePromotionChallengeService, RolePromotionChallengeService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAdminPasswordRecoveryService, AdminPasswordRecoveryService>();
         services.AddScoped<ICuisineTypeService, CuisineTypeService>();
         services.AddSingleton<PublicPlanOfferCache>();
         services.AddScoped<PlanService>();

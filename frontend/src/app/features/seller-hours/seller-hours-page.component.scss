@@ -362,6 +362,14 @@
 
 .copy-modal-desc strong { color: var(--hours-orange); }
 
+.copy-modal-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--hours-muted);
+}
+
 .copy-options {
   display: grid;
   gap: 10px;

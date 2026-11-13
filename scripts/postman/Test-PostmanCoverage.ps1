@@ -65,7 +65,7 @@ function Get-ExpectedPathVariable([string]$param, [string]$path) {
 }
 
 $expectedFeatureCounts = @{
-    '01' = 15; '02' = 9; '03' = 10; '04' = 25; '05' = 6; '06' = 8; '07' = 19;
+    '01' = 16; '02' = 9; '03' = 10; '04' = 25; '05' = 6; '06' = 8; '07' = 19;
     '08' = 24; '09' = 6; '10' = 3; '11' = 17; '12' = 25; '13' = 2; '14' = 1
 }
 
@@ -86,6 +86,7 @@ $destructiveNames = @(
     'POST /api/auth/email/resend-confirmation',
     'POST /api/auth/forgot-password',
     'POST /api/auth/reset-password',
+    'POST /api/auth/admin/recover-password',
     'POST /api/auth/update-email',
     'DELETE /api/customer/addresses/{addressId}',
     'POST /api/neighborhoods/import-by-city',
@@ -300,7 +301,7 @@ $actionNames = @($actions | ForEach-Object { $_.Name })
 $duplicateActions = @($actions | Group-Object Name | Where-Object Count -gt 1)
 
 if ($controllersCount -ne 32) { Fail "controllers esperados=32 encontrados=$controllersCount" }
-if ($actions.Count -ne 170) { Fail "actions esperadas=170 encontradas=$($actions.Count)" }
+if ($actions.Count -ne 171) { Fail "actions esperadas=171 encontradas=$($actions.Count)" }
 if ($duplicateActions.Count -gt 0) {
     foreach ($g in $duplicateActions) { Fail "duplicate controller action: $($g.Name)" }
 }
@@ -328,7 +329,7 @@ if (-not (Test-Path -LiteralPath $FeatureMapPath)) {
     if ($subfolderTotal -ne 43) { Fail "subpastas esperadas=43 encontradas=$subfolderTotal" }
 
     $endpoints = @($map.endpoints.PSObject.Properties)
-    if ($endpoints.Count -ne 170) { Fail "endpoints no mapa esperados=170 encontrados=$($endpoints.Count)" }
+    if ($endpoints.Count -ne 171) { Fail "endpoints no mapa esperados=171 encontrados=$($endpoints.Count)" }
 
     $mapNames = @($endpoints | ForEach-Object { $_.Name })
     foreach ($name in $actionNames) { if (-not ($mapNames -contains $name)) { Fail "missing endpoint: $name" } }
