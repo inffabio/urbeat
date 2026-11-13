@@ -676,14 +676,45 @@ input {
     .row-num { font-size: 12px; margin-right: 0; }
   }
 
-  .btn-outline { font-size: 15px; padding: var(--space-3) var(--space-4); min-height: 44px; width: 100%; justify-content: center; }
+  /* Mobile action bar: keeps two columns only while both labels fit at their
+     natural width and collapses to a single full-width column below that.
+     `minmax(min(100%, 200px), 1fr)` keeps every track inside the card on
+     320px-class viewports and only opens a second column once both labels fit
+     on a single line (the wider label measures ~192px), and the `min-width: 0`
+     reset stops the labels from widening the grid past the container. */
   .btn-bar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: end;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    align-items: stretch;
     gap: var(--space-2);
+    min-width: 0;
   }
-  .btn-clear-all-mobile { display: flex; }
+
+  .btn-bar > * {
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .btn-outline {
+    font-size: 15px;
+    padding: var(--space-3) var(--space-4);
+    min-height: 44px;
+    width: 100%;
+    justify-content: center;
+    /* Labels wrap instead of pushing the pill past the card edge on very
+       narrow viewports or when the user zooms the text. */
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  .btn-clear-all-mobile {
+    grid-column: 1 / -1;
+
+    /* The base class-level display would otherwise defeat the [hidden]
+       binding used when there are no neighborhoods to remove. */
+    &:not([hidden]) { display: flex; }
+  }
 
   .radius-field {
     grid-column: 1 / -1;

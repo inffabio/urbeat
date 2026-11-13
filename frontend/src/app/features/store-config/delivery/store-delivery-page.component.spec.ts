@@ -193,6 +193,30 @@ describe('StoreDeliveryPageComponent', () => {
       expect(styles).toMatch(/@media \(max-width: 600px\)[\s\S]*?\.radius-field\s*\{[^}]*grid-column:\s*1 \/ -1/s);
     });
 
+    it('collapses the mobile action bar to one column so no button overflows', () => {
+      const styles = readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+      // `auto-fit` keeps two tracks only while both labels fit at their natural
+      // width and stacks them below that; the min() guard keeps a track inside
+      // 320px-class cards instead of widening the grid.
+      expect(styles).toMatch(
+        /\.btn-bar\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*200px\),\s*1fr\)\)/s,
+      );
+      expect(styles).not.toMatch(/\.btn-bar\s*\{[^}]*grid-template-columns:\s*1fr 1fr/s);
+
+      // Grid children must be able to shrink; otherwise a nowrap label widens
+      // the track past the card edge.
+      expect(styles).toMatch(/\.btn-bar > \*\s*\{[^}]*min-width:\s*0/s);
+
+      // Labels wrap instead of being clipped while the 44px touch target stays.
+      expect(styles).toMatch(/\.btn-outline\s*\{[^}]*white-space:\s*normal/s);
+      expect(styles).toMatch(/\.btn-outline\s*\{[^}]*min-height:\s*44px/s);
+
+      // "Excluir todos" takes its own full-width row and still honors [hidden].
+      expect(styles).toMatch(/\.btn-clear-all-mobile\s*\{[^}]*grid-column:\s*1 \/ -1/s);
+      expect(styles).toContain('&:not([hidden]) { display: flex; }');
+    });
+
     it('queries neighborhoods and marks the draft dirty when the radius changes', () => {
       loadStore({ maxDeliveryRadiusKm: 5 });
       storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
