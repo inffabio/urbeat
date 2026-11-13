@@ -667,9 +667,9 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/api/auth/admin/recover-password",
+                  "raw": "{{vault:apibaseUrl}}/api/auth/admin/recover-password",
                   "host": [
-                    "{{apiBaseUrl}}"
+                    "{{vault:apibaseUrl}}"
                   ],
                   "path": [
                     "api",
@@ -681,7 +681,7 @@
                 "auth": {
                   "type": "noauth"
                 },
-                "description": "Feature: 01 · Acesso e identidade / Confirmação e recuperação\nController: Auth.RecoverAdminPassword\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{adminEmail}}, {{adminRecoveryKey}}, {{newAdminPassword}} e {{newAdminPasswordConfirm}} preenchidas. No servidor, habilitar temporariamente AdminRecovery__Enabled=true e fornecer AdminRecovery__Key via ambiente/secret store; a feature vem desligada por padrão e não possui chave padrão.\nEfeitos: redefine a senha do administrador configurado em AdminSeed:Email, revoga as sessões existentes e consome a chave de recuperação (uso único).\nCaptura: nenhuma\nManual: sim\nOperação: executar uma única vez, confirmar 204, entrar com a nova senha, desabilitar AdminRecovery__Enabled e remover/rotacionar AdminRecovery__Key. A troca real de secret, reinício e deploy são manuais e não fazem parte da coleção.\nSegurança: a chave só é aceita no header X-Admin-Recovery-Key; body/query não autorizam. Não versionar nem colar valores reais.",
+                "description": "Feature: 01 · Acesso e identidade / Confirmação e recuperação\nController: Auth.RecoverAdminPassword\nAuth: No Auth\nClassificação: destructive\nPré-requisitos: variáveis {{adminEmail}}, {{adminRecoveryKey}}, {{newAdminPassword}} e {{newAdminPasswordConfirm}} preenchidas. No servidor, habilitar temporariamente AdminRecovery__Enabled=true e fornecer AdminRecovery__Key via ambiente/secret store; a feature vem desligada por padrão e não possui chave padrão.\nEfeitos: redefine a senha do administrador configurado em AdminSeed:Email, revoga as sessões existentes e consome a chave de recuperação (uso único).\nCaptura: nenhuma\nManual: sim\nOperação: executar uma única vez, confirmar 204, entrar com a nova senha, desabilitar AdminRecovery__Enabled e remover/rotacionar AdminRecovery__Key. A troca real de secret, reinício e deploy são manuais e não fazem parte da coleção.\nSegurança: a chave só é aceita no header X-Admin-Recovery-Key; body/query não autorizam. Não versionar nem colar valores reais.\nURL: host resolvido pela variável apibaseUrl do Postman Vault ({{vault:apibaseUrl}}); nenhum valor dela é versionado.",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"newPassword\": \"{{newAdminPassword}}\",\n  \"confirmPassword\": \"{{newAdminPasswordConfirm}}\"\n}",
@@ -8274,8 +8274,12 @@
           "  if (actualMethod !== nameMethod) {",
           "    block('método divergente do nome: ' + actualMethod + ' != ' + nameMethod);",
           "  }",
+          "  // A recuperação administrativa resolve o host no Postman Vault; as demais",
+          "  // requisições continuam presas ao `baseUrl` do ambiente.",
+          "  const vaultUrlRequest = 'POST /api/auth/admin/recover-password';",
+          "  const usesVaultUrl = name === vaultUrlRequest;",
           "  const envBase = String(pm.environment.get('baseUrl') || '').trim();",
-          "  if (!envBase) {",
+          "  if (!envBase && !usesVaultUrl) {",
           "    block('baseUrl ausente no ambiente');",
           "  }",
           "  let actualPath = '';",
@@ -8306,7 +8310,7 @@
           "    }",
           "  }",
           "  const rawUrl = String(pm.request.url.toString() || '');",
-          "  if (/^https?:\\/\\//i.test(rawUrl)) {",
+          "  if (/^https?:\\/\\//i.test(rawUrl) && !usesVaultUrl) {",
           "    const expectedHost = envBase.replace(/^https?:\\/\\//i, '').replace(/\\/.*$/, '').toLowerCase();",
           "    const actualHost = rawUrl.replace(/^https?:\\/\\//i, '').split('/')[0].toLowerCase();",
           "    if (actualHost !== expectedHost) {",

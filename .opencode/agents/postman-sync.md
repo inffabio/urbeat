@@ -53,8 +53,10 @@ urbeat. Você não altera código de aplicação e não substitui o `arquiteto` 
   imprima ou versione segredos.
 - Não altere `backend/`, `frontend/`, `docker/`, `scripts/criarDeployOracleCloud/`,
   `scripts/deploy-internal.ps1` nem `.opencode/opencode.json`.
-- Mantenha o `baseUrl` e o `apiBaseUrl` OCI em `https://api.urbeat.com.br` e o
+- Mantenha o `baseUrl` OCI em `https://api.urbeat.com.br` e o
   `webBaseUrl` em `https://urbeat.com.br`; a justificativa está no `postman/README.md`.
+  O host de `POST /api/auth/admin/recover-password` vem do Postman Vault
+  (`{{vault:apibaseUrl}}`) e nunca é versionado.
 - Não commite. Entregue o diff para revisão humana.
 
 ## Relatório final

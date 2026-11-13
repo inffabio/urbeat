@@ -274,7 +274,6 @@ Postman e ajusta as URLs na sessão. Valores de referência:
 | Variável | Valor |
 | --- | --- |
 | `baseUrl` | `http://localhost:5000` |
-| `apiBaseUrl` | `http://localhost:5000` |
 | `webBaseUrl` | `http://localhost:4200` |
 | `runMode` | `read-only` |
 | `allowWebhooks` | `false` |
@@ -292,7 +291,6 @@ Variantes documentadas no `README`:
 | Variável | Valor |
 | --- | --- |
 | `baseUrl` | `https://api.urbeat.com.br` |
-| `apiBaseUrl` | `https://api.urbeat.com.br` |
 | `webBaseUrl` | `https://urbeat.com.br` |
 | `runMode` | `read-only` |
 | `allowWebhooks` | `false` |
@@ -314,9 +312,13 @@ Todas as variáveis são de ambiente (`environment`), não de coleção, para pe
 
 **URLs e dados públicos**
 
-`baseUrl`, `apiBaseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId`.
+`baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId`.
 
-`apiBaseUrl` existe apenas para `POST /api/auth/admin/recover-password`; as demais requisições usam `baseUrl`.
+O host de `POST /api/auth/admin/recover-password` não é variável de ambiente: a
+requisição usa exatamente `{{vault:apibaseUrl}}/api/auth/admin/recover-password`, e
+o valor de `apibaseUrl` vive apenas no Postman Vault local. As demais 170
+requisições usam `baseUrl`, e o verificador rejeita `{{vault:...}}` como host em
+qualquer outra request.
 
 **Credenciais de teste (vazias; tipo `secret` quando suportado)**
 
@@ -1253,7 +1255,7 @@ Fluxo esperado:
 1. A coleção importa no Postman sem erro de schema e mostra **14 features**, **43 subpastas de fluxo** e **170 requisições**.
 2. Existe exatamente uma requisição por `MÉTODO + rota`, sem duplicatas nem ações faltantes; cada uma tem exatamente uma entrada em `feature-map.json` e uma única feature/subpasta; o Anexo A é a referência.
 3. A matriz de autorização confere: 39 No Auth, 84 `sellerToken`, 18 `customerToken`, 23 `adminToken`, 5 `sellerToken` (`Role:Seller`) e 1 `customerToken` (`[Authorize]`).
-4. Toda URL começa com `{{baseUrl}}/api/` — exceto `POST /api/auth/admin/recover-password`, que usa `{{apiBaseUrl}}` — e não contém host absoluto.
+4. Toda URL começa com `{{baseUrl}}/api/` — exceto `POST /api/auth/admin/recover-password`, que usa exatamente `{{vault:apibaseUrl}}` no host — e não contém host absoluto nem valor de Vault versionado.
 5. O ambiente OCI é o único distribuído, é importável e não contém credenciais, tokens, cookies, IDs de produção nem PII.
 6. `runMode` é `read-only` e `allowWebhooks` é `false` no ambiente OCI.
 7. O guard cobre todas as requisições não read-only e toda a lista da seção 12.4; executar a coleção no modo padrão não envia nenhuma escrita, nenhuma operação destrutiva e nenhum webhook.
@@ -1317,7 +1319,7 @@ powershell -NoProfile -File scripts/postman/Test-PostmanCollection.ps1 `
 Verificações mínimas:
 
 - JSON válido; `info.schema` v2.1; `_postman_id` UUID; IDs únicos.
-- URLs presas a `{{baseUrl}}` (exceto `POST /api/auth/admin/recover-password`, que usa `{{apiBaseUrl}}`); nenhum `http://localhost` ou domínio OCI dentro da coleção.
+- URLs presas a `{{baseUrl}}`, exceto `POST /api/auth/admin/recover-password`, que usa exatamente `{{vault:apibaseUrl}}` no raw e no host; nenhum `http://localhost`, domínio OCI ou outra referência `{{vault:...}}` como host dentro da coleção.
 - Nenhum padrão de JWT (`eyJ...`), `Bearer ` literal, `CHANGE_ME`, senha preenchida, `asaas-access-token` com valor, CPF/CNPJ fixo.
 - Toda variável de token/senha/ID vazia no ambiente OCI, único distribuído.
 - `feature-map.json` presente, com 14 features, 43 subpastas e 170 endpoints; toda requisição tem destino único.

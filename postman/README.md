@@ -32,9 +32,9 @@ webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
 O pacote versionado distribui **um único ambiente**: `urbeat · oci`. Não existe
 arquivo de ambiente local no repositório. Para executar contra a API na sua
 máquina, duplique `urbeat · oci` dentro do Postman, renomeie a cópia na sessão e
-ajuste `baseUrl`, `apiBaseUrl` e `webBaseUrl` (seção 4); esse ambiente é pessoal e
-não deve ser versionado — `postman/urbeat.local.postman_environment.json` está no
-`.gitignore` justamente para isso.
+ajuste `baseUrl` e `webBaseUrl` (seção 4); esse ambiente é pessoal e não deve ser
+versionado — `postman/urbeat.local.postman_environment.json` está no `.gitignore`
+justamente para isso.
 
 Resultado esperado: 14 features, 43 subpastas e 171 requisições. Nenhuma pasta
 recebe nome de controller; a origem técnica aparece na linha `Controller:` de cada
@@ -56,29 +56,35 @@ Contagens de referência:
 
 ## 4. Ambiente (somente OCI)
 
-| Ambiente | `baseUrl` | `apiBaseUrl` | `webBaseUrl` | Uso |
-| --- | --- | --- | --- | --- |
-| `urbeat · oci` | `https://api.urbeat.com.br` | `https://api.urbeat.com.br` | `https://urbeat.com.br` | Único ambiente distribuído; apenas conferência de URL e leitura pública autorizada. |
+| Ambiente | `baseUrl` | `webBaseUrl` | Uso |
+| --- | --- | --- | --- |
+| `urbeat · oci` | `https://api.urbeat.com.br` | `https://urbeat.com.br` | Único ambiente distribuído; apenas conferência de URL e leitura pública autorizada. |
 
-Somente `baseUrl`, `apiBaseUrl` e `webBaseUrl` têm URL preenchida. Nenhum valor
-sensível é preenchido e nenhum outro ambiente é versionado.
+Somente `baseUrl` e `webBaseUrl` têm URL preenchida. Nenhum valor sensível é
+preenchido e nenhum outro ambiente é versionado.
 
 Ambiente local (opcional, criado por você na sessão, nunca versionado):
 
-- Duplique `urbeat · oci` no Postman e ajuste as três URLs para a API que estiver
+- Duplique `urbeat · oci` no Postman e ajuste as duas URLs para a API que estiver
   rodando.
-- Docker Compose do repositório: `baseUrl=http://localhost:5000`,
-  `apiBaseUrl=http://localhost:5000` e `webBaseUrl=http://localhost:4200`.
-- `dotnet run` (perfil HTTP): `baseUrl=http://localhost:5281`,
-  `apiBaseUrl=http://localhost:5281`.
-- `dotnet run` (perfil HTTPS): `baseUrl=https://localhost:7274`,
-  `apiBaseUrl=https://localhost:7274`. Recomendado para testar
-  `POST /api/auth/refresh`, porque o cookie é `Secure`.
+- Docker Compose do repositório: `baseUrl=http://localhost:5000` e
+  `webBaseUrl=http://localhost:4200`.
+- `dotnet run` (perfil HTTP): `baseUrl=http://localhost:5281`.
+- `dotnet run` (perfil HTTPS): `baseUrl=https://localhost:7274`. Recomendado para
+  testar `POST /api/auth/refresh`, porque o cookie é `Secure`.
 - Frontend local: `webBaseUrl=http://localhost:4200`.
 
-`apiBaseUrl` repete o host da API e é usado apenas por
-`POST /api/auth/admin/recover-password`; todas as outras requisições continuam em
-`baseUrl`. Ao usar um ambiente local, ajuste os dois na sessão.
+### Postman Vault `apibaseUrl`
+
+`POST /api/auth/admin/recover-password` é a única requisição da coleção que não
+resolve o host pelo ambiente: ela usa exatamente
+`{{vault:apibaseUrl}}/api/auth/admin/recover-password`. Crie essa variável no
+**Postman Vault** (mesmo nome, minúsculo depois de `api`) na sua máquina, com o
+host da API que for usar — `https://api.urbeat.com.br` na OCI, ou o host local da
+seção anterior. O valor fica criptografado no Vault local e nunca é versionado.
+
+Sem a variável no Vault, o Postman envia a URL literal e a requisição falha; as
+outras 170 requisições continuam funcionando somente com `baseUrl`.
 
 A URL OCI da API é `https://api.urbeat.com.br`, host publicado pelo nginx da
 infraestrutura (`scripts/criarDeployOracleCloud/05-configure-nginx.ps1` cria o vhost
@@ -94,8 +100,8 @@ do frontend. `webBaseUrl` continua `https://urbeat.com.br` porque aponta para o 
   `AdminSeed`. A coleção não conhece nem grava esse e-mail/senha.
 - Preencha `adminEmail`/`adminPassword` manualmente na sessão.
 - Se a senha do admin for desconhecida, use `POST /api/auth/admin/recover-password`
-  (única request da coleção que usa `apiBaseUrl`). A feature vem desligada por padrão
-  e exige `AdminRecovery__Enabled=true` mais
+  (única request da coleção que resolve a URL no Postman Vault `apibaseUrl`). A
+  feature vem desligada por padrão e exige `AdminRecovery__Enabled=true` mais
   `AdminRecovery__Key` fornecida externamente no servidor. O alvo é exclusivamente o
   `AdminSeed:Email` configurado (obrigatório; sem ele toda chamada recebe `403`).
   Preencha `adminRecoveryKey`, `newAdminPassword` e `newAdminPasswordConfirm` apenas na
@@ -148,7 +154,10 @@ Limitações dessa validação:
   variáveis (`{token}` de rota pública vs. convite), apenas a posição/literal;
 - a comparação depende de `pm.request.url.getPath()`/`pm.request.url.path` do SDK
   do Postman; se a URL não expuser path verificável, o guard bloqueia;
-- `baseUrl` é obrigatório no ambiente selecionado; sem ele, o guard bloqueia.
+- `baseUrl` é obrigatório no ambiente selecionado; sem ele, o guard bloqueia;
+- exceção única: em `POST /api/auth/admin/recover-password` a URL vem do Postman
+  Vault (`{{vault:apibaseUrl}}`), então o guard não exige `baseUrl` nem compara o
+  host — apenas nome, método e path continuam validados.
 
 | `runMode` | Executa |
 | --- | --- |
@@ -187,7 +196,7 @@ Todas as variáveis são de **ambiente**, nunca de coleção. Catálogo:
 | Grupo | Variáveis |
 | --- | --- |
 | Controle | `runMode`, `allowWebhooks`, `lastLoginRole` |
-| URLs/dados públicos | `baseUrl`, `apiBaseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
+| URLs/dados públicos | `baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
 | Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword` |
 | Tokens (secret) | `customerToken`, `sellerToken`, `adminToken` |
 | IDs/valores | `storeId`, `cuisineTypeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `stopSequence` |
@@ -208,6 +217,9 @@ Notas de captura:
 - **Limpeza**: exportar um ambiente preenchido grava tokens/senhas em texto claro.
   Antes de exportar ou compartilhar, use `Environment → Clear values` e reimporte o
   arquivo original. Prefira Postman Vault (`{{vault:chave}}`) quando disponível.
+- `apibaseUrl` **não** é variável de ambiente: é uma entrada do Postman Vault usada
+  somente pelo host de `POST /api/auth/admin/recover-password` (seção 4). Nenhum
+  valor dela é versionado.
 - Tokens JWT, cookies, `asaas-access-token` e access tokens de gateway nunca devem
   ser colados em issues, chats, logs ou capturas de tela.
 

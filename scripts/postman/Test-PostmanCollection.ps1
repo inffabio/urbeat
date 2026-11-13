@@ -100,7 +100,7 @@ $allowlistPosts = @(
 
 $environmentCatalog = @(
     @('runMode','default'), @('allowWebhooks','default'), @('lastLoginRole','default'),
-    @('baseUrl','default'), @('apiBaseUrl','default'), @('webBaseUrl','default'), @('webhookPublicUrl','default'),
+    @('baseUrl','default'), @('webBaseUrl','default'), @('webhookPublicUrl','default'),
     @('cep','default'), @('neighborhood','default'), @('cuisineType','default'),
     @('storePath','default'), @('storeSlug','default'), @('landingSection','default'),
     @('cityId','default'), @('printerPresetId','default'),
@@ -126,11 +126,12 @@ $environmentCatalog = @(
     @('printerBase64Data','secret')
 )
 
-$allowedNonEmptyEnvironmentValues = @('baseUrl','apiBaseUrl','webBaseUrl','runMode','allowWebhooks')
+$allowedNonEmptyEnvironmentValues = @('baseUrl','webBaseUrl','runMode','allowWebhooks')
 
-# A recuperacao administrativa usa um host de API explicito; as demais requisicoes
-# continuam presas a `baseUrl`.
-$apiBaseUrlRequests = @('POST /api/auth/admin/recover-password')
+# A recuperacao administrativa resolve a URL no Postman Vault; as demais requisicoes
+# continuam presas a `baseUrl`. O valor de `apibaseUrl` nunca entra no repositorio.
+$vaultUrlRequests = @('POST /api/auth/admin/recover-password')
+$vaultUrlReference = '{{vault:apibaseUrl}}'
 
 function Test-Guid([string]$value) {
     $parsed = [guid]::Empty
@@ -268,18 +269,31 @@ foreach ($r in $requests) {
     $url = $r.Request.url
     if ($null -eq $url) { Fail "url ausente em $($r.Name)"; continue }
     $raw = [string]$url.raw
-    $baseVariable = if ($apiBaseUrlRequests -contains $r.Name) { 'apiBaseUrl' } else { 'baseUrl' }
-    $baseToken = "{{$baseVariable}}"
+    $usesVaultUrl = $vaultUrlRequests -contains $r.Name
+    $baseToken = if ($usesVaultUrl) { $vaultUrlReference } else { '{{baseUrl}}' }
     if (-not $raw.StartsWith("$baseToken/api/")) { Fail "url sem $baseToken/api/: $($r.Name)" }
     if ($raw -match 'https?://') { Fail "url com host absoluto: $($r.Name)" }
+    # O Postman Vault so pode resolver host na recuperacao administrativa.
+    $vaultMatches = @([regex]::Matches($raw, '(?i)\{\{vault:[^}]+\}\}'))
+    if (-not $usesVaultUrl -and $vaultMatches.Count -gt 0) {
+        Fail "referencia ao Postman Vault fora da recuperacao administrativa em $($r.Name)"
+    }
+    if ($usesVaultUrl -and $raw -cnotmatch '^\{\{vault:apibaseUrl\}\}/api/') {
+        Fail "recuperacao administrativa sem $vaultUrlReference`: $($r.Name)"
+    }
+    foreach ($vaultMatch in $vaultMatches) {
+        if ($vaultMatch.Value -cne $vaultUrlReference) {
+            Fail "referencia ao Postman Vault invalida em $($r.Name): $($vaultMatch.Value)"
+        }
+    }
     if ($raw -match ([regex]::Escape($baseToken) + '//')) { Fail "url com barra duplicada: $($r.Name)" }
     if ($raw -match ':guid|:int') { Fail "url com constraint: $($r.Name)" }
-    if (@($url.host).Count -ne 1 -or [string]$url.host[0] -ne $baseToken) {
+    if (@($url.host).Count -ne 1 -or [string]$url.host[0] -cne $baseToken) {
         Fail "host invalido em $($r.Name)"
     }
     $pathText = '/' + (@($url.path) -join '/')
     $rawPath = ($raw -split '\?')[0]
-    if ($rawPath -ne ($baseToken + $pathText)) { Fail "url.raw difere de host+path em $($r.Name)" }
+    if ($rawPath -cne ($baseToken + $pathText)) { Fail "url.raw difere de host+path em $($r.Name)" }
 
     $enabledQuery = @()
     if ($null -ne $url.query) { $enabledQuery = @($url.query | Where-Object { -not $_.disabled }) }
@@ -287,14 +301,14 @@ foreach ($r in $requests) {
     if ($enabledQuery.Count -gt 0) {
         $expectedRaw += '?' + (($enabledQuery | ForEach-Object { "$($_.key)=$($_.value)" }) -join '&')
     }
-    if ($raw -ne $expectedRaw) { Fail "url.raw difere dos parametros habilitados em $($r.Name)" }
+    if ($raw -cne $expectedRaw) { Fail "url.raw difere dos parametros habilitados em $($r.Name)" }
 
     $variableSources = @($raw)
     if ($null -ne $r.Request.body -and $r.Request.body.mode -eq 'raw') { $variableSources += [string]$r.Request.body.raw }
     foreach ($source in $variableSources) {
         foreach ($m in [regex]::Matches($source, '\{\{([A-Za-z0-9_$]+)\}\}')) {
             $variable = $m.Groups[1].Value
-            if ($variable -eq '$guid' -or $variable -in @('baseUrl','apiBaseUrl')) { continue }
+            if ($variable -eq '$guid' -or $variable -eq 'baseUrl') { continue }
             if ($environmentKeys -notcontains $variable) {
                 Fail "variavel nao declarada no ambiente: $variable em $($r.Name)"
             }
@@ -388,6 +402,16 @@ foreach ($r in $requests) {
 }
 if ($multipartRequests.Count -ne 2) { Fail "multipart esperados=2 encontrados=$($multipartRequests.Count)" }
 
+# Somente a recuperacao administrativa pode resolver a URL no Postman Vault.
+$vaultUrlRequestCount = @($requests | Where-Object { [string]$_.Request.url.raw -imatch '\{\{vault:' }).Count
+if ($vaultUrlRequestCount -ne 1) { Fail "requisicoes com URL do Postman Vault esperadas=1 encontradas=$vaultUrlRequestCount" }
+$vaultUrlOccurrences = 0
+foreach ($r in $requests) {
+    $vaultUrlOccurrences += ([regex]::Matches([string]$r.Request.url.raw, [regex]::Escape($vaultUrlReference))).Count
+    $vaultUrlOccurrences += @(@($r.Request.url.host) | Where-Object { $_ -ceq $vaultUrlReference }).Count
+}
+if ($vaultUrlOccurrences -ne 2) { Fail "ocorrencias de $vaultUrlReference em raw+host esperadas=2 encontradas=$vaultUrlOccurrences" }
+
 foreach ($text in $scriptTexts) {
     if ($text -match 'pm\.sendRequest') { Fail 'script contem pm.sendRequest' }
     if ($text -match 'setNextRequest') { Fail 'script contem setNextRequest' }
@@ -425,10 +449,22 @@ if ($null -ne $guardText) {
     if ($guardText -notmatch "startsWith\('POST /api/webhooks/'\)") { Fail 'guard sem deteccao de webhook' }
     if ($guardText -notmatch 'pm\.execution\.skipRequest') { Fail 'guard sem pm.execution.skipRequest' }
     if ($guardText -notmatch 'throw new Error') { Fail 'guard sem fallback throw' }
+    if (-not $guardText.Contains("const vaultUrlRequest = 'POST /api/auth/admin/recover-password';")) {
+        Fail 'guard sem vaultUrlRequest'
+    }
+    if (-not $guardText.Contains('const usesVaultUrl = name === vaultUrlRequest;')) {
+        Fail 'guard sem deteccao da URL do Postman Vault'
+    }
+    if (-not $guardText.Contains('if (!envBase && !usesVaultUrl) {')) {
+        Fail 'guard exige baseUrl para a URL do Postman Vault'
+    }
+    if (-not $guardText.Contains('&& !usesVaultUrl) {')) {
+        Fail 'guard sem excecao de host para a URL do Postman Vault'
+    }
 }
 
 # ---------------- ambientes ----------------
-function Test-Environment([string]$path, [string]$expectedName, [string]$expectedBase, [string]$expectedApiBase, [string]$expectedWeb) {
+function Test-Environment([string]$path, [string]$expectedName, [string]$expectedBase, [string]$expectedWeb) {
     if (-not (Test-Path -LiteralPath $path)) { Fail "ambiente ausente: $path"; return }
     $environment = Read-Utf8Json $path
     if ($environment.name -ne $expectedName) { Fail "nome de ambiente invalido em $path`: $($environment.name)" }
@@ -451,17 +487,15 @@ function Test-Environment([string]$path, [string]$expectedName, [string]$expecte
         if (-not (@($environmentCatalog | ForEach-Object { $_[0] }) -contains $key)) { Fail "variavel inesperada em $path`: $key" }
     }
     $base = @($values | Where-Object { $_.key -eq 'baseUrl' })[0].value
-    $apiBase = @($values | Where-Object { $_.key -eq 'apiBaseUrl' })[0].value
     $web = @($values | Where-Object { $_.key -eq 'webBaseUrl' })[0].value
     $runMode = @($values | Where-Object { $_.key -eq 'runMode' })[0].value
     $allowWebhooks = @($values | Where-Object { $_.key -eq 'allowWebhooks' })[0].value
     if ($base -ne $expectedBase) { Fail "baseUrl invalido em $path`: $base" }
-    if ($apiBase -ne $expectedApiBase) { Fail "apiBaseUrl invalido em $path`: $apiBase" }
     if ($web -ne $expectedWeb) { Fail "webBaseUrl invalido em $path`: $web" }
     if ($runMode -ne 'read-only') { Fail "runMode invalido em $path`: $runMode" }
     if ([string]$allowWebhooks -ne 'false') { Fail "allowWebhooks invalido em $path`: $allowWebhooks" }
 }
-Test-Environment $OciEnvironment 'urbeat · oci' 'https://api.urbeat.com.br' 'https://api.urbeat.com.br' 'https://urbeat.com.br'
+Test-Environment $OciEnvironment 'urbeat · oci' 'https://api.urbeat.com.br' 'https://urbeat.com.br'
 
 # ---------------- segredos ----------------
 function Test-Secrets([string]$path) {
@@ -559,7 +593,13 @@ const cases = [
   { label: 'absolute-host', name: 'GET /api/public/stores', method: 'GET', path: '/api/public/stores', absolute: 'https://evil.example', mode: 'destructive', allow: 'true', expected: true },
   { label: 'resolved-param', name: 'GET /api/stores/{storeId}/products', method: 'GET', path: '/api/stores/abc/products', mode: 'read-only', allow: 'false', expected: false },
   { label: 'template-param', name: 'GET /api/stores/{storeId}/products', method: 'GET', path: '/api/stores/{{storeId}}/products', mode: 'read-only', allow: 'false', expected: false },
-  { label: 'path-array-fallback', name: 'GET /api/stores/{storeId}/products', method: 'GET', path: '/api/stores/{{storeId}}/products', useGetPath: false, mode: 'read-only', allow: 'false', expected: false }
+  { label: 'path-array-fallback', name: 'GET /api/stores/{storeId}/products', method: 'GET', path: '/api/stores/{{storeId}}/products', useGetPath: false, mode: 'read-only', allow: 'false', expected: false },
+  { label: 'vault-recovery-absolute-host', name: 'POST /api/auth/admin/recover-password', method: 'POST', path: '/api/auth/admin/recover-password', absolute: 'https://api-recovery.example', mode: 'destructive', allow: 'true', expected: false },
+  { label: 'vault-recovery-missing-base-url', name: 'POST /api/auth/admin/recover-password', method: 'POST', path: '/api/auth/admin/recover-password', baseUrl: '', mode: 'destructive', allow: 'true', expected: false },
+  { label: 'vault-recovery-path-mismatch', name: 'POST /api/auth/admin/recover-password', method: 'POST', path: '/api/auth/recover-password', mode: 'destructive', allow: 'true', expected: true },
+  { label: 'vault-recovery-method-mismatch', name: 'POST /api/auth/admin/recover-password', method: 'GET', path: '/api/auth/admin/recover-password', mode: 'destructive', allow: 'true', expected: true },
+  { label: 'vault-recovery-read-only', name: 'POST /api/auth/admin/recover-password', method: 'POST', path: '/api/auth/admin/recover-password', mode: 'read-only', allow: 'false', expected: true },
+  { label: 'vault-exception-only-recovery', name: 'POST /api/auth/forgot-password', method: 'POST', path: '/api/auth/forgot-password', absolute: 'https://api-recovery.example', mode: 'destructive', allow: 'true', expected: true }
 ];
 for (const item of cases) {
   synthetic[item.label] = { blocked: decide(item, item.mode, item.allow), expected: item.expected };
