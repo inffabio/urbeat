@@ -434,6 +434,10 @@ describe('StoreHoursState', () => {
       return component.schedule()[dayId].shifts.map(shift => `${shift.startTime}-${shift.endTime}`);
     }
 
+    function shiftSlots(dayId: string): Array<[string, string]> {
+      return component.schedule()[dayId].shifts.map(shift => [shift.startTime, shift.endTime]);
+    }
+
     it('lists only open days other than the origin as copy targets', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00']] },
@@ -471,44 +475,46 @@ describe('StoreHoursState', () => {
       expect(component.copySourceShift()).toBeNull();
     });
 
-    it('replaces the destination with the first shift of a day that has two shifts', async () => {
+    it('overwrites the matching position and preserves the other destination shifts', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00'], ['14:00', '18:00']] },
-        { dayOfWeek: 2, shifts: [['19:00', '21:00']] },
+        { dayOfWeek: 2, shifts: [['19:00', '21:00'], ['22:00', '23:00']] },
       ));
 
       component.openCopyModal('segunda', 0);
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      expect(shiftTimes('terca')).toEqual(['09:00-12:00']);
+      expect(shiftTimes('terca')).toEqual(['09:00-12:00', '22:00-23:00']);
       expect(shiftTimes('segunda')).toEqual(['09:00-12:00', '14:00-18:00']);
       expect(component.hasChanges()).toBe(true);
       expect(component.isCopyModalOpen()).toBe(false);
     });
 
-    it.each([1, 2])('replaces the destination with only the shift at index %i', async (index) => {
+    it.each([0, 1, 2])('overwrites only the position at index %i', async (index) => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['08:00', '10:00'], ['11:00', '13:00'], ['14:00', '16:00']] },
-        { dayOfWeek: 2, shifts: [['19:00', '21:00']] },
+        { dayOfWeek: 2, shifts: [['18:00', '19:00'], ['19:00', '20:00'], ['20:00', '21:00']] },
       ));
 
       component.openCopyModal('segunda', index);
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      const expected = ['08:00-10:00', '11:00-13:00', '14:00-16:00'][index];
-      expect(shiftTimes('terca')).toEqual([expected]);
+      const source = ['08:00-10:00', '11:00-13:00', '14:00-16:00'];
+      const expected = ['18:00-19:00', '19:00-20:00', '20:00-21:00'];
+      expected[index] = source[index];
+      expect(shiftTimes('terca')).toEqual(expected);
       expect(component.hasChanges()).toBe(true);
     });
 
-    it('clones the selected shift with a new key and preserves backend times', async () => {
+    it('preserves the destination key and copies backend times into the matching position', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['08:00:30.2500000', '12:30:45.5000000'], ['14:00', '18:00']] },
         { dayOfWeek: 2, shifts: [['19:00', '21:00']] },
       ));
 
-      const sourceKeys = new Set(component.schedule().segunda.shifts.map(shift => shift.key));
+      const destinationKeys = component.schedule().terca.shifts.map(shift => shift.key);
       component.openCopyModal('segunda', 0);
       component.toggleCopyTarget('terca');
       component.confirmCopy();
@@ -517,14 +523,13 @@ describe('StoreHoursState', () => {
       expect(destinationShifts).toHaveLength(1);
       expect(destinationShifts[0].startTime).toBe('08:00:30.2500000');
       expect(destinationShifts[0].endTime).toBe('12:30:45.5000000');
-      expect(destinationShifts[0].key).toBeTruthy();
-      expect(sourceKeys.has(destinationShifts[0].key)).toBe(false);
+      expect(destinationShifts[0].key).toBe(destinationKeys[0]);
     });
 
     it('uses a snapshot of the shift taken when the modal was opened', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00'], ['14:00', '18:00']] },
-        { dayOfWeek: 2, shifts: [['19:00', '21:00']] },
+        { dayOfWeek: 2, shifts: [['19:00', '21:00'], ['22:00', '23:00']] },
       ));
 
       component.openCopyModal('segunda', 0);
@@ -532,7 +537,7 @@ describe('StoreHoursState', () => {
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      expect(shiftTimes('terca')).toEqual(['09:00-12:00']);
+      expect(shiftSlots('terca')).toEqual([['09:00', '12:00'], ['22:00', '23:00']]);
     });
 
     it('never copies to a closed day', async () => {
@@ -551,11 +556,11 @@ describe('StoreHoursState', () => {
       expect(component.isCopyModalOpen()).toBe(false);
     });
 
-    it('replaces all shifts of each selected day with the copied shift', async () => {
+    it('merges into each selected destination independently', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00'], ['14:00', '18:00']] },
         { dayOfWeek: 2, shifts: [['08:00', '10:00'], ['11:00', '13:00'], ['19:00', '22:00']] },
-        { dayOfWeek: 3, shifts: [['10:00', '11:00'], ['18:00', '23:00']] },
+        { dayOfWeek: 3, shifts: [['10:00', '11:00']] },
       ));
 
       component.openCopyModal('segunda', 1);
@@ -563,8 +568,8 @@ describe('StoreHoursState', () => {
       component.toggleCopyTarget('quarta');
       component.confirmCopy();
 
-      expect(shiftTimes('terca')).toEqual(['14:00-18:00']);
-      expect(shiftTimes('quarta')).toEqual(['14:00-18:00']);
+      expect(shiftTimes('terca')).toEqual(['08:00-10:00', '14:00-18:00', '19:00-22:00']);
+      expect(shiftTimes('quarta')).toEqual(['10:00-11:00', '14:00-18:00']);
       expect(shiftTimes('segunda')).toEqual(['09:00-12:00', '14:00-18:00']);
       expect(component.hasChanges()).toBe(true);
     });
@@ -580,7 +585,8 @@ describe('StoreHoursState', () => {
       component.confirmCopy();
 
       expect(component.schedule().terca.isOpen).toBe(true);
-      expect(component.schedule().terca.shifts).toHaveLength(1);
+      expect(component.schedule().terca.shifts).toHaveLength(2);
+      expect(shiftTimes('terca')).toEqual(['09:00-12:00', '22:00-23:00']);
       expect(shiftTimes('segunda')).toEqual(['09:00-12:00']);
       expect(component.copySourceShift()).toBeNull();
       expect(component.copyTargets().size).toBe(0);
@@ -603,7 +609,7 @@ describe('StoreHoursState', () => {
       expect(toastServiceMock.showInfo).toHaveBeenCalledWith('Turno 1 copiado para 1 dia.');
     });
 
-    it('does not show grouped warnings when all destinations are replaced', async () => {
+    it('does not show grouped warnings when destinations are merged', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00']] },
         { dayOfWeek: 2, shifts: [['11:00', '13:00']] },
@@ -620,6 +626,89 @@ describe('StoreHoursState', () => {
       expect(toastServiceMock.showInfo).toHaveBeenCalledWith('Turno 1 copiado para 2 dias.');
     });
 
+    it('appends the copied shift as the second shift when the destination has only one', async () => {
+      await load(hours(
+        { dayOfWeek: 1, shifts: [['09:00', '12:00'], ['18:00', '22:00']] },
+        { dayOfWeek: 2, shifts: [['09:00', '13:00']] },
+      ));
+
+      component.openCopyModal('segunda', 1);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      expect(shiftSlots('terca')).toEqual([['09:00', '13:00'], ['18:00', '22:00']]);
+      expect(component.hasChanges()).toBe(true);
+      expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
+    });
+
+    it('creates empty intermediate shifts until the copied position', async () => {
+      await load(hours(
+        { dayOfWeek: 1, shifts: [['08:00', '10:00'], ['11:00', '13:00'], ['14:00', '16:00']] },
+        { dayOfWeek: 2, shifts: [['18:00', '20:00']] },
+      ));
+
+      component.openCopyModal('segunda', 2);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      expect(shiftSlots('terca')).toEqual([['18:00', '20:00'], ['', ''], ['14:00', '16:00']]);
+      expect(component.validateDay('terca')).toBe('Preencha início e fim de todos os turnos.');
+      expect(component.hasChanges()).toBe(true);
+    });
+
+    it('blocks saving until the intermediate shifts are filled', async () => {
+      await load(hours(
+        { dayOfWeek: 1, shifts: [['08:00', '10:00'], ['11:00', '13:00'], ['14:00', '16:00']] },
+        { dayOfWeek: 2, shifts: [['18:00', '20:00']] },
+      ));
+
+      component.openCopyModal('segunda', 2);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      await component.saveDraft();
+
+      expect(storeServiceMock.upsertStoreBusinessHours).not.toHaveBeenCalled();
+      expect(toastServiceMock.showGrouped).toHaveBeenCalled();
+      const [errors] = toastServiceMock.showGrouped.mock.calls[0] as [Array<{ type: string; text: string }>];
+      expect(errors.some(error => error.text.includes('Preencha início e fim de todos os turnos.'))).toBe(true);
+    });
+
+    it('creates the first shift of an open destination that has none', async () => {
+      await load(hours(
+        { dayOfWeek: 1, shifts: [['09:00', '12:00']] },
+        { dayOfWeek: 2, shifts: [] },
+      ));
+
+      component.openCopyModal('segunda', 0);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      expect(shiftSlots('terca')).toEqual([['09:00', '12:00']]);
+      expect(component.hasChanges()).toBe(true);
+    });
+
+    it('preserves the destination shift keys and creates keys only for new positions', async () => {
+      await load(hours(
+        { dayOfWeek: 1, shifts: [['09:00', '12:00'], ['14:00', '18:00']] },
+        { dayOfWeek: 2, shifts: [['08:00', '10:00']] },
+      ));
+
+      const sourceKeys = component.schedule().segunda.shifts.map(shift => shift.key);
+      const destinationKeys = component.schedule().terca.shifts.map(shift => shift.key);
+
+      component.openCopyModal('segunda', 1);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      const shifts = component.schedule().terca.shifts;
+      expect(shifts).toHaveLength(2);
+      expect(shifts[0].key).toBe(destinationKeys[0]);
+      expect(shifts[1].key).toBeTruthy();
+      expect(destinationKeys).not.toContain(shifts[1].key);
+      expect(sourceKeys).not.toContain(shifts[1].key);
+    });
+
     it('does not call the API during copy', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '12:00']] },
@@ -634,25 +723,25 @@ describe('StoreHoursState', () => {
       expect(component.hasChanges()).toBe(true);
     });
 
-    it('replaces a destination that already has an overnight shift', async () => {
+    it('overwrites the first position of a destination that already has an overnight shift', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['00:30', '02:00']] },
-        { dayOfWeek: 2, shifts: [['23:00', '01:00']] },
+        { dayOfWeek: 2, shifts: [['23:00', '01:00'], ['02:00', '03:00']] },
       ));
 
       component.openCopyModal('segunda', 0);
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      expect(shiftTimes('terca')).toEqual(['00:30-02:00']);
+      expect(shiftTimes('terca')).toEqual(['00:30-02:00', '23:00-01:00']);
       expect(component.hasChanges()).toBe(true);
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 
-    it('replaces the destination even when the copied overnight shift overlaps the next day', async () => {
+    it('merges a copied overnight shift even when it overlaps the next day', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['23:00', '01:00']] },
-        { dayOfWeek: 2, shifts: [['18:00', '20:00']] },
+        { dayOfWeek: 2, shifts: [['18:00', '20:00'], ['21:00', '22:00']] },
         { dayOfWeek: 3, shifts: [['00:30', '02:00']] },
       ));
 
@@ -660,16 +749,16 @@ describe('StoreHoursState', () => {
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      expect(shiftTimes('terca')).toEqual(['23:00-01:00']);
+      expect(shiftTimes('terca')).toEqual(['23:00-01:00', '21:00-22:00']);
       expect(shiftTimes('quarta')).toEqual(['00:30-02:00']);
       expect(component.hasChanges()).toBe(true);
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 
-    it('replaces Monday even when the Sunday overnight shift ends after midnight', async () => {
+    it('merges into Monday even when the Sunday overnight shift ends after midnight', async () => {
       await load(hours(
         { dayOfWeek: 0, shifts: [['23:00', '01:00']] },
-        { dayOfWeek: 1, shifts: [['18:00', '20:00']] },
+        { dayOfWeek: 1, shifts: [['18:00', '20:00'], ['21:00', '22:00']] },
         { dayOfWeek: 3, shifts: [['00:30', '02:00']] },
       ));
 
@@ -677,12 +766,12 @@ describe('StoreHoursState', () => {
       component.toggleCopyTarget('segunda');
       component.confirmCopy();
 
-      expect(shiftTimes('segunda')).toEqual(['00:30-02:00']);
+      expect(shiftTimes('segunda')).toEqual(['00:30-02:00', '21:00-22:00']);
       expect(component.hasChanges()).toBe(true);
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 
-    it('replaces the destination when the previous day overnight shift ends before the copy starts', async () => {
+    it('merges when the previous day overnight shift ends before the copy starts', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['23:00', '01:00']] },
         { dayOfWeek: 2, shifts: [['18:00', '20:00']] },
@@ -698,7 +787,7 @@ describe('StoreHoursState', () => {
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 
-    it('replaces the destination with an overnight shift when the next day already has a shift', async () => {
+    it('merges an overnight shift when the next day already has a shift', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['23:00', '01:00']] },
         { dayOfWeek: 2, shifts: [['18:00', '20:00']] },
@@ -715,7 +804,7 @@ describe('StoreHoursState', () => {
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 
-    it('replaces a day that already has five shifts', async () => {
+    it('keeps five shifts and overwrites the copied position', async () => {
       await load(hours(
         { dayOfWeek: 1, shifts: [['09:00', '10:00']] },
         {
@@ -728,9 +817,34 @@ describe('StoreHoursState', () => {
       component.toggleCopyTarget('terca');
       component.confirmCopy();
 
-      expect(component.schedule().terca.shifts).toHaveLength(1);
-      expect(shiftTimes('terca')).toEqual(['09:00-10:00']);
+      expect(component.schedule().terca.shifts).toHaveLength(5);
+      expect(shiftTimes('terca')).toEqual([
+        '09:00-10:00', '12:00-13:00', '13:00-14:00', '14:00-15:00', '15:00-16:00',
+      ]);
       expect(component.hasChanges()).toBe(true);
+      expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
+    });
+
+    it('rejects the copy when the position exceeds the maximum of five shifts', async () => {
+      await load(hours(
+        {
+          dayOfWeek: 1,
+          shifts: [
+            ['08:00', '09:00'], ['09:00', '10:00'], ['10:00', '11:00'],
+            ['11:00', '12:00'], ['12:00', '13:00'], ['13:00', '14:00'],
+          ],
+        },
+        { dayOfWeek: 2, shifts: [['10:00', '11:00']] },
+      ));
+
+      component.openCopyModal('segunda', 5);
+      component.toggleCopyTarget('terca');
+      component.confirmCopy();
+
+      expect(toastServiceMock.showInfo).toHaveBeenCalledWith('Máximo de 5 turnos por dia.');
+      expect(component.hasChanges()).toBe(false);
+      expect(component.isCopyModalOpen()).toBe(true);
+      expect(shiftTimes('terca')).toEqual(['10:00-11:00']);
       expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     });
 

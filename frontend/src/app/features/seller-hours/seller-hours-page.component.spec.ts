@@ -176,7 +176,69 @@ describe('SellerHoursPageComponent', () => {
     expect(dayLabels[dayLabels.length - 1].textContent!.trim()).toBe('Domingo');
   });
 
-  it('copies only the first shift of a two-shift day from its row action', async () => {
+  it('shows a visual tooltip for copy and remove actions without replacing the accessible name', async () => {
+    const fixture = TestBed.createComponent(SellerHoursPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component.schedule.update(s => ({
+      ...s,
+      segunda: {
+        isOpen: true,
+        shifts: [
+          { startTime: '08:00', endTime: '10:00' },
+          { startTime: '11:00', endTime: '13:00' },
+        ],
+      },
+    }));
+    fixture.detectChanges();
+
+    const segundaRow = fixture.nativeElement.querySelectorAll('.settings-row')[0] as HTMLElement;
+    const copyButtons = Array.from(segundaRow.querySelectorAll('.copy-action')) as HTMLButtonElement[];
+    const removeButtons = Array.from(segundaRow.querySelectorAll('.remove-shift')) as HTMLButtonElement[];
+
+    expect(copyButtons).toHaveLength(2);
+    expect(removeButtons).toHaveLength(2);
+
+    for (const button of copyButtons) {
+      const tooltip = button.querySelector('.shift-tooltip') as HTMLElement | null;
+      expect(tooltip).not.toBeNull();
+      expect(tooltip?.textContent?.trim()).toBe('Copiar turno');
+      expect(tooltip?.getAttribute('aria-hidden')).toBe('true');
+      expect(button.getAttribute('aria-label')).toBeTruthy();
+      expect(button.getAttribute('title')).toBeTruthy();
+    }
+
+    for (const button of removeButtons) {
+      const tooltip = button.querySelector('.shift-tooltip') as HTMLElement | null;
+      expect(tooltip).not.toBeNull();
+      expect(tooltip?.textContent?.trim()).toBe('Excluir turno');
+      expect(tooltip?.getAttribute('aria-hidden')).toBe('true');
+      expect(button.getAttribute('aria-label')).toMatch(/^Remover turno \d+ de /);
+      expect(button.getAttribute('title')).toMatch(/^Remover turno \d+ de /);
+    }
+  });
+
+  it('keeps the shift tooltip non-interactive, keyboard reachable and respecting reduced motion', () => {
+    const styles = readFileSync(resolve(__dirname, 'seller-hours-page.component.scss'), 'utf8');
+    const tooltip = styles.match(/\.shift-tooltip\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const reducedMotion = styles.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    expect(tooltip).toContain('position: absolute');
+    expect(tooltip).toContain('pointer-events: none');
+    expect(tooltip).toContain('visibility: hidden');
+    expect(tooltip).toMatch(/background: var\(--hours-text\)/);
+    expect(tooltip).toContain('white-space: nowrap');
+
+    expect(styles).toMatch(/\.copy-action:focus-visible \.shift-tooltip/);
+    expect(styles).toMatch(/\.remove-shift:focus-visible \.shift-tooltip/);
+    expect(styles).toMatch(/@media \(hover: hover\) and \(pointer: fine\)/);
+
+    expect(reducedMotion).toContain('.shift-tooltip { transition: none; }');
+  });
+
+  it('copies the first shift from its row action and overwrites the destination position', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -222,7 +284,7 @@ describe('SellerHoursPageComponent', () => {
     expect(component.schedule().segunda.shifts).toHaveLength(2);
   });
 
-  it('copies the third shift individually and replaces each selected destination', async () => {
+  it('copies the third shift individually and fills the third position on each selected destination', async () => {
     const fixture = TestBed.createComponent(SellerHoursPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -261,19 +323,21 @@ describe('SellerHoursPageComponent', () => {
     component.toggleCopyTarget('quarta');
     component.confirmCopy();
 
-    expect(component.schedule().quarta.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
-      .toEqual(['14:00-16:00']);
-    expect(component.schedule().terca.shifts.map(shift => `${shift.startTime}-${shift.endTime}`))
-      .toEqual(['14:00-16:00']);
+    expect(component.schedule().quarta.shifts.map(shift => [shift.startTime, shift.endTime]))
+      .toEqual([['20:00', '22:00'], ['', ''], ['14:00', '16:00']]);
+    expect(component.schedule().terca.shifts.map(shift => [shift.startTime, shift.endTime]))
+      .toEqual([['15:00', '18:00'], ['', ''], ['14:00', '16:00']]);
     expect(component.schedule().segunda.shifts).toHaveLength(3);
     expect(toastServiceMock.showGrouped).not.toHaveBeenCalled();
     expect(toastServiceMock.showInfo).toHaveBeenCalledWith('Turno 3 copiado para 2 dias.');
   });
 
-  it('tells the user that the selected days will be replaced', () => {
+  it('tells the user that the other shifts are kept', () => {
     const template = readFileSync(resolve(__dirname, 'seller-hours-page.component.html'), 'utf8');
 
-    expect(template).toContain('Os horários atuais dos dias selecionados serão substituídos.');
+    expect(template).toContain(
+      'O horário substitui apenas o turno de mesmo número em cada dia; os outros turnos são mantidos.',
+    );
     expect(template).toContain('class="copy-modal-note"');
   });
 

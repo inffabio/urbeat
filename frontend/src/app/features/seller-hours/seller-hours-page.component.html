@@ -100,6 +100,7 @@
                     [title]="'Copiar turno ' + (i + 1) + ' de ' + day.label"
                   >
                     <ion-icon name="copy-outline"></ion-icon>
+                    <span class="shift-tooltip" aria-hidden="true">Copiar turno</span>
                   </button>
                   <button
                     type="button"
@@ -109,6 +110,7 @@
                     [title]="'Remover turno ' + (i + 1) + ' de ' + day.label"
                   >
                     <ion-icon name="trash-outline"></ion-icon>
+                    <span class="shift-tooltip" aria-hidden="true">Excluir turno</span>
                   </button>
                 </div>
                 @if (isOvernight(day.id, i)) {
@@ -191,7 +193,7 @@
         <p class="copy-modal-desc">
           @if (copySourceShift()) {
             Copiar turno <strong>{{ copySourceShiftNumber() }}</strong> de <strong>{{ copySourceDayLabel() }}</strong> para:
-            <span class="copy-modal-note">Os horários atuais dos dias selecionados serão substituídos.</span>
+            <span class="copy-modal-note">O horário substitui apenas o turno de mesmo número em cada dia; os outros turnos são mantidos.</span>
           }
         </p>
         <div class="copy-options">

@@ -399,6 +399,12 @@ export abstract class StoreHoursState implements OnInit {
       return;
     }
 
+    // Every destination needs a slot at the copied index, so the copy cannot exceed the daily limit.
+    if (source.shiftIndex + 1 > this.maxShiftsPerDay) {
+      this.toast.showInfo(`Máximo de ${this.maxShiftsPerDay} turnos por dia.`);
+      return;
+    }
+
     const applied: string[] = [];
     for (const targetId of targets) {
       const day = this.schedule()[targetId];
@@ -411,15 +417,17 @@ export abstract class StoreHoursState implements OnInit {
       this.schedule.update(s => {
         const copy = { ...s };
         for (const targetId of applied) {
-          // The copied shift replaces every shift the destination had before.
-          copy[targetId] = {
-            isOpen: true,
-            shifts: [{
-              key: createShiftKey(),
-              startTime: source.shift.startTime,
-              endTime: source.shift.endTime,
-            }],
-          };
+          // Keep every existing shift. Positions before the copied index must exist,
+          // so missing ones are appended empty and block saving until filled.
+          const shifts = [...s[targetId].shifts];
+          while (shifts.length < source.shiftIndex) {
+            shifts.push({ key: createShiftKey(), startTime: '', endTime: '' });
+          }
+          const existing = shifts[source.shiftIndex];
+          shifts[source.shiftIndex] = existing
+            ? { ...existing, startTime: source.shift.startTime, endTime: source.shift.endTime }
+            : { key: createShiftKey(), startTime: source.shift.startTime, endTime: source.shift.endTime };
+          copy[targetId] = { isOpen: true, shifts };
         }
         return copy;
       });

@@ -325,6 +325,7 @@
 
 .btn-remove-shift,
 .btn-copy-shift {
+  position: relative;
   display: grid;
   place-items: center;
   width: 44px;
@@ -340,12 +341,59 @@
     color: var(--app-brand);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--app-brand);
+    outline-offset: 2px;
+    background: var(--app-brand-soft);
+    color: var(--app-brand);
+  }
+
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
   }
 
   ion-icon { font-size: 17px; }
+}
+
+/* ─── Icon tooltips ─── */
+.shift-tooltip {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  z-index: 2;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--app-ink);
+  color: #fff;
+  font-family: var(--app-font);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.btn-copy-shift:focus-visible .shift-tooltip,
+.btn-remove-shift:focus-visible .shift-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-copy-shift:hover:not(:disabled) .shift-tooltip,
+  .btn-remove-shift:hover .shift-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 .overnight-badge {
@@ -460,6 +508,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton-block { animation: none; }
+  .shift-tooltip { transition: none; }
 }
 
 /* ─── Copy modal ─── */

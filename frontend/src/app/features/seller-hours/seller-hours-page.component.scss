@@ -185,6 +185,7 @@
 
 .remove-shift,
 .copy-action {
+  position: relative;
   display: grid;
   place-items: center;
   width: 44px;
@@ -229,6 +230,51 @@
 
 .remove-shift ion-icon,
 .copy-action ion-icon { font-size: 17px; }
+
+.remove-shift:focus-visible,
+.copy-action:focus-visible:not(:disabled) {
+  outline: 2px solid var(--hours-orange);
+  outline-offset: 2px;
+}
+
+/* ─── Icon tooltips ─── */
+.shift-tooltip {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  z-index: 2;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--hours-text);
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.copy-action:focus-visible .shift-tooltip,
+.remove-shift:focus-visible .shift-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .copy-action:hover:not(:disabled) .shift-tooltip,
+  .remove-shift:hover .shift-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+  }
+}
 
 .add-shift-link {
   display: inline-flex;
@@ -501,6 +547,7 @@
 @media (prefers-reduced-motion: reduce) {
   .switch-app,
   .switch-app::before { transition: none; }
+  .shift-tooltip { transition: none; }
 }
 
 @media (max-width: 430px) {
