@@ -246,6 +246,11 @@ if ($composeMatch.Success) {
         if ($backendEnvironmentBlock -match '\$\{ROLE_PROMOTION_SIGNING_KEY:-') {
             $errors.Add("04-deploy-application.ps1: ROLE_PROMOTION_SIGNING_KEY must not be interpolated with an empty default.")
         }
+        # Email/WhatsApp links fall back to http://localhost:4200 when this option is unset. Both API
+        # replicas and both workers must therefore receive it through the shared anchor.
+        if ($backendEnvironmentBlock -notmatch 'EmailConfirmation__FrontendBaseUrl:\s*\$\{FRONTEND_BASE_URL') {
+            $errors.Add("04-deploy-application.ps1: x-backend-environment must set EmailConfirmation__FrontendBaseUrl from FRONTEND_BASE_URL.")
+        }
     }
 
     $mergedServices = [regex]::Matches($generatedComposeText, '(?m)^[ \t]*<<:[ \t]*\*backend-environment[ \t]*\r?$')

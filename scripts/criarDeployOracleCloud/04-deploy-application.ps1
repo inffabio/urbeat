@@ -119,6 +119,10 @@ x-backend-environment: &backend-environment
   App__FrontendUrl: ${FRONTEND_URL}
   App__ApiUrl: ${API_URL}
   App__CorsOrigins: ${CORS_ORIGINS}
+  # Absolute frontend base URL used to build e-mail/WhatsApp links (confirmation, promotion and
+  # individual delivery). The .NET default is http://localhost:4200, so production must override it
+  # here for both API replicas and both workers through the shared anchor.
+  EmailConfirmation__FrontendBaseUrl: ${FRONTEND_BASE_URL:-https://urbeat.com.br}
   # Explicit per-process Npgsql budget. Four application processes (two APIs and two workers)
   # may each open at most 10 primary-database connections; logs use a separate sink pool.
   DB_MAX_POOL_SIZE: ${DB_MAX_POOL_SIZE:-10}
