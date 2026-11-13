@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
+import L from 'leaflet';
 import { StoreDeliveryPageComponent } from './store-delivery-page.component';
 import { StoreService } from '../../../core/services/store.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -161,6 +162,7 @@ describe('StoreDeliveryPageComponent', () => {
       const mapButton = Array.from(fixture.nativeElement.querySelectorAll('.btn-bar button') as NodeListOf<HTMLButtonElement>)
         .find((button) => (button.textContent ?? '').includes('Visualizar mapa'));
       const label = fixture.nativeElement.querySelector('label[for="delivery-radius"]') as HTMLLabelElement | null;
+      const hint = fixture.nativeElement.querySelector('#delivery-radius-hint') as HTMLElement | null;
 
       expect(input.value).toBe('7');
       expect(input.getAttribute('min')).toBe('1');
@@ -170,6 +172,25 @@ describe('StoreDeliveryPageComponent', () => {
       expect(mapButton).toBeTruthy();
       expect(mapButton?.nextElementSibling?.classList.contains('radius-field')).toBe(true);
       expect(fixture.nativeElement.querySelectorAll('#delivery-radius')).toHaveLength(1);
+      // The availability counter lives beside the label, above the number box.
+      expect(hint?.textContent).toContain('bairros disponíveis');
+      expect(hint?.parentElement?.classList.contains('radius-label-row')).toBe(true);
+      expect(hint?.closest('.radius-input-wrap')).toBeNull();
+      expect(hint?.closest('.radius-label-row')).toBeTruthy();
+      expect(hint?.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('shares one 44px control height and a narrower radius box across breakpoints', () => {
+      const template = readFileSync(resolve(__dirname, 'store-delivery-page.component.html'), 'utf8');
+      const styles = readFileSync(resolve(__dirname, 'store-delivery-page.component.scss'), 'utf8');
+
+      expect(template).toContain('class="radius-label-row"');
+      expect(template).toContain('id="delivery-radius-hint"');
+      expect(styles).toMatch(/\.btn-bar\s*\{[^}]*align-items:\s*flex-end/s);
+      expect(styles).toMatch(/\.btn-outline\s*\{[^}]*min-height:\s*44px/s);
+      expect(styles).toMatch(/\.radius-input-wrap\s*\{[^}]*min-height:\s*44px/s);
+      expect(styles).toMatch(/\.radius-input-wrap\s*\{[^}]*width:\s*132px/s);
+      expect(styles).toMatch(/@media \(max-width: 600px\)[\s\S]*?\.radius-field\s*\{[^}]*grid-column:\s*1 \/ -1/s);
     });
 
     it('queries neighborhoods and marks the draft dirty when the radius changes', () => {
@@ -209,6 +230,74 @@ describe('StoreDeliveryPageComponent', () => {
 
       expect(fixture.nativeElement.querySelectorAll('#delivery-radius')).toHaveLength(1);
       expect(fixture.nativeElement.querySelectorAll('label[for="delivery-radius"]')).toHaveLength(1);
+    });
+  });
+
+  describe('delivery map', () => {
+    let container: HTMLDivElement;
+
+    beforeEach(() => {
+      storeServiceMock.getMyStore!.mockReturnValue(of({
+        ...mockStore,
+        maxDeliveryRadiusKm: 5,
+        deliveryAreas: [{ id: 'a1', neighborhood: 'Bela Vista', deliveryFee: 5 }],
+      }));
+      storeServiceMock.getStoreAddress!.mockReturnValue(of(mockAddress));
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(of([
+        { id: 'nb-1', neighborhood: 'Bela Vista', city: 'Sao Paulo', latitude: -23.558, longitude: -46.642 },
+      ]));
+
+      fixture.detectChanges();
+
+      container = document.createElement('div');
+      container.id = 'delivery-map-container';
+      document.body.appendChild(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+    });
+
+    it('uses the canonical OSM endpoint with attribution and an explicit referrer policy', () => {
+      const leaflet = L as unknown as { tileLayer: jest.Mock };
+      leaflet.tileLayer.mockClear();
+
+      component.initLeafletMap();
+
+      expect(leaflet.tileLayer).toHaveBeenCalledWith(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        expect.objectContaining({
+          attribution: expect.stringContaining('OpenStreetMap'),
+          referrerPolicy: 'strict-origin-when-cross-origin',
+        }),
+      );
+    });
+
+    it('keeps the radius circle and markers when the tile images fail', () => {
+      const leaflet = L as unknown as { tileLayer: jest.Mock; circle: jest.Mock; marker: jest.Mock };
+      leaflet.tileLayer.mockClear();
+      leaflet.circle.mockClear();
+      leaflet.marker.mockClear();
+
+      component.initLeafletMap();
+
+      expect(leaflet.circle).toHaveBeenCalledWith(
+        [mockAddress.latitude, mockAddress.longitude],
+        expect.objectContaining({ radius: 5000 }),
+      );
+
+      const tileLayerInstance = leaflet.tileLayer.mock.results.at(-1)!.value as { on: jest.Mock };
+      const tileErrorHandler = tileLayerInstance.on.mock.calls.find(
+        ([event]: [string]) => event === 'tileerror',
+      )?.[1] as (() => void) | undefined;
+
+      expect(tileErrorHandler).toBeDefined();
+      tileErrorHandler!();
+      fixture.detectChanges();
+
+      expect(component.mapTileWarning()).toBe(true);
+      expect(leaflet.marker).toHaveBeenCalledTimes(1);
+      expect(container.isConnected).toBe(true);
     });
   });
 
@@ -722,6 +811,49 @@ describe('StoreDeliveryPageComponent', () => {
       expect(component.maxDeliveryRadiusKm()).toBe(8);
       expect(component.formDirty()).toBe(true);
       expect(component.deliveryNeighborhoods().map(n => n.neighborhood)).toContain('Pinheiros');
+    });
+
+    it('includes a neighborhood exactly on the radius boundary and excludes one beyond it', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+
+      const storeLat = mockAddress.latitude;
+      const storeLon = mockAddress.longitude;
+      const boundaryLat = -23.6505;
+      const boundaryKm = component.calcDistanceRaw(storeLat, storeLon, boundaryLat, storeLon);
+
+      component.storeLat.set(storeLat);
+      component.storeLon.set(storeLon);
+      component.maxDeliveryRadiusKm.set(boundaryKm);
+      component.deliveryNeighborhoods.set([
+        { id: 'nb-boundary', neighborhood: 'No limite', city: 'Sao Paulo', latitude: boundaryLat, longitude: storeLon },
+        { id: 'nb-outside', neighborhood: 'Fora do raio', city: 'Sao Paulo', latitude: boundaryLat - 0.001, longitude: storeLon },
+      ]);
+
+      const names = component.filteredNeighborhoods().map(n => n.neighborhood);
+
+      // The server filters with Haversine <= radius; the client preview must
+      // accept the same inclusive boundary instead of dropping the last ring.
+      expect(names).toContain('No limite');
+      expect(names).not.toContain('Fora do raio');
+    });
+
+    it('treats zero coordinates as valid positions instead of missing coordinates', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+
+      component.storeLat.set(0);
+      component.storeLon.set(0);
+      component.maxDeliveryRadiusKm.set(1);
+      component.deliveryNeighborhoods.set([
+        { id: 'nb-lat-zero', neighborhood: 'Latitude zero', city: 'Equador', latitude: 0, longitude: 0.5 },
+        { id: 'nb-lon-zero', neighborhood: 'Longitude zero', city: 'Equador', latitude: 0.5, longitude: 0 },
+        { id: 'nb-near', neighborhood: 'Perto', city: 'Equador', latitude: 0.001, longitude: 0.001 },
+      ]);
+
+      const names = component.filteredNeighborhoods().map(n => n.neighborhood);
+
+      expect(names).toContain('Perto');
+      expect(names).not.toContain('Latitude zero');
+      expect(names).not.toContain('Longitude zero');
     });
 
     it('does not query or remove areas for an invalid radius', () => {

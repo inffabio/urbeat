@@ -315,6 +315,70 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
     }
 
     [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldIncludeNeighborhoodAtTheRadiusBoundary_AndExcludeBeyondIt()
+    {
+        using var db = CreateDbContext();
+        var storeCity = "Linha do Equador";
+
+        // One degree of latitude equals R * PI / 180 with the same R used by
+        // HaversineKm, so the store radius sits exactly on the boundary.
+        const double oneDegreeKm = 6371 * Math.PI / 180;
+
+        var store = new Store
+        {
+            Name = "Loja Equador",
+            Slug = "loja-equador",
+            MaxDeliveryRadiusKm = oneDegreeKm
+        };
+        db.Stores.Add(store);
+
+        var storeAddress = new StoreAddress
+        {
+            StoreId = store.Id,
+            City = storeCity,
+            State = "EQ",
+            Latitude = 0,
+            Longitude = 0
+        };
+        db.StoreAddresses.Add(storeAddress);
+
+        var nbBoundary = new DeliveryNeighborhood
+        {
+            Neighborhood = "No limite",
+            NormalizedName = "no limite",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = 1,
+            Longitude = 0,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbBoundary);
+
+        var nbOutside = new DeliveryNeighborhood
+        {
+            Neighborhood = "Fora do raio",
+            NormalizedName = "fora do raio",
+            City = storeCity,
+            CityId = Guid.NewGuid(),
+            Latitude = 1.0002,
+            Longitude = 0,
+            IsActive = true,
+            Source = "test"
+        };
+        db.DeliveryNeighborhoods.Add(nbOutside);
+
+        await db.SaveChangesAsync();
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
+
+        result.Should().HaveCount(1);
+        result.Single().Neighborhood.Should().Be("No limite");
+    }
+
+    [Fact]
     public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldReturnEmpty_WhenPositiveRadiusHasNoEligibleNeighborhoods()
     {
         using var db = CreateDbContext();

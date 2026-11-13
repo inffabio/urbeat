@@ -45,7 +45,10 @@
           <ion-icon name="map-outline" aria-hidden="true"></ion-icon> Visualizar mapa
         </button>
         <div class="radius-field">
-          <label class="radius-label" for="delivery-radius">Raio máximo (km)</label>
+          <div class="radius-label-row">
+            <label class="radius-label" for="delivery-radius">Raio máximo (km)</label>
+            <span class="radius-hint" id="delivery-radius-hint">{{ deliveryNeighborhoods().length }} bairros disponíveis</span>
+          </div>
           <div class="radius-input-wrap">
             <input id="delivery-radius" class="radius-input" type="number" min="1" step="1" inputmode="numeric"
               [ngModel]="radiusInputValue()" (ngModelChange)="onDeliveryRadiusChange($event)"
@@ -56,8 +59,6 @@
           </div>
           @if (radiusValidationError()) {
             <span class="radius-error" id="delivery-radius-error" role="alert">Informe um raio maior que zero.</span>
-          } @else {
-            <span class="radius-hint" id="delivery-radius-hint">{{ deliveryNeighborhoods().length }} bairros disponíveis</span>
           }
           @if (radiusPreviewError()) {
             <span class="radius-error" id="delivery-radius-preview-error" role="alert">{{ radiusPreviewErrorMessage }}</span>
@@ -301,7 +302,7 @@
                   <span class="nb-name">{{ nb.neighborhood }}</span>
                   <p class="nb-city">{{ nb.city }}</p>
                 </ion-label>
-                @if (storeLat() && storeLon() && nb.latitude && nb.longitude) {
+                @if (storeLat() != null && storeLon() != null && nb.latitude != null && nb.longitude != null) {
                   <ion-note slot="end" class="nb-distance">{{ calcDistance(storeLat()!, storeLon()!, nb.latitude, nb.longitude) }} km</ion-note>
                 }
               </ion-item>
@@ -369,7 +370,15 @@
       </ion-header>
 
       <ion-content>
-        <div id="delivery-map-container" style="width: 100%; height: 100%; min-height: 400px;"></div>
+        <div class="map-canvas-wrap">
+          <div id="delivery-map-container"></div>
+          @if (mapTileWarning()) {
+            <div class="map-tile-warning" role="status">
+              <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+              <span>Não foi possível carregar as imagens do mapa. O raio e os bairros selecionados continuam visíveis.</span>
+            </div>
+          }
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

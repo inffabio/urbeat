@@ -31,6 +31,16 @@ addIcons({
   'checkmark-circle': checkmarkCircle
 });
 
+/**
+ * OSM's tile usage policy requires the canonical host (no per-letter
+ * subdomains) and a Referer header from browser requests. The deployment sets
+ * `Referrer-Policy: no-referrer` globally, so the tile layer opts back into
+ * sending the origin for its image requests; without it OSM answers 403.
+ */
+const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
 @Component({
   selector: 'app-store-delivery-page',
   standalone: true,
@@ -76,7 +86,10 @@ export class StoreDeliveryPageComponent implements OnInit {
   readonly radiusPreviewError = signal(false);
   readonly radiusPreviewErrorMessage = 'Não foi possível atualizar os bairros para o novo raio. Tente novamente.';
   readonly radiusDescribedBy = computed(() => {
-    const ids = [this.radiusValidationError() ? 'delivery-radius-error' : 'delivery-radius-hint'];
+    const ids = ['delivery-radius-hint'];
+    if (this.radiusValidationError()) {
+      ids.push('delivery-radius-error');
+    }
     if (this.radiusPreviewError()) {
       ids.push('delivery-radius-preview-error');
     }
@@ -123,6 +136,8 @@ export class StoreDeliveryPageComponent implements OnInit {
   });
   readonly isNeighborhoodModalOpen = signal(false);
   readonly isMapModalOpen = signal(false);
+  /** True when the tile provider rejected/failed the basemap images. */
+  readonly mapTileWarning = signal(false);
   private leafletMap: any = null;
   readonly newNeighborhoodName = signal('');
   readonly neighborhoodSearch = signal('');
@@ -167,7 +182,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       list = list.filter(n => {
         // Manual neighborhoods have no coordinates; keep them visible and
         // selectable instead of discarding them by the radius filter.
-        if (!n.latitude || !n.longitude) return true;
+        if (n.latitude == null || n.longitude == null) return true;
         return this.calcDistanceRaw(lat, lon, n.latitude, n.longitude) <= radius;
       });
     }
@@ -483,6 +498,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       this.leafletMap.remove();
       this.leafletMap = null;
     }
+    this.mapTileWarning.set(false);
 
     const container = document.getElementById('delivery-map-container');
     if (!container) return;
@@ -503,7 +519,9 @@ export class StoreDeliveryPageComponent implements OnInit {
 
       const key = name.toLowerCase();
       const coord = neighborMap.get(key);
-      if (!coord || !coord.lat || !coord.lon) continue;
+      // Zero is a valid coordinate (equator/prime meridian), so compare with
+      // null instead of relying on truthiness.
+      if (!coord || coord.lat == null || coord.lon == null) continue;
 
       const fee = parseFloat(feeStr.replace(',', '.')) || 0;
       const tier = fee <= 5 ? 'barata' : fee <= 12 ? 'média' : 'cara';
@@ -529,9 +547,17 @@ export class StoreDeliveryPageComponent implements OnInit {
     const map = L.map('delivery-map-container').setView(center, 12);
     this.leafletMap = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const tiles = L.tileLayer(OSM_TILE_URL, {
       maxZoom: 19,
-    }).addTo(map);
+      attribution: OSM_TILE_ATTRIBUTION,
+      referrerPolicy: 'strict-origin-when-cross-origin',
+    });
+    tiles.on('tileerror', () => {
+      // Tiles are only the basemap: the radius circle and markers are vector
+      // overlays and keep the map useful when the provider fails.
+      this.mapTileWarning.set(true);
+    });
+    tiles.addTo(map);
 
     const radius = this.maxDeliveryRadiusKm();
     const lat = this.storeLat();
@@ -570,6 +596,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       this.leafletMap.remove();
       this.leafletMap = null;
     }
+    this.mapTileWarning.set(false);
     this.isMapModalOpen.set(false);
   }
 
@@ -582,7 +609,7 @@ export class StoreDeliveryPageComponent implements OnInit {
     const nb = this.deliveryNeighborhoods().find(n => n.neighborhood.toLowerCase() === name);
     const storeLat = this.storeLat();
     const storeLon = this.storeLon();
-    if (!nb?.latitude || !nb?.longitude || storeLat == null || storeLon == null) return '—';
+    if (nb?.latitude == null || nb?.longitude == null || storeLat == null || storeLon == null) return '—';
     return this.calcDistance(storeLat, storeLon, nb.latitude, nb.longitude) + ' km';
   }
 
