@@ -11,7 +11,7 @@ Definir uma coleção Postman importável que:
 
 1. cubra **todos os endpoints REST e webhooks** expostos pelos controllers do `Urbeat.WebApi`;
 2. seja organizada por features funcionais e fluxos de negócio, com nomes e URLs estáveis;
-3. use ambientes **Local** (padrão) e **OCI** (configurável), sem credenciais versionadas;
+3. use um único ambiente versionado, **OCI** (leitura), sem credenciais; o ambiente **Local** é criado por cada pessoa na sessão e não é distribuído;
 4. capture tokens e identificadores apenas quando o contrato devolver esses valores;
 5. traga exemplos de payload derivados dos DTOs reais e fixtures de imagem existentes no repositório;
 6. impeça, por padrão, a execução automática de operações de escrita, destrutivas e de webhooks;
@@ -180,15 +180,14 @@ A reorganização por feature **não altera** a autenticação de cada ação, o
 | Caminho | Finalidade |
 | --- | --- |
 | `postman/urbeat.postman_collection.json` | Coleção v2.1 com as 170 requisições, guardas e scripts de captura. |
-| `postman/urbeat.local.postman_environment.json` | Ambiente padrão, sem credenciais. |
-| `postman/urbeat.oci.postman_environment.json` | Ambiente OCI, somente URLs e flags seguras, sem credenciais. |
+| `postman/urbeat.oci.postman_environment.json` | Único ambiente distribuído: somente URLs e flags seguras, sem credenciais. |
 | `postman/feature-map.json` | Mapa autoritativo `endpoint → feature/subpasta`, com as 14 features e as 170 ações. |
 | `postman/README.md` | Como importar, preparar contas locais, alternar `runMode`, lidar com arquivos, riscos da OCI e comandos de verificação. |
 | `scripts/postman/Test-PostmanCoverage.ps1` | Compara controllers, `feature-map.json` e coleção; falha em divergência. |
-| `scripts/postman/Test-PostmanCollection.ps1` | Valida estrutura v2.1, ausência de segredos, guardas, multipart e ambientes. |
+| `scripts/postman/Test-PostmanCollection.ps1` | Valida estrutura v2.1, ausência de segredos, guardas, multipart e o ambiente OCI. |
 | `.opencode/agents/postman-sync.md` | Agente de manutenção descrito na seção 15. |
 
-Nenhum arquivo fora desses caminhos deve ser alterado pela implementação, exceto a permissão de delegação mencionada na seção 15.4.
+Nenhum arquivo fora desses caminhos deve ser alterado pela implementação, exceto a permissão de delegação mencionada na seção 15.4. O ambiente local (`postman/urbeat.local.postman_environment.json`) **não** é distribuído: cada pessoa cria o seu na sessão e o caminho fica no `.gitignore`.
 
 ## 6. Estrutura da coleção
 
@@ -266,13 +265,16 @@ Isso permite auditoria sem abrir o código e serve de contrato para o agente.
 
 ## 7. Ambientes e variáveis
 
-### 7.1 `urbeat.local.postman_environment.json`
+### 7.1 Ambiente local (não versionado)
 
-Valores padrão:
+Não existe arquivo de ambiente local no versionamento: apenas o ambiente OCI é
+distribuído. Quem precisar rodar contra a API local duplica `urbeat · oci` no
+Postman e ajusta as URLs na sessão. Valores de referência:
 
 | Variável | Valor |
 | --- | --- |
 | `baseUrl` | `http://localhost:5000` |
+| `apiBaseUrl` | `http://localhost:5000` |
 | `webBaseUrl` | `http://localhost:4200` |
 | `runMode` | `read-only` |
 | `allowWebhooks` | `false` |
@@ -285,11 +287,12 @@ Variantes documentadas no `README`:
 - API via `dotnet run` (perfil HTTPS): `https://localhost:7274`; é a variante recomendada para testar `POST /api/auth/refresh`, porque o cookie é `Secure`.
 - Frontend local: `http://localhost:4200`.
 
-### 7.2 `urbeat.oci.postman_environment.json`
+### 7.2 `urbeat.oci.postman_environment.json` (único distribuído)
 
 | Variável | Valor |
 | --- | --- |
 | `baseUrl` | `https://api.urbeat.com.br` |
+| `apiBaseUrl` | `https://api.urbeat.com.br` |
 | `webBaseUrl` | `https://urbeat.com.br` |
 | `runMode` | `read-only` |
 | `allowWebhooks` | `false` |
@@ -311,7 +314,9 @@ Todas as variáveis são de ambiente (`environment`), não de coleção, para pe
 
 **URLs e dados públicos**
 
-`baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId`.
+`baseUrl`, `apiBaseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId`.
+
+`apiBaseUrl` existe apenas para `POST /api/auth/admin/recover-password`; as demais requisições usam `baseUrl`.
 
 **Credenciais de teste (vazias; tipo `secret` quando suportado)**
 
@@ -1199,9 +1204,9 @@ O agente é um subagente; não substitui o `arquiteto` nem o `programador`. O `a
 4. Atualizar requisições existentes quando método, rota, auth, corpo, query ou DTO mudarem.
 5. Se a mudança de negócio alterar a feature/subpasta de um endpoint existente, atualizar o mapa com justificativa explícita e reportar como movimentação.
 6. Remover requisições de ações removidas e remover a entrada correspondente do mapa; reportar a remoção.
-7. Atualizar o catálogo de variáveis dos dois ambientes quando uma variável nova for necessária, sempre com valor vazio se for segredo/ID.
+7. Atualizar o catálogo de variáveis do ambiente OCI, único distribuído, quando uma variável nova for necessária, sempre com valor vazio se for segredo/ID.
 8. Atualizar o `README` quando o fluxo de uso ou as fixtures mudarem.
-9. Executar `Test-PostmanCollection.ps1` e, se a API local estiver disponível, o smoke público com Newman.
+9. Executar `Test-PostmanCollection.ps1` e, com um ambiente local próprio (não versionado), o smoke público com Newman.
 10. Reportar: ações adicionadas, alteradas e removidas; features/subpastas afetadas; entradas do mapa criadas/movidas/removidas; variáveis novas; comandos executados; resultado das verificações; riscos ou ambiguidades.
 
 ### 15.3 Regras de decisão
@@ -1248,9 +1253,9 @@ Fluxo esperado:
 1. A coleção importa no Postman sem erro de schema e mostra **14 features**, **43 subpastas de fluxo** e **170 requisições**.
 2. Existe exatamente uma requisição por `MÉTODO + rota`, sem duplicatas nem ações faltantes; cada uma tem exatamente uma entrada em `feature-map.json` e uma única feature/subpasta; o Anexo A é a referência.
 3. A matriz de autorização confere: 39 No Auth, 84 `sellerToken`, 18 `customerToken`, 23 `adminToken`, 5 `sellerToken` (`Role:Seller`) e 1 `customerToken` (`[Authorize]`).
-4. Toda URL começa com `{{baseUrl}}/api/` e não contém host absoluto.
-5. Os dois ambientes existem, são importáveis e não contêm credenciais, tokens, cookies, IDs de produção nem PII.
-6. `runMode` é `read-only` e `allowWebhooks` é `false` nos dois ambientes.
+4. Toda URL começa com `{{baseUrl}}/api/` — exceto `POST /api/auth/admin/recover-password`, que usa `{{apiBaseUrl}}` — e não contém host absoluto.
+5. O ambiente OCI é o único distribuído, é importável e não contém credenciais, tokens, cookies, IDs de produção nem PII.
+6. `runMode` é `read-only` e `allowWebhooks` é `false` no ambiente OCI.
 7. O guard cobre todas as requisições não read-only e toda a lista da seção 12.4; executar a coleção no modo padrão não envia nenhuma escrita, nenhuma operação destrutiva e nenhum webhook.
 8. Cada endpoint com `[FromBody]` tem exemplo JSON com as chaves do DTO; cada enum usa valor numérico; cada data usa UTC.
 9. Os dois endpoints multipart têm campo `file`, limites e fixtures documentados; nenhum usa URL de imagem externa.
@@ -1306,16 +1311,15 @@ Critérios:
 ```powershell
 powershell -NoProfile -File scripts/postman/Test-PostmanCollection.ps1 `
   -CollectionPath postman/urbeat.postman_collection.json `
-  -LocalEnvironment postman/urbeat.local.postman_environment.json `
   -OciEnvironment postman/urbeat.oci.postman_environment.json
 ```
 
 Verificações mínimas:
 
 - JSON válido; `info.schema` v2.1; `_postman_id` UUID; IDs únicos.
-- URLs com `{{baseUrl}}`; nenhum `http://localhost` ou domínio OCI dentro da coleção.
+- URLs presas a `{{baseUrl}}` (exceto `POST /api/auth/admin/recover-password`, que usa `{{apiBaseUrl}}`); nenhum `http://localhost` ou domínio OCI dentro da coleção.
 - Nenhum padrão de JWT (`eyJ...`), `Bearer ` literal, `CHANGE_ME`, senha preenchida, `asaas-access-token` com valor, CPF/CNPJ fixo.
-- Toda variável de token/senha/ID vazia nos dois ambientes.
+- Toda variável de token/senha/ID vazia no ambiente OCI, único distribuído.
 - `feature-map.json` presente, com 14 features, 43 subpastas e 170 endpoints; toda requisição tem destino único.
 - Nenhuma pasta/subpasta com nome de controller; features e subpastas seguem a seção 4.2.
 - Guard presente; webhooks somente em `13 · Webhooks` e cobertos.
@@ -1325,9 +1329,9 @@ Verificações mínimas:
 ### 17.4 Importação manual
 
 1. Abrir Postman desktop atual.
-2. Importar `urbeat.postman_collection.json` e os dois environments.
+2. Importar `urbeat.postman_collection.json` e `urbeat.oci.postman_environment.json` (único ambiente distribuído).
 3. Confirmar 14 features, 43 subpastas e 170 requisições.
-4. Selecionar o ambiente Local.
+4. Selecionar o ambiente OCI.
 5. Executar `GET /api/public/stores` e `GET /api/address-lookup/cep/01310100`; aceitar `200` ou `404` (sem dados) e exigir ausência de 5xx.
 6. Abrir uma requisição multipart e confirmar que o campo `file` está sem arquivo e a descrição aponta o fixture.
 
@@ -1358,9 +1362,11 @@ Pré-requisitos: `docker compose up --build`, banco local descartável, contas c
 
 ### 17.7 Smoke público com Newman
 
+Use um ambiente local exportado por você (não versionado):
+
 ```powershell
 npx --yes newman run postman/urbeat.postman_collection.json `
-  -e postman/urbeat.local.postman_environment.json `
+  -e $env:USERPROFILE\.postman\urbeat.local.postman_environment.json `
   --folder "03 · Descoberta e vitrine" `
   --reporters cli
 ```

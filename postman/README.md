@@ -6,12 +6,14 @@ webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
 ## 1. Escopo e o que a coleção não é
 
 - **É**: ferramenta de exploração, conferência de contrato e homologação manual
-  em ambiente local.
+  em um ambiente controlado — API local criada por você ou leitura pública
+  autorizada na OCI.
 - **Não é**: cliente de produção, suíte de carga, teste E2E de navegador, teste de
   segurança ofensiva ou substituto dos testes automatizados de backend/frontend.
 - Não cobre SignalR (`/hubs/...`), `/health`, `/swagger`, `/hangfire` nem `/metrics`.
 - Nenhuma credencial, token, cookie, documento pessoal ou ID de produção é
-  versionado. Os ambientes trazem todas as variáveis vazias.
+  versionado. O único ambiente distribuído é o OCI e ele traz todas as variáveis
+  sensíveis vazias.
 
 ## 2. Requisitos
 
@@ -24,9 +26,15 @@ webhooks, organizadas em 14 features funcionais e 43 subpastas de fluxo.
 
 1. Abra o Postman desktop.
 2. Importe `postman/urbeat.postman_collection.json`.
-3. Importe `postman/urbeat.local.postman_environment.json` e
-   `postman/urbeat.oci.postman_environment.json` separadamente.
-4. Selecione o ambiente **urbeat · local**.
+3. Importe `postman/urbeat.oci.postman_environment.json`.
+4. Selecione o ambiente **urbeat · oci**.
+
+O pacote versionado distribui **um único ambiente**: `urbeat · oci`. Não existe
+arquivo de ambiente local no repositório. Para executar contra a API na sua
+máquina, duplique `urbeat · oci` dentro do Postman, renomeie a cópia na sessão e
+ajuste `baseUrl`, `apiBaseUrl` e `webBaseUrl` (seção 4); esse ambiente é pessoal e
+não deve ser versionado — `postman/urbeat.local.postman_environment.json` está no
+`.gitignore` justamente para isso.
 
 Resultado esperado: 14 features, 43 subpastas e 171 requisições. Nenhuma pasta
 recebe nome de controller; a origem técnica aparece na linha `Controller:` de cada
@@ -46,38 +54,48 @@ Contagens de referência:
 | `destructive` | 56 |
 | `webhook` | 2 |
 
-## 4. Ambientes
+## 4. Ambiente (somente OCI)
 
-| Ambiente | `baseUrl` | `webBaseUrl` | Uso |
-| --- | --- | --- | --- |
-| `urbeat · local` | `http://localhost:5000` | `http://localhost:4200` | Padrão, Docker Compose. |
-| `urbeat · oci` | `https://urbeat.com.br` | `https://urbeat.com.br` | Somente conferência de URL e leitura pública autorizada. |
+| Ambiente | `baseUrl` | `apiBaseUrl` | `webBaseUrl` | Uso |
+| --- | --- | --- | --- | --- |
+| `urbeat · oci` | `https://api.urbeat.com.br` | `https://api.urbeat.com.br` | `https://urbeat.com.br` | Único ambiente distribuído; apenas conferência de URL e leitura pública autorizada. |
 
-Variantes locais (edite apenas na sessão):
+Somente `baseUrl`, `apiBaseUrl` e `webBaseUrl` têm URL preenchida. Nenhum valor
+sensível é preenchido e nenhum outro ambiente é versionado.
 
-- `dotnet run` (perfil HTTP): `baseUrl=http://localhost:5281`.
-- `dotnet run` (perfil HTTPS): `baseUrl=https://localhost:7274`. Recomendado para
-  testar `POST /api/auth/refresh`, porque o cookie é `Secure`.
+Ambiente local (opcional, criado por você na sessão, nunca versionado):
+
+- Duplique `urbeat · oci` no Postman e ajuste as três URLs para a API que estiver
+  rodando.
+- Docker Compose do repositório: `baseUrl=http://localhost:5000`,
+  `apiBaseUrl=http://localhost:5000` e `webBaseUrl=http://localhost:4200`.
+- `dotnet run` (perfil HTTP): `baseUrl=http://localhost:5281`,
+  `apiBaseUrl=http://localhost:5281`.
+- `dotnet run` (perfil HTTPS): `baseUrl=https://localhost:7274`,
+  `apiBaseUrl=https://localhost:7274`. Recomendado para testar
+  `POST /api/auth/refresh`, porque o cookie é `Secure`.
 - Frontend local: `webBaseUrl=http://localhost:4200`.
 
-O mesmo conjunto de variáveis existe nos dois ambientes; somente `baseUrl` e
-`webBaseUrl` diferem. Nenhum valor sensível é preenchido.
+`apiBaseUrl` repete o host da API e é usado apenas por
+`POST /api/auth/admin/recover-password`; todas as outras requisições continuam em
+`baseUrl`. Ao usar um ambiente local, ajuste os dois na sessão.
 
-A URL OCI padrão é `https://urbeat.com.br` porque é o host explicitamente servido
-pelo nginx versionado: `docker/nginx/conf.d/20-https.conf:17` declara
-`server_name urbeat.com.br www.urbeat.com.br` e `:66` expõe `location /api/`.
-`api.urbeat.com.br` só tem vhost explícito em HTTP (`10-http.conf:24-47`) e é
-citado em `DEPLOY.md:97`; não há `server_name` HTTPS dedicado para o subdomínio no
-arquivo versionado. Se a infraestrutura confirmar HTTPS no subdomínio, altere
-`baseUrl` apenas na sessão, sem versionar a mudança.
+A URL OCI da API é `https://api.urbeat.com.br`, host publicado pelo nginx da
+infraestrutura (`scripts/criarDeployOracleCloud/05-configure-nginx.ps1` cria o vhost
+do subdomínio e `DEPLOY.md` documenta `https://api.urbeat.com.br/health`). O
+`docker/nginx` versionado cobre `urbeat.com.br`/`www.urbeat.com.br` e ainda não tem
+vhost HTTPS dedicado ao subdomínio; por isso o host da API é o do deployment, não o
+do frontend. `webBaseUrl` continua `https://urbeat.com.br` porque aponta para o site.
 
-## 5. Contas locais
+## 5. Contas de teste (API local)
 
+- Contas só existem em uma API local que você mesmo sobe; a OCI é somente leitura.
 - O admin local é criado pelo `AdminUserSeeder` a partir da configuração
   `AdminSeed`. A coleção não conhece nem grava esse e-mail/senha.
 - Preencha `adminEmail`/`adminPassword` manualmente na sessão.
-- Se a senha do admin for desconhecida, use `POST /api/auth/admin/recover-password`: a
-  feature vem desligada por padrão e exige `AdminRecovery__Enabled=true` mais
+- Se a senha do admin for desconhecida, use `POST /api/auth/admin/recover-password`
+  (única request da coleção que usa `apiBaseUrl`). A feature vem desligada por padrão
+  e exige `AdminRecovery__Enabled=true` mais
   `AdminRecovery__Key` fornecida externamente no servidor. O alvo é exclusivamente o
   `AdminSeed:Email` configurado (obrigatório; sem ele toda chamada recebe `403`).
   Preencha `adminRecoveryKey`, `newAdminPassword` e `newAdminPasswordConfirm` apenas na
@@ -169,7 +187,7 @@ Todas as variáveis são de **ambiente**, nunca de coleção. Catálogo:
 | Grupo | Variáveis |
 | --- | --- |
 | Controle | `runMode`, `allowWebhooks`, `lastLoginRole` |
-| URLs/dados públicos | `baseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
+| URLs/dados públicos | `baseUrl`, `apiBaseUrl`, `webBaseUrl`, `webhookPublicUrl`, `cep`, `neighborhood`, `cuisineType`, `storePath`, `storeSlug`, `landingSection`, `cityId`, `printerPresetId` |
 | Credenciais (secret) | `customerEmail`, `newCustomerEmail`, `customerPassword`, `sellerEmail`, `sellerPassword`, `adminEmail`, `adminPassword` |
 | Tokens (secret) | `customerToken`, `sellerToken`, `adminToken` |
 | IDs/valores | `storeId`, `cuisineTypeId`, `categoryId`, `productId`, `productImageUrl`, `uploadedImageUrl`, `additionalId`, `additionalGroupId`, `addressId`, `orderId`, `orderCode`, `paymentId`, `gatewayTransactionId`, `storeDriverId`, `deliveryDriverId`, `routeId`, `customerUserId`, `sellerUserId`, `planId`, `systemParameterKey`, `landingContentId`, `outboxEventId`, `customerNotificationId`, `sellerNotificationId`, `verificationId`, `stopSequence` |
@@ -195,7 +213,9 @@ Notas de captura:
 
 ## 9. Fluxo local mínimo
 
-Pré-requisitos: `docker compose up --build`, banco local descartável e contas
+O repositório distribui apenas o ambiente OCI; crie um ambiente local na sessão
+(seção 4) antes de seguir o fluxo abaixo. Pré-requisitos:
+`docker compose up --build`, banco local descartável e contas
 confirmadas/SMTP/log disponíveis.
 
 1. Login seller → captura `sellerToken`.
@@ -286,12 +306,14 @@ preencha esse campo com uma URL de produção no ambiente OCI.
 
 ## 13. OCI (produção)
 
-- O ambiente OCI serve para conferir URLs, importação e leitura pública.
-- O `baseUrl` OCI padrão é `https://urbeat.com.br`, compatível com
-  `docker/nginx/conf.d/20-https.conf:17` (`server_name urbeat.com.br`) e `:66`
-  (`location /api/`). O subdomínio `api.urbeat.com.br` só aparece explicitamente
-  em HTTP em `10-http.conf:24-47`; se a infraestrutura confirmar HTTPS nele,
-  altere `baseUrl` apenas na sessão.
+- O ambiente OCI é o único distribuído e serve para conferir URLs, importação e
+  leitura pública.
+- O `baseUrl` OCI padrão é `https://api.urbeat.com.br`, o host da API publicado
+  pelo deployment (`DEPLOY.md` e `scripts/criarDeployOracleCloud/05-configure-nginx.ps1`).
+  O `docker/nginx` versionado ainda declara HTTPS apenas para
+  `urbeat.com.br`/`www.urbeat.com.br`, mas `webBaseUrl` segue `https://urbeat.com.br`
+  por apontar para o frontend. Não troque `baseUrl` para o host do site: requisições
+  de API precisam alcançar a WebApi.
 - **Nunca** execute escrita, operação destrutiva ou webhook na OCI.
 - Leitura autenticada também expõe PII e só pode ocorrer com conta de teste
   dedicada e aprovação explícita.
@@ -308,13 +330,13 @@ Da raiz do repositório:
 # Cobertura: controllers -> mapa -> coleção (171 ações, 14 features, 43 subpastas)
 powershell -NoProfile -File scripts/postman/Test-PostmanCoverage.ps1
 
-# Estrutura, segredos, ambientes e matriz determinística do guard
+# Estrutura, segredos, ambiente OCI e matriz determinística do guard
 powershell -NoProfile -File scripts/postman/Test-PostmanCollection.ps1 -VerifyGuard
 
 # JSON válido
 Get-Content postman/urbeat.postman_collection.json -Raw | ConvertFrom-Json | Out-Null
-Get-Content postman/urbeat.local.postman_environment.json -Raw | ConvertFrom-Json | Out-Null
 Get-Content postman/urbeat.oci.postman_environment.json -Raw | ConvertFrom-Json | Out-Null
+Get-Content postman/feature-map.json -Raw | ConvertFrom-Json | Out-Null
 ```
 
 Os scripts retornam `0` em sucesso e `1` em divergência. `Test-PostmanCoverage.ps1`
@@ -327,15 +349,18 @@ as 171 requisições em `read-only`, `write`, `destructive`,
 `destructive+allowWebhooks` e `runMode` inválido, além de casos sintéticos de
 divergência entre nome, método, path, host e `baseUrl`.
 
-Smoke público local (opcional; nunca OCI):
+Smoke público local (opcional; nunca OCI). Exporte o seu ambiente local (seção 4)
+para fora do repositório e aponte `-e` para ele:
 
 ```powershell
+$env:SmokeEnvironment = Join-Path $env:USERPROFILE '.postman\urbeat.local.postman_environment.json'
+
 npx --yes newman run postman/urbeat.postman_collection.json `
-  -e postman/urbeat.local.postman_environment.json `
+  -e $env:SmokeEnvironment `
   --folder "03 · Descoberta e vitrine" --reporters cli
 
 npx --yes newman run postman/urbeat.postman_collection.json `
-  -e postman/urbeat.local.postman_environment.json `
+  -e $env:SmokeEnvironment `
   --folder "14 · Utilidades" --reporters cli
 ```
 
@@ -386,6 +411,9 @@ Asserts dos GETs públicos:
 18. `baseUrl` é obrigatório no ambiente; sem ele o guard bloqueia por fail closed.
 19. Variável de path vazia pode reduzir o path efetivo e fazer o guard bloquear por
     divergência de segmentos; preencha a variável antes de executar.
+20. Só o ambiente OCI é distribuído; um ambiente local precisa ser criado/exportado
+    por você e não é versionado (`postman/urbeat.local.postman_environment.json`
+    está no `.gitignore`).
 
 ## 16. Manutenção
 
@@ -396,6 +424,9 @@ Asserts dos GETs públicos:
 - Novas ações são classificadas pela árvore de decisão da especificação antes de
   entrar na coleção; webhooks ficam exclusivamente em `13 · Webhooks` e
   `POST /api/orders` em `08 · Checkout e pedidos`.
+- Variável nova entra apenas no ambiente OCI, com valor vazio quando for segredo ou
+  ID. Não recrie um ambiente local versionado; `Test-PostmanCollection.ps1` valida
+  só o OCI.
 - O agente `.opencode/agents/postman-sync.md` mantém a coleção, roda os dois
   verificadores e reporta adições/remoções/movimentações. Ele não executa OCI,
   não executa destrutivas/webhooks e não commita.

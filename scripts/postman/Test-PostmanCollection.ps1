@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 param(
     [string]$CollectionPath = 'postman/urbeat.postman_collection.json',
-    [string]$LocalEnvironment = 'postman/urbeat.local.postman_environment.json',
+    # Apenas o ambiente OCI e distribuido; nao existe mais ambiente local versionado.
     [string]$OciEnvironment = 'postman/urbeat.oci.postman_environment.json',
     [string]$FeatureMapPath = 'postman/feature-map.json',
     [switch]$VerifyGuard
@@ -100,7 +100,7 @@ $allowlistPosts = @(
 
 $environmentCatalog = @(
     @('runMode','default'), @('allowWebhooks','default'), @('lastLoginRole','default'),
-    @('baseUrl','default'), @('webBaseUrl','default'), @('webhookPublicUrl','default'),
+    @('baseUrl','default'), @('apiBaseUrl','default'), @('webBaseUrl','default'), @('webhookPublicUrl','default'),
     @('cep','default'), @('neighborhood','default'), @('cuisineType','default'),
     @('storePath','default'), @('storeSlug','default'), @('landingSection','default'),
     @('cityId','default'), @('printerPresetId','default'),
@@ -126,7 +126,11 @@ $environmentCatalog = @(
     @('printerBase64Data','secret')
 )
 
-$allowedNonEmptyEnvironmentValues = @('baseUrl','webBaseUrl','runMode','allowWebhooks')
+$allowedNonEmptyEnvironmentValues = @('baseUrl','apiBaseUrl','webBaseUrl','runMode','allowWebhooks')
+
+# A recuperacao administrativa usa um host de API explicito; as demais requisicoes
+# continuam presas a `baseUrl`.
+$apiBaseUrlRequests = @('POST /api/auth/admin/recover-password')
 
 function Test-Guid([string]$value) {
     $parsed = [guid]::Empty
@@ -227,8 +231,8 @@ $strictPublic200 = @(
     'GET /api/LandingPageContent'
 )
 $environmentKeys = @()
-if (Test-Path -LiteralPath $LocalEnvironment) {
-    $environmentKeys = @((Read-Utf8Json $LocalEnvironment).values | ForEach-Object { [string]$_.key })
+if (Test-Path -LiteralPath $OciEnvironment) {
+    $environmentKeys = @((Read-Utf8Json $OciEnvironment).values | ForEach-Object { [string]$_.key })
 }
 $guidRegex = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 $multipartRequests = @()
@@ -264,20 +268,22 @@ foreach ($r in $requests) {
     $url = $r.Request.url
     if ($null -eq $url) { Fail "url ausente em $($r.Name)"; continue }
     $raw = [string]$url.raw
-    if (-not $raw.StartsWith('{{baseUrl}}/api/')) { Fail "url sem {{baseUrl}}/api/: $($r.Name)" }
+    $baseVariable = if ($apiBaseUrlRequests -contains $r.Name) { 'apiBaseUrl' } else { 'baseUrl' }
+    $baseToken = "{{$baseVariable}}"
+    if (-not $raw.StartsWith("$baseToken/api/")) { Fail "url sem $baseToken/api/: $($r.Name)" }
     if ($raw -match 'https?://') { Fail "url com host absoluto: $($r.Name)" }
-    if ($raw -match '\{\{baseUrl\}\}//') { Fail "url com barra duplicada: $($r.Name)" }
+    if ($raw -match ([regex]::Escape($baseToken) + '//')) { Fail "url com barra duplicada: $($r.Name)" }
     if ($raw -match ':guid|:int') { Fail "url com constraint: $($r.Name)" }
-    if (@($url.host).Count -ne 1 -or [string]$url.host[0] -ne '{{baseUrl}}') {
+    if (@($url.host).Count -ne 1 -or [string]$url.host[0] -ne $baseToken) {
         Fail "host invalido em $($r.Name)"
     }
     $pathText = '/' + (@($url.path) -join '/')
     $rawPath = ($raw -split '\?')[0]
-    if ($rawPath -ne ('{{baseUrl}}' + $pathText)) { Fail "url.raw difere de host+path em $($r.Name)" }
+    if ($rawPath -ne ($baseToken + $pathText)) { Fail "url.raw difere de host+path em $($r.Name)" }
 
     $enabledQuery = @()
     if ($null -ne $url.query) { $enabledQuery = @($url.query | Where-Object { -not $_.disabled }) }
-    $expectedRaw = '{{baseUrl}}' + $pathText
+    $expectedRaw = $baseToken + $pathText
     if ($enabledQuery.Count -gt 0) {
         $expectedRaw += '?' + (($enabledQuery | ForEach-Object { "$($_.key)=$($_.value)" }) -join '&')
     }
@@ -288,7 +294,7 @@ foreach ($r in $requests) {
     foreach ($source in $variableSources) {
         foreach ($m in [regex]::Matches($source, '\{\{([A-Za-z0-9_$]+)\}\}')) {
             $variable = $m.Groups[1].Value
-            if ($variable -eq 'baseUrl' -or $variable -eq '$guid') { continue }
+            if ($variable -eq '$guid' -or $variable -in @('baseUrl','apiBaseUrl')) { continue }
             if ($environmentKeys -notcontains $variable) {
                 Fail "variavel nao declarada no ambiente: $variable em $($r.Name)"
             }
@@ -422,7 +428,7 @@ if ($null -ne $guardText) {
 }
 
 # ---------------- ambientes ----------------
-function Test-Environment([string]$path, [string]$expectedName, [string]$expectedBase, [string]$expectedWeb) {
+function Test-Environment([string]$path, [string]$expectedName, [string]$expectedBase, [string]$expectedApiBase, [string]$expectedWeb) {
     if (-not (Test-Path -LiteralPath $path)) { Fail "ambiente ausente: $path"; return }
     $environment = Read-Utf8Json $path
     if ($environment.name -ne $expectedName) { Fail "nome de ambiente invalido em $path`: $($environment.name)" }
@@ -445,20 +451,17 @@ function Test-Environment([string]$path, [string]$expectedName, [string]$expecte
         if (-not (@($environmentCatalog | ForEach-Object { $_[0] }) -contains $key)) { Fail "variavel inesperada em $path`: $key" }
     }
     $base = @($values | Where-Object { $_.key -eq 'baseUrl' })[0].value
+    $apiBase = @($values | Where-Object { $_.key -eq 'apiBaseUrl' })[0].value
     $web = @($values | Where-Object { $_.key -eq 'webBaseUrl' })[0].value
     $runMode = @($values | Where-Object { $_.key -eq 'runMode' })[0].value
     $allowWebhooks = @($values | Where-Object { $_.key -eq 'allowWebhooks' })[0].value
     if ($base -ne $expectedBase) { Fail "baseUrl invalido em $path`: $base" }
+    if ($apiBase -ne $expectedApiBase) { Fail "apiBaseUrl invalido em $path`: $apiBase" }
     if ($web -ne $expectedWeb) { Fail "webBaseUrl invalido em $path`: $web" }
     if ($runMode -ne 'read-only') { Fail "runMode invalido em $path`: $runMode" }
     if ([string]$allowWebhooks -ne 'false') { Fail "allowWebhooks invalido em $path`: $allowWebhooks" }
 }
-Test-Environment $LocalEnvironment 'urbeat · local' 'http://localhost:5000' 'http://localhost:4200'
-Test-Environment $OciEnvironment 'urbeat · oci' 'https://urbeat.com.br' 'https://urbeat.com.br'
-
-$localKeys = @((Read-Utf8Json $LocalEnvironment).values | ForEach-Object { $_.key } | Sort-Object)
-$ociKeys = @((Read-Utf8Json $OciEnvironment).values | ForEach-Object { $_.key } | Sort-Object)
-if (($localKeys -join '|') -ne ($ociKeys -join '|')) { Fail 'ambientes com conjuntos de variaveis diferentes' }
+Test-Environment $OciEnvironment 'urbeat · oci' 'https://api.urbeat.com.br' 'https://api.urbeat.com.br' 'https://urbeat.com.br'
 
 # ---------------- segredos ----------------
 function Test-Secrets([string]$path) {
@@ -481,7 +484,7 @@ function Test-Secrets([string]$path) {
         Fail "asaas-access-token literal em $path"
     }
 }
-foreach ($path in @($CollectionPath, $LocalEnvironment, $OciEnvironment)) { Test-Secrets $path }
+foreach ($path in @($CollectionPath, $OciEnvironment)) { Test-Secrets $path }
 
 # ---------------- guard: matriz determinística ----------------
 if ($VerifyGuard -and $null -ne $guardText) {
@@ -517,7 +520,7 @@ function decide(req, mode, allow) {
       get(k) {
         if (k === 'runMode') return mode;
         if (k === 'allowWebhooks') return allow;
-        if (k === 'baseUrl') return req.baseUrl === undefined ? 'http://localhost:5000' : req.baseUrl;
+        if (k === 'baseUrl') return req.baseUrl === undefined ? 'https://api.urbeat.com.br' : req.baseUrl;
         return '';
       }
     },

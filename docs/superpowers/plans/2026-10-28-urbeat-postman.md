@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `superpowers:subagent-driven-development` (recomendado) ou `superpowers:executing-plans` para executar este plano tarefa por tarefa. Cada passo tem checkbox (`- [ ]`). Não execute chamadas contra a OCI e não faça commits: o diff fica para revisão humana (especificação §15.3 e §15.4).
 
+> **Atualização posterior:** o ambiente local saiu do versionamento. O pacote distribuído tem **um único ambiente**, `postman/urbeat.oci.postman_environment.json`; `postman/urbeat.local.postman_environment.json` está no `.gitignore` e cada pessoa cria o seu na sessão. Os comandos abaixo que citam `-LocalEnvironment` ou `-e postman/urbeat.local.postman_environment.json` são históricos: `Test-PostmanCollection.ps1` valida apenas o OCI.
+
 **Goal:** criar a coleção Postman v2.1 importável que cobre as 170 ações REST/webhook do `Urbeat.WebApi`, organizada em 14 features e 43 subpastas de negócio, com ambientes Local/OCI sem credenciais, guardas de execução, exemplos derivados dos DTOs, fixtures reais, scripts de verificação de cobertura/estrutura e um subagente OpenCode de manutenção.
 
 **Architecture:** `postman/feature-map.json` é o mapa autoritativo 1:1 entre as 170 ações e feature/subpasta. A coleção é o artefato principal, mantido como fonte versionada (não gerado em build). Dois scripts PowerShell validam, respectivamente, contrato↔mapa↔coleção e estrutura/segredos/guardas. Um guard no `prerequest` de coleção bloqueia escrita/destrutivas/webhooks por padrão (`runMode=read-only`, `allowWebhooks=false`). Ambientes guardam todos os valores mutáveis; nada sensível é versionado.

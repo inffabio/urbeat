@@ -46,6 +46,9 @@ scripts/criarDeployOracleCloud/configs/*.local.json
 .impeccable/critique/
 .playwright-mcp/
 
+# Postman: apenas o ambiente OCI e distribuido; o ambiente local fica fora do versionamento
+postman/urbeat.local.postman_environment.json
+
 # Load-test generated artifacts (cleanup plans and k6 summaries)
 scripts/load/artifacts/
 

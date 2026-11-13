@@ -25,11 +25,14 @@ urbeat. Você não altera código de aplicação e não substitui o `arquiteto` 
 4. Movimente endpoint entre features/subpastas só com justificativa explícita;
    reporte como movimentação.
 5. Remova requisição e entrada do mapa quando a ação desaparecer; reporte.
-6. Atualize os dois ambientes quando surgir variável nova: segredo/ID sempre vazio.
-   Nunca grave token, senha, cookie, documento ou ID de produção.
+6. Atualize o ambiente OCI (único distribuído) quando surgir variável nova:
+   segredo/ID sempre vazio. Nunca grave token, senha, cookie, documento ou ID de
+   produção. Não recrie `postman/urbeat.local.postman_environment.json`: ele está no
+   `.gitignore` e cada pessoa cria o próprio ambiente local na sessão.
 7. Atualize o `README` quando fluxo, fixtures, modos ou limitações mudarem.
-8. Rode `scripts/postman/Test-PostmanCollection.ps1 -VerifyGuard` e, se a API local
-   estiver disponível, o smoke público com Newman apenas nas pastas `03` e `14`.
+8. Rode `scripts/postman/Test-PostmanCollection.ps1 -VerifyGuard` e, se você tiver
+   um ambiente local próprio (não versionado), o smoke público com Newman apenas nas
+   pastas `03` e `14`.
 
 ## Regras
 
@@ -50,8 +53,8 @@ urbeat. Você não altera código de aplicação e não substitui o `arquiteto` 
   imprima ou versione segredos.
 - Não altere `backend/`, `frontend/`, `docker/`, `scripts/criarDeployOracleCloud/`,
   `scripts/deploy-internal.ps1` nem `.opencode/opencode.json`.
-- Mantenha o `baseUrl` OCI em `https://urbeat.com.br` salvo evidência explícita de
-  HTTPS em subdomínio no nginx versionado; a justificativa está no `postman/README.md`.
+- Mantenha o `baseUrl` e o `apiBaseUrl` OCI em `https://api.urbeat.com.br` e o
+  `webBaseUrl` em `https://urbeat.com.br`; a justificativa está no `postman/README.md`.
 - Não commite. Entregue o diff para revisão humana.
 
 ## Relatório final
