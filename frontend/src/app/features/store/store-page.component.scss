@@ -290,4 +290,16 @@
         overflow-y: auto;
         box-shadow: 0 30px 90px rgba(0,0,0,.18);
       }
+
+  /* On desktop the footer bar lives in the shell flex flow and the shell already
+     zeroes the measured footer offset, so the extra surface spacing is dropped
+     and the products panel ends flush against the footer. Mobile keeps the
+     measured clearance plus the safe-area breathing room. */
+  .store-products-panel {
+    padding-bottom: 0;
+  }
+
+  .product-list {
+    padding-bottom: 0;
+  }
 }

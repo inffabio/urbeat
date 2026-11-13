@@ -843,6 +843,17 @@ describe('StoreShellComponent mobile footer layout', () => {
     expect(footerSource).not.toMatch(/:host\s*\{[^}]*position:\s*fixed/);
     expect(footerSource).not.toMatch(/:host\s*\{[^}]*bottom:\s*0/);
   });
+
+  it('squares the footer safe-zone on desktop while keeping the mobile rounding', () => {
+    const footerSource = readFileSync(resolve(__dirname, '../../shared/components/footer-nav/footer-nav.component.ts'), 'utf8');
+
+    const baseSafeZone = footerSource.match(/\.footer-nav-safe-zone\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    expect(baseSafeZone).toContain('border-radius: 18px 18px 0 0');
+
+    expect(footerSource).toMatch(
+      /@media\s*\(min-width:\s*900px\)\s*\{[\s\S]*?\.footer-nav-safe-zone\s*\{[^}]*border-radius:\s*0\s*;/,
+    );
+  });
 });
 
 describe('StoreShellComponent footer clearance propagation', () => {

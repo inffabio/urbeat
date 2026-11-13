@@ -130,6 +130,26 @@ describe('StorePageComponent — feature logic', () => {
     expect(styles).toMatch(/\.store-products-panel\s*\{[\s\S]*flex:\s*1 0 auto/);
   });
 
+  it('ends the storefront container flush against the in-flow footer bar on desktop while the mobile clearance stays', () => {
+    const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');
+    const desktopStart = styles.indexOf('@media (min-width: 900px)');
+    const desktopStyles = desktopStart >= 0 ? styles.slice(desktopStart) : '';
+
+    const panelBlock = styles.match(/\.store-products-panel\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const productListBlock = styles.match(/\.product-list\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+    // Base (mobile) rules keep the measured footer clearance and the safe-area padding.
+    expect(panelBlock).toContain('padding-bottom: calc(var(--store-footer-clearance, 72px) + 8px)');
+    expect(productListBlock).toContain('padding-bottom: 22px');
+
+    // Desktop override: the shell resets --store-footer-clearance to 0 and the footer is in flow,
+    // so the extra spacing is dropped and the panel meets the footer bar directly.
+    expect(desktopStart).toBeGreaterThan(-1);
+    expect(desktopStyles).toMatch(/\.store-products-panel\s*\{[^}]*padding-bottom:\s*0;/);
+    expect(desktopStyles).toMatch(/\.product-list\s*\{[^}]*padding-bottom:\s*0;/);
+    expect(desktopStyles).not.toContain('--store-footer-clearance');
+  });
+
   it('keeps the catalog error on the products surface so it inherits the panel background and footer clearance', () => {
     const template = readFileSync(resolve(__dirname, 'store-page.component.html'), 'utf8');
     const styles = readFileSync(resolve(__dirname, 'store-page.component.scss'), 'utf8');

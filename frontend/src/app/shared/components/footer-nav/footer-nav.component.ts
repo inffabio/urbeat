@@ -79,6 +79,10 @@ export interface FooterNavItem {
         :host {
           width: 100%;
         }
+
+        .footer-nav-safe-zone {
+          border-radius: 0;
+        }
       }
 
     .footer-nav {
