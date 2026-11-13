@@ -463,6 +463,27 @@ ssh -p 2208 dexter@136.248.115.135 'sudo docker logs urbeat_webapi --tail 20 2>&
 # 5. Se mostrar EMAIL_FAILED com 535, as credenciais SMTP do vault estao invalidas — regerar no OCI Console
 ```
 
+### Recuperacao administrativa (break-glass)
+
+`POST /api/auth/admin/recover-password` vem **desativado por padrao** e nao possui chave padrao.
+Ele so responde quando as duas configuracoes abaixo chegam a API; o `docker-compose` as encaminha
+pelo anchor compartilhado (`x-backend-environment`), portanto valem para as duas replicas da API e
+para os dois workers.
+
+| Secret no OCI Vault (display name exato) | Variavel `.env` | Efeito |
+|---|---|---|
+| `AdminRecovery__Enabled` | `AdminRecovery__Enabled` | `false` (default) mantem a feature desativada; `true` habilita |
+| `AdminRecovery__Key` | `AdminRecovery__Key` | chave de uso unico (32-512 chars); sem fallback funcional |
+
+- `03-setup-environment.ps1` resolve os dois secrets **pelo display name exato**
+  (`Resolve-VaultSecretByName`) sem exigir OCID em `configs/secrets-map.json`, e escreve as duas
+  linhas no `.env`. O log mostra apenas o nome do secret e se ele foi resolvido — nunca o valor.
+- Se um dos dois nao resolver, o pipeline grava `AdminRecovery__Enabled=false` e
+  `AdminRecovery__Key=` vazio: o deploy continua e a feature fica desativada/indisponivel.
+- Apos uma recuperacao bem-sucedida, publique `AdminRecovery__Enabled=false` no Vault, remova ou
+  rotacione `AdminRecovery__Key`, rode `deploy-all.ps1 -Step environment` e recrie a API. Nao
+  versione nem cole esses valores em documentos.
+
 ### Todas as variaveis (`/opt/urbeat/docker/.env`)
 
 ```
@@ -474,6 +495,8 @@ HANGFIRE_USER=admin
 HANGFIRE_PASSWORD=…           # 24 hex chars
 ENCRYPTION_KEY=…              # 64 hex chars
 ROLE_PROMOTION_SIGNING_KEY=…  # 64 hex chars, dedicada a promocao de papel (sem default)
+AdminRecovery__Enabled=false  # break-glass: true apenas durante uma recuperacao manual
+AdminRecovery__Key=           # vazio por padrao; preenchido pelo Vault sob demanda
 FRONTEND_BASE_URL=https://urbeat.com.br
 LETSENCRYPT_EMAIL=admin@urbeat.com.br
 GRAFANA_USER=admin

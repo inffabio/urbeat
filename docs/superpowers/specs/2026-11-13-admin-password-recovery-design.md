@@ -130,17 +130,27 @@ a chave e tokens nunca entram na descrição.
 
 ## Operação manual (sem valores neste repositório)
 
-1. Gerar uma chave aleatória forte (por exemplo, 32+ bytes de um CSPRNG) fora do repositório.
-2. No servidor, definir temporariamente `AdminRecovery__Enabled=true` e
-   `AdminRecovery__Key=<chave-gerada>` no ambiente/secret store. Não versionar.
+O pipeline de deploy resolve os dois secrets pelo **display name exato** no OCI Vault
+(`AdminRecovery__Enabled` e `AdminRecovery__Key`), sem exigir OCID no `configs/secrets-map.json`,
+grava as duas linhas no `.env` gerado e o `docker-compose` as encaminha pelo anchor compartilhado
+para as duas réplicas da API e os dois workers. Nenhum valor é impresso pelo pipeline: ele registra
+apenas o nome do secret e se ele foi resolvido.
+
+1. Gerar uma chave aleatória forte (por exemplo, 32+ bytes de um CSPRNG) fora do repositório e
+   publicá-la no Vault como `AdminRecovery__Key`. O secret `AdminRecovery__Enabled` deve conter
+   `true` apenas durante a operação. Não versionar.
+2. Rodar o pipeline de ambiente (`deploy-all.ps1 -Step environment` ou
+   `03-setup-environment.ps1`) para regenerar o `.env`. Se algum dos dois secrets não for
+   resolvido, o pipeline escreve `AdminRecovery__Enabled=false` e `AdminRecovery__Key=` vazio: o
+   deploy continua e a feature fica desativada/indisponível.
 3. Reiniciar a aplicação para carregar a configuração.
 4. Executar **uma vez** `POST /api/auth/admin/recover-password` pelo Postman, com
    `X-Admin-Recovery-Key: {{adminRecoveryKey}}` e uma nova senha conhecida.
 5. Confirmar `204`, entrar com a nova senha e validar que as sessões antigas não renovam.
-6. Desabilitar `AdminRecovery__Enabled` e remover `AdminRecovery__Key` do ambiente/secret store.
-7. Se a chave tiver sido exposta, rotacioná-la; ela já não pode ser reutilizada, mas a rotação
-   reduz a superfície.
-8. Troca de secret, reinício e deploy são **manuais** e não fazem parte deste código.
+6. Após o uso, publicar `AdminRecovery__Enabled=false` no Vault e **remover ou rotacionar**
+   `AdminRecovery__Key`, rodando novamente o passo 2 e reiniciando a aplicação. A chave é de uso
+   único; a rotação reduz a superfície caso ela tenha sido exposta.
+7. Troca de secret, reinício e deploy são **manuais** e não fazem parte deste código.
 
 ## Testes
 

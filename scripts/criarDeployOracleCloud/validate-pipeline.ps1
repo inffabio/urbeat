@@ -140,6 +140,29 @@ if (Test-Path -LiteralPath $environmentScriptPath -PathType Leaf) {
     if ($environmentContent -notmatch '(?ms)if \(\[string\]::IsNullOrWhiteSpace\(\$envVars\[''ROLE_PROMOTION_SIGNING_KEY''\]\)\)[\s\S]*?exit 1') {
         $errors.Add("03-setup-environment.ps1 must abort when ROLE_PROMOTION_SIGNING_KEY does not resolve from the Vault.")
     }
+    # AdminRecovery is a break-glass feature published as two Vault secrets whose display names are
+    # exactly the .NET configuration keys. The pipeline must resolve both by name and write them to
+    # the generated .env without printing, defaulting, or committing their values.
+    foreach ($adminRecoverySecretName in @("AdminRecovery__Enabled", "AdminRecovery__Key")) {
+        if ($environmentContent -notmatch [regex]::Escape($adminRecoverySecretName)) {
+            $errors.Add("03-setup-environment.ps1 must resolve the Vault secret '$adminRecoverySecretName' by exact display name.")
+        }
+    }
+    if ($environmentContent -notmatch '(?m)^AdminRecovery__Enabled=\$adminRecoveryEnabledValue\r?$') {
+        $errors.Add("03-setup-environment.ps1 must write AdminRecovery__Enabled to the generated .env from the Vault value.")
+    }
+    if ($environmentContent -notmatch '(?m)^AdminRecovery__Key=\$adminRecoveryKeyValue\r?$') {
+        $errors.Add("03-setup-environment.ps1 must write AdminRecovery__Key to the generated .env from the Vault value.")
+    }
+    if ($environmentContent -notmatch '(?ms)\$adminRecoveryEnabledRaw\s*=\s*Resolve-VaultSecretByName\s+-SecretName\s+\$adminRecoveryEnabledSecretName') {
+        $errors.Add("03-setup-environment.ps1 must resolve AdminRecovery__Enabled with Resolve-VaultSecretByName.")
+    }
+    if ($environmentContent -notmatch '(?ms)\$adminRecoveryKeyValue\s*=\s*Resolve-VaultSecretByName\s+-SecretName\s+\$adminRecoveryKeySecretName') {
+        $errors.Add("03-setup-environment.ps1 must resolve AdminRecovery__Key with Resolve-VaultSecretByName.")
+    }
+    if ($environmentContent -match '(?i)ADMIN_RECOVERY_(ENABLED|KEY)\b') {
+        $errors.Add("03-setup-environment.ps1 must not use ADMIN_RECOVERY_* names for the AdminRecovery secrets.")
+    }
 } else {
     $errors.Add("03-setup-environment.ps1 is missing.")
 }
@@ -251,12 +274,54 @@ if ($composeMatch.Success) {
         if ($backendEnvironmentBlock -notmatch 'EmailConfirmation__FrontendBaseUrl:\s*\$\{FRONTEND_BASE_URL') {
             $errors.Add("04-deploy-application.ps1: x-backend-environment must set EmailConfirmation__FrontendBaseUrl from FRONTEND_BASE_URL.")
         }
+        # AdminRecovery is forwarded from .env through the same anchor so both API replicas and both
+        # workers see it. Enabled must default to false and the key must have no functional fallback.
+        if ($backendEnvironmentBlock -notmatch 'AdminRecovery__Enabled:\s*\$\{AdminRecovery__Enabled:-false\}') {
+            $errors.Add("04-deploy-application.ps1: x-backend-environment must set AdminRecovery__Enabled from the .env with a false default.")
+        }
+        if ($backendEnvironmentBlock -notmatch 'AdminRecovery__Key:\s*\$\{AdminRecovery__Key\}') {
+            $errors.Add("04-deploy-application.ps1: x-backend-environment must set AdminRecovery__Key from the .env.")
+        }
+        if ($backendEnvironmentBlock -match 'AdminRecovery__Key:\s*\$\{AdminRecovery__Key:-[^}\s]+\}') {
+            $errors.Add("04-deploy-application.ps1: AdminRecovery__Key must not be interpolated with a functional fallback.")
+        }
+        if ($backendEnvironmentBlock -match 'AdminRecovery__Key:\s*["'']?[A-Za-z0-9+/=_\-]{16,}') {
+            $errors.Add("04-deploy-application.ps1: AdminRecovery__Key must not contain a committed value.")
+        }
     }
 
     $mergedServices = [regex]::Matches($generatedComposeText, '(?m)^[ \t]*<<:[ \t]*\*backend-environment[ \t]*\r?$')
     if ($mergedServices.Count -lt 4) {
         $errors.Add("04-deploy-application.ps1: the two API replicas and both workers must merge *backend-environment (found $($mergedServices.Count)).")
     }
+}
+
+# The repository Compose file uses the same anchor for local/internal stacks; it must forward the
+# AdminRecovery values from .env exactly like production, disabled by default and without a key
+# fallback or committed value.
+$repositoryComposePath = Join-Path $scriptRoot "..\..\docker\docker-compose.yml"
+if (Test-Path -LiteralPath $repositoryComposePath -PathType Leaf) {
+    $repositoryComposeText = Get-Content -LiteralPath $repositoryComposePath -Raw
+    $repositoryAnchorMatch = [regex]::Match($repositoryComposeText, '(?ms)^x-backend-environment: &backend-environment[ \t]*\r?\n(.*?)(?=^\S)')
+    if (-not $repositoryAnchorMatch.Success) {
+        $errors.Add("docker/docker-compose.yml: x-backend-environment anchor could not be extracted.")
+    } else {
+        $repositoryEnvironmentBlock = $repositoryAnchorMatch.Groups[1].Value
+        if ($repositoryEnvironmentBlock -notmatch 'AdminRecovery__Enabled:\s*"\$\{AdminRecovery__Enabled:-false\}"') {
+            $errors.Add("docker/docker-compose.yml: x-backend-environment must set AdminRecovery__Enabled from the .env with a false default.")
+        }
+        if ($repositoryEnvironmentBlock -notmatch 'AdminRecovery__Key:\s*"\$\{AdminRecovery__Key\}"') {
+            $errors.Add("docker/docker-compose.yml: x-backend-environment must set AdminRecovery__Key from the .env.")
+        }
+        if ($repositoryEnvironmentBlock -match 'AdminRecovery__Key:\s*"\$\{AdminRecovery__Key:-[^}\s]+\}"') {
+            $errors.Add("docker/docker-compose.yml: AdminRecovery__Key must not be interpolated with a functional fallback.")
+        }
+        if ($repositoryEnvironmentBlock -match 'AdminRecovery__Key:\s*["'']?[A-Za-z0-9+/=_\-]{16,}') {
+            $errors.Add("docker/docker-compose.yml: AdminRecovery__Key must not contain a committed value.")
+        }
+    }
+} else {
+    $errors.Add("docker/docker-compose.yml is missing.")
 }
 
 # Compose performs an additional schema/interpolation check when available. It is intentionally

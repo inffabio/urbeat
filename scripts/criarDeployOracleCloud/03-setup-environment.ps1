@@ -192,6 +192,37 @@ if ($missingWhatsAppSecrets.Count -gt 0) {
 }
 
 # ─────────────────────────────────────────
+# Admin recovery (break-glass): the operator publishes two Vault secrets whose display names are
+# exactly the .NET configuration keys, so no secrets-map.json OCID is required.
+#   AdminRecovery__Enabled -> "true"/"false" (anything else keeps the feature disabled)
+#   AdminRecovery__Key     -> single-use recovery key, never printed and never defaulted
+# Values are only forwarded to the generated .env; this script logs the secret name and whether it
+# resolved, never the secret content.
+# ─────────────────────────────────────────
+$adminRecoveryEnabledSecretName = "AdminRecovery__Enabled"
+$adminRecoveryKeySecretName = "AdminRecovery__Key"
+
+$adminRecoveryEnabledRaw = $envVars[$adminRecoveryEnabledSecretName]
+if ([string]::IsNullOrWhiteSpace($adminRecoveryEnabledRaw)) {
+    $adminRecoveryEnabledRaw = Resolve-VaultSecretByName -SecretName $adminRecoveryEnabledSecretName
+}
+$adminRecoveryEnabledValue = ConvertTo-AdminRecoveryEnabledValue -Value $adminRecoveryEnabledRaw
+$adminRecoveryEnabledResolved = -not [string]::IsNullOrWhiteSpace($adminRecoveryEnabledRaw)
+
+$adminRecoveryKeyValue = $envVars[$adminRecoveryKeySecretName]
+if ([string]::IsNullOrWhiteSpace($adminRecoveryKeyValue)) {
+    $adminRecoveryKeyValue = Resolve-VaultSecretByName -SecretName $adminRecoveryKeySecretName
+}
+$adminRecoveryKeyResolved = -not [string]::IsNullOrWhiteSpace($adminRecoveryKeyValue)
+if (-not $adminRecoveryKeyResolved) {
+    # Empty value: the endpoint stays unavailable and the API starts normally.
+    $adminRecoveryKeyValue = ""
+}
+
+Write-Host "  🔐 $adminRecoveryEnabledSecretName : $(if ($adminRecoveryEnabledResolved) { 'resolved' } else { 'not resolved (feature stays disabled)' })" -ForegroundColor $(if ($adminRecoveryEnabledResolved) { 'Green' } else { 'Yellow' })
+Write-Host "  🔐 $adminRecoveryKeySecretName : $(if ($adminRecoveryKeyResolved) { 'resolved' } else { 'not resolved (endpoint stays unavailable)' })" -ForegroundColor $(if ($adminRecoveryKeyResolved) { 'Green' } else { 'Yellow' })
+
+# ─────────────────────────────────────────
 # Step 2: Create .env file content
 # ─────────────────────────────────────────
 
@@ -251,6 +282,14 @@ JWT_EXPIRY_MINUTES=$jwtExpiryMinutes
 # Dedicated signing key for role promotion challenges. docker-compose.yml forwards it without a
 # default, so an empty value keeps the API/workers from starting.
 ROLE_PROMOTION_SIGNING_KEY=$($envVars['ROLE_PROMOTION_SIGNING_KEY'])
+
+# ─── Admin Password Recovery (break-glass) ───────────────────
+# Resolved from the Vault display names AdminRecovery__Enabled/AdminRecovery__Key by exact name
+# (no secrets-map.json OCID needed). The feature is disabled by default; docker-compose.yml
+# forwards both values and the key has no functional fallback. After a single recovery, publish
+# Enabled=false and remove or rotate the key.
+AdminRecovery__Enabled=$adminRecoveryEnabledValue
+AdminRecovery__Key=$adminRecoveryKeyValue
 
 # ─── Grafana ─────────────────────────────────────────────────
 GF_SECURITY_ADMIN_USER=$($envVars['URBEAT_GRAFANA_USER'])

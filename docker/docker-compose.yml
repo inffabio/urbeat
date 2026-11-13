@@ -37,6 +37,11 @@ x-backend-environment: &backend-environment
   # Dedicated role promotion signing key. Intentionally has no default: the API/workers fail at
   # startup when it is empty or a known placeholder.
   RolePromotionChallenge__SigningKey: "${ROLE_PROMOTION_SIGNING_KEY:-}"
+  # Admin password recovery (break-glass). Disabled by default and never enabled here: the operator
+  # publishes AdminRecovery__Enabled/AdminRecovery__Key in the Vault and this compose only forwards
+  # them. The key has no functional fallback, so an unresolved key keeps the endpoint unavailable.
+  AdminRecovery__Enabled: "${AdminRecovery__Enabled:-false}"
+  AdminRecovery__Key: "${AdminRecovery__Key}"
   # Email
   EmailConfirmation__FrontendBaseUrl: "${FRONTEND_BASE_URL:-https://urbeat.com.br}"
   # SMTP (Brevo / Amazon SES / qualquer provedor)

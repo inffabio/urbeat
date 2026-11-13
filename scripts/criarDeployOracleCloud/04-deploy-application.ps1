@@ -115,6 +115,11 @@ x-backend-environment: &backend-environment
   # fail at startup with "RolePromotionChallenge:SigningKey is required" when it is empty or a
   # known placeholder.
   RolePromotionChallenge__SigningKey: ${ROLE_PROMOTION_SIGNING_KEY}
+  # Admin password recovery (break-glass). Disabled by default; the operator publishes
+  # AdminRecovery__Enabled/AdminRecovery__Key in the Vault and 03-setup-environment.ps1 writes both
+  # to .env. The key is intentionally interpolated without a functional fallback.
+  AdminRecovery__Enabled: ${AdminRecovery__Enabled:-false}
+  AdminRecovery__Key: ${AdminRecovery__Key}
   GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY}
   App__FrontendUrl: ${FRONTEND_URL}
   App__ApiUrl: ${API_URL}

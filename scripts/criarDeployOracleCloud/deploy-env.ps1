@@ -20,3 +20,21 @@ function ConvertTo-JwtExpirationMinutes {
 
     return 24 * 60
 }
+
+# AdminRecovery:Enabled binds to a boolean switch that is disabled by default. The Vault display
+# name AdminRecovery__Enabled may hold "true"/"false"; anything else (missing, empty, unrelated
+# text) keeps the break-glass endpoint disabled instead of failing the deployment.
+function ConvertTo-AdminRecoveryEnabledValue {
+    param(
+        [Parameter(Mandatory = $false)]
+        [AllowNull()]
+        [object]$Value
+    )
+
+    $parsed = $false
+    if ([bool]::TryParse(([string]$Value).Trim(), [ref]$parsed)) {
+        return $(if ($parsed) { 'true' } else { 'false' })
+    }
+
+    return 'false'
+}
