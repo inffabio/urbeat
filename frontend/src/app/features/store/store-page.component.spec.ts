@@ -193,12 +193,12 @@ describe('StorePageComponent — feature logic', () => {
       expect(css).toMatch(/\.hero\s*\{[\s\S]*?background:\s*var\(--app-ink[\s\S]*?img\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*100%[\s\S]*?object-fit:\s*cover/);
     });
 
-    it('draws the logo as a 144px white disc centered exactly on the hero/banner bottom', () => {
+    it('draws the logo as a 144px white disc lifted over the hero/banner bottom', () => {
       const css = stylesText();
       const logoBlock = ruleBody('\\.store-logo');
 
       expect(logoBlock).toMatch(/position:\s*absolute/);
-      expect(logoBlock).toMatch(/top:\s*-14px/);
+      expect(logoBlock).toMatch(/top:\s*-26px/);
       expect(logoBlock).toMatch(/left:\s*50%/);
       expect(logoBlock).toMatch(/transform:\s*translateX\(-50%\)/);
       expect(logoBlock).toMatch(/width:\s*144px/);
@@ -207,7 +207,7 @@ describe('StorePageComponent — feature logic', () => {
       expect(logoBlock).toMatch(/background:\s*var\(--app-surface/);
     });
 
-    it('splits the 144px logo 72px above and 72px below the hero/banner bottom edge', () => {
+    it('lifts the 144px logo 12px above the centered position over the hero/banner bottom edge', () => {
       const heroBlock = ruleBody('\\.hero');
       const panelBlock = ruleBody('\\.store-panel');
       const logoBlock = ruleBody('\\.store-logo');
@@ -223,9 +223,9 @@ describe('StorePageComponent — feature logic', () => {
       const discCenter = discTop + logoSize / 2;
 
       expect(panelTop).toBe(heroHeight - 58);
-      expect(discTop).toBe(heroHeight - 72);
-      expect(discBottom).toBe(heroHeight + 72);
-      expect(discCenter).toBe(heroHeight);
+      expect(discTop).toBe(heroHeight - 84);
+      expect(discBottom).toBe(heroHeight + 60);
+      expect(discCenter).toBe(heroHeight - 12);
     });
 
     it('fits the logo artwork at 132px with object-fit contain so it is never cropped', () => {
@@ -271,7 +271,7 @@ describe('StorePageComponent — feature logic', () => {
       expect(skeletonPanelBlock).toMatch(/padding:\s*146px 18px 18px/);
       expect(skeletonPanelBlock).toMatch(/position:\s*relative/);
       expect(skeletonLogoBlock).toMatch(/position:\s*absolute/);
-      expect(skeletonLogoBlock).toMatch(/top:\s*-14px/);
+      expect(skeletonLogoBlock).toMatch(/top:\s*-26px/);
       expect(skeletonLogoBlock).toMatch(/width:\s*144px/);
       expect(skeletonLogoBlock).toMatch(/height:\s*144px/);
       expect(skeletonLogoBlock).toMatch(/border-radius:\s*50%/);
@@ -280,9 +280,9 @@ describe('StorePageComponent — feature logic', () => {
       const skeletonDiscTop = skeletonPanelTop + pxValue(skeletonLogoBlock, /top:\s*(-?\d+)px/);
       const skeletonDiscBottom = skeletonDiscTop + pxValue(skeletonLogoBlock, /width:\s*(\d+)px/);
 
-      expect(skeletonDiscTop).toBe(heroHeight - 72);
-      expect(skeletonDiscBottom).toBe(heroHeight + 72);
-      expect(skeletonDiscTop + logoSize / 2).toBe(heroHeight);
+      expect(skeletonDiscTop).toBe(heroHeight - 84);
+      expect(skeletonDiscBottom).toBe(heroHeight + 60);
+      expect(skeletonDiscTop + logoSize / 2).toBe(heroHeight - 12);
 
       const skeletonPaddingTop = pxValue(skeletonPanelBlock, /padding:\s*(\d+)px/);
       expect(skeletonPaddingTop).toBeGreaterThan(skeletonDiscBottom - skeletonPanelTop);
