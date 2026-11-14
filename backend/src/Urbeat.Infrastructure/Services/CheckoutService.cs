@@ -2,6 +2,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Geo;
 using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Urbeat.Infrastructure.Helpers;
 
 namespace Urbeat.Infrastructure.Services;
 
@@ -181,10 +181,33 @@ public sealed class CheckoutService : ICheckoutService
                 freeShippingApplied = true;
                 deliveryFee = 0m;
             }
+            else if (isDelivery && request.NeighborhoodId is not null)
+            {
+                // Explicit canonical neighborhood from the client is a hint only: the store's own
+                // active delivery areas remain authoritative and no fee is accepted from the client.
+                var requestedArea = store.DeliveryAreas
+                    .FirstOrDefault(a => a.NeighborhoodId == request.NeighborhoodId && a.IsActive);
+
+                if (requestedArea is null)
+                {
+                    return new CheckoutResultDto { DeliveryAreaNotCovered = true };
+                }
+
+                deliveryFee = requestedArea.DeliveryFee;
+            }
             else if (address is not null)
             {
-                var normalized = NeighborhoodNormalizer.Normalize(address.Neighborhood);
-                var area = store.DeliveryAreas.FirstOrDefault(a => NeighborhoodNormalizer.Normalize(a.Neighborhood) == normalized);
+                // The server is authoritative: resolve the customer address to the canonical
+                // neighborhood identifier of the store city before falling back to the textual
+                // name during the transition. The client name is only a hint.
+                var normalized = NeighborhoodName.Normalize(address.Neighborhood);
+                var resolvedNeighborhoodId = await ResolveCustomerNeighborhoodIdAsync(address, cancellationToken);
+
+                var area = resolvedNeighborhoodId is not null
+                    ? store.DeliveryAreas.FirstOrDefault(a => a.NeighborhoodId == resolvedNeighborhoodId)
+                    : null;
+
+                area ??= store.DeliveryAreas.FirstOrDefault(a => NeighborhoodName.Normalize(a.Neighborhood) == normalized);
                 if (area is not null)
                 {
                     deliveryFee = area.DeliveryFee;
@@ -504,6 +527,47 @@ public sealed class CheckoutService : ICheckoutService
 
     private const string CodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private const int CodeLength = 8;
+
+    /// <summary>
+    /// Resolves the persisted customer address to a canonical neighborhood of the city, preferring
+    /// the identifier over the free-text name. Ambiguous or unmatched addresses return null and the
+    /// caller falls back to the textual comparison used before the migration.
+    /// </summary>
+    private async Task<Guid?> ResolveCustomerNeighborhoodIdAsync(
+        CustomerAddress address,
+        CancellationToken cancellationToken)
+    {
+        var normalizedNeighborhood = NeighborhoodName.Normalize(address.Neighborhood);
+        if (normalizedNeighborhood.Length == 0)
+        {
+            return null;
+        }
+
+        var normalizedCity = NeighborhoodName.Normalize(address.City);
+        var uf = address.State?.Trim().ToUpperInvariant();
+
+        var cityId = normalizedCity.Length == 0
+            ? (Guid?)null
+            : await _dbContext.Cities
+                .AsNoTracking()
+                .Where(x => x.NormalizedName == normalizedCity && (uf == null || x.Uf == uf))
+                .OrderBy(x => x.Name)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+        var query = _dbContext.DeliveryNeighborhoods
+            .AsNoTracking()
+            .Where(x => x.NormalizedName == normalizedNeighborhood);
+
+        query = cityId is not null
+            ? query.Where(x => x.CityId == cityId)
+            : query.Where(x => x.City.ToLower() == address.City.ToLower().Trim());
+
+        return await query
+            .OrderByDescending(x => x.IsActive)
+            .Select(x => (Guid?)x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 
     private async Task<string> GenerateOrderCodeAsync(CancellationToken cancellationToken)
     {

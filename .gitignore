@@ -49,6 +49,11 @@ scripts/criarDeployOracleCloud/configs/*.local.json
 # Postman: apenas o ambiente OCI e distribuido; o ambiente local fica fora do versionamento
 postman/urbeat.local.postman_environment.json
 
+# CNEFE: artefato bruto (~713 MB) e staging derivado nunca entram no Git
+imports/cnefe/sqlite/
+imports/cnefe/staging/
+imports/cnefe/*.db
+
 # Load-test generated artifacts (cleanup plans and k6 summaries)
 scripts/load/artifacts/
 

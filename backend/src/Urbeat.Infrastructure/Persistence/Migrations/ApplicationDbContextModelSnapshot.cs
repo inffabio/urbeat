@@ -298,6 +298,10 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CoordinateMethod")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -316,6 +320,13 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("OsmAreaId")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -323,6 +334,17 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<string>("OsmId")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("openstreetmap");
+
+                    b.Property<string>("SourceVersion")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Uf")
                         .IsRequired()
@@ -340,6 +362,8 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("Uf", "IbgeCode")
                         .IsUnique()
                         .HasFilter("\"IbgeCode\" IS NOT NULL");
+
+                    b.HasIndex("Uf", "NormalizedName");
 
                     b.ToTable("Cities");
                 });
@@ -794,11 +818,34 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<Guid?>("CityId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CoordinateCalculatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CoordinateMethod")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("CoordinatePointCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("CoordinateSourceVersion")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("CoordinateStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("pending");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -806,16 +853,27 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("legacy");
+
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision");
+
+                    b.Property<string>("LocalityType")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
 
                     b.Property<string>("Neighborhood")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<string>("NormalizedName")
                         .IsRequired()
@@ -834,6 +892,16 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<double?>("RepresentativeLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("RepresentativeLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("RepresentativeMethod")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<string>("Source")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -842,6 +910,10 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId", "IsActive");
+
+                    b.HasIndex("CityId", "Kind");
 
                     b.HasIndex("CityId", "NormalizedName")
                         .IsUnique()
@@ -943,6 +1015,129 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.ToTable("DeliveryRouteOrders");
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryStreet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AddressPointCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("CityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CoordinateMethod")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<Guid?>("NeighborhoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("SourceVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("StreetTitle")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("StreetType")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("NormalizedName");
+
+                    b.HasIndex("CityId", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DeliveryStreets_City_NullNeighborhood_NormalizedName")
+                        .HasFilter("\"NeighborhoodId\" IS NULL");
+
+                    b.HasIndex("CityId", "NeighborhoodId", "NormalizedName")
+                        .IsUnique()
+                        .HasFilter("\"NeighborhoodId\" IS NOT NULL");
+
+                    b.ToTable("DeliveryStreets");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryStreetZipCode", b =>
+                {
+                    b.Property<Guid>("StreetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("character(8)")
+                        .IsFixedLength();
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("SourceVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("StreetId", "ZipCode");
+
+                    b.HasIndex("StreetId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DeliveryStreetZipCodes_Street_Primary")
+                        .HasFilter("\"IsPrimary\"");
+
+                    b.HasIndex("ZipCode");
+
+                    b.ToTable("DeliveryStreetZipCodes", t =>
+                        {
+                            t.HasCheckConstraint("CK_DeliveryStreetZipCodes_ZipCode", "\"ZipCode\" ~ '^[0-9]{8}$'");
+                        });
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryTime", b =>
                 {
                     b.Property<Guid>("Id")
@@ -972,6 +1167,183 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("DeliveryTime");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ImportDataset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeactivatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Uf")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RunId");
+
+                    b.HasIndex("Uf")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ImportDatasets_Active_Uf")
+                        .HasFilter("\"IsActive\"");
+
+                    b.HasIndex("SourceVersion", "Uf")
+                        .IsUnique();
+
+                    b.ToTable("ImportDatasets");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ImportError", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Field")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RawValue")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceRowId")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("SourceTable")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Uf");
+
+                    b.HasIndex("RunId", "Code");
+
+                    b.ToTable("ImportErrors");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ImportRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
+                    b.Property<string>("RollbackReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long>("RowsPublished")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RowsRead")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RowsRejected")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RowsSkipped")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RowsStaged")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SourceChecksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("SourceVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("SourceName", "SourceVersion", "SourceChecksum", "Uf", "StartedAtUtc");
+
+                    b.ToTable("ImportRuns");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.LandingPageContent", b =>
@@ -3230,13 +3602,26 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<double?>("DistanceKm")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("DistanceMethod")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("haversine");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Neighborhood")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<Guid?>("NeighborhoodId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Notes")
                         .IsRequired()
@@ -3251,9 +3636,75 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NeighborhoodId");
+
                     b.HasIndex("StoreId");
 
+                    b.HasIndex("StoreId", "NeighborhoodId")
+                        .IsUnique()
+                        .HasFilter("\"NeighborhoodId\" IS NOT NULL");
+
                     b.ToTable("StoreDeliveryAreas");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryAreaMigrationIssue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Neighborhood")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("SourceVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("StoreDeliveryAreaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreDeliveryAreaId")
+                        .IsUnique();
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("StoreDeliveryAreaMigrationIssues");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryDriver", b =>
@@ -3773,6 +4224,35 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryStreet", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.City", "CityEntity")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryNeighborhood", "NeighborhoodEntity")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CityEntity");
+
+                    b.Navigation("NeighborhoodEntity");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryStreetZipCode", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryStreet", "Street")
+                        .WithMany()
+                        .HasForeignKey("StreetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Street");
+                });
+
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryTime", b =>
                 {
                     b.HasOne("Urbeat.Domain.Entities.Store", null)
@@ -3780,6 +4260,28 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ImportDataset", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.ImportRun", "Run")
+                        .WithMany()
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Run");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.ImportError", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.ImportRun", "Run")
+                        .WithMany()
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Run");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.OrderDeliveryAssignment", b =>
@@ -4089,11 +4591,18 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryArea", b =>
                 {
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryNeighborhood", "NeighborhoodEntity")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Urbeat.Domain.Entities.Store", null)
                         .WithMany("DeliveryAreas")
                         .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("NeighborhoodEntity");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.StoreDeliveryDriver", b =>

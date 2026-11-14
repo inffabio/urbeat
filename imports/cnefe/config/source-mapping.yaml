@@ -1,0 +1,75 @@
+# CNEFE source mapping (versionado junto com o importador).
+#
+# O layout abaixo foi confirmado por leitura somenta-leitura do artefato real
+# `imports/cnefe/delivery_brasil.db` (secao 3.3 do prompt v2.1). Nenhum nome de
+# coluna e presumido: `cnefe_discover_schema.py` reproduz o inventario e falha se
+# uma coluna obrigatoria desaparecer.
+mapping_version: cnefe-source-mapping-v1
+
+source:
+  sqlite_file_env: URBEAT_CNEFE_SQLITE_PATH
+  mode: ro                     # somente leitura; nunca escrever no arquivo
+  primary_key: id
+  neighborhoods_table: bairros
+  streets_table: ruas
+  source_name: CNEFE
+
+fields:
+  neighborhoods:
+    uf: uf_codigo
+    municipality_ibge_code: municipio_codigo
+    locality: nome
+    neighborhood_centroid_latitude: latitude_central
+    neighborhood_centroid_longitude: longitude_central
+  streets:
+    uf: uf_codigo
+    municipality_ibge_code: municipio_codigo
+    neighborhood_name: bairro
+    street_name: logradouro
+    street_type: null          # nao existe coluna de tipo de logradouro
+    street_title: null         # nao existe coluna de titulo de logradouro
+    zip_code: cep
+    latitude: latitude
+    longitude: longitude
+
+required:
+  neighborhoods: [uf_codigo, municipio_codigo, nome]
+  streets: [uf_codigo, municipio_codigo, bairro, logradouro, latitude, longitude]
+optional:
+  neighborhoods: [latitude_central, longitude_central]
+  streets: [cep]
+
+# Regras de qualidade aplicadas pelo importador (secao 6.4 do prompt).
+quality:
+  centroid_method: ADDRESS_POINT_MEAN
+  centroid_tolerance_m: 1.0     # sobrescrevivel por URBEAT_CNEFE_CENTROID_TOLERANCE_M
+  low_sample_threshold: 5
+  max_reject_rate: 0.01         # sobrescrevivel por URBEAT_IMPORT_MAX_REJECT_RATE
+  batch_size: 50000             # sobrescrevivel por URBEAT_IMPORT_BATCH_SIZE
+  reject_zero_zip: true
+  reject_zero_coordinate: true
+  brazil_envelope:
+    min_latitude: -34.5
+    max_latitude: 6.0
+    min_longitude: -74.5
+    max_longitude: -28.0
+
+# Decisao registrada de modelagem: `DeliveryAddressPoints` nao e criada nesta
+# fase. O artefato ja e pre-agregado por logradouro (4.266.401 linhas) e o
+# centroide do bairro e materializado e validado; duplicar os pontos em
+# PostgreSQL nao agrega consulta nem auditoria, porque o SQLite original e o
+# manifesto permanecem retidos. `DeliveryStreets.AddressPointCount` preserva a
+# contagem de pontos agregados.
+model_decision:
+  address_points_materialized: false
+  reason: centroide materializado e validado + artefato de origem retido
+  streets_granularity: (uf, municipio, bairro, logradouro)
+
+# Baseline documentado do artefato atual (informativo; divergencia bloqueia a
+# carga somente com `--strict-baseline`).
+baseline:
+  neighborhood_rows: 520195
+  street_rows: 4266401
+  uf_count: 27
+  municipality_count: 5570
+  neighborhoods_without_streets: 0

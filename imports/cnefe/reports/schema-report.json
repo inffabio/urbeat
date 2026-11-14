@@ -1,0 +1,1530 @@
+{
+  "report": {
+    "kind": "cnefe-schema-discovery",
+    "specification": "imports/cnefe/prompt.txt v2.1 (secoes 3.2, 3.3 e 10)",
+    "generated_at_utc": "2026-11-14T02:34:26Z",
+    "tool": "backend/scripts/import/cnefe_discover_schema.py",
+    "python_version": "3.14.3",
+    "sqlite_version": "3.50.4",
+    "access_mode": "read-only (mode=ro, PRAGMA query_only=1)",
+    "chunk_size": 50000,
+    "max_samples": 10
+  },
+  "source": {
+    "file_name": "delivery_brasil.db",
+    "logical_path": "imports/cnefe/delivery_brasil.db",
+    "source_version": "CNEFE_2022",
+    "size_bytes": 713089024,
+    "size_human": "680.1 MiB",
+    "modified_at_utc": "2026-11-14T01:33:04Z",
+    "sha256": "b935dfaaaa3bed2759f77961fce9283fabffb32da9cd9537a8c444410a121f8a",
+    "sha256_before_run": "b935dfaaaa3bed2759f77961fce9283fabffb32da9cd9537a8c444410a121f8a",
+    "sha256_after_run": "b935dfaaaa3bed2759f77961fce9283fabffb32da9cd9537a8c444410a121f8a",
+    "unchanged_after_run": true
+  },
+  "format": {
+    "encoding": "UTF-8",
+    "page_size": 4096,
+    "page_count": 174094,
+    "journal_mode": "delete"
+  },
+  "tables": [
+    {
+      "name": "bairros",
+      "type": "table",
+      "sql": "CREATE TABLE bairros (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    uf_codigo TEXT,\n    municipio_codigo TEXT,\n    nome TEXT,\n    latitude_central REAL,\n    longitude_central REAL\n)",
+      "row_count": 520195,
+      "columns": [
+        {
+          "position": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1
+        },
+        {
+          "position": 1,
+          "name": "uf_codigo",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 2,
+          "name": "municipio_codigo",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 3,
+          "name": "nome",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 4,
+          "name": "latitude_central",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 5,
+          "name": "longitude_central",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [
+        {
+          "name": "idx_bairros_municipio",
+          "unique": false,
+          "origin": "c",
+          "partial": false,
+          "columns": [
+            "municipio_codigo"
+          ],
+          "sql": "CREATE INDEX idx_bairros_municipio ON bairros(municipio_codigo)",
+          "distinct_count": 5570
+        }
+      ],
+      "sample_rows": [
+        {
+          "id": 1,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA AEKA",
+          "latitude_central": -12.075615,
+          "longitude_central": -62.580233
+        },
+        {
+          "id": 2,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BANANEIRA",
+          "latitude_central": -12.179382,
+          "longitude_central": -62.588131
+        },
+        {
+          "id": 3,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BARRANCO ALTO",
+          "latitude_central": -12.047012,
+          "longitude_central": -62.543873
+        },
+        {
+          "id": 4,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BARREIRA DE ARARA",
+          "latitude_central": -12.05792,
+          "longitude_central": -62.544296
+        },
+        {
+          "id": 5,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOA ESPERANCA",
+          "latitude_central": -12.066348,
+          "longitude_central": -62.569913
+        },
+        {
+          "id": 6,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM JESUS 1",
+          "latitude_central": -11.996169,
+          "longitude_central": -62.440914
+        },
+        {
+          "id": 7,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM JESUS 2",
+          "latitude_central": -12.002891,
+          "longitude_central": -62.462329
+        },
+        {
+          "id": 8,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM SOSSEGO",
+          "latitude_central": -12.170102,
+          "longitude_central": -62.589543
+        },
+        {
+          "id": 9,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA CASTANHEIRA",
+          "latitude_central": -12.138213,
+          "longitude_central": -62.582945
+        },
+        {
+          "id": 10,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA JATOBA",
+          "latitude_central": -12.199235,
+          "longitude_central": -62.603408
+        },
+        {
+          "id": 11,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MARCOS",
+          "latitude_central": -12.034057,
+          "longitude_central": -62.529527
+        },
+        {
+          "id": 12,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MATO GROSSO",
+          "latitude_central": -12.003056,
+          "longitude_central": -62.476775
+        },
+        {
+          "id": 13,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MOAM",
+          "latitude_central": -12.117642,
+          "longitude_central": -62.586342
+        },
+        {
+          "id": 14,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MONTE CRISTO",
+          "latitude_central": -12.123225,
+          "longitude_central": -62.583785
+        },
+        {
+          "id": 15,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MORADA NOVA",
+          "latitude_central": -12.068917,
+          "longitude_central": -62.574492
+        },
+        {
+          "id": 16,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA NOVA ESPERANCA",
+          "latitude_central": -12.080518,
+          "longitude_central": -62.58894
+        },
+        {
+          "id": 17,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA PARAISO",
+          "latitude_central": -12.017131,
+          "longitude_central": -62.491814
+        },
+        {
+          "id": 18,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA PE DE SERRA",
+          "latitude_central": -12.036637,
+          "longitude_central": -62.52028
+        },
+        {
+          "id": 19,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA SAMBA",
+          "latitude_central": -12.025719,
+          "longitude_central": -62.508895
+        },
+        {
+          "id": 20,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA SAO LUIZ",
+          "latitude_central": -12.004845,
+          "longitude_central": -62.487825
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "ruas",
+      "type": "table",
+      "sql": "CREATE TABLE ruas (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    uf_codigo TEXT,\n    municipio_codigo TEXT,\n    bairro TEXT,\n    logradouro TEXT,\n    cep TEXT,\n    latitude REAL,\n    longitude REAL\n)",
+      "row_count": 4266401,
+      "columns": [
+        {
+          "position": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1
+        },
+        {
+          "position": 1,
+          "name": "uf_codigo",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 2,
+          "name": "municipio_codigo",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 3,
+          "name": "bairro",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 4,
+          "name": "logradouro",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 5,
+          "name": "cep",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 6,
+          "name": "latitude",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 7,
+          "name": "longitude",
+          "type": "REAL",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [
+        {
+          "name": "idx_ruas_logradouro",
+          "unique": false,
+          "origin": "c",
+          "partial": false,
+          "columns": [
+            "logradouro"
+          ],
+          "sql": "CREATE INDEX idx_ruas_logradouro ON ruas(logradouro)",
+          "distinct_count": 1602298
+        },
+        {
+          "name": "idx_ruas_municipio_bairro",
+          "unique": false,
+          "origin": "c",
+          "partial": false,
+          "columns": [
+            "municipio_codigo",
+            "bairro"
+          ],
+          "sql": "CREATE INDEX idx_ruas_municipio_bairro ON ruas(municipio_codigo, bairro)",
+          "distinct_count": 520195
+        },
+        {
+          "name": "idx_ruas_cep",
+          "unique": false,
+          "origin": "c",
+          "partial": false,
+          "columns": [
+            "cep"
+          ],
+          "sql": "CREATE INDEX idx_ruas_cep ON ruas(cep)",
+          "distinct_count": 931499
+        }
+      ],
+      "sample_rows": [
+        {
+          "id": 1,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA AEKA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.075615,
+          "longitude": -62.580233
+        },
+        {
+          "id": 2,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BANANEIRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.179382,
+          "longitude": -62.588131
+        },
+        {
+          "id": 3,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BARRANCO ALTO",
+          "logradouro": "LINHA 47",
+          "cep": "76954000",
+          "latitude": -12.047012,
+          "longitude": -62.543873
+        },
+        {
+          "id": 4,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BARREIRA DE ARARA",
+          "logradouro": "LINHA 47",
+          "cep": "76954000",
+          "latitude": -12.05792,
+          "longitude": -62.544296
+        },
+        {
+          "id": 5,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOA ESPERANCA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.066348,
+          "longitude": -62.569913
+        },
+        {
+          "id": 6,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM JESUS 1",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -11.996169,
+          "longitude": -62.440914
+        },
+        {
+          "id": 7,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM JESUS 2",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.002891,
+          "longitude": -62.462329
+        },
+        {
+          "id": 8,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM SOSSEGO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.170102,
+          "longitude": -62.589543
+        },
+        {
+          "id": 9,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA CASTANHEIRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.138213,
+          "longitude": -62.582945
+        },
+        {
+          "id": 10,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA JATOBA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.199235,
+          "longitude": -62.603408
+        },
+        {
+          "id": 11,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MARCOS",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.034057,
+          "longitude": -62.529527
+        },
+        {
+          "id": 12,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MATO GROSSO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.003056,
+          "longitude": -62.476775
+        },
+        {
+          "id": 13,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MOAM",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.117642,
+          "longitude": -62.586342
+        },
+        {
+          "id": 14,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MONTE CRISTO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.123225,
+          "longitude": -62.583785
+        },
+        {
+          "id": 15,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MORADA NOVA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.068917,
+          "longitude": -62.574492
+        },
+        {
+          "id": 16,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA NOVA ESPERANCA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.080518,
+          "longitude": -62.58894
+        },
+        {
+          "id": 17,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA PARAISO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.017131,
+          "longitude": -62.491814
+        },
+        {
+          "id": 18,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA PE DE SERRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.036637,
+          "longitude": -62.52028
+        },
+        {
+          "id": 19,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA SAMBA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.025719,
+          "longitude": -62.508895
+        },
+        {
+          "id": 20,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA SAO LUIZ",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.004845,
+          "longitude": -62.487825
+        }
+      ],
+      "notes": []
+    },
+    {
+      "name": "sqlite_sequence",
+      "type": "table",
+      "sql": "CREATE TABLE sqlite_sequence(name,seq)",
+      "row_count": 2,
+      "columns": [
+        {
+          "position": 0,
+          "name": "name",
+          "type": "",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        },
+        {
+          "position": 1,
+          "name": "seq",
+          "type": "",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0
+        }
+      ],
+      "primary_key": [],
+      "indexes": [],
+      "sample_rows": [
+        {
+          "name": "ruas",
+          "seq": 4266401
+        },
+        {
+          "name": "bairros",
+          "seq": 520195
+        }
+      ],
+      "notes": [
+        "Tabela interna do SQLite (AUTOINCREMENT). Nao representa identidade de negocio e nao deve ser importada nem reaproveitada."
+      ]
+    }
+  ],
+  "views": [],
+  "mapping": {
+    "neighborhoods_table": "bairros",
+    "streets_table": "ruas",
+    "neighborhoods_columns": {
+      "primary_key": "id",
+      "uf": "uf_codigo",
+      "municipality_ibge_code": "municipio_codigo",
+      "locality": "nome",
+      "neighborhood_centroid_latitude": "latitude_central",
+      "neighborhood_centroid_longitude": "longitude_central"
+    },
+    "streets_columns": {
+      "primary_key": "id",
+      "uf": "uf_codigo",
+      "municipality_ibge_code": "municipio_codigo",
+      "neighborhood_name": "bairro",
+      "street_name": "logradouro",
+      "zip_code": "cep",
+      "latitude": "latitude",
+      "longitude": "longitude"
+    },
+    "missing_optional_neighborhoods": [],
+    "missing_optional_streets": []
+  },
+  "dimensions": {
+    "uf": {
+      "distinct": 27,
+      "expected": 27,
+      "matches_expected": true,
+      "format": "ibge_state_code",
+      "formats_bairros": {
+        "ibge_state_code": 520195
+      },
+      "formats_ruas": {
+        "ibge_state_code": 4266401
+      },
+      "values": [
+        {
+          "uf_codigo": "11",
+          "uf_sigla": "RO",
+          "neighborhoods": 3322,
+          "streets": 33538,
+          "municipalities": 52
+        },
+        {
+          "uf_codigo": "12",
+          "uf_sigla": "AC",
+          "neighborhoods": 3440,
+          "streets": 18644,
+          "municipalities": 22
+        },
+        {
+          "uf_codigo": "13",
+          "uf_sigla": "AM",
+          "neighborhoods": 11874,
+          "streets": 57976,
+          "municipalities": 62
+        },
+        {
+          "uf_codigo": "14",
+          "uf_sigla": "RR",
+          "neighborhoods": 1589,
+          "streets": 9067,
+          "municipalities": 15
+        },
+        {
+          "uf_codigo": "15",
+          "uf_sigla": "PA",
+          "neighborhoods": 22153,
+          "streets": 146961,
+          "municipalities": 144
+        },
+        {
+          "uf_codigo": "16",
+          "uf_sigla": "AP",
+          "neighborhoods": 1267,
+          "streets": 10157,
+          "municipalities": 16
+        },
+        {
+          "uf_codigo": "17",
+          "uf_sigla": "TO",
+          "neighborhoods": 12160,
+          "streets": 80374,
+          "municipalities": 139
+        },
+        {
+          "uf_codigo": "21",
+          "uf_sigla": "MA",
+          "neighborhoods": 34509,
+          "streets": 154670,
+          "municipalities": 217
+        },
+        {
+          "uf_codigo": "22",
+          "uf_sigla": "PI",
+          "neighborhoods": 26564,
+          "streets": 114670,
+          "municipalities": 224
+        },
+        {
+          "uf_codigo": "23",
+          "uf_sigla": "CE",
+          "neighborhoods": 25251,
+          "streets": 163955,
+          "municipalities": 184
+        },
+        {
+          "uf_codigo": "24",
+          "uf_sigla": "RN",
+          "neighborhoods": 8786,
+          "streets": 64234,
+          "municipalities": 167
+        },
+        {
+          "uf_codigo": "25",
+          "uf_sigla": "PB",
+          "neighborhoods": 17181,
+          "streets": 92940,
+          "municipalities": 223
+        },
+        {
+          "uf_codigo": "26",
+          "uf_sigla": "PE",
+          "neighborhoods": 26928,
+          "streets": 172275,
+          "municipalities": 185
+        },
+        {
+          "uf_codigo": "27",
+          "uf_sigla": "AL",
+          "neighborhoods": 7392,
+          "streets": 55030,
+          "municipalities": 102
+        },
+        {
+          "uf_codigo": "28",
+          "uf_sigla": "SE",
+          "neighborhoods": 4712,
+          "streets": 48970,
+          "municipalities": 75
+        },
+        {
+          "uf_codigo": "29",
+          "uf_sigla": "BA",
+          "neighborhoods": 64529,
+          "streets": 430098,
+          "municipalities": 417
+        },
+        {
+          "uf_codigo": "31",
+          "uf_sigla": "MG",
+          "neighborhoods": 71048,
+          "streets": 582630,
+          "municipalities": 853
+        },
+        {
+          "uf_codigo": "32",
+          "uf_sigla": "ES",
+          "neighborhoods": 7644,
+          "streets": 83688,
+          "municipalities": 78
+        },
+        {
+          "uf_codigo": "33",
+          "uf_sigla": "RJ",
+          "neighborhoods": 7688,
+          "streets": 202071,
+          "municipalities": 92
+        },
+        {
+          "uf_codigo": "35",
+          "uf_sigla": "SP",
+          "neighborhoods": 59014,
+          "streets": 684905,
+          "municipalities": 645
+        },
+        {
+          "uf_codigo": "41",
+          "uf_sigla": "PR",
+          "neighborhoods": 29891,
+          "streets": 251536,
+          "municipalities": 399
+        },
+        {
+          "uf_codigo": "42",
+          "uf_sigla": "SC",
+          "neighborhoods": 10036,
+          "streets": 151114,
+          "municipalities": 295
+        },
+        {
+          "uf_codigo": "43",
+          "uf_sigla": "RS",
+          "neighborhoods": 20470,
+          "streets": 239848,
+          "municipalities": 497
+        },
+        {
+          "uf_codigo": "50",
+          "uf_sigla": "MS",
+          "neighborhoods": 9191,
+          "streets": 68345,
+          "municipalities": 79
+        },
+        {
+          "uf_codigo": "51",
+          "uf_sigla": "MT",
+          "neighborhoods": 16348,
+          "streets": 103542,
+          "municipalities": 141
+        },
+        {
+          "uf_codigo": "52",
+          "uf_sigla": "GO",
+          "neighborhoods": 16545,
+          "streets": 207450,
+          "municipalities": 246
+        },
+        {
+          "uf_codigo": "53",
+          "uf_sigla": "DF",
+          "neighborhoods": 663,
+          "streets": 37713,
+          "municipalities": 1
+        }
+      ],
+      "invalid_bairros": 0,
+      "invalid_ruas": 0,
+      "invalid_samples_bairros": [],
+      "invalid_samples_ruas": []
+    },
+    "municipality": {
+      "distinct_raw": 5570,
+      "distinct_normalized": 5570,
+      "expected": 5570,
+      "matches_expected": true,
+      "normalized_values_bairros": 0,
+      "normalized_values_ruas": 0,
+      "invalid_bairros": 0,
+      "invalid_ruas": 0,
+      "invalid_samples_bairros": [],
+      "invalid_samples_ruas": [],
+      "prefix_mismatch_bairros": 0,
+      "prefix_mismatch_ruas": 0,
+      "prefix_mismatch_samples": []
+    }
+  },
+  "quality": {
+    "bairros": {
+      "table": "bairros",
+      "rows": 520195,
+      "columns": {
+        "uf": {
+          "column": "uf_codigo",
+          "rows": 520195,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 2,
+          "samples": []
+        },
+        "municipality_ibge_code": {
+          "column": "municipio_codigo",
+          "rows": 520195,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 7,
+          "samples": []
+        },
+        "locality": {
+          "column": "nome",
+          "rows": 520195,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 60,
+          "samples": []
+        }
+      },
+      "coordinates": {
+        "scope": "bairros.latitude_central/longitude_central",
+        "rows": 520195,
+        "valid": 520195,
+        "invalid": 0,
+        "codes": {
+          "valid": 520195,
+          "missing_both": 0,
+          "missing_partial": 0,
+          "non_numeric": 0,
+          "non_finite": 0,
+          "zero": 0,
+          "out_of_range": 0,
+          "out_of_brazil_envelope": 0
+        },
+        "axis_zero": 0,
+        "valid_range": {
+          "min_latitude": -33.733684,
+          "max_latitude": 5.152899,
+          "min_longitude": -73.649865,
+          "max_longitude": -32.399613
+        },
+        "samples": {}
+      }
+    },
+    "ruas": {
+      "table": "ruas",
+      "rows": 4266401,
+      "columns": {
+        "uf": {
+          "column": "uf_codigo",
+          "rows": 4266401,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 2,
+          "samples": []
+        },
+        "municipality_ibge_code": {
+          "column": "municipio_codigo",
+          "rows": 4266401,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 7,
+          "samples": []
+        },
+        "neighborhood_name": {
+          "column": "bairro",
+          "rows": 4266401,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 60,
+          "samples": []
+        },
+        "street_name": {
+          "column": "logradouro",
+          "rows": 4266401,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 84,
+          "samples": []
+        },
+        "zip_code": {
+          "column": "cep",
+          "rows": 4266401,
+          "null": 0,
+          "empty": 0,
+          "null_or_empty": 0,
+          "replacement_char": 0,
+          "max_length": 8,
+          "samples": []
+        }
+      },
+      "coordinates": {
+        "scope": "ruas.latitude/longitude",
+        "rows": 4266401,
+        "valid": 4266401,
+        "invalid": 0,
+        "codes": {
+          "valid": 4266401,
+          "missing_both": 0,
+          "missing_partial": 0,
+          "non_numeric": 0,
+          "non_finite": 0,
+          "zero": 0,
+          "out_of_range": 0,
+          "out_of_brazil_envelope": 0
+        },
+        "axis_zero": 0,
+        "valid_range": {
+          "min_latitude": -33.742434,
+          "max_latitude": 5.152899,
+          "min_longitude": -73.649865,
+          "max_longitude": -32.399028
+        },
+        "samples": {}
+      },
+      "zip_codes": {
+        "column": "cep",
+        "rows": 4266401,
+        "missing": 0,
+        "empty": 0,
+        "valid": 4266401,
+        "repairable": 0,
+        "invalid": 0,
+        "samples": []
+      }
+    },
+    "duplicates": {
+      "neighborhoods": {
+        "table": "bairros",
+        "key": [
+          "uf_codigo",
+          "municipio_codigo",
+          "nome"
+        ],
+        "duplicate_groups": 0,
+        "samples": []
+      },
+      "streets_natural_key": {
+        "table": "ruas",
+        "key": [
+          "uf_codigo",
+          "municipio_codigo",
+          "bairro",
+          "logradouro",
+          "cep"
+        ],
+        "duplicate_groups": 0,
+        "samples": []
+      },
+      "streets_point_key": {
+        "table": "ruas",
+        "key": [
+          "uf_codigo",
+          "municipio_codigo",
+          "bairro",
+          "logradouro",
+          "cep",
+          "latitude",
+          "longitude"
+        ],
+        "duplicate_groups": 0,
+        "samples": []
+      }
+    },
+    "coverage": {
+      "neighborhoods": 520195,
+      "neighborhoods_with_valid_points": 520195,
+      "neighborhoods_without_points": 0,
+      "neighborhoods_without_points_samples": [],
+      "street_groups": 520195,
+      "street_groups_without_neighborhood": 0,
+      "street_groups_without_neighborhood_truncated": false,
+      "street_groups_without_neighborhood_samples": [],
+      "street_rows_without_neighborhood": 0,
+      "municipalities_in_bairros": 5570,
+      "municipalities_in_ruas": 5570,
+      "municipalities_only_in_bairros": [],
+      "municipalities_only_in_ruas": []
+    }
+  },
+  "centroid_validation": {
+    "report_file": "centroid-validation.json",
+    "method": "ADDRESS_POINT_MEAN",
+    "tolerance_m": 1.0,
+    "low_sample_threshold": 5,
+    "compared_neighborhoods": 520195,
+    "max_error_m": 0.078627,
+    "above_tolerance": 0,
+    "neighborhoods_without_points": 0
+  },
+  "baseline": {
+    "reference": "imports/cnefe/prompt.txt v2.1 §3.3 e §3.3.4",
+    "measured": {
+      "neighborhood_rows": 520195,
+      "street_rows": 4266401,
+      "uf_count": 27,
+      "municipality_count": 5570,
+      "neighborhoods_without_streets": 0,
+      "duplicate_neighborhood_keys": 0
+    },
+    "expected": {
+      "neighborhood_rows": 520195,
+      "street_rows": 4266401,
+      "uf_count": 27,
+      "municipality_count": 5570,
+      "neighborhoods_without_streets": 0,
+      "duplicate_neighborhood_keys": 0
+    },
+    "checks": {
+      "neighborhood_rows": true,
+      "street_rows": true,
+      "uf_count": true,
+      "municipality_count": true,
+      "neighborhoods_without_streets": true,
+      "duplicate_neighborhood_keys": true
+    },
+    "matches": true
+  },
+  "samples": {
+    "bairros": {
+      "limit": 20,
+      "rows": [
+        {
+          "id": 1,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA AEKA",
+          "latitude_central": -12.075615,
+          "longitude_central": -62.580233
+        },
+        {
+          "id": 2,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BANANEIRA",
+          "latitude_central": -12.179382,
+          "longitude_central": -62.588131
+        },
+        {
+          "id": 3,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BARRANCO ALTO",
+          "latitude_central": -12.047012,
+          "longitude_central": -62.543873
+        },
+        {
+          "id": 4,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BARREIRA DE ARARA",
+          "latitude_central": -12.05792,
+          "longitude_central": -62.544296
+        },
+        {
+          "id": 5,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOA ESPERANCA",
+          "latitude_central": -12.066348,
+          "longitude_central": -62.569913
+        },
+        {
+          "id": 6,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM JESUS 1",
+          "latitude_central": -11.996169,
+          "longitude_central": -62.440914
+        },
+        {
+          "id": 7,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM JESUS 2",
+          "latitude_central": -12.002891,
+          "longitude_central": -62.462329
+        },
+        {
+          "id": 8,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA BOM SOSSEGO",
+          "latitude_central": -12.170102,
+          "longitude_central": -62.589543
+        },
+        {
+          "id": 9,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA CASTANHEIRA",
+          "latitude_central": -12.138213,
+          "longitude_central": -62.582945
+        },
+        {
+          "id": 10,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA JATOBA",
+          "latitude_central": -12.199235,
+          "longitude_central": -62.603408
+        },
+        {
+          "id": 11,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MARCOS",
+          "latitude_central": -12.034057,
+          "longitude_central": -62.529527
+        },
+        {
+          "id": 12,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MATO GROSSO",
+          "latitude_central": -12.003056,
+          "longitude_central": -62.476775
+        },
+        {
+          "id": 13,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MOAM",
+          "latitude_central": -12.117642,
+          "longitude_central": -62.586342
+        },
+        {
+          "id": 14,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MONTE CRISTO",
+          "latitude_central": -12.123225,
+          "longitude_central": -62.583785
+        },
+        {
+          "id": 15,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA MORADA NOVA",
+          "latitude_central": -12.068917,
+          "longitude_central": -62.574492
+        },
+        {
+          "id": 16,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA NOVA ESPERANCA",
+          "latitude_central": -12.080518,
+          "longitude_central": -62.58894
+        },
+        {
+          "id": 17,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA PARAISO",
+          "latitude_central": -12.017131,
+          "longitude_central": -62.491814
+        },
+        {
+          "id": 18,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA PE DE SERRA",
+          "latitude_central": -12.036637,
+          "longitude_central": -62.52028
+        },
+        {
+          "id": 19,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA SAMBA",
+          "latitude_central": -12.025719,
+          "longitude_central": -62.508895
+        },
+        {
+          "id": 20,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "nome": "ALDEIA INDIGENA SAO LUIZ",
+          "latitude_central": -12.004845,
+          "longitude_central": -62.487825
+        }
+      ]
+    },
+    "ruas": {
+      "limit": 20,
+      "rows": [
+        {
+          "id": 1,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA AEKA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.075615,
+          "longitude": -62.580233
+        },
+        {
+          "id": 2,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BANANEIRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.179382,
+          "longitude": -62.588131
+        },
+        {
+          "id": 3,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BARRANCO ALTO",
+          "logradouro": "LINHA 47",
+          "cep": "76954000",
+          "latitude": -12.047012,
+          "longitude": -62.543873
+        },
+        {
+          "id": 4,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BARREIRA DE ARARA",
+          "logradouro": "LINHA 47",
+          "cep": "76954000",
+          "latitude": -12.05792,
+          "longitude": -62.544296
+        },
+        {
+          "id": 5,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOA ESPERANCA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.066348,
+          "longitude": -62.569913
+        },
+        {
+          "id": 6,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM JESUS 1",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -11.996169,
+          "longitude": -62.440914
+        },
+        {
+          "id": 7,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM JESUS 2",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.002891,
+          "longitude": -62.462329
+        },
+        {
+          "id": 8,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA BOM SOSSEGO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.170102,
+          "longitude": -62.589543
+        },
+        {
+          "id": 9,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA CASTANHEIRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.138213,
+          "longitude": -62.582945
+        },
+        {
+          "id": 10,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA JATOBA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.199235,
+          "longitude": -62.603408
+        },
+        {
+          "id": 11,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MARCOS",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.034057,
+          "longitude": -62.529527
+        },
+        {
+          "id": 12,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MATO GROSSO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.003056,
+          "longitude": -62.476775
+        },
+        {
+          "id": 13,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MOAM",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.117642,
+          "longitude": -62.586342
+        },
+        {
+          "id": 14,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MONTE CRISTO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.123225,
+          "longitude": -62.583785
+        },
+        {
+          "id": 15,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA MORADA NOVA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.068917,
+          "longitude": -62.574492
+        },
+        {
+          "id": 16,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA NOVA ESPERANCA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.080518,
+          "longitude": -62.58894
+        },
+        {
+          "id": 17,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA PARAISO",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.017131,
+          "longitude": -62.491814
+        },
+        {
+          "id": 18,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA PE DE SERRA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.036637,
+          "longitude": -62.52028
+        },
+        {
+          "id": 19,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA SAMBA",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.025719,
+          "longitude": -62.508895
+        },
+        {
+          "id": 20,
+          "uf_codigo": "11",
+          "municipio_codigo": "1100015",
+          "bairro": "ALDEIA INDIGENA SAO LUIZ",
+          "logradouro": "LINHA QUARENTA E SETE E MEIO",
+          "cep": "76954000",
+          "latitude": -12.004845,
+          "longitude": -62.487825
+        }
+      ]
+    },
+    "sqlite_sequence": {
+      "limit": 2,
+      "rows": [
+        {
+          "name": "ruas",
+          "seq": 4266401
+        },
+        {
+          "name": "bairros",
+          "seq": 520195
+        }
+      ]
+    }
+  },
+  "notes": [
+    "Nenhuma escrita foi executada no SQLite: mode=ro + PRAGMA query_only=1 e checksum SHA-256 identico antes e depois da execucao.",
+    "Cada linha de ruas e um registro por logradouro; medias de coordenadas tem peso por logradouro, nunca por domicilio.",
+    "A comparacao de centroides usa uma unica soma consolidada por (uf_codigo, municipio_codigo, bairro); nao existe media de medias.",
+    "Valores de uf_codigo no artefato atual sao codigos IBGE de 2 digitos; a conversao para sigla e apenas de exibicao.",
+    "Amostras sao limitadas e contem apenas identificadores tecnicos e nomes geograficos; nenhum dado pessoal e coletado."
+  ],
+  "data_fingerprint": "f2738fcf0643742c73736d0488fd873fdc8e5f20ee3922a47fa0879779eca1c1",
+  "performance": {
+    "duration_seconds": 189.097,
+    "peak_memory_bytes": 378793984,
+    "chunk_size": 50000,
+    "phase_seconds": {
+      "checksum_initial": 0.781,
+      "schema_inventory": 1.213,
+      "mapping_resolution": 0.0,
+      "distributions": 4.476,
+      "duplicates": 52.794,
+      "neighborhoods_pass": 9.843,
+      "streets_pass": 114.392,
+      "centroid_comparison": 2.979,
+      "checksum_final": 1.906
+    },
+    "streaming_passes": {
+      "bairros": 1,
+      "ruas": 1
+    },
+    "fingerprint_excludes": [
+      "report.generated_at_utc",
+      "performance"
+    ]
+  }
+}

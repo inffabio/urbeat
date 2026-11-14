@@ -469,6 +469,67 @@ public sealed class CheckoutServiceTests : IDisposable
         return (store, product);
     }
 
+    [Fact]
+    public async Task PreviewAsync_ShouldUseRequestedNeighborhoodId_WhenItBelongsToTheStore()
+    {
+        var (store, product, address) = await SeedDeliveryStoreAsync(
+            freeShippingToday: false,
+            freeShippingTodayDate: null,
+            neighborhood: "Fora da cobertura");
+
+        var neighborhoodId = Guid.NewGuid();
+        _db.StoreDeliveryAreas.Add(new StoreDeliveryArea
+        {
+            StoreId = store.Id,
+            Neighborhood = "Centro",
+            NeighborhoodId = neighborhoodId,
+            DeliveryFee = 7m,
+            IsActive = true
+        });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.PreviewAsync(
+            address.UserId,
+            new CheckoutRequestDto
+            {
+                StoreId = store.Id,
+                FulfillmentType = FulfillmentType.Delivery,
+                CustomerAddressId = address.Id,
+                NeighborhoodId = neighborhoodId,
+                PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
+                Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+            });
+
+        result.DeliveryAreaNotCovered.Should().BeFalse();
+        result.Summary.Should().NotBeNull();
+        result.Summary!.DeliveryFee.Should().Be(7m);
+    }
+
+    [Fact]
+    public async Task PreviewAsync_ShouldRejectNeighborhoodIdThatIsNotAnActiveStoreArea()
+    {
+        var (store, product, address) = await SeedDeliveryStoreAsync(
+            freeShippingToday: false,
+            freeShippingTodayDate: null);
+
+        var result = await _sut.PreviewAsync(
+            address.UserId,
+            new CheckoutRequestDto
+            {
+                StoreId = store.Id,
+                FulfillmentType = FulfillmentType.Delivery,
+                CustomerAddressId = address.Id,
+                NeighborhoodId = Guid.NewGuid(),
+                PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
+                Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+            });
+
+        result.DeliveryAreaNotCovered.Should().BeTrue();
+        result.Summary.Should().BeNull();
+    }
+
     private Task<CheckoutResultDto> PreviewDeliveryAsync(Store store, Product product, CustomerAddress address)
     {
         return _sut.PreviewAsync(
@@ -484,8 +545,7 @@ public sealed class CheckoutServiceTests : IDisposable
             });
     }
 
-    private async Task<(Store Store, Product Product, CustomerAddress Address)> SeedDeliveryStoreAsync(
-        bool freeShippingToday,
+    private async Task<(Store Store, Product Product, CustomerAddress Address)> SeedDeliveryStoreAsync(        bool freeShippingToday,
         DateOnly? freeShippingTodayDate,
         string neighborhood = "Centro")
     {

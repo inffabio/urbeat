@@ -1,0 +1,1195 @@
+# Especificação Técnica — Importação CNEFE (SQLite) para a Base Geográfica do Urbeat
+
+Status: proposta para implementação em homologação
+Versão do documento: 2.1
+Data: 2026-11-13
+Revisão 2.1: incorpora a análise **somente leitura** do artefato real `imports/cnefe/delivery_brasil.db` (SQLite, ~713 MB). Nenhum dado foi escrito no SQLite: não houve `INSERT`, `UPDATE`, `DELETE`, `VACUUM`, `CREATE`/`DROP` nem alteração de `sqlite_sequence`; o arquivo permanece byte-a-byte como estava. O schema e a qualidade confirmados estão na seção 3.3.
+Ambiente: desenvolvimento/homologação (não é produção oficial)
+Stack de destino: .NET 9 / ASP.NET Core, PostgreSQL, Redis (StackExchange.Redis)
+ETL: Python 3 com acesso somente leitura ao SQLite e COPY para PostgreSQL
+Consumo: Angular 20 (PWA/Capacitor), APIs existentes do Urbeat
+
+Invariantes deste documento:
+
+1. O PostgreSQL é a fonte da verdade. O Redis é apenas índice/cache derivado e descartável.
+2. A elegibilidade por raio usa distância em linha reta (Haversine), círculo completo, sem fator de correção de rota.
+3. Bairro é elegível quando `distancia_km <= raio_configurado`. Não existe fator 1.3, margem de circuidade, tempo de viagem ou estimativa de rota.
+4. Nenhum dado é inventado. Localidade vazia em `ruas.bairro` não vira "Centro"; vira estado pendente explícito.
+5. Nenhum nome de coluna do SQLite é **presumido**. O layout real é inspecionado por etapa reprodutível e registrado em `schema-report`; o artefato atual (`delivery_brasil.db`) já foi validado em leitura (seção 3.3) e seu mapeamento está fixado em 3.4. A descoberta deve ser reexecutada sempre que o checksum do arquivo mudar ou um novo artefato for recebido, e nenhuma carga roda sem relatório e mapeamento aprovados.
+6. Arquivos brutos não são apagados automaticamente. Retenção é política explícita, com checksum e manifesto.
+7. O backend é autoritativo para validação, coordenadas, distância e vínculos de entrega. Valores do cliente são apenas entradas.
+8. Timestamps são armazenados em UTC. Formatação em America/Sao_Paulo ocorre apenas na borda de exibição.
+
+---
+
+## 1. Objetivo e contexto
+
+### 1.1 Objetivo
+
+Estruturar no PostgreSQL do Urbeat a base geográfica derivada do CNEFE (Censo Demográfico 2022, IBGE) para permitir:
+
+- identificação de municípios por código IBGE e UF;
+- cadastro de bairros oficiais vinculados ao município, além de bairros manuais;
+- cadastro de logradouros e CEPs, incluindo múltiplos CEPs por logradouro;
+- armazenamento de coordenadas de pontos de endereço válidos do CNEFE;
+- uso da coordenada representativa de cada bairro já materializada na origem (`bairros.latitude_central`/`longitude_central`) como centroide operacional, com validação por recomputação a partir de todos os pontos válidos do bairro;
+- consulta de endereço por CEP e por nome de logradouro/bairro;
+- verificação de bairros elegíveis por raio em linha reta a partir da loja;
+- indexação geoespacial no Redis como derivado do PostgreSQL, após carga validada.
+
+### 1.2 Contexto atual do sistema
+
+O Urbeat **não parte do zero**. Já existem entidades, serviços e contratos que serão reaproveitados ou migrados:
+
+- `backend/src/Urbeat.Domain/Entities/City.cs`: município com `Name`, `Uf`, `IbgeCode` (nullable), `Latitude`, `Longitude`, campos OSM.
+- `backend/src/Urbeat.Domain/Entities/DeliveryNeighborhood.cs`: bairro com `CityId` nullable, `City` textual, `NormalizedName`, campos OSM, `Latitude`, `Longitude`, `Source`, `IsActive`.
+- `backend/src/Urbeat.Domain/Entities/StoreDeliveryArea.cs`: área de entrega da loja com `Neighborhood` textual, `DeliveryFee`, `IsActive`, `Notes`.
+- `backend/src/Urbeat.Domain/Entities/StoreAddress.cs` e `Store.MaxDeliveryRadiusKm`: endereço da loja e raio máximo configurado.
+- `backend/src/Urbeat.Infrastructure/Services/StoreService.cs` e `OsmService.cs`: já calculam Haversine em memória e filtram bairros por raio.
+- `backend/src/Urbeat.WebApi/Controllers/AddressLookupController.cs`: consulta de CEP atual via ViaCEP.
+- `backend/src/Urbeat.WebApi/Controllers/StoresController.cs`: endpoints `delivery-neighborhoods` e `delivery-neighborhoods-by-store`.
+- `backend/scripts/import/`: scripts Python existentes de importação, normalização e snapshot de bairros.
+
+Portanto, o trabalho é de **reestruturação da base geográfica no ambiente de homologação**, com migração planejada e compatibilidade controlada, e não de criação de um sistema novo.
+
+### 1.3 Princípios de implementação
+
+- Preservar contratos existentes sempre que possível; mudanças de contrato devem ser aditivas ou explicitamente versionadas.
+- Não introduzir dependência obrigatória de PostGIS nesta fase. Coordenadas em `double precision` e Haversine na aplicação são suficientes para o escopo. PostGIS pode ser reavaliado depois, sem alterar o contrato de dados.
+- Não alterar `print-agent/`, `oci-mcp-server/` nem a stack de deploy para esta tarefa.
+- Não executar commit, push ou deploy como parte da implementação.
+- Não incluir segredos em código, documentação, logs ou relatórios.
+
+---
+
+## 2. Escopo e fora de escopo
+
+### 2.1 Em escopo
+
+1. Inspeção e validação do schema real do banco SQLite do CNEFE (artefato atual já validado em leitura; seção 3.3).
+2. Modelo PostgreSQL de municípios, bairros oficiais/manuais, logradouros, CEPs, pontos de endereço e controle de importação.
+3. ETL por UF, em chunks, com staging, validação, relatório de rejeições, idempotência e versionamento.
+4. Coordenada operacional do bairro: usar o centroide já materializado na origem, validando-o contra todos os pontos válidos do bairro; recalcular apenas em reprocessamento/artefato sem centroide, armazenando método, contagem de pontos e versão da fonte.
+5. Reprocessamento e rollback por UF.
+6. Migração planejada de `StoreDeliveryAreas` de nome textual para `NeighborhoodId`.
+7. Índice geoespacial no Redis (`GEOADD`/`GEOSEARCH`) e cache de CEP derivados do PostgreSQL.
+8. APIs/consultas de CEP, endereço, bairros e elegibilidade por raio.
+9. Testes, relatórios de reconciliação e critérios de aceite.
+
+### 2.2 Fora de escopo
+
+- Polígonos oficiais de bairros, geofencing por limite administrativo ou validação "dentro/fora" por polígono. O CNEFE fornece pontos de endereço, não polígonos oficiais de bairros.
+- Distância por malha viária, tempo de deslocamento, pedágio, rota, fator de circuidade ou qualquer estimativa de percurso.
+- Cálculo de frete, promoções, taxas ou regras financeiras de entrega.
+- Publicação em produção oficial, troca de DNS, deploy OCI ou migração de dados de produção.
+- Alteração das regras de assinatura, publicação de loja ou checkout além da validação geográfica descrita aqui.
+- Coleta de dados pessoais de moradores. O CNEFE é dado de endereço/domicílio; a aplicação não deve expor pontos individuais ao público.
+
+---
+
+## 3. Fonte SQLite/CNEFE e descoberta do schema
+
+### 3.1 Artefato de origem
+
+- A fonte é um arquivo SQLite local contendo os dados do CNEFE do IBGE, informado por caminho configurável (variável de ambiente, sem valor fixo no repositório).
+- Abrir o SQLite em modo somente leitura (`mode=ro`) ou sobre uma cópia imutável. Nunca executar `VACUUM`, `UPDATE` ou `DELETE` no arquivo original.
+- Registrar no manifesto: caminho lógico, tamanho, data de modificação, checksum SHA-256, versão declarada da fonte (ex.: `CNEFE_2022`) e data de extração. A análise read-only registrou o tamanho observado (~713 MB) e as contagens; o SHA-256 deve ser calculado e gravado na abertura do ETL, antes de qualquer carga.
+- Se o SQLite contiver tabelas por UF, por município ou uma tabela única nacional, isso deve ser descoberto, não presumido. No artefato atual o layout já é conhecido: **um único banco nacional com duas tabelas** (`bairros` e `ruas`), sem separação por UF (seção 3.3).
+
+### 3.2 Descoberta obrigatória antes de qualquer carga
+
+A descoberta continua sendo uma etapa executável e reproduzível, não um documento estático. O artefato atual **já passou** por ela em modo somente leitura (resultados consolidados na seção 3.3); o script `backend/scripts/import/cnefe_discover_schema.py` (equivalente ao `discover_schema.py` da estrutura ilustrativa da seção 12.1) deve permanecer capaz de reproduzir o relatório a partir do arquivo e ser reexecutado sempre que o checksum mudar.
+
+Executar uma etapa de descoberta que produza `imports/cnefe/reports/schema-report.md` e `imports/cnefe/reports/schema-report.json`, contendo no mínimo:
+
+- lista de tabelas e views (`sqlite_master`);
+- `PRAGMA table_info` de cada tabela relevante (nome, tipo, `notnull`, `pk`, default);
+- contagem de linhas por tabela;
+- amostra de 20 linhas por tabela, com valores truncados e sem dados sensíveis;
+- encoding declarado e verificação de caracteres inválidos;
+- taxa de nulos/vazios por coluna candidata;
+- valores distintos e frequência das colunas de UF, município, localidade e CEP (limitado, com `TOP`/`LIMIT`);
+- intervalos mínimo/máximo de latitude e longitude;
+- duplicidades por chave candidata;
+- existência e seletividade de índices no SQLite;
+- mapeamento proposto coluna real → campo canônico.
+
+Nenhum script de carga pode rodar sem esse relatório e sem um arquivo de mapeamento aprovado. Para o artefato atual, os itens acima já foram apurados e estão registrados em 3.3; o carregador deve reexecutar as verificações baratas (contagens, nulos, faixas, duplicidades, cobertura bairro→ruas) e falhar se divergirem do baseline documentado.
+
+### 3.3 Schema real confirmado (análise read-only do artefato atual)
+
+Esta seção substitui a hipótese de "schema desconhecido" para o artefato validado. Fonte: `imports/cnefe/delivery_brasil.db`, SQLite, ~713 MB, aberto em modo somente leitura. **Nenhum dado foi escrito no SQLite** — sem `UPDATE`, `DELETE`, `INSERT`, `VACUUM`, sem criação/alteração de tabelas ou índices, e sem alteração em `sqlite_sequence`. Qualquer número abaixo deve ser reconferido pelo importador antes da carga.
+
+#### 3.3.1 Tabelas e contagens
+
+| Tabela | Linhas | Colunas confirmadas |
+|---|---|---|
+| `bairros` | 520.195 | `id` INTEGER PK, `uf_codigo` TEXT, `municipio_codigo` TEXT, `nome` TEXT, `latitude_central` REAL, `longitude_central` REAL |
+| `ruas` | 4.266.401 | `id` INTEGER PK, `uf_codigo` TEXT, `municipio_codigo` TEXT, `bairro` TEXT, `logradouro` TEXT, `cep` TEXT, `latitude` REAL, `longitude` REAL |
+| `sqlite_sequence` | — | tabela auxiliar do SQLite; existe no arquivo |
+
+- `sqlite_sequence` existir indica `INTEGER PRIMARY KEY AUTOINCREMENT` nas tabelas. Os valores dessa tabela são estado interno do SQLite, **não** são identidade de negócio e não devem ser importados nem reaproveitados.
+- `bairros`: 27 valores distintos de `uf_codigo` e 5.570 valores distintos de `municipio_codigo`, compatíveis com a cobertura nacional do IBGE. O formato exato (sigla de UF, código IBGE com 7 dígitos) e a consistência prefixo × UF devem ser **confirmados pelo importador** (`INVALID_UF`, `INVALID_IBGE`, `UF_IBGE_MISMATCH`) antes da primeira carga; a análise read-only não altera nem normaliza esses valores.
+- Não existem tabelas de municípios nem de UFs com nomes: nomes de município continuam vindo do snapshot oficial do IBGE Localidades (seção 3.5/4.2). A UF e o código IBGE vêm do próprio arquivo.
+- Não existe tabela de "pontos de domicílio": cada linha de `ruas` é um registro de logradouro com uma coordenada própria. O artefato é **pré-agregado por logradouro**, e essa granularidade precisa ser respeitada (ver 5.1 e 5.7).
+- `ruas.bairro` é texto (nome), não FK. O vínculo com `bairros` é por chave natural `(uf_codigo, municipio_codigo, bairro) = (uf_codigo, municipio_codigo, nome)`.
+
+#### 3.3.2 Índices existentes
+
+| Índice | Tabela | Colunas (uso esperado) |
+|---|---|---|
+| `idx_bairros_municipio` | `bairros` | município — leitura de bairros por município |
+| `idx_ruas_cep` | `ruas` | CEP — conferência de CEP e validação de cache |
+| `idx_ruas_logradouro` | `ruas` | logradouro — busca/validação de nome |
+| `idx_ruas_municipio_bairro` | `ruas` | município + bairro — extração e agregação por bairro |
+
+- Não há índice por UF isolada nem índice espacial: a extração nacional por UF não deve contar com índice para `uf_codigo`. Fazer **uma passada única** com cursor ordenado por `id` (rowid) e separar as UFs em memória de streaming; nunca usar `OFFSET`.
+- Não há índice em `latitude`/`longitude`: a validação de coordenadas é feita em streaming, não por consulta espacial.
+- A extração por UF pode usar `idx_ruas_municipio_bairro` quando o objetivo for reprocessar um município específico; para carga nacional, a passada por `id` é mais barata.
+- Não criar índices no arquivo de origem. Índices adicionais, se necessários, só em cópia de trabalho ou no staging do PostgreSQL.
+
+#### 3.3.3 Mapeamento concreto confirmado
+
+```yaml
+source:
+  sqlite_file: ${URBEAT_CNEFE_SQLITE_PATH}
+  neighborhoods_table: bairros
+  streets_table: ruas
+  primary_key: id
+  mode: ro                 # somente leitura; nunca escrever no arquivo
+fields:
+  # dimensão de bairros/localidades
+  uf: uf_codigo
+  municipality_ibge_code: municipio_codigo
+  locality: nome
+  neighborhood_centroid_latitude: latitude_central
+  neighborhood_centroid_longitude: longitude_central
+  # fatos de logradouro/endereço
+  street_name: logradouro
+  street_type: null        # não existe coluna de tipo de logradouro
+  street_title: null       # não existe coluna de título de logradouro
+  zip_code: cep
+  latitude: latitude
+  longitude: longitude
+  neighborhood_name: bairro
+required: [uf_codigo, municipio_codigo, nome, logradouro, latitude, longitude]
+optional: [cep, latitude_central, longitude_central]
+```
+
+Consequências diretas para o modelo do Urbeat:
+
+- `DeliveryNeighborhoods` é alimentada por `bairros` (uma linha por UF+município+localidade), com `Kind = 'official_cnefe'` e `Latitude`/`Longitude` vindos de `latitude_central`/`longitude_central` (seção 5.1).
+- `DeliveryStreets` é derivada do agrupamento de `ruas` por `(uf_codigo, municipio_codigo, bairro, logradouro)`, preservando `logradouro` como nome de exibição.
+- `DeliveryAddressPoints` é derivada de cada linha de `ruas` (um ponto por logradouro, não por domicílio). `SourceRowHash` deve ser calculado sobre `(uf_codigo, municipio_codigo, bairro, logradouro, cep, latitude, longitude)` para garantir idempotência.
+- `DeliveryStreetZipCodes` é derivada do par `(logradouro, cep)`; múltiplos CEPs por logradouro aparecem naturalmente como mais de uma linha.
+- `street_type`/`street_title` são sempre nulos neste artefato. Não fabricar tipo/título a partir do nome; a coluna existe no modelo como `NULL` e o nome exibido é o `logradouro` integral.
+
+#### 3.3.4 Qualidade confirmada
+
+Verificações executadas em modo leitura, sobre o arquivo inteiro:
+
+| Verificação | Resultado |
+|---|---|
+| `bairros.nome` vazio/nulo | nenhum |
+| `ruas.logradouro` vazio/nulo | nenhum |
+| `ruas.bairro` vazio/nulo | nenhum |
+| `ruas.cep` vazio/nulo | nenhum |
+| `latitude`/`longitude` nulas | nenhuma |
+| `latitude`/`longitude` zeradas (`0,0`) | nenhuma |
+| `latitude`/`longitude` fora dos limites (±90/±180) | nenhuma |
+| duplicidade nas chaves analisadas | nenhuma |
+| bairros sem nenhum ponto correspondente em `ruas` | nenhum (520.195/520.195 com correspondência) |
+
+- "CEP não vazio" **não** equivale a "CEP válido": a validação de 8 dígitos (seção 6.2) continua obrigatória no importador e qualquer valor irregular vira `NULL` + `INVALID_ZIP`, nunca `"00000000"`.
+- A ausência de duplicidade nas chaves analisadas deve ser reconferida pelo importador, incluindo a chave natural de `ruas` `(uf_codigo, municipio_codigo, bairro, logradouro, cep)`; repetição legítima (mesmo logradouro com pontos distintos) não pode ser descartada silenciosamente.
+- Como todos os bairros têm correspondência em `ruas`, a expectativa para este artefato é `CoordinateStatus = 'computed'` em 100% dos bairros oficiais. Se o importador encontrar bairros sem ponto, eles devem ficar `pending` (seção 5.4) e o desvio precisa ser explicado no relatório — não preencher com coordenada de município.
+
+#### 3.3.5 Coordenada do bairro já materializada na origem
+
+A comparação foi feita sobre as 4.266.401 linhas de `ruas`, agrupadas por `uf_codigo + municipio_codigo + bairro`, calculando a média aritmética de `latitude`/`longitude` dos pontos de cada grupo e comparando com `latitude_central`/`longitude_central` do bairro correspondente:
+
+| Métrica da diferença (distância Haversine entre média das ruas e `*_central`) | Valor |
+|---|---|
+| mediana | ~0,03 m |
+| p90 | ~0,06 m |
+| máximo | ~0,08 m |
+
+Conclusão: **o artefato já materializa o centroide operacional calculado a partir dos pontos de ruas**. A diferença residual é compatível com arredondamento da coordenada armazenada, não com um método diferente.
+
+Portanto:
+
+- `latitude_central`/`longitude_central` de `bairros` são a **coordenada operacional da fonte**. O importador copia esse valor; **não recalcula a média por padrão**.
+- É proibido usar a coordenada da primeira rua, a média das médias das ruas, a coordenada do município, a coordenada da loja ou qualquer valor inventado como coordenada do bairro.
+- O importador **valida** o valor copiado recomputando a média dos pontos de ruas do bairro na mesma passada e comparando com tolerância configurável (padrão 1 m, muito acima do máximo observado de ~0,08 m). Divergência acima da tolerância é erro bloqueante (`COORD_CENTROID_MISMATCH`), não "correção silenciosa".
+- `CoordinatePointCount` não vem do arquivo (não existe coluna de contagem): é obtido por `COUNT(*)` de `ruas` por bairro na passada de agregação, e registrado em `DeliveryNeighborhoods`.
+- Método registrado: `ADDRESS_POINT_MEAN`, com `CoordinateSourceVersion` e `CoordinateCalculatedAtUtc` do run. O relatório deve indicar se o valor foi **materializado pela origem e validado** ou **recomputado** pelo importador.
+- Se um artefato futuro não trouxer centroide materializado, o importador calcula a média diretamente dos pontos válidos de `ruas` e grava o mesmo `CoordinateMethod = 'ADDRESS_POINT_MEAN'` (seção 5.1).
+
+#### 3.3.6 Natureza das "localidades" em `bairros`
+
+A tabela se chama `bairros`, mas o conteúdo é um **catálogo de localidades/bairros do CNEFE**, não apenas bairros urbanos: existem registros como `ALDEIA INDIGENA ...`, além de localidades rurais e outras denominações que não correspondem a bairro administrativo urbano.
+
+Decisão (detalhada em 5.7):
+
+- preservar integralmente o nome original em `Neighborhood` (grafia de exibição) e em `NormalizedName`;
+- **não** filtrar, renomear, agrupar ou descartar automaticamente essas localidades;
+- registrar a natureza da localidade como classificação auxiliar (relatório e, se aprovado, coluna dedicada), mantendo `Kind = 'official_cnefe'` para todas;
+- a classificação **não** altera elegibilidade por raio: localidade não urbana com coordenada continua sujeita à mesma regra `distancia_km <= raio`.
+
+### 3.4 Mapeamento declarativo
+
+Criar `imports/cnefe/config/source-mapping.yaml` (ou JSON) com o mapeamento explícito, por exemplo:
+
+```yaml
+source:
+  table: <tabela_real>
+  primary_key: <coluna_real>
+fields:
+  uf: <coluna_real>
+  municipality_ibge_code: <coluna_real>
+  locality: <coluna_real_ou_null>
+  street_type: <coluna_real_ou_null>
+  street_title: <coluna_real_ou_null>
+  street_name: <coluna_real>
+  zip_code: <coluna_real_ou_null>
+  latitude: <coluna_real>
+  longitude: <coluna_real>
+required: [uf, municipality_ibge_code, street_name, latitude, longitude]
+optional: [locality, street_type, street_title, zip_code]
+```
+
+O modelo genérico acima pressupõe uma tabela única. No artefato atual são **duas** tabelas (dimensão de bairros/localidades + fatos de ruas), e o mapeamento concreto, já confirmado, está na seção 3.3.3. O `source-mapping.yaml` deve declarar explicitamente `neighborhoods_table`, `streets_table` e o mapeamento de cada bloco de campos; o template acima vale como estrutura de referência para o bloco de fatos.
+
+Regras:
+
+- Campo obrigatório ausente no SQLite → falha imediata com mensagem clara.
+- Campo opcional ausente → registrar como ausente no relatório; não inventar coluna.
+- O mapeamento é versionado junto com o código do importador.
+- Os nomes citados em versões antigas deste documento (`COD_UF`, `COD_MUNICIPIO`, `DSC_LOCALIDADE`, `NOM_TIPO_SEGLOGR`, `NOM_TITULO_SEGLOGR`, `NOM_SEGLOGR`, `CEP`, `LATITUDE`, `LONGITUDE`) são **apenas candidatos históricos** e **não existem** no artefato atual; não devem ser usados no código. As colunas reais confirmadas são `uf_codigo`, `municipio_codigo`, `nome`, `bairro`, `logradouro`, `cep`, `latitude`, `longitude`, `latitude_central`, `longitude_central`.
+
+### 3.5 Limitações semânticas do CNEFE
+
+- O CNEFE é um cadastro de pontos de endereço (domicílios e estabelecimentos), não uma base de polígonos de bairros.
+- A localidade vem em `bairros.nome` e é replicada em `ruas.bairro`. Pode representar localidade censitária que não coincide exatamente com o bairro administrativo e inclui localidades não urbanas (ex.: `ALDEIA INDIGENA ...`); ver 3.3.6 e 5.7.
+- Um logradouro pode ter mais de um CEP e um CEP pode abranger mais de um logradouro.
+- Latitude/longitude podem estar ausentes, zeradas, duplicadas ou fora do município. No artefato atual essas falhas **não** foram observadas, mas o filtro permanece obrigatório para qualquer artefato futuro.
+- O código IBGE do município tem 7 dígitos; os dois primeiros correspondem ao código da UF e devem ser consistentes com a UF informada.
+- O CNEFE não contém o nome do município. Os nomes e a validação de municípios vêm de um snapshot oficial do IBGE Localidades, armazenado como artefato versionado com checksum (a API pode ser usada para gerar o snapshot, mas a carga não deve depender de rede).
+- O artefato atual é pré-agregado **por logradouro**, não por domicílio: a média de coordenadas disponível tem peso por logradouro. Isso deve ser documentado nos relatórios e não ser apresentado como média por domicílio.
+
+### 3.6 Regras de qualidade da origem
+
+Antes de publicar qualquer linha:
+
+- validar encoding e rejeitar caracteres de substituição (`U+FFFD`) em campos textuais;
+- normalizar UF para duas letras maiúsculas e validar contra a lista oficial;
+- normalizar código IBGE para string de 7 dígitos, rejeitando valores não numéricos, floats não inteiros e códigos inexistentes;
+- tratar CEP como string de 8 dígitos; espaços, hífen e pontuação são removidos; CEP vazio ou inválido vira `NULL`, nunca `"00000000"`;
+- validar coordenadas: finitas, latitude entre -90 e 90, longitude entre -180 e 180; para o Brasil, aplicar uma envoltória generosa e rejeitar `(0,0)` e pontos claramente fora do município;
+- registrar toda rejeição com código, campo, valor original e id da linha de origem.
+
+---
+
+## 4. Modelo PostgreSQL proposto
+
+### 4.1 Convenções
+
+- Nomes de tabelas e colunas em PascalCase, seguindo o padrão atual do EF Core do Urbeat.
+- Chaves primárias `uuid` para entidades de negócio (`Guid.CreateVersion7()` no .NET) e `bigint identity` para fatos de alto volume.
+- `CreatedAtUtc` e `UpdatedAtUtc` em `timestamptz`/UTC, conforme `BaseEntity`.
+- `double precision` para latitude/longitude; arredondamento máximo de 7 casas decimais na gravação.
+- Campos de proveniência obrigatórios nas tabelas geográficas, quando aplicável: `Source`, `SourceVersion`, `CoordinateMethod`, `CoordinatePointCount`, `CoordinateCalculatedAtUtc`.
+- Migrações criadas a partir de `backend/` com:
+  `dotnet ef migrations add <Nome> --startup-project src/Urbeat.WebApi --project src/Urbeat.Infrastructure`.
+- Nunca usar `dotnet ef database update` contra banco de deployment; a aplicação aplica migrações commitadas na inicialização.
+
+### 4.2 Municípios (`Cities`)
+
+Evoluir a tabela existente, preservando dados e compatibilidade:
+
+```sql
+-- Campos existentes mantidos: Id, Name, Uf, IbgeCode, Latitude, Longitude, OsmId, OsmAreaId
+ALTER TABLE "Cities" ALTER COLUMN "IbgeCode" TYPE varchar(7);
+ALTER TABLE "Cities" ALTER COLUMN "IbgeCode" SET NOT NULL; -- após backfill validado
+ALTER TABLE "Cities" ADD COLUMN "NormalizedName" varchar(255) NOT NULL DEFAULT '';
+ALTER TABLE "Cities" ADD COLUMN "CoordinateMethod" varchar(40) NULL;
+ALTER TABLE "Cities" ADD COLUMN "Source" varchar(30) NOT NULL DEFAULT 'ibge_localidades';
+ALTER TABLE "Cities" ADD COLUMN "SourceVersion" varchar(40) NULL;
+
+CREATE UNIQUE INDEX "UX_Cities_IbgeCode" ON "Cities" ("IbgeCode");
+CREATE UNIQUE INDEX "UX_Cities_Uf_NormalizedName" ON "Cities" ("Uf", "NormalizedName");
+```
+
+`CreatedAtUtc`/`UpdatedAtUtc` já existem via `BaseEntity`; não recriar.
+
+Regras:
+
+- `IbgeCode` é a identidade oficial do município; `Uf` é obrigatória.
+- Antes de `SET NOT NULL` em `IbgeCode`, backfillar os municípios existentes e colocar em quarentena os que não puderem ser resolvidos.
+- A alteração de tipo de `IbgeCode` exige validação prévia: valores vazios, não numéricos ou com mais de 7 dígitos devem ser corrigidos ou quarentenados antes do `ALTER TYPE`.
+- O índice atual `IX_Cities_Uf_IbgeCode` (filtrado) e o `IX_Cities_Name_Uf` devem ser reconciliados na migração: substituir pelo índice único de `IbgeCode` e pelo índice `(Uf, NormalizedName)`, sem deixar índices redundantes.
+- Antes de criar `UX_Cities_Uf_NormalizedName`, deduplicar municípios legados por UF + nome normalizado e colocar conflitos em quarentena; o índice não pode ser criado sobre dados ambíguos.
+- Backfillar `NormalizedName` de todos os municípios antes do índice; nome normalizado vazio é inválido e deve ir para quarentena.
+- `NormalizedName` usa a função canônica de normalização (seção 6.2).
+- A coordenada do município não é usada para elegibilidade de bairro; ela serve para mapa, busca e fallback. Sua origem deve ser declarada (`ibge_localidades` ou `ADDRESS_POINT_MEAN` como fallback), nunca inferida silenciosamente.
+- A tabela `BrazilianCity`/`BrazilianState` existente deve ser inspecionada antes da migração; se ainda for usada, documentar a relação e evitar duplicação de fonte.
+
+### 4.3 Bairros (`DeliveryNeighborhoods`)
+
+Evoluir a tabela existente:
+
+```sql
+-- Campos existentes mantidos: Id, CityId, City, Neighborhood, NormalizedName,
+-- OsmId, OsmType, PlaceType, Boundary, AdminLevel, Latitude, Longitude, Source, IsActive
+ALTER TABLE "DeliveryNeighborhoods" ALTER COLUMN "Neighborhood" TYPE varchar(150);
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "Kind" varchar(20) NOT NULL DEFAULT 'legacy';
+-- Valores: 'official_cnefe' | 'manual' | 'legacy'
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "CoordinateMethod" varchar(40) NULL;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "CoordinatePointCount" integer NOT NULL DEFAULT 0;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "CoordinateSourceVersion" varchar(40) NULL;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "CoordinateCalculatedAtUtc" timestamptz NULL;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "CoordinateStatus" varchar(20) NOT NULL DEFAULT 'pending';
+-- Valores: 'computed' | 'pending' | 'manual'
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "RepresentativeLatitude" double precision NULL;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "RepresentativeLongitude" double precision NULL;
+ALTER TABLE "DeliveryNeighborhoods" ADD COLUMN "RepresentativeMethod" varchar(40) NULL;
+
+-- Unicidade: um nome normalizado por município, considerando oficiais e manuais.
+CREATE UNIQUE INDEX "UX_Neighborhoods_City_NormalizedName"
+  ON "DeliveryNeighborhoods" ("CityId", "NormalizedName")
+  WHERE "CityId" IS NOT NULL;
+
+CREATE INDEX "IX_Neighborhoods_City_Active" ON "DeliveryNeighborhoods" ("CityId", "IsActive");
+CREATE INDEX "IX_Neighborhoods_Coordinates" ON "DeliveryNeighborhoods" ("CityId")
+  WHERE "Latitude" IS NOT NULL AND "Longitude" IS NOT NULL;
+```
+
+`CreatedAtUtc`/`UpdatedAtUtc` já existem via `BaseEntity`; não recriar.
+
+Regras:
+
+- O índice legado `IX_DeliveryNeighborhoods_Neighborhood_City` (único em `Neighborhood`, `City`) deve ser removido após a migração para `(CityId, NormalizedName)`, para não bloquear bairros homônimos em municípios diferentes com grafias normalizadas iguais.
+- Antes de criar `UX_Neighborhoods_City_NormalizedName`, deduplicar bairros legados por `CityId` + `NormalizedName` e colocar conflitos em quarentena para curadoria, sem apagar registros.
+- Recalcular `NormalizedName` dos bairros legados com a função canônica antes do índice; valores vazios ou divergentes entram em quarentena.
+- `CityId` passa a ser obrigatório para bairros novos; registros legados sem `CityId` são backfillados por UF + nome de município e, se não houver correspondência, permanecem em quarentena com relatório.
+- `City` textual é mantido durante a transição para não quebrar `StoreService`, DTOs e frontend. A leitura nova deve preferir `CityId` e usar `City` apenas como fallback.
+- `Kind = 'manual'` identifica bairro criado por lojista; `Kind = 'official_cnefe'` identifica bairro derivado do CNEFE; `legacy` cobre dados OSM/importações antigas ainda não reconciliados.
+- Bairro manual não recebe coordenada automática, não entra no índice Redis e não é filtrado por raio (comportamento atual preservado).
+- Um bairro manual com o mesmo nome normalizado de um bairro oficial no mesmo município deve **reutilizar** o oficial, e não criar duplicata.
+- Bairro oficial sem nenhum ponto válido nasce com `CoordinateStatus = 'pending'`, `Latitude`/`Longitude` nulos e é excluído do raio até ser corrigido.
+- A coordenada de bairro oficial vem de `bairros.latitude_central`/`longitude_central`, validada por recomputação contra a média dos pontos de `ruas` (seção 5.1), com `CoordinateMethod = 'ADDRESS_POINT_MEAN'`.
+
+### 4.4 Logradouros (`DeliveryStreets`)
+
+```sql
+CREATE TABLE "DeliveryStreets" (
+    "Id" uuid PRIMARY KEY,
+    "CityId" uuid NOT NULL REFERENCES "Cities"("Id") ON DELETE CASCADE,
+    "NeighborhoodId" uuid NULL REFERENCES "DeliveryNeighborhoods"("Id") ON DELETE SET NULL,
+    "Name" varchar(255) NOT NULL,
+    "NormalizedName" varchar(255) NOT NULL,
+    "StreetType" varchar(40) NULL,
+    "StreetTitle" varchar(80) NULL,
+    "Latitude" double precision NULL,
+    "Longitude" double precision NULL,
+    "CoordinateMethod" varchar(40) NULL,
+    "Source" varchar(30) NOT NULL,
+    "SourceVersion" varchar(40) NOT NULL,
+    "IsActive" boolean NOT NULL DEFAULT true,
+    "CreatedAtUtc" timestamptz NOT NULL DEFAULT now(),
+    "UpdatedAtUtc" timestamptz NULL
+);
+
+CREATE INDEX "IX_Streets_City_NormalizedName" ON "DeliveryStreets" ("CityId", "NormalizedName");
+CREATE INDEX "IX_Streets_NeighborhoodId" ON "DeliveryStreets" ("NeighborhoodId");
+CREATE UNIQUE INDEX "UX_Streets_City_Neighborhood_NormalizedName"
+  ON "DeliveryStreets" ("CityId", "NeighborhoodId", "NormalizedName")
+  WHERE "NeighborhoodId" IS NOT NULL;
+CREATE UNIQUE INDEX "UX_Streets_City_NullNeighborhood_NormalizedName"
+  ON "DeliveryStreets" ("CityId", "NormalizedName")
+  WHERE "NeighborhoodId" IS NULL;
+```
+
+Regras:
+
+- `NeighborhoodId` é nullable porque a localidade (`ruas.bairro`) pode vir vazia ou não corresponder a um bairro oficial. Logradouro sem bairro fica em estado pendente e é contabilizado no relatório; **não** é associado a "Centro" nem a um bairro inventado.
+- `Latitude`/`Longitude` são nullable. O CNEFE pode não informar coordenada para o logradouro; a coordenada precisa vir do ponto de endereço (`DeliveryAddressPoints`) ou de outra fonte declarada.
+- `Name` preserva a grafia de exibição (tipo + título + nome, com espaços únicos). `NormalizedName` é usado para busca e deduplicação.
+- O mesmo logradouro pode ter vários CEPs; por isso CEP não fica nesta tabela.
+
+### 4.5 CEPs por logradouro (`DeliveryStreetZipCodes`)
+
+```sql
+CREATE TABLE "DeliveryStreetZipCodes" (
+    "StreetId" uuid NOT NULL REFERENCES "DeliveryStreets"("Id") ON DELETE CASCADE,
+    "ZipCode" char(8) NOT NULL,
+    "IsPrimary" boolean NOT NULL DEFAULT false,
+    "Source" varchar(30) NOT NULL,
+    "SourceVersion" varchar(40) NOT NULL,
+    "CreatedAtUtc" timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY ("StreetId", "ZipCode"),
+    CONSTRAINT "CK_StreetZipCodes_ZipCode" CHECK ("ZipCode" ~ '^[0-9]{8}$')
+);
+
+CREATE INDEX "IX_StreetZipCodes_ZipCode" ON "DeliveryStreetZipCodes" ("ZipCode");
+CREATE UNIQUE INDEX "UX_StreetZipCodes_Street_Primary"
+  ON "DeliveryStreetZipCodes" ("StreetId") WHERE "IsPrimary";
+```
+
+- Um logradouro pode ter 0..N CEPs.
+- `IsPrimary` indica o CEP preferencial para exibição, não exclusividade de busca.
+- Consulta por CEP retorna todos os logradouros compatíveis e sinaliza quando houver mais de um.
+
+### 4.6 Pontos de endereço (`DeliveryAddressPoints`)
+
+```sql
+CREATE TABLE "DeliveryAddressPoints" (
+    "Id" bigint GENERATED ALWAYS AS IDENTITY,
+    "Uf" char(2) NOT NULL,
+    "CityId" uuid NOT NULL REFERENCES "Cities"("Id") ON DELETE CASCADE,
+    "NeighborhoodId" uuid NULL REFERENCES "DeliveryNeighborhoods"("Id") ON DELETE SET NULL,
+    "StreetId" uuid NULL REFERENCES "DeliveryStreets"("Id") ON DELETE SET NULL,
+    "ZipCode" char(8) NULL,
+    "Latitude" double precision NOT NULL,
+    "Longitude" double precision NOT NULL,
+    "SourceRowHash" char(64) NOT NULL,
+    "SourceVersion" varchar(40) NOT NULL,
+    "IsActive" boolean NOT NULL DEFAULT true,
+    "CreatedAtUtc" timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY ("Id", "Uf"),
+    CONSTRAINT "CK_AddressPoints_ZipCode" CHECK ("ZipCode" IS NULL OR "ZipCode" ~ '^[0-9]{8}$')
+) PARTITION BY LIST ("Uf");
+```
+
+- Criar uma partição por UF (`DeliveryAddressPoints_AC` ... `DeliveryAddressPoints_TO`) ou, se o volume medido não justificar, uma tabela única com os mesmos índices. A decisão deve ser registrada após medição; o particionamento por UF é o padrão recomendado para o volume nacional (~4,27 × 10^6 pontos no artefato atual).
+- No artefato atual, cada linha de `ruas` gera um ponto de endereço (granularidade de logradouro, não de domicílio). O modelo aceita pontos mais finos se um artefato por domicílio for adotado, mas a granularidade usada deve ser registrada no manifesto e no relatório.
+- `NeighborhoodId` nullable representa ponto cuja localidade não foi resolvida. Esses pontos não entram no centroide de bairro, mas permanecem auditáveis.
+- `StreetId` nullable permite ponto sem logradouro resolvido.
+- `SourceRowHash` é SHA-256 de uma concatenação determinística dos campos de origem + chave da linha; serve para idempotência e deduplicação.
+- Índices por partição: `(NeighborhoodId)`, `(CityId)`, `(StreetId)`, `(ZipCode)`; índice único `(SourceVersion, SourceRowHash)` por partição.
+- Pontos individuais não são expostos por API pública. Consultas públicas retornam logradouro/CEP/bairro agregados.
+
+### 4.7 Controle de importação e erros
+
+```sql
+CREATE TABLE "ImportRuns" (
+    "Id" uuid PRIMARY KEY,
+    "SourceName" varchar(40) NOT NULL,
+    "SourceVersion" varchar(40) NOT NULL,
+    "SourceChecksum" char(64) NOT NULL,
+    "Uf" char(2) NULL,
+    "Status" varchar(20) NOT NULL, -- 'discovered' | 'staging' | 'validating' | 'publishing' | 'published' | 'failed' | 'rolled_back'
+    "RowsRead" bigint NOT NULL DEFAULT 0,
+    "RowsStaged" bigint NOT NULL DEFAULT 0,
+    "RowsPublished" bigint NOT NULL DEFAULT 0,
+    "RowsRejected" bigint NOT NULL DEFAULT 0,
+    "StartedAtUtc" timestamptz NOT NULL DEFAULT now(),
+    "FinishedAtUtc" timestamptz NULL,
+    "Metadata" jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE "ImportErrors" (
+    "Id" bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "RunId" uuid NOT NULL REFERENCES "ImportRuns"("Id") ON DELETE CASCADE,
+    "Uf" char(2) NULL,
+    "SourceTable" varchar(120) NOT NULL,
+    "SourceRowId" varchar(120) NULL,
+    "Field" varchar(80) NULL,
+    "Code" varchar(40) NOT NULL,
+    "Message" text NOT NULL,
+    "RawValue" text NULL,
+    "CreatedAtUtc" timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX "IX_ImportErrors_Run_Code" ON "ImportErrors" ("RunId", "Code");
+CREATE INDEX "IX_ImportErrors_Uf" ON "ImportErrors" ("Uf");
+
+CREATE TABLE "ImportDatasets" (
+    "Id" uuid PRIMARY KEY,
+    "SourceVersion" varchar(40) NOT NULL,
+    "Uf" char(2) NOT NULL,
+    "RunId" uuid NOT NULL REFERENCES "ImportRuns"("Id"),
+    "IsActive" boolean NOT NULL DEFAULT false,
+    "ActivatedAtUtc" timestamptz NULL,
+    "DeactivatedAtUtc" timestamptz NULL,
+    UNIQUE ("SourceVersion", "Uf")
+);
+
+CREATE UNIQUE INDEX "UX_ImportDatasets_Active_Uf"
+  ON "ImportDatasets" ("Uf") WHERE "IsActive";
+```
+
+- `ImportDatasets` funciona como ponteiro de versão ativa por UF, permitindo rollback sem apagar a versão anterior.
+- Nomes finais de schema/tabela podem ser ajustados ao padrão do projeto, mas a semântica acima é obrigatória.
+
+### 4.8 Área de entrega da loja (`StoreDeliveryAreas`) — migração planejada
+
+Estado atual: `Neighborhood` textual + `DeliveryFee` + `IsActive` + `Notes`, com unicidade apenas por `(StoreId, Neighborhood)` implícita na aplicação.
+
+Estado alvo:
+
+```sql
+ALTER TABLE "StoreDeliveryAreas" ADD COLUMN "NeighborhoodId" uuid NULL
+  REFERENCES "DeliveryNeighborhoods"("Id") ON DELETE RESTRICT;
+ALTER TABLE "StoreDeliveryAreas" ADD COLUMN "DistanceKm" double precision NULL;
+ALTER TABLE "StoreDeliveryAreas" ADD COLUMN "DistanceMethod" varchar(30) NOT NULL DEFAULT 'haversine';
+
+CREATE UNIQUE INDEX "UX_StoreDeliveryAreas_Store_Neighborhood"
+  ON "StoreDeliveryAreas" ("StoreId", "NeighborhoodId")
+  WHERE "NeighborhoodId" IS NOT NULL;
+CREATE INDEX "IX_StoreDeliveryAreas_Store" ON "StoreDeliveryAreas" ("StoreId");
+```
+
+`CreatedAtUtc`/`UpdatedAtUtc` já existem via `BaseEntity`; não recriar.
+
+Regras da migração:
+
+1. **Fase A (aditiva):** adicionar colunas; manter `Neighborhood` textual e `DeliveryFee` intactos; aplicação passa a gravar as duas representações (nome e id) quando o bairro for resolvido.
+2. **Backfill:** associar `NeighborhoodId` por `CityId` do endereço da loja + `NormalizedName`. Quando não houver `CityId`, usar `City`/`Uf` do endereço e nome normalizado. Registros sem correspondência vão para uma tabela de quarentena `StoreDeliveryAreaMigrationIssues` com motivo, e não são apagados.
+3. **Leitura:** `StoreService` e repositórios Dapper devem preferir `NeighborhoodId` e usar o nome textual apenas como fallback durante a transição.
+4. **Fase B (validação):** exigir 100% dos registros ativos resolvidos ou explicitamente quarentenados; comparar contagens e nomes; rodar testes de contrato.
+5. **Fase C (remoção):** em migração dedicada, tornar `NeighborhoodId` obrigatório para registros ativos, remover a coluna `Neighborhood` textual e ajustar DTOs/API/frontend. Como o ambiente é de homologação, a reconstrução é aceitável, mas a alteração é **breaking** e deve ser anunciada, testada e reversível.
+6. **Rollback:** enquanto a coluna textual existir, o rollback é trivial (voltar a ler o nome). Depois da Fase C, o rollback exige restaurar a coluna a partir do join com `DeliveryNeighborhoods`; manter essa migração de reversão pronta.
+
+Impacto conhecido da mudança (deve ser tratado explicitamente):
+
+- `backend/src/Urbeat.Domain/Entities/StoreDeliveryArea.cs`
+- `backend/src/Urbeat.Infrastructure/Persistence/ApplicationDbContext.cs`
+- `backend/src/Urbeat.Infrastructure/Persistence/ReadRepositories/StoreReadRepository.cs` (SQL Dapper com coluna `Neighborhood`)
+- `backend/src/Urbeat.Infrastructure/Services/StoreService.cs`
+- `backend/src/Urbeat.Application/DTOs/StoreDeliveryAreaDto.cs`
+- `backend/src/Urbeat.Application/DTOs/Publish/StorePublishSummaryDto.cs`
+- `backend/src/Urbeat.Application/Mappings/EntityToDtoProfile.cs`
+- `frontend/src/app/features/seller-neighborhoods/` e consumidores de `deliveryAreas`
+- coleção Postman e testes de contrato
+- qualquer relatório/exportação que use o nome textual
+
+`DistanceKm` passa a significar **distância Haversine em linha reta**, não distância de rota. O campo `DistanceMethod` documenta isso e deve ser retornado nos DTOs novos.
+
+---
+
+## 5. Cálculo das coordenadas dos bairros
+
+### 5.1 Definição
+
+A coordenada do bairro usada no mapa e no cálculo de raio é o **centroide operacional dos pontos de endereço válidos do bairro**:
+
+```
+lat_bairro = media_aritmetica(lat_p) para todo ponto p valido do bairro
+lon_bairro = media_aritmetica(lon_p) para todo ponto p valido do bairro
+```
+
+**No artefato atual esse valor já está materializado** em `bairros.latitude_central`/`bairros.longitude_central`. A análise da seção 3.3.5 confirmou que corresponde à média dos pontos de `ruas` do bairro (mediana ~0,03 m, p90 ~0,06 m, máximo ~0,08 m de diferença, compatível com arredondamento). Portanto a regra operacional é **copiar e validar**, não recalcular.
+
+Fluxo obrigatório para este artefato:
+
+1. ler `latitude_central`/`longitude_central` do bairro como coordenada operacional candidata;
+2. na mesma passada, agregar os pontos de `ruas` do bairro (`COUNT(*)`, soma de `latitude`, soma de `longitude`) e obter a média;
+3. comparar as duas coordenadas por Haversine; diferença acima da tolerância configurável (padrão 1 m) → erro `COORD_CENTROID_MISMATCH` e o bairro **não** é publicado como `computed`;
+4. gravar a coordenada materializada com `CoordinateMethod = 'ADDRESS_POINT_MEAN'`, `CoordinatePointCount`, `CoordinateSourceVersion` e `CoordinateCalculatedAtUtc`;
+5. registrar no relatório a proveniência (`materialized_and_validated` ou `recomputed`) e o desvio máximo observado por UF.
+
+Proibições explícitas:
+
+- não usar a coordenada da **primeira rua** (ou de qualquer rua isolada) como coordenada do bairro;
+- não calcular **média das médias** (por logradouro, por CEP ou por qualquer subgrupo);
+- não usar coordenada do município, da loja, de outro bairro ou valor interpolado/estimado;
+- não "corrigir" silenciosamente a coordenada materializada; qualquer divergência é erro registrado e exige justificativa e novo método.
+
+Recálculo direto (bairros futuros, artefato sem centroide materializado, reprocessamento com correção de origem):
+
+- calcular a média diretamente sobre os pontos válidos de `ruas` do bairro;
+- gravar `CoordinateMethod = 'ADDRESS_POINT_MEAN'`, `CoordinatePointCount` e `SourceVersion`;
+- a definição e o arredondamento são os mesmos; muda apenas a proveniência do valor.
+
+Regras gerais que continuam valendo:
+
+- Peso igual por **ponto**, não por logradouro. Atenção: neste artefato cada linha de `ruas` já é um registro por logradouro, então a média disponível tem peso por logradouro. Isso deve ser declarado no relatório (seção 5.7) e nunca descrito como média por domicílio.
+- Pontos válidos: `latitude`/`longitude` não nulas, finitas, dentro da envoltória do Brasil, diferentes de `(0,0)`, associados ao bairro correto e não duplicados por `SourceRowHash`.
+- Arredondar para no máximo 7 casas decimais na gravação; manter `double precision`.
+- O cálculo é determinístico e independente da ordem de leitura. Usar soma consolidada com ordenação estável; o mesmo conjunto de entrada deve produzir o mesmo resultado.
+
+### 5.2 Metadados obrigatórios
+
+Em `DeliveryNeighborhoods`:
+
+- `Latitude`, `Longitude`: centroide operacional (materializado e validado, ou recomputado).
+- `CoordinateMethod = 'ADDRESS_POINT_MEAN'`. O valor antigo `'cnefe_point_centroid_v1'` fica **descontinuado** para bairros e não deve ser gravado em novas cargas.
+- `CoordinatePointCount`: quantidade de pontos válidos usados (`COUNT(*)` de `ruas` do bairro nesta versão da fonte).
+- `CoordinateSourceVersion`: versão/checksum do dataset CNEFE.
+- `CoordinateCalculatedAtUtc`: instante UTC do cálculo (na origem ou no importador, conforme a proveniência registrada).
+- `CoordinateStatus`: `computed`, `pending` ou `manual`.
+
+### 5.3 Ponto representativo/medoide (auxiliar)
+
+- `RepresentativeLatitude`/`RepresentativeLongitude` são **auxiliares** para auditoria, inspeção visual e robustez contra outliers.
+- Definição recomendada: medoide real (ponto que minimiza a soma das distâncias Haversine aos demais pontos do bairro), calculado de forma determinística. Para bairros grandes, usar amostra determinística limitada (ex.: 2.000 pontos, selecionados por hash estável) e registrar `RepresentativeMethod = 'medoid_sampled_v1'`.
+- Alternativa mais barata e aceitável: ponto válido mais próximo do centroide, registrado como `nearest_to_centroid_v1`.
+- **Decisão explícita:** o raio e a elegibilidade usam `Latitude`/`Longitude` (centroide operacional). O ponto representativo **não** substitui o centroide sem uma decisão posterior documentada e um novo método/versionamento.
+
+### 5.4 Bairros sem pontos ou com poucos pontos
+
+- 0 pontos válidos: `CoordinateStatus = 'pending'`, coordenadas nulas, excluído do índice Redis e do raio; contabilizado no relatório. No artefato atual a expectativa é zero bairros nessa condição (520.195/520.195 têm correspondência em `ruas`); qualquer ocorrência é desvio e precisa ser explicada, não preenchida.
+- 1 a 4 pontos: calcular o centroide (ou aceitar o valor materializado validado), mas sinalizar `low_sample` no relatório para revisão; não bloquear a carga.
+- O limiar mínimo é configurável e deve ser registrado; a política padrão é calcular com pelo menos 1 ponto válido e alertar abaixo de 5.
+- Não preencher coordenada de bairro com coordenada do município, da loja ou de outro bairro.
+
+### 5.5 Localidade ausente ou ambígua
+
+- Localidade vazia/nula em `ruas.bairro` **não** vira "Centro". No artefato atual não há bairro vazio, mas a regra vale para qualquer artefato futuro.
+- O ponto/logradouro fica com `NeighborhoodId = NULL` e é contabilizado como `pending_neighborhood`.
+- Criar relatório por município com contagem de pontos pendentes e amostra de logradouros.
+- A resolução posterior pode ser manual (curadoria) ou por regra explícita aprovada (ex.: município com uma única localidade oficial), sempre registrada em `Source` e no relatório de importação. Nunca inferir silenciosamente.
+- Se o usuário optar por criar um bairro sintético, o nome e a justificativa devem ser explícitos e diferentes de "Centro" por padrão; a decisão fica pendente até aprovação.
+
+### 5.6 Coordenada do município
+
+- Preferir snapshot oficial do IBGE Localidades (sede municipal) com `Source`/`SourceVersion`.
+- Se não houver coordenada oficial, calcular a média dos pontos de `ruas` do município com `CoordinateMethod = 'ADDRESS_POINT_MEAN'` e declarar a proveniência no relatório.
+- A coordenada do município não participa da elegibilidade por raio; serve para mapa, busca e fallback de exibição. Ela **nunca** substitui a coordenada de bairro.
+
+### 5.7 Volume atual e classificação das localidades (decisão)
+
+Decisão sobre a quantidade de registros confirmada no artefato (520.195 localidades, 4.266.401 linhas de ruas):
+
+- **Importar todos os 520.195 registros**, sem filtro por população, por UF, por "urbanidade" ou por quantidade de ruas. O volume é compatível com PostgreSQL e não justifica amostragem nem exclusão. `DeliveryNeighborhoods` cresce na ordem de 5,2 × 10^5 linhas e `DeliveryAddressPoints` na ordem de 4,3 × 10^6 — o particionamento por UF dos pontos (seção 4.6) continua recomendado; os bairros permanecem em tabela única.
+- **Classificação de localidades não urbanas:** a tabela `bairros` é um catálogo de localidades/bairros do CNEFE e inclui registros como `ALDEIA INDIGENA ...`. Decisão:
+  - preservar o nome original, sem renomear, agrupar ou descartar;
+  - manter `Kind = 'official_cnefe'` para todas as localidades oficiais;
+  - registrar a natureza da localidade como **classificação auxiliar** (`urban_neighborhood`, `indigenous_village`, `rural_locality`, `other`, `unknown`) no relatório de importação e no `Metadata` do run, sem inferência destrutiva;
+  - se for necessário expor a classificação na API, adicionar `LocalityType varchar(30) NULL` em migração dedicada — a criação da coluna é opcional e depende de aprovação, mas a classificação no relatório é obrigatória;
+  - a classificação **não** altera a regra de elegibilidade: localidade com coordenada válida é elegível pelo mesmo `distancia_km <= raio`, inclusive as não urbanas. Excluir automaticamente quebraria lojas que atendem essas áreas;
+  - nomes classificados como não urbanos entram na lista de curadoria (`/reports/curation-localities.csv`) para revisão futura, sem bloquear a carga.
+
+---
+
+## 6. ETL por UF/chunks e regras de qualidade
+
+### 6.1 Pipeline
+
+Para cada UF, executar as etapas em ordem, com transação e lock:
+
+1. **Descobrir** schema e validar mapeamento (uma vez, global).
+2. **Extrair** do SQLite em modo somente leitura, com paginação por chave (keyset) usando `id` (rowid), nunca `OFFSET` em tabela grande. No artefato atual as duas tabelas são nacionais: fazer uma passada por `id` e separar as UFs em streaming.
+3. **Staging** no PostgreSQL em tabelas `stg_*` (`UNLOGGED`, com `RunId`), via `COPY`.
+4. **Validar** e normalizar no staging; rejeições vão para `ImportErrors`.
+5. **Resolver dimensões**: município por código IBGE, bairro por nome normalizado, logradouro por chave natural.
+6. **Upsert** nas tabelas finais dentro de uma transação por UF.
+7. **Consolidar** a coordenada do bairro: usar `latitude_central`/`longitude_central` da origem e validar contra a média dos pontos publicados daquela UF; gravar `CoordinatePointCount` e proveniência (seção 5.1). Recalcular a média só quando o artefato não trouxer centroide materializado.
+8. **Reconciliar** contagens origem → staging → publicados → rejeitados.
+9. **Ativar** a versão da UF em `ImportDatasets` somente após todos os gates.
+10. **Construir e validar** o índice Redis da versão ativa e publicar o alias; até o alias apontar para a nova versão, consultas usam a versão anterior ou fallback PostgreSQL (seção 7).
+11. **Gerar relatório** da UF e atualizar o manifesto.
+
+### 6.2 Normalização canônica
+
+Uma única função canônica, compartilhada por Python e .NET, com vetores de teste:
+
+- trim;
+- Unicode NFKD, remoção de marcas combinantes;
+- substituição de qualquer caractere não alfanumérico por espaço;
+- colapso de espaços múltiplos;
+- `lowercase` (padrão atual do Urbeat para bairros).
+
+Atenção: o `NeighborhoodNormalizer` atual remove acentos e aplica lowercase, mas não substitui pontuação. O importador deve usar a forma canônica completa acima. A divergência deve ser corrigida no .NET e refletida em backfill/reindexação, com teste que compare os dois lados. Não alterar a normalização silenciosamente sem migrar os valores existentes.
+
+Formação do nome do logradouro:
+
+- `Name` de exibição = `StreetType + " " + StreetTitle + " " + StreetName`, com trim e colapso de espaços; partes vazias são omitidas. No artefato atual `street_type`/`street_title` não existem, então `Name` é o `logradouro` integral, sem prefixo inventado.
+- `NormalizedName` = normalização canônica de `Name`.
+- Preservar acentos e caixa original em `Name` para exibição.
+
+CEP:
+
+- remover tudo que não for dígito;
+- se o resultado tiver 8 dígitos, usar; caso contrário, `NULL` + rejeição/flag;
+- nunca preencher com zeros à esquerda para "corrigir" um CEP inválido;
+- `zfill(8)` só é permitido quando a origem claramente perdeu zeros à esquerda e o valor tem menos de 8 dígitos por truncamento conhecido; esse caso deve ser registrado como reparo explícito, não silencioso.
+
+### 6.3 Chaves naturais e deduplicação
+
+- Município: `IbgeCode`.
+- Bairro: `(CityId, NormalizedName)`.
+- Logradouro: `(CityId, NeighborhoodId, NormalizedName)` quando há bairro; `(CityId, NormalizedName)` quando não há.
+- CEP de logradouro: `(StreetId, ZipCode)`.
+- Ponto de endereço: `(SourceVersion, SourceRowHash)`.
+- Chaves da origem (pré-normalização): bairro por `(uf_codigo, municipio_codigo, nome)`; ruas por `(uf_codigo, municipio_codigo, bairro, logradouro, cep)`; ponto por `(uf_codigo, municipio_codigo, bairro, logradouro, cep, latitude, longitude)` hasheado em `SourceRowHash`.
+- Duas grafias distintas de localidade que normalizam para o mesmo valor no mesmo município colidem na chave de bairro: resolver por regra determinística (grafia mais frequente em `ruas`, desempate lexicográfico), registrar o mapeamento no relatório e nunca criar duas linhas com o mesmo `NormalizedName` no mesmo `CityId`.
+- Conflito de nome normalizado entre bairros oficiais e manuais: reutilizar o registro existente; nunca criar duplicata.
+- Variações de grafia que normalizam para o mesmo valor são o mesmo registro; a grafia de exibição escolhida deve ser determinística (ex.: a mais frequente na origem, com desempate lexicográfico).
+
+### 6.4 Regras de qualidade e ações
+
+| Código | Regra | Ação |
+|---|---|---|
+| `INVALID_UF` | UF ausente/inválida | rejeitar linha |
+| `INVALID_IBGE` | código IBGE inválido ou inexistente | rejeitar linha |
+| `UF_IBGE_MISMATCH` | prefixo do IBGE difere da UF | rejeitar linha |
+| `MISSING_STREET` | nome de logradouro vazio | rejeitar linha |
+| `MISSING_COORD` | latitude/longitude ausente | rejeitar ponto; logradouro/CEP ainda pode ser publicado |
+| `INVALID_COORD` | coordenada não finita/fora da faixa/`(0,0)` | rejeitar ponto |
+| `COORD_OUT_OF_CITY` | ponto fora da envoltória do município | rejeitar ponto e registrar amostra |
+| `INVALID_ZIP` | CEP não tem 8 dígitos | `NULL` + erro |
+| `PENDING_NEIGHBORHOOD` | localidade vazia/ambígua | publicar com `NeighborhoodId = NULL`; não inventar bairro |
+| `UNKNOWN_CITY` | município não existe na dimensão | rejeitar linha; bloquear UF se taxa alta |
+| `DUPLICATE_ROW` | hash já publicado na mesma versão | ignorar (idempotente) |
+| `LOW_SAMPLE` | bairro com menos de 5 pontos | calcular e sinalizar |
+| `COORD_CENTROID_MISMATCH` | coordenada materializada diverge da média dos pontos além da tolerância (padrão 1 m) | bloquear a publicação do bairro e investigar; não corrigir silenciosamente |
+
+- Taxa de rejeição por UF acima do limite configurado (ex.: 1%) aborta a publicação da UF e exige análise.
+- Nenhuma linha é descartada sem registro em `ImportErrors`.
+- Relação de reconciliação obrigatória: `RowsRead = RowsPublished + RowsRejected + RowsSkipped`, com `RowsSkipped` justificado (duplicata idempotente).
+- Baseline de qualidade do artefato atual (seção 3.3.4): as verificações de nulos/vazios, coordenadas e duplicidade passaram no arquivo inteiro. O importador deve falhar em desvio de baseline, e não apenas registrar aviso.
+
+### 6.5 Chunks, memória e paralelismo
+
+- Ler em lotes de 50.000 a 100.000 linhas, com cursor do SQLite e `fetchmany`.
+- Nunca carregar uma UF inteira em memória.
+- Paralelizar no máximo 2–4 UFs simultâneas, conforme CPU, I/O e conexões do PostgreSQL; medir antes de aumentar.
+- Staging `UNLOGGED` para reduzir WAL; índices do staging criados após o COPY.
+- `COPY` para staging e para tabelas finais quando não houver necessidade de `ON CONFLICT`; para upsert, usar tabela temporária + `INSERT ... ON CONFLICT`.
+- Executar `ANALYZE` nas tabelas afetadas ao final de cada UF.
+
+### 6.6 Idempotência
+
+- A identidade de uma execução é `(SourceName, SourceVersion, SourceChecksum, Uf)`.
+- Reexecutar a mesma UF/versão deve produzir o mesmo estado final: upsert por chave natural, sem duplicar linhas.
+- Usar advisory lock do PostgreSQL por UF para impedir duas cargas concorrentes.
+- Registrar `RunId` em todas as linhas de staging e erros.
+- Não usar `TRUNCATE` global. A substituição é sempre por UF + versão.
+
+### 6.7 Rollback e reprocessamento por UF
+
+- `ImportDatasets` guarda a versão ativa por UF.
+- Rollback: desativar a versão atual, reativar a anterior e reverter os vínculos derivados daquela UF; registrar o motivo em `ImportRuns`.
+- Reprocessamento: nova execução com a mesma versão ou versão nova; nunca sobrescrever a versão ativa antes da validação.
+- Antes de remover uma versão antiga, verificar dependências (`StoreDeliveryAreas`, caches Redis, relatórios) e reter por período definido.
+- O rollback deve ser testado em pelo menos uma UF pequena.
+
+### 6.8 Retenção de arquivos brutos
+
+- O SQLite original e os arquivos de origem não são apagados automaticamente.
+- Gerar `imports/cnefe/manifests/<source-version>.json` com caminho lógico, tamanho, SHA-256, data, UF(s), contagens e versão do mapeamento.
+- Staging pode ser limpo após a publicação bem-sucedida; relatórios e erros são retidos.
+- Limpeza de arquivos brutos é um comando explícito, separado do ETL, com confirmação e política documentada (ex.: manter até N dias após a validação). Nunca limpar dentro do pipeline.
+
+---
+
+## 7. Publicação no PostgreSQL e sincronização Redis
+
+### 7.1 PostgreSQL como fonte da verdade
+
+- Toda escrita geográfica ocorre no PostgreSQL.
+- A publicação de uma UF só acontece após: staging completo, validação, reconciliação, consolidação/validação das coordenadas de bairro e relatório sem erros bloqueantes.
+- A transação de publicação deve cobrir a troca de versão em `ImportDatasets` e os vínculos derivados daquela UF.
+- Nenhum consumidor deve ler diretamente do staging.
+
+### 7.2 Redis como índice/cache derivado
+
+- Redis é **sempre** derivado do PostgreSQL e pode ser reconstruído a qualquer momento.
+- Se Redis estiver indisponível, a aplicação deve continuar funcionando com fallback no PostgreSQL (com limites de consulta), e o cache deve ser repovoado depois.
+- Nunca usar Redis como fonte de verdade para CEP, bairro, coordenada ou vínculo de entrega.
+- Sincronizar somente após a carga validada e a ativação da versão.
+
+### 7.3 Chaves e semântica
+
+- Índice geoespacial: `urbeat:geo:{datasetVersion}:neighborhoods`, com `GEOADD` no formato `(longitude, latitude, member)`, onde `member = NeighborhoodId`.
+- Alternativa por UF para buscas menores: `urbeat:geo:{datasetVersion}:neighborhoods:{uf}`. Se usada, documentar e garantir consistência com o índice global.
+- Metadados: `urbeat:geo:{datasetVersion}:meta` (hash com contagem, checksum, `ActivatedAtUtc`, UFs presentes).
+- Cache de CEP: `urbeat:addr:{datasetVersion}:cep:{cep}` com JSON e TTL de 30 dias.
+- Cache negativo de CEP: TTL curto (ex.: 5 minutos), para não fixar ausências.
+- Invalidação: trocar a versão no namespace. Não varrer/remover chaves antigas durante o horário de pico; usar expiração e limpeza posterior.
+- Cargas parciais (uma UF por vez) não podem publicar um índice global incompleto. Até que todas as UFs previstas da versão estejam ativas, usar chaves por UF e/ou fallback PostgreSQL; o alias global só é habilitado após a carga nacional validada.
+
+### 7.4 Construção atômica do índice
+
+1. Construir o índice da nova versão em chaves novas (por UF e/ou global, conforme o estágio da carga).
+2. Validar contagem e amostras contra o PostgreSQL.
+3. Publicar a nova versão (ponteiro/alias ou `RENAME` de chave) de forma atômica; o alias global exige todas as UFs previstas ativas.
+4. Manter a versão anterior por um período de graça para rollback; depois expirar.
+5. Nunca escrever `GEOADD` parcial na chave ativa em uso.
+
+### 7.5 Consulta por raio
+
+- Usar `GEOSEARCH ... BYRADIUS <raio> km ASC WITHDIST` (ou `GEORADIUS` equivalente), com círculo completo (sem `BYBOX`, sem restrição de rumo).
+- `raio` é exatamente o raio configurado da loja, validado no servidor: finito, `> 0` e dentro do limite máximo do sistema. **Não dividir por 1.3 e não multiplicar a distância por 1.3.**
+- A distância retornada é Haversine em linha reta. A elegibilidade é `distanciaKm <= raioKm`.
+- Para exibição, arredondar a distância para 2 casas; para comparação, usar o valor bruto com tolerância de `1e-9` para evitar erro de borda.
+- Não usar o raio para "estimar" distância de rota em nenhum ponto do sistema.
+- `StoreDeliveryAreas.DistanceKm` registra a distância Haversine no momento do vínculo, com `DistanceMethod = 'haversine'`.
+
+### 7.6 Sincronização e reconciliação
+
+- Serviço/job de sincronização lê do PostgreSQL em lotes por chave, com `pipeline` de 1.000–5.000 `GEOADD` por lote.
+- Checkpoint de progresso por UF para permitir retomada.
+- Reconciliação obrigatória: `ZCARD` de cada índice por UF = contagem de bairros ativos elegíveis (`Kind != 'manual'`) daquela UF com coordenadas no PostgreSQL; quando houver índice global, conferir também o total. Amostrar 100 membros e comparar coordenadas; falhar o job em divergência acima do limite.
+- `IHostedService` de inicialização não deve "carregar tudo" sem validação. Ele verifica a versão ativa e o meta; se faltar índice, dispara reconstrução controlada ou registra alerta, sem servir dados parciais.
+- Sincronização não roda dentro do request de checkout nem bloqueia a API.
+
+---
+
+## 8. APIs e consultas esperadas
+
+### 8.1 Consulta de CEP
+
+Manter `GET /api/address-lookup/cep/{cep}` com o contrato atual e evoluir a resolução interna:
+
+1. normalizar CEP para 8 dígitos; inválido → `400`;
+2. consultar cache Redis da versão ativa;
+3. em miss, consultar PostgreSQL: `DeliveryStreetZipCodes` → `DeliveryStreets` → `DeliveryNeighborhoods` → `Cities`;
+4. se houver coordenada de ponto/logradouro, retornar a coordenada agregada (nunca um ponto individual de domicílio);
+5. se não houver dado local, usar ViaCEP como fallback **somente para exibição/consulta**, sem gravar automaticamente na base autoritativa;
+6. responder `404` quando não encontrado em nenhuma fonte;
+7. incluir `source` (`local`, `viacep`) e `datasetVersion` na resposta; `datasetVersion` é nulo quando a resposta vier apenas do ViaCEP.
+
+Resposta sugerida (campos aditivos):
+
+```json
+{
+  "cep": "01310100",
+  "street": "Avenida Paulista",
+  "neighborhood": "Bela Vista",
+  "city": "São Paulo",
+  "uf": "SP",
+  "ibgeCode": "3550308",
+  "latitude": -23.5614,
+  "longitude": -46.6559,
+  "source": "local",
+  "datasetVersion": "cnefe-2022-<checksum-curto>"
+}
+```
+
+Quando o CEP tiver múltiplos logradouros, retornar lista paginada e sinalizar `multipleMatches: true`.
+
+### 8.2 Busca de logradouros/bairros
+
+- `GET /api/address-lookup/streets?cityId=&uf=&q=&limit=`: busca por prefixo de `NormalizedName`, paginada, com limite máximo.
+- `GET /api/stores/delivery-neighborhoods?city=&uf=`: manter contrato; adicionar `cityId`, `kind`, `source`, `coordinateStatus`.
+- Toda busca deve ser limitada por município/UF; não permitir varredura nacional por texto livre.
+
+### 8.3 Bairros elegíveis por raio
+
+Manter `GET /api/stores/delivery-neighborhoods-by-store?storeId=&radiusKm=` com a semântica corrigida:
+
+- `radiusKm` ausente → usar `Store.MaxDeliveryRadiusKm`;
+- raio inválido (`<= 0`, não finito, acima do máximo) → `400`;
+- loja sem coordenada → retornar bairros manuais da cidade e sinalizar `radiusApplied: false`;
+- loja com coordenada e raio válido → `GEOSEARCH` (ou Haversine no PostgreSQL como fallback) com círculo completo;
+- retornar `distanceKm` Haversine e `eligible: true` apenas para `distanceKm <= radiusKm`;
+- bairros manuais (`Kind = 'manual'`, sem coordenada) são retornados separados, com `distanceKm: null`, `eligible: false` e `requiresManualReview: true`;
+- não retornar a cidade inteira quando o raio válido não encontrar ninguém; resultado vazio é um resultado válido.
+
+Exemplo de resposta:
+
+```json
+{
+  "storeId": "...",
+  "radiusKm": 10,
+  "distanceMethod": "haversine",
+  "radiusApplied": true,
+  "datasetVersion": "cnefe-2022-<checksum-curto>",
+  "neighborhoods": [
+    { "id": "...", "name": "Bela Vista", "distanceKm": 3.42, "eligible": true },
+    { "id": "...", "name": "Consolação", "distanceKm": 10.01, "eligible": false }
+  ],
+  "manualNeighborhoods": [
+    { "id": "...", "name": "Condomínio Novo", "distanceKm": null, "eligible": false, "requiresManualReview": true }
+  ]
+}
+```
+
+### 8.4 Checkout
+
+- Receber `neighborhoodId` (novo) ou nome textual (compatibilidade temporária).
+- Resolver para `NeighborhoodId` autoritativo no servidor; nome do cliente é apenas dica.
+- Validar que o bairro está ativo em `StoreDeliveryAreas` da loja (`IsActive = true`).
+- Recalcular a distância Haversine no servidor a partir da coordenada da loja e do centroide do bairro; ignorar distância enviada pelo cliente.
+- Bairro manual sem coordenada: permitir somente se estiver explicitamente vinculado e ativo; não aplicar filtro de raio.
+- Loja fechada ou assinatura bloqueada continuam bloqueando checkout conforme regras existentes; esta especificação não altera essas regras.
+- Erros: `400` para entrada inválida, `404` para bairro/loja inexistente, `409` para bairro fora da área ativa.
+
+### 8.5 Contratos e compatibilidade
+
+- Campos novos são aditivos; não remover `neighborhood` textual dos DTOs antes da Fase C da migração.
+- Versionar a resposta com `datasetVersion` para auditoria e cache.
+- Atualizar a coleção Postman e os testes de contrato junto com os DTOs.
+- Não expor `SourceRowHash`, coordenadas de pontos individuais ou dados internos de importação em APIs públicas.
+
+---
+
+## 9. Segurança, performance e idempotência
+
+### 9.1 Segurança
+
+- Segredos apenas em variáveis de ambiente/cofre; nunca em `prompt.txt`, código, scripts, logs ou relatórios.
+- SQLite sempre somente leitura; nunca executar escrita no arquivo de origem.
+- Usuário de banco do importador com privilégio mínimo (escrita nas tabelas de importação e geográficas; sem `SUPERUSER`).
+- Consultas parametrizadas; `COPY` com escaping correto; nunca interpolar valores de origem em SQL.
+- Endpoints de importação/administração exigem autenticação de administrador; endpoints públicos de CEP têm rate limit por IP/loja.
+- Não logar payload completo de endereços; mascarar CEP em logs de erro quando necessário.
+- Validar no servidor todo raio, coordenada, CEP e `neighborhoodId`; nunca confiar no cliente.
+- Respeitar a LGPD: não enriquecer pontos com dados de moradores; não expor pontos individuais.
+
+### 9.2 Performance
+
+- `COPY` para staging; upsert em lote; evitar ORM para carga massiva.
+- Índices conforme seção 4; criar após a carga inicial e manter durante o uso.
+- `ANALYZE` após cada UF; monitorar plano de `EXPLAIN (ANALYZE, BUFFERS)` nas consultas de CEP, bairro e raio.
+- Consultas de raio no PostgreSQL, quando usadas como fallback, devem pré-filtrar por município e/ou bounding box antes do Haversine, e ter `LIMIT`.
+- Redis: `pipeline` para `GEOADD`; `GEOSEARCH` com `COUNT` quando o consumidor não precisa de todos os resultados.
+- Evitar carregar todos os bairros de uma cidade em memória no `StoreService` (padrão atual) quando a cidade for grande; usar consulta geoespacial/limitada.
+- Metas iniciais: importação de uma UF pequena em uma janela operacional; consulta de CEP com cache < 50 ms p95; consulta de raio < 150 ms p95 para cidades grandes (medir e ajustar).
+
+### 9.3 Idempotência e concorrência
+
+- Chave de execução + checksum + UF; advisory lock por UF.
+- Upsert por chave natural; nenhum `INSERT` cego em reexecução.
+- `SourceRowHash` estável para pontos.
+- Reprocessamento não pode duplicar bairros, logradouros, CEPs, pontos ou vínculos de loja.
+- Toda operação de publicação/rollback registra `RunId`, `Uf`, `SourceVersion` e motivo.
+- Retries de jobs são seguros; falha parcial não ativa versão incompleta.
+
+---
+
+## 10. Fases de execução e critérios de aceite
+
+### Fase 0 — Descoberta e contrato de dados
+
+Entregáveis:
+
+- `schema-report.md`/`schema-report.json` do SQLite real (artefato atual já apurado em leitura; o script deve reproduzir o relatório);
+- `source-mapping.yaml` aprovado, já refletindo o mapeamento confirmado de `bairros` + `ruas` (seção 3.3.3);
+- inventário de tabelas/colunas/índices/contagens;
+- decisão documentada sobre tabela única vs partições e sobre volume (seção 5.7).
+
+Gate: nenhuma coluna é usada sem evidência no schema; mapeamento cobre todos os campos obrigatórios; o baseline de contagens e qualidade é reproduzido pelo script (520.195 bairros, 4.266.401 ruas).
+
+### Fase 1 — Modelo e migrações
+
+Entregáveis:
+
+- migrações EF Core para `Cities`, `DeliveryNeighborhoods`, `DeliveryStreets`, `DeliveryStreetZipCodes`, `DeliveryAddressPoints`, `ImportRuns`, `ImportErrors`, `ImportDatasets`;
+- migração aditiva de `StoreDeliveryAreas`;
+- testes de migração e de normalização.
+
+Gate: `dotnet build backend/Urbeat.sln` e testes de unidade passam; migração aplica em banco vazio e em banco com dados legados de homologação.
+
+### Fase 2 — ETL de uma UF piloto
+
+Escolher uma UF pequena e representativa (ex.: AC, SE ou DF, conforme volume e qualidade). Entregáveis:
+
+- importação completa da UF com staging, validação, erros e reconciliação;
+- coordenadas de bairro copiadas da origem e validadas por recomputação, com relatório de desvios;
+- reexecução idempotente comprovada.
+
+Gate: contagens reconciliadas; segunda execução não altera contagens; relatório de erros consultável; nenhum bairro "Centro" criado automaticamente; nenhum `COORD_CENTROID_MISMATCH` acima da tolerância.
+
+### Fase 3 — Carga nacional por UF
+
+Entregáveis:
+
+- execução para as 27 UFs, com checkpoint e retomada;
+- relatório consolidado por UF;
+- manifesto de checksums.
+
+Gate: todas as UFs publicadas ou explicitamente falhas com motivo; nenhuma UF parcialmente ativa; tempo e espaço medidos.
+
+### Fase 4 — Coordenadas e qualidade
+
+Entregáveis:
+
+- coordenadas de bairro consolidadas a partir de `latitude_central`/`longitude_central` e validadas contra a média dos pontos de `ruas`;
+- relatório `centroid-validation.md` com desvio por UF (mediana, p90, máximo) e lista de eventuais bairros recomputados;
+- lista de bairros `pending`, `low_sample` e pontos `pending_neighborhood`;
+- validação de outliers e comparação com amostra manual.
+
+Gate: 100% dos bairros oficiais com pontos válidos têm `CoordinateMethod = 'ADDRESS_POINT_MEAN'`, `CoordinatePointCount` e `CoordinateSourceVersion`; bairros sem pontos estão `pending` e excluídos do raio; o desvio máximo entre coordenada materializada e média recalculada fica dentro da tolerância em todas as UFs.
+
+### Fase 5 — Redis
+
+Entregáveis:
+
+- índice geoespacial da versão ativa;
+- cache de CEP com namespace de versão;
+- job de sincronização e reconciliação;
+- teste de indisponibilidade do Redis com fallback PostgreSQL.
+
+Gate: `ZCARD` confere com o PostgreSQL; consulta de raio não usa 1.3; cache expira/invalida corretamente; Redis pode ser apagado e reconstruído sem perda de verdade.
+
+### Fase 6 — APIs e migração de `StoreDeliveryAreas`
+
+Entregáveis:
+
+- endpoints/consultas ajustados;
+- backfill de `NeighborhoodId` com quarentena;
+- DTOs, frontend e Postman atualizados;
+- testes de contrato e de checkout.
+
+Gate: 100% dos vínculos ativos resolvidos ou quarentenados com relatório; nenhum vínculo perdido silenciosamente; rollout/rollback documentados.
+
+### Fase 7 — Aceite final
+
+Critérios de aceite mensuráveis:
+
+1. Existe relatório de schema real e mapeamento aprovado; nenhum nome de coluna não verificado no código; o baseline do artefato (contagens, índices, qualidade) é reproduzido pelo script de descoberta.
+2. A carga é idempotente: reexecutar a mesma UF/versão produz as mesmas contagens e nenhuma duplicata.
+3. Toda linha lida é classificada como publicada, rejeitada ou ignorada por duplicidade; reconciliação fecha.
+4. Nenhum bairro é criado com nome "Centro" por localidade vazia; pendências são contabilizadas.
+5. A coordenada do bairro é a materializada na origem, validada contra a média dos pontos de `ruas` dentro da tolerância, com `CoordinateMethod = 'ADDRESS_POINT_MEAN'`, contagem, versão e proveniência registrados.
+6. O raio usa Haversine puro, círculo completo, e `distancia <= raio`; não existe 1.3 nem estimativa de rota em código, dados ou documentação.
+7. Testes de raio cobrem norte, sul, leste, oeste e pontos exatamente no limite; resultados conferem com cálculo independente.
+8. Redis é reconstruível a partir do PostgreSQL e nunca é fonte da verdade; indisponibilidade do Redis não quebra a consulta.
+9. Migração de `StoreDeliveryAreas` não perde vínculos; registros não resolvidos estão em quarentena auditável.
+10. Rollback por UF foi executado com sucesso em ambiente de homologação.
+11. Arquivos brutos permanecem retidos com checksums; nenhuma limpeza automática ocorreu.
+12. Build e testes aplicáveis passam; nenhum segredo foi commitado.
+
+---
+
+## 11. Riscos e decisões pendentes
+
+### 11.1 Riscos
+
+| Risco | Impacto | Mitigação |
+|---|---|---|
+| CNEFE não fornece polígonos de bairros | Não é possível validar "dentro/fora" por limite oficial | Usar centroide + raio; documentar a limitação; não prometer geofencing |
+| Localidade vazia/ambígua em `ruas.bairro` | Bairros sem associação; consultas incompletas | Estado `pending`, relatório e curadoria; nunca inventar "Centro" (não observado no artefato atual) |
+| Coordenadas ausentes/erradas em artefato futuro | Centroide distorcido; bairro inelegível | Filtro rigoroso, validação de envoltória, relatório de outliers; medoide para auditoria |
+| Centroide materializado divergir do recalculado | Raio e elegibilidade incorretos | Validação obrigatória contra a média dos pontos, tolerância configurável e `COORD_CENTROID_MISMATCH` bloqueante |
+| Artefato pré-agregado por logradouro (4.266.401 linhas, não por domicílio) | Centroide com peso por logradouro, não por domicílio | Documentar a granularidade no relatório; recalcular por ponto apenas se um artefato por domicílio for adotado |
+| Localidades não urbanas na tabela `bairros` (ex.: `ALDEIA INDIGENA ...`) | Tratamento incorreto como bairro urbano ou exclusão indevida | Preservar nome, classificar como auxiliar, manter elegibilidade por raio e enviar para curadoria |
+| Volume nacional (520.195 bairros / 4.266.401 ruas) | Espaço, tempo de carga e custo de índice | Particionar pontos por UF, staging, `COPY`, retenção e `ANALYZE` |
+| CEP ambíguo ou múltiplo | Resposta de CEP com vários logradouros | Modelo N:N, paginação e `multipleMatches` |
+| Nomes duplicados entre municípios | Associação errada de bairro/loja | Sempre filtrar por `CityId`/IBGE; nunca por nome global |
+| Migração de `StoreDeliveryAreas` | Quebra de DTOs, SQL Dapper, frontend e Postman | Fases A/B/C, dual write/read, quarentena e rollback |
+| Índice Redis parcial/desatualizado | Raio incorreto | Construção atômica por versão, reconciliação e fallback PostgreSQL |
+| Cache Redis tratado como verdade | Perda de dados e inconsistência | Namespace por versão, TTL, reconstrução e testes de queda |
+| Normalização divergente entre Python e .NET | Duplicatas e buscas que não encontram | Função canônica única, vetores de teste e backfill |
+| Retenção de dados brutos | Consumo de disco | Manifesto, política explícita e limpeza manual |
+| Licença/atribuição do IBGE | Uso indevido de dados | Registrar fonte/versão e atribuição nos metadados e documentação |
+
+### 11.2 Decisões pendentes
+
+1. PostGIS agora ou manter `double precision` + Haversine? **Recomendação:** manter sem PostGIS nesta fase; reavaliar se surgirem consultas por polígono.
+2. Persistir todos os `DeliveryAddressPoints` ou apenas agregados por bairro/logradouro? **Recomendação:** persistir pontos por UF para auditoria e reprocessamento; se o espaço inviabilizar, manter staging + agregados e documentar a perda de granularidade.
+3. Centroide aritmético de lat/lon ou centroide geodésico (ECEF)? **Recomendação:** aritmético para escala de bairro, documentado; reavaliar para municípios grandes. **Estado:** o artefato atual já materializa o centroide aritmético, e a validação (3.3.5) mostra aderência de ~0,03 m de mediana à média dos pontos — não há motivo para mudar o método agora.
+4. Medoide real, amostrado ou ponto mais próximo do centroide? **Recomendação:** medoide amostrado determinístico como campo auxiliar; centroide é o usado no raio.
+5. Política para bairros com menos de N pontos: manter, sinalizar ou desativar? **Recomendação:** manter com flag e relatório; não excluir automaticamente.
+6. Como resolver localidade ausente: curadoria manual, regra por município de localidade única ou bairro sintético explícito? **Recomendação:** curadoria/estado pendente; qualquer regra automática exige aprovação e registro de método.
+7. Limite máximo de raio por loja e por plano: definir em `SystemParameter`, não hardcode.
+8. Retenção de versões antigas e de arquivos brutos: definir prazo (ex.: 90 dias) e comando de limpeza.
+9. Remoção definitiva da coluna textual de `StoreDeliveryAreas`: definir janela e comunicação; depende da Fase B.
+10. Exposição de coordenada de logradouro na API pública: decidir entre centroide do logradouro e omissão; nunca expor ponto de domicílio.
+11. **Quantidade de registros do artefato atual (520.195 localidades / 4.266.401 ruas):** importar integralmente, sem amostragem, sem filtro por UF, população ou urbanidade. Volume é compatível com PostgreSQL; bairros em tabela única e pontos particionados por UF. Nenhuma exclusão automática é autorizada; subclassificações entram em relatório de curadoria.
+12. **Classificação de localidades não urbanas (`ALDEIA INDIGENA ...`, localidades rurais):** preservar nome original, manter `Kind = 'official_cnefe'`, registrar classificação auxiliar (`urban_neighborhood`, `indigenous_village`, `rural_locality`, `other`, `unknown`) no relatório e no `Metadata` do run. A criação da coluna `LocalityType` é opcional e depende de migração dedicada aprovada. A elegibilidade por raio **não** muda por causa da classificação.
+13. **Coordenada do bairro em novas cargas:** copiar `latitude_central`/`longitude_central` e validar por recomputação (tolerância padrão 1 m); recalcular a média diretamente dos pontos de `ruas` apenas em reprocessamento ou artefato sem centroide, sempre gravando `CoordinateMethod = 'ADDRESS_POINT_MEAN'`, `CoordinatePointCount` e `SourceVersion`.
+
+---
+
+## 12. Comandos e artefatos esperados
+
+### 12.1 Estrutura de diretórios
+
+```
+imports/cnefe/
+  prompt.txt
+  config/
+    source-mapping.yaml
+  manifests/
+    <source-version>.json
+  reports/
+    schema-report.md
+    schema-report.json
+    centroid-validation.md
+    curation-localities.csv
+    <uf>-report.md
+    <uf>-errors.csv
+    reconciliation.md
+  scripts/
+    discover_schema.py
+    import_uf.py
+    validate_uf.py
+    publish_uf.py
+    rollback_uf.py
+    sync_redis.py
+    reconcile.py
+  staging/            # temporário, limpável
+  sqlite/             # fonte somente leitura (não versionar o arquivo)
+    delivery_brasil.db   # artefato atual (~713 MB), analisado em read-only
+```
+
+### 12.2 Variáveis de ambiente (nomes apenas, sem valores)
+
+- `URBEAT_CNEFE_SQLITE_PATH`
+- `URBEAT_CNEFE_SOURCE_VERSION`
+- `URBEAT_DB_HOST`, `URBEAT_DB_PORT`, `URBEAT_DB_NAME`, `URBEAT_DB_USER`, `URBEAT_DB_PASSWORD`
+- `URBEAT_REDIS_CONNECTION` (ou a configuração já usada pelo projeto)
+- `URBEAT_IMPORT_BATCH_SIZE`, `URBEAT_IMPORT_MAX_REJECT_RATE`
+- `URBEAT_CNEFE_CENTROID_TOLERANCE_M` (tolerância da validação centroide materializado vs. recalculado; padrão 1)
+
+Nunca versionar `.env`, credenciais ou valores reais.
+
+### 12.3 Comandos esperados
+
+Exemplos ilustrativos; os nomes finais devem seguir o padrão de `backend/scripts/import/`.
+
+```powershell
+# Descoberta do schema real (obrigatória antes da carga)
+python backend/scripts/import/cnefe_discover_schema.py --sqlite-path $env:URBEAT_CNEFE_SQLITE_PATH --output-dir imports/cnefe/reports
+
+# Importação de uma UF (staging + validação; não publica)
+python imports/cnefe/scripts/import_uf.py --uf SP --source-version $env:URBEAT_CNEFE_SOURCE_VERSION
+
+# Validação e publicação
+python imports/cnefe/scripts/validate_uf.py --uf SP
+python imports/cnefe/scripts/publish_uf.py --uf SP
+
+# Sincronização do índice Redis após publicação validada
+python imports/cnefe/scripts/sync_redis.py --source-version $env:URBEAT_CNEFE_SOURCE_VERSION
+
+# Reconciliação e relatório
+python imports/cnefe/scripts/reconcile.py --uf SP
+
+# Rollback por UF
+python imports/cnefe/scripts/rollback_uf.py --uf SP --to-version <versao-anterior>
+```
+
+Validação do backend (.NET), a partir da raiz:
+
+```powershell
+dotnet build backend/Urbeat.sln
+dotnet test backend/tests/Urbeat.UnitTests
+dotnet test backend/tests/Urbeat.IntegrationTests
+```
+
+Migração EF Core, a partir de `backend/`:
+
+```powershell
+dotnet ef migrations add <NomeDaMigracao> --startup-project src/Urbeat.WebApi --project src/Urbeat.Infrastructure
+```
+
+Frontend, a partir de `frontend/`, quando houver alteração de contrato:
+
+```powershell
+npx ng build --configuration production
+npx jest --no-coverage src/app/path/to/file.spec.ts
+```
+
+Não executar `dotnet ef database update` contra banco de deployment. Não executar commit, push, deploy OCI ou limpeza de arquivos brutos como parte desta implementação.
+
+### 12.4 Artefatos finais esperados
+
+- Migrações EF Core e respectivos testes.
+- Scripts de descoberta, ETL, validação, publicação, rollback e sincronização.
+- `source-mapping.yaml`, manifesto de checksums e relatórios por UF.
+- `schema-report` reproduzível e `centroid-validation.md` com desvio por UF; `curation-localities.csv` para localidades não urbanas.
+- Relatório de reconciliação e de erros consultável.
+- Testes de normalização, validação de centroide materializado, Haversine/raio e idempotência.
+- Atualização de DTOs, serviços, repositórios, frontend e Postman quando a migração de `StoreDeliveryAreas` avançar.
+- Documentação curta de operação (como rodar, como reprocessar, como fazer rollback), sem segredos.
+
+Nenhum artefato desta especificação autoriza escrita no arquivo SQLite. A análise que originou a versão 2.1 foi estritamente read-only e o arquivo `imports/cnefe/delivery_brasil.db` permanece inalterado.
+
+---
+
+Fim da especificação.

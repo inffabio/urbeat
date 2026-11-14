@@ -10,6 +10,13 @@ public sealed class CheckoutRequestDto
 
     public Guid? CustomerAddressId { get; init; }
 
+    /// <summary>
+    /// Canonical neighborhood identifier chosen by the client. The server validates it against the
+    /// store's active delivery areas and ignores any client-provided fee; when absent, the address
+    /// neighborhood (resolved server-side) is used, which keeps older clients working.
+    /// </summary>
+    public Guid? NeighborhoodId { get; init; }
+
     public PaymentMethod? PaymentMethod { get; init; }
 
     /// <summary>

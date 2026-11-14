@@ -160,4 +160,44 @@ public sealed class ApplicationDbContextModelTests
         cityNormalizedIndex.Should().NotBeNull();
         cityNormalizedIndex!.IsUnique.Should().BeTrue();
     }
+
+    [Fact]
+    public void StoreDeliveryArea_ShouldKeepPlainStoreIdIndexAndFilteredUniqueNeighborhoodIndex()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"urbeat-model-{Guid.NewGuid()}")
+            .Options;
+        using var db = new ApplicationDbContext(options);
+
+        var entityType = db.Model.FindEntityType(typeof(StoreDeliveryArea));
+        entityType.Should().NotBeNull();
+        var indexes = entityType!.GetIndexes();
+
+        // Transitional rows keep NeighborhoodId null, so store/checkout lookups by StoreId still
+        // need the plain (non-filtered) index that existed before the CNEFE migration.
+        var storeIndex = indexes.SingleOrDefault(x =>
+            x.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(StoreDeliveryArea.StoreId)
+            }));
+
+        storeIndex.Should().NotBeNull();
+        storeIndex!.IsUnique.Should().BeFalse();
+        storeIndex.GetFilter().Should().BeNull();
+
+        var neighborhoodIndex = indexes.SingleOrDefault(x =>
+            x.Properties.Select(property => property.Name).SequenceEqual(new[]
+            {
+                nameof(StoreDeliveryArea.StoreId),
+                nameof(StoreDeliveryArea.NeighborhoodId)
+            }));
+
+        neighborhoodIndex.Should().NotBeNull();
+        neighborhoodIndex!.IsUnique.Should().BeTrue();
+        neighborhoodIndex.GetFilter().Should().Be("\"NeighborhoodId\" IS NOT NULL");
+
+        indexes.Select(x => x.GetDatabaseName())
+            .Should()
+            .OnlyHaveUniqueItems("index names must stay unique so the migration never duplicates one");
+    }
 }

@@ -1,22 +1,17 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using Urbeat.Domain.Geo;
 
 namespace Urbeat.Infrastructure.Helpers;
 
+/// <summary>
+/// Compatibility facade over <see cref="NeighborhoodName.Normalize"/>. The canonical form now
+/// replaces punctuation with a space and collapses whitespace in addition to folding accents and
+/// lowercasing. Existing rows are renormalized by the geographic base migration; new code must use
+/// the domain helper directly.
+/// </summary>
 public static class NeighborhoodNormalizer
 {
     public static string Normalize(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return string.Empty;
-
-        var decomposed = value.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder(decomposed.Length);
-        foreach (var ch in decomposed)
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
-                builder.Append(ch);
-        }
-        return builder.ToString().Normalize(NormalizationForm.FormC);
+        return NeighborhoodName.Normalize(value);
     }
 }

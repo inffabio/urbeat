@@ -1,0 +1,543 @@
+{
+  "report": {
+    "kind": "cnefe-centroid-validation",
+    "specification": "imports/cnefe/prompt.txt v2.1 (secoes 3.3.5, 5.1 e 10)",
+    "generated_at_utc": "2026-11-14T02:34:26Z",
+    "tool": "backend/scripts/import/cnefe_discover_schema.py",
+    "access_mode": "read-only (mode=ro, PRAGMA query_only=1)",
+    "chunk_size": 50000
+  },
+  "source": {
+    "file_name": "delivery_brasil.db",
+    "logical_path": "imports/cnefe/delivery_brasil.db",
+    "source_version": "CNEFE_2022",
+    "size_bytes": 713089024,
+    "sha256": "b935dfaaaa3bed2759f77961fce9283fabffb32da9cd9537a8c444410a121f8a",
+    "neighborhoods_table": "bairros",
+    "streets_table": "ruas"
+  },
+  "method": {
+    "id": "ADDRESS_POINT_MEAN",
+    "description": "Media aritmetica direta de latitude e longitude dos pontos de ruas agrupados por (uf_codigo, municipio_codigo, bairro), comparada com latitude_central/longitude_central de bairros por distancia Haversine em linha reta.",
+    "aggregation_key": [
+      "uf_codigo",
+      "municipio_codigo",
+      "nome"
+    ],
+    "no_average_of_averages": true,
+    "summation": "kahan_compensated",
+    "distance": "haversine",
+    "distance_radius_m": 6371000.0,
+    "tolerance_m": 1.0,
+    "valid_point_rules": [
+      "latitude e longitude nao nulas",
+      "valores finitos",
+      "diferentes de (0,0)",
+      "latitude em [-90, 90] e longitude em [-180, 180]",
+      "dentro da envoltoria generosa do Brasil (lat -34.5..6.0, lon -74.5..-28.0)"
+    ],
+    "invalid_points_excluded": 0,
+    "granularity_note": "Cada linha de ruas e um registro por logradouro, nao por domicilio. A media tem peso por logradouro e nao deve ser descrita como media por domicilio.",
+    "provenance": "materialized_and_validated"
+  },
+  "totals": {
+    "neighborhoods": 520195,
+    "neighborhoods_with_valid_points": 520195,
+    "neighborhoods_without_points": 0,
+    "neighborhoods_with_materialized_centroid": 520195,
+    "neighborhoods_missing_centroid": 0,
+    "neighborhoods_compared": 520195,
+    "street_groups": 520195,
+    "street_groups_without_neighborhood": 0,
+    "street_groups_without_neighborhood_truncated": false,
+    "points_valid": 4266401,
+    "points_invalid": 0,
+    "low_sample_threshold": 5,
+    "neighborhoods_below_low_sample_threshold": 344434,
+    "duplicate_neighborhood_keys": 0
+  },
+  "error_meters": {
+    "count": 520195,
+    "min": 0.0,
+    "median": 0.030446,
+    "p90": 0.058909,
+    "p99": 0.078396,
+    "max": 0.078627,
+    "mean": 0.027765
+  },
+  "above_tolerance": {
+    "tolerance_m": 1.0,
+    "count": 0,
+    "samples": []
+  },
+  "by_uf": [
+    {
+      "uf_codigo": "11",
+      "uf_sigla": "RO",
+      "neighborhoods": 3322,
+      "compared": 3322,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.027799,
+      "p90_m": 0.059229,
+      "p99_m": 0.078017,
+      "max_m": 0.078231,
+      "mean_m": 0.0268
+    },
+    {
+      "uf_codigo": "12",
+      "uf_sigla": "AC",
+      "neighborhoods": 3440,
+      "compared": 3440,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.055597,
+      "p99_m": 0.078189,
+      "max_m": 0.078298,
+      "mean_m": 0.019822
+    },
+    {
+      "uf_codigo": "13",
+      "uf_sigla": "AM",
+      "neighborhoods": 11874,
+      "compared": 11874,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.055597,
+      "p99_m": 0.078575,
+      "max_m": 0.078627,
+      "mean_m": 0.016956
+    },
+    {
+      "uf_codigo": "14",
+      "uf_sigla": "RR",
+      "neighborhoods": 1589,
+      "compared": 1589,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.055597,
+      "p99_m": 0.07859,
+      "max_m": 0.078625,
+      "mean_m": 0.018405
+    },
+    {
+      "uf_codigo": "15",
+      "uf_sigla": "PA",
+      "neighborhoods": 22153,
+      "compared": 22153,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.02471,
+      "p90_m": 0.059203,
+      "p99_m": 0.078615,
+      "max_m": 0.078627,
+      "mean_m": 0.026193
+    },
+    {
+      "uf_codigo": "16",
+      "uf_sigla": "AP",
+      "neighborhoods": 1267,
+      "compared": 1267,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.019656,
+      "p90_m": 0.057394,
+      "p99_m": 0.078627,
+      "max_m": 0.078627,
+      "mean_m": 0.024969
+    },
+    {
+      "uf_codigo": "17",
+      "uf_sigla": "TO",
+      "neighborhoods": 12160,
+      "compared": 12160,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.055597,
+      "p99_m": 0.078176,
+      "max_m": 0.078465,
+      "mean_m": 0.022219
+    },
+    {
+      "uf_codigo": "21",
+      "uf_sigla": "MA",
+      "neighborhoods": 34509,
+      "compared": 34509,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.058558,
+      "p99_m": 0.078571,
+      "max_m": 0.078618,
+      "mean_m": 0.024809
+    },
+    {
+      "uf_codigo": "22",
+      "uf_sigla": "PI",
+      "neighborhoods": 26564,
+      "compared": 26564,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.027799,
+      "p90_m": 0.061918,
+      "p99_m": 0.078516,
+      "max_m": 0.078574,
+      "mean_m": 0.027829
+    },
+    {
+      "uf_codigo": "23",
+      "uf_sigla": "CE",
+      "neighborhoods": 25251,
+      "compared": 25251,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.035425,
+      "p90_m": 0.061985,
+      "p99_m": 0.078545,
+      "max_m": 0.078579,
+      "mean_m": 0.029351
+    },
+    {
+      "uf_codigo": "24",
+      "uf_sigla": "RN",
+      "neighborhoods": 8786,
+      "compared": 8786,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.05616,
+      "p99_m": 0.078439,
+      "max_m": 0.078481,
+      "mean_m": 0.022677
+    },
+    {
+      "uf_codigo": "25",
+      "uf_sigla": "PB",
+      "neighborhoods": 17181,
+      "compared": 17181,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.05874,
+      "p99_m": 0.078359,
+      "max_m": 0.078399,
+      "mean_m": 0.02462
+    },
+    {
+      "uf_codigo": "26",
+      "uf_sigla": "PE",
+      "neighborhoods": 26928,
+      "compared": 26928,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.057938,
+      "p99_m": 0.078263,
+      "max_m": 0.078309,
+      "mean_m": 0.023962
+    },
+    {
+      "uf_codigo": "27",
+      "uf_sigla": "AL",
+      "neighborhoods": 7392,
+      "compared": 7392,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.027427,
+      "p90_m": 0.058955,
+      "p99_m": 0.078121,
+      "max_m": 0.078157,
+      "mean_m": 0.026622
+    },
+    {
+      "uf_codigo": "28",
+      "uf_sigla": "SE",
+      "neighborhoods": 4712,
+      "compared": 4712,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.037219,
+      "p90_m": 0.061933,
+      "p99_m": 0.078015,
+      "max_m": 0.078081,
+      "mean_m": 0.033436
+    },
+    {
+      "uf_codigo": "29",
+      "uf_sigla": "BA",
+      "neighborhoods": 64529,
+      "compared": 64529,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.03024,
+      "p90_m": 0.060605,
+      "p99_m": 0.077913,
+      "max_m": 0.078192,
+      "mean_m": 0.027691
+    },
+    {
+      "uf_codigo": "31",
+      "uf_sigla": "MG",
+      "neighborhoods": 71048,
+      "compared": 71048,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.034931,
+      "p90_m": 0.059442,
+      "p99_m": 0.076882,
+      "max_m": 0.07742,
+      "mean_m": 0.029863
+    },
+    {
+      "uf_codigo": "32",
+      "uf_sigla": "ES",
+      "neighborhoods": 7644,
+      "compared": 7644,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.036871,
+      "p90_m": 0.059497,
+      "p99_m": 0.076537,
+      "max_m": 0.07673,
+      "mean_m": 0.031542
+    },
+    {
+      "uf_codigo": "33",
+      "uf_sigla": "RJ",
+      "neighborhoods": 7688,
+      "compared": 7688,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.03782,
+      "p90_m": 0.058543,
+      "p99_m": 0.075778,
+      "max_m": 0.076105,
+      "mean_m": 0.033608
+    },
+    {
+      "uf_codigo": "35",
+      "uf_sigla": "SP",
+      "neighborhoods": 59014,
+      "compared": 59014,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.034383,
+      "p90_m": 0.058651,
+      "p99_m": 0.075924,
+      "max_m": 0.076326,
+      "mean_m": 0.029995
+    },
+    {
+      "uf_codigo": "41",
+      "uf_sigla": "PR",
+      "neighborhoods": 29891,
+      "compared": 29891,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.033881,
+      "p90_m": 0.058159,
+      "p99_m": 0.07544,
+      "max_m": 0.075681,
+      "mean_m": 0.029532
+    },
+    {
+      "uf_codigo": "42",
+      "uf_sigla": "SC",
+      "neighborhoods": 10036,
+      "compared": 10036,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.037329,
+      "p90_m": 0.059438,
+      "p99_m": 0.074544,
+      "max_m": 0.074721,
+      "mean_m": 0.034654
+    },
+    {
+      "uf_codigo": "43",
+      "uf_sigla": "RS",
+      "neighborhoods": 20470,
+      "compared": 20470,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.037065,
+      "p90_m": 0.058892,
+      "p99_m": 0.074138,
+      "max_m": 0.074428,
+      "mean_m": 0.033522
+    },
+    {
+      "uf_codigo": "50",
+      "uf_sigla": "MS",
+      "neighborhoods": 9191,
+      "compared": 9191,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.011703,
+      "p90_m": 0.056794,
+      "p99_m": 0.076249,
+      "max_m": 0.076767,
+      "mean_m": 0.02351
+    },
+    {
+      "uf_codigo": "51",
+      "uf_sigla": "MT",
+      "neighborhoods": 16348,
+      "compared": 16348,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.0,
+      "p90_m": 0.055911,
+      "p99_m": 0.077806,
+      "max_m": 0.078108,
+      "mean_m": 0.021921
+    },
+    {
+      "uf_codigo": "52",
+      "uf_sigla": "GO",
+      "neighborhoods": 16545,
+      "compared": 16545,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.037065,
+      "p90_m": 0.060493,
+      "p99_m": 0.077237,
+      "max_m": 0.077647,
+      "mean_m": 0.031974
+    },
+    {
+      "uf_codigo": "53",
+      "uf_sigla": "DF",
+      "neighborhoods": 663,
+      "compared": 663,
+      "above_tolerance": 0,
+      "min_m": 0.0,
+      "median_m": 0.022239,
+      "p90_m": 0.05575,
+      "p99_m": 0.077147,
+      "max_m": 0.077192,
+      "mean_m": 0.024708
+    }
+  ],
+  "without_points": {
+    "count": 0,
+    "samples": []
+  },
+  "missing_centroid": {
+    "count": 0,
+    "samples": []
+  },
+  "low_sample": {
+    "threshold": 5,
+    "count": 344434,
+    "samples": [
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA AEKA",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BANANEIRA",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BARRANCO ALTO",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BARREIRA DE ARARA",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BOA ESPERANCA",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BOM JESUS 1",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BOM JESUS 2",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA BOM SOSSEGO",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA CASTANHEIRA",
+        "point_count": 1,
+        "error_m": 0.0
+      },
+      {
+        "uf_codigo": "11",
+        "municipio_codigo": "1100015",
+        "bairro": "ALDEIA INDIGENA JATOBA",
+        "point_count": 1,
+        "error_m": 0.0
+      }
+    ]
+  },
+  "orphan_street_groups": {
+    "count": 0,
+    "truncated": false,
+    "rows": 0,
+    "samples": []
+  },
+  "duplicate_neighborhood_key_samples": [],
+  "conclusion": "Todos os bairros comparados estao dentro da tolerancia configurada.",
+  "data_fingerprint": "f2738fcf0643742c73736d0488fd873fdc8e5f20ee3922a47fa0879779eca1c1",
+  "performance": {
+    "duration_seconds": 189.097,
+    "peak_memory_bytes": 378793984,
+    "chunk_size": 50000,
+    "phase_seconds": {
+      "checksum_initial": 0.781,
+      "schema_inventory": 1.213,
+      "mapping_resolution": 0.0,
+      "distributions": 4.476,
+      "duplicates": 52.794,
+      "neighborhoods_pass": 9.843,
+      "streets_pass": 114.392,
+      "centroid_comparison": 2.979,
+      "checksum_final": 1.906
+    },
+    "streaming_passes": {
+      "bairros": 1,
+      "ruas": 1
+    },
+    "fingerprint_excludes": [
+      "report.generated_at_utc",
+      "performance"
+    ]
+  }
+}

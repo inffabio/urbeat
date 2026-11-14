@@ -25,4 +25,25 @@ public sealed class DeliveryNeighborhoodResponseDto
     public string? Source { get; init; }
 
     public bool IsActive { get; init; }
+
+    /// <summary><c>official_cnefe</c>, <c>manual</c> or <c>legacy</c>.</summary>
+    public string Kind { get; init; } = "legacy";
+
+    /// <summary><c>computed</c>, <c>pending</c> or <c>manual</c>.</summary>
+    public string CoordinateStatus { get; init; } = "pending";
+
+    public string? CoordinateMethod { get; init; }
+
+    public int CoordinatePointCount { get; init; }
+
+    public string? DatasetVersion { get; init; }
+
+    /// <summary>Straight-line Haversine distance from the store, rounded for display.</summary>
+    public double? DistanceKm { get; init; }
+
+    /// <summary>True only when <see cref="DistanceKm"/> is inside the applied radius.</summary>
+    public bool? Eligible { get; init; }
+
+    /// <summary>Manual neighborhoods have no coordinate and need an explicit seller decision.</summary>
+    public bool RequiresManualReview { get; init; }
 }

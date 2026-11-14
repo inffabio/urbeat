@@ -61,9 +61,12 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     {
                          Id = a.Id,
                          Neighborhood = a.Neighborhood,
+                         NeighborhoodId = a.NeighborhoodId,
                          DeliveryFee = a.DeliveryFee,
                          IsActive = a.IsActive,
-                         Notes = a.Notes
+                         Notes = a.Notes,
+                         DistanceKm = a.DistanceKm,
+                         DistanceMethod = a.DistanceMethod
                     }).ToList()
                 })
                 .SingleOrDefaultAsync(cancellationToken);
@@ -127,7 +130,9 @@ public sealed class StoreReadRepository : IStoreReadRepository
               {
                   ApplyFreeShippingToday(store);
                   const string areasSql = """
-                      SELECT "Id", "Neighborhood", "DeliveryFee", "IsActive", "Notes" FROM "StoreDeliveryAreas" WHERE "StoreId" = @StoreId
+                      SELECT "Id", "Neighborhood", "NeighborhoodId", "DeliveryFee", "IsActive", "Notes",
+                             "DistanceKm", "DistanceMethod"
+                      FROM "StoreDeliveryAreas" WHERE "StoreId" = @StoreId
                   """;
                    var areas = await connection.QueryAsync<StoreDeliveryAreaDto>(
                        new CommandDefinition(areasSql, new { StoreId = store.Id }, cancellationToken: ct));
@@ -181,9 +186,12 @@ public sealed class StoreReadRepository : IStoreReadRepository
                     {
                          Id = a.Id,
                          Neighborhood = a.Neighborhood,
+                         NeighborhoodId = a.NeighborhoodId,
                          DeliveryFee = a.DeliveryFee,
                          IsActive = a.IsActive,
-                         Notes = a.Notes
+                         Notes = a.Notes,
+                         DistanceKm = a.DistanceKm,
+                         DistanceMethod = a.DistanceMethod
                     }).ToList()
                 })
                 .ToListAsync(cancellationToken);

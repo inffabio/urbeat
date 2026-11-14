@@ -2,6 +2,7 @@
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Geo;
 using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -829,50 +830,58 @@ public sealed class StoreService : IStoreService
                 ? maxDeliveryRadiusKm
                 : store.MaxDeliveryRadiusKm;
 
-            // Server-side guard: a radius reduction/change must not retain store delivery areas
-            // outside the radius, even when a stale or direct client submits them. Eligibility is
-            // derived from the same radius/city/manual rules used to list neighborhoods; global
-            // DeliveryNeighborhood rows are never modified. Stores without an address cannot apply
-            // the radius rules, so their submitted areas keep the previous behavior.
             var storeAddress = await _dbContext.StoreAddresses
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.StoreId == storeId, cancellationToken);
 
-            if (effectiveRadiusKm is > 0 && storeAddress is not null)
+            var storeCityId = await ResolveCityIdAsync(storeAddress, cancellationToken);
+            var neighborhoodLookup = await LoadNeighborhoodLookupAsync(storeAddress, storeCityId, cancellationToken);
+
+            // Server-side guard: a radius reduction/change must not retain store delivery areas
+            // outside the radius, even when a stale or direct client submits them. Eligibility uses
+            // the straight-line Haversine distance over the complete circle (no 1.3 factor and no
+            // route estimate). Areas that cannot be resolved to a global neighborhood keep the
+            // previous behaviour: they are manual and cannot be classified by distance.
+            var radiusApplied = effectiveRadiusKm is > 0
+                && storeAddress?.Latitude is not null
+                && storeAddress.Longitude is not null;
+
+            var resolvedAreas = new List<(StoreDeliveryAreaDto Area, Guid? NeighborhoodId, double? DistanceKm)>(submittedAreas.Count);
+
+            foreach (var area in submittedAreas)
             {
-                var eligible = await GetActiveDeliveryNeighborhoodsByStoreAsync(storeId, effectiveRadiusKm, cancellationToken);
-                var eligibleNames = eligible
-                    .Select(x => NormalizeText(x.Neighborhood))
-                    .ToHashSet();
-
-                // Only store associations whose names match a global DeliveryNeighborhood in
-                // the store's city are subject to the radius rules. Manual store-only
-                // associations without a global record cannot be classified by distance and
-                // must be kept. Global DeliveryNeighborhood rows themselves are never modified.
-                var globalNamesQuery = _dbContext.DeliveryNeighborhoods
-                    .AsNoTracking()
-                    .Where(x => x.IsActive);
-
-                if (storeAddress.City is not null)
+                var normalizedName = NeighborhoodName.Normalize(area.Neighborhood);
+                if (normalizedName.Length == 0)
                 {
-                    var storeCity = storeAddress.City.ToLower().Trim();
-                    globalNamesQuery = globalNamesQuery.Where(x => x.City.ToLower() == storeCity);
+                    continue;
                 }
 
-                var knownGlobalNames = (await globalNamesQuery
-                        .Select(x => x.Neighborhood)
-                        .ToListAsync(cancellationToken))
-                    .Select(NormalizeText)
-                    .ToHashSet();
+                var neighborhood = neighborhoodLookup.GetValueOrDefault(normalizedName);
 
-                submittedAreas = submittedAreas
-                    .Where(x =>
+                double? distanceKm = null;
+                if (radiusApplied && neighborhood?.Latitude is not null && neighborhood.Longitude is not null)
+                {
+                    distanceKm = GeoDistance.HaversineKm(
+                        storeAddress!.Latitude!.Value,
+                        storeAddress.Longitude!.Value,
+                        neighborhood.Latitude.Value,
+                        neighborhood.Longitude.Value);
+
+                    if (!GeoDistance.IsWithinRadius(distanceKm.Value, effectiveRadiusKm!.Value))
                     {
-                        var normalized = NormalizeText(x.Neighborhood);
-                        return !knownGlobalNames.Contains(normalized) || eligibleNames.Contains(normalized);
-                    })
-                    .ToList();
+                        continue;
+                    }
+                }
+
+                resolvedAreas.Add((area, neighborhood?.Id, distanceKm));
             }
+
+            // The unique index is (StoreId, NeighborhoodId). Two submitted spellings can resolve to
+            // the same global neighborhood; keep the first deterministic entry instead of failing.
+            resolvedAreas = resolvedAreas
+                .GroupBy(x => x.NeighborhoodId?.ToString("N") ?? NeighborhoodName.Normalize(x.Area.Neighborhood))
+                .Select(group => group.First())
+                .ToList();
 
             var isRelational = _dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
             if (isRelational)
@@ -889,13 +898,16 @@ public sealed class StoreService : IStoreService
                 _dbContext.Set<StoreDeliveryArea>().RemoveRange(existing);
             }
 
-            foreach (var area in submittedAreas)
+            foreach (var (area, neighborhoodId, distanceKm) in resolvedAreas)
             {
                 _dbContext.Set<StoreDeliveryArea>().Add(new StoreDeliveryArea
                 {
                     StoreId = storeId,
                     Neighborhood = area.Neighborhood,
+                    NeighborhoodId = neighborhoodId,
                     DeliveryFee = area.DeliveryFee,
+                    DistanceKm = distanceKm is null ? null : GeoDistance.RoundForDisplay(distanceKm.Value, 3),
+                    DistanceMethod = GeographicProvenance.CoordinateMethod.Haversine,
                     IsActive = area.IsActive,
                     Notes = area.Notes.Trim()
                 });
@@ -998,167 +1010,311 @@ public sealed class StoreService : IStoreService
         if (store is null)
             return Array.Empty<DeliveryNeighborhoodResponseDto>();
 
-        var effectiveRadiusKm = radiusKm ?? store.MaxDeliveryRadiusKm;
-
-        if (effectiveRadiusKm is null or <= 0)
-        {
-            var addr = await _dbContext.StoreAddresses
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.StoreId == storeId, cancellationToken);
-            return addr?.City is not null
-                ? await GetNeighborhoodsByCityAsync(addr.City, cancellationToken)
-                : Array.Empty<DeliveryNeighborhoodResponseDto>();
-        }
-
-        var storeAddr = await _dbContext.StoreAddresses
+        var storeAddress = await _dbContext.StoreAddresses
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.StoreId == storeId, cancellationToken);
 
-        if (storeAddr?.Latitude is null || storeAddr.Longitude is null)
+        var cityId = await ResolveCityIdAsync(storeAddress, cancellationToken);
+        var datasetVersion = await GetActiveDatasetVersionAsync(storeAddress?.State, cancellationToken);
+        var effectiveRadiusKm = radiusKm ?? store.MaxDeliveryRadiusKm;
+
+        // A radius is only applicable when it is finite, positive and the store has a coordinate.
+        // Otherwise the city list is returned and no distance/eligibility is asserted.
+        var radiusApplied = effectiveRadiusKm is > 0
+            && double.IsFinite(effectiveRadiusKm.Value)
+            && storeAddress?.Latitude is not null
+            && storeAddress.Longitude is not null;
+
+        var cityNeighborhoods = await LoadActiveCityNeighborhoodsAsync(cityId, storeAddress?.City, cancellationToken);
+
+        if (!radiusApplied)
         {
-            return storeAddr?.City is not null
-                ? await GetNeighborhoodsByCityAsync(storeAddr.City, cancellationToken)
-                : Array.Empty<DeliveryNeighborhoodResponseDto>();
-        }
-        var maxRadius = effectiveRadiusKm.Value;
-
-        var neighborhoodsQuery = _dbContext.DeliveryNeighborhoods
-            .AsNoTracking()
-            .Where(x => x.IsActive && x.Latitude != null && x.Longitude != null);
-
-        if (storeAddr.City is not null)
-        {
-            var city = storeAddr.City.ToLower().Trim();
-            neighborhoodsQuery = neighborhoodsQuery.Where(x => x.City.ToLower() == city);
+            return cityNeighborhoods
+                .Select(x => MapNeighborhood(x, datasetVersion, distanceKm: null, appliedRadiusKm: null))
+                .OrderBy(x => x.Neighborhood)
+                .ToList();
         }
 
-        var allNeighborhoods = await neighborhoodsQuery
-            .OrderBy(x => x.Neighborhood)
-            .Select(x => new DeliveryNeighborhoodResponseDto
-            {
-                Id = x.Id,
-                Neighborhood = x.Neighborhood,
-                NormalizedName = x.NormalizedName,
-                City = x.City,
-                CityId = x.CityId,
-                OsmId = x.OsmId,
-                OsmType = x.OsmType,
-                PlaceType = x.PlaceType,
-                Latitude = x.Latitude,
-                Longitude = x.Longitude,
-                Source = x.Source,
-                IsActive = x.IsActive
-            })
+        var storeLatitude = storeAddress!.Latitude!.Value;
+        var storeLongitude = storeAddress.Longitude!.Value;
+        var radius = effectiveRadiusKm!.Value;
+        var boundingBox = GeoDistance.BoundingBox(storeLatitude, storeLongitude, radius);
+
+        // Only the bounding-box candidates are loaded from PostgreSQL; a large municipality is never
+        // materialized entirely just to filter by radius in memory.
+        var candidateQuery = ApplyCityScope(
+            _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
+            cityId,
+            storeAddress.City);
+
+        var candidates = await candidateQuery
+            .Where(x => x.Latitude != null
+                && x.Longitude != null
+                && x.Latitude >= boundingBox.MinLatitude
+                && x.Latitude <= boundingBox.MaxLatitude
+                && x.Longitude >= boundingBox.MinLongitude
+                && x.Longitude <= boundingBox.MaxLongitude)
             .ToListAsync(cancellationToken);
 
-        var storeLat = storeAddr.Latitude.Value;
-        var storeLon = storeAddr.Longitude.Value;
+        var eligible = new List<DeliveryNeighborhoodResponseDto>(candidates.Count);
 
-        var withinRadius = allNeighborhoods
-            .Where(x => HaversineKm(storeLat, storeLon, x.Latitude!.Value, x.Longitude!.Value) <= maxRadius)
+        foreach (var neighborhood in candidates)
+        {
+            var distanceKm = GeoDistance.HaversineKm(
+                storeLatitude,
+                storeLongitude,
+                neighborhood.Latitude!.Value,
+                neighborhood.Longitude!.Value);
+
+            if (!GeoDistance.IsWithinRadius(distanceKm, radius))
+            {
+                // A valid radius with no eligible neighborhood is a valid empty result. The city
+                // fallback above is only for a missing/zero radius or a store without coordinates.
+                continue;
+            }
+
+            eligible.Add(MapNeighborhood(neighborhood, datasetVersion, distanceKm, radius));
+        }
+
+        // Manual neighborhoods belong to the store city, have no coordinate and are never filtered
+        // by radius. They are returned separately so the seller can review them explicitly.
+        var manualNeighborhoods = await ApplyCityScope(
+                _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
+                cityId,
+                storeAddress.City)
+            .Where(x => x.Latitude == null
+                || x.Longitude == null
+                || x.Kind == GeographicProvenance.NeighborhoodKind.Manual)
+            .ToListAsync(cancellationToken);
+
+        var manual = manualNeighborhoods
+            .Select(x => MapNeighborhood(x, datasetVersion, distanceKm: null, appliedRadiusKm: null))
             .ToList();
 
-        // Bairros manuais (sem Latitude/Longitude) pertencem à cidade da loja e
-        // não podem ser filtrados por raio; devem continuar sendo retornados.
-        List<DeliveryNeighborhoodResponseDto> manualNeighborhoods;
-        if (storeAddr.City is not null)
-        {
-            manualNeighborhoods = await _dbContext.DeliveryNeighborhoods
-                .AsNoTracking()
-                .Where(x => x.IsActive
-                    && (x.Latitude == null || x.Longitude == null)
-                    && x.City.ToLower() == storeAddr.City.ToLower().Trim())
-                .OrderBy(x => x.Neighborhood)
-                .Select(x => new DeliveryNeighborhoodResponseDto
-                {
-                    Id = x.Id,
-                    Neighborhood = x.Neighborhood,
-                    NormalizedName = x.NormalizedName,
-                    City = x.City,
-                    CityId = x.CityId,
-                    OsmId = x.OsmId,
-                    OsmType = x.OsmType,
-                    PlaceType = x.PlaceType,
-                    Latitude = x.Latitude,
-                    Longitude = x.Longitude,
-                    Source = x.Source,
-                    IsActive = x.IsActive
-                })
-                .ToListAsync(cancellationToken);
-        }
-        else
-        {
-            manualNeighborhoods = [];
-        }
-
-        var result = manualNeighborhoods
-            .Concat(withinRadius)
+        return manual
+            .Concat(eligible)
             .OrderBy(x => x.Neighborhood)
             .ToList();
+    }
 
-        // A valid positive radius with coordinates must honor the radius even
-        // when it yields no eligible neighborhoods: returning the full city
-        // here would make shrinking the radius unable to remove store areas.
-        // The city fallback only applies to missing/zero radius or missing
-        // coordinates, which are handled above.
-        return result;
+    private static IQueryable<DeliveryNeighborhood> ApplyCityScope(
+        IQueryable<DeliveryNeighborhood> query,
+        Guid? cityId,
+        string? cityName)
+    {
+        var normalizedCity = string.IsNullOrWhiteSpace(cityName)
+            ? null
+            : cityName.ToLower().Trim();
+
+        if (cityId is not null && normalizedCity is not null)
+        {
+            // Prefer the identifier, but keep the textual city as a transitional fallback for
+            // legacy rows whose CityId was never reconciled. Homonyms in another municipality have
+            // a different CityId and a different City text, so they are still excluded.
+            return query.Where(x => x.CityId == cityId || x.City.ToLower() == normalizedCity);
+        }
+
+        if (cityId is not null)
+        {
+            return query.Where(x => x.CityId == cityId);
+        }
+
+        if (normalizedCity is not null)
+        {
+            return query.Where(x => x.City.ToLower() == normalizedCity);
+        }
+
+        // No city scope: an empty query instead of a national scan.
+        return query.Where(_ => false);
+    }
+
+    private async Task<List<DeliveryNeighborhood>> LoadActiveCityNeighborhoodsAsync(
+        Guid? cityId,
+        string? cityName,
+        CancellationToken cancellationToken)
+    {
+        var query = ApplyCityScope(
+            _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
+            cityId,
+            cityName);
+
+        return await query
+            .OrderBy(x => x.Neighborhood)
+            .ToListAsync(cancellationToken);
+    }
+
+    private static DeliveryNeighborhoodResponseDto MapNeighborhood(
+        DeliveryNeighborhood neighborhood,
+        string? datasetVersion,
+        double? distanceKm,
+        double? appliedRadiusKm)
+    {
+        var isManual = string.Equals(neighborhood.Kind, GeographicProvenance.NeighborhoodKind.Manual, StringComparison.Ordinal)
+            || neighborhood.Latitude is null
+            || neighborhood.Longitude is null;
+
+        bool? eligible = null;
+        if (isManual)
+        {
+            // Manual neighborhoods are never distance-filtered; they require an explicit decision.
+            eligible = false;
+        }
+        else if (distanceKm is not null && appliedRadiusKm is not null)
+        {
+            eligible = GeoDistance.IsWithinRadius(distanceKm.Value, appliedRadiusKm.Value);
+        }
+
+        return new DeliveryNeighborhoodResponseDto
+        {
+            Id = neighborhood.Id,
+            Neighborhood = neighborhood.Neighborhood,
+            NormalizedName = neighborhood.NormalizedName,
+            City = neighborhood.City,
+            CityId = neighborhood.CityId,
+            OsmId = neighborhood.OsmId,
+            OsmType = neighborhood.OsmType,
+            PlaceType = neighborhood.PlaceType,
+            Latitude = neighborhood.Latitude,
+            Longitude = neighborhood.Longitude,
+            Source = neighborhood.Source,
+            IsActive = neighborhood.IsActive,
+            Kind = neighborhood.Kind,
+            CoordinateStatus = neighborhood.CoordinateStatus,
+            CoordinateMethod = neighborhood.CoordinateMethod,
+            CoordinatePointCount = neighborhood.CoordinatePointCount,
+            DatasetVersion = datasetVersion,
+            DistanceKm = distanceKm is null ? null : GeoDistance.RoundForDisplay(distanceKm.Value),
+            Eligible = eligible,
+            RequiresManualReview = isManual
+        };
     }
 
     private async Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetNeighborhoodsByCityAsync(string city, CancellationToken cancellationToken)
     {
-        return await _dbContext.DeliveryNeighborhoods
+        var neighborhoods = await _dbContext.DeliveryNeighborhoods
             .AsNoTracking()
             .Where(x => x.IsActive && x.City.ToLower() == city.ToLower().Trim())
             .OrderBy(x => x.Neighborhood)
-            .Select(x => new DeliveryNeighborhoodResponseDto
-            {
-                Id = x.Id,
-                Neighborhood = x.Neighborhood,
-                NormalizedName = x.NormalizedName,
-                City = x.City,
-                CityId = x.CityId,
-                OsmId = x.OsmId,
-                OsmType = x.OsmType,
-                PlaceType = x.PlaceType,
-                Latitude = x.Latitude,
-                Longitude = x.Longitude,
-                Source = x.Source,
-                IsActive = x.IsActive
-            })
             .ToListAsync(cancellationToken);
+
+        var datasetVersion = await GetActiveDatasetVersionAsync(null, cancellationToken);
+
+        return neighborhoods
+            .Select(x => MapNeighborhood(x, datasetVersion, distanceKm: null, appliedRadiusKm: null))
+            .ToList();
     }
 
-    private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+    /// <summary>
+    /// Resolves the persisted <see cref="City"/> of the store address (normalized name + UF) to the
+    /// canonical city identifier. Returns null when the client-supplied address text does not match
+    /// a known city; callers then fall back to the textual name during the transition.
+    /// </summary>
+    private async Task<Guid?> ResolveCityIdAsync(StoreAddress? address, CancellationToken cancellationToken)
     {
-        const double R = 6371;
-        var dLat = (lat2 - lat1) * Math.PI / 180;
-        var dLon = (lon2 - lon1) * Math.PI / 180;
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-            Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
-            Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return R * c;
+        if (address is null || string.IsNullOrWhiteSpace(address.City))
+        {
+            return null;
+        }
+
+        var normalizedName = NeighborhoodName.Normalize(address.City);
+        if (normalizedName.Length == 0)
+        {
+            return null;
+        }
+
+        var uf = address.State?.Trim().ToUpperInvariant();
+
+        var city = await _dbContext.Cities
+            .AsNoTracking()
+            .Where(x => x.NormalizedName == normalizedName && (uf == null || x.Uf == uf))
+            .OrderBy(x => x.Name)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return city?.Id;
+    }
+
+    /// <summary>
+    /// Loads every active neighborhood of the store city keyed by canonical name so the write path
+    /// can resolve <see cref="StoreDeliveryArea.NeighborhoodId"/> and its Haversine distance.
+    /// </summary>
+    private async Task<Dictionary<string, DeliveryNeighborhood>> LoadNeighborhoodLookupAsync(
+        StoreAddress? address,
+        Guid? cityId,
+        CancellationToken cancellationToken)
+    {
+        var neighborhoods = await LoadActiveCityNeighborhoodsAsync(cityId, address?.City, cancellationToken);
+
+        var lookup = new Dictionary<string, DeliveryNeighborhood>(neighborhoods.Count, StringComparer.Ordinal);
+        foreach (var neighborhood in neighborhoods)
+        {
+            var key = neighborhood.NormalizedName.Length > 0
+                ? neighborhood.NormalizedName
+                : NeighborhoodName.Normalize(neighborhood.Neighborhood);
+
+            if (key.Length == 0 || lookup.ContainsKey(key))
+            {
+                continue;
+            }
+
+            lookup[key] = neighborhood;
+        }
+
+        return lookup;
+    }
+
+    private async Task<string?> GetActiveDatasetVersionAsync(string? uf, CancellationToken cancellationToken)
+    {
+        var normalizedUf = uf?.Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(normalizedUf))
+        {
+            return null;
+        }
+
+        return await _dbContext.ImportDatasets
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.Uf == normalizedUf)
+            .OrderByDescending(x => x.ActivatedAtUtc)
+            .Select(x => x.SourceVersion)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<DeliveryNeighborhoodResponseDto?> CreateDeliveryNeighborhoodAsync(string neighborhood, string city, CancellationToken cancellationToken = default)
     {
-        var normalizedNeighborhood = neighborhood.Trim();
-        var normalizedCity = city.Trim();
+        var displayName = neighborhood.Trim();
+        var normalizedName = NeighborhoodName.Normalize(displayName);
+        var cityName = city.Trim();
 
-        var exists = await _dbContext.DeliveryNeighborhoods
+        if (normalizedName.Length == 0 || cityName.Length == 0)
+            return null;
+
+        var cityEntity = await _dbContext.Cities
             .AsNoTracking()
-            .AnyAsync(x => x.IsActive
-                && x.Neighborhood.ToLower() == normalizedNeighborhood.ToLower()
-                && x.City.ToLower() == normalizedCity.ToLower(), cancellationToken);
+            .Where(x => x.NormalizedName == NeighborhoodName.Normalize(cityName))
+            .OrderBy(x => x.Name)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (exists)
+        // A manual neighborhood that collides with an official one in the same municipality must
+        // reuse the existing row instead of creating a duplicate. The caller treats null as a
+        // conflict, which is the existing contract.
+        var existsQuery = _dbContext.DeliveryNeighborhoods
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.NormalizedName == normalizedName);
+
+        existsQuery = cityEntity is not null
+            ? existsQuery.Where(x => x.CityId == cityEntity.Id)
+            : existsQuery.Where(x => x.City.ToLower() == cityName.ToLower());
+
+        if (await existsQuery.AnyAsync(cancellationToken))
             return null;
 
         var dn = new DeliveryNeighborhood
         {
-            Neighborhood = normalizedNeighborhood,
-            NormalizedName = NormalizeText(normalizedNeighborhood),
-            City = normalizedCity,
+            CityId = cityEntity?.Id,
+            Neighborhood = displayName,
+            NormalizedName = normalizedName,
+            City = cityEntity?.Name ?? cityName,
+            Kind = GeographicProvenance.NeighborhoodKind.Manual,
+            CoordinateStatus = GeographicProvenance.CoordinateStatus.Manual,
             IsActive = true
         };
 
@@ -1172,7 +1328,10 @@ public sealed class StoreService : IStoreService
             NormalizedName = dn.NormalizedName,
             City = dn.City,
             CityId = dn.CityId,
-            IsActive = dn.IsActive
+            IsActive = dn.IsActive,
+            Kind = dn.Kind,
+            CoordinateStatus = dn.CoordinateStatus,
+            RequiresManualReview = true
         };
     }
 

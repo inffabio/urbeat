@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Outbox;
 using Urbeat.Application.Security;
@@ -289,6 +290,45 @@ public static class InfrastructureServiceCollectionExtensions
         }
         services.AddSingleton<IShortIdCache, RedisShortIdCache>();
         services.AddSingleton<IEmailTokenCache, RedisEmailTokenCache>();
+        services.AddScoped<IAddressLookupService, AddressLookupService>();
+
+        // Derived caches/indexes are optional by design. If Redis is configured but unreachable,
+        // the fallback implementations keep the API on the authoritative PostgreSQL path instead of
+        // failing the request (or the host startup).
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
+        {
+            services.AddScoped<IGeographicCache>(provider =>
+            {
+                try
+                {
+                    return new RedisGeographicCache(provider.GetRequiredService<IConnectionMultiplexer>());
+                }
+                catch (Exception exception)
+                {
+                    Serilog.Log.Warning(exception, "Geographic cache disabled: Redis is unavailable.");
+                    return new NullGeographicCache();
+                }
+            });
+            services.AddScoped<INeighborhoodGeoIndex>(provider =>
+            {
+                try
+                {
+                    return new RedisNeighborhoodGeoIndex(
+                        provider.GetRequiredService<ApplicationDbContext>(),
+                        provider.GetRequiredService<IConnectionMultiplexer>());
+                }
+                catch (Exception exception)
+                {
+                    Serilog.Log.Warning(exception, "Geo index disabled: Redis is unavailable.");
+                    return new NullNeighborhoodGeoIndex();
+                }
+            });
+        }
+        else
+        {
+            services.AddSingleton<IGeographicCache, NullGeographicCache>();
+            services.AddSingleton<INeighborhoodGeoIndex, NullNeighborhoodGeoIndex>();
+        }
         services.AddScoped<IShortIdService, ShortIdService>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IEfUnitOfWork, EfUnitOfWork>();

@@ -9,11 +9,13 @@ namespace Urbeat.WebApi.Controllers;
 [AllowAnonymous]
 public sealed class AddressLookupController : ControllerBase
 {
-    private readonly IViaCepService _viaCepService;
+    private const int MaxStreetSearchLimit = 50;
 
-    public AddressLookupController(IViaCepService viaCepService)
+    private readonly IAddressLookupService _addressLookupService;
+
+    public AddressLookupController(IAddressLookupService addressLookupService)
     {
-        _viaCepService = viaCepService;
+        _addressLookupService = addressLookupService;
     }
 
     [HttpGet("cep/{cep}")]
@@ -32,7 +34,7 @@ public sealed class AddressLookupController : ControllerBase
                 instance: HttpContext.Request.Path);
         }
 
-        var address = await _viaCepService.LookupAsync(digits, cancellationToken);
+        var address = await _addressLookupService.LookupByCepAsync(digits, cancellationToken);
         if (address is null)
         {
             return Problem(
@@ -43,5 +45,38 @@ public sealed class AddressLookupController : ControllerBase
         }
 
         return Ok(address);
+    }
+
+    /// <summary>
+    /// Prefix search inside one municipality (or one UF). Free-text national scans are rejected.
+    /// </summary>
+    [HttpGet("streets")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchStreets(
+        [FromQuery] Guid? cityId,
+        [FromQuery] string? uf,
+        [FromQuery] string? q,
+        [FromQuery] int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        if (cityId is null && string.IsNullOrWhiteSpace(uf))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Scope required",
+                detail: "Informe cityId ou uf para buscar logradouros.",
+                instance: HttpContext.Request.Path);
+        }
+
+        var normalizedLimit = Math.Clamp(limit, 1, MaxStreetSearchLimit);
+        var streets = await _addressLookupService.SearchStreetsAsync(
+            cityId,
+            uf,
+            q,
+            normalizedLimit,
+            cancellationToken);
+
+        return Ok(streets);
     }
 }

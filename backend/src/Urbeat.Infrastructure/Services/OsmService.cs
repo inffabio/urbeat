@@ -6,6 +6,7 @@ using System.Text.Json;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Geo;
 using Urbeat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -462,6 +463,7 @@ public sealed class OsmService : IOsmService
                     existing.OsmId = bairro.OsmId;
                     existing.OsmType = bairro.OsmType;
                     existing.PlaceType = bairro.PlaceType;
+                    existing.CoordinateStatus = GeographicProvenance.CoordinateStatus.Computed;
                     existing.MarkAsUpdated();
                     updated++;
                 }
@@ -472,6 +474,7 @@ public sealed class OsmService : IOsmService
             }
             else
             {
+                var hasCoordinate = bairro.Latitude.HasValue && bairro.Longitude.HasValue;
                 var entity = new DeliveryNeighborhood
                 {
                     CityId = bairroCity.Id,
@@ -483,14 +486,18 @@ public sealed class OsmService : IOsmService
                     PlaceType = bairro.PlaceType,
                     Latitude = bairro.Latitude,
                     Longitude = bairro.Longitude,
-                    Source = "openstreetmap",
+                    Kind = GeographicProvenance.NeighborhoodKind.Legacy,
+                    CoordinateStatus = hasCoordinate
+                        ? GeographicProvenance.CoordinateStatus.Computed
+                        : GeographicProvenance.CoordinateStatus.Manual,
+                    Source = GeographicProvenance.Source.OpenStreetMap,
                     IsActive = true
                 };
                 var inserted = await _dbContext.Database.ExecuteSqlInterpolatedAsync($"""
                     INSERT INTO "DeliveryNeighborhoods"
-                        ("Id", "CityId", "City", "Neighborhood", "NormalizedName", "OsmId", "OsmType", "PlaceType", "Boundary", "AdminLevel", "Latitude", "Longitude", "Source", "IsActive", "CreatedAtUtc")
+                        ("Id", "CityId", "City", "Neighborhood", "NormalizedName", "OsmId", "OsmType", "PlaceType", "Boundary", "AdminLevel", "Latitude", "Longitude", "Kind", "CoordinateStatus", "Source", "IsActive", "CreatedAtUtc")
                     VALUES
-                        ({entity.Id}, {entity.CityId}, {entity.City}, {entity.Neighborhood}, {entity.NormalizedName}, {entity.OsmId}, {entity.OsmType}, {entity.PlaceType}, {entity.Boundary}, {entity.AdminLevel}, {entity.Latitude}, {entity.Longitude}, {entity.Source}, {entity.IsActive}, {entity.CreatedAtUtc})
+                        ({entity.Id}, {entity.CityId}, {entity.City}, {entity.Neighborhood}, {entity.NormalizedName}, {entity.OsmId}, {entity.OsmType}, {entity.PlaceType}, {entity.Boundary}, {entity.AdminLevel}, {entity.Latitude}, {entity.Longitude}, {entity.Kind}, {entity.CoordinateStatus}, {entity.Source}, {entity.IsActive}, {entity.CreatedAtUtc})
                     ON CONFLICT ("Neighborhood", "City") DO NOTHING
                     """, cancellationToken);
 
@@ -542,16 +549,35 @@ public sealed class OsmService : IOsmService
             {
                 Name = name,
                 Uf = uf,
-                IbgeCode = ibgeCode
+                IbgeCode = ibgeCode,
+                NormalizedName = NeighborhoodName.Normalize(name),
+                Source = GeographicProvenance.Source.OpenStreetMap
             };
             await _dbContext.Set<City>().AddAsync(city, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
-        else if (!string.IsNullOrWhiteSpace(ibgeCode) && string.IsNullOrWhiteSpace(city.IbgeCode))
+        else
         {
-            city.IbgeCode = ibgeCode;
-            city.MarkAsUpdated();
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            var updated = false;
+
+            if (!string.IsNullOrWhiteSpace(ibgeCode) && string.IsNullOrWhiteSpace(city.IbgeCode))
+            {
+                city.IbgeCode = ibgeCode;
+                updated = true;
+            }
+
+            // Rows created before the canonical column existed are backfilled on the next touch.
+            if (string.IsNullOrEmpty(city.NormalizedName))
+            {
+                city.NormalizedName = NeighborhoodName.Normalize(city.Name);
+                updated = true;
+            }
+
+            if (updated)
+            {
+                city.MarkAsUpdated();
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
         }
 
         return city;
@@ -785,14 +811,7 @@ public sealed class OsmService : IOsmService
 
     private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
     {
-        const double R = 6371;
-        var dLat = (lat2 - lat1) * Math.PI / 180;
-        var dLon = (lon2 - lon1) * Math.PI / 180;
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-            Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
-            Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return R * c;
+        return GeoDistance.HaversineKm(lat1, lon1, lat2, lon2);
     }
 
     private static bool IsValidCityName(string? name)
@@ -898,16 +917,8 @@ public sealed class OsmService : IOsmService
 
     private static string NormalizeText(string text)
     {
-        return text
-            .ToLowerInvariant()
-            .Normalize(System.Text.NormalizationForm.FormD)
-            .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-            .Aggregate(new System.Text.StringBuilder(), (sb, c) => sb.Append(c))
-            .ToString()
-            .Replace('\t', ' ')
-            .Replace('\n', ' ')
-            .Replace('\r', ' ')
-            .Trim();
+        // Single canonical implementation shared with the import pipeline and StoreService.
+        return NeighborhoodName.Normalize(text);
     }
 
     private sealed record OsmBairro(

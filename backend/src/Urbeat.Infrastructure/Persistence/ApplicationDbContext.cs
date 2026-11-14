@@ -102,6 +102,18 @@ public sealed class ApplicationDbContext
 
     public DbSet<City> Cities => Set<City>();
 
+    public DbSet<DeliveryStreet> DeliveryStreets => Set<DeliveryStreet>();
+
+    public DbSet<DeliveryStreetZipCode> DeliveryStreetZipCodes => Set<DeliveryStreetZipCode>();
+
+    public DbSet<StoreDeliveryAreaMigrationIssue> StoreDeliveryAreaMigrationIssues => Set<StoreDeliveryAreaMigrationIssue>();
+
+    public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
+
+    public DbSet<ImportError> ImportErrors => Set<ImportError>();
+
+    public DbSet<ImportDataset> ImportDatasets => Set<ImportDataset>();
+
     public DbSet<PrinterPreset> PrinterPresets => Set<PrinterPreset>();
 
     public DbSet<StorePrinterConfig> StorePrinterConfigs => Set<StorePrinterConfig>();
@@ -321,13 +333,42 @@ public sealed class ApplicationDbContext
         builder.Entity<StoreDeliveryArea>(entity =>
         {
             entity.HasKey(x => x.Id);
-            entity.Property(x => x.Neighborhood).HasMaxLength(80);
+            entity.Property(x => x.Neighborhood).HasMaxLength(150);
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.Notes).HasMaxLength(100);
+            entity.Property(x => x.DistanceMethod).HasMaxLength(30).IsRequired().HasDefaultValue("haversine");
+            // Additive migration (Phase A): the textual name is kept as a transitional fallback and
+            // the identifier is resolved by CityId + normalized name. Active rows without an
+            // identifier are reported in StoreDeliveryAreaMigrationIssues instead of being deleted.
+            // The plain StoreId index is preserved because store/checkout queries still load areas
+            // by store during the transitional phase (rows may keep NeighborhoodId null); the
+            // filtered unique index below only covers identifiers that were already resolved.
+            entity.HasIndex(x => x.StoreId);
+            entity.HasIndex(x => new { x.StoreId, x.NeighborhoodId })
+                .IsUnique()
+                .HasFilter("\"NeighborhoodId\" IS NOT NULL");
+            entity.HasOne(x => x.NeighborhoodEntity)
+                .WithMany()
+                .HasForeignKey(x => x.NeighborhoodId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Store>()
                 .WithMany(x => x.DeliveryAreas)
                 .HasForeignKey(x => x.StoreId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<StoreDeliveryAreaMigrationIssue>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.StoreDeliveryAreaId).IsUnique();
+            entity.HasIndex(x => x.StoreId);
+            entity.Property(x => x.Neighborhood).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.NormalizedName).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.City).HasMaxLength(255);
+            entity.Property(x => x.Uf).HasMaxLength(2);
+            entity.Property(x => x.Reason).HasMaxLength(60).IsRequired();
+            entity.Property(x => x.Details).HasMaxLength(500);
+            entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
         });
 
         builder.Entity<StoreBusinessHour>(entity =>
@@ -872,8 +913,8 @@ public sealed class ApplicationDbContext
         builder.Entity<DeliveryNeighborhood>(entity =>
         {
             entity.HasKey(x => x.Id);
-            entity.Property(x => x.Neighborhood).HasMaxLength(80).IsRequired();
-            entity.Property(x => x.City).HasMaxLength(80).IsRequired();
+            entity.Property(x => x.Neighborhood).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.City).HasMaxLength(255).IsRequired();
             entity.Property(x => x.NormalizedName).HasMaxLength(255).IsRequired();
             entity.Property(x => x.CityId).IsRequired(false);
             entity.Property(x => x.OsmId).HasMaxLength(50);
@@ -882,7 +923,19 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Boundary).HasMaxLength(50);
             entity.Property(x => x.AdminLevel).HasMaxLength(10);
             entity.Property(x => x.Source).HasMaxLength(50);
+            // Provenance/coordinate contract (CNEFE import). The default keeps legacy rows valid
+            // without inventing a coordinate.
+            entity.Property(x => x.Kind).HasMaxLength(20).IsRequired().HasDefaultValue("legacy");
+            entity.Property(x => x.CoordinateMethod).HasMaxLength(40);
+            entity.Property(x => x.CoordinatePointCount).HasDefaultValue(0);
+            entity.Property(x => x.CoordinateSourceVersion).HasMaxLength(64);
+            entity.Property(x => x.CoordinateCalculatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.CoordinateStatus).HasMaxLength(20).IsRequired().HasDefaultValue("pending");
+            entity.Property(x => x.RepresentativeMethod).HasMaxLength(40);
+            entity.Property(x => x.LocalityType).HasMaxLength(30);
             entity.HasIndex(x => new { x.CityId, x.NormalizedName }).IsUnique().HasFilter("\"CityId\" IS NOT NULL");
+            entity.HasIndex(x => new { x.CityId, x.IsActive });
+            entity.HasIndex(x => new { x.CityId, x.Kind });
             entity.HasOne(x => x.CityEntity)
                 .WithMany()
                 .HasForeignKey(x => x.CityId)
@@ -895,10 +948,120 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
             entity.Property(x => x.Uf).HasMaxLength(2).IsRequired();
             entity.Property(x => x.IbgeCode).HasMaxLength(20);
+            entity.Property(x => x.NormalizedName).HasMaxLength(255).IsRequired().HasDefaultValue(string.Empty);
+            entity.Property(x => x.Source).HasMaxLength(30).IsRequired().HasDefaultValue("openstreetmap");
+            entity.Property(x => x.SourceVersion).HasMaxLength(64);
+            entity.Property(x => x.CoordinateMethod).HasMaxLength(40);
             entity.Property(x => x.OsmId).HasMaxLength(50);
             entity.Property(x => x.OsmAreaId).HasMaxLength(50);
             entity.HasIndex(x => new { x.Uf, x.IbgeCode }).IsUnique().HasFilter("\"IbgeCode\" IS NOT NULL");
             entity.HasIndex(x => new { x.Name, x.Uf }).IsUnique();
+            // Non-unique on purpose: legacy duplicate names must not block startup. Conflicts are
+            // reported for curation before a unique index is attempted.
+            entity.HasIndex(x => new { x.Uf, x.NormalizedName });
+        });
+
+        builder.Entity<DeliveryStreet>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.NormalizedName).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.StreetType).HasMaxLength(40);
+            entity.Property(x => x.StreetTitle).HasMaxLength(80);
+            entity.Property(x => x.CoordinateMethod).HasMaxLength(40);
+            entity.Property(x => x.Source).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.AddressPointCount).HasDefaultValue(0);
+            entity.HasIndex(x => x.NormalizedName);
+            entity.HasIndex(x => x.NeighborhoodId);
+            entity.HasIndex(x => new { x.CityId, x.NeighborhoodId, x.NormalizedName })
+                .IsUnique()
+                .HasFilter("\"NeighborhoodId\" IS NOT NULL");
+            entity.HasIndex(x => new { x.CityId, x.NormalizedName })
+                .IsUnique()
+                .HasFilter("\"NeighborhoodId\" IS NULL")
+                .HasDatabaseName("UX_DeliveryStreets_City_NullNeighborhood_NormalizedName");
+            entity.HasOne(x => x.CityEntity)
+                .WithMany()
+                .HasForeignKey(x => x.CityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.NeighborhoodEntity)
+                .WithMany()
+                .HasForeignKey(x => x.NeighborhoodId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<DeliveryStreetZipCode>(entity =>
+        {
+            entity.HasKey(x => new { x.StreetId, x.ZipCode });
+            entity.Property(x => x.ZipCode).HasMaxLength(8).IsFixedLength().IsRequired();
+            entity.Property(x => x.Source).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_DeliveryStreetZipCodes_ZipCode",
+                "\"ZipCode\" ~ '^[0-9]{8}$'"));
+            entity.HasIndex(x => x.ZipCode);
+            entity.HasIndex(x => x.StreetId)
+                .IsUnique()
+                .HasFilter("\"IsPrimary\"")
+                .HasDatabaseName("UX_DeliveryStreetZipCodes_Street_Primary");
+            entity.HasOne(x => x.Street)
+                .WithMany()
+                .HasForeignKey(x => x.StreetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ImportRun>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.SourceName).HasMaxLength(40).IsRequired();
+            entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.SourceChecksum).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.Uf).HasMaxLength(2);
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired();
+            entity.Property(x => x.Metadata).HasColumnType("jsonb").IsRequired().HasDefaultValueSql("'{}'::jsonb");
+            entity.Property(x => x.StartedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.FinishedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.RollbackReason).HasMaxLength(500);
+            entity.HasIndex(x => new { x.SourceName, x.SourceVersion, x.SourceChecksum, x.Uf, x.StartedAtUtc });
+            entity.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<ImportError>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).UseIdentityAlwaysColumn();
+            entity.Property(x => x.Uf).HasMaxLength(2);
+            entity.Property(x => x.SourceTable).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.SourceRowId).HasMaxLength(120);
+            entity.Property(x => x.Field).HasMaxLength(80);
+            entity.Property(x => x.Code).HasMaxLength(40).IsRequired();
+            entity.Property(x => x.Message).IsRequired();
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasIndex(x => new { x.RunId, x.Code });
+            entity.HasIndex(x => x.Uf);
+            entity.HasOne(x => x.Run)
+                .WithMany()
+                .HasForeignKey(x => x.RunId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ImportDataset>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.Uf).HasMaxLength(2).IsRequired();
+            entity.Property(x => x.ActivatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.DeactivatedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasIndex(x => new { x.SourceVersion, x.Uf }).IsUnique();
+            entity.HasIndex(x => x.Uf)
+                .IsUnique()
+                .HasFilter("\"IsActive\"")
+                .HasDatabaseName("UX_ImportDatasets_Active_Uf");
+            entity.HasOne(x => x.Run)
+                .WithMany()
+                .HasForeignKey(x => x.RunId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<PrinterPreset>(entity =>
