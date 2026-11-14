@@ -516,6 +516,8 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
 
             // StoreDeliveryAreas.NeighborhoodId backfill: store address city + canonical name.
             // Rows that cannot be resolved are kept untouched and reported below.
+            // accent_map is a single-row CTE, so the CROSS JOIN inside the resolved CTE only brings
+            // source/target into scope (no row duplication) for the city-name normalization.
             migrationBuilder.Sql("""
                 WITH accent_map AS (
                     SELECT
@@ -544,6 +546,7 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                                      * power(sin(radians(n."Longitude" - sa."Longitude") / 2.0), 2))))
                            END AS distance_km
                     FROM area_normalized an
+                    CROSS JOIN accent_map
                     JOIN "StoreAddresses" sa ON sa."StoreId" = an.store_id
                     JOIN "Cities" c
                       ON lower(btrim(regexp_replace(
