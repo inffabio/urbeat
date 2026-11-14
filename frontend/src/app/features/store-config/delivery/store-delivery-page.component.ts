@@ -85,11 +85,15 @@ export class StoreDeliveryPageComponent implements OnInit {
   readonly radiusValidationError = signal(false);
   readonly radiusPreviewError = signal(false);
   readonly radiusPreviewErrorMessage = 'Não foi possível atualizar os bairros para o novo raio. Tente novamente.';
+  /**
+   * Every id listed here must exist in the DOM for the current state. The
+   * dashboard surface swaps the availability hint for the validation error,
+   * so referencing both at once would point assistive tech at a missing node.
+   * The wizard keeps the hint visible beside the label, but it is still not
+   * referenced while the error takes over the description.
+   */
   readonly radiusDescribedBy = computed(() => {
-    const ids = ['delivery-radius-hint'];
-    if (this.radiusValidationError()) {
-      ids.push('delivery-radius-error');
-    }
+    const ids = [this.radiusValidationError() ? 'delivery-radius-error' : 'delivery-radius-hint'];
     if (this.radiusPreviewError()) {
       ids.push('delivery-radius-preview-error');
     }

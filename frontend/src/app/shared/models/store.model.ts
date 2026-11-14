@@ -142,6 +142,12 @@ export interface StoreDeliveryArea {
   deliveryFee: number;
   isActive?: boolean;
   notes?: string;
+  /** Canonical global neighborhood; null for a manual/legacy area. */
+  neighborhoodId?: string | null;
+  /** Straight-line Haversine distance recorded when the area was linked. */
+  distanceKm?: number | null;
+  /** Always `haversine`; the value is not a route distance. */
+  distanceMethod?: 'haversine';
 }
 
 export interface UpdateDeliveryConfigRequest {
@@ -173,6 +179,17 @@ export interface DeliveryNeighborhood {
   city: string;
   latitude?: number;
   longitude?: number;
+  /** `official_cnefe`, `manual` or `legacy`. */
+  kind?: 'official_cnefe' | 'manual' | 'legacy';
+  /** `computed`, `pending` or `manual`. */
+  coordinateStatus?: 'computed' | 'pending' | 'manual';
+  coordinateMethod?: string | null;
+  coordinatePointCount?: number;
+  datasetVersion?: string | null;
+  /** Straight-line Haversine distance, rounded for display. */
+  distanceKm?: number | null;
+  eligible?: boolean | null;
+  requiresManualReview?: boolean;
 }
 
 export interface NeighborhoodSearchResult {

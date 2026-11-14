@@ -106,6 +106,10 @@ describe('StoreDeliveryPageComponent', () => {
       return input as HTMLInputElement;
     }
 
+    function describedByIds(): string[] {
+      return (radiusInput().getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean);
+    }
+
     it('labels the neighborhood picker as Selecionar Bairros', () => {
       loadStore();
 
@@ -234,6 +238,28 @@ describe('StoreDeliveryPageComponent', () => {
       expect(component.deliveryNeighborhoods().map((n) => n.neighborhood)).toContain('Pinheiros');
     });
 
+    it('describes the radius input with the hint while the value is valid', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+
+      expect(describedByIds()).toEqual(['delivery-radius-hint']);
+      expect(fixture.nativeElement.querySelector('#delivery-radius-hint')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#delivery-radius-error')).toBeNull();
+    });
+
+    it('describes the radius input with the preview error without pointing at missing ids', () => {
+      loadStore({ maxDeliveryRadiusKm: 5 });
+      storeServiceMock.getDeliveryNeighborhoodsByStore!.mockReturnValue(throwError(() => new Error('boom')));
+
+      component.onDeliveryRadiusChange(3);
+      fixture.detectChanges();
+
+      const ids = describedByIds();
+      expect(ids).toEqual(['delivery-radius-hint', 'delivery-radius-preview-error']);
+      for (const id of ids) {
+        expect(fixture.nativeElement.querySelector(`#${id}`)).toBeTruthy();
+      }
+    });
+
     it('exposes the radius validation error through aria attributes', () => {
       loadStore({ maxDeliveryRadiusKm: 5 });
 
@@ -243,9 +269,12 @@ describe('StoreDeliveryPageComponent', () => {
       fixture.detectChanges();
 
       expect(input.getAttribute('aria-invalid')).toBe('true');
-      expect(input.getAttribute('aria-describedby')).toContain('delivery-radius-error');
+      // The error replaces the hint as the input description; the hint stays
+      // visible beside the label but is not referenced while invalid.
+      expect(input.getAttribute('aria-describedby')).toBe('delivery-radius-error');
       expect(fixture.nativeElement.querySelector('#delivery-radius-error')?.textContent)
         .toContain('Informe um raio maior que zero.');
+      expect(fixture.nativeElement.querySelector('#delivery-radius-hint')).toBeTruthy();
     });
 
     it('renders a single radius control in the dashboard view', () => {
