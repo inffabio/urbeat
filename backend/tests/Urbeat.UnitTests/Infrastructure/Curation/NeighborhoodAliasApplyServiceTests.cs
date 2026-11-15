@@ -308,6 +308,24 @@ public sealed class NeighborhoodAliasApplyServiceTests
         (await db.AuditLogs.CountAsync()).Should().Be(2);
     }
 
+    [Fact]
+    public async Task Dry_run_reports_the_plan_without_writing_anything()
+    {
+        var fixture = await CreateFixtureAsync();
+
+        await using var db = fixture.Db;
+        var result = await new NeighborhoodAliasApplyService(db).DryRunAsync(fixture.Manifest);
+
+        result.DryRun.Should().BeTrue();
+        result.AliasesInserted.Should().Be(1);
+        result.DisplayNamesSet.Should().Be(1);
+
+        (await db.DeliveryNeighborhoodAliases.CountAsync()).Should().Be(0);
+        db.ChangeTracker.Clear();
+        var canonical = await db.DeliveryNeighborhoods.SingleAsync(x => x.Id == fixture.Canonical.Id);
+        canonical.DisplayName.Should().BeNull();
+    }
+
     private static ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

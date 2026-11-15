@@ -31,7 +31,9 @@ public static class NeighborhoodCurationCli
         var command = ReadCommand(args);
         if (command is null)
         {
-            Console.Error.WriteLine("Uso: --curation <dry-run|apply|rollback|verify|backup-sql> [opcoes]");
+            Console.Error.WriteLine(
+                "Uso: --curation <build-manifest|dry-run|apply|rollback|verify|backup-sql> [opcoes]\n" +
+                "Write commands (apply/rollback) exigem --manifest <arquivo> --confirm-hash <manifest_hash>.");
             return 2;
         }
 
@@ -218,19 +220,11 @@ public static class NeighborhoodCurationCli
         CancellationToken cancellationToken)
     {
         var manifestPath = Required(args, "--manifest");
-        var expectedHash = Optional(args, "--confirm-hash");
+        // The confirmation is mandatory: writing aliases requires echoing the exact manifest hash
+        // produced by the dry-run, so an unattended apply cannot happen by accident.
+        var expectedHash = Required(args, "--confirm-hash");
         var manifest = await ReadManifestAsync(manifestPath, cancellationToken);
-
-        if (!NeighborhoodCurationManifestHasher.HashMatches(manifest))
-        {
-            throw new InvalidOperationException("Hash do manifesto nao confere; apply recusado.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(expectedHash)
-            && !string.Equals(expectedHash.Trim(), manifest.ManifestHash, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("--confirm-hash nao corresponde ao manifesto; apply recusado.");
-        }
+        ValidateConfirmation(manifest, expectedHash, "apply");
 
         var result = await service.ApplyAsync(manifest, cancellationToken: cancellationToken);
         Console.WriteLine(JsonSerializer.Serialize(new
@@ -257,7 +251,10 @@ public static class NeighborhoodCurationCli
         CancellationToken cancellationToken)
     {
         var manifestPath = Required(args, "--manifest");
+        var expectedHash = Required(args, "--confirm-hash");
         var manifest = await ReadManifestAsync(manifestPath, cancellationToken);
+        ValidateConfirmation(manifest, expectedHash, "rollback");
+
         var result = await service.RollbackAsync(manifest, cancellationToken: cancellationToken);
 
         Console.WriteLine(JsonSerializer.Serialize(new
@@ -419,6 +416,29 @@ public static class NeighborhoodCurationCli
         catch (JsonException exception)
         {
             throw new InvalidOperationException($"JSON invalido em {path}: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Mandatory guard for write commands. The manifest must be self-consistent and the operator must
+    /// echo the exact hash produced by the dry-run; an unattended apply/rollback is refused.
+    /// </summary>
+    public static void ValidateConfirmation(
+        NeighborhoodCurationManifest manifest,
+        string? expectedHash,
+        string operation)
+    {
+        ArgumentNullException.ThrowIfNull(manifest);
+
+        if (!NeighborhoodCurationManifestHasher.HashMatches(manifest))
+        {
+            throw new InvalidOperationException($"Hash do manifesto nao confere; {operation} recusado.");
+        }
+
+        if (string.IsNullOrWhiteSpace(expectedHash)
+            || !string.Equals(expectedHash.Trim(), manifest.ManifestHash, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"--confirm-hash nao corresponde ao manifesto; {operation} recusado.");
         }
     }
 
