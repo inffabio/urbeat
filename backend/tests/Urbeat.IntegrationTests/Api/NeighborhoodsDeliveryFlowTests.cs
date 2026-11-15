@@ -65,6 +65,115 @@ public sealed class NeonighborhoodsDeliveryFlowTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
+    public async Task GetNeighborhoodsByStore_ShouldHideAliasSources_WhenRadiusIsSet()
+    {
+        var client = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (accessToken, storeId, storeCity) = await RegisterLoginCreateStoreWithAddress(client);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        Guid canonicalId;
+        Guid manualId;
+        Guid[] aliasSourceIds;
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var cityId = Guid.NewGuid();
+
+            var canonical = new DeliveryNeighborhood
+            {
+                Neighborhood = "Chácara de Inoã",
+                DisplayName = "Chácara de Inoã",
+                NormalizedName = "chacara de inoa",
+                City = storeCity,
+                CityId = cityId,
+                Latitude = -23.5500,
+                Longitude = -46.6340,
+                IsActive = true,
+                Source = "test"
+            };
+            var pluralAliasSource = new DeliveryNeighborhood
+            {
+                Neighborhood = "CHACARAS DE INOA",
+                NormalizedName = "chacaras de inoa",
+                City = storeCity,
+                CityId = cityId,
+                Latitude = -23.5501,
+                Longitude = -46.6341,
+                IsActive = true,
+                Source = "test"
+            };
+            var shortAliasSource = new DeliveryNeighborhood
+            {
+                Neighborhood = "CHACARAS INOA",
+                NormalizedName = "chacaras inoa",
+                City = storeCity,
+                CityId = cityId,
+                Latitude = -23.5502,
+                Longitude = -46.6342,
+                IsActive = true,
+                Source = "test"
+            };
+            var manual = new DeliveryNeighborhood
+            {
+                Neighborhood = "Condomínio Village",
+                NormalizedName = "condominio village",
+                City = storeCity,
+                CityId = cityId,
+                Kind = "manual",
+                CoordinateStatus = "manual",
+                IsActive = true
+            };
+
+            db.DeliveryNeighborhoods.AddRange(canonical, pluralAliasSource, shortAliasSource, manual);
+            db.DeliveryNeighborhoodAliases.AddRange(
+                new DeliveryNeighborhoodAlias
+                {
+                    CityId = cityId,
+                    CanonicalNeighborhoodId = canonical.Id,
+                    Alias = pluralAliasSource.Neighborhood,
+                    NormalizedAlias = pluralAliasSource.NormalizedName,
+                    IsActive = true,
+                    IsApproved = true
+                },
+                new DeliveryNeighborhoodAlias
+                {
+                    CityId = cityId,
+                    CanonicalNeighborhoodId = canonical.Id,
+                    Alias = shortAliasSource.Neighborhood,
+                    NormalizedAlias = shortAliasSource.NormalizedName,
+                    IsActive = true,
+                    IsApproved = true
+                });
+
+            await db.SaveChangesAsync();
+
+            canonicalId = canonical.Id;
+            manualId = manual.Id;
+            aliasSourceIds = [pluralAliasSource.Id, shortAliasSource.Id];
+        }
+
+        var radiusResponse = await client.GetAsync($"/api/stores/delivery-neighborhoods-by-store?storeId={storeId}&radiusKm=3");
+
+        radiusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var radiusNeighborhoods = await radiusResponse.Content.ReadFromJsonAsync<List<DeliveryNeighborhoodResponseDto>>();
+        radiusNeighborhoods.Should().NotBeNull();
+        radiusNeighborhoods!.Select(x => x.Id).Should().BeEquivalentTo([canonicalId, manualId]);
+        radiusNeighborhoods.Should().NotContain(x => aliasSourceIds.Contains(x.Id));
+        radiusNeighborhoods.Single(x => x.Id == canonicalId).CanonicalNeighborhoodId.Should().Be(canonicalId);
+        radiusNeighborhoods.Single(x => x.Id == canonicalId).DisplayName.Should().Be("CHÁCARA DE INOÃ");
+
+        var cityResponse = await client.GetAsync($"/api/stores/delivery-neighborhoods?city={Uri.EscapeDataString(storeCity)}");
+
+        cityResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var cityNeighborhoods = await cityResponse.Content.ReadFromJsonAsync<List<DeliveryNeighborhoodResponseDto>>();
+        cityNeighborhoods.Should().NotBeNull();
+        cityNeighborhoods!.Select(x => x.Id).Should().BeEquivalentTo([canonicalId, manualId]);
+        cityNeighborhoods.Should().NotContain(x => aliasSourceIds.Contains(x.Id));
+    }
+
+    [Fact]
     public async Task GetNeighborhoodsByStore_ShouldRequireAuth()
     {
         var client = _factory.CreateClient(new() { AllowAutoRedirect = false });

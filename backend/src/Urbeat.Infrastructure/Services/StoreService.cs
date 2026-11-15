@@ -1055,11 +1055,14 @@ public sealed class StoreService : IStoreService
         var boundingBox = GeoDistance.BoundingBox(storeLatitude, storeLongitude, radius);
 
         // Only the bounding-box candidates are loaded from PostgreSQL; a large municipality is never
-        // materialized entirely just to filter by radius in memory.
+        // materialized entirely just to filter by radius in memory. Alias sources are excluded in SQL
+        // by the same rule the city list uses, so a radius response never mixes a spelling with its
+        // canonical neighborhood.
         var candidateQuery = ApplyCityScope(
-            _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
-            cityId,
-            storeAddress.City);
+                _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
+                cityId,
+                storeAddress.City)
+            .WhereNotAliasSource(_dbContext);
 
         var candidates = await candidateQuery
             .Where(x => x.Latitude != null
@@ -1091,11 +1094,13 @@ public sealed class StoreService : IStoreService
         }
 
         // Manual neighborhoods belong to the store city, have no coordinate and are never filtered
-        // by radius. They are returned separately so the seller can review them explicitly.
+        // by radius. They are returned separately so the seller can review them explicitly. A manual
+        // row without an approved alias keeps appearing; only alias spellings are hidden.
         var manualNeighborhoods = await ApplyCityScope(
                 _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
                 cityId,
                 storeAddress.City)
+            .WhereNotAliasSource(_dbContext)
             .Where(x => x.Latitude == null
                 || x.Longitude == null
                 || x.Kind == GeographicProvenance.NeighborhoodKind.Manual)
@@ -1148,18 +1153,10 @@ public sealed class StoreService : IStoreService
         CancellationToken cancellationToken)
     {
         var query = ApplyCityScope(
-            _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
-            cityId,
-            cityName);
-
-        // A row that is registered as an active alias is a source spelling, not a separate option.
-        // It stays in the database and keeps its identifier for audit, but is hidden from selection.
-        query = query.Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
-            alias.IsActive
-            && alias.IsApproved
-            && alias.CityId == x.CityId
-            && alias.NormalizedAlias == x.NormalizedName
-            && alias.CanonicalNeighborhoodId != x.Id));
+                _dbContext.DeliveryNeighborhoods.AsNoTracking().Where(x => x.IsActive),
+                cityId,
+                cityName)
+            .WhereNotAliasSource(_dbContext);
 
         return await query
             .OrderBy(x => x.Neighborhood)
@@ -1223,12 +1220,7 @@ public sealed class StoreService : IStoreService
         var neighborhoods = await _dbContext.DeliveryNeighborhoods
             .AsNoTracking()
             .Where(x => x.IsActive && x.City.ToLower() == normalizedCity)
-            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
-                alias.IsActive
-                && alias.IsApproved
-                && alias.CityId == x.CityId
-                && alias.NormalizedAlias == x.NormalizedName
-                && alias.CanonicalNeighborhoodId != x.Id))
+            .WhereNotAliasSource(_dbContext)
             .OrderBy(x => x.Neighborhood)
             .ToListAsync(cancellationToken);
 

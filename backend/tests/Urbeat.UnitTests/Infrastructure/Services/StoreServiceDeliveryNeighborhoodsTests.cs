@@ -3,6 +3,7 @@ using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
+using Urbeat.Domain.Geo;
 using Urbeat.Domain.Services;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
@@ -140,6 +141,159 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
         result.Single().Id.Should().Be(canonical.Id);
         result.Single().DisplayName.Should().Be("CHÁCARA DE INOÃ");
     }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldHideBothApprovedAliasSources_WhenRadiusIsSet()
+    {
+        using var db = CreateDbContext();
+        var fixture = await SeedMaricaAliasGroupAsync(db, maxDeliveryRadiusKm: 10);
+
+        var result = await CreateSut(db).GetActiveDeliveryNeighborhoodsByStoreAsync(fixture.StoreId, radiusKm: 10);
+
+        // The city has 3 spelling rows for the same neighborhood plus 2 approved aliases; only the
+        // canonical row may be offered, and the manual neighborhood without an alias must survive.
+        result.Select(x => x.Id).Should().BeEquivalentTo([fixture.CanonicalId, fixture.ManualId]);
+        result.Should().NotContain(x => x.Neighborhood == "CHACARAS DE INOA");
+        result.Should().NotContain(x => x.Neighborhood == "CHACARAS INOA");
+
+        var canonical = result.Single(x => x.Id == fixture.CanonicalId);
+        canonical.Neighborhood.Should().Be("Chácara de Inoã");
+        canonical.DisplayName.Should().Be("CHÁCARA DE INOÃ");
+        canonical.CanonicalNeighborhoodId.Should().Be(fixture.CanonicalId);
+        canonical.DistanceKm.Should().NotBeNull();
+        canonical.Eligible.Should().BeTrue();
+
+        var manual = result.Single(x => x.Id == fixture.ManualId);
+        manual.Neighborhood.Should().Be("Condomínio Village");
+        manual.Latitude.Should().BeNull();
+        manual.Longitude.Should().BeNull();
+        manual.DistanceKm.Should().BeNull();
+        manual.Eligible.Should().BeFalse();
+        manual.RequiresManualReview.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldHideBothApprovedAliasSources_WhenNoRadiusIsApplied()
+    {
+        using var db = CreateDbContext();
+        var fixture = await SeedMaricaAliasGroupAsync(db, maxDeliveryRadiusKm: null);
+
+        var result = await CreateSut(db).GetActiveDeliveryNeighborhoodsByStoreAsync(fixture.StoreId);
+
+        result.Select(x => x.Id).Should().BeEquivalentTo([fixture.CanonicalId, fixture.ManualId]);
+        result.Should().NotContain(x => x.Neighborhood == "CHACARAS DE INOA");
+        result.Should().NotContain(x => x.Neighborhood == "CHACARAS INOA");
+        result.Should().Contain(x => x.Id == fixture.CanonicalId && x.DistanceKm == null && x.Eligible == null);
+        result.Should().Contain(x => x.Id == fixture.ManualId && x.Eligible == false);
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldKeepAliasSources_WhenTheAliasIsNotActiveOrNotApproved()
+    {
+        using var db = CreateDbContext();
+        var fixture = await SeedMaricaAliasGroupAsync(db, maxDeliveryRadiusKm: 10, aliasesApproved: false);
+
+        var result = await CreateSut(db).GetActiveDeliveryNeighborhoodsByStoreAsync(fixture.StoreId, radiusKm: 10);
+
+        // An unapproved alias is not a curation decision yet, so the source spelling stays visible.
+        result.Should().Contain(x => x.Neighborhood == "CHACARAS DE INOA");
+        result.Should().Contain(x => x.Neighborhood == "CHACARAS INOA");
+    }
+
+    private static async Task<MaricaAliasFixture> SeedMaricaAliasGroupAsync(
+        ApplicationDbContext db,
+        double? maxDeliveryRadiusKm,
+        bool aliasesApproved = true)
+    {
+        var cityId = Guid.NewGuid();
+        var store = new Store
+        {
+            Name = "Loja Maricá",
+            Slug = "loja-marica-alias",
+            MaxDeliveryRadiusKm = maxDeliveryRadiusKm
+        };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress
+        {
+            StoreId = store.Id,
+            City = "Maricá",
+            State = "RJ",
+            Latitude = -22.9194,
+            Longitude = -42.8186
+        });
+
+        var canonical = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "Chácara de Inoã",
+            DisplayName = "Chácara de Inoã",
+            NormalizedName = "chacara de inoa",
+            City = "Maricá",
+            Latitude = -22.9250,
+            Longitude = -42.8230,
+            IsActive = true,
+            Source = "openstreetmap"
+        };
+        var pluralAliasSource = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "CHACARAS DE INOA",
+            NormalizedName = "chacaras de inoa",
+            City = "Maricá",
+            Latitude = -22.9251,
+            Longitude = -42.8231,
+            IsActive = true,
+            Source = "openstreetmap"
+        };
+        var shortAliasSource = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "CHACARAS INOA",
+            NormalizedName = "chacaras inoa",
+            City = "Maricá",
+            Latitude = -22.9252,
+            Longitude = -42.8232,
+            IsActive = true,
+            Source = "openstreetmap"
+        };
+        var manual = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "Condomínio Village",
+            NormalizedName = "condominio village",
+            City = "Maricá",
+            Kind = GeographicProvenance.NeighborhoodKind.Manual,
+            CoordinateStatus = GeographicProvenance.CoordinateStatus.Manual,
+            IsActive = true
+        };
+        db.DeliveryNeighborhoods.AddRange(canonical, pluralAliasSource, shortAliasSource, manual);
+
+        db.DeliveryNeighborhoodAliases.AddRange(
+            new DeliveryNeighborhoodAlias
+            {
+                CityId = cityId,
+                CanonicalNeighborhoodId = canonical.Id,
+                Alias = pluralAliasSource.Neighborhood,
+                NormalizedAlias = pluralAliasSource.NormalizedName,
+                IsActive = true,
+                IsApproved = aliasesApproved
+            },
+            new DeliveryNeighborhoodAlias
+            {
+                CityId = cityId,
+                CanonicalNeighborhoodId = canonical.Id,
+                Alias = shortAliasSource.Neighborhood,
+                NormalizedAlias = shortAliasSource.NormalizedName,
+                IsActive = true,
+                IsApproved = aliasesApproved
+            });
+
+        await db.SaveChangesAsync();
+
+        return new MaricaAliasFixture(store.Id, canonical.Id, manual.Id);
+    }
+
+    private sealed record MaricaAliasFixture(Guid StoreId, Guid CanonicalId, Guid ManualId);
 
     [Fact]
     public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExposeApprovedDisplayName_AndFallbackToOriginalName()

@@ -218,12 +218,7 @@ public sealed class OsmService : IOsmService
         var neighborhoods = await _dbContext.Set<DeliveryNeighborhood>()
             .AsNoTracking()
             .Where(x => x.CityId == cityId)
-            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
-                alias.IsActive
-                && alias.IsApproved
-                && alias.CityId == cityId
-                && alias.NormalizedAlias == x.NormalizedName
-                && alias.CanonicalNeighborhoodId != x.Id))
+            .WhereNotAliasSource(_dbContext)
             .ToListAsync(cancellationToken);
 
         var storeAreas = new Dictionary<string, StoreDeliveryArea>();
@@ -295,12 +290,7 @@ public sealed class OsmService : IOsmService
         var query = _dbContext.Set<DeliveryNeighborhood>()
             .AsNoTracking()
             .Where(x => x.CityId == cityId)
-            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
-                alias.IsActive
-                && alias.IsApproved
-                && alias.CityId == cityId
-                && alias.NormalizedAlias == x.NormalizedName
-                && alias.CanonicalNeighborhoodId != x.Id));
+            .WhereNotAliasSource(_dbContext);
 
         if (activeOnly)
             query = query.Where(x => x.IsActive);
