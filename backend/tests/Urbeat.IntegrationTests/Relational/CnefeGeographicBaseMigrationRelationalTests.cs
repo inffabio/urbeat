@@ -221,6 +221,75 @@ public sealed class CnefeGeographicBaseMigrationRelationalTests
         }
     }
 
+    [Fact]
+    public async Task City_coordinates_migration_adds_nullable_columns_required_by_city_queries()
+    {
+        var container = await StartPostgresOrSkipAsync();
+        if (container is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseNpgsql(container.GetConnectionString())
+                .Options;
+
+            await using var context = new ApplicationDbContext(options);
+            await context.Database.EnsureCreatedAsync();
+            await context.Database.ExecuteSqlRawAsync("""
+                ALTER TABLE "Cities" DROP COLUMN IF EXISTS "Latitude";
+                ALTER TABLE "Cities" DROP COLUMN IF EXISTS "Longitude";
+                """);
+
+            var generator = context.GetService<IMigrationsSqlGenerator>();
+            var operations = new AddCityCoordinates().UpOperations;
+            foreach (var command in generator.Generate(operations, context.Model))
+            {
+                await context.Database.ExecuteSqlRawAsync(command.CommandText);
+            }
+
+            var columns = await context.Database
+                .SqlQueryRaw<CityColumnInfo>(
+                    """
+                    SELECT column_name AS "Name", is_nullable AS "IsNullable"
+                    FROM information_schema.columns
+                    WHERE table_schema = current_schema()
+                      AND table_name = 'Cities'
+                      AND column_name IN ('Latitude', 'Longitude')
+                    """)
+                .ToListAsync();
+
+            columns.Should().BeEquivalentTo(
+                [
+                    new CityColumnInfo("Latitude", "YES"),
+                    new CityColumnInfo("Longitude", "YES")
+                ],
+                options => options.WithStrictOrdering());
+
+            // Materialization succeeds against the schema produced by the migration and
+            // existing rows remain valid without invented coordinate values.
+            var city = new City
+            {
+                Name = "Cidade sem coordenadas",
+                Uf = "SP"
+            };
+            context.Cities.Add(city);
+            await context.SaveChangesAsync();
+
+            var persisted = await context.Cities.SingleAsync(x => x.Id == city.Id);
+            persisted.Latitude.Should().BeNull();
+            persisted.Longitude.Should().BeNull();
+        }
+        finally
+        {
+            await container.DisposeAsync();
+        }
+    }
+
+    private sealed record CityColumnInfo(string Name, string IsNullable);
+
     private async Task<PostgreSqlContainer?> StartPostgresOrSkipAsync()
     {
         PostgreSqlContainer? container = null;
