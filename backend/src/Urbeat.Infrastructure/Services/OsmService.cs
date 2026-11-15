@@ -218,6 +218,12 @@ public sealed class OsmService : IOsmService
         var neighborhoods = await _dbContext.Set<DeliveryNeighborhood>()
             .AsNoTracking()
             .Where(x => x.CityId == cityId)
+            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
+                alias.IsActive
+                && alias.IsApproved
+                && alias.CityId == cityId
+                && alias.NormalizedAlias == x.NormalizedName
+                && alias.CanonicalNeighborhoodId != x.Id))
             .ToListAsync(cancellationToken);
 
         var storeAreas = new Dictionary<string, StoreDeliveryArea>();
@@ -249,6 +255,8 @@ public sealed class OsmService : IOsmService
                 {
                     NeighborhoodId = n.Id,
                     Name = n.Neighborhood,
+                    DisplayName = NeighborhoodName.ToUppercaseDisplay(
+                        string.IsNullOrWhiteSpace(n.DisplayName) ? n.Neighborhood : n.DisplayName),
                     Latitude = n.Latitude,
                     Longitude = n.Longitude,
                     Rate = storeArea?.DeliveryFee ?? 0,
@@ -260,7 +268,9 @@ public sealed class OsmService : IOsmService
                 withoutCoords.Add(new NeighborhoodWithoutCoordinatesDto
                 {
                     NeighborhoodId = n.Id,
-                    Name = n.Neighborhood
+                    Name = n.Neighborhood,
+                    DisplayName = NeighborhoodName.ToUppercaseDisplay(
+                        string.IsNullOrWhiteSpace(n.DisplayName) ? n.Neighborhood : n.DisplayName)
                 });
             }
         }
@@ -284,7 +294,13 @@ public sealed class OsmService : IOsmService
     {
         var query = _dbContext.Set<DeliveryNeighborhood>()
             .AsNoTracking()
-            .Where(x => x.CityId == cityId);
+            .Where(x => x.CityId == cityId)
+            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
+                alias.IsActive
+                && alias.IsApproved
+                && alias.CityId == cityId
+                && alias.NormalizedAlias == x.NormalizedName
+                && alias.CanonicalNeighborhoodId != x.Id));
 
         if (activeOnly)
             query = query.Where(x => x.IsActive);
@@ -295,7 +311,8 @@ public sealed class OsmService : IOsmService
         {
             var term = NormalizeText(search);
             neighborhoods = neighborhoods
-                .Where(x => x.NormalizedName.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.NormalizedName.Contains(term, StringComparison.OrdinalIgnoreCase)
+                    || (x.DisplayName != null && NormalizeText(x.DisplayName).Contains(term, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
         }
 
@@ -322,6 +339,8 @@ public sealed class OsmService : IOsmService
                 {
                     Id = n.Id,
                     Name = n.Neighborhood,
+                    DisplayName = NeighborhoodName.ToUppercaseDisplay(
+                        string.IsNullOrWhiteSpace(n.DisplayName) ? n.Neighborhood : n.DisplayName),
                     Latitude = n.Latitude,
                     Longitude = n.Longitude,
                     IsActive = n.IsActive,

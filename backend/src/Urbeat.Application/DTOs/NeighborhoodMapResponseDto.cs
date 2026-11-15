@@ -24,6 +24,8 @@ public sealed class NeighborhoodMapItemDto
 
     public string Name { get; init; } = string.Empty;
 
+    public string? DisplayName { get; init; }
+
     public double? Latitude { get; init; }
 
     public double? Longitude { get; init; }
@@ -40,4 +42,6 @@ public sealed class NeighborhoodWithoutCoordinatesDto
     public Guid NeighborhoodId { get; init; }
 
     public string Name { get; init; } = string.Empty;
+
+    public string? DisplayName { get; init; }
 }

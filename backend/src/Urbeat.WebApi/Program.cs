@@ -33,6 +33,13 @@ builder.Services.AddWebApi(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
+// Explicit curation command: the web host is never started in this mode. It must be requested with
+// --curation and is used only by the deployment operator, never by an HTTP request.
+if (NeighborhoodCurationCli.IsRequested(args))
+{
+    return await NeighborhoodCurationCli.RunAsync(app, args);
+}
+
 var hangfireRuntime = app.Services.GetRequiredService<HangfireRuntime>();
 
 using (var scope = app.Services.CreateScope())
@@ -205,6 +212,8 @@ if (HangfireRecurringJobs.TryRegisterBusinessJobs(
 }
 
 app.Run();
+
+return 0;
 
 public partial class Program;
 

@@ -112,7 +112,7 @@
                   <span class="row-num">{{ i + 1 }}</span>
                 </div>
                 <div class="select-wrap-full">
-                  <span class="neighborhood-label">{{ areas.at(i).value.neighborhood }}</span>
+                   <span class="neighborhood-label">{{ getNeighborhoodDisplayName(areas.at(i).value.neighborhood, areas.at(i).value.neighborhoodId) }}</span>
                 </div>
                 <div class="col-dist">
                   <span class="dist-value">{{ getNeighborhoodDistance(areas.at(i).value.neighborhood) }}</span>
@@ -299,7 +299,7 @@
                     class="nb-checkbox" />
                 </label>
                 <ion-label>
-                  <span class="nb-name">{{ nb.neighborhood }}</span>
+                   <span class="nb-name">{{ getNeighborhoodDisplayName(nb.neighborhood, nb.canonicalNeighborhoodId ?? nb.id) }}</span>
                   <p class="nb-city">{{ nb.city }}</p>
                 </ion-label>
                 @if (storeLat() != null && storeLon() != null && nb.latitude != null && nb.longitude != null) {

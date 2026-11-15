@@ -98,6 +98,82 @@ public sealed class StoreServiceDeliveryNeighborhoodsTests
     }
 
     [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldHideAnApprovedAliasSourceAndExposeUppercaseDisplay()
+    {
+        using var db = CreateDbContext();
+        var cityId = Guid.NewGuid();
+        var store = new Store { Name = "Loja", Slug = "loja-alias", MaxDeliveryRadiusKm = null };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "Maricá", State = "RJ" });
+
+        var canonical = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "Chácara de Inoã",
+            NormalizedName = "chacara de inoa",
+            City = "Maricá",
+            IsActive = true
+        };
+        var source = new DeliveryNeighborhood
+        {
+            CityId = cityId,
+            Neighborhood = "CHACARA DE INOA",
+            NormalizedName = "chacara de inoa",
+            City = "Maricá",
+            IsActive = true
+        };
+        db.DeliveryNeighborhoods.AddRange(canonical, source);
+        db.DeliveryNeighborhoodAliases.Add(new DeliveryNeighborhoodAlias
+        {
+            CityId = cityId,
+            CanonicalNeighborhoodId = canonical.Id,
+            Alias = source.Neighborhood,
+            NormalizedAlias = source.NormalizedName,
+            IsActive = true,
+            IsApproved = true
+        });
+        await db.SaveChangesAsync();
+
+        var result = await CreateSut(db).GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
+
+        result.Should().ContainSingle();
+        result.Single().Id.Should().Be(canonical.Id);
+        result.Single().DisplayName.Should().Be("CHÁCARA DE INOÃ");
+    }
+
+    [Fact]
+    public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExposeApprovedDisplayName_AndFallbackToOriginalName()
+    {
+        using var db = CreateDbContext();
+        var store = new Store { Name = "Loja", Slug = "loja-display", MaxDeliveryRadiusKm = null };
+        db.Stores.Add(store);
+        db.StoreAddresses.Add(new StoreAddress { StoreId = store.Id, City = "Maricá", State = "RJ" });
+
+        db.DeliveryNeighborhoods.AddRange(
+            new DeliveryNeighborhood
+            {
+                Neighborhood = "CHACARA DE INOA",
+                NormalizedName = "chacara de inoa",
+                City = "Maricá",
+                DisplayName = "Chácara de Inoã",
+                IsActive = true
+            },
+            new DeliveryNeighborhood
+            {
+                Neighborhood = "Centro (Sede)",
+                NormalizedName = "centro sede",
+                City = "Maricá",
+                IsActive = true
+            });
+        await db.SaveChangesAsync();
+
+        var result = await CreateSut(db).GetActiveDeliveryNeighborhoodsByStoreAsync(store.Id);
+
+        result.Should().ContainSingle(x => x.Neighborhood == "CHACARA DE INOA" && x.DisplayName == "CHÁCARA DE INOÃ");
+        result.Should().ContainSingle(x => x.Neighborhood == "Centro (Sede)" && x.DisplayName == "CENTRO (SEDE)");
+    }
+
+    [Fact]
     public async Task GetActiveDeliveryNeighborhoodsByStoreAsync_ShouldExcludeNeighborhoodFromAnotherCityWithinRadius_WhenRadiusIsSet()
     {
         using var db = CreateDbContext();

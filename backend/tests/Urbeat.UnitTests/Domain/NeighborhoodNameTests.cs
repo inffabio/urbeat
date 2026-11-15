@@ -94,4 +94,25 @@ public sealed class NeighborhoodNameTests
 
         Assert.Equal("3fb876390ab24bb96bde463f583cbc4d00c68cc6c6d6c376bb3dd8f9be4662c5", hash);
     }
+
+    [Theory]
+    [InlineData("Chácara de Inoã", "CHÁCARA DE INOÃ")]
+    [InlineData("  chacara   virgínia ", "CHACARA VIRGÍNIA")]
+    [InlineData("RESIDENCIAL TERRAS DO HIMALAIA", "RESIDENCIAL TERRAS DO HIMALAIA")]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    public void Uppercase_display_preserves_accents_and_collapses_whitespace(string? input, string expected)
+    {
+        Assert.Equal(expected, NeighborhoodName.ToUppercaseDisplay(input));
+    }
+
+    [Fact]
+    public void Uppercase_display_is_bounded_and_idempotent()
+    {
+        var bounded = NeighborhoodName.ToUppercaseDisplay(new string('a', 200));
+        var twice = NeighborhoodName.ToUppercaseDisplay(NeighborhoodName.ToUppercaseDisplay("Chácara de Inoã"));
+
+        Assert.Equal(NeighborhoodName.NeighborhoodDisplayNameMaxLength, bounded.Length);
+        Assert.Equal("CHÁCARA DE INOÃ", twice);
+    }
 }

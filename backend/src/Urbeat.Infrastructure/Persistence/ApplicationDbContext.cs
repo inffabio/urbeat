@@ -100,6 +100,8 @@ public sealed class ApplicationDbContext
 
     public DbSet<DeliveryNeighborhood> DeliveryNeighborhoods => Set<DeliveryNeighborhood>();
 
+    public DbSet<DeliveryNeighborhoodAlias> DeliveryNeighborhoodAliases => Set<DeliveryNeighborhoodAlias>();
+
     public DbSet<City> Cities => Set<City>();
 
     public DbSet<DeliveryStreet> DeliveryStreets => Set<DeliveryStreet>();
@@ -369,6 +371,31 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.Reason).HasMaxLength(60).IsRequired();
             entity.Property(x => x.Details).HasMaxLength(500);
             entity.Property(x => x.SourceVersion).HasMaxLength(64).IsRequired();
+        });
+
+        builder.Entity<DeliveryNeighborhoodAlias>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Alias).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.NormalizedAlias).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.ApprovalNotes).HasMaxLength(500);
+            entity.Property(x => x.ApprovedAtUtc).HasColumnType("timestamp with time zone");
+
+            // One approved/active spelling can resolve to only one canonical neighborhood
+            // inside a city. The city is also part of the FK, so an alias cannot cross cities.
+            entity.HasIndex(x => new { x.CityId, x.NormalizedAlias })
+                .IsUnique()
+                .HasFilter("\"IsActive\" = TRUE");
+            entity.HasIndex(x => new { x.CanonicalNeighborhoodId, x.IsActive });
+
+            entity.HasOne(x => x.CityEntity)
+                .WithMany()
+                .HasForeignKey(x => x.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.CanonicalNeighborhood)
+                .WithMany()
+                .HasForeignKey(x => x.CanonicalNeighborhoodId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<StoreBusinessHour>(entity =>
@@ -914,6 +941,7 @@ public sealed class ApplicationDbContext
         {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Neighborhood).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.DisplayName).HasMaxLength(150);
             entity.Property(x => x.City).HasMaxLength(255).IsRequired();
             entity.Property(x => x.NormalizedName).HasMaxLength(255).IsRequired();
             entity.Property(x => x.CityId).IsRequired(false);

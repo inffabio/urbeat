@@ -850,6 +850,10 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -920,6 +924,61 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasFilter("\"CityId\" IS NOT NULL");
 
                     b.ToTable("DeliveryNeighborhoods");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryNeighborhoodAlias", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("ApprovalNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ApprovedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ApprovedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CanonicalNeighborhoodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NormalizedAlias")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CanonicalNeighborhoodId", "IsActive");
+
+                    b.HasIndex("CityId", "NormalizedAlias")
+                        .IsUnique()
+                        .HasFilter("\"IsActive\" = TRUE");
+
+                    b.ToTable("DeliveryNeighborhoodAliases");
                 });
 
             modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryRoute", b =>
@@ -4180,6 +4239,25 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CityEntity");
+                });
+
+            modelBuilder.Entity("Urbeat.Domain.Entities.DeliveryNeighborhoodAlias", b =>
+                {
+                    b.HasOne("Urbeat.Domain.Entities.DeliveryNeighborhood", "CanonicalNeighborhood")
+                        .WithMany()
+                        .HasForeignKey("CanonicalNeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Urbeat.Domain.Entities.City", "CityEntity")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CanonicalNeighborhood");
 
                     b.Navigation("CityEntity");
                 });

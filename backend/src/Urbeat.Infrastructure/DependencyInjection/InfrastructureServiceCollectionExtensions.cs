@@ -1,10 +1,12 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Logging;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Geo.Curation;
 using Urbeat.Application.Outbox;
 using Urbeat.Application.Security;
 using Urbeat.Application.WhatsApp;
 using Urbeat.Domain.Repositories;
+using Urbeat.Infrastructure.Curation;
 using Urbeat.Infrastructure.Data;
 using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Identity;
@@ -176,7 +178,9 @@ public static class InfrastructureServiceCollectionExtensions
             provider.GetRequiredService<PublicPlanOfferCache>(),
             provider.GetRequiredService<IServiceScopeFactory>()));
         services.AddScoped<IStoreService, StoreService>();
-        services.AddScoped<IStoreReadRepository, StoreReadRepository>();
+        services.AddSingleton<NeighborhoodAliasCurationPolicy>();
+        services.AddSingleton<NeighborhoodAliasCurator>();
+        services.AddScoped<NeighborhoodAliasApplyService>();        services.AddScoped<IStoreReadRepository, StoreReadRepository>();
         services.AddScoped<IStoreAddressService, StoreAddressService>();
         services.AddScoped<IStoreBusinessHoursService, StoreBusinessHoursService>();
         services.AddScoped<Urbeat.Application.Interfaces.Publish.IStorePublishService, Urbeat.Application.Services.Publish.StorePublishService>();

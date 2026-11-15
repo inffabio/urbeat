@@ -13,6 +13,12 @@ public sealed class DeliveryNeighborhood : BaseEntity
 
     public string Neighborhood { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional curator-approved label for display only. It never replaces the persisted
+    /// neighborhood name or identifier used by delivery-area selection.
+    /// </summary>
+    public string? DisplayName { get; set; }
+
     public string NormalizedName { get; set; } = string.Empty;
 
     /// <summary>

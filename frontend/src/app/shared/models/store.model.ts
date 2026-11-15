@@ -176,6 +176,8 @@ export interface DeliveryTimeOption {
 export interface DeliveryNeighborhood {
   id: string;
   neighborhood: string;
+  displayName?: string | null;
+  canonicalNeighborhoodId?: string | null;
   city: string;
   latitude?: number;
   longitude?: number;
@@ -195,6 +197,7 @@ export interface DeliveryNeighborhood {
 export interface NeighborhoodSearchResult {
   id: string;
   name: string;
+  displayName?: string | null;
   latitude?: number;
   longitude?: number;
   isActive: boolean;
@@ -211,12 +214,13 @@ export interface NeighborhoodMapResponse {
     uf: string;
   };
   items: NeighborhoodMapItem[];
-  withoutCoordinates: { neighborhoodId: string; name: string }[];
+  withoutCoordinates: { neighborhoodId: string; name: string; displayName?: string | null }[];
 }
 
 export interface NeighborhoodMapItem {
   neighborhoodId: string;
   name: string;
+  displayName?: string | null;
   latitude?: number;
   longitude?: number;
   rate: number;

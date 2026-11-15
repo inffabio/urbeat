@@ -44,7 +44,7 @@
               <tbody formArrayName="areas">
                 @for (i of pagedAreaIndices(); track i) {
                   <tr [formGroupName]="i" tabindex="0" [class.selected-row]="selectedAreaIndex() === i" [attr.aria-selected]="selectedAreaIndex() === i" [attr.aria-label]="'Selecionar bairro ' + areas.at(i).value.neighborhood" (click)="selectArea(i)" (keydown)="onRowKeydown($event, i)">
-                    <td data-label="Bairro"><strong>{{ areas.at(i).value.neighborhood }}</strong></td>
+                    <td data-label="Bairro"><strong>{{ getNeighborhoodDisplayName(areas.at(i).value.neighborhood, areas.at(i).value.neighborhoodId) }}</strong></td>
                     <td data-label="Distância">{{ getNeighborhoodDistance(areas.at(i).value.neighborhood) }}</td>
                     <td data-label="Taxa de entrega">{{ areas.at(i).value.deliveryFee ? 'R$ ' + areas.at(i).value.deliveryFee : 'R$ 0,00' }}</td>
                     <td data-label="Status"><span class="badge-soft" [class.badge-green]="areas.at(i).value.isActive !== false" [class.badge-orange]="areas.at(i).value.isActive === false">{{ areas.at(i).value.isActive !== false ? 'Ativo' : 'Pausado' }}</span></td>

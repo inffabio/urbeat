@@ -14,6 +14,10 @@ namespace Urbeat.Domain.Geo;
 public static class NeighborhoodName
 {
     public const int DisplayNameMaxLength = 255;
+
+    /// <summary>Maximum length persisted in <c>DeliveryNeighborhood.DisplayName</c>.</summary>
+    public const int NeighborhoodDisplayNameMaxLength = 150;
+
     public const int ZipCodeLength = 8;
 
     public static string Normalize(string? value)
@@ -70,6 +74,40 @@ public static class NeighborhoodName
         return composed.Length <= DisplayNameMaxLength
             ? composed
             : composed[..DisplayNameMaxLength].TrimEnd();
+    }
+
+    /// <summary>
+    /// Builds the presentation-only label for a delivery neighborhood. Product copy is uppercase,
+    /// but uppercase is a display transform: accents and the correct spelling are preserved
+    /// ("Chácara de Inoã" becomes "CHÁCARA DE INOÃ"). The persisted canonical
+    /// <c>Neighborhood</c> name is never rewritten by this helper.
+    /// </summary>
+    public static string ToUppercaseDisplay(string? value, int maxLength = NeighborhoodDisplayNameMaxLength)
+    {
+        var collapsed = CollapseWhitespace(value);
+        if (collapsed.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var upper = collapsed.ToUpperInvariant();
+        return upper.Length <= maxLength ? upper : upper[..maxLength].TrimEnd();
+    }
+
+    private static string CollapseWhitespace(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = value.Trim();
+        while (trimmed.Contains("  ", StringComparison.Ordinal))
+        {
+            trimmed = trimmed.Replace("  ", " ", StringComparison.Ordinal);
+        }
+
+        return trimmed;
     }
 
     /// <summary>

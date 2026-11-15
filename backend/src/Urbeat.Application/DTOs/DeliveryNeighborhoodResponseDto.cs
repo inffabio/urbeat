@@ -6,6 +6,11 @@ public sealed class DeliveryNeighborhoodResponseDto
 
     public string Neighborhood { get; init; } = string.Empty;
 
+    /// <summary>Curator-approved display label; null means use <see cref="Neighborhood"/>.</summary>
+    public string? DisplayName { get; init; }
+
+    public Guid? CanonicalNeighborhoodId { get; init; }
+
     public string NormalizedName { get; init; } = string.Empty;
 
     public string City { get; init; } = string.Empty;

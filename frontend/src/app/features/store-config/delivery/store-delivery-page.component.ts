@@ -172,7 +172,7 @@ export class StoreDeliveryPageComponent implements OnInit {
 
   readonly filteredNeighborhoods = computed(() => {
     this.areaVersion();
-    const s = this.neighborhoodSearch().toLowerCase();
+    const s = this.neighborhoodSearch().trim().toLocaleLowerCase('pt-BR');
     const radius = this.maxDeliveryRadiusKm();
     const lat = this.storeLat();
     const lon = this.storeLon();
@@ -180,7 +180,8 @@ export class StoreDeliveryPageComponent implements OnInit {
       this.areas.controls.map(ctrl => (ctrl.value.neighborhood || '').trim().toLowerCase())
     );
     let list = this.deliveryNeighborhoods()
-      .filter(n => n.neighborhood.toLowerCase().includes(s))
+      .filter(n => this.getNeighborhoodDisplayName(n.neighborhood, n.id).toLocaleLowerCase('pt-BR').includes(s)
+        || n.neighborhood.toLocaleLowerCase('pt-BR').includes(s))
       .filter(n => !existing.has(n.neighborhood.toLowerCase()));
     if (radius > 0 && lat != null && lon != null) {
       list = list.filter(n => {
@@ -192,6 +193,15 @@ export class StoreDeliveryPageComponent implements OnInit {
     }
     return list.sort((a, b) => a.neighborhood.localeCompare(b.neighborhood, 'pt-BR'));
   });
+
+  /** Display-only label; IDs and the original name remain the selection contract. */
+  getNeighborhoodDisplayName(neighborhood: string, neighborhoodId?: string | null): string {
+    const match = neighborhoodId
+      ? this.deliveryNeighborhoods().find(item => item.id === neighborhoodId)
+        ?? this.deliveryNeighborhoods().find(item => (item.canonicalNeighborhoodId ?? item.id) === neighborhoodId)
+      : this.deliveryNeighborhoods().find(item => item.neighborhood === neighborhood);
+    return match?.displayName?.trim() || neighborhood.toLocaleUpperCase('pt-BR');
+  }
 
   readonly filteredAreaIndices = computed(() => {
     this.areaVersion();
@@ -326,6 +336,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       store.deliveryAreas.forEach((area: StoreDeliveryArea) => {
         this.areas.push(this.fb.group({
           id: [area.id],
+          neighborhoodId: [area.neighborhoodId ?? null],
           neighborhood: [area.neighborhood, Validators.required],
           deliveryFee: [this.formatNumberToBRL(area.deliveryFee)],
           isActive: [area.isActive !== false],
@@ -450,6 +461,7 @@ export class StoreDeliveryPageComponent implements OnInit {
 
       this.areas.push(this.fb.group({
         id: [null],
+        neighborhoodId: [null],
         neighborhood: [neighborhood, Validators.required],
         deliveryFee: [feeStr],
         isActive: [true],
@@ -722,6 +734,7 @@ export class StoreDeliveryPageComponent implements OnInit {
         : '';
       this.areas.push(this.fb.group({
         id: [null],
+        neighborhoodId: [nb.canonicalNeighborhoodId ?? nb.id],
         neighborhood: [nb.neighborhood, Validators.required],
         deliveryFee: [feeStr],
         isActive: [true],
@@ -845,6 +858,7 @@ export class StoreDeliveryPageComponent implements OnInit {
         const numFee = this.parseBRLToNumber(val.deliveryFee) || 0;
         return {
           id: val.id || undefined,
+          neighborhoodId: val.neighborhoodId || undefined,
           neighborhood: val.neighborhood || '',
           deliveryFee: numFee,
           isActive: val.isActive !== false,
@@ -900,6 +914,7 @@ export class StoreDeliveryPageComponent implements OnInit {
       .filter(area => (area.neighborhood ?? '').trim() !== '')
       .map(area => ({
         id: area.id,
+        neighborhoodId: area.neighborhoodId ?? null,
         neighborhood: area.neighborhood,
         deliveryFee: area.deliveryFee,
         isActive: area.isActive,

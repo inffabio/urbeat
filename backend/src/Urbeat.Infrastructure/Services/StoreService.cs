@@ -836,6 +836,9 @@ public sealed class StoreService : IStoreService
 
             var storeCityId = await ResolveCityIdAsync(storeAddress, cancellationToken);
             var neighborhoodLookup = await LoadNeighborhoodLookupAsync(storeAddress, storeCityId, cancellationToken);
+            var neighborhoodById = neighborhoodLookup.Values
+                .GroupBy(neighborhood => neighborhood.Id)
+                .ToDictionary(group => group.Key, group => group.First());
 
             // Server-side guard: a radius reduction/change must not retain store delivery areas
             // outside the radius, even when a stale or direct client submits them. Eligibility uses
@@ -846,7 +849,7 @@ public sealed class StoreService : IStoreService
                 && storeAddress?.Latitude is not null
                 && storeAddress.Longitude is not null;
 
-            var resolvedAreas = new List<(StoreDeliveryAreaDto Area, Guid? NeighborhoodId, double? DistanceKm)>(submittedAreas.Count);
+            var resolvedAreas = new List<(StoreDeliveryAreaDto Area, Guid? NeighborhoodId, string Neighborhood, double? DistanceKm)>(submittedAreas.Count);
 
             foreach (var area in submittedAreas)
             {
@@ -856,7 +859,18 @@ public sealed class StoreService : IStoreService
                     continue;
                 }
 
-                var neighborhood = neighborhoodLookup.GetValueOrDefault(normalizedName);
+                // Selection by canonical identifier wins; the textual name remains the transitional
+                // fallback for legacy clients and for areas created before the identifier existed.
+                DeliveryNeighborhood? neighborhood = null;
+                if (area.NeighborhoodId is { } requestedId
+                    && neighborhoodById.TryGetValue(requestedId, out var selected))
+                {
+                    neighborhood = selected;
+                }
+                else
+                {
+                    neighborhood = neighborhoodLookup.GetValueOrDefault(normalizedName);
+                }
 
                 double? distanceKm = null;
                 if (radiusApplied && neighborhood?.Latitude is not null && neighborhood.Longitude is not null)
@@ -873,7 +887,7 @@ public sealed class StoreService : IStoreService
                     }
                 }
 
-                resolvedAreas.Add((area, neighborhood?.Id, distanceKm));
+                resolvedAreas.Add((area, neighborhood?.Id, neighborhood?.Neighborhood ?? area.Neighborhood, distanceKm));
             }
 
             // The unique index is (StoreId, NeighborhoodId). Two submitted spellings can resolve to
@@ -898,12 +912,12 @@ public sealed class StoreService : IStoreService
                 _dbContext.Set<StoreDeliveryArea>().RemoveRange(existing);
             }
 
-            foreach (var (area, neighborhoodId, distanceKm) in resolvedAreas)
+            foreach (var (area, neighborhoodId, neighborhoodName, distanceKm) in resolvedAreas)
             {
                 _dbContext.Set<StoreDeliveryArea>().Add(new StoreDeliveryArea
                 {
                     StoreId = storeId,
-                    Neighborhood = area.Neighborhood,
+                    Neighborhood = neighborhoodName,
                     NeighborhoodId = neighborhoodId,
                     DeliveryFee = area.DeliveryFee,
                     DistanceKm = distanceKm is null ? null : GeoDistance.RoundForDisplay(distanceKm.Value, 3),
@@ -1138,6 +1152,15 @@ public sealed class StoreService : IStoreService
             cityId,
             cityName);
 
+        // A row that is registered as an active alias is a source spelling, not a separate option.
+        // It stays in the database and keeps its identifier for audit, but is hidden from selection.
+        query = query.Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
+            alias.IsActive
+            && alias.IsApproved
+            && alias.CityId == x.CityId
+            && alias.NormalizedAlias == x.NormalizedName
+            && alias.CanonicalNeighborhoodId != x.Id));
+
         return await query
             .OrderBy(x => x.Neighborhood)
             .ToListAsync(cancellationToken);
@@ -1168,6 +1191,11 @@ public sealed class StoreService : IStoreService
         {
             Id = neighborhood.Id,
             Neighborhood = neighborhood.Neighborhood,
+            DisplayName = NeighborhoodName.ToUppercaseDisplay(
+                string.IsNullOrWhiteSpace(neighborhood.DisplayName)
+                    ? neighborhood.Neighborhood
+                    : neighborhood.DisplayName),
+            CanonicalNeighborhoodId = neighborhood.Id,
             NormalizedName = neighborhood.NormalizedName,
             City = neighborhood.City,
             CityId = neighborhood.CityId,
@@ -1191,9 +1219,16 @@ public sealed class StoreService : IStoreService
 
     private async Task<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>> GetNeighborhoodsByCityAsync(string city, CancellationToken cancellationToken)
     {
+        var normalizedCity = city.ToLower().Trim();
         var neighborhoods = await _dbContext.DeliveryNeighborhoods
             .AsNoTracking()
-            .Where(x => x.IsActive && x.City.ToLower() == city.ToLower().Trim())
+            .Where(x => x.IsActive && x.City.ToLower() == normalizedCity)
+            .Where(x => !_dbContext.DeliveryNeighborhoodAliases.Any(alias =>
+                alias.IsActive
+                && alias.IsApproved
+                && alias.CityId == x.CityId
+                && alias.NormalizedAlias == x.NormalizedName
+                && alias.CanonicalNeighborhoodId != x.Id))
             .OrderBy(x => x.Neighborhood)
             .ToListAsync(cancellationToken);
 
@@ -1259,6 +1294,31 @@ public sealed class StoreService : IStoreService
             lookup[key] = neighborhood;
         }
 
+        if (cityId is null)
+        {
+            return lookup;
+        }
+
+        var canonicalById = neighborhoods.ToDictionary(neighborhood => neighborhood.Id);
+        var aliases = await _dbContext.DeliveryNeighborhoodAliases
+            .AsNoTracking()
+            .Where(alias => alias.IsActive && alias.IsApproved && alias.CityId == cityId)
+            .Select(alias => new { alias.NormalizedAlias, alias.CanonicalNeighborhoodId })
+            .ToListAsync(cancellationToken);
+
+        foreach (var alias in aliases)
+        {
+            // The canonical spelling always wins; an alias never shadows another canonical name.
+            if (alias.NormalizedAlias.Length == 0
+                || lookup.ContainsKey(alias.NormalizedAlias)
+                || !canonicalById.TryGetValue(alias.CanonicalNeighborhoodId, out var canonical))
+            {
+                continue;
+            }
+
+            lookup[alias.NormalizedAlias] = canonical;
+        }
+
         return lookup;
     }
 
@@ -1306,6 +1366,21 @@ public sealed class StoreService : IStoreService
 
         if (await existsQuery.AnyAsync(cancellationToken))
             return null;
+
+        if (cityEntity is not null
+            && await _dbContext.DeliveryNeighborhoodAliases
+                .AsNoTracking()
+                .AnyAsync(
+                    alias => alias.IsActive
+                        && alias.IsApproved
+                        && alias.CityId == cityEntity.Id
+                        && alias.NormalizedAlias == normalizedName,
+                    cancellationToken))
+        {
+            // The spelling already resolves to a canonical neighborhood; creating another row would
+            // reintroduce the duplicate the alias exists to prevent.
+            return null;
+        }
 
         var dn = new DeliveryNeighborhood
         {
