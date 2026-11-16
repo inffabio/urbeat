@@ -1,6 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Urbeat.Application.DTOs;
+﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -10,21 +8,25 @@ namespace Urbeat.WebApi.Controllers;
 
 [ApiController]
 [Route("api/subscriptions")]
-[Authorize(Policy = AuthorizationPolicies.SellerOnly)]
 public sealed class SubscriptionsController : ControllerBase
 {
     private readonly IPlanService _planService;
     private readonly ISellerSubscriptionStatusService _sellerSubscriptionStatusService;
+    private readonly IStoreRequestContext _storeContext;
 
     public SubscriptionsController(
         IPlanService planService,
-        ISellerSubscriptionStatusService sellerSubscriptionStatusService)
+        ISellerSubscriptionStatusService sellerSubscriptionStatusService,
+        IStoreRequestContext storeContext)
     {
         _planService = planService;
         _sellerSubscriptionStatusService = sellerSubscriptionStatusService;
+        _storeContext = storeContext;
     }
 
+    // Contracting/cancelling a plan is not delegable: the administrator keeps read-only access.
     [HttpGet("plans")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<IReadOnlyList<PlanResponseDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -35,6 +37,7 @@ public sealed class SubscriptionsController : ControllerBase
     }
 
     [HttpPost("contract")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<ContractSellerSubscriptionResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -45,7 +48,7 @@ public sealed class SubscriptionsController : ControllerBase
         [FromBody] ContractSellerSubscriptionRequestDto request,
         CancellationToken cancellationToken)
     {
-        var sellerUserId = GetCurrentUserId();
+        var sellerUserId = _storeContext.EffectiveSellerUserId;
         if (sellerUserId is null)
         {
             return Unauthorized();
@@ -81,12 +84,13 @@ public sealed class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("my")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<SellerSubscriptionMyResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetMySubscription(CancellationToken cancellationToken)
     {
-        var sellerUserId = GetCurrentUserId();
+        var sellerUserId = _storeContext.EffectiveSellerUserId;
         if (sellerUserId is null)
         {
             return Unauthorized();
@@ -97,12 +101,13 @@ public sealed class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("my/charges")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<IReadOnlyList<SellerSubscriptionChargeHistoryItemDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetMyChargeHistory(CancellationToken cancellationToken)
     {
-        var sellerUserId = GetCurrentUserId();
+        var sellerUserId = _storeContext.EffectiveSellerUserId;
         if (sellerUserId is null)
         {
             return Unauthorized();
@@ -110,13 +115,5 @@ public sealed class SubscriptionsController : ControllerBase
 
         var response = await _sellerSubscriptionStatusService.ListMyChargeHistoryAsync(sellerUserId.Value, cancellationToken);
         return Ok(response);
-    }
-
-    private Guid? GetCurrentUserId()
-    {
-        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        return Guid.TryParse(subject, out var userId) ? userId : null;
     }
 }

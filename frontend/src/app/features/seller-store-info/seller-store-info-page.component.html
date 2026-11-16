@@ -127,7 +127,7 @@
     </div>
   </section>
 
-  @if (existingStoreId()) {
+  @if (existingStoreId() && !isAdminDelegated()) {
     <section class="danger-zone" aria-labelledby="danger-zone-title">
       <div class="danger-zone-copy">
         <h2 id="danger-zone-title" class="danger-zone-title">Zona destrutiva</h2>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -10,6 +10,7 @@ import {
   printOutline,
   timeOutline,
 } from 'ionicons/icons';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 
 addIcons({
   'globe-outline': globeOutline,
@@ -34,10 +35,12 @@ addIcons({
           <ion-icon name="information-circle-outline" aria-hidden="true" />
           <span>Informações</span>
         </a>
-        <a class="nav-item nav-link" routerLink="/app/configuracoes/impressao" routerLinkActive="active">
-          <ion-icon name="print-outline" aria-hidden="true" />
-          <span>Impressão</span>
-        </a>
+        @if (!isAdminDelegated()) {
+          <a class="nav-item nav-link" routerLink="/app/configuracoes/impressao" routerLinkActive="active">
+            <ion-icon name="print-outline" aria-hidden="true" />
+            <span>Impressão</span>
+          </a>
+        }
         <a class="nav-item nav-link" routerLink="/app/configuracoes/bio" routerLinkActive="active">
           <ion-icon name="globe-outline" aria-hidden="true" />
           <span>Bio</span>
@@ -116,4 +119,9 @@ addIcons({
     }
   `],
 })
-export class ConfigSubnavComponent {}
+export class ConfigSubnavComponent {
+  private readonly adminStoreSession = inject(AdminStoreSessionService);
+
+  /** Printing belongs to the seller identity and is not part of the delegated mode. */
+  readonly isAdminDelegated = computed(() => this.adminStoreSession.isAdminMode());
+}

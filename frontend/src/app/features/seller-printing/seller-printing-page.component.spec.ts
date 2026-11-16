@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { SellerPrintingPageComponent } from './seller-printing-page.component';
 import { SellerPrintingService } from './seller-printing.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 
 describe('SellerPrintingPageComponent', () => {
   let printingServiceMock: SellerPrintingService;
@@ -57,7 +58,11 @@ describe('SellerPrintingPageComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [SellerPrintingPageComponent],
-      providers: [provideRouter([]), { provide: SellerPrintingService, useValue: printingServiceMock }],
+      providers: [
+        provideRouter([]),
+        { provide: SellerPrintingService, useValue: printingServiceMock },
+        { provide: AdminStoreSessionService, useValue: { session: () => null, isAdminMode: () => false } },
+      ],
     }).compileComponents();
   });
 

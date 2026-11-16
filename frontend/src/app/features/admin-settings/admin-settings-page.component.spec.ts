@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { SystemParameterService } from '../../core/services/system-parameter.service';
 import { SystemParameter } from '../../shared/models/system-parameter.model';
@@ -90,11 +91,22 @@ describe('AdminSettingsPageComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AdminSettingsPageComponent],
-      providers: [{ provide: SystemParameterService, useValue: serviceMock }],
+      providers: [
+        provideRouter([]),
+        { provide: SystemParameterService, useValue: serviceMock },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminSettingsPageComponent);
     fixture.detectChanges();
+  });
+
+  it('opens on the parameters section by default and does not render the administrators API surface', () => {
+    const component = fixture.componentInstance;
+
+    expect(component.section()).toBe('parametros');
+    expect(fixture.nativeElement.querySelector('app-admin-administrators-section')).toBeNull();
+    expect(serviceMock.list).toHaveBeenCalledTimes(1);
   });
 
   function rowFor(key: string): HTMLElement {

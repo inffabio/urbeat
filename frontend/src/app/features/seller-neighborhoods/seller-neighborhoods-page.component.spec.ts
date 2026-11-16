@@ -10,6 +10,7 @@ import { resolve } from 'node:path';
 import { SellerNeighborhoodsPageComponent } from './seller-neighborhoods-page.component';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 
 describe('SellerNeighborhoodsPageComponent', () => {
   const storeServiceMock = {
@@ -47,6 +48,7 @@ describe('SellerNeighborhoodsPageComponent', () => {
         { provide: ToastService, useValue: toastServiceMock },
         { provide: AlertController, useValue: { create: jest.fn() } },
         { provide: ToastController, useValue: { create: jest.fn().mockResolvedValue({ present: jest.fn().mockResolvedValue(undefined) }) } },
+        { provide: AdminStoreSessionService, useValue: { session: () => null, isAdminMode: () => false } },
       ],
     }).compileComponents();
   });

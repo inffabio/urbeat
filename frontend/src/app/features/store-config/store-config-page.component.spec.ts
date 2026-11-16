@@ -6,6 +6,7 @@ import { StoreService } from '../../core/services/store.service';
 import { AddressService } from '../../core/services/address.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { of, Subject, throwError } from 'rxjs';
 import { CuisineTypeDto, StoreResponse } from '../../shared/models/store.model';
@@ -77,6 +78,11 @@ const mockSellerShellFacade = {
   mergeStore: jest.fn(),
 };
 
+const mockAdminStoreSession = {
+  session: jest.fn(() => null),
+  isAdminMode: jest.fn(() => false),
+};
+
 const mockRouter = {
   navigate: jest.fn(),
 };
@@ -86,6 +92,8 @@ describe('StoreConfigPageComponent', () => {
   let fixture: ComponentFixture<StoreConfigPageComponent>;
 
   beforeEach(async () => {
+    mockAdminStoreSession.session.mockReturnValue(null);
+    mockAdminStoreSession.isAdminMode.mockReturnValue(false);
     await TestBed.configureTestingModule({
       imports: [FormsModule, StoreConfigPageComponent],
       schemas: [NO_ERRORS_SCHEMA],
@@ -96,6 +104,7 @@ describe('StoreConfigPageComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: ToastService, useValue: mockToastService },
         { provide: SellerShellFacade, useValue: mockSellerShellFacade },
+        { provide: AdminStoreSessionService, useValue: mockAdminStoreSession },
       ]
     }).compileComponents();
 
@@ -1875,6 +1884,44 @@ describe('StoreConfigPageComponent', () => {
         'store-1',
         expect.objectContaining({ maxDeliveryRadiusKm: 7 }),
       );
+    });
+  });
+
+  describe('delegated administrator mode', () => {
+    const delegatedSession = {
+      token: 'opaque-token',
+      contextId: 'context-1',
+      storeId: 'store-1',
+      storeName: 'Loja Delegada',
+      storeSlug: 'loja-delegada',
+      adminUserId: 'admin-1',
+      expiresAtUtc: '2026-11-16T12:30:00Z',
+      returnUrl: '/admin/lojas',
+    };
+
+    it('does not read the seller profile and hides the contractor field', () => {
+      mockAuthService.getSellerProfile.mockClear();
+      mockAdminStoreSession.session.mockReturnValue(delegatedSession);
+      mockAdminStoreSession.isAdminMode.mockReturnValue(true);
+
+      const adminFixture = TestBed.createComponent(StoreConfigPageComponent);
+      adminFixture.detectChanges();
+
+      expect(mockAuthService.getSellerProfile).not.toHaveBeenCalled();
+      expect(adminFixture.nativeElement.querySelector('input[name="contractorName"]')).toBeNull();
+      expect(adminFixture.nativeElement.querySelector('input[name="storeName"]')).not.toBeNull();
+    });
+
+    it('never writes the seller profile when saving a store', async () => {
+      mockAuthService.updateSellerProfile.mockClear();
+      mockAdminStoreSession.session.mockReturnValue(delegatedSession);
+      mockAdminStoreSession.isAdminMode.mockReturnValue(true);
+
+      const adminFixture = TestBed.createComponent(StoreConfigPageComponent);
+      adminFixture.detectChanges();
+
+      await expect((adminFixture.componentInstance as any).saveContractorName()).resolves.toBe(true);
+      expect(mockAuthService.updateSellerProfile).not.toHaveBeenCalled();
     });
   });
 });

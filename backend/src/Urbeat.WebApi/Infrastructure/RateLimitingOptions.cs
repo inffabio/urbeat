@@ -60,4 +60,10 @@ public sealed class RateLimitingOptions
 
     /// <summary>Window, in seconds, for the public route limit.</summary>
     public int PublicRouteWindowSeconds { get; set; } = 60;
+
+    /// <summary>Permit limit for administrative store-context creation/read/close, per administrator.</summary>
+    public int AdminStoreContextPermitLimit { get; set; } = 30;
+
+    /// <summary>Window, in seconds, for the administrative store-context limit.</summary>
+    public int AdminStoreContextWindowSeconds { get; set; } = 60;
 }

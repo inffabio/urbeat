@@ -2,10 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { authGuard, customerGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
+import { AdminStoreSessionService } from '../services/admin-store-session.service';
+
+const ADMIN_TOKEN = `header.${btoa(JSON.stringify({ role: 'Admin' }))}.signature`;
 
 describe('authGuard', () => {
   let authServiceMock: any;
   let routerMock: any;
+  let adminSessionMock: { ensureRestored: jest.Mock };
 
   beforeEach(() => {
     authServiceMock = {
@@ -18,10 +22,13 @@ describe('authGuard', () => {
       navigateByUrl: jest.fn(),
     };
 
+    adminSessionMock = { ensureRestored: jest.fn().mockResolvedValue(false) };
+
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authServiceMock },
-        { provide: Router, useValue: routerMock }
+        { provide: Router, useValue: routerMock },
+        { provide: AdminStoreSessionService, useValue: adminSessionMock },
       ]
     });
   });
@@ -55,6 +62,30 @@ describe('authGuard', () => {
     expect(result).toBe(false);
     expect(authServiceMock.logout).toHaveBeenCalled();
     expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/login-vendedor');
+  });
+
+  it('allows an administrator with a live delegated store context', async () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.getToken.mockReturnValue(ADMIN_TOKEN);
+    adminSessionMock.ensureRestored.mockResolvedValue(true);
+
+    const result = await TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
+
+    expect(result).toBe(true);
+    expect(adminSessionMock.ensureRestored).toHaveBeenCalled();
+    expect(authServiceMock.logout).not.toHaveBeenCalled();
+  });
+
+  it('redirects an administrator without a context to /admin/lojas without logging out', async () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.getToken.mockReturnValue(ADMIN_TOKEN);
+    adminSessionMock.ensureRestored.mockResolvedValue(false);
+
+    const result = await TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
+
+    expect(result).toBe(false);
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/admin/lojas');
+    expect(authServiceMock.logout).not.toHaveBeenCalled();
   });
 });
 

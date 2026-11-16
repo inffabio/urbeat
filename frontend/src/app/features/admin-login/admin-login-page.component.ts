@@ -15,6 +15,7 @@ import {
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
+import { extractApiErrorMessage } from '../../core/utils/api-error.helper';
 import { LoginRequest } from '../../shared/models/auth.model';
 
 @Component({
@@ -67,7 +68,9 @@ export class AdminLoginPageComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Credenciais inválidas ou acesso negado.');
+        this.error.set(
+          extractApiErrorMessage(err, 'Credenciais inválidas ou acesso negado.'),
+        );
       },
     });
   }

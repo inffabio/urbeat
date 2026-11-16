@@ -7,6 +7,7 @@ using Urbeat.Infrastructure.Persistence;
 using Urbeat.WebApi.DependencyInjection;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Middlewares;
+using Urbeat.WebApi.Security;
 using Hangfire;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -144,7 +145,6 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
 app.UseStaticFiles();
 app.UseCors();
-app.UseRateLimiter();
 app.UseMetricServer();
 app.UseHttpMetrics();
 app.UseSerilogRequestLogging(options =>
@@ -175,6 +175,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+// Rate limiting runs after authentication so per-administrator buckets can be partitioned by the
+// authenticated identity (IP remains the fallback). It stays before authorization, so a throttled
+// request never reaches a controller.
+app.UseRateLimiter();
+// Resolves the delegated administrative store context from X-Admin-Store-Context for delegable
+// prefixes only. It must run after authentication and before authorization.
+app.UseMiddleware<AdminStoreContextMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

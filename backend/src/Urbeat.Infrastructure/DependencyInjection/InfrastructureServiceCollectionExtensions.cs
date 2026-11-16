@@ -65,6 +65,11 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<WhatsAppOptions>, WhatsAppOptionsValidator>();
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.Configure<EmailConfirmationOptions>(configuration.GetSection(EmailConfirmationOptions.SectionName));
+        // Short-lived delegated store context. Non-secret operational values only.
+        services.AddOptions<AdminStoreAccessOptions>()
+            .Bind(configuration.GetSection(AdminStoreAccessOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<AdminStoreAccessOptions>, AdminStoreAccessOptionsValidator>();
         services.Configure<DeliveryRouteOptions>(configuration.GetSection(DeliveryRouteOptions.SectionName));
         services.Configure<CustomerVerificationOptions>(configuration.GetSection(CustomerVerificationOptions.SectionName));
         services.Configure<EmailChangeChallengeOptions>(configuration.GetSection(EmailChangeChallengeOptions.SectionName));
@@ -83,14 +88,24 @@ public static class InfrastructureServiceCollectionExtensions
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<RolePromotionChallengeOptions>, RolePromotionChallengeOptionsValidator>();
 
+        // Administrative account links reuse the dedicated signing key through purpose-separated
+        // domains. Lifetimes and frontend paths are non-secret and validated at startup.
+        services.AddOptions<AdminAccountOptions>()
+            .Bind(configuration.GetSection(AdminAccountOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<AdminAccountOptions>, AdminAccountOptionsValidator>();
+
         // Resolve the connection string once with explicit Npgsql pool limits. EF Core and Hangfire
         // share the same normalized value, so neither can open an unbounded pool per process.
         var databaseConnectionString = NpgsqlPoolConfiguration.ResolveConnectionString(configuration);
 
-        services.AddDbContextPool<ApplicationDbContext>(options =>
+        services.AddDbContextPool<ApplicationDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(databaseConnectionString);
+            options.AddInterceptors(serviceProvider.GetRequiredService<AdminStoreAuditStampInterceptor>());
         });
+        services.AddHttpContextAccessor();
+        services.AddSingleton<AdminStoreAuditStampInterceptor>();
 
         services
             .AddIdentityCore<IdentityUser<Guid>>(options =>
@@ -163,6 +178,12 @@ public static class InfrastructureServiceCollectionExtensions
             options.AddPolicy(AuthorizationPolicies.AdminOnly, policy => policy.RequireRole("Admin"));
             options.AddPolicy(AuthorizationPolicies.SellerOnly, policy => policy.RequireRole("Seller"));
             options.AddPolicy(AuthorizationPolicies.CustomerOnly, policy => policy.RequireRole("Customer"));
+            // Store-scoped operations: a seller keeps the historical ownership behaviour; an
+            // administrator only passes with a valid, matching delegated store context. The
+            // requirement is evaluated by StoreAccessAuthorizationHandler (registered by WebApi).
+            options.AddPolicy(AuthorizationPolicies.StoreAccess, policy => policy
+                .RequireAuthenticatedUser()
+                .AddRequirements(new StoreAccessRequirement()));
         });
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddSingleton(TimeProvider.System);
@@ -170,6 +191,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IRolePromotionChallengeService, RolePromotionChallengeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminPasswordRecoveryService, AdminPasswordRecoveryService>();
+        services.AddScoped<IAdminInvitationService, AdminInvitationService>();
+        services.AddScoped<IAdminAccountReadRepository, AdminAccountReadRepository>();
+        services.AddScoped<IAdminAccountService, AdminAccountService>();
+        services.AddScoped<IAdminStoreReadRepository, AdminStoreReadRepository>();
+        services.AddScoped<IAdminStoreAccessService, AdminStoreAccessService>();
+        services.AddSingleton<IAdminStoreAuditWriter, AdminStoreAuditWriter>();
         services.AddScoped<ICuisineTypeService, CuisineTypeService>();
         services.AddSingleton<PublicPlanOfferCache>();
         services.AddScoped<PlanService>();
@@ -400,6 +427,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<SellerSubscriptionNotificationJob>();
         services.AddScoped<SendEmailConfirmationJob>();
         services.AddScoped<SendRolePromotionEmailJob>();
+        services.AddScoped<SendAdminAccountEmailJob>();
+        services.AddScoped<SendAdminEmailChangedNoticeJob>();
         services.AddScoped<RolePromotionEmailRecoveryJob>();
         services.AddScoped<ImportAllCitiesNeighborhoodsJob>();
         services.AddScoped<ImportStoreNeighborhoodsJob>();

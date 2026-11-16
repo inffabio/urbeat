@@ -18,6 +18,28 @@
     </div>
   </header>
 
+  <nav class="admin-sections" aria-label="Seções de configuração">
+    <button
+      type="button"
+      class="admin-section-tab"
+      [class.is-active]="section() === 'parametros'"
+      [attr.aria-pressed]="section() === 'parametros'"
+      (click)="setSection('parametros')"
+    >
+      Parâmetros
+    </button>
+    <button
+      type="button"
+      class="admin-section-tab"
+      [class.is-active]="section() === 'administradores'"
+      [attr.aria-pressed]="section() === 'administradores'"
+      (click)="setSection('administradores')"
+    >
+      Administradores
+    </button>
+  </nav>
+
+  @if (section() === 'parametros') {
   @if (feedback(); as message) {
     <p
       class="admin-feedback"
@@ -212,5 +234,8 @@
         <span>Os parâmetros da plataforma aparecerão aqui quando estiverem disponíveis.</span>
       </div>
     }
+  }
+  } @else {
+    <app-admin-administrators-section />
   }
 </section>

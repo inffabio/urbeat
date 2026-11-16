@@ -1057,6 +1057,272 @@ Estas rotas existem para operação interna e não são consumidas pela tela Con
 
 ---
 
+### Administradores da plataforma
+
+Todas as rotas de gestão exigem role `Admin` (política `AdminOnly`). `404` significa id inexistente
+ou identidade sem a role `Admin`; `409` devolve `{ "code", "message" }` com código estável. Nenhuma
+resposta contém token, hash, senha ou `securityStamp`.
+
+#### GET `/api/admin/administrators`
+Listagem paginada e filtrável. `status`: `all` (padrão), `active`, `blocked`, `invited`;
+`search` (até 120 caracteres, case-insensitive em e-mail); `page` 1-based e `pageSize` (padrão 20,
+máximo 100), normalizados quando fora da faixa.
+
+**Response 200:**
+```json
+{
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 2,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": "guid...",
+      "email": "admin@urbeat.local",
+      "status": "Active",
+      "isEmailConfirmed": true,
+      "isBlocked": false,
+      "isCurrentUser": true,
+      "isLastActiveAdmin": true,
+      "createdAtUtc": "2026-01-10T12:00:00Z",
+      "invitation": null
+    },
+    {
+      "id": "guid...",
+      "email": "novo.admin@exemplo.com",
+      "status": "Invited",
+      "isEmailConfirmed": false,
+      "isBlocked": false,
+      "isCurrentUser": false,
+      "isLastActiveAdmin": false,
+      "createdAtUtc": "2026-11-13T14:20:00Z",
+      "invitation": {
+        "id": "guid...",
+        "purpose": "AccountInvitation",
+        "state": "Pending",
+        "expiresAtUtc": "2026-11-14T14:20:00Z",
+        "emailSentAtUtc": null,
+        "createdAtUtc": "2026-11-13T14:20:00Z"
+      }
+    }
+  ]
+}
+```
+`status`: `Active`, `Blocked`, `Invited`. `invitation.state`: `Pending`, `Sending`, `Expired`,
+`Accepted`, `Revoked`, `Superseded`. `isCurrentUser` e `isLastActiveAdmin` são apenas dicas de UI.
+
+#### POST `/api/admin/administrators`
+Cria a identidade **sem senha**, atribui a role `Admin` e envia um convite de uso único (24 h).
+Rate limit: bucket `email-resend`.
+
+**Request:**
+```json
+{ "email": "novo.admin@exemplo.com" }
+```
+
+**Response 201:**
+```json
+{
+  "administratorId": "guid...",
+  "email": "novo.admin@exemplo.com",
+  "status": "Invited",
+  "invitation": {
+    "id": "guid...",
+    "purpose": "AccountInvitation",
+    "state": "Pending",
+    "expiresAtUtc": "2026-11-14T14:20:00Z",
+    "emailSentAtUtc": null,
+    "createdAtUtc": "2026-11-13T14:20:00Z"
+  }
+}
+```
+Erros: `400` e-mail inválido, `409 EMAIL_ALREADY_IN_USE`, `429`.
+
+#### PUT `/api/admin/administrators/{id}/email`
+Altera o e-mail. Endereço igual ao atual é idempotente. Para conta `Invited`, reemite o convite; para
+`Active`/`Blocked`, aplica imediatamente, revoga todas as sessões e rotaciona o security stamp.
+
+**Request:** `{ "email": "novo.endereco@exemplo.com" }` · **Response 200:** item da listagem.
+
+Erros: `400`, `404 ADMIN_NOT_FOUND`, `409 EMAIL_ALREADY_IN_USE`, `429`.
+
+#### POST `/api/admin/administrators/{id}/invitation/resend`
+Reenvia o convite sem invalidar um link pendente já entregue; um link expirado é substituído por um
+novo. **202 Accepted**:
+```json
+{ "invitationId": "guid...", "expiresAtUtc": "2026-11-14T14:20:00Z", "emailDeliveryPending": true }
+```
+Erros: `404`, `409 INVITATION_NOT_PENDING`, `429`.
+
+#### DELETE `/api/admin/administrators/{id}/invitation`
+`204`. Revoga o link e, se a conta nunca foi ativada, exclui a identidade pendente.
+Erros: `404`, `409 ADMIN_NOT_ACTIVE` (conta ativada) ou `409 INVITATION_NOT_PENDING`.
+
+#### POST `/api/admin/administrators/{id}/password-reset`
+Emite um link de redefinição (60 min), reutiliza um pedido pendente e revoga todas as sessões do
+alvo. **202** com o mesmo shape do reenvio. Erros: `404`, `409 ADMIN_NOT_ACTIVE` (convite pendente).
+
+#### POST `/api/admin/administrators/{id}/block`
+**Request opcional:** `{ "reason": "Desligamento do colaborador" }` (máx. 200, usado só na auditoria).
+**200** com o item (`isBlocked: true`). Erros: `400 SELF_ACTION_NOT_ALLOWED`,
+`404 ADMIN_NOT_FOUND`, `409 LAST_ACTIVE_ADMIN`, `409 ADMIN_ALREADY_BLOCKED`,
+`409 ADMIN_NOT_ACTIVE`.
+
+#### POST `/api/admin/administrators/{id}/unblock`
+**200** com o item. Limpa também o lockout automático do Identity e não restaura sessões.
+Erros: `404`, `409 ADMIN_NOT_BLOCKED`.
+
+#### DELETE `/api/admin/administrators/{id}?reason=...`
+`204`. Conta pendente é excluída; conta ativada perde apenas a role `Admin` (identidade, roles de
+lojista/cliente e dados são preservados) e tem as sessões revogadas.
+Erros: `400 SELF_ACTION_NOT_ALLOWED`, `404`, `409 LAST_ACTIVE_ADMIN`.
+
+#### POST `/api/auth/admin-account/invitation/validate`
+Rota pública, rate limit `password-recovery`. Token sempre no corpo, nunca em path/query. Resposta
+é sempre `200` para não se tornar oráculo de existência.
+```json
+{ "token": "<token-opaco>" }
+```
+```json
+{ "valid": true, "purpose": "AccountInvitation", "emailMasked": "n***@exemplo.com", "expiresAtUtc": "2026-11-14T14:20:00Z" }
+```
+Inválido/expirado/consumido/revogado/substituído: `{ "valid": false, "message": "..." }`.
+
+#### POST `/api/auth/admin-account/invitation/accept`
+```json
+{ "token": "<token-opaco>", "newPassword": "...", "confirmPassword": "..." }
+```
+**200:** `{ "succeeded": true, "purpose": "AccountInvitation", "message": "Conta ativada. Entre com sua nova senha." }`.
+Define a senha, confirma o e-mail, limpa o lockout e consome o link.
+Erros: `400 WEAK_PASSWORD`, `400 INVALID_OR_EXPIRED_TOKEN`, `409 TOKEN_ALREADY_USED`, `429`.
+
+#### POST `/api/auth/admin-account/password-reset/validate` e `/password-reset/confirm`
+Mesmo shape, com `purpose = "PasswordReset"`. O `confirm` aplica a senha, revoga sessões e **não**
+desbloqueia uma conta bloqueada. Mensagem de sucesso: `"Senha atualizada. Entre com a nova senha."`.
+
+Login de administrador bloqueado responde **423 Locked** com `code = "ADMIN_BLOCKED"`.
+
+### Lojas administrativas e contexto de acesso
+
+Feature exclusiva do dashboard administrativo (`AdminOnly`). O contexto é uma delegação explícita
+por loja: o ator continua sendo o administrador (claim preservado), o token opaco só existe em
+memória/`sessionStorage` da aba e nunca é emitido um token de lojista.
+
+Respostas usam `Cache-Control: no-store` e `Pragma: no-cache`.
+
+#### GET `/api/admin/stores`
+Paginação 1-based (`page` padrão 1, `pageSize` padrão 20, máximo 100). Valores fora da faixa são
+normalizados (não geram `400`).
+
+| Query | Valores |
+| --- | --- |
+| `search` | até 120 caracteres; case-insensitive em nome, slug, e-mail e nome do proprietário |
+| `status` | `all`, `onboarding`, `active`, `suspended` |
+| `publication` | `all`, `published`, `draft` |
+| `openState` | `all`, `open`, `closed` |
+| `subscription` | `all`, `active`, `overdue`, `blocked`, `none` |
+| `sort` | `name`, `name_desc`, `created`, `created_desc`, `updated`, `updated_desc` |
+
+**200:**
+```json
+{
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 1,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": "guid...",
+      "name": "Pizza Hunter",
+      "slug": "pizza-hunter",
+      "logoUrl": null,
+      "owner": { "userId": "guid...", "email": "maria@exemplo.com", "name": "Maria Souza" },
+      "status": "Onboarding",
+      "isPublished": false,
+      "isOpen": false,
+      "isSubscriptionBlocked": false,
+      "subscription": { "status": "None", "planName": null, "nextDueDateUtc": null },
+      "createdAtUtc": "2026-11-10T13:00:00Z",
+      "updatedAtUtc": "2026-11-12T18:40:00Z"
+    }
+  ]
+}
+```
+`status`: `Onboarding` (`!IsSubscriptionBlocked && !IsPublished`), `Active`
+(`!IsSubscriptionBlocked && IsPublished`) ou `Suspended` (`IsSubscriptionBlocked`).
+A listagem **não** devolve `Document`, `PixKey`, telefone, endereço, taxas ou horários.
+
+#### POST `/api/admin/stores/{storeId}/access-context`
+Abre um contexto de 30 minutos (absoluto, sem renovação). Corpo opcional:
+`{ "reason": "Chamado de suporte #4821" }` (máx. 200, usado só em auditoria). Rate limit:
+bucket `admin-store-context` (30 req/min por administrador). O limite de contextos ativos é
+serializado por administrador (gate em processo e advisory lock transacional no PostgreSQL).
+
+**201:**
+```json
+{
+  "contextId": "guid...",
+  "adminUserId": "guid...",
+  "storeId": "guid...",
+  "storeName": "Pizza Hunter",
+  "storeSlug": "pizza-hunter",
+  "expiresAtUtc": "2026-11-16T18:30:00Z",
+  "token": "<token-opaco-base64url>"
+}
+```
+O `token` aparece **somente** nesta resposta. Erros: `404 STORE_NOT_FOUND`,
+`409 STORE_OWNER_NOT_FOUND`, `403 ADMIN_STORE_CONTEXT_ADMIN_NOT_ALLOWED`, `429`.
+
+#### GET `/api/admin/stores/{storeId}/access-context`
+Exige o header `X-Admin-Store-Context`. Retorna os metadados (sem token). Usado no boot da aba e na
+revalidação: `200` com `contextId`, `adminUserId`, `storeId`, `storeName`, `storeSlug`,
+`expiresAtUtc`.
+
+#### DELETE `/api/admin/stores/{storeId}/access-context`
+Exige o header. `204 No Content`, idempotente para um contexto conhecido já encerrado. Revoga
+apenas o contexto apresentado.
+
+#### Header `X-Admin-Store-Context` (rotas de loja)
+Processado somente nos prefixos `/api/stores/`, `/api/orders/`, `/api/neighborhoods/` e
+`/api/subscriptions/` (este último por causa das leituras de assinatura delegadas). Sem JWT → `401`;
+JWT sem role `Admin` → `403 ADMIN_STORE_CONTEXT_NOT_ALLOWED`; token inválido/revogado → `403
+ADMIN_STORE_CONTEXT_INVALID`; TTL vencido → `403 ADMIN_STORE_CONTEXT_EXPIRED`; papel removido →
+`403 ADMIN_STORE_CONTEXT_ADMIN_NOT_ALLOWED`; loja excluída → `403 ADMIN_STORE_CONTEXT_STORE_MISSING`
+(quando a linha sobrevive ao cascade) ou `INVALID`; `storeId` de rota/query divergente → `403
+ADMIN_STORE_CONTEXT_STORE_MISMATCH`; endpoint fora do escopo → `403 ADMIN_STORE_ACTION_NOT_ALLOWED`.
+
+Rotas públicas (`[AllowAnonymous]`, storefront, checkout, health), `/api/auth/*` e `/api/admin/*` não
+dependem do contexto.
+
+#### Política `StoreAccess`
+Sem contexto: exige role `Seller` (comportamento histórico). Com contexto: exige `Admin` e que o
+`storeId` de rota/query (quando existir) seja o da loja do contexto. Controladores que seguem
+`SellerOnly` continuam negando o administrador.
+
+#### Ações não delegadas (permanecem `SellerOnly`)
+Excluir loja, abrir/fechar loja (`PATCH status`), contratar/cancelar mensalidade, cadastrar loja,
+criar bairro global/importar bairros, perfil/conta do lojista, entregadores, avaliações, clientes da
+loja e gateway de pagamento.
+
+#### Auditoria
+`AdminStoreAccessGranted`, `AdminStoreAccessRevoked`, `AdminStoreAccessExpired`,
+`AdminStoreAccessRejected`, `AdminStoreActionExecuted` e `AdminStoreActionDenied`. Linhas delegadas
+gravam `UserId = administrador`, `ActorUserId`, `SubjectUserId = proprietário` e
+`AdminStoreContextId`. O token nunca é gravado.
+
+#### Desvios documentados
+- Prefixo `/api/subscriptions/` incluído no middleware e no header do frontend: sem isso as leituras
+  delegadas de assinatura cairiam no caminho `Seller` e retornariam `403`.
+- `POST /api/auth/logout` revoga também os contextos administrativos do usuário (sem alterar o
+  contrato `204`).
+- A exclusão da loja usa FK `Cascade`: a linha do contexto desaparece com a loja e a próxima
+  requisição é negada como `ADMIN_STORE_CONTEXT_INVALID` (fail-closed). O código
+  `ADMIN_STORE_CONTEXT_STORE_MISSING` permanece para linhas cujo `StoreId` não resolve.
+- O interceptor de auditoria preserva `SubjectUserId`/`AdminStoreContextId` já preenchidos
+  explicitamente pela operação, em vez de sobrescrevê-los.
+
+---
+
 ## 10. Cliente
 
 ### GET `/api/customer/home`

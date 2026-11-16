@@ -11,8 +11,10 @@ import {
   menuOutline,
   pulseOutline,
   settingsOutline,
+  storefrontOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { decodeJwt } from '../../core/utils/jwt.helper';
 
 interface AdminNavItem {
@@ -30,6 +32,7 @@ addIcons({
   'menu-outline': menuOutline,
   'pulse-outline': pulseOutline,
   'settings-outline': settingsOutline,
+  'storefront-outline': storefrontOutline,
 });
 
 @Component({
@@ -42,11 +45,13 @@ addIcons({
 export class AdminShellComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly adminStoreSession = inject(AdminStoreSessionService);
 
   readonly mobileMenuOpen = signal(false);
 
   readonly menuItems: AdminNavItem[] = [
     { label: 'Visão geral', route: '/admin/visao-geral', icon: 'grid-outline', exact: true },
+    { label: 'Lojas', route: '/admin/lojas', icon: 'storefront-outline' },
     { label: 'Operações', route: '/admin/operacoes', icon: 'pulse-outline' },
     { label: 'Planos', route: '/admin/planos', icon: 'card-outline' },
     { label: 'Configurações', route: '/admin/configuracoes', icon: 'settings-outline' },
@@ -69,6 +74,10 @@ export class AdminShellComponent {
 
   logout(): void {
     this.closeMobileMenu();
+    // A delegated store context may still be open in this tab (for example after the administrator
+    // navigated back with the browser). Clear it locally and revoke it server-side on a best-effort
+    // basis before ending the administrative session.
+    this.adminStoreSession.end();
     this.auth.logout();
     void this.router.navigateByUrl('/painel/login');
   }

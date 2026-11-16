@@ -5,6 +5,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { adminStoreContextInterceptor } from './core/interceptors/admin-store-context.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { serverAccessInterceptor } from './core/interceptors/server-access.interceptor';
 
@@ -12,7 +13,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([serverAccessInterceptor, authInterceptor, errorInterceptor])),
+    provideHttpClient(
+      withInterceptors([
+        serverAccessInterceptor,
+        authInterceptor,
+        adminStoreContextInterceptor,
+        errorInterceptor,
+      ]),
+    ),
     provideIonicAngular({ mode: 'md' }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),

@@ -28,6 +28,8 @@ import {
   volumeMuteOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
+import { AdminStoreBannerComponent } from '../../shared/components/admin-store-banner/admin-store-banner.component';
 import { SellerShellFacade } from './seller-shell.facade';
 
 addIcons({
@@ -61,6 +63,7 @@ addIcons({
     IonIcon,
     RouterModule,
     RouterOutlet,
+    AdminStoreBannerComponent,
   ],
   templateUrl: './seller-app-shell.component.html',
   styleUrl: './seller-app-shell.component.scss',
@@ -71,8 +74,11 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
   readonly facade = inject(SellerShellFacade);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly adminStoreSession = inject(AdminStoreSessionService);
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
+  /** Delegated administrator mode: the same screens, without seller-only modules. */
+  readonly isAdminDelegated = computed(() => this.adminStoreSession.isAdminMode());
   /**
    * The dedicated orders window reuses the authenticated seller shell only for
    * guards and the router outlet; every dashboard chrome element is hidden so
@@ -99,19 +105,31 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
       });
   }
 
-  readonly menuItems = [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline' },
-    { label: 'Pedidos', route: '/app/pedidos', icon: 'clipboard-outline', badge: true },
-    { label: 'Cardápio', route: '/app/cardapio/categorias', icon: 'restaurant-outline' },
-    { label: 'Motoboys', route: '/app/entregadores', icon: 'bicycle-outline' },
-    { label: 'Clientes', route: '/app/clientes', icon: 'people-outline' },
-  ];
+  readonly menuItems = computed(() => {
+    const items = [
+      { label: 'Dashboard', route: '/app/dashboard', icon: 'grid-outline', badge: false },
+      { label: 'Pedidos', route: '/app/pedidos', icon: 'clipboard-outline', badge: true },
+      { label: 'Cardápio', route: '/app/cardapio/categorias', icon: 'restaurant-outline', badge: false },
+      { label: 'Motoboys', route: '/app/entregadores', icon: 'bicycle-outline', badge: false },
+      { label: 'Clientes', route: '/app/clientes', icon: 'people-outline', badge: false },
+    ];
 
-  readonly systemItems = [
-    { label: 'Mensalidade', route: '/app/mensalidade', icon: 'card-outline' },
-    { label: 'Instalar', route: '/app/instalar', icon: 'download-outline' },
-    { label: 'Configurações', route: '/app/configuracoes/informacoes', icon: 'settings-outline' },
-  ];
+    return this.isAdminDelegated()
+      ? items.filter((item) => item.route !== '/app/entregadores' && item.route !== '/app/clientes')
+      : items;
+  });
+
+  readonly systemItems = computed(() => {
+    const items = [
+      { label: 'Mensalidade', route: '/app/mensalidade', icon: 'card-outline' },
+      { label: 'Instalar', route: '/app/instalar', icon: 'download-outline' },
+      { label: 'Configurações', route: '/app/configuracoes/informacoes', icon: 'settings-outline' },
+    ];
+
+    return this.isAdminDelegated()
+      ? items.filter((item) => item.route === '/app/configuracoes/informacoes')
+      : items;
+  });
 
   ngOnInit(): void {
     void this.facade.init();
@@ -192,6 +210,15 @@ export class SellerAppShellComponent implements OnInit, OnDestroy {
   logout(): void {
     this.closeMobileMenu();
     this.facade.reset();
+
+    if (this.isAdminDelegated()) {
+      // Administrative logout: close the delegated context, then end the administrator session.
+      this.adminStoreSession.end();
+      this.auth.logout();
+      void this.router.navigate(['/painel/login']);
+      return;
+    }
+
     this.auth.logout();
     this.router.navigate(['/login-vendedor']);
   }

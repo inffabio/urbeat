@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SystemParameterService } from '../../core/services/system-parameter.service';
 import { SystemParameter } from '../../shared/models/system-parameter.model';
 import { extractApiErrorMessage } from '../../core/utils/api-error.helper';
+import { AdminAdministratorsSectionComponent } from './administrators/admin-administrators-section.component';
 import {
   SystemParameterControl,
   formatParameterHint,
@@ -21,15 +24,22 @@ interface FeedbackMessage {
   message: string;
 }
 
+type AdminSettingsSection = 'parametros' | 'administradores';
+
 @Component({
   selector: 'app-admin-settings-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AdminAdministratorsSectionComponent],
   templateUrl: './admin-settings-page.component.html',
   styleUrl: './admin-settings-page.component.scss',
 })
 export class AdminSettingsPageComponent implements OnInit {
   private readonly service = inject(SystemParameterService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly section = signal<AdminSettingsSection>('parametros');
 
   readonly parameters = signal<SystemParameter[]>([]);
   readonly drafts = signal<Record<string, string>>({});
@@ -47,7 +57,25 @@ export class AdminSettingsPageComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        this.section.set(
+          params.get('secao') === 'administradores' ? 'administradores' : 'parametros',
+        );
+      });
+
     this.load();
+  }
+
+  setSection(section: AdminSettingsSection): void {
+    this.section.set(section);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { secao: section },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   load(): void {

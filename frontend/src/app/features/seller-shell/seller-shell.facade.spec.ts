@@ -3,6 +3,7 @@ import { of, Subject } from 'rxjs';
 import { SellerNotificationService } from '../../core/services/seller-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { StoreService } from '../../core/services/store.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { NotificationType, SellerNotification } from '../../shared/models/seller-notification.model';
 import { SellerPrintingService } from '../seller-printing/seller-printing.service';
 import { OrderSoundAlertService } from './order-sound-alert.service';
@@ -15,6 +16,7 @@ describe('SellerShellFacade', () => {
   let signalRServiceMock: { startSellerHub: jest.Mock; stopSellerHub: jest.Mock; onSellerEvent: jest.Mock; removeSellerListener: jest.Mock };
   let soundServiceMock: { enabled: any; needsActivation: any; playNewOrder: jest.Mock; enable: jest.Mock; disable: jest.Mock };
   let printingServiceMock: { autoPrintOrder: jest.Mock; config: jest.Mock };
+  let adminSessionMock: { session: jest.Mock; isAdminMode: jest.Mock };
 
   beforeEach(() => {
     storeServiceMock = { getMyStore: jest.fn() };
@@ -37,6 +39,7 @@ describe('SellerShellFacade', () => {
       config: jest.fn(() => ({ autoPrint: true })),
       setLogoUrl: jest.fn(),
     };
+    adminSessionMock = { session: jest.fn(() => null), isAdminMode: jest.fn(() => false) };
 
     TestBed.configureTestingModule({
       providers: [
@@ -46,14 +49,14 @@ describe('SellerShellFacade', () => {
         { provide: SignalRService, useValue: signalRServiceMock },
         { provide: OrderSoundAlertService, useValue: soundServiceMock },
         { provide: SellerPrintingService, useValue: printingServiceMock },
+        { provide: AdminStoreSessionService, useValue: adminSessionMock },
       ],
     });
 
     facade = TestBed.inject(SellerShellFacade);
   });
 
-  it('should start seller hub and play sound when a NewOrder notification arrives', async () => {
-    let sellerCallback: ((notification: SellerNotification) => void) | undefined;
+  it('should start seller hub and play sound when a NewOrder notification arrives', async () => {    let sellerCallback: ((notification: SellerNotification) => void) | undefined;
     signalRServiceMock.onSellerEvent.mockImplementation(
       (eventName: string, cb: (notification: SellerNotification) => void) => {
         if (eventName === 'ReceiveSellerNotification') sellerCallback = cb;
@@ -409,5 +412,47 @@ describe('SellerShellFacade', () => {
     expect(facade.store()?.id).toBe('store1');
     expect(facade.storeName()).toBe('Loja Renomeada');
     expect(storeServiceMock.getMyStore).not.toHaveBeenCalled();
+  });
+
+  it('loads the context store without starting seller notifications, hub or printing in admin mode', async () => {
+    adminSessionMock.session.mockReturnValue({
+      token: 'opaque-token',
+      contextId: 'context-1',
+      storeId: 'store1',
+      storeName: 'Loja Teste',
+      storeSlug: 'loja-teste',
+      adminUserId: 'admin-1',
+      expiresAtUtc: '2026-11-16T12:30:00Z',
+      returnUrl: '/admin/lojas',
+    });
+    adminSessionMock.isAdminMode.mockReturnValue(true);
+    storeServiceMock.getMyStore.mockReturnValue(
+      of({
+        id: 'store1',
+        ownerUserId: 'owner1',
+        name: 'Loja Teste',
+        slug: 'loja-teste',
+        phoneNumber: '11999999999',
+        cuisineType: 'Pizzaria',
+        isOpen: true,
+        isSubscriptionBlocked: false,
+        supportsDelivery: true,
+        supportsPickup: false,
+        minimumOrderValue: 20,
+        deliveryAreas: [],
+        averageRating: 0,
+        totalReviews: 0,
+        logoUrl: 'https://cdn.example/logo.png',
+      }),
+    );
+
+    await facade.init();
+
+    expect(facade.isAdminDelegated()).toBe(true);
+    expect(storeServiceMock.getMyStore).toHaveBeenCalled();
+    expect(facade.store()?.name).toBe('Loja Teste');
+    expect(notificationServiceMock.list).not.toHaveBeenCalled();
+    expect(signalRServiceMock.startSellerHub).not.toHaveBeenCalled();
+    expect(printingServiceMock.setLogoUrl).not.toHaveBeenCalled();
   });
 });

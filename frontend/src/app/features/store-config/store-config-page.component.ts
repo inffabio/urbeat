@@ -18,6 +18,7 @@ import {
 import { SellerProfileResponse } from '../../shared/models/auth.model';
 
 import { ToastService } from '../../core/services/toast.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
 import { createStepperSteps } from '../../shared/config/wizard-steps.config';
 import { WizardHeaderComponent } from '../../shared/components/wizard-header/wizard-header.component';
@@ -59,8 +60,14 @@ export class StoreConfigPageComponent implements OnInit {
   protected readonly router = inject(Router);
   protected readonly toast = inject(ToastService);
   private readonly sellerShell = inject(SellerShellFacade);
+  private readonly adminStoreSession = inject(AdminStoreSessionService);
   readonly stepperSteps = createStepperSteps(0);
   readonly isDashboardView = computed(() => (this.router.url ?? '').startsWith('/app/'));
+  /**
+   * Delegated administrator mode. The seller profile (contractor name/document) belongs to the
+   * owner identity and is not editable from the administrative context.
+   */
+  readonly isAdminDelegated = computed(() => this.adminStoreSession.isAdminMode());
   readonly footerSaveStatus = computed(() => this.saveStatus() ?? 'idle');
 
   // ─── Form state ──────────────────────────────────────────
@@ -354,10 +361,12 @@ export class StoreConfigPageComponent implements OnInit {
       error: () => this.toast.showError('Não foi possível carregar os tipos de cozinha.'),
     });
 
-    this.authService.getSellerProfile().subscribe({
-      next: (profile) => this.applySellerProfile(profile),
-      error: () => {},
-    });
+    if (!this.isAdminDelegated()) {
+      this.authService.getSellerProfile().subscribe({
+        next: (profile) => this.applySellerProfile(profile),
+        error: () => {},
+      });
+    }
 
     this.storeService.getMyStore().subscribe({
       next: (store) => {
@@ -785,7 +794,7 @@ export class StoreConfigPageComponent implements OnInit {
       this.toast.showError('O nome da loja deve ter no máximo 100 caracteres.');
       return false;
     }
-    if (!this.contractorName().trim()) {
+    if (!this.isAdminDelegated() && !this.contractorName().trim()) {
       this.toast.showError('Por favor, informe o nome do contratante/lojista.');
       return false;
     }
@@ -1035,6 +1044,9 @@ export class StoreConfigPageComponent implements OnInit {
   }
 
   private async saveContractorName(): Promise<boolean> {
+    // The delegated administrator never writes the seller profile/account.
+    if (this.isAdminDelegated()) return true;
+
     try {
       await import('rxjs').then(x => x.firstValueFrom(
         this.authService.updateSellerProfile({ fullName: this.contractorName().trim() }),

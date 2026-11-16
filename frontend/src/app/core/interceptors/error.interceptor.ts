@@ -6,8 +6,12 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { CheckoutService } from '../services/checkout.service';
 import { CustomerOrderTrackingService } from '../services/customer-order-tracking.service';
+import {
+  ADMIN_STORE_CONTEXT_ERROR_CODES,
+  AdminStoreSessionService,
+} from '../services/admin-store-session.service';
 import { SKIP_GLOBAL_ERROR_TOAST } from './server-access.context';
-import { isCustomer, isSeller } from '../utils/jwt.helper';
+import { isAdmin, isCustomer, isSeller } from '../utils/jwt.helper';
 
 interface RefreshSubscriber {
   next: (token: string) => void;
@@ -103,10 +107,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const checkoutService = inject(CheckoutService);
   const trackingService = inject(CustomerOrderTrackingService);
+  const adminStoreSession = inject(AdminStoreSessionService);
 
   const handleSessionExpired = (error: unknown): Observable<never> => {
     const token = authService.getToken();
     const customerSession = !!token && isCustomer(token);
+    const adminSession = !!token && isAdmin(token);
 
     authService.logout();
     toastService.showError('Sua sessao expirou. Por favor, faca login novamente.');
@@ -116,6 +122,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       trackingService.reset();
       const storePath = router.url.match(/^\/([^/]+)\//)?.[1];
       router.navigate(storePath ? ['/', storePath] : ['/']);
+    } else if (adminSession) {
+      // The administrative session owns no refresh cookie anymore; return to the admin login and
+      // discard any delegated store context instead of sending the administrator to the seller
+      // login page.
+      adminStoreSession.markInvalid('ADMIN_STORE_CONTEXT_INVALID');
+      router.navigate(['/painel/login']);
     } else {
       router.navigate(['/login-vendedor']);
     }
@@ -257,6 +269,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           errorMessage = JSON.stringify(err.error);
         }
       } else if (err.status === 403) {
+        const contextCode =
+          typeof err.error?.code === 'string' ? err.error.code : null;
+        // The delegated-context interceptor already reported this specific failure and cleared the
+        // session; the generic 403 copy must not duplicate it.
+        if (contextCode && ADMIN_STORE_CONTEXT_ERROR_CODES.has(contextCode)) {
+          return throwError(() => err);
+        }
         errorMessage = 'Acesso não autorizado.';
       } else if (err.status === 409) {
         if (err.error?.detail) {

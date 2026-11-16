@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { SellerBioPageComponent } from './seller-bio-page.component';
 
 describe('SellerBioPageComponent', () => {
@@ -44,6 +45,7 @@ describe('SellerBioPageComponent', () => {
         provideRouter([]),
         { provide: StoreService, useValue: storeServiceMock },
         { provide: ToastService, useValue: toastMock },
+        { provide: AdminStoreSessionService, useValue: { session: () => null, isAdminMode: () => false } },
       ],
     }).compileComponents();
   });

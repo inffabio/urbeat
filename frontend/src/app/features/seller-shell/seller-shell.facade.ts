@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { SellerNotificationService } from '../../core/services/seller-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { StoreService } from '../../core/services/store.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { NotificationType, SellerNotification } from '../../shared/models/seller-notification.model';
 import { StoreResponse } from '../../shared/models/store.model';
 import { SellerPrintingService } from '../seller-printing/seller-printing.service';
@@ -21,6 +22,14 @@ export class SellerShellFacade {
   private readonly notificationsApi = inject(SellerNotificationService);
     private readonly sound = inject(OrderSoundAlertService);
     private readonly printing = inject(SellerPrintingService);
+  private readonly adminStoreSession = inject(AdminStoreSessionService);
+
+  /**
+   * Delegated administrator mode. Notifications, the seller hub and printing belong to the seller
+   * identity and must never be started for the administrator (the server rejects them). Orders are
+   * refreshed by navigation/reload while the context is active.
+   */
+  readonly isAdminDelegated = computed(() => this.adminStoreSession.isAdminMode());
 
   readonly store = signal<StoreResponse | null>(null);
   readonly notifications = signal<SellerNotification[]>([]);
@@ -57,6 +66,17 @@ export class SellerShellFacade {
     this.error.set(null);
 
     try {
+      // Delegated administrator: `my-store` already resolved the context store. Seller
+      // notifications, SignalR and printing are never started, so the seller path below is not
+      // entered at all (calling them would produce 403 and break the loading).
+      if (this.isAdminDelegated()) {
+        const delegatedStore = await firstValueFrom(this.storeService.getMyStore());
+        if (currentVersion !== this.initVersion) return;
+        this.store.set(delegatedStore);
+        this.scheduleStoreStatusRefresh(delegatedStore);
+        return;
+      }
+
       const [store, notifications] = await Promise.all([
         firstValueFrom(this.storeService.getMyStore()),
         firstValueFrom(this.notificationsApi.list()),
@@ -87,7 +107,7 @@ export class SellerShellFacade {
   mergeStore(store: StoreResponse): void {
     this.store.set(store);
     this.scheduleStoreStatusRefresh(store);
-    if (store.logoUrl) this.printing.setLogoUrl(store.logoUrl);
+    if (store.logoUrl && !this.isAdminDelegated()) this.printing.setLogoUrl(store.logoUrl);
   }
 
   async enableSound(): Promise<void> {

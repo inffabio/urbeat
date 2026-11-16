@@ -22,7 +22,7 @@ describe('admin routes', () => {
     const admin = routes[adminIndex];
     const childPaths = (admin.children ?? []).map((child) => child.path);
 
-    expect(childPaths).toEqual(['', 'visao-geral', 'operacoes', 'planos', 'configuracoes']);
+    expect(childPaths).toEqual(['', 'visao-geral', 'lojas', 'operacoes', 'planos', 'configuracoes']);
     expect(childPaths).not.toContain('dashboard');
     expect(childPaths).not.toContain('pedidos');
   });
@@ -32,5 +32,17 @@ describe('admin routes', () => {
 
     expect(loginRoute).toBeDefined();
     expect(loginRoute?.canActivate).toBeUndefined();
+  });
+
+  it('declares the public administrative link pages before the store catch-all and without guards', () => {
+    const inviteIndex = routes.findIndex((route) => route.path === 'convite-admin');
+    const resetIndex = routes.findIndex((route) => route.path === 'redefinir-senha-admin');
+
+    expect(inviteIndex).toBeGreaterThanOrEqual(0);
+    expect(resetIndex).toBeGreaterThanOrEqual(0);
+    expect(inviteIndex).toBeLessThan(storePathIndex);
+    expect(resetIndex).toBeLessThan(storePathIndex);
+    expect(routes[inviteIndex].canActivate).toBeUndefined();
+    expect(routes[resetIndex].canActivate).toBeUndefined();
   });
 });

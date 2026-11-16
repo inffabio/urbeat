@@ -8,6 +8,7 @@ import { AddressService } from '../../core/services/address.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { StoreResponse, StoreAddressResponse } from '../../shared/models/store.model';
 
 describe('SellerStoreInfoPageComponent', () => {
@@ -46,6 +47,11 @@ describe('SellerStoreInfoPageComponent', () => {
 
   const mockSellerShellFacade = {
     mergeStore: jest.fn(),
+  };
+
+  const mockAdminStoreSession = {
+    session: jest.fn(() => null),
+    isAdminMode: jest.fn(() => false),
   };
 
   const buildStore = (overrides: Partial<StoreResponse> = {}): StoreResponse => ({
@@ -98,7 +104,9 @@ describe('SellerStoreInfoPageComponent', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-
+    mockAdminStoreSession.session.mockReturnValue(null);
+    mockAdminStoreSession.isAdminMode.mockReturnValue(false);
+    
     mockStoreService.getCuisineTypes.mockReturnValue(of([{ id: '1', name: 'Hamburgueria' }]));
     mockStoreService.getStoreCuisineTypes.mockReturnValue(of([{ id: '1', name: 'Hamburgueria', isDefault: true, storeId: null }]));
     mockStoreService.createStoreCuisineType.mockImplementation((storeId: string, name: string) =>
@@ -133,6 +141,7 @@ describe('SellerStoreInfoPageComponent', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: ToastService, useValue: mockToastService },
         { provide: SellerShellFacade, useValue: mockSellerShellFacade },
+        { provide: AdminStoreSessionService, useValue: mockAdminStoreSession },
       ],
     }).compileComponents();
   });
@@ -367,6 +376,25 @@ describe('SellerStoreInfoPageComponent', () => {
       expect(dangerZone()?.textContent).toContain('Zona destrutiva');
       expect(dangerZone()?.textContent).toContain('Esta ação não pode ser desfeita');
       expect(openDeleteButton()?.textContent?.trim()).toBe('Excluir loja');
+    });
+
+    it('hides the destructive zone in delegated administrator mode', async () => {
+      mockAdminStoreSession.isAdminMode.mockReturnValue(true);
+      mockAdminStoreSession.session.mockReturnValue({
+        token: 'opaque-token',
+        contextId: 'context-1',
+        storeId: 'store-123',
+        storeName: 'Minha Loja',
+        storeSlug: 'minha-loja',
+        adminUserId: 'admin-1',
+        expiresAtUtc: '2026-11-16T12:30:00Z',
+        returnUrl: '/admin/lojas',
+      });
+
+      await renderWithStore();
+
+      expect(dangerZone()).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Excluir loja');
     });
 
     it('keeps the destructive zone separated from the store information cards', async () => {

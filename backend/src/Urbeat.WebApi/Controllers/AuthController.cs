@@ -267,6 +267,15 @@ public sealed class AuthController : ControllerBase
                 return StatusCode(StatusCodes.Status423Locked, new { error = response.Error });
             }
 
+            if (response.IsBlocked)
+            {
+                return StatusCode(StatusCodes.Status423Locked, new
+                {
+                    error = response.Error,
+                    code = "ADMIN_BLOCKED"
+                });
+            }
+
             if (response.IsEmailNotConfirmed)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new

@@ -1,5 +1,6 @@
 ﻿using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ public class NeighborhoodsController : ControllerBase
     }
 
     [HttpGet("cities/{cityId:guid}/search")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<IReadOnlyCollection<NeighborhoodSearchResultDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> SearchNeighborhoods(
         [FromRoute] Guid cityId,
@@ -31,7 +32,7 @@ public class NeighborhoodsController : ControllerBase
     }
 
     [HttpGet("cities/{cityId:guid}/map")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<NeighborhoodMapResponseDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMapData(
         [FromRoute] Guid cityId,
@@ -43,7 +44,7 @@ public class NeighborhoodsController : ControllerBase
     }
 
     [HttpGet("cities")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<IReadOnlyCollection<CityResponseDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCities(CancellationToken cancellationToken)
     {
@@ -51,8 +52,10 @@ public class NeighborhoodsController : ControllerBase
         return Ok(results);
     }
 
+    // Global neighborhood import stays seller-only: it is an operational data operation, not a
+    // store configuration task exposed in the delegated dashboard.
     [HttpPost("import-by-city")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<ImportNeighborhoodsResultDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ImportByCity(

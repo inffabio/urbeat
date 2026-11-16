@@ -1,0 +1,46 @@
+<main class="admin-auth">
+  <section class="card" aria-labelledby="invite-title">
+    <p class="brand">urbeat</p>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="status" role="status" aria-live="polite" aria-busy="true">
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Validando seu convite…</p>
+        </div>
+      }
+      @case ('invalid') {
+        <div class="status" role="alert">
+          <h1 id="invite-title">Link inválido ou expirado</h1>
+          <p>Este link é inválido ou expirou. Peça um novo convite a um administrador.</p>
+          <a class="action" routerLink="/painel/login">Ir para o login</a>
+        </div>
+      }
+      @case ('success') {
+        <div class="status" role="status" aria-live="polite">
+          <h1 id="invite-title">Acesso ativado</h1>
+          <p>{{ successMessage() }}</p>
+          <a class="action" routerLink="/painel/login">Entrar no painel</a>
+        </div>
+      }
+      @default {
+        <h1 id="invite-title">Criar senha de administrador</h1>
+        <p class="lead">
+          @if (emailMasked(); as email) {
+            Convite para <strong>{{ email }}</strong>. Nenhuma senha foi criada antes: defina a
+            sua agora.
+          } @else {
+            Defina a senha do seu acesso administrativo. Nenhuma senha foi criada antes.
+          }
+        </p>
+
+        <app-password-setup-form
+          submitLabel="Ativar minha conta"
+          [busy]="busy()"
+          [serverError]="error()"
+          (submitted)="onSubmitted($event)"
+        />
+      }
+    }
+  </section>
+</main>

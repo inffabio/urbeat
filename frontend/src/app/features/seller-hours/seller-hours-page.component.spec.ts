@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { StoreService } from '../../core/services/store.service';
 import { ToastService } from '../../core/services/toast.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { SellerHoursPageComponent } from './seller-hours-page.component';
 
 function fieldFor(input: HTMLInputElement): HTMLElement {
@@ -47,6 +48,7 @@ describe('SellerHoursPageComponent', () => {
         provideRouter([]),
         { provide: StoreService, useValue: storeServiceMock },
         { provide: ToastService, useValue: toastServiceMock },
+        { provide: AdminStoreSessionService, useValue: { session: () => null, isAdminMode: () => false } },
       ],
     }).compileComponents();
   });

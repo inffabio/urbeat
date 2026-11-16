@@ -42,7 +42,9 @@
   </div>
 
   @if (!sidebarCollapsed() || mobile) {
-    <div class="sidebar-context">Painel do Restaurante</div>
+    <div class="sidebar-context">
+      {{ isAdminDelegated() ? 'modo administrador' : 'Painel do Restaurante' }}
+    </div>
   }
 
   <section
@@ -69,7 +71,7 @@
   <div class="sidebar-nav">
     <div class="menu-label nav-text" [class.collapsed-divider]="sidebarCollapsed() && !mobile">Menu</div>
     <nav class="nav-section" aria-label="Navegacao do painel">
-      @for (item of menuItems; track item.route) {
+      @for (item of menuItems(); track item.route) {
         <a
           class="nav-link-app"
           [routerLink]="item.route"
@@ -89,7 +91,7 @@
 
     <div class="menu-label nav-text" [class.collapsed-divider]="sidebarCollapsed() && !mobile">Sistema</div>
     <nav class="nav-section" aria-label="Navegacao de sistema">
-      @for (item of systemItems; track item.route) {
+      @for (item of systemItems(); track item.route) {
         <a
           class="nav-link-app"
           [routerLink]="item.route"
@@ -121,20 +123,22 @@
         <small>Fale com nosso suporte</small>
       </span>
     </a>
-    <button
-      type="button"
-      class="mini-btn sound-btn"
-      (click)="toggleSound()"
-      [attr.aria-pressed]="facade.soundEnabled()"
-      [attr.aria-label]="sidebarCollapsed() && !mobile ? soundToggleLabel() : null"
-      [title]="sidebarCollapsed() && !mobile ? soundToggleLabel() : ''"
-    >
-      <ion-icon
-        [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"
-        aria-hidden="true"
-      ></ion-icon>
-      <span class="nav-text">{{ facade.soundEnabled() ? 'Som ligado' : 'Som desligado' }}</span>
-    </button>
+    @if (!isAdminDelegated()) {
+      <button
+        type="button"
+        class="mini-btn sound-btn"
+        (click)="toggleSound()"
+        [attr.aria-pressed]="facade.soundEnabled()"
+        [attr.aria-label]="sidebarCollapsed() && !mobile ? soundToggleLabel() : null"
+        [title]="sidebarCollapsed() && !mobile ? soundToggleLabel() : ''"
+      >
+        <ion-icon
+          [attr.name]="facade.soundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+        <span class="nav-text">{{ facade.soundEnabled() ? 'Som ligado' : 'Som desligado' }}</span>
+      </button>
+    }
     <button type="button" class="mini-btn logout-btn" (click)="logout()">
       <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
       <span class="nav-text">Sair</span>
@@ -166,6 +170,10 @@
   }
 
   <main id="seller-main-content" class="seller-main main">
+    @if (isAdminDelegated() && !isDetachedOrdersRoute()) {
+      <app-admin-store-banner />
+    }
+
     @if (!isDetachedOrdersRoute()) {
       <header class="mobile-topbar">
         <button type="button" class="mobile-menu-btn" (click)="openMobileMenu()" aria-label="Abrir menu lateral">
@@ -193,7 +201,7 @@
         </div>
       </header>
 
-      @if (facade.store()?.isSubscriptionBlocked) {
+      @if (!isAdminDelegated() && facade.store()?.isSubscriptionBlocked) {
         <div class="subscription-banner" role="alert">
           <div>
             <strong>Mensalidade bloqueada</strong>
@@ -203,7 +211,7 @@
         </div>
       }
 
-      @if (!facade.loading() && !facade.realtimeConnected()) {
+      @if (!isAdminDelegated() && !facade.loading() && !facade.realtimeConnected()) {
         <div class="realtime-fallback" role="status">
           <strong>Conexao em tempo real instavel</strong>
           <span>Use Atualizar se um pedido nao aparecer automaticamente.</span>

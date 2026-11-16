@@ -1,0 +1,436 @@
+:host {
+  display: block;
+}
+
+.admin-stores-page {
+  --stores-line: var(--admin-line, var(--app-line));
+  --stores-ink: var(--admin-ink, var(--app-ink));
+  --stores-muted: var(--admin-muted, var(--app-text-muted));
+  --stores-surface: var(--admin-surface, var(--app-surface));
+
+  display: grid;
+  gap: 18px;
+  padding: 28px clamp(16px, 4vw, 36px) 40px;
+  color: var(--stores-ink);
+}
+
+.stores-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stores-header h1 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stores-subtitle {
+  margin: 6px 0 0;
+  max-width: 60ch;
+  color: var(--stores-muted);
+  font-size: 14px;
+}
+
+.stores-count {
+  margin: 0;
+  color: var(--stores-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stores-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) repeat(auto-fit, minmax(150px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  border: 1px solid var(--stores-line);
+  border-radius: 16px;
+  background: var(--stores-surface);
+}
+
+.filter-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.filter-field label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stores-muted);
+}
+
+.filter-field input,
+.filter-field select {
+  min-height: 44px;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--stores-line);
+  border-radius: 10px;
+  background: var(--stores-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+}
+
+.filter-field input:focus-visible,
+.filter-field select:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible,
+.page-button:focus-visible,
+.sort-button:focus-visible,
+.store-row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--app-brand-shadow);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.page-button {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--admin-green-600, var(--app-brand-dark));
+  background: var(--admin-green-600, var(--app-brand-dark));
+  color: #fff;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-ghost:disabled,
+.page-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  border: 1px solid var(--stores-line);
+  background: var(--stores-surface);
+  color: var(--stores-ink);
+}
+
+.btn-ghost {
+  border: 1px dashed var(--stores-line);
+  background: transparent;
+  color: var(--stores-muted);
+}
+
+.stores-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--stores-line);
+  border-radius: 16px;
+  background: var(--stores-surface);
+}
+
+.stores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.stores-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stores-muted);
+  border-bottom: 1px solid var(--stores-line);
+  white-space: nowrap;
+}
+
+.stores-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--stores-line);
+}
+
+.stores-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.store-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.store-row:hover {
+  background: var(--admin-green-50, var(--app-bg-warm));
+}
+
+.col-logo {
+  width: 56px;
+}
+
+.col-name strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.store-slug,
+.col-owner small {
+  display: block;
+  color: var(--stores-muted);
+  font-size: 12px;
+}
+
+.col-owner small,
+td[data-label='Assinatura'] small {
+  margin-top: 2px;
+}
+
+.col-actions {
+  min-width: 210px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--stores-muted) 12%, transparent);
+  color: var(--stores-ink);
+}
+
+.badge.is-success {
+  background: var(--app-success-green-soft);
+  color: var(--app-success-green);
+}
+
+.badge.is-danger {
+  background: var(--app-error-soft);
+  color: var(--app-error);
+}
+
+.badge.is-warning {
+  background: #fff4d6;
+  color: #8a6100;
+}
+
+.badge.is-neutral {
+  background: color-mix(in srgb, var(--stores-muted) 12%, transparent);
+  color: var(--stores-muted);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.stores-state {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 28px;
+  border: 1px dashed var(--stores-line);
+  border-radius: 16px;
+  background: var(--stores-surface);
+}
+
+.stores-state.is-error {
+  border-color: var(--app-error-border);
+  background: var(--app-error-soft);
+}
+
+.stores-state strong {
+  font-size: 16px;
+}
+
+.stores-state span {
+  color: var(--stores-muted);
+}
+
+.stores-skeleton {
+  display: grid;
+  gap: 10px;
+}
+
+.skeleton-row {
+  height: 58px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--stores-muted) 8%, transparent),
+    color-mix(in srgb, var(--stores-muted) 16%, transparent),
+    color-mix(in srgb, var(--stores-muted) 8%, transparent)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.stores-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.page-button {
+  min-width: 44px;
+  border: 1px solid var(--stores-line);
+  background: var(--stores-surface);
+  color: var(--stores-ink);
+}
+
+.page-button.is-active {
+  border-color: var(--admin-green-600, var(--app-brand-dark));
+  background: var(--admin-green-600, var(--app-brand-dark));
+  color: #fff;
+}
+
+/* Mobile: the same semantic table becomes stacked cards without duplicating content. */
+@media (max-width: 859px) {
+  .admin-stores-page {
+    padding: 18px 14px 28px;
+  }
+
+  .stores-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .filter-search,
+  .stores-filters > .btn-secondary {
+    grid-column: 1 / -1;
+  }
+
+  .stores-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .stores-table,
+  .stores-table tbody,
+  .stores-table tr,
+  .stores-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .stores-table thead {
+    display: none;
+  }
+
+  .stores-table tr {
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 1px solid var(--stores-line);
+    border-radius: 14px;
+    background: var(--stores-surface);
+  }
+
+  .stores-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 0;
+  }
+
+  .stores-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stores-muted);
+  }
+
+  .stores-table td.col-logo {
+    width: auto;
+  }
+
+  .stores-table td.col-actions {
+    display: block;
+    min-width: 0;
+    padding-top: 10px;
+  }
+
+  .stores-table td.col-actions::before {
+    display: none;
+  }
+
+  .row-actions {
+    flex-direction: column;
+  }
+
+  .row-actions > button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-row,
+  .skeleton-row,
+  .spinner {
+    animation: none;
+    transition: none;
+  }
+}

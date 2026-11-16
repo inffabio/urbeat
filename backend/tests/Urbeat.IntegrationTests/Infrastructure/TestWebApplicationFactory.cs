@@ -19,6 +19,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
     private readonly string _databaseName = $"urbeat-tests-{Guid.NewGuid()}";
     private readonly bool _adminRecoveryEnabled;
     private readonly string? _adminRecoveryKey;
+    private readonly int? _passwordRecoveryPermitLimit;
+    private readonly bool _useFakeEmail;
+    private readonly int? _adminStoreContextPermitLimit;
 
     public TestWebApplicationFactory()
         : this(adminRecoveryEnabled: false, adminRecoveryKey: null)
@@ -26,10 +29,35 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
     }
 
     internal TestWebApplicationFactory(bool adminRecoveryEnabled, string? adminRecoveryKey)
+        : this(adminRecoveryEnabled, adminRecoveryKey, passwordRecoveryPermitLimit: null, useFakeEmail: false)
+    {
+    }
+
+    internal TestWebApplicationFactory(
+        bool adminRecoveryEnabled,
+        string? adminRecoveryKey,
+        int? passwordRecoveryPermitLimit,
+        bool useFakeEmail)
+        : this(adminRecoveryEnabled, adminRecoveryKey, passwordRecoveryPermitLimit, useFakeEmail, adminStoreContextPermitLimit: null)
+    {
+    }
+
+    internal TestWebApplicationFactory(
+        bool adminRecoveryEnabled,
+        string? adminRecoveryKey,
+        int? passwordRecoveryPermitLimit,
+        bool useFakeEmail,
+        int? adminStoreContextPermitLimit)
     {
         _adminRecoveryEnabled = adminRecoveryEnabled;
         _adminRecoveryKey = adminRecoveryKey;
+        _passwordRecoveryPermitLimit = passwordRecoveryPermitLimit;
+        _useFakeEmail = useFakeEmail;
+        _adminStoreContextPermitLimit = adminStoreContextPermitLimit;
     }
+
+    /// <summary>Fake e-mail transport shared with the host when <c>useFakeEmail</c> is enabled.</summary>
+    public FakeEmailService EmailService { get; } = new();
 
     /// <summary>
     /// Upload fake shared with the host. Deletion calls from store deletion are asserted here.
@@ -73,7 +101,13 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["AdminRecovery:Enabled"] = _adminRecoveryEnabled ? "true" : "false",
                 ["AdminRecovery:Key"] = _adminRecoveryKey ?? string.Empty,
                 ["RateLimiting:AdminRecoveryPermitLimit"] = "10000",
-                ["RateLimiting:AdminRecoveryWindowSeconds"] = "60"
+                ["RateLimiting:AdminRecoveryWindowSeconds"] = "60",
+                ["RateLimiting:PasswordRecoveryPermitLimit"] = (_passwordRecoveryPermitLimit ?? 5).ToString(),
+                ["RateLimiting:PasswordRecoveryWindowSeconds"] = "300",
+                // Store-context buckets are generous by default so unrelated tests never throttle;
+                // the rate-limit test opts into a tiny explicit bucket.
+                ["RateLimiting:AdminStoreContextPermitLimit"] = (_adminStoreContextPermitLimit ?? 10000).ToString(),
+                ["RateLimiting:AdminStoreContextWindowSeconds"] = _adminStoreContextPermitLimit is null ? "1" : "60"
             });
         });
 
@@ -84,9 +118,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<ApplicationDbContext>(); services.RemoveAll<DbContextOptions>();
             services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
 
-            services.AddDbContextPool<ApplicationDbContext>(options =>
+            services.AddDbContextPool<ApplicationDbContext>((serviceProvider, options) =>
             {
                 options.UseInMemoryDatabase(_databaseName);
+                // The delegated audit stamp is part of the production pipeline; the InMemory
+                // harness must exercise the same behaviour.
+                options.AddInterceptors(serviceProvider.GetRequiredService<Urbeat.Infrastructure.Security.AdminStoreAuditStampInterceptor>());
             });
 
             services.RemoveAll<IShortIdCache>();
@@ -94,6 +131,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IImageUploadService>();
             services.AddSingleton<IImageUploadService>(ImageUploads);
+
+            if (_useFakeEmail)
+            {
+                services.RemoveAll<IEmailService>();
+                services.AddSingleton<IEmailService>(EmailService);
+            }
 
             services.RemoveAll<ICloudinaryImageCatalog>();
             services.AddSingleton<ICloudinaryImageCatalog>(CloudinaryCatalog);

@@ -11,21 +11,24 @@ namespace Urbeat.WebApi.Controllers;
 
 [ApiController]
 [Route("api/stores/{storeId}/categories")]
-[Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+[Authorize(Policy = AuthorizationPolicies.StoreAccess)]
 public sealed class StoreCategoriesController : ControllerBase
 {
     private readonly IProductCategoryService _categoryService;
     private readonly IValidator<CreateProductCategoryRequestDto> _createValidator;
     private readonly IValidator<UpdateProductCategoryRequestDto> _updateValidator;
+    private readonly IStoreRequestContext _storeContext;
 
     public StoreCategoriesController(
         IProductCategoryService categoryService,
         IValidator<CreateProductCategoryRequestDto> createValidator,
-        IValidator<UpdateProductCategoryRequestDto> updateValidator)
+        IValidator<UpdateProductCategoryRequestDto> updateValidator,
+        IStoreRequestContext storeContext)
     {
         _categoryService = categoryService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _storeContext = storeContext;
     }
 
     [HttpGet]
@@ -161,9 +164,7 @@ public sealed class StoreCategoriesController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        return Guid.TryParse(subject, out var userId) ? userId : null;
+        // Seller: authenticated claim. Admin: owner of the store resolved from the context.
+        return _storeContext.EffectiveSellerUserId;
     }
 }

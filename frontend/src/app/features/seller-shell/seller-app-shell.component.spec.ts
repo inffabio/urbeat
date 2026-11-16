@@ -4,6 +4,7 @@ import { provideRouter, Router, Routes } from '@angular/router';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { AuthService } from '../../core/services/auth.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { routes } from '../../app.routes';
 import { SellerShellFacade } from './seller-shell.facade';
 import { SellerAppShellComponent } from './seller-app-shell.component';
@@ -29,6 +30,13 @@ describe('SellerAppShellComponent', () => {
   let fixture: ComponentFixture<SellerAppShellComponent>;
   let facadeMock: any;
   let authMock: { logout: jest.Mock; getToken: jest.Mock; isLoggedIn: jest.Mock };
+  let adminSessionMock: {
+    session: jest.Mock;
+    isAdminMode: jest.Mock;
+    isExpired: jest.Mock;
+    returnUrl: jest.Mock;
+    end: jest.Mock;
+  };
 
   beforeEach(async () => {
     facadeMock = {
@@ -54,6 +62,13 @@ describe('SellerAppShellComponent', () => {
       getToken: jest.fn(() => sellerToken),
       isLoggedIn: jest.fn(() => true),
     };
+    adminSessionMock = {
+      session: jest.fn(() => null),
+      isAdminMode: jest.fn(() => false),
+      isExpired: jest.fn(() => false),
+      returnUrl: jest.fn(() => '/admin/lojas'),
+      end: jest.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [SellerAppShellComponent],
@@ -61,6 +76,7 @@ describe('SellerAppShellComponent', () => {
         provideRouter(stubLazyRoutes(routes)),
         { provide: SellerShellFacade, useValue: facadeMock },
         { provide: AuthService, useValue: authMock },
+        { provide: AdminStoreSessionService, useValue: adminSessionMock },
       ],
     }).compileComponents();
 
@@ -117,6 +133,106 @@ describe('SellerAppShellComponent', () => {
     fixture.componentInstance.logout();
 
     expect(facadeMock.reset).toHaveBeenCalled();
+  });
+
+  describe('delegated administrator mode', () => {
+    const delegatedSession = {
+      token: 'opaque-token',
+      contextId: 'context-1',
+      storeId: 'store-1',
+      storeName: 'Loja Teste',
+      storeSlug: 'loja-teste',
+      adminUserId: 'admin-1',
+      expiresAtUtc: '2026-11-16T12:30:00Z',
+      returnUrl: '/admin/lojas?page=2',
+    };
+
+    function enableAdminMode(): void {
+      adminSessionMock.session.mockReturnValue(delegatedSession);
+      adminSessionMock.isAdminMode.mockReturnValue(true);
+      adminSessionMock.returnUrl.mockReturnValue('/admin/lojas?page=2');
+    }
+
+    it('does not render the banner for a seller session', () => {
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.admin-store-banner')).toBeNull();
+    });
+
+    it('renders the permanent administator banner with the store name', () => {
+      enableAdminMode();
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('.admin-store-banner') as HTMLElement;
+      expect(banner).not.toBeNull();
+      expect(banner.textContent).toContain('modo administrador — loja Loja Teste');
+      expect(banner.textContent).toContain('Voltar ao painel administrativo');
+    });
+
+    it('announces the expired state with an alert-style banner', () => {
+      enableAdminMode();
+      adminSessionMock.isExpired.mockReturnValue(true);
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('.admin-store-banner') as HTMLElement;
+      expect(banner.classList.contains('is-expired')).toBe(true);
+      expect(banner.textContent).toContain('Sessão administrativa expirada');
+      expect(banner.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('hides non-delegable modules and the printing tab entry', () => {
+      enableAdminMode();
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.textContent;
+      expect(text).toContain('Dashboard');
+      expect(text).toContain('Pedidos');
+      expect(text).toContain('Cardápio');
+      expect(text).toContain('Configurações');
+      expect(text).not.toContain('Motoboys');
+      expect(text).not.toContain('Clientes');
+      expect(text).not.toContain('Mensalidade');
+      expect(text).not.toContain('Instalar');
+      expect(fixture.nativeElement.querySelector('.sound-btn')).toBeNull();
+    });
+
+    it('revokes the context and returns to the administrative list', () => {
+      enableAdminMode();
+      const router = TestBed.inject(Router);
+      const navigate = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      const cta = fixture.nativeElement.querySelector('.admin-store-banner-action') as HTMLButtonElement;
+      cta.click();
+
+      expect(adminSessionMock.end).toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith('/admin/lojas?page=2');
+    });
+
+    it('keeps the return CTA at a 44px touch target', () => {
+      const bannerSource = readFileSync(
+        resolve(
+          __dirname,
+          '../../shared/components/admin-store-banner/admin-store-banner.component.ts',
+        ),
+        'utf8',
+      );
+
+      expect(bannerSource).toContain('min-height: 44px');
+    });
+
+    it('ends the administrative session on logout and goes to the admin login', () => {
+      enableAdminMode();
+      const router = TestBed.inject(Router);
+      const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      fixture.componentInstance.logout();
+
+      expect(adminSessionMock.end).toHaveBeenCalled();
+      expect(authMock.logout).toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith(['/painel/login']);
+    });
   });
 
   it('resets the seller shell facade when the shell is destroyed (session expiry)', () => {

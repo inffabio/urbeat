@@ -121,6 +121,111 @@ internal static class EmailTemplates
         return (subject, html);
     }
 
+    /// <summary>
+    /// Administrative invitation e-mail. It states explicitly that no password was created and that
+    /// the link is single-use for the configured lifetime.
+    /// </summary>
+    public static (string Subject, string HtmlBody) BuildAdminInvitation(string acceptUrl, int expiresHours)
+    {
+        const string subject = "Você foi convidado para administrar o urbeat";
+        var html = BaseLayout(
+            preheader: "Ative seu acesso administrativo ao urbeat.",
+            title: "Convite de administrador",
+            greeting: "Olá!",
+            body: $"""
+                <p style="margin:0 0 16px 0;">Um administrador do <strong>urbeat</strong> convidou este endereço para acessar o dashboard administrativo da plataforma.</p>
+                <p style="margin:0 0 16px 0;"><strong>Nenhuma senha foi criada.</strong> Você mesmo define a sua senha ao abrir o link abaixo.</p>
+                <p style="margin:0;">Este link é pessoal, de uso único e expira em <strong>{expiresHours} horas</strong>.</p>
+                """,
+            buttonText: "Criar minha senha de administrador",
+            buttonUrl: acceptUrl,
+            notice: $"Este link é válido por <strong>{expiresHours} horas</strong> e pode ser usado apenas uma vez.",
+            footer: """
+                <p style="margin:0 0 8px 0;">Se você não esperava este convite, ignore esta mensagem. Nenhuma conta será ativada.</p>
+                <p style="margin:0;">Por segurança, o urbeat nunca solicita sua senha por e-mail.</p>
+                <p style="margin:16px 0 0 0;">Atenciosamente,<br />Equipe urbeat</p>
+                """,
+            signature: string.Empty);
+
+        return (subject, html);
+    }
+
+    /// <summary>
+    /// Administrative password reset e-mail. The password is chosen on the site; it is never sent
+    /// or requested by e-mail.
+    /// </summary>
+    public static (string Subject, string HtmlBody) BuildAdminPasswordReset(string resetUrl, int expiresMinutes)
+    {
+        const string subject = "Redefinição de senha de administrador no urbeat";
+        var html = BaseLayout(
+            preheader: "Crie uma nova senha para o acesso administrativo.",
+            title: "Redefinição de senha de administrador",
+            greeting: "Olá!",
+            body: """
+                <p style="margin:0 0 16px 0;">Recebemos uma solicitação para redefinir a senha do seu acesso administrativo ao <strong>urbeat</strong>.</p>
+                <p style="margin:0;">Clique no botão abaixo para criar uma nova senha. Se não foi você, ignore este e-mail: sua senha atual continua válida.</p>
+                """,
+            buttonText: "Criar nova senha",
+            buttonUrl: resetUrl,
+            notice: $"Este link é válido por <strong>{expiresMinutes} minutos</strong> e pode ser usado apenas uma vez.",
+            footer: """
+                <p style="margin:0 0 8px 0;">Se você não solicitou esta redefinição, ignore esta mensagem.</p>
+                <p style="margin:0;">Por segurança, o urbeat nunca solicita sua senha por e-mail.</p>
+                <p style="margin:16px 0 0 0;">Atenciosamente,<br />Equipe urbeat</p>
+                """,
+            signature: string.Empty);
+
+        return (subject, html);
+    }
+
+    public static (string Subject, string HtmlBody) BuildAdminEmailChangedToOldAddress(
+        string newEmail,
+        string loginUrl)
+    {
+        const string subject = "Seu e-mail de acesso administrativo ao urbeat foi alterado";
+        var html = BaseLayout(
+            preheader: "O e-mail de acesso administrativo foi alterado.",
+            title: "E-mail de acesso alterado",
+            greeting: "Olá!",
+            body: $"""
+                <p style="margin:0 0 16px 0;">O e-mail de acesso administrativo desta conta foi alterado para <strong>{WebUtility.HtmlEncode(newEmail)}</strong>.</p>
+                <p style="margin:0;">As sessões anteriores foram encerradas. Se não reconhece esta alteração, procure outro administrador imediatamente.</p>
+                """,
+            buttonText: "Acessar o painel",
+            buttonUrl: loginUrl,
+            notice: "Este aviso é enviado ao endereço anterior por segurança.",
+            footer: """
+                <p style="margin:0;">Se você não reconhece esta alteração, procure outro administrador do urbeat.</p>
+                """,
+            signature: string.Empty);
+
+        return (subject, html);
+    }
+
+    public static (string Subject, string HtmlBody) BuildAdminEmailChangedToNewAddress(
+        string oldEmail,
+        string loginUrl)
+    {
+        const string subject = "Seu novo e-mail de acesso administrativo ao urbeat";
+        var html = BaseLayout(
+            preheader: "Este endereço agora acessa o painel administrativo.",
+            title: "Novo e-mail de acesso",
+            greeting: "Olá!",
+            body: $"""
+                <p style="margin:0 0 16px 0;">Este endereço passou a ser o e-mail de acesso administrativo ao <strong>urbeat</strong>.</p>
+                <p style="margin:0;">O endereço anterior era <strong>{WebUtility.HtmlEncode(oldEmail)}</strong>. Entre novamente no painel para iniciar uma nova sessão.</p>
+                """,
+            buttonText: "Entrar no painel",
+            buttonUrl: loginUrl,
+            notice: "As sessões anteriores foram encerradas por segurança.",
+            footer: """
+                <p style="margin:0;">Se você não reconhece esta alteração, procure outro administrador do urbeat.</p>
+                """,
+            signature: string.Empty);
+
+        return (subject, html);
+    }
+
     private static string BaseLayout(
         string preheader,
         string title,

@@ -1,0 +1,232 @@
+<section class="admin-stores-page" aria-labelledby="admin-stores-title">
+  <header class="stores-header">
+    <div>
+      <h1 id="admin-stores-title">Lojas</h1>
+      <p class="stores-subtitle">
+        Encontre qualquer loja da plataforma e abra o painel operacional em modo administrador.
+      </p>
+    </div>
+    <p class="stores-count" aria-hidden="true">{{ announcement() }}</p>
+  </header>
+
+  <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  <form class="stores-filters" role="search" (submit)="$event.preventDefault()">
+    <div class="filter-field filter-search">
+      <label for="admin-stores-search">Buscar</label>
+      <input
+        id="admin-stores-search"
+        type="search"
+        autocomplete="off"
+        placeholder="Nome, slug, e-mail ou proprietário"
+        [value]="search()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+
+    <div class="filter-field">
+      <label for="admin-stores-status">Status</label>
+      <select id="admin-stores-status" [value]="status()" (change)="onStatusChange($event)">
+        @for (option of statusFilters; track option.value) {
+          <option [value]="option.value" [selected]="option.value === status()">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="admin-stores-publication">Publicação</label>
+      <select id="admin-stores-publication" [value]="publication()" (change)="onPublicationChange($event)">
+        @for (option of publicationFilters; track option.value) {
+          <option [value]="option.value" [selected]="option.value === publication()">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="admin-stores-open-state">Abertura</label>
+      <select id="admin-stores-open-state" [value]="openState()" (change)="onOpenStateChange($event)">
+        @for (option of openStateFilters; track option.value) {
+          <option [value]="option.value" [selected]="option.value === openState()">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="admin-stores-subscription">Assinatura</label>
+      <select id="admin-stores-subscription" [value]="subscription()" (change)="onSubscriptionChange($event)">
+        @for (option of subscriptionFilters; track option.value) {
+          <option [value]="option.value" [selected]="option.value === subscription()">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <button type="button" class="btn-secondary" (click)="clearFilters()">Limpar filtros</button>
+  </form>
+
+  @if (permissionDenied()) {
+    <div class="stores-state is-error" role="alert">
+      <strong>Acesso administrativo necessário.</strong>
+      <span>Entre novamente no painel administrativo para consultar as lojas.</span>
+      <button type="button" class="btn-secondary" (click)="goToAdminHome()">Voltar ao painel</button>
+    </div>
+  } @else if (loading()) {
+    <div class="stores-skeleton" aria-hidden="true">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="stores-state is-error" role="alert">
+      <strong>{{ error() }}</strong>
+      <button type="button" class="btn-primary" (click)="retry()">Tentar novamente</button>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="stores-state">
+      <strong>Nenhuma loja encontrada com esses filtros.</strong>
+      <span>Ajuste a busca ou limpe os filtros para ver todas as lojas.</span>
+      <button type="button" class="btn-secondary" (click)="clearFilters()">Limpar filtros</button>
+    </div>
+  } @else {
+    <div class="stores-table-wrap">
+      <table class="stores-table">
+        <caption class="sr-only">
+          Lojas da plataforma. Selecione uma linha para abrir o painel da loja em modo administrador.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="col-logo">Logo</th>
+            <th scope="col" [attr.aria-sort]="sortAria('name')">
+              <button type="button" class="sort-button" (click)="toggleSort('name')">
+                Nome <span aria-hidden="true">↕</span>
+              </button>
+            </th>
+            <th scope="col">Proprietário</th>
+            <th scope="col">Status</th>
+            <th scope="col">Publicação</th>
+            <th scope="col">Abertura</th>
+            <th scope="col">Assinatura</th>
+            <th scope="col" [attr.aria-sort]="sortAria('updated')">
+              <button type="button" class="sort-button" (click)="toggleSort('updated')">
+                Atualizada <span aria-hidden="true">↕</span>
+              </button>
+            </th>
+            <th scope="col" class="col-actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr
+              class="store-row"
+              tabindex="0"
+              [attr.aria-label]="'Abrir loja ' + item.name"
+              (click)="openStore(item)"
+              (keydown.enter)="openStore(item)"
+              (keydown.space)="openStore(item); $event.preventDefault()"
+            >
+              <td data-label="Logo" class="col-logo">
+                <app-store-logo-avatar
+                  [name]="item.name"
+                  [logoUrl]="item.logoUrl"
+                  [decorative]="true"
+                  [size]="40"
+                />
+              </td>
+              <td data-label="Nome" class="col-name">
+                <strong>{{ item.name }}</strong>
+                <span class="store-slug">/{{ item.slug }}</span>
+              </td>
+              <td data-label="Proprietário" class="col-owner">
+                <span>{{ item.owner.name || item.owner.email || 'Sem proprietário' }}</span>
+                @if (item.owner.email) {
+                  <small>{{ item.owner.email }}</small>
+                }
+              </td>
+              <td data-label="Status">
+                <span [class]="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
+              </td>
+              <td data-label="Publicação">
+                <span class="badge" [class.is-success]="item.isPublished" [class.is-neutral]="!item.isPublished">
+                  {{ publicationLabel(item) }}
+                </span>
+              </td>
+              <td data-label="Abertura">
+                <span class="badge" [class.is-success]="item.isOpen" [class.is-neutral]="!item.isOpen">
+                  {{ openLabel(item) }}
+                </span>
+              </td>
+              <td data-label="Assinatura">
+                <span [class]="subscriptionClass(item)">{{ subscriptionLabel(item) }}</span>
+                @if (item.subscription.planName) {
+                  <small>{{ item.subscription.planName }}</small>
+                }
+              </td>
+              <td data-label="Atualizada">{{ formatDate(item.updatedAtUtc) }}</td>
+              <td data-label="Ações" class="col-actions">
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="btn-primary row-open"
+                    [disabled]="openingStoreId() !== null"
+                    (click)="openStore(item); $event.stopPropagation()"
+                  >
+                    @if (openingStoreId() === item.id) {
+                      <span class="spinner" aria-hidden="true"></span>
+                      Abrindo…
+                    } @else {
+                      Abrir loja
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-ghost"
+                    [disabled]="!item.isPublished"
+                    [attr.title]="item.isPublished ? 'Abrir a loja pública em outra aba' : 'Loja ainda não publicada'"
+                    (click)="viewPublicStore(item, $event)"
+                  >
+                    Ver loja pública
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="stores-pagination" aria-label="Paginação de lojas">
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasPrevious()"
+          (click)="previousPage()"
+          aria-label="Página anterior"
+        >
+          Anterior
+        </button>
+
+        @for (pageNumber of pages(); track pageNumber) {
+          <button
+            type="button"
+            class="page-button"
+            [class.is-active]="pageNumber === page()"
+            [attr.aria-current]="pageNumber === page() ? 'page' : null"
+            (click)="goToPage(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        }
+
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasNext()"
+          (click)="nextPage()"
+          aria-label="Próxima página"
+        >
+          Próxima
+        </button>
+      </nav>
+    }
+  }
+</section>

@@ -48,14 +48,16 @@
                   <span class="field-error">O nome da loja é obrigatório.</span>
                 }
               </div>
-              <div class="form-field">
-                <label>Nome do contratante/lojista</label>
-                <input class="input" type="text" placeholder="Ex: João da Silva" maxlength="120"
-                  [ngModel]="contractorName()" (ngModelChange)="contractorName.set($event)" name="contractorName" required #contractorNameRef="ngModel" />
-                @if (contractorNameRef.touched && contractorNameRef.invalid) {
-                  <span class="field-error">O nome do contratante/lojista é obrigatório.</span>
-                }
-              </div>
+              @if (!isAdminDelegated()) {
+                <div class="form-field">
+                  <label>Nome do contratante/lojista</label>
+                  <input class="input" type="text" placeholder="Ex: João da Silva" maxlength="120"
+                    [ngModel]="contractorName()" (ngModelChange)="contractorName.set($event)" name="contractorName" required #contractorNameRef="ngModel" />
+                  @if (contractorNameRef.touched && contractorNameRef.invalid) {
+                    <span class="field-error">O nome do contratante/lojista é obrigatório.</span>
+                  }
+                </div>
+              }
             </div>
             <div class="form-field">
               <label>Categoria da Loja</label>

@@ -10,6 +10,9 @@ public sealed class LoginResultDto
 
     public bool IsEmailNotConfirmed { get; init; }
 
+    /// <summary>Set when the administrator was blocked by another administrator.</summary>
+    public bool IsBlocked { get; init; }
+
     public string? Error { get; init; }
 
     public AuthTokenResponseDto? Token { get; init; }

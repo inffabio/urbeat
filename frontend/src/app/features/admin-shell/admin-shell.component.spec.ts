@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, Routes } from '@angular/router';
 import { routes } from '../../app.routes';
 import { AuthService } from '../../core/services/auth.service';
+import { AdminStoreSessionService } from '../../core/services/admin-store-session.service';
 import { AdminShellComponent } from './admin-shell.component';
 
 @Component({ standalone: true, template: '' })
@@ -25,6 +26,7 @@ function stubLazyRoutes(routeList: Routes): Routes {
 describe('AdminShellComponent', () => {
   let fixture: ComponentFixture<AdminShellComponent>;
   let authMock: { getToken: jest.Mock; logout: jest.Mock };
+  let adminSessionMock: { end: jest.Mock };
   let router: Router;
 
   beforeEach(async () => {
@@ -35,12 +37,14 @@ describe('AdminShellComponent', () => {
       getToken: jest.fn(() => adminToken),
       logout: jest.fn(),
     };
+    adminSessionMock = { end: jest.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AdminShellComponent],
       providers: [
         provideRouter(stubLazyRoutes(routes)),
         { provide: AuthService, useValue: authMock },
+        { provide: AdminStoreSessionService, useValue: adminSessionMock },
       ],
     }).compileComponents();
 
@@ -65,6 +69,7 @@ describe('AdminShellComponent', () => {
     const text = fixture.nativeElement.textContent;
 
     expect(text).toContain('Visão geral');
+    expect(text).toContain('Lojas');
     expect(text).toContain('Operações');
     expect(text).toContain('Planos');
     expect(text).toContain('Configurações');
@@ -94,11 +99,12 @@ describe('AdminShellComponent', () => {
     ).toBe(true);
   });
 
-  it('logs out and returns to the admin login', () => {
+  it('logs out, clears a delegated context and returns to the admin login', () => {
     const navigate = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
     fixture.componentInstance.logout();
 
+    expect(adminSessionMock.end).toHaveBeenCalled();
     expect(authMock.logout).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith('/painel/login');
   });

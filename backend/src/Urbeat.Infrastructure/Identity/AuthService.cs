@@ -31,6 +31,7 @@ public sealed class AuthService : IAuthService
     private readonly IRolePromotionChallengeService _rolePromotionChallengeService;
     private readonly ITokenHasher _tokenHasher;
     private readonly IdentityOptions _identityOptions;
+    private readonly IAdminStoreAccessService _adminStoreAccessService;
 
     public AuthService(
         UserManager<IdentityUser<Guid>> userManager,
@@ -43,7 +44,8 @@ public sealed class AuthService : IAuthService
         IEmailChangeChallengeService emailChangeChallengeService,
         IRolePromotionChallengeService rolePromotionChallengeService,
         ITokenHasher tokenHasher,
-        IOptions<IdentityOptions> identityOptions)
+        IOptions<IdentityOptions> identityOptions,
+        IAdminStoreAccessService adminStoreAccessService)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
@@ -56,6 +58,7 @@ public sealed class AuthService : IAuthService
         _rolePromotionChallengeService = rolePromotionChallengeService;
         _tokenHasher = tokenHasher;
         _identityOptions = identityOptions.Value;
+        _adminStoreAccessService = adminStoreAccessService;
     }
 
     public Task<RegistrationResultDto> RegisterCustomerAsync(
@@ -402,6 +405,36 @@ public sealed class AuthService : IAuthService
             };
         }
 
+        // Administrative block is independent from the automatic Identity lockout. It is checked
+        // after the password and the role, so an unauthenticated caller cannot use this response to
+        // discover which addresses own an administrator account.
+        var isAdministrativelyBlocked = await _dbContext.AdminAccountStates
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.UserId == user.Id && x.IsBlocked,
+                cancellationToken);
+
+        if (isAdministrativelyBlocked)
+        {
+            Log.Warning("{EventType} | Login blocked by administrator | UserId={UserId} | IP={IpAddress}",
+                "ADMIN_LOGIN_BLOCKED", user.Id, ipAddress);
+            await WriteAuditLogAsync(
+                userId: user.Id,
+                auditEvent: "LoginBlocked",
+                entity: nameof(IdentityUser<Guid>),
+                entityId: user.Id,
+                description: $"Login denied for {normalizedEmail}: administrator was blocked.",
+                ipAddress: ipAddress,
+                cancellationToken);
+
+            return new LoginResultDto
+            {
+                Succeeded = false,
+                IsBlocked = true,
+                Error = "Acesso administrativo bloqueado. Procure outro administrador."
+            };
+        }
+
         await _userManager.ResetAccessFailedCountAsync(user);
 
         var tokenResponse = await IssueTokensAsync(user, normalizedEmail, roles.ToArray(), refreshRole: null, cancellationToken);
@@ -488,7 +521,15 @@ public sealed class AuthService : IAuthService
     public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         var tokenHash = RefreshTokenHasher.Hash(refreshToken);
-        await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
+        var claim = await _refreshTokenRepository.TryClaimAsync(tokenHash, DateTime.UtcNow, cancellationToken);
+
+        // Server-side logout also closes every delegated store context of the administrator, even
+        // when the client never reaches the explicit DELETE on the current tab. Sellers and
+        // customers own no contexts, so their logout behaviour is unchanged.
+        if (claim is not null && Guid.TryParse(claim.UserId, out var userId))
+        {
+            await _adminStoreAccessService.RevokeAllAsync(userId, "Logout", cancellationToken);
+        }
 
         Log.Information("{EventType} | Logout processed | TokenRevoked", "USER_LOGGED_OUT");
     }

@@ -12,7 +12,7 @@ namespace Urbeat.WebApi.Controllers;
 
 [ApiController]
 [Route("api/stores/{storeId}/products")]
-[Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+[Authorize(Policy = AuthorizationPolicies.StoreAccess)]
 public sealed class StoreProductsController : ControllerBase
 {
     private readonly IProductService _productService;
@@ -22,6 +22,7 @@ public sealed class StoreProductsController : ControllerBase
     private readonly IStoreService _storeService;
 
     private readonly IImageUploadService _imageUploadService;
+    private readonly IStoreRequestContext _storeContext;
 
     public StoreProductsController(
         IProductService productService,
@@ -29,7 +30,8 @@ public sealed class StoreProductsController : ControllerBase
         IValidator<UpdateProductRequestDto> updateValidator,
         IValidator<BatchUpsertProductsRequestDto> batchValidator,
         IStoreService storeService,
-        IImageUploadService imageUploadService)
+        IImageUploadService imageUploadService,
+        IStoreRequestContext storeContext)
     {
         _productService = productService;
         _createValidator = createValidator;
@@ -37,6 +39,7 @@ public sealed class StoreProductsController : ControllerBase
         _batchValidator = batchValidator;
         _storeService = storeService;
         _imageUploadService = imageUploadService;
+        _storeContext = storeContext;
     }
 
     [HttpGet]
@@ -250,9 +253,7 @@ public sealed class StoreProductsController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        return Guid.TryParse(subject, out var userId) ? userId : null;
+        // Seller: authenticated claim. Admin: owner of the store resolved from the context.
+        return _storeContext.EffectiveSellerUserId;
     }
 }

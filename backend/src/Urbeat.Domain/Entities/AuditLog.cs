@@ -13,4 +13,13 @@ public sealed class AuditLog : BaseEntity
     public string Description { get; set; } = string.Empty;
 
     public string? IpAddress { get; set; }
+
+    /// <summary>Real actor for delegated administrative actions; null on legacy rows.</summary>
+    public Guid? ActorUserId { get; set; }
+
+    /// <summary>Store owner in whose name a delegated action ran; null on legacy rows.</summary>
+    public Guid? SubjectUserId { get; set; }
+
+    /// <summary>Correlation with <see cref="AdminStoreAccessContext"/>.</summary>
+    public Guid? AdminStoreContextId { get; set; }
 }

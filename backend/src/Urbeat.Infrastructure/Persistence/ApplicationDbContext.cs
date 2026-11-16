@@ -24,6 +24,12 @@ public sealed class ApplicationDbContext
 
     public DbSet<RolePromotionRequest> RolePromotionRequests => Set<RolePromotionRequest>();
 
+    public DbSet<AdminInvitation> AdminInvitations => Set<AdminInvitation>();
+
+    public DbSet<AdminAccountState> AdminAccountStates => Set<AdminAccountState>();
+
+    public DbSet<AdminStoreAccessContext> AdminStoreAccessContexts => Set<AdminStoreAccessContext>();
+
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public DbSet<Store> Stores => Set<Store>();
@@ -224,6 +230,50 @@ public sealed class ApplicationDbContext
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Event).HasMaxLength(150);
             entity.Property(x => x.Entity).HasMaxLength(150);
+            // Additive columns: delegated administrative rows record the real actor, the store owner
+            // and the context correlation. Legacy rows keep them null.
+            entity.HasIndex(x => x.AdminStoreContextId);
+            entity.HasIndex(x => x.ActorUserId);
+        });
+        builder.Entity<AdminInvitation>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            // At most one active link per target and purpose. The partial index is the authoritative
+            // safety net; the service translates a conflict into reuse instead of a 500.
+            entity.HasIndex(x => new { x.UserId, x.Purpose })
+                .IsUnique()
+                .HasFilter("\"ConsumedAtUtc\" IS NULL AND \"RevokedAtUtc\" IS NULL AND \"SupersededAtUtc\" IS NULL");
+            entity.HasIndex(x => new { x.Email, x.Purpose });
+            entity.HasIndex(x => x.ExpiresAtUtc);
+            entity.Property(x => x.Email).HasMaxLength(254).IsRequired();
+            entity.Property(x => x.Purpose).HasConversion<string>().HasMaxLength(30).IsRequired();
+            entity.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
+            entity.Property(x => x.ExpiresAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ConsumedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.RevokedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.SupersededAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.EmailSentAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.EmailSendingAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ClaimedAtUtc).HasColumnType("timestamp with time zone");
+            entity.Property(x => x.ConcurrencyVersion).HasDefaultValue(0).IsConcurrencyToken();
+            // No cascade: cancelling a pending invitation must not erase the issuance trail.
+            entity.HasOne<IdentityUser<Guid>>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<AdminAccountState>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.UserId).IsUnique();
+            entity.Property(x => x.BlockedAtUtc).HasColumnType("timestamp with time zone");
+            entity.HasOne<IdentityUser<Guid>>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Store>(entity =>
@@ -1182,6 +1232,7 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.FooterText).HasMaxLength(200);
         });
 
+        builder.ApplyConfiguration(new AdminStoreAccessContextConfiguration());
         builder.ApplyConfiguration(new OutboxMessageConfiguration());
         builder.ApplyConfiguration(new OutboxHandlerDeliveryConfiguration());
         builder.ApplyConfiguration(new OrderPrintJobConfiguration());

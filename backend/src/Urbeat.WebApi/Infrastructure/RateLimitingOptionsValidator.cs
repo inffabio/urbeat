@@ -38,6 +38,18 @@ public sealed class RateLimitingOptionsValidator : IValidateOptions<RateLimiting
                 $"{RateLimitingOptions.SectionName}:AdminRecoveryWindowSeconds must be at least 1.");
         }
 
+        if (options.AdminStoreContextPermitLimit < 1)
+        {
+            errors.Add(
+                $"{RateLimitingOptions.SectionName}:AdminStoreContextPermitLimit must be at least 1.");
+        }
+
+        if (options.AdminStoreContextWindowSeconds < 1)
+        {
+            errors.Add(
+                $"{RateLimitingOptions.SectionName}:AdminStoreContextWindowSeconds must be at least 1.");
+        }
+
         return errors.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(errors);

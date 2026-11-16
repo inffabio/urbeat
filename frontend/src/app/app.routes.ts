@@ -86,6 +86,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'lojas',
+        loadComponent: () =>
+          import('./features/admin-stores/admin-stores-page.component').then(
+            (m) => m.AdminStoresPageComponent,
+          ),
+      },
+      {
         path: 'operacoes',
         loadComponent: () =>
           import('./features/admin-operations/admin-operations-page.component').then(
@@ -127,6 +134,20 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/email-confirm/email-confirm-page.component').then(
         (m) => m.EmailConfirmPageComponent,
+      ),
+  },
+  {
+    path: 'convite-admin',
+    loadComponent: () =>
+      import('./features/admin-invite/admin-invite-page.component').then(
+        (m) => m.AdminInvitePageComponent,
+      ),
+  },
+  {
+    path: 'redefinir-senha-admin',
+    loadComponent: () =>
+      import('./features/admin-password-reset/admin-password-reset-page.component').then(
+        (m) => m.AdminPasswordResetPageComponent,
       ),
   },
   {

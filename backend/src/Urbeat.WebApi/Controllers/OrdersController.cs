@@ -24,6 +24,7 @@ public sealed class OrdersController : ControllerBase
     private readonly IValidator<UpdateOrderStatusRequestDto> _updateStatusValidator;
     private readonly IValidator<AssignDeliveryDriverRequestDto> _assignDriverValidator;
     private readonly TimeProvider _timeProvider;
+    private readonly IStoreRequestContext _storeContext;
 
 
 
@@ -36,7 +37,8 @@ public sealed class OrdersController : ControllerBase
         IDeliveryDriverService deliveryDriverService,
         IIndividualDeliveryLinkService individualDeliveryLinkService,
         IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IStoreRequestContext storeContext)
     {
         _checkoutService = checkoutService;
         _orderService = orderService;
@@ -47,9 +49,10 @@ public sealed class OrdersController : ControllerBase
         _individualDeliveryLinkService = individualDeliveryLinkService;
         _assignDriverValidator = assignDriverValidator;
         _timeProvider = timeProvider;
+        _storeContext = storeContext;
     }
     [HttpGet("store/report")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<StoreOrdersSimpleReportResponseDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> StoreSimpleReport([FromQuery] DateTime? startDateUtc, [FromQuery] DateTime? endDateUtc, CancellationToken cancellationToken)
     {
@@ -64,7 +67,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpGet("store/analytics")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<StoreAnalyticsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StoreAnalytics([FromQuery] StoreAnalyticsQueryDto query, CancellationToken cancellationToken)
@@ -87,7 +90,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpGet("store/sales")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<PagedStoreSalesResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StoreSales([FromQuery] StoreSalesQueryDto query, CancellationToken cancellationToken)
@@ -211,7 +214,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpGet("store")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<PagedOrderSummaryResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StoreOrders([FromQuery] StoreOrdersHistoryQueryDto query, CancellationToken cancellationToken)
@@ -242,7 +245,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpGet("store/{orderId}")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetStoreOrder([FromRoute] Guid orderId, CancellationToken cancellationToken)
@@ -318,7 +321,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpPut("store/{orderId:guid}/delivery-driver")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -364,7 +367,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpDelete("store/{orderId:guid}/delivery-driver")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -397,7 +400,7 @@ public sealed class OrdersController : ControllerBase
     /// Sharing never creates a route and never returns the delivery PIN.
     /// </summary>
     [HttpPost("store/{orderId:guid}/delivery-link")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<ShareIndividualDeliveryResultDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -426,7 +429,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpPatch("{orderId}/status")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -547,7 +550,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     [HttpPost("{orderId}/complete")]
-    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -586,9 +589,7 @@ public sealed class OrdersController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        return Guid.TryParse(subject, out var userId) ? userId : null;
+        // Seller: authenticated claim. Admin: owner of the store resolved from the context.
+        return _storeContext.EffectiveSellerUserId;
     }
 }

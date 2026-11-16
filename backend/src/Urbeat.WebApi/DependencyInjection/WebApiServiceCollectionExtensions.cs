@@ -4,6 +4,7 @@ using Urbeat.Infrastructure.Services;
 using Urbeat.WebApi.Health;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Operations;
+using Urbeat.WebApi.Security;
 using Urbeat.WebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -43,7 +44,13 @@ public static class WebApiServiceCollectionExtensions
         services.AddControllers(options =>
         {
             options.ModelBinderProviders.Insert(0, new ShortGuidModelBinderProvider());
+            // Defense-in-depth audit for delegated mutations (no-op outside a store context).
+            options.Filters.Add<AdminStoreAuditActionFilter>();
         });
+        services.AddScoped<AdminStoreAuditActionFilter>();
+        services.AddScoped<IStoreRequestContext, StoreRequestContext>();
+        services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, StoreAccessAuthorizationHandler>();
+        services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler, StoreAccessAuthorizationResultHandler>();
 
         // The outbox check is exposed by the legacy /health endpoint and by /health/ready. It keeps
         // the authoritative backlog/failure/liveness signals but reuses its aggregate database
@@ -129,14 +136,21 @@ public static class WebApiServiceCollectionExtensions
                     });
             });
 
-            options.AddPolicy("password-recovery", httpContext => RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                factory: _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = rateLimitingOptions.PasswordRecoveryPermitLimit,
-                    Window = TimeSpan.FromSeconds(rateLimitingOptions.PasswordRecoveryWindowSeconds),
-                    QueueLimit = 0
-                }));
+            options.AddPolicy("password-recovery", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.PasswordRecoveryPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.PasswordRecoveryWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
 
             // Dedicated bucket for the break-glass admin recovery: a legitimate operation is one
             // request, and repeated attempts must not be usable as a key oracle.
@@ -198,6 +212,30 @@ public static class WebApiServiceCollectionExtensions
                     Window = TimeSpan.FromSeconds(rateLimitingOptions.PublicRouteWindowSeconds),
                     QueueLimit = 0
                 }));
+
+            // Administrative store context: partitioned by the authenticated administrator so the
+            // bucket follows the actor through NAT, with the client IP as fallback before binding.
+            options.AddPolicy("admin-store-context", httpContext =>
+            {
+                var current = httpContext.RequestServices
+                    .GetRequiredService<IOptionsMonitor<RateLimitingOptions>>()
+                    .CurrentValue;
+
+                var adminUserId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? httpContext.User.FindFirst("sub")?.Value;
+                var partitionKey = !string.IsNullOrWhiteSpace(adminUserId)
+                    ? $"admin:{adminUserId}"
+                    : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: partitionKey,
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = current.AdminStoreContextPermitLimit,
+                        Window = TimeSpan.FromSeconds(current.AdminStoreContextWindowSeconds),
+                        QueueLimit = 0
+                    });
+            });
         });
 
         services.AddOpenTelemetry()

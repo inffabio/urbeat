@@ -13,7 +13,7 @@ namespace Urbeat.WebApi.Controllers;
 
 [ApiController]
 [Route("api/stores")]
-[Authorize(Policy = AuthorizationPolicies.SellerOnly)]
+[Authorize(Policy = AuthorizationPolicies.StoreAccess)]
 public sealed class StoresController : ControllerBase
 {
     private readonly IStoreService _storeService;
@@ -27,6 +27,7 @@ public sealed class StoresController : ControllerBase
     private readonly IValidator<UpsertStoreBusinessHoursRequestDto> _businessHoursValidator;
     private readonly IValidator<UpdateStoreDeliveryConfigRequestDto> _deliveryConfigValidator;
     private readonly IHubContext<Hubs.CustomerNotificationHub> _hubContext;
+    private readonly IStoreRequestContext _storeContext;
 
     public StoresController(
         IStoreService storeService,
@@ -39,7 +40,8 @@ public sealed class StoresController : ControllerBase
         IValidator<UpdateStoreAddressRequestDto> addressValidator,
         IValidator<UpsertStoreBusinessHoursRequestDto> businessHoursValidator,
         IValidator<UpdateStoreDeliveryConfigRequestDto> deliveryConfigValidator,
-        IHubContext<Hubs.CustomerNotificationHub> hubContext)
+        IHubContext<Hubs.CustomerNotificationHub> hubContext,
+        IStoreRequestContext storeContext)
     {
         _storeService = storeService;
         _cuisineTypeService = cuisineTypeService;
@@ -52,6 +54,7 @@ public sealed class StoresController : ControllerBase
         _businessHoursValidator = businessHoursValidator;
         _deliveryConfigValidator = deliveryConfigValidator;
         _hubContext = hubContext;
+        _storeContext = storeContext;
     }
 
     [HttpGet("cuisine-types")]
@@ -247,7 +250,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpGet("delivery-neighborhoods-by-store")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
     [ProducesResponseType<IReadOnlyCollection<DeliveryNeighborhoodResponseDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetDeliveryNeighborhoodsByStore([FromQuery] Guid storeId, [FromQuery] double? radiusKm, CancellationToken cancellationToken)
@@ -265,6 +268,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpPost("delivery-neighborhoods")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<DeliveryNeighborhoodResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -308,6 +312,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<StoreResponseDto>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -375,6 +380,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpDelete("{storeId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -591,6 +597,7 @@ public sealed class StoresController : ControllerBase
     }
 
     [HttpPatch("{storeId}/status")]
+    [Authorize(Policy = AuthorizationPolicies.SellerOnly)]
     [ProducesResponseType<StoreResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -736,9 +743,7 @@ public sealed class StoresController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        return Guid.TryParse(subject, out var userId) ? userId : null;
+        // Seller: authenticated claim. Admin: owner of the store resolved from the context.
+        return _storeContext.EffectiveSellerUserId;
     }
 }
