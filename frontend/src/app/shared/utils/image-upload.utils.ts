@@ -37,15 +37,10 @@ export const IMAGE_TARGET_MAX_BYTES = DEFAULT_COMPRESSION_TARGET_BYTES;
 /** Authoritative per-upload limit, mirrored from `StoreMediaUploadValidator.MaxBytes` (1 MiB). */
 export const IMAGE_MAX_BYTES = 1024 * 1024;
 
-/**
- * @deprecated The legacy product endpoint still documents a 6 MB limit. New upload
- * flows must compress against `IMAGE_TARGET_MAX_BYTES` and reject above `IMAGE_MAX_BYTES`.
- */
-export const PRODUCT_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
-
 export const IMAGE_FORMAT_ERROR = 'Formato não aceito. Use AVIF, PNG, SVG, WEBP, JPG ou JPEG.';
 
-export const IMAGE_OVER_LIMIT_ERROR = 'A imagem deve ter no máximo 1 MB. Escolha um arquivo menor.';
+export const IMAGE_OVER_LIMIT_ERROR =
+  'A imagem deve ter no máximo 1 MB mesmo após a compressão automática. Escolha um arquivo menor.';
 
 /** Thrown when a selected image is still above the authoritative limit after compression. */
 export class ImageOverLimitError extends Error {

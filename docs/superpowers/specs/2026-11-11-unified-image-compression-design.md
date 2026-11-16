@@ -65,3 +65,23 @@ clara para escolher uma imagem menor.
 Critério de aceite: qualquer raster suportado que possa ser reduzido pelo
 navegador deve ser enviado com no máximo 1 MiB, mantendo suas dimensões sempre
 que possível; nenhum upload deve contornar as validações do servidor.
+
+## Atualização (2026-11-16)
+
+- **AVIF:** decodificado no navegador e reencodado como AVIF quando o navegador
+  expõe esse encoder; caso contrário, WebP e, por último, PNG. O arquivo é
+  renomeado para manter extensão e MIME coerentes com o formato real.
+- **SVG:** comentários, metadados e instruções de processamento são removidos
+  (sem tocar em conteúdo renderizável). Se ainda exceder o alvo, um SVG
+  estruturalmente seguro é rasterizado para WebP/PNG usando `width`, `height` ou
+  `viewBox`. SVG com conteúdo ativo ou referências externas não é rasterizado,
+  preservando a política de segurança do backend.
+- **Limite de produto:** permanece 1 MiB. Evidência: `ProductMaxBytes =
+  StoreMediaUploadValidator.MaxBytes`, os dois endpoints de imagem chamam
+  `StoreMediaUploadValidator.Validate` e os testes de integração exigem as
+  mensagens de 1 MB. O antigo `PRODUCT_IMAGE_MAX_BYTES = 6 MiB` era um resíduo
+  deprecado e sem uso, removido do frontend. As menções a 6 MB no Postman são
+  documentação histórica e não representam o contrato executável.
+- **Fallback:** o arquivo original é retornado quando o navegador não consegue
+  decodificar/reencodar; o chamador rejeita com mensagem clara. Nenhuma
+  validação do backend foi enfraquecida.

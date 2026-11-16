@@ -126,19 +126,27 @@ describe('MediaUploadComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Dimensão recomendada: 1200 x 400 px.');
   });
 
-  it('rejects unsupported formats and non-compressible files above the limit', () => {
+  it('rejects unsupported formats without advertising a size error', () => {
     const unsupported = new File(['x'], 'asset.gif', { type: 'image/gif' });
     component.onFileSelected(fileEvent(unsupported));
     expect(selected).not.toHaveBeenCalled();
     expect(component.errorMessage()).toContain('Formato');
     expect(component.errorMessage()).not.toContain('1 MB');
+  });
 
-    // SVG cannot be re-encoded in the browser, so an oversized one has no path to
-    // fit the limit and must be rejected before upload.
-    const oversizedSvg = new File([new Uint8Array(1024 * 1024 + 1)], 'logo.svg', { type: 'image/svg+xml' });
-    component.onFileSelected(fileEvent(oversizedSvg));
-    expect(selected).not.toHaveBeenCalled();
-    expect(component.errorMessage()).toContain('1 MB');
+  it('accepts oversized SVG and AVIF so the compression pipeline can prepare them', () => {
+    for (const [type, extension] of [
+      ['image/svg+xml', 'svg'],
+      ['image/avif', 'avif'],
+    ]) {
+      const file = new File([new Uint8Array(2 * 1024 * 1024 + 1)], `big.${extension}`, { type });
+
+      component.onFileSelected(fileEvent(file));
+
+      expect(selected).toHaveBeenCalledWith(file);
+      expect(component.errorMessage()).toBeNull();
+      selected.mockClear();
+    }
   });
 
   it('accepts oversized raster images so they can be compressed before upload', () => {
@@ -190,14 +198,14 @@ describe('MediaUploadComponent', () => {
     expect(selected).not.toHaveBeenCalled();
   });
 
-  it('resets the file input after an oversized non-compressible selection', () => {
-    const oversized = new File([new Uint8Array(1024 * 1024 + 1)], 'logo.svg', { type: 'image/svg+xml' });
-    const { event, input } = fileEventWithInput(oversized);
+  it('resets the file input after an invalid selection so the same file can be retried', () => {
+    const { event, input } = fileEventWithInput(new File(['x'], 'asset.gif', { type: 'image/gif' }));
 
     component.onFileSelected(event);
 
-    expect(component.errorMessage()).toContain('1 MB');
+    expect(component.errorMessage()).toContain('Formato');
     expect(input.value).toBe('');
+    expect(selected).not.toHaveBeenCalled();
   });
 
   it('associates the error with the file input via aria-describedby', () => {

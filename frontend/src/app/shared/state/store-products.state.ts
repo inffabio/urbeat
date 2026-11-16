@@ -1167,8 +1167,8 @@ export abstract class StoreProductsState implements OnInit {
     let file = rawFile;
     try {
       // The backend limit is authoritative, but compressing first avoids a rejected
-      // upload and keeps large photos usable. Unsupported/unreadable raster files are
-      // returned unchanged and fall through to the explicit limit check below.
+      // upload and keeps large photos usable. AVIF/SVG are decoded/optimized and may
+      // be converted to another accepted raster format before this size check.
       file = await compressImage(rawFile);
     } catch {
       file = rawFile;

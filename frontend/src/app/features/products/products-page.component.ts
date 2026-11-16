@@ -344,7 +344,8 @@ export class ProductsPageComponent implements OnInit {
     let uploadFile = file;
     try {
       // The backend limit is authoritative, but compressing first avoids a rejected
-      // upload and keeps large photos usable. SVG/AVIF are returned untouched.
+      // upload and keeps large photos usable. AVIF/SVG are decoded/optimized and may
+      // be converted to another accepted raster format before this size check.
       uploadFile = await compressImage(file);
     } catch {
       uploadFile = file;

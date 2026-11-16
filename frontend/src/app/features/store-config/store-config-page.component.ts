@@ -888,7 +888,7 @@ export class StoreConfigPageComponent implements OnInit {
       if (!file) return undefined;
 
       // Compress before uploading so logo/banner use the same 950 KiB target as
-      // product images. SVG/AVIF are returned untouched by the utility.
+      // product images. AVIF/SVG are prepared and may change format when needed.
       let compressed = file;
       try {
         compressed = await compressImage(file);

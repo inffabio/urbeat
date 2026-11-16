@@ -501,7 +501,7 @@ Altera disponibilidade.
 Exclui produto. **Response:** 204 No Content
 
 ### POST `/api/stores/{storeId}/products/{productId}/images`
-Upload de imagem do produto (multipart/form-data, max 6MB).
+Upload de imagem do produto (multipart/form-data, max 1MB; AVIF, PNG, SVG, WEBP, JPG/JPEG).
 
 **Request:** `IFormFile` (campo: `file`)
 **Response 200:** `ProductResponseDto`

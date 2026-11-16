@@ -58,10 +58,10 @@ function isPublicStoreResolution(url: string): boolean {
   return PUBLIC_STORE_RESOLUTION_PATH.test(pathname);
 }
 
-// The API enforces its documented per-type limits (2 MB logo, 5 MB banner,
-// 6 MB product) with HTTP 400, so an HTTP 413 can only be produced by the proxy
-// or host in front of it. A 413 cannot be attributed to a specific file limit
-// and must not claim the file exceeds 2 MB when NGINX rejected the request.
+// The API enforces its authoritative per-upload limit (1 MiB for logo, banner,
+// product and store media) with HTTP 400, so an HTTP 413 can only be produced by
+// the proxy or host in front of it. A 413 cannot be attributed to a specific file
+// limit and must not claim the file exceeds 1 MiB when NGINX rejected the request.
 const UPLOAD_TOO_LARGE_MESSAGE =
   'Não foi possível enviar o arquivo: ele excede o limite de upload do servidor. Reduza o tamanho da imagem e tente novamente.';
 
