@@ -95,6 +95,14 @@ describe('CartPageComponent', () => {
     expect(foot.query(By.css('.cart-qty-pill .qty-plus'))).not.toBeNull();
   });
 
+  it('caps the item description at two lines and tightens the mobile card without shrinking the quantity control', () => {
+    const styles = readFileSync(resolve(__dirname, 'cart-page.component.scss'), 'utf8');
+
+    expect(styles).toMatch(/\.cart-product-info\s*\{[\s\S]*?p\s*\{[^}]*-webkit-line-clamp:\s*2;/);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*400px\)\s*\{[\s\S]*?\.cart-product-card\s*\{[^}]*padding:\s*8px;/);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*400px\)\s*\{[\s\S]*?\.cart-qty-pill\s*\{[^}]*height:\s*38px;/);
+  });
+
   it('removes the clicked item from the cart page even when the item has no id', () => {
     cart.items.set([
       { productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 },
