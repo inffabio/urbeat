@@ -1,8 +1,9 @@
-﻿import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpBackend } from '@angular/common/http';
-import { Observable, Subject, switchMap, tap } from 'rxjs';
+import { Observable, Subject, map, of, switchMap, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { environment } from '../../../environments/environment';
+import { resolveTokenRole, TokenRole } from '../utils/jwt.helper';
 import {
   RegisterCustomerRequest,
   RegisterResponse,
@@ -43,6 +44,15 @@ export class AuthService {
   );
   readonly customerProfile = signal<CustomerProfileResponse | null>(null);
   readonly isAuthenticated = computed(() => !!this.token());
+  /**
+   * Identity the tab may act as. Resolved from the most privileged role in the token so an
+   * administrative/seller credential is never mistaken for a customer session.
+   */
+  readonly identity = computed<TokenRole | null>(() => {
+    const token = this.token();
+    return token ? resolveTokenRole(token) : null;
+  });
+  readonly isCustomerSession = computed(() => this.identity() === 'Customer');
   private readonly tokenSubject = new Subject<string | null>();
   readonly token$ = this.tokenSubject.asObservable();
 
@@ -124,6 +134,11 @@ export class AuthService {
 
   private applyToken(accessToken: string): void {
     this.token.set(accessToken);
+    // A seller/administrative credential must never keep a customer profile cached from a
+    // previous session in the same tab: the storefront reads this signal to greet the customer.
+    if (this.customerProfile() && resolveTokenRole(accessToken) !== 'Customer') {
+      this.customerProfile.set(null);
+    }
     this.tokenSubject.next(accessToken);
   }
 
@@ -136,23 +151,55 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthTokenResponse> {
+    return this.requestRefreshToken().pipe(tap((res) => this.saveToken(res)));
+  }
+
+  /**
+   * Restores a customer session only when the credential held by this tab belongs to a customer.
+   *
+   * An administrator or seller token is intentionally ignored: it is neither refreshed nor
+   * exchanged for a `/api/customer/me` profile, so opening the public storefront with another
+   * surface's session keeps the storefront anonymous (no 403, no toast, no redirect). The
+   * administrative and seller tabs keep their own tokens untouched.
+   */
+  restoreCustomerSession(): Observable<CustomerProfileResponse | null> {
+    if (this.token()) {
+      return this.identity() === 'Customer' ? this.loadCustomerProfile() : of(null);
+    }
+
+    return this.refreshCustomerAccessToken().pipe(
+      switchMap((restored) => (restored ? this.loadCustomerProfile() : of(null))),
+    );
+  }
+
+  private loadCustomerProfile(): Observable<CustomerProfileResponse> {
+    return this.api.get<CustomerProfileResponse>('/api/customer/me').pipe(
+      tap((profile) => this.customerProfile.set(profile)),
+    );
+  }
+
+  /**
+   * Rotates the shared httpOnly refresh cookie and adopts the new access token only when the
+   * cookie belongs to a customer. A seller/administrator cookie is rotated by the server but must
+   * never be persisted by a public page, otherwise navigating the storefront would reactivate a
+   * privileged session in this tab.
+   */
+  private refreshCustomerAccessToken(): Observable<boolean> {
+    return this.requestRefreshToken().pipe(
+      map((response) => {
+        if (resolveTokenRole(response.accessToken) !== 'Customer') return false;
+
+        this.saveToken(response);
+        return true;
+      }),
+    );
+  }
+
+  private requestRefreshToken(): Observable<AuthTokenResponse> {
     return this.rawHttp.post<AuthTokenResponse>(
       `${this.baseUrl}/api/auth/refresh`,
       {},
       { withCredentials: true }
-    ).pipe(tap((res) => this.saveToken(res)));
-  }
-
-  restoreCustomerSession(): Observable<CustomerProfileResponse> {
-    if (this.isLoggedIn()) {
-      return this.api.get<CustomerProfileResponse>('/api/customer/me').pipe(
-        tap((profile) => this.customerProfile.set(profile)),
-      );
-    }
-
-    return this.refreshToken().pipe(
-      switchMap(() => this.api.get<CustomerProfileResponse>('/api/customer/me')),
-      tap((profile) => this.customerProfile.set(profile)),
     );
   }
 

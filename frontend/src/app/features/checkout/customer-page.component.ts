@@ -278,7 +278,16 @@ export class CustomerPageComponent implements OnInit, OnDestroy {
 
     if (profileRequest) {
       this.subscriptions.add(profileRequest.subscribe({
-        next: (loadedProfile) => this.loadAccountAddress(loadedProfile),
+        next: (loadedProfile) => {
+          // The account screen only runs for a customer credential; a privileged session keeps the
+          // historical redirect instead of editing another identity's profile.
+          if (!loadedProfile) {
+            this.redirectFromAccount();
+            return;
+          }
+
+          this.loadAccountAddress(loadedProfile);
+        },
         error: () => this.redirectFromAccount(),
       }));
       return;

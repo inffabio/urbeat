@@ -1,4 +1,6 @@
 import { TestBed, NO_ERRORS_SCHEMA } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { StorePageComponent } from './store-page.component';
 import { StoreService } from '../../core/services/store.service';
 import { CatalogService } from '../../core/services/catalog.service';
@@ -1189,5 +1191,98 @@ describe('StorePageComponent — feature logic', () => {
 
       expect(jest.getTimerCount()).toBe(timerCountAfterSwitch);
     });
+  });
+});
+
+describe('StorePageComponent public storefront identity policy', () => {
+  const storePathParamMap = new BehaviorSubject({
+    get: (key: string) => (key === 'storePath' ? 'loja' : null),
+  });
+
+  const validStore = {
+    id: 's1', name: 'Loja Teste', slug: 'loja', logoUrl: '', isOpenNow: true,
+  };
+
+  function encodeToken(payload: unknown): string {
+    return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify(payload))}.signature`;
+  }
+
+  const storeServiceMock = { getStoreByPath: jest.fn() };
+  const catalogServiceMock = { getCategories: jest.fn(), getProducts: jest.fn() };
+  const toastMock = { showWarning: jest.fn(), showError: jest.fn() };
+
+  let httpMock: HttpTestingController;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    jest.clearAllMocks();
+
+    storeServiceMock.getStoreByPath.mockReturnValue(of(validStore));
+    catalogServiceMock.getCategories.mockReturnValue(of([
+      { id: 'c1', storeId: 's1', name: 'Entradas', displayOrder: 1, isActive: true },
+    ]));
+    catalogServiceMock.getProducts.mockReturnValue(of([
+      { id: 'p1', storeId: 's1', categoryId: 'c1', name: 'Pastel' },
+    ]));
+
+    await TestBed.configureTestingModule({
+      imports: [StorePageComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        CartService,
+        StoreFilterStateService,
+        { provide: StoreService, useValue: storeServiceMock },
+        { provide: CatalogService, useValue: catalogServiceMock },
+        { provide: ToastService, useValue: toastMock },
+        { provide: Router, useValue: { navigate: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { paramMap: storePathParamMap.asObservable() } },
+      ],
+    }).compileComponents();
+
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it('loads the public catalog anonymously when an administrative token is in localStorage', () => {
+    const adminToken = encodeToken({ role: 'Admin' });
+    localStorage.setItem('urbeat_token', adminToken);
+
+    const fixture = TestBed.createComponent(StorePageComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    expect(component.store()?.name).toBe('Loja Teste');
+    expect(component.loadError()).toBe(false);
+    expect(component.catalogError()).toBe(false);
+    expect(component.productSections().map((section) => section.name)).toEqual(['Entradas']);
+
+    httpMock.expectNone('/api/customer/me');
+    httpMock.expectNone('/api/auth/refresh');
+    expect(toastMock.showError).not.toHaveBeenCalled();
+    // The administrative session belongs to the dashboard tab and must survive the public visit.
+    expect(localStorage.getItem('urbeat_token')).toBe(adminToken);
+  });
+
+  it('still restores the customer session for a customer token', () => {
+    localStorage.setItem('urbeat_token', encodeToken({ role: 'Customer' }));
+
+    const fixture = TestBed.createComponent(StorePageComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    const profileRequest = httpMock.expectOne('/api/customer/me');
+    profileRequest.flush({ fullName: 'Maria Oliveira', email: 'maria@email.com' });
+
+    expect(component.store()?.name).toBe('Loja Teste');
+    expect(component.customerFirstName()).toBe('Maria');
+    httpMock.expectNone('/api/auth/refresh');
   });
 });

@@ -57,7 +57,16 @@ export class CustomerAccountPageComponent implements OnInit, OnDestroy {
     }
 
     this.subscriptions.add(this.auth.restoreCustomerSession().subscribe({
-      next: (profile) => this.loadAddress(profile),
+      next: (profile) => {
+        // Only a customer credential is restored; a privileged session must not open the account
+        // area, so the page falls back to the storefront exactly like a failed restore.
+        if (!profile) {
+          this.redirectToStorefront();
+          return;
+        }
+
+        this.loadAddress(profile);
+      },
       error: () => this.redirectToStorefront(),
     }));
   }

@@ -56,3 +56,29 @@ export function isSeller(token: string): boolean {
 export function isCustomer(token: string): boolean {
   return hasRole(token, 'Customer');
 }
+
+/** Identity carried by a token, already resolved to the most privileged role. */
+export type TokenRole = 'Admin' | 'Seller' | 'Customer';
+
+const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+
+/**
+ * Resolves the identity a token may act as, using the most privileged role it carries.
+ *
+ * Admin takes precedence over Seller and Seller over Customer: an administrative or seller
+ * credential must never be mistaken for a customer session by a public storefront surface, even
+ * when the account also owns the Customer role. The backend is still authoritative for every
+ * authorization decision; this helper only decides which credential the client may use.
+ */
+export function resolveTokenRole(token: string): TokenRole | null {
+  const payload = decodeJwt(token);
+  if (!payload) return null;
+
+  const claim = payload.role ?? payload[ROLE_CLAIM];
+  const roles: unknown[] = Array.isArray(claim) ? claim : [claim];
+
+  if (roles.includes('Admin')) return 'Admin';
+  if (roles.includes('Seller')) return 'Seller';
+  if (roles.includes('Customer')) return 'Customer';
+  return null;
+}

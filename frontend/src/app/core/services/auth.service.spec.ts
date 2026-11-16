@@ -1,4 +1,4 @@
-﻿import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, HttpBackend } from '@angular/common/http';
 import { AuthService } from './auth.service';
@@ -167,6 +167,19 @@ describe('AuthService', () => {
       expect(req.request.method).toBe('POST');
       req.flush(mockResponse);
     });
+
+    it('drops a cached customer profile when an administrative token replaces the customer session', () => {
+      service.customerProfile.set({ fullName: 'Maria Oliveira', email: 'maria@email.com' });
+
+      service.loginAdmin({ email: 'admin@test.com', password: 'admin123' }).subscribe();
+
+      httpMock.expectOne('/api/auth/login/admin').flush({
+        accessToken: encodeTokenPayload({ role: 'Admin' }),
+        expiresAtUtc: '',
+      });
+
+      expect(service.customerProfile()).toBeNull();
+    });
   });
 
   describe('logout', () => {
@@ -240,14 +253,18 @@ describe('AuthService', () => {
   });
 
   describe('restoreCustomerSession', () => {
-    it('should refresh from the secure cookie and load the current customer profile', () => {
-      const mockToken = { accessToken: 'customer-token', expiresAtUtc: '2026-08-04T22:30:00.000Z' };
+    const customerToken = encodeTokenPayload({ role: 'Customer' });
+    const adminToken = encodeTokenPayload({ role: 'Admin' });
+    const sellerToken = encodeTokenPayload({ role: 'Seller' });
 
-      (service as any).restoreCustomerSession().subscribe((profile: any) => {
-        expect(profile.fullName).toBe('Maria Oliveira');
-        expect(profile.primaryAddressId).toBe('addr1');
-        expect(service.getToken()).toBe('customer-token');
-        expect((service as any).customerProfile()).toEqual({
+    it('should refresh from the secure cookie and load the current customer profile', () => {
+      const mockToken = { accessToken: customerToken, expiresAtUtc: '2026-08-04T22:30:00.000Z' };
+
+      service.restoreCustomerSession().subscribe((profile) => {
+        expect(profile?.fullName).toBe('Maria Oliveira');
+        expect(profile?.primaryAddressId).toBe('addr1');
+        expect(service.getToken()).toBe(customerToken);
+        expect(service.customerProfile()).toEqual({
           fullName: 'Maria Oliveira',
           email: 'maria@email.com',
           phoneNumber: '22999999999',
@@ -268,6 +285,67 @@ describe('AuthService', () => {
         phoneNumber: '22999999999',
         primaryAddressId: 'addr1',
       });
+    });
+
+    it('loads the profile from an existing customer token without refreshing', () => {
+      service.saveToken({ accessToken: customerToken, expiresAtUtc: '' });
+
+      service.restoreCustomerSession().subscribe((profile) => {
+        expect(profile?.fullName).toBe('Maria Oliveira');
+      });
+
+      httpMock.expectNone('/api/auth/refresh');
+      const profileReq = httpMock.expectOne('/api/customer/me');
+      profileReq.flush({ fullName: 'Maria Oliveira', email: 'maria@email.com' });
+    });
+
+    it('never exchanges an administrative token for a customer profile', () => {
+      service.saveToken({ accessToken: adminToken, expiresAtUtc: '' });
+      const next = jest.fn();
+
+      service.restoreCustomerSession().subscribe(next);
+
+      expect(next).toHaveBeenCalledWith(null);
+      expect(service.customerProfile()).toBeNull();
+      expect(service.getToken()).toBe(adminToken);
+      expect(localStorage.getItem('urbeat_token')).toBe(adminToken);
+      httpMock.expectNone('/api/customer/me');
+      httpMock.expectNone('/api/auth/refresh');
+    });
+
+    it('never exchanges a seller token for a customer profile', () => {
+      service.loginSeller({ email: 's@t.com', password: 'x' }).subscribe();
+      httpMock.expectOne('/api/auth/login/seller').flush({ accessToken: sellerToken, expiresAtUtc: '' });
+      const next = jest.fn();
+
+      service.restoreCustomerSession().subscribe(next);
+
+      expect(next).toHaveBeenCalledWith(null);
+      httpMock.expectNone('/api/customer/me');
+      httpMock.expectNone('/api/auth/refresh');
+    });
+
+    it('does not adopt or persist a refresh cookie that belongs to an administrative session', () => {
+      const next = jest.fn();
+
+      service.restoreCustomerSession().subscribe(next);
+
+      httpMock.expectOne('/api/auth/refresh').flush({ accessToken: adminToken, expiresAtUtc: '' });
+
+      expect(next).toHaveBeenCalledWith(null);
+      expect(service.getToken()).toBeNull();
+      expect(localStorage.getItem('urbeat_token')).toBeNull();
+      httpMock.expectNone('/api/customer/me');
+    });
+
+    it('does not adopt or persist a refresh cookie that belongs to a seller session', () => {
+      service.restoreCustomerSession().subscribe();
+
+      httpMock.expectOne('/api/auth/refresh').flush({ accessToken: sellerToken, expiresAtUtc: '' });
+
+      expect(service.getToken()).toBeNull();
+      expect(localStorage.getItem('urbeat_token')).toBeNull();
+      httpMock.expectNone('/api/customer/me');
     });
   });
 

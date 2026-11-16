@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
 import { of, Subject, throwError } from 'rxjs';
@@ -460,5 +462,86 @@ describe('CartPageComponent', () => {
 
     expect(checkoutServiceMock.customerAddressId()).toBeNull();
     expect(checkoutServiceMock.preview).not.toHaveBeenCalled();
+  });
+});
+
+describe('CartPageComponent public storefront identity policy', () => {
+  function encodeToken(payload: unknown): string {
+    return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify(payload))}.signature`;
+  }
+
+  let httpMock: HttpTestingController;
+  let cart: CartService;
+  let preview: jest.Mock;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+
+    preview = jest.fn().mockReturnValue(of({ deliveryFee: 0, minimumOrderValue: 15, freeShippingApplied: false }));
+
+    await TestBed.configureTestingModule({
+      imports: [CartPageComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        CartService,
+        {
+          provide: CheckoutService,
+          useValue: {
+            fulfillmentType: signal(FulfillmentType.Delivery),
+            customerAddressId: signal<string | null>(null),
+            preview,
+          },
+        },
+        {
+          provide: StoreService,
+          useValue: {
+            getStoreById: jest.fn().mockReturnValue(of({
+              id: 's1', name: 'Loja', slug: 'loja', logoUrl: '', isOpenNow: true,
+              supportsDelivery: true, supportsPickup: true,
+            })),
+          },
+        },
+        { provide: Router, useValue: { navigate: jest.fn(), url: '/loja/carrinho' } },
+        { provide: ActivatedRoute, useValue: { parent: { snapshot: { paramMap: { get: () => 'loja' } } } } },
+        { provide: Location, useValue: { back: jest.fn() } },
+      ],
+    }).compileComponents();
+
+    httpMock = TestBed.inject(HttpTestingController);
+    cart = TestBed.inject(CartService);
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it('keeps the cart anonymous instead of requesting a customer profile with an administrative token', () => {
+    localStorage.setItem('urbeat_token', encodeToken({ role: 'Admin' }));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    httpMock.expectNone('/api/customer/me');
+    httpMock.expectNone('/api/auth/refresh');
+    expect(preview).toHaveBeenCalled();
+  });
+
+  it('restores the customer session for a customer token', () => {
+    localStorage.setItem('urbeat_token', encodeToken({ role: 'Customer' }));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    httpMock.expectNone('/api/auth/refresh');
+    const profileRequest = httpMock.expectOne('/api/customer/me');
+    profileRequest.flush({ fullName: 'Maria Oliveira', email: 'maria@email.com', primaryAddressId: 'addr-1' });
+
+    expect(preview).toHaveBeenCalled();
   });
 });
