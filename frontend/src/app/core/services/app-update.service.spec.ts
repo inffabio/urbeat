@@ -1,16 +1,21 @@
 import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
+import { NavigationError, Router } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import {
   ACTIVATION_RETRY_MS,
+  ACTIVATION_TIMEOUT_MS,
+  APP_NAVIGATION_FAILURES,
   APP_STABILITY,
   AppUpdateService,
   INITIAL_UPDATE_CHECK_FALLBACK_MS,
   PERIODIC_UPDATE_CHECK_MS,
+  RECOVERY_RETRY_MS,
   SERVICE_WORKER_READY_TIMEOUT_MS,
   UPDATE_CHECK_RETRY_MS,
   UPDATE_CHECK_TIMEOUT_MS,
+  isChunkLoadFailure,
 } from './app-update.service';
 
 interface SwUpdateMock {
@@ -61,6 +66,7 @@ const VERSION_READY = {
 describe('AppUpdateService', () => {
   let swUpdate: SwUpdateMock;
   let isStable: Subject<boolean>;
+  let navigationFailures: Subject<unknown>;
   let reload: jest.Mock;
   let sessionStorageMock: Storage;
   let documentListeners: Map<string, Set<DocumentListener>>;
@@ -71,7 +77,11 @@ describe('AppUpdateService', () => {
     documentListeners.get(type)?.forEach((listener) => listener());
   }
 
-  function setup(isEnabled = true, serviceWorkerReady: Promise<unknown> = Promise.resolve()): void {
+  function setup(
+    isEnabled = true,
+    serviceWorkerReady: Promise<unknown> = Promise.resolve(),
+    controlled = true,
+  ): void {
     swUpdate = {
       isEnabled,
       versionUpdates: new Subject<unknown>(),
@@ -80,6 +90,7 @@ describe('AppUpdateService', () => {
       checkForUpdate: jest.fn().mockResolvedValue(false),
     };
     isStable = new Subject<boolean>();
+    navigationFailures = new Subject<unknown>();
     reload = jest.fn();
     sessionStorageMock = createMemoryStorage();
     documentListeners = new Map();
@@ -87,7 +98,12 @@ describe('AppUpdateService', () => {
     const view = {
       location: { reload },
       sessionStorage: sessionStorageMock,
-      navigator: { serviceWorker: { ready: serviceWorkerReady } },
+      navigator: {
+        serviceWorker: {
+          ready: serviceWorkerReady,
+          controller: controlled ? {} : null,
+        },
+      },
     };
     documentMock = {
       defaultView: view,
@@ -107,6 +123,7 @@ describe('AppUpdateService', () => {
         AppUpdateService,
         { provide: SwUpdate, useValue: swUpdate },
         { provide: APP_STABILITY, useValue: isStable.asObservable() },
+        { provide: APP_NAVIGATION_FAILURES, useValue: navigationFailures.asObservable() },
         { provide: DOCUMENT, useValue: documentMock },
       ],
     });
@@ -139,6 +156,20 @@ describe('AppUpdateService', () => {
     setup();
 
     swUpdate.unrecoverable.next({ type: 'UNRECOVERABLE_STATE', reason: 'missing asset' });
+
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries the recovery reload when an unrecoverable state arrives right after a reload', async () => {
+    setup();
+    sessionStorageMock.setItem('urbeat:sw-last-reload', String(Date.now()));
+
+    swUpdate.unrecoverable.next({ type: 'UNRECOVERABLE_STATE', reason: 'missing asset' });
+
+    expect(reload).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(RECOVERY_RETRY_MS);
+    await flushMicrotasks();
 
     expect(reload).toHaveBeenCalledTimes(1);
   });
@@ -392,5 +423,160 @@ describe('AppUpdateService', () => {
 
     expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(2);
     expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  describe('stale lazy chunks', () => {
+    const STALE_CHUNK = new TypeError(
+      'Failed to fetch dynamically imported module: https://urbeat.app/chunk-CUSTOMER-PAGE.js',
+    );
+
+    it('activates the pending version and reloads once when a lazy chunk no longer exists', async () => {
+      setup();
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('recovers at most once per document, so repeated chunk failures cannot reload in a loop', async () => {
+      setup();
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores navigation errors that are not stale chunks', async () => {
+      setup();
+
+      navigationFailures.next(new Error('Http failure response for /api/orders: 500'));
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).not.toHaveBeenCalled();
+      expect(reload).not.toHaveBeenCalled();
+    });
+
+    it('retries the chunk recovery reload when the loop guard suppresses it', async () => {
+      setup();
+      sessionStorageMock.setItem('urbeat:sw-last-reload', String(Date.now()));
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+      expect(reload).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(RECOVERY_RETRY_MS);
+      await flushMicrotasks();
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops after the bounded recovery attempts instead of reloading forever', async () => {
+      setup();
+      sessionStorageMock.setItem('urbeat:sw-last-reload', String(Date.now()));
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      jest.advanceTimersByTime(RECOVERY_RETRY_MS);
+      await flushMicrotasks();
+      expect(reload).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(RECOVERY_RETRY_MS * 10);
+      await flushMicrotasks();
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads even when activating the update hangs or rejects', async () => {
+      setup();
+      swUpdate.activateUpdate.mockReturnValue(new Promise(() => undefined));
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+      expect(reload).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(ACTIVATION_TIMEOUT_MS);
+      await flushMicrotasks();
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads immediately, without waiting for activation, when no worker controls the document', async () => {
+      setup(true, Promise.resolve(), false);
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).not.toHaveBeenCalled();
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not listen for navigation failures when the service worker is disabled', async () => {
+      setup(false);
+
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      expect(reload).not.toHaveBeenCalled();
+    });
+
+    it('stops listening for navigation failures when destroyed', async () => {
+      setup();
+
+      service.ngOnDestroy();
+      navigationFailures.next(STALE_CHUNK);
+      await flushMicrotasks();
+
+      expect(reload).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('APP_NAVIGATION_FAILURES', () => {
+  it('surfaces the error of every failed navigation and ignores successful ones', () => {
+    const events = new Subject<unknown>();
+    const failure = new TypeError('Failed to fetch dynamically imported module: chunk-X.js');
+    const received: unknown[] = [];
+
+    TestBed.configureTestingModule({
+      providers: [{ provide: Router, useValue: { events: events.asObservable() } }],
+    });
+
+    TestBed.inject(APP_NAVIGATION_FAILURES).subscribe((error) => received.push(error));
+
+    events.next(new NavigationError(1, '/loja/checkout/cadastro', failure));
+    events.next({ type: 'NavigationEnd', id: 2, url: '/loja/carrinho' });
+
+    expect(received).toEqual([failure]);
+  });
+});
+
+describe('isChunkLoadFailure', () => {
+  it.each([
+    'Failed to fetch dynamically imported module: https://urbeat.app/chunk-ABC.js',
+    'error loading dynamically imported module',
+    'Importing a module script failed.',
+    'Loading chunk 1234 failed.',
+    'Loading CSS chunk 42 failed.',
+    'Expected a JavaScript module script but the server responded with a MIME type of "text/html".',
+    "'text/html' is not a valid JavaScript MIME type.",
+  ])('recognizes "%s" as a stale bundle failure', (message) => {
+    expect(isChunkLoadFailure(new TypeError(message))).toBe(true);
+  });
+
+  it('recognizes the webpack ChunkLoadError by name', () => {
+    expect(isChunkLoadFailure(Object.assign(new Error('boom'), { name: 'ChunkLoadError' }))).toBe(true);
+  });
+
+  it('does not treat unrelated errors as stale bundles', () => {
+    expect(isChunkLoadFailure(new Error('Http failure response for /api/orders: 500'))).toBe(false);
+    expect(isChunkLoadFailure('random failure')).toBe(false);
+    expect(isChunkLoadFailure(null)).toBe(false);
+    expect(isChunkLoadFailure(undefined)).toBe(false);
   });
 });
