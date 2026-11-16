@@ -82,6 +82,19 @@ describe('CartPageComponent', () => {
     expect(fixture.debugElement.query(By.css('.qty-plus ion-icon')).componentInstance.name).toBe('add');
   });
 
+  it('keeps the price and the quantity control on the same row so the cart list stays compact', () => {
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 2, unitPrice: 20 }]);
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.detectChanges();
+
+    const foot = fixture.debugElement.query(By.css('.cart-product-card .cart-item-foot'));
+    expect(foot).not.toBeNull();
+    expect(foot.query(By.css('.cart-product-price'))).not.toBeNull();
+    expect(foot.query(By.css('.cart-qty-pill .qty-minus'))).not.toBeNull();
+    expect(foot.query(By.css('.cart-qty-pill .qty-plus'))).not.toBeNull();
+  });
+
   it('removes the clicked item from the cart page even when the item has no id', () => {
     cart.items.set([
       { productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 },

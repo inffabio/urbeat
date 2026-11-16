@@ -49,9 +49,11 @@
               <div class="cart-product-info">
                 <div class="skeleton-line skeleton-title"></div>
                 <div class="skeleton-line skeleton-desc"></div>
-                <div class="skeleton-line skeleton-price"></div>
+                <div class="cart-item-foot">
+                  <div class="skeleton-line skeleton-price"></div>
+                  <div class="skeleton-pill"></div>
+                </div>
               </div>
-              <div class="skeleton-pill"></div>
             </div>
           }
         </div>
@@ -85,20 +87,22 @@
               @if (item.notes) {
                 <small class="item-notes">Obs: {{ item.notes }}</small>
               }
-              <strong class="cart-product-price">{{ item.unitPrice * item.quantity | brl }}</strong>
+              <div class="cart-item-foot">
+                <strong class="cart-product-price">{{ item.unitPrice * item.quantity | brl }}</strong>
+                <div class="cart-qty-pill" aria-label="Quantidade de {{ item.productName }}">
+                  <button class="qty-minus" aria-label="Diminuir quantidade" (click)="dec(item.id!)">
+                    <ion-icon name="remove"></ion-icon>
+                  </button>
+                  <strong>{{ item.quantity }}</strong>
+                  <button class="qty-plus" aria-label="Aumentar quantidade" (click)="inc(item.id!)">
+                    <ion-icon name="add"></ion-icon>
+                  </button>
+                </div>
+              </div>
             </div>
             <button class="cart-remove" aria-label="Remover {{ item.productName }}" (click)="remove(item)">
               <ion-icon name="close"></ion-icon>
             </button>
-            <div class="cart-qty-pill" aria-label="Quantidade de {{ item.productName }}">
-              <button class="qty-minus" aria-label="Diminuir quantidade" (click)="dec(item.id!)">
-                <ion-icon name="remove"></ion-icon>
-              </button>
-              <strong>{{ item.quantity }}</strong>
-              <button class="qty-plus" aria-label="Aumentar quantidade" (click)="inc(item.id!)">
-                  <ion-icon name="add"></ion-icon>
-              </button>
-            </div>
           </article>
         }
       </div>
