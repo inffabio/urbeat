@@ -6,7 +6,10 @@ using Microsoft.Extensions.Logging;
 namespace Urbeat.Infrastructure.Outbox.Handlers;
 
 /// <summary>
-/// Best-effort live SignalR push for seller-driven order status changes.
+/// Best-effort live SignalR push for order status changes.
+///
+/// The customer push is source-independent: seller, payment webhook, mock Pix and delivery route
+/// transitions all reach the customer's live tracking. The seller push keeps its own source rule.
 ///
 /// SignalR has no server-side idempotency key, so delivery is at-least-once. A crash after the push
 /// but before the message is marked processed (or a claim re-acquisition after lock expiry) can
@@ -36,12 +39,9 @@ public sealed class OrderSignalRHandler : IOutboxEventHandler
     {
         var evt = OutboxPayloadSerializer.Deserialize<OrderStatusChangedEvent>(message.Payload);
 
-        if (!string.Equals(evt.Source, "Seller", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(evt.Source, "Driver", StringComparison.OrdinalIgnoreCase))
-        {
-            return OutboxProcessingResult.Ok();
-        }
-
+        // Every status change (seller, payment webhook, mock Pix, delivery route/link) must reach
+        // the customer's live tracking. The customer hub pushes by user id, so the source is only
+        // relevant to decide whether the seller also receives the event.
         var delivered = await _notificationService.NotifyCustomerOrderStatusUpdatedAsync(
             evt.CustomerUserId,
             evt.OrderId,

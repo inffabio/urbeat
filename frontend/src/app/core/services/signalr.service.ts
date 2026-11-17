@@ -171,6 +171,9 @@ export class SignalRService {
       }
       this.customerConnected.set(true);
       this.rejoinStores();
+      // The tracking service only starts polling/reconciling after the connection state is
+      // announced; the seller hub already notifies on the first start.
+      this.notifyCustomerState(true);
       console.log('SignalR Customer Hub connected.');
     } catch (err) {
       console.error('SignalR Customer Hub connection failed:', err);

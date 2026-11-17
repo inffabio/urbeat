@@ -108,17 +108,35 @@ public sealed class OutboxHandlerTests
         logger.Warnings.Should().ContainSingle(x => x.Contains("SignalR"));
     }
 
-    [Fact]
-    public async Task OrderSignalRHandler_ShouldIgnoreWebhookDrivenChanges()
+    [Theory]
+    [InlineData("Seller")]
+    [InlineData("Webhook")]
+    [InlineData("Mock")]
+    [InlineData("DeliveryRoute")]
+    [InlineData("IndividualDeliveryLink")]
+    [InlineData("Checkout")]
+    public async Task OrderSignalRHandler_ShouldPublishCustomerStatusUpdate_ForEveryStatusChangeSource(string source)
     {
+        // Regression: only the "Seller" source used to reach the customer hub. Every producer of
+        // OrderStatusChanged must reach the customer's live tracking regardless of its source.
         var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<OrderStatus>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
         var handler = new OrderSignalRHandler(notificationService.Object, NullLogger<OrderSignalRHandler>.Instance);
+        var orderId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var changedAtUtc = new DateTime(2026, 11, 17, 12, 0, 0, DateTimeKind.Utc);
 
         var message = MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
         {
-            OrderId = Guid.NewGuid(),
-            NewStatus = OrderStatus.Received,
-            Source = "Webhook"
+            OrderId = orderId,
+            CustomerUserId = customerUserId,
+            Code = "URB-REALTIME",
+            NewStatus = OrderStatus.Delivered,
+            ChangedAtUtc = changedAtUtc,
+            Source = source
         });
 
         var result = await handler.HandleAsync(message);
@@ -126,6 +144,33 @@ public sealed class OutboxHandlerTests
         result.Success.Should().BeTrue();
         notificationService.Verify(
             x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                customerUserId, orderId, "URB-REALTIME", OrderStatus.Delivered, changedAtUtc, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task OrderSignalRHandler_ShouldKeepTheSellerPushRuleUnchanged_ForCustomerOnlyPush()
+    {
+        var notificationService = new Mock<INotificationService>();
+        notificationService
+            .Setup(x => x.NotifyCustomerOrderStatusUpdatedAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<OrderStatus>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var handler = new OrderSignalRHandler(notificationService.Object, NullLogger<OrderSignalRHandler>.Instance);
+
+        var message = MessageOf(OutboxEventTypes.OrderStatusChanged, new OrderStatusChangedEvent
+        {
+            OrderId = Guid.NewGuid(),
+            CustomerUserId = Guid.NewGuid(),
+            NewStatus = OrderStatus.Delivered,
+            Source = "DeliveryRoute"
+        });
+
+        await handler.HandleAsync(message);
+
+        // The customer push is source-independent; the seller push keeps its current rule.
+        notificationService.Verify(
+            x => x.NotifySellerOrderStatusUpdatedAsync(
                 It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<OrderStatus>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }

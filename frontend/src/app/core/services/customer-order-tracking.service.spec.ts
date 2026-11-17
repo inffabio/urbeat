@@ -55,7 +55,7 @@ describe('CustomerOrderTrackingService', () => {
   let removeCustomerListenerMock: jest.Mock;
   let stopCustomerHubMock: jest.Mock;
   let onCustomerStateChangeMock: jest.Mock;
-  let listeners: Record<string, (data: OrderStatusUpdateEvent) => void>;
+  let listeners: Record<string, (data: any) => void>;
   let authTokenSignal: ReturnType<typeof signal<string | null>>;
   let tokenSubject: Subject<string | null>;
   let originalSessionStorage: Storage;
@@ -196,6 +196,76 @@ describe('CustomerOrderTrackingService', () => {
     // fetch is automatic and must not surface a transient error toast.
     expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
     expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+  });
+
+  it('refreshes the tracked order from a durable customer notification fallback', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
+    listeners['ReceiveCustomerNotification']({
+      id: 'notification-1',
+      orderId: 'order1',
+      type: 5,
+      title: 'Pedido entregue',
+      message: 'Seu pedido foi entregue.',
+      createdAtUtc: '2026-07-28T12:20:00Z',
+    });
+
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Delivered);
+  });
+
+  it('does not duplicate the detail read when the status event and the durable notification arrive together', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Ready }));
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    });
+    listeners['ReceiveCustomerNotification']({
+      id: 'notification-3',
+      orderId: 'order1',
+      type: 3,
+      title: 'Pedido pronto',
+      message: 'Seu pedido está pronto.',
+      createdAtUtc: '2026-07-28T12:10:00Z',
+    });
+
+    // Initial load + the single authoritative read triggered by the status event.
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+  });
+
+  it('ignores a durable customer notification for an order that is not tracked', async () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+    getOrderMock.mockClear();
+
+    listeners['ReceiveCustomerNotification']({
+      id: 'notification-2',
+      orderId: 'other-order',
+      type: 5,
+      title: 'Pedido entregue',
+      message: 'Seu pedido foi entregue.',
+      createdAtUtc: '2026-07-28T12:20:00Z',
+    });
+
+    expect(getOrderMock).not.toHaveBeenCalled();
   });
 
   it('applies a pickup Ready event and exposes it as the finished pickup state', async () => {

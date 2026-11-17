@@ -16,7 +16,19 @@ export interface OrderStatusUpdateEvent {
   changedAtUtc: string;
 }
 
+/**
+ * Live push of a durable customer notification. It is the fallback used when the change is also
+ * announced as a durable notification; only `orderId` is needed to re-read the authoritative order.
+ */
+export interface CustomerNotificationEvent {
+  orderId?: string;
+  type?: number;
+  title?: string;
+}
+
 const POLL_INTERVAL_MS = 30_000;
+/** Window in which the durable notification is redundant with a live status push. */
+const NOTIFICATION_FALLBACK_WINDOW_MS = 5_000;
 
 @Injectable({ providedIn: 'root' })
 export class CustomerOrderTrackingService {
@@ -42,6 +54,8 @@ export class CustomerOrderTrackingService {
   private readonly eventVersion = new Map<string, number>();
   private readonly eventStatus = new Map<string, OrderStatus>();
   private readonly lastEventTimestamp = new Map<string, number>();
+  /** Last live `OrderStatusUpdated` per order, used to dedupe the durable-notification fallback. */
+  private readonly lastStatusEventAt = new Map<string, number>();
   private readonly recoveringOrders = new Set<string>();
   private pollingTimer: ReturnType<typeof setInterval> | null = null;
   private recoveryTimer: ReturnType<typeof setInterval> | null = null;
@@ -51,6 +65,7 @@ export class CustomerOrderTrackingService {
   private hubConnected = false;
   private awaitingReconnect = false;
   private orderStatusListener?: (data: OrderStatusUpdateEvent) => void;
+  private customerNotificationListener?: (data: CustomerNotificationEvent) => void;
   private customerStateUnsubscribe?: () => void;
   private tokenSubscription?: Subscription;
 
@@ -223,6 +238,7 @@ export class CustomerOrderTrackingService {
     this.eventVersion.clear();
     this.eventStatus.clear();
     this.lastEventTimestamp.clear();
+    this.lastStatusEventAt.clear();
     this.recoveringOrders.clear();
     this.clearPolling();
     this.clearRecoveryTimer();
@@ -244,6 +260,7 @@ export class CustomerOrderTrackingService {
     this.eventVersion.clear();
     this.eventStatus.clear();
     this.lastEventTimestamp.clear();
+    this.lastStatusEventAt.clear();
 
     if (this.tokenSubscription) {
       this.tokenSubscription.unsubscribe();
@@ -258,6 +275,11 @@ export class CustomerOrderTrackingService {
     if (this.orderStatusListener) {
       this.signalR.removeCustomerListener('OrderStatusUpdated', this.orderStatusListener);
       this.orderStatusListener = undefined;
+    }
+
+    if (this.customerNotificationListener) {
+      this.signalR.removeCustomerListener('ReceiveCustomerNotification', this.customerNotificationListener);
+      this.customerNotificationListener = undefined;
     }
 
     this.signalR.stopCustomerHub();
@@ -277,12 +299,30 @@ export class CustomerOrderTrackingService {
     if (!this.orderStatusListener) {
       this.orderStatusListener = (data: OrderStatusUpdateEvent) => {
         if (!data || !this.trackedIds().includes(data.orderId)) return;
+        this.lastStatusEventAt.set(data.orderId, Date.now());
         if (!this.applyEventStatus(data)) return;
         // The event already updated the visible status; the follow-up detail
         // refresh is automatic and must not surface a transient error toast.
         this.refresh(data.orderId, { background: true });
       };
       this.signalR.onCustomerEvent('OrderStatusUpdated', this.orderStatusListener);
+    }
+
+    if (!this.customerNotificationListener) {
+      // Fallback: the durable notification is pushed for every status change of the order, so an
+      // at-least-once delivery of it can never leave the tracking stale when the status payload is
+      // unavailable or arrives out of order. Only a background re-read happens here; the version
+      // guards in `refresh` keep it from regressing the visible status.
+      this.customerNotificationListener = (data: CustomerNotificationEvent) => {
+        const orderId = data?.orderId;
+        if (!orderId || !this.trackedIds().includes(orderId)) return;
+        // Both pushes describe the same transition; the status event already triggered the
+        // authoritative read, so the fallback only covers a status push that never arrived.
+        const lastStatusEvent = this.lastStatusEventAt.get(orderId) ?? 0;
+        if (Date.now() - lastStatusEvent < NOTIFICATION_FALLBACK_WINDOW_MS) return;
+        this.refresh(orderId, { background: true });
+      };
+      this.signalR.onCustomerEvent('ReceiveCustomerNotification', this.customerNotificationListener);
     }
 
     if (!this.customerStateUnsubscribe) {

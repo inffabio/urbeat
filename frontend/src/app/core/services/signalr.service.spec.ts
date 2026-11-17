@@ -259,7 +259,7 @@ describe('SignalRService', () => {
     expect(secondConnection.on).toHaveBeenCalledWith('OrderStatusUpdated', callback);
   });
 
-  it('notifies customer state changes when the connection drops and reconnects', async () => {
+  it('notifies the customer connected state on the first successful connection', async () => {
     const connection = createConnectionMock(Promise.resolve());
     mockBuild.mockReturnValue(connection);
     const service = TestBed.inject(SignalRService);
@@ -268,15 +268,32 @@ describe('SignalRService', () => {
 
     await service.startCustomerHub();
 
-    connection.reconnectedHandler?.('conn-id');
+    // The tracking service only enables its realtime bookkeeping/reconciliation when the first
+    // connection is announced, exactly like the seller hub already does.
     expect(callback).toHaveBeenCalledWith(true);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies customer state changes when the connection drops and reconnects', async () => {
+    const connection = createConnectionMock(Promise.resolve());
+    mockBuild.mockReturnValue(connection);
+    const service = TestBed.inject(SignalRService);
+    const callback = jest.fn();
+    service.onCustomerStateChange(callback);
+
+    await service.startCustomerHub();
+    expect(callback).toHaveBeenLastCalledWith(true);
+
+    connection.reconnectedHandler?.('conn-id');
+    expect(callback).toHaveBeenLastCalledWith(true);
 
     connection.reconnectingHandler?.(new Error('dropped'));
-    expect(callback).toHaveBeenCalledWith(false);
+    expect(callback).toHaveBeenLastCalledWith(false);
 
     connection.closeHandler?.(new Error('closed'));
-    expect(callback).toHaveBeenCalledWith(false);
-    expect(callback).toHaveBeenCalledTimes(3);
+    expect(callback).toHaveBeenLastCalledWith(false);
+    // First connect + reconnect + reconnecting + closed.
+    expect(callback).toHaveBeenCalledTimes(4);
   });
 
   it('does not create a second connection for concurrent customer starts', async () => {
@@ -712,6 +729,7 @@ describe('SignalRService', () => {
     await service.startCustomerHub();
     service.stopCustomerHub();
     await service.startCustomerHub();
+    callback.mockClear();
 
     firstConnection.reconnectedHandler?.('stale-id');
 
