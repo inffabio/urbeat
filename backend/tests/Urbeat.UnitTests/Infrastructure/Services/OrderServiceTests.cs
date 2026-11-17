@@ -215,6 +215,80 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CustomerOrderDetails_ShouldKeepDeliveryPinWhenDeliveredUntilDeliveryConfirmation()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-pin-delivered", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "DELIVERED-PIN",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.Delivery,
+            Status = OrderStatus.Delivered,
+            DeliveryPinEncrypted = "encrypted-pin"
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var encryption = new Mock<IEncryptionService>();
+        encryption.Setup(x => x.Decrypt("encrypted-pin")).Returns("4321");
+        var sut = new OrderService(
+            _db,
+            new EfUnitOfWork(_db),
+            Mock.Of<INotificationService>(),
+            Mock.Of<IOutboxWriter>(),
+            encryption.Object);
+
+        var customer = await sut.GetCustomerOrderAsync(customerUserId, order.Id);
+        var seller = await sut.GetStoreOrderAsync(sellerUserId, order.Id);
+
+        customer!.DeliveryPin.Should().Be("4321", "the customer still needs the PIN to confirm a seller-marked delivery");
+        seller!.DeliveryPin.Should().BeNull("the seller must never receive the customer's delivery PIN");
+
+        order.DeliveryConfirmedAtUtc = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var confirmed = await sut.GetCustomerOrderAsync(customerUserId, order.Id);
+        confirmed!.DeliveryPin.Should().BeNull("the PIN must disappear once the delivery is confirmed");
+    }
+
+    [Fact]
+    public async Task CustomerOrderDetails_ShouldNotExposeDeliveryPinForPickup_EvenWhenEncryptedPinExists()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-pin-pickup", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "PICKUP-PIN",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Ready,
+            DeliveryPinEncrypted = "encrypted-pin"
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var encryption = new Mock<IEncryptionService>();
+        encryption.Setup(x => x.Decrypt("encrypted-pin")).Returns("4321");
+        var sut = new OrderService(
+            _db,
+            new EfUnitOfWork(_db),
+            Mock.Of<INotificationService>(),
+            Mock.Of<IOutboxWriter>(),
+            encryption.Object);
+
+        var customer = await sut.GetCustomerOrderAsync(customerUserId, order.Id);
+
+        customer!.DeliveryPin.Should().BeNull("pickup orders never have a delivery PIN");
+    }
+
+    [Fact]
     public async Task LegacyPickupOrderDetails_ShouldNotInventCurrentStoreAddress_WhenSnapshotIsNull()
     {
         var sellerUserId = Guid.NewGuid();

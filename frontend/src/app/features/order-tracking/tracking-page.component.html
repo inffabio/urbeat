@@ -219,12 +219,20 @@
         </div>
       </div>
 
-      @if (!isPickup() && o.status === OrderStatus.OnDelivery && o.deliveryPin) {
+      @if (showDeliveryPin() && o.deliveryPin; as pin) {
         <div class="card delivery-pin-card">
           <h2>PIN de entrega</h2>
-          <p>Informe este código ao motoboy no momento da entrega. Ele é formado pelos últimos 4 dígitos do seu celular.</p>
-          <strong class="delivery-pin" aria-label="PIN de entrega">{{ o.deliveryPin }}</strong>
-          <small>Não compartilhe o PIN antes de receber o pedido.</small>
+          @if (o.status === OrderStatus.Delivered) {
+            <p>Informe este código ao motoboy para confirmar o recebimento. Ele é formado pelos últimos 4 dígitos do seu celular.</p>
+          } @else {
+            <p>Informe este código ao motoboy no momento da entrega. Ele é formado pelos últimos 4 dígitos do seu celular.</p>
+          }
+          <strong class="delivery-pin" aria-label="PIN de entrega">{{ pin }}</strong>
+          @if (o.status === OrderStatus.Delivered) {
+            <small>Use este código apenas para confirmar o recebimento.</small>
+          } @else {
+            <small>Não compartilhe o PIN antes de receber o pedido.</small>
+          }
         </div>
       }
 

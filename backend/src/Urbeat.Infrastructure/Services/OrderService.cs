@@ -1224,7 +1224,7 @@ public sealed class OrderService : IOrderService
         string? deliveryPin = null;
         if (includeDeliveryPin
             && order.FulfillmentType == FulfillmentType.Delivery
-            && order.Status == OrderStatus.OnDelivery
+            && order.Status is OrderStatus.OnDelivery or OrderStatus.Delivered
             && order.DeliveryConfirmedAtUtc is null
             && !string.IsNullOrWhiteSpace(order.DeliveryPinEncrypted)
             && _encryptionService is not null)

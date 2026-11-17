@@ -207,6 +207,57 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('keeps the delivery PIN visible after Delivered while customer confirmation is pending', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryPin: '1234',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.css('.delivery-pin-card'));
+    expect(card).not.toBeNull();
+    expect(card.nativeElement.textContent).toContain('1234');
+    expect(card.nativeElement.textContent).toContain('Informe este código ao motoboy para confirmar o recebimento');
+    expect(card.nativeElement.textContent).toContain('Use este código apenas para confirmar o recebimento');
+
+    fixture.destroy();
+  });
+
+  it('hides the delivery PIN after the delivery is confirmed', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Delivered,
+      deliveryPin: '1234',
+      deliveryConfirmedAtUtc: '2026-07-28T12:30:00Z',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.delivery-pin-card'))).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('never shows the delivery PIN for pickup orders', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Delivered,
+      deliveryPin: '1234',
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.delivery-pin-card'))).toBeNull();
+
+    fixture.destroy();
+  });
+
   it('keeps the delivered step inside the timeline as the current step, never as a completed future one', () => {
     getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Delivered }));
 

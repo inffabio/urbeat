@@ -1778,7 +1778,12 @@ public sealed class DeliveryRouteService : IDeliveryRouteService
             return null;
         }
 
-        var withCountry = digits.StartsWith("55", StringComparison.Ordinal) ? digits : $"55{digits}";
+        // A value up to a full local mobile (DDD + subscriber) has no country code yet, even when
+        // it starts with 55 (DDD 55, Rio Grande do Sul). Only longer values already carry +55.
+        var withCountry = digits.Length > BrazilianMobilePhone.DigitCount
+            && digits.StartsWith("55", StringComparison.Ordinal)
+                ? digits
+                : $"55{digits}";
         return $"https://wa.me/{withCountry}?text={Uri.EscapeDataString(message)}";
     }
 }

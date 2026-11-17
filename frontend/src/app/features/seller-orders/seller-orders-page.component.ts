@@ -27,6 +27,14 @@ import {
   PagedOrderSummary,
 } from '../../shared/models/order.model';
 import { formatBrazilianPhone } from '../../shared/utils/brazilian-phone.utils';
+import {
+  closeExternalWindow,
+  navigateExternalWindow,
+  openExternalWindow,
+  reserveExternalWindow,
+  toAbsoluteHttpUrl,
+  whatsAppNumber,
+} from '../../shared/utils/whatsapp.utils';
 import { AutomaticPrintQueueService } from '../seller-printing/automatic-print-queue.service';
 import { OrderAcceptedForPrintingEvent } from '../seller-printing/seller-printing.models';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -1005,11 +1013,15 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   }
 
   driverWhatsAppUrl(deliveryDriverId?: string | null): string | null {
+    const number = this.driverWhatsAppNumber(deliveryDriverId);
+    return number ? `https://wa.me/${number}` : null;
+  }
+
+  /** Dialable WhatsApp number of the assigned motoboy, with the +55 country code applied once. */
+  private driverWhatsAppNumber(deliveryDriverId?: string | null): string | null {
     const driver = this.orderDriver(deliveryDriverId);
     if (!driver) return null;
-    const phone = (driver.whatsAppPhoneNumber || driver.phoneNumber || '').replace(/\D/g, '');
-    if (!phone) return null;
-    return `https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}`;
+    return whatsAppNumber(driver.whatsAppPhoneNumber || driver.phoneNumber);
   }
 
   routeStatusLabel(status?: number | null): string {
@@ -1026,30 +1038,36 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     const order = this.selectedOrder();
     if (!order?.deliveryRouteId) return;
 
+    const phone = this.driverWhatsAppNumber(order.deliveryDriverId);
+    if (!phone) {
+      void this.toast.showError('Cadastre o WhatsApp do motoboy para compartilhar a rota.');
+      return;
+    }
+
+    // Reserved during the click: the tab would be blocked if opened after the HTTP response.
+    const reserved = reserveExternalWindow();
     this.deliveryRouteService.shareRoute(order.deliveryRouteId).subscribe({
       next: (result) => {
-        if (!result.shareUrl) {
+        const shareUrl = toAbsoluteHttpUrl(result.shareUrl);
+        if (!shareUrl) {
+          closeExternalWindow(reserved);
           void this.toast.showError('Não foi possível gerar o link da rota.');
           return;
         }
 
-        const driver = this.deliveryDrivers().find(
-          (item) => item.id === result.route?.deliveryDriverId,
-        );
-        const phone = (driver?.whatsAppPhoneNumber || driver?.phoneNumber || '').replace(/\D/g, '');
-        if (!phone) {
-          void this.toast.showError('Cadastre o WhatsApp do motoboy para compartilhar a rota.');
+        const message = encodeURIComponent(`Rota de entregas: ${shareUrl}`);
+        if (!navigateExternalWindow(reserved, `https://wa.me/${phone}?text=${message}`)) {
+          closeExternalWindow(reserved);
+          void this.toast.showError(
+            'O navegador bloqueou a abertura do WhatsApp. Libere pop-ups para este site e tente novamente.',
+          );
           return;
         }
 
-        const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
-        const message = encodeURIComponent(
-          `Rota de entregas: ${result.shareUrl}`,
-        );
-        window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener,noreferrer');
         this.patchRouteInfoFromResult(result.route);
       },
       error: (err) => {
+        closeExternalWindow(reserved);
         void this.toast.showError(err?.error?.error ?? 'Não foi possível compartilhar a rota.');
       },
     });
@@ -1084,29 +1102,39 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     const order = this.selectedOrder();
     if (!order || this.sharingIndividualLink()) return;
 
+    const phone = this.driverWhatsAppNumber(order.deliveryDriverId);
+    if (!phone) {
+      void this.toast.showError('Cadastre o WhatsApp do motoboy antes de compartilhar.');
+      return;
+    }
+
+    // Reserved during the click: the tab would be blocked if opened after the HTTP response.
+    const reserved = reserveExternalWindow();
     this.sharingIndividualLink.set(true);
     this.deliveryRouteService.shareIndividualDelivery(order.id).subscribe({
       next: (result) => {
         this.sharingIndividualLink.set(false);
-        if (!result.shareUrl) {
+        const shareUrl = toAbsoluteHttpUrl(result.shareUrl);
+        if (!shareUrl) {
+          closeExternalWindow(reserved);
           void this.toast.showError(result.error ?? 'Não foi possível gerar o link da entrega.');
           return;
         }
 
-        const driver = this.orderDriver(order.deliveryDriverId);
-        const phone = (driver?.whatsAppPhoneNumber || driver?.phoneNumber || '').replace(/\D/g, '');
-        if (!phone) {
-          void this.toast.showError('Cadastre o WhatsApp do motoboy antes de compartilhar.');
+        const message = encodeURIComponent(`Entrega do pedido #${order.code}: ${shareUrl}`);
+        if (!navigateExternalWindow(reserved, `https://wa.me/${phone}?text=${message}`)) {
+          closeExternalWindow(reserved);
+          void this.toast.showError(
+            'O navegador bloqueou a abertura do WhatsApp. Libere pop-ups para este site e tente novamente.',
+          );
           return;
         }
 
-        const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
-        const message = encodeURIComponent(`Entrega do pedido #${order.code}: ${result.shareUrl}`);
-        window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener,noreferrer');
         void this.toast.showSuccess('Link individual da entrega gerado.');
       },
       error: (err) => {
         this.sharingIndividualLink.set(false);
+        closeExternalWindow(reserved);
         void this.toast.showError(err?.error?.error ?? 'Não foi possível compartilhar a entrega.');
       },
     });
@@ -1262,8 +1290,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const opened = window.open(group.whatsAppUrl, '_blank', 'noopener,noreferrer');
-    if (!opened) {
+    if (!openExternalWindow(group.whatsAppUrl)) {
       void this.toast.showError(
         'O navegador bloqueou a abertura do WhatsApp. Libere pop-ups para este site e tente novamente.',
       );

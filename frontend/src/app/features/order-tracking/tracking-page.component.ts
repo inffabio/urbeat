@@ -103,6 +103,20 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
 
   readonly isPickup = computed(() => this.order()?.fulfillmentType === FulfillmentType.PickUp);
 
+  /**
+   * The delivery PIN is needed until the delivery is confirmed. A seller can mark the
+   * order Delivered before the PIN/handover confirmation, so the card must survive the
+   * OnDelivery -> Delivered transition. It is never shown for pickup or after confirmation.
+   */
+  readonly showDeliveryPin = computed(() => {
+    const order = this.order();
+    return !!order
+      && order.fulfillmentType === FulfillmentType.Delivery
+      && (order.status === OrderStatus.OnDelivery || order.status === OrderStatus.Delivered)
+      && !order.deliveryConfirmedAtUtc
+      && !!order.deliveryPin;
+  });
+
   readonly pickupStoreAddress = computed<PickupStoreAddress | null>(() => {
     const order = this.order();
     const address = order?.pickupStoreAddress;

@@ -3309,7 +3309,13 @@ describe('SellerOrdersPageComponent', () => {
   });
 
   it('shares an individual delivery link without requiring a route', () => {
-    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    const reserved = {
+      closed: false,
+      opener: {} as unknown,
+      location: { href: '' },
+      close: jest.fn(),
+    } as unknown as Window;
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => reserved);
     const fixture = TestBed.createComponent(SellerOrdersPageComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -3336,13 +3342,142 @@ describe('SellerOrdersPageComponent', () => {
     component.shareIndividualDelivery();
 
     expect(deliveryRouteServiceMock.shareIndividualDelivery).toHaveBeenCalledWith('order-1');
-    expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('https://wa.me/5511988887777'),
-      '_blank',
-      'noopener,noreferrer',
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank');
+    expect(reserved.location.href).toContain('https://wa.me/5511988887777');
+    expect(reserved.location.href).toContain(
+      encodeURIComponent('https://urbeat.test/entrega/token'),
     );
-    expect(openSpy.mock.calls[0][0]).toContain(encodeURIComponent('https://urbeat.test/entrega/token'));
     expect(toastServiceMock.showSuccess).toHaveBeenCalled();
+  });
+
+  it('reserves the WhatsApp tab during the click before the individual link resolves', () => {
+    const reserved = {
+      closed: false,
+      opener: {} as unknown,
+      location: { href: '' },
+      close: jest.fn(),
+    } as unknown as Window;
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => reserved);
+    const response = new Subject<any>();
+    deliveryRouteServiceMock.shareIndividualDelivery.mockReturnValue(response);
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.orders.set([buildOrder({
+      id: 'order-1',
+      code: 'ABC123',
+      status: OrderStatus.OnDelivery,
+      fulfillmentType: FulfillmentType.Delivery,
+      deliveryDriverId: 'driver-1',
+      deliveryStartedAtUtc: '2026-10-27T18:00:00Z',
+    })]);
+    component.deliveryDrivers.set([buildDriver({
+      id: 'link-1',
+      deliveryDriverId: 'driver-1',
+      whatsAppPhoneNumber: '11988887777',
+    })]);
+    component.selectedOrderId.set('order-1');
+
+    component.shareIndividualDelivery();
+
+    // The browser only keeps a popup that is opened while the click is being handled.
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank');
+    expect((reserved as unknown as { opener: unknown }).opener).toBeNull();
+
+    response.next({
+      notFound: false,
+      forbidden: false,
+      invalidState: false,
+      shareUrl: 'https://urbeat.test/entrega/token',
+    });
+    response.complete();
+
+    expect((reserved as unknown as { location: { href: string } }).location.href)
+      .toContain('https://wa.me/5511988887777');
+    expect(toastServiceMock.showError).not.toHaveBeenCalled();
+    expect(toastServiceMock.showSuccess).toHaveBeenCalled();
+  });
+
+  it('does not claim the individual delivery was shared when the browser blocked the tab', () => {
+    jest.spyOn(window, 'open').mockImplementation(() => null);
+    deliveryRouteServiceMock.shareIndividualDelivery.mockReturnValue(of({
+      notFound: false,
+      forbidden: false,
+      invalidState: false,
+      shareUrl: 'https://urbeat.test/entrega/token',
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.orders.set([buildOrder({
+      id: 'order-1',
+      code: 'ABC123',
+      status: OrderStatus.OnDelivery,
+      fulfillmentType: FulfillmentType.Delivery,
+      deliveryDriverId: 'driver-1',
+      deliveryStartedAtUtc: '2026-10-27T18:00:00Z',
+    })]);
+    component.deliveryDrivers.set([buildDriver({ deliveryDriverId: 'driver-1' })]);
+    component.selectedOrderId.set('order-1');
+
+    component.shareIndividualDelivery();
+
+    expect(toastServiceMock.showSuccess).not.toHaveBeenCalled();
+    expect(toastServiceMock.showError).toHaveBeenCalledWith(
+      expect.stringContaining('bloqueou a abertura do WhatsApp'),
+    );
+  });
+
+  it('reserves the WhatsApp tab before sharing an existing route link', () => {
+    const reserved = {
+      closed: false,
+      opener: {} as unknown,
+      location: { href: '' },
+      close: jest.fn(),
+    } as unknown as Window;
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => reserved);
+    const response = new Subject<any>();
+    deliveryRouteServiceMock.shareRoute.mockReturnValue(response);
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.orders.set([buildOrder({
+      id: 'order-1',
+      code: 'ABC123',
+      status: OrderStatus.OnDelivery,
+      fulfillmentType: FulfillmentType.Delivery,
+      deliveryDriverId: 'driver-1',
+      deliveryRouteId: 'route-1',
+      deliveryStartedAtUtc: '2026-10-27T18:00:00Z',
+    })]);
+    component.deliveryDrivers.set([buildDriver({
+      id: 'link-1',
+      deliveryDriverId: 'driver-1',
+      whatsAppPhoneNumber: '11988887777',
+    })]);
+    component.selectedOrderId.set('order-1');
+
+    component.shareOrderRoute();
+
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank');
+
+    response.next({
+      route: { id: 'route-1', deliveryDriverId: 'link-1', status: 1 },
+      shareUrl: 'https://urbeat.test/rota/token',
+    });
+    response.complete();
+
+    expect((reserved as unknown as { location: { href: string } }).location.href)
+      .toContain('https://wa.me/5511988887777');
+    expect(decodeURIComponent(
+      (reserved as unknown as { location: { href: string } }).location.href,
+    )).toContain('https://urbeat.test/rota/token');
   });
 
   it('groups on-delivery orders by motoboy in the send deliveries confirmation', () => {
@@ -3435,6 +3570,35 @@ describe('SellerOrdersPageComponent', () => {
 
     expect(component.sendDeliveriesDialogOpen()).toBe(false);
     expect(deliveryRouteServiceMock.sendDeliveryRoutes).not.toHaveBeenCalled();
+  });
+
+  it('never includes a pickup order in the WhatsApp delivery batch', () => {
+    stubSendDeliveriesData(
+      [
+        buildDeliveryOrder({ id: 'delivery-1', code: 'DLV1' }),
+        buildOrder({
+          id: 'pickup-1',
+          code: 'PU1',
+          status: OrderStatus.OnDelivery,
+          fulfillmentType: FulfillmentType.PickUp,
+          deliveryDriverId: 'driver-ana',
+        }),
+      ],
+      [buildDriver()],
+    );
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.sendDeliveriesOrderIds()).toEqual(['delivery-1']);
+    expect(component.pendingSendOrderCount()).toBe(1);
+
+    component.openSendDeliveries();
+    checkAllSendOrders(component);
+    component.confirmSendDeliveries();
+
+    expect(deliveryRouteServiceMock.sendDeliveryRoutes).toHaveBeenCalledWith(['delivery-1'], true);
   });
 
   it('sends only pending orders by default and includes already shared orders only when requested', () => {
@@ -3620,11 +3784,71 @@ describe('SellerOrdersPageComponent', () => {
     expect(openSpy).toHaveBeenCalledWith(
       'https://wa.me/5511988887777?text=rota-ana',
       '_blank',
-      'noopener,noreferrer',
     );
     expect(toastServiceMock.showError).toHaveBeenCalledWith(
       expect.stringContaining('bloqueou a abertura do WhatsApp'),
     );
+  });
+
+  it('does not report a blocked popup when the WhatsApp tab actually opened', () => {
+    stubSendDeliveriesData([buildDeliveryOrder({ id: 'ana-1', code: 'ANA1' })]);
+    deliveryRouteServiceMock.sendDeliveryRoutes.mockReturnValue(of({
+      forbidden: false,
+      orderNotEligible: false,
+      driverNotAvailable: false,
+      conflict: false,
+      groups: [{
+        storeDeliveryDriverId: 'link-ana',
+        deliveryDriverId: 'driver-ana',
+        driverName: 'Ana Motoboy',
+        whatsAppPhoneNumber: '11988887777',
+        whatsAppUrl: 'https://wa.me/5511988887777?text=rota-ana',
+        shareUrl: 'https://urbeat.test/rota/ana',
+        message: 'Rota da Ana',
+        orderCount: 1,
+        totalStops: 1,
+        route: {
+          id: 'route-ana',
+          deliveryDriverId: 'driver-ana',
+          driverName: 'Ana Motoboy',
+          status: 1,
+          createdAtUtc: '2026-10-27T12:00:00Z',
+          expiresAtUtc: '2026-10-28T00:00:00Z',
+          totalStops: 1,
+          deliveredStops: 0,
+          orders: [{
+            orderId: 'ana-1',
+            sequence: 1,
+            code: 'ANA1',
+            status: OrderStatus.OnDelivery,
+            isDelivered: false,
+            canDeliver: true,
+          }],
+        },
+      }],
+    }));
+
+    const opened = { opener: {} as unknown, close: jest.fn() } as unknown as Window;
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => opened);
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.openSendDeliveries();
+    checkAllSendOrders(component);
+    component.confirmSendDeliveries();
+    fixture.detectChanges();
+
+    const whatsAppButton = fixture.nativeElement
+      .querySelector('.send-result-dialog .btn-whatsapp') as HTMLButtonElement;
+    whatsAppButton.click();
+
+    // `noopener` makes window.open return null even when the tab opened, so the feature must not
+    // be passed; the opener is severed manually instead.
+    expect(openSpy).toHaveBeenCalledWith('https://wa.me/5511988887777?text=rota-ana', '_blank');
+    expect((opened as unknown as { opener: unknown }).opener).toBeNull();
+    expect(toastServiceMock.showError).not.toHaveBeenCalled();
   });
 
   it('shows driver, phone, volumes and an identifiable order list before sending', () => {

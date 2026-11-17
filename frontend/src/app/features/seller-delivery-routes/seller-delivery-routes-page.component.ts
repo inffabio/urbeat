@@ -22,6 +22,13 @@ import {
   DeliveryRouteStatus,
 } from '../../shared/models/delivery-route.model';
 import { OrderSummary } from '../../shared/models/order.model';
+import {
+  closeExternalWindow,
+  navigateExternalWindow,
+  reserveExternalWindow,
+  toAbsoluteHttpUrl,
+  whatsAppNumber,
+} from '../../shared/utils/whatsapp.utils';
 
 @Component({
   selector: 'app-seller-delivery-routes-page',
@@ -187,25 +194,36 @@ export class SellerDeliveryRoutesPageComponent implements OnInit {
 
   shareRoute(route: DeliveryRoute): void {
     if (this.actionRouteId()) return;
+
+    const phone = whatsAppNumber(route.driverWhatsAppPhoneNumber);
+    if (!phone) {
+      void this.toast.showError('Cadastre o WhatsApp do motoboy antes de compartilhar.');
+      return;
+    }
+
+    // Reserved during the click: the tab would be blocked if opened after the HTTP response.
+    const reserved = reserveExternalWindow();
     this.actionRouteId.set(route.id);
 
     this.routesApi.shareRoute(route.id).subscribe({
       next: (result) => {
         this.actionRouteId.set(null);
-        if (!result.shareUrl) {
+        const shareUrl = toAbsoluteHttpUrl(result.shareUrl);
+        if (!shareUrl) {
+          closeExternalWindow(reserved);
           void this.toast.showError('Não foi possível gerar o link da rota.');
           return;
         }
 
-        const phone = (route.driverWhatsAppPhoneNumber ?? '').replace(/\D/g, '');
-        if (!phone) {
-          void this.toast.showError('Cadastre o WhatsApp do motoboy antes de compartilhar.');
+        const message = encodeURIComponent(`Rota de entregas: ${shareUrl}`);
+        if (!navigateExternalWindow(reserved, `https://wa.me/${phone}?text=${message}`)) {
+          closeExternalWindow(reserved);
+          void this.toast.showError(
+            'O navegador bloqueou a abertura do WhatsApp. Libere pop-ups para este site e tente novamente.',
+          );
           return;
         }
 
-        const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
-        const message = encodeURIComponent(`Rota de entregas: ${result.shareUrl}`);
-        window.open(`https://wa.me/${withCountry}?text=${message}`, '_blank', 'noopener,noreferrer');
         if (result.route) {
           this.routes.update((items) =>
             items.map((item) => (item.id === result.route!.id ? result.route! : item)),
@@ -214,6 +232,7 @@ export class SellerDeliveryRoutesPageComponent implements OnInit {
       },
       error: (err) => {
         this.actionRouteId.set(null);
+        closeExternalWindow(reserved);
         void this.toast.showError(err?.error?.error ?? 'Não foi possível compartilhar a rota.');
       },
     });

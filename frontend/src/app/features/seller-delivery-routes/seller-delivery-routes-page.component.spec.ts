@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
 import { DeliveryRouteService } from '../../core/services/delivery-route.service';
 import { OrderService } from '../../core/services/order.service';
@@ -128,21 +128,52 @@ describe('SellerDeliveryRoutesPageComponent', () => {
     expect(toastMock.showSuccess).toHaveBeenCalled();
   });
 
-  it('opens WhatsApp with the shared absolute route URL', () => {
-    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+  it('reserves the WhatsApp tab during the click before the shared route resolves', () => {
+    const reserved = {
+      closed: false,
+      opener: {} as unknown,
+      location: { href: '' },
+      close: jest.fn(),
+    } as unknown as Window;
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => reserved);
+    const response = new Subject<any>();
+    routeServiceMock.shareRoute.mockReturnValue(response);
+
     const fixture = TestBed.createComponent(SellerDeliveryRoutesPageComponent);
     fixture.detectChanges();
 
     fixture.componentInstance.shareRoute(route as any);
 
     expect(routeServiceMock.shareRoute).toHaveBeenCalledWith('route-1');
-    expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('https://wa.me/5511988887777?text='),
-      '_blank',
-      'noopener,noreferrer',
-    );
-    expect(decodeURIComponent(openSpy.mock.calls[0][0] as string)).toContain('/rota/new-token');
+    // Opened while the click is still being handled, before the HTTP response.
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank');
+    expect((reserved as unknown as { opener: unknown }).opener).toBeNull();
+
+    response.next({ route, shareUrl: 'https://www.urbeat.com.br/rota/new-token' });
+    response.complete();
+
+    const href = (reserved as unknown as { location: { href: string } }).location.href;
+    expect(href).toContain('https://wa.me/5511988887777?text=');
+    expect(decodeURIComponent(href)).toContain('https://www.urbeat.com.br/rota/new-token');
     openSpy.mockRestore();
+  });
+
+  it('reports a blocked popup instead of leaving the seller without feedback', () => {
+    jest.spyOn(window, 'open').mockImplementation(() => null);
+    routeServiceMock.shareRoute.mockReturnValue(of({
+      route,
+      shareUrl: 'https://www.urbeat.com.br/rota/new-token',
+    }));
+
+    const fixture = TestBed.createComponent(SellerDeliveryRoutesPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.shareRoute(route as any);
+
+    expect(toastMock.showSuccess).not.toHaveBeenCalled();
+    expect(toastMock.showError).toHaveBeenCalledWith(
+      expect.stringContaining('bloqueou a abertura do WhatsApp'),
+    );
   });
 
   it('revokes a route after confirmation', () => {

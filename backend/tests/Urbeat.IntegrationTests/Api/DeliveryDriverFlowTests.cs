@@ -632,6 +632,38 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
+    public async Task SendDeliveryRoutes_ShouldNotPrefixTheCountryCodeTwiceForLocalDdd55Numbers()
+    {
+        var (sellerClient, storeId) = await CreateStoreAsync("SEND-DDD55");
+        var driver = await CreateSimpleDriverAsync(
+            sellerClient, "Motoboy DDD 55", "55999990001", null, isActive: true);
+
+        var order = await CreateDeliveryOrderAsync(sellerClient, storeId);
+        await StartDeliveryAsync(sellerClient, order.OrderId, driver.Id);
+
+        var send = await sellerClient.PostAsJsonAsync(
+            "/api/delivery-routes/store/send",
+            new SendDeliveryRoutesRequestDto
+            {
+                OrderIds = [order.OrderId],
+                PhysicalConfirmation = true
+            });
+        send.StatusCode.Should().Be(HttpStatusCode.OK, await send.Content.ReadAsStringAsync());
+
+        var result = await send.Content.ReadFromJsonAsync<SendDeliveryRoutesResultDto>();
+        var group = result!.Groups.Single();
+
+        new Uri(group.ShareUrl).IsAbsoluteUri.Should().BeTrue();
+        group.ShareUrl.Should().Contain("/rota/");
+        group.Message.Should().Contain(group.ShareUrl);
+
+        // DDD 55 is a local area code, not the +55 country code: the number must still be dialable.
+        group.WhatsAppUrl.Should().NotBeNull();
+        group.WhatsAppUrl.Should().StartWith("https://wa.me/5555999990001?text=");
+        Uri.UnescapeDataString(group.WhatsAppUrl!).Should().Contain(group.ShareUrl);
+    }
+
+    [Fact]
     public async Task SendDeliveryRoutes_ShouldReuseRouteAndRotateToken_WithoutDuplicatingStops()
     {
         var (sellerClient, storeId) = await CreateStoreAsync("RESEND");
@@ -1101,6 +1133,8 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         share.StatusCode.Should().Be(HttpStatusCode.OK, await share.Content.ReadAsStringAsync());
         var shared = await share.Content.ReadFromJsonAsync<ShareIndividualDeliveryResultDto>();
         shared!.ShareUrl.Should().Contain("/entrega/");
+        new Uri(shared.ShareUrl!).IsAbsoluteUri.Should().BeTrue(
+            "the motoboy opens the link from WhatsApp, so it must not be relative to the seller app");
         var token = ExtractRouteToken(shared.ShareUrl!);
 
         var publicClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
@@ -1465,6 +1499,11 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Delivered });
         sellerDelivered.StatusCode.Should().Be(HttpStatusCode.OK, await sellerDelivered.Content.ReadAsStringAsync());
 
+        var detailsAfterSellerDelivered = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        detailsAfterSellerDelivered!.DeliveryPin.Should().Be(detailsBeforeDelivered.DeliveryPin,
+            "the customer still needs the PIN after a seller-marked delivery while confirmation is pending");
+
         var customerBypass = await order.CustomerClient.PostAsync(
             $"/api/orders/{order.OrderId}/delivery-confirmation",
             null);
@@ -1491,6 +1530,10 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
                 HandoverConfirmed = true
             });
         pin.StatusCode.Should().Be(HttpStatusCode.OK, await pin.Content.ReadAsStringAsync());
+
+        var detailsAfterPin = await order.CustomerClient.GetFromJsonAsync<OrderDetailsResponseDto>(
+            $"/api/orders/{order.OrderId}");
+        detailsAfterPin!.DeliveryPin.Should().BeNull("the PIN is hidden once the delivery is confirmed");
 
         var completeAfterPin = await sellerClient.PostAsync($"/api/orders/{order.OrderId}/complete", null);
         completeAfterPin.StatusCode.Should().Be(HttpStatusCode.OK, await completeAfterPin.Content.ReadAsStringAsync());

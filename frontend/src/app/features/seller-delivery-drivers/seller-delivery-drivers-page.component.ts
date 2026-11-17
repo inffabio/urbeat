@@ -29,6 +29,7 @@ import {
   onlyPhoneDigits,
   phoneCaretPosition,
 } from '../../shared/utils/brazilian-phone.utils';
+import { whatsAppNumber } from '../../shared/utils/whatsapp.utils';
 
 type PhoneField = 'phoneNumber' | 'whatsAppPhoneNumber';
 
@@ -256,11 +257,8 @@ export class SellerDeliveryDriversPageComponent implements OnInit {
   }
 
   whatsAppUrl(driver: SellerDeliveryDriver): string | null {
-    const phone = normalizeBrazilianMobile(driver.whatsAppPhoneNumber || driver.phoneNumber);
-    if (!phone) return null;
-
-    const withCountry = phone.startsWith('55') ? phone : `55${phone}`;
-    return `https://wa.me/${withCountry}`;
+    const number = whatsAppNumber(driver.whatsAppPhoneNumber || driver.phoneNumber);
+    return number ? `https://wa.me/${number}` : null;
   }
 
   phoneHref(driver: SellerDeliveryDriver): string {
