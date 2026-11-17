@@ -4,6 +4,7 @@ using FluentValidation;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Application.Security;
+using Urbeat.Infrastructure.Realtime.Hubs;
 using Urbeat.WebApi.Uploads;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ public sealed class StoresController : ControllerBase
     private readonly IValidator<UpdateStoreAddressRequestDto> _addressValidator;
     private readonly IValidator<UpsertStoreBusinessHoursRequestDto> _businessHoursValidator;
     private readonly IValidator<UpdateStoreDeliveryConfigRequestDto> _deliveryConfigValidator;
-    private readonly IHubContext<Hubs.CustomerNotificationHub> _hubContext;
+    private readonly IHubContext<CustomerNotificationHub> _hubContext;
     private readonly IStoreRequestContext _storeContext;
 
     public StoresController(
@@ -40,7 +41,7 @@ public sealed class StoresController : ControllerBase
         IValidator<UpdateStoreAddressRequestDto> addressValidator,
         IValidator<UpsertStoreBusinessHoursRequestDto> businessHoursValidator,
         IValidator<UpdateStoreDeliveryConfigRequestDto> deliveryConfigValidator,
-        IHubContext<Hubs.CustomerNotificationHub> hubContext,
+        IHubContext<CustomerNotificationHub> hubContext,
         IStoreRequestContext storeContext)
     {
         _storeService = storeService;

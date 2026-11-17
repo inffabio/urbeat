@@ -1,22 +1,22 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Urbeat.Application.Interfaces;
-using Urbeat.WebApi.Hubs;
+using Urbeat.Infrastructure.Realtime.Hubs;
 
-namespace Urbeat.WebApi.Services;
+namespace Urbeat.Infrastructure.Realtime;
 
 /// <summary>
 /// SignalR implementation of <see cref="ILiveNotificationPublisher"/>.
 ///
-/// The hub contexts are injected as typed <see cref="IHubContext{THub}"/> instances resolved by the
-/// composition root. The previous Infrastructure implementation resolved the hub context through
-/// reflection and invoked it with <c>dynamic</c>; the concrete SignalR hub context type is internal
-/// to the SignalR assembly, so the runtime binder rejected every push. Sending through the public
-/// <see cref="IHubContext{THub}"/> interface keeps the call strongly typed.
+/// It lives in Infrastructure so every host that runs outbox handlers (the outbox worker) and the
+/// host that owns the hub endpoints (WebApi) publish through the same typed contract. The hub
+/// contexts are injected as typed <see cref="IHubContext{THub}"/> instances; sending through the
+/// public interface keeps the call strongly typed.
 ///
-/// Delivery is at-least-once: a transient failure returns <c>false</c> so the outbox retries.
-/// Failures are logged with the channel, the event name, the recipient identifier and the exception
-/// type only — never the payload, the exception message or its stack trace, which may carry personal
-/// data or connection strings.
+/// Delivery is at-least-once: a transient failure returns <c>false</c> so the outbox handler can
+/// decide how to react. Failures are logged with the channel, the event name, the recipient
+/// identifier and the exception type only — never the payload, the exception message or its stack
+/// trace, which may carry personal data or connection strings.
 /// </summary>
 public sealed class SignalRLiveNotificationPublisher : ILiveNotificationPublisher
 {

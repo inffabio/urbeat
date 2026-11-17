@@ -9,7 +9,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
-using Urbeat.WebApi.Hubs;
+using Urbeat.Infrastructure.Realtime.Hubs;
 
 namespace Urbeat.IntegrationTests.Api;
 

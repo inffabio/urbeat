@@ -25,6 +25,8 @@
     <ProjectReference Include="..\..\src\Urbeat.Application\Urbeat.Application.csproj" />
     <ProjectReference Include="..\..\src\Urbeat.Infrastructure\Urbeat.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Urbeat.WebApi\Urbeat.WebApi.csproj" />
+    <!-- The worker host composition is asserted by WorkerHostCompositionTests (the outbox runs there). -->
+    <ProjectReference Include="..\..\src\Urbeat.Worker\Urbeat.Worker.csproj" />
     <ProjectReference Include="..\CommonTestUtilities\CommonTestUtilities.csproj" />
   </ItemGroup>
 

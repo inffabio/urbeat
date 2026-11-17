@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Urbeat.Infrastructure.Realtime;
 using Urbeat.WebApi.DependencyInjection;
 
 namespace Urbeat.UnitTests.WebApi;

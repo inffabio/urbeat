@@ -1,11 +1,12 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
-namespace Urbeat.WebApi.DependencyInjection;
+namespace Urbeat.Infrastructure.Realtime;
 
 /// <summary>
 /// Decides whether the SignalR Redis backplane should be registered. The decision is isolated so it
-/// can be unit-tested without starting a Redis server or building the full web host.
+/// can be unit-tested without starting a Redis server or building the full web host. It is shared by
+/// the WebApi host and the outbox worker so both sides of the backplane are enabled together.
 /// </summary>
 public static class SignalRRedisBackplane
 {
@@ -19,7 +20,7 @@ public static class SignalRRedisBackplane
     /// environment always falls back to the in-process backplane so that the InMemory test harness
     /// never attempts a real Redis connection.
     /// </summary>
-    public static bool ShouldEnable(IConfiguration configuration, IWebHostEnvironment environment)
+    public static bool ShouldEnable(IConfiguration configuration, IHostEnvironment environment)
     {
         if (environment.IsEnvironment("Testing"))
         {

@@ -214,7 +214,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICustomerAddressService, CustomerAddressService>();
         services.AddScoped<INotificationService>(provider => new NotificationService(
             provider.GetRequiredService<ApplicationDbContext>(),
-            provider.GetService<ILiveNotificationPublisher>()));
+            // Fail fast: a host that composes the outbox must also compose the realtime publisher.
+            // Silently returning success without publishing is what kept the worker from delivering
+            // live updates after the outbox was split into a dedicated host.
+            provider.GetRequiredService<ILiveNotificationPublisher>()));
         services.AddScoped<ISellerSubscriptionStatusService, SellerSubscriptionStatusService>();
         services.AddScoped<ISubscriptionNotificationService, SubscriptionNotificationService>();
         services.AddScoped<ICheckoutService, CheckoutService>();

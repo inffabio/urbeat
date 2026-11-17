@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 using System.Reflection;
 using System.Security.Claims;
-using Urbeat.WebApi.Hubs;
+using Urbeat.Infrastructure.Realtime.Hubs;
 
 namespace Urbeat.UnitTests.WebApi;
 

@@ -1,11 +1,11 @@
 ﻿using Urbeat.Application.Interfaces;
 using Urbeat.Infrastructure.Outbox;
+using Urbeat.Infrastructure.Realtime;
 using Urbeat.Infrastructure.Services;
 using Urbeat.WebApi.Health;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Operations;
 using Urbeat.WebApi.Security;
-using Urbeat.WebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,22 +24,9 @@ public static class WebApiServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        var signalR = services.AddSignalR();
-
-        // The typed publisher lives in WebApi because it owns the hub contexts; Infrastructure only
-        // depends on the transport-free ILiveNotificationPublisher abstraction.
-        services.AddScoped<ILiveNotificationPublisher, SignalRLiveNotificationPublisher>();
-
-        if (SignalRRedisBackplane.ShouldEnable(configuration, environment))
-        {
-            // Uses the same Redis connection string as the cache services. The value is read from
-            // configuration and passed directly to the backplane — it is never logged or printed.
-            // Connection failures are surfaced through the standard Redis client logging without
-            // exposing the connection string (or its embedded password) in the log output.
-            signalR.AddStackExchangeRedis(
-                configuration[SignalRRedisBackplane.ConnectionStringKey]!,
-                options => options.Configuration.AbortOnConnectFail = false);
-        }
+        // Realtime is composed once for both hubs: the typed publisher and the Redis backplane are
+        // shared with the outbox worker, so a publish from either host reaches the same connections.
+        services.AddUrbeatRealtime(configuration, environment);
 
         services.AddControllers(options =>
         {

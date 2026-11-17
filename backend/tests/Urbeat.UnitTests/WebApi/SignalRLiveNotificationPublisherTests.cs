@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Urbeat.WebApi.Hubs;
-using Urbeat.WebApi.Services;
+using Urbeat.Infrastructure.Realtime.Hubs;
+using Urbeat.Infrastructure.Realtime;
 
 namespace Urbeat.UnitTests.WebApi;
 

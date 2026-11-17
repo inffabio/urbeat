@@ -4,6 +4,7 @@ using Urbeat.Infrastructure.DependencyInjection;
 using Urbeat.Infrastructure.Hangfire;
 using Urbeat.Infrastructure.Identity;
 using Urbeat.Infrastructure.Persistence;
+using Urbeat.Infrastructure.Realtime;
 using Urbeat.WebApi.DependencyInjection;
 using Urbeat.WebApi.Infrastructure;
 using Urbeat.WebApi.Middlewares;
@@ -206,8 +207,8 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = registration => registration.Tags.Contains("ready")
 });
 
-app.MapHub<Urbeat.WebApi.Hubs.SellerNotificationHub>("/hubs/seller-notifications");
-app.MapHub<Urbeat.WebApi.Hubs.CustomerNotificationHub>("/hubs/customer-notifications");
+app.MapHub<Urbeat.Infrastructure.Realtime.Hubs.SellerNotificationHub>("/hubs/seller-notifications");
+app.MapHub<Urbeat.Infrastructure.Realtime.Hubs.CustomerNotificationHub>("/hubs/customer-notifications");
 
 // Only the business role (or the legacy 'All' role) registers recurring jobs. In the split
 // deployment the API runs as 'Web' and the business worker is the single scheduler.

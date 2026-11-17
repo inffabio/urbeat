@@ -9,11 +9,19 @@
     <ProjectReference Include="..\Urbeat.Domain\Urbeat.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The shared realtime composition owns SignalR hubs, the typed IHubContext publisher and the
+         Redis backplane, so both the WebApi host and the outbox worker compile against the same
+         ASP.NET Core surface. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Urbeat.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.1" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <!-- 9.0.23 is the first 9.0.x release outside GHSA-wr8v-9x5q-ggcm (vulnerable <= 9.0.22). -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.23" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.15" />
     <PackageReference Include="Hangfire.InMemory" Version="0.7.0" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.8" />

@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Urbeat.Application.DependencyInjection;
-using Urbeat.Infrastructure.DependencyInjection;
 using Urbeat.Infrastructure.Hangfire;
+using Urbeat.Infrastructure.Realtime;
+using Urbeat.Worker;
 
 // Resolve appsettings relative to the published worker directory regardless of the container
 // working directory (the shared backend image keeps WORKDIR=/app).
@@ -43,12 +43,7 @@ if (!hangfireRuntime.IsDedicatedWorkerRole)
         $"'{hangfireRuntime.Role}' is reserved for the WebApi host.");
 }
 
-builder.Services.AddApplication();
-// AddInfrastructure also wires the authorization primitives used by the API. Routing satisfies
-// their EndpointDataSource dependency without starting Kestrel in this worker process.
-builder.Services.AddRouting();
-builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
-builder.Services.AddInfrastructureJobs(builder.Configuration, builder.Environment);
+builder.Services.AddUrbeatWorkerHost(builder.Configuration, builder.Environment);
 
 var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Urbeat.Worker");
@@ -60,6 +55,12 @@ logger.LogInformation(
     hangfireRuntime.RunsServer ? "enabled" : "disabled",
     hangfireRuntime.RunsOutbox ? "local" : "remote",
     hangfireRuntime.RegistersRecurringJobs ? "enabled" : "disabled");
+
+// The backplane state is logged without the connection string so operators can see whether this
+// worker can reach the WebApi connections instead of discovering a silent no-op at runtime.
+logger.LogInformation(
+    "SignalR Redis backplane {BackplaneState}.",
+    SignalRRedisBackplane.ShouldEnable(builder.Configuration, builder.Environment) ? "enabled" : "disabled");
 
 if (HangfireRecurringJobs.TryRegisterBusinessJobs(
         host.Services.GetRequiredService<IRecurringJobManager>(),
