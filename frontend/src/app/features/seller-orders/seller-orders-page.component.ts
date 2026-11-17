@@ -1053,13 +1053,19 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       : '';
   }
 
-  statusLabel(status?: OrderStatus, fulfillmentType?: FulfillmentType): string {
+  statusLabel(status?: OrderStatus, fulfillmentType?: FulfillmentType, sellerCompletedAtUtc?: string | null): string {
     switch (status) {
       case OrderStatus.Created: return 'Criado';
       case OrderStatus.PendingPayment: return 'Aguardando pagamento';
       case OrderStatus.Received: return 'Recebido';
       case OrderStatus.Preparing: return 'Preparando';
-      case OrderStatus.Ready: return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
+      case OrderStatus.Ready:
+        // Pickup keeps the technical Ready status after the handover; the seller confirmation is
+        // the concluded marker, so only the copy changes to "Retirado".
+        if (fulfillmentType === FulfillmentType.PickUp) {
+          return sellerCompletedAtUtc ? 'Retirado' : 'Pronto para retirada';
+        }
+        return 'Pronto';
       case OrderStatus.OnDelivery: return 'Saiu para entrega';
       case OrderStatus.Delivered: return 'Entregue';
       case OrderStatus.Cancelled: return 'Cancelado';

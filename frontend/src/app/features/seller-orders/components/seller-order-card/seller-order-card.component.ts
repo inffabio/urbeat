@@ -33,14 +33,18 @@ export class SellerOrderCardComponent {
 
   readonly OrderStatus = OrderStatus;
 
-  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType): string {
+  statusLabel(status: OrderStatus, fulfillmentType?: FulfillmentType, sellerCompletedAtUtc?: string | null): string {
     switch (status) {
       case OrderStatus.Received:
         return 'Recebido';
       case OrderStatus.Preparing:
         return 'Preparando';
       case OrderStatus.Ready:
-        return fulfillmentType === FulfillmentType.PickUp ? 'Pronto para retirada' : 'Pronto';
+        // Pickup keeps the technical Ready status after the handover; only the copy changes.
+        if (fulfillmentType === FulfillmentType.PickUp) {
+          return sellerCompletedAtUtc ? 'Retirado' : 'Pronto para retirada';
+        }
+        return 'Pronto';
       case OrderStatus.OnDelivery:
         return 'Em entrega';
       case OrderStatus.Delivered:

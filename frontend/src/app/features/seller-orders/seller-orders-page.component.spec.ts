@@ -1060,6 +1060,83 @@ describe('SellerOrdersPageComponent', () => {
     expect(card.querySelector('.board-action')).toBeNull();
   });
 
+  it('labels a concluded pickup as Retirado instead of Pronto para retirada', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Ready) {
+        return of({
+          items: [buildOrder({
+            id: 'pickup-taken',
+            code: 'PU-9',
+            status: OrderStatus.Ready,
+            fulfillmentType: FulfillmentType.PickUp,
+            sellerCompletedAtUtc: '2026-08-04T12:00:00Z',
+          })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.getStoreOrder.mockReturnValue(of({
+      ...buildOrder({
+        id: 'pickup-taken',
+        code: 'PU-9',
+        status: OrderStatus.Ready,
+        fulfillmentType: FulfillmentType.PickUp,
+        sellerCompletedAtUtc: '2026-08-04T12:00:00Z',
+      }),
+      items: [],
+      history: [],
+    }));
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = findOrderCard(fixture, 'pickup-taken');
+    // The technical status stays Ready; the seller confirmation is the concluded marker.
+    expect(fixture.componentInstance.statusGroups().delivered[0].status).toBe(OrderStatus.Ready);
+    expect(card.querySelector('.order-status-chip')?.textContent?.trim()).toBe('Retirado');
+    expect(card.querySelector('.status-done-label')?.textContent?.trim()).toBe('Retirado');
+    expect(card.textContent).not.toContain('Pronto para retirada');
+    expect(card.textContent).not.toContain('Concluir retirada');
+    expect(card.querySelector('.board-action')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.status-col[data-status-tone="ready"] [data-order-id="pickup-taken"]'),
+    ).toBeNull();
+
+    // The details dialog uses the same concluded label.
+    fixture.componentInstance.openOrderDetails('pickup-taken');
+    fixture.detectChanges();
+    const dialog = fixture.nativeElement.querySelector('.order-details-dialog') as HTMLElement | null;
+    expect(dialog).not.toBeNull();
+    expect(dialog!.textContent).toContain('Retirado');
+    expect(dialog!.textContent).not.toContain('Pronto para retirada');
+  });
+
+  it('labels a pickup that is ready and not yet collected as Pronto para retirada', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Ready) {
+        return of({
+          items: [buildOrder({
+            id: 'pickup-ready',
+            code: 'PU-1',
+            status: OrderStatus.Ready,
+            fulfillmentType: FulfillmentType.PickUp,
+          })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = findOrderCard(fixture, 'pickup-ready');
+    expect(card.querySelector('.order-status-chip')?.textContent?.trim()).toBe('Pronto para retirada');
+    expect(card.textContent).not.toContain('Retirado');
+    expect(card.textContent).toContain('Concluir retirada');
+  });
+
   it('moves a picked-up order to the Concluído column through Concluir retirada', () => {
     orderServiceMock.completeOrder.mockReturnValue(of({
       id: 'pickup-taken',
@@ -1104,6 +1181,13 @@ describe('SellerOrdersPageComponent', () => {
     expect(
       fixture.nativeElement.querySelector('.status-col[data-status-tone="delivered"] [data-order-id="pickup-taken"]'),
     ).not.toBeNull();
+    // The technical status is preserved and only the copy changes to the concluded state.
+    const card = findOrderCard(fixture, 'pickup-taken');
+    expect(fixture.componentInstance.statusGroups().delivered[0].status).toBe(OrderStatus.Ready);
+    expect(card.querySelector('.order-status-chip')?.textContent?.trim()).toBe('Retirado');
+    expect(card.textContent).not.toContain('Pronto para retirada');
+    expect(card.textContent).not.toContain('Concluir retirada');
+    expect(card.querySelector('.board-action')).toBeNull();
     expect(toastServiceMock.showSuccess).toHaveBeenCalled();
   });
 

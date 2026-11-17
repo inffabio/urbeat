@@ -126,6 +126,33 @@ describe('SellerOrderCardComponent', () => {
     expect(fixture.componentInstance.statusActions(OrderStatus.Ready)).toEqual([]);
   });
 
+  it('labels a concluded pickup as Retirado while the technical status stays Ready', () => {
+    const fixture = TestBed.createComponent(SellerOrderCardComponent);
+    fixture.componentRef.setInput('order', {
+      id: 'pickup-taken',
+      code: 'PU-9',
+      storeId: 'store1',
+      status: OrderStatus.Ready,
+      fulfillmentType: FulfillmentType.PickUp,
+      sellerCompletedAtUtc: '2026-08-04T12:00:00Z',
+      total: 30,
+      createdAtUtc: '2026-07-29T10:00:00Z',
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Retirado');
+    expect(text).not.toContain('Pronto para retirada');
+    expect(text).not.toContain('Saiu para entrega');
+    expect(fixture.componentInstance.statusLabel(
+      OrderStatus.Ready,
+      FulfillmentType.PickUp,
+      '2026-08-04T12:00:00Z',
+    )).toBe('Retirado');
+    expect(fixture.componentInstance.statusLabel(OrderStatus.Ready, FulfillmentType.PickUp))
+      .toBe('Pronto para retirada');
+  });
+
   it('disables actions for the order currently being updated', () => {
     const fixture = TestBed.createComponent(SellerOrderCardComponent);
     fixture.componentRef.setInput('order', {

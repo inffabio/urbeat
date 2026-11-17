@@ -42,7 +42,7 @@
           }
           @if (order.customerName) { <span class="order-customer">{{ order.customerName }}</span> }
           @if (isPickup(order) && order.status === OrderStatus.Ready) {
-            <span class="order-status-chip">Pronto para retirada</span>
+            <span class="order-status-chip">{{ statusLabel(order.status, order.fulfillmentType, order.sellerCompletedAtUtc) }}</span>
           }
         </span>
         <span class="card-time">{{ formatOrderTime(order.createdAtUtc) }}</span>
@@ -140,7 +140,7 @@
               </button>
             }
           } @else {
-            <span class="status-done-label">entregue</span>
+            <span class="status-done-label">{{ isConcludedPickup(order) ? 'Retirado' : 'entregue' }}</span>
           }
         </div>
       </div>
@@ -264,7 +264,7 @@
           @if (selected.customerPhoneNumber) { <div><strong>Contato:</strong> {{ selected.customerPhoneNumber }}</div> }
           @if (selected.address) { <div><strong>Endereço:</strong> {{ selected.address }}</div> }
           @if (selected.fulfillmentType !== undefined && selected.fulfillmentType !== null) { <div><strong>Tipo de entrega:</strong> {{ fulfillmentLabel(selected.fulfillmentType) }}</div> }
-          @if (selected.status !== undefined && selected.status !== null) { <div><strong>Status:</strong> {{ statusLabel(selected.status, selected.fulfillmentType) }}</div> }
+          @if (selected.status !== undefined && selected.status !== null) { <div><strong>Status:</strong> {{ statusLabel(selected.status, selected.fulfillmentType, selected.sellerCompletedAtUtc) }}</div> }
           @if (selected.createdAtUtc) { <div><strong>Data:</strong> {{ formatOrderDate(selected.createdAtUtc) }}</div> }
           @if (selected.notes) { <div><strong>Notas do pedido:</strong> {{ selected.notes }}</div> }
           <div><strong>Pagamento:</strong> {{ paymentLabel(selected.paymentMethod) }}</div>
