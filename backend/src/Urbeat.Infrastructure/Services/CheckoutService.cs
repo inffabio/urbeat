@@ -102,7 +102,7 @@ public sealed class CheckoutService : ICheckoutService
                 || string.IsNullOrWhiteSpace(pickupStoreAddress.State))
             {
                 Serilog.Log.Warning("{EventType} | Checkout failed | StoreId={StoreId} | Reason=pickup_store_address_missing | IP={IpAddress}", "ORDER_CREATE_FAILED", request.StoreId, ipAddress);
-                return new CheckoutResultDto { AddressNotFound = true };
+                return new CheckoutResultDto { PickupStoreAddressMissing = true };
             }
         }
 

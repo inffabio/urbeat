@@ -186,6 +186,11 @@ public sealed class CheckoutController : ControllerBase
             return NotFound(new { error = "Store not found." });
         }
 
+        if (result.PickupStoreAddressMissing)
+        {
+            return NotFound(new { error = CheckoutErrorMessages.PickupStoreAddressMissing });
+        }
+
         if (result.AddressNotFound)
         {
             return NotFound(new { error = "Endereço de entrega não informado." });
@@ -246,4 +251,10 @@ public sealed class CheckoutController : ControllerBase
             Path = "/"
         });
     }
+}
+
+internal static class CheckoutErrorMessages
+{
+    public const string PickupStoreAddressMissing =
+        "A loja ainda não cadastrou um endereço completo para retirada. Escolha outra forma de recebimento ou tente novamente mais tarde.";
 }

@@ -291,6 +291,27 @@ describe('PaymentPageComponent', () => {
     expect(routerMock.navigate).not.toHaveBeenCalled();
   });
 
+  it('shows the pickup store address message returned as ProblemDetails detail', () => {
+    checkoutMock.confirm.mockReturnValueOnce(
+      throwError(() => ({
+        status: 404,
+        error: {
+          detail:
+            'A loja ainda não cadastrou um endereço completo para retirada. Escolha outra forma de recebimento ou tente novamente mais tarde.',
+        },
+      })),
+    );
+    const fixture = TestBed.createComponent(PaymentPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.select('credit');
+    fixture.componentInstance.continue();
+
+    expect(fixture.componentInstance.errorMessage())
+      .toContain('endereço completo para retirada');
+    expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+
   it('marks the details sheet as a modal dialog', () => {
     const fixture = TestBed.createComponent(PaymentPageComponent);
     fixture.componentInstance.showDetailsModal.set(true);

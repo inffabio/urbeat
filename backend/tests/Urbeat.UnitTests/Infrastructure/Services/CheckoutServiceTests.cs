@@ -108,7 +108,47 @@ public sealed class CheckoutServiceTests : IDisposable
 
         var result = await _sut.ConfirmAsync(Guid.NewGuid(), BuildPickupRequest(store, product), "127.0.0.1");
 
+        result.PickupStoreAddressMissing.Should().BeTrue();
+        result.AddressNotFound.Should().BeFalse("a pickup order must not be reported as a missing customer address");
+        (await _db.Orders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldRejectPickupWithoutStoreAddressRowBeforePersistingOrder()
+    {
+        var (store, product) = await SeedPickupStoreAsync();
+        var address = await _db.StoreAddresses.SingleAsync(x => x.StoreId == store.Id);
+        _db.StoreAddresses.Remove(address);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.ConfirmAsync(Guid.NewGuid(), BuildPickupRequest(store, product), "127.0.0.1");
+
+        result.PickupStoreAddressMissing.Should().BeTrue();
+        result.AddressNotFound.Should().BeFalse();
+        (await _db.Orders.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ConfirmAsync_ShouldKeepAddressNotFound_WhenDeliveryHasNoCustomerAddress()
+    {
+        var (store, product, _) = await SeedDeliveryStoreAsync(
+            freeShippingToday: false,
+            freeShippingTodayDate: null);
+
+        var result = await _sut.ConfirmAsync(
+            Guid.NewGuid(),
+            new CheckoutRequestDto
+            {
+                StoreId = store.Id,
+                FulfillmentType = FulfillmentType.Delivery,
+                PaymentMethod = PaymentMethod.CashOnDelivery,
+                CashWithoutChange = true,
+                Items = new[] { new CheckoutItemRequestDto { ProductId = product.Id, Quantity = 1 } }
+            },
+            "127.0.0.1");
+
         result.AddressNotFound.Should().BeTrue();
+        result.PickupStoreAddressMissing.Should().BeFalse();
         (await _db.Orders.CountAsync()).Should().Be(0);
     }
 

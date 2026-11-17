@@ -417,6 +417,43 @@ public sealed class CheckoutFlowTests : IClassFixture<TestWebApplicationFactory>
         (await db.Orders.CountAsync(x => x.StoreId == storeId)).Should().Be(0);
     }
 
+    [Theory]
+    [InlineData("/api/checkout/confirm")]
+    [InlineData("/api/orders")]
+    public async Task Confirm_ShouldExplainMissingPickupStoreAddressInPortuguese_AndPersistNoOrder(string endpoint)
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (storeId, productId) = await SeedOpenStoreForCheckoutAsync(sellerClient, "Pizza Retirada", 18m);
+
+        var customerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var customerToken = await RegisterAndLoginCustomerAsync(customerClient);
+        customerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", customerToken);
+
+        // The store was never configured with a pickup address, so the server must refuse the order
+        // with a message about the store's address instead of blaming the customer's delivery address.
+        var request = new CheckoutRequestDto
+        {
+            StoreId = storeId,
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = true,
+            Items = [new CheckoutItemRequestDto { ProductId = productId, Quantity = 1 }]
+        };
+
+        var response = await customerClient.PostAsJsonAsync(endpoint, request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var payload = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        var detail = payload.GetProperty("detail").GetString();
+        detail.Should().Be(
+            "A loja ainda não cadastrou um endereço completo para retirada. Escolha outra forma de recebimento ou tente novamente mais tarde.");
+        detail.Should().NotContain("Endereço de entrega não informado.");
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await db.Orders.CountAsync(x => x.StoreId == storeId)).Should().Be(0);
+    }
+
     private async Task<(Guid StoreId, Guid ProductId)> SeedOpenStoreForCheckoutAsync(
         HttpClient sellerClient,
         string productName,

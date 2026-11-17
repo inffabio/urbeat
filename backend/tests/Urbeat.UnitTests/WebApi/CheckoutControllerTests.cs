@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using System.Security.Claims;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
@@ -164,5 +165,83 @@ public sealed class CheckoutControllerTests
         setCookie.Should().Contain("urbeat.refresh_token=refresh-token");
         setCookie.Should().Contain("httponly");
         setCookie.Should().Contain("secure");
+    }
+
+    [Fact]
+    public async Task Confirm_ShouldExplainMissingPickupStoreAddress_WhenStoreAddressIsIncomplete()
+    {
+        const string expectedMessage =
+            "A loja ainda não cadastrou um endereço completo para retirada. Escolha outra forma de recebimento ou tente novamente mais tarde.";
+        var request = new CheckoutRequestDto
+        {
+            StoreId = Guid.NewGuid(),
+            FulfillmentType = FulfillmentType.PickUp,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            CashWithoutChange = true,
+            Items = [new CheckoutItemRequestDto { ProductId = Guid.NewGuid(), Quantity = 1 }]
+        };
+
+        var checkoutService = new Mock<ICheckoutService>();
+        checkoutService
+            .Setup(x => x.ConfirmAsync(It.IsAny<Guid>(), request, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CheckoutResultDto { PickupStoreAddressMissing = true });
+
+        var controller = CreateConfirmController(checkoutService.Object, request);
+
+        var result = await controller.Confirm(request, CancellationToken.None);
+
+        var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+        notFound.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        notFound.Value.Should().BeEquivalentTo(new { error = expectedMessage });
+    }
+
+    [Fact]
+    public async Task Confirm_ShouldKeepDeliveryAddressMessage_WhenCustomerAddressIsMissing()
+    {
+        var request = new CheckoutRequestDto
+        {
+            StoreId = Guid.NewGuid(),
+            FulfillmentType = FulfillmentType.Delivery,
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+            CustomerAddressId = Guid.NewGuid(),
+            CashWithoutChange = true,
+            Items = [new CheckoutItemRequestDto { ProductId = Guid.NewGuid(), Quantity = 1 }]
+        };
+
+        var checkoutService = new Mock<ICheckoutService>();
+        checkoutService
+            .Setup(x => x.ConfirmAsync(It.IsAny<Guid>(), request, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CheckoutResultDto { AddressNotFound = true });
+
+        var controller = CreateConfirmController(checkoutService.Object, request);
+
+        var result = await controller.Confirm(request, CancellationToken.None);
+
+        var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+        notFound.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        notFound.Value.Should().BeEquivalentTo(new { error = "Endereço de entrega não informado." });
+    }
+
+    private static CheckoutController CreateConfirmController(
+        ICheckoutService checkoutService,
+        CheckoutRequestDto request)
+    {
+        var validator = new Mock<IValidator<CheckoutRequestDto>>();
+        validator
+            .Setup(x => x.ValidateAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        return new CheckoutController(checkoutService, validator.Object, Mock.Of<ICustomerOtpService>())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        [new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())],
+                        "Test"))
+                }
+            }
+        };
     }
 }

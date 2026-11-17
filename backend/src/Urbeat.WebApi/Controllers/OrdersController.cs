@@ -159,6 +159,11 @@ public sealed class OrdersController : ControllerBase
             return NotFound(new { error = "Store not found." });
         }
 
+        if (result.PickupStoreAddressMissing)
+        {
+            return NotFound(new { error = CheckoutErrorMessages.PickupStoreAddressMissing });
+        }
+
         if (result.AddressNotFound)
         {
             return NotFound(new { error = "Customer address not found." });

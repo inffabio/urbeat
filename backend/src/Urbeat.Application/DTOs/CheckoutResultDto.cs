@@ -6,6 +6,12 @@ public sealed class CheckoutResultDto
 
     public bool AddressNotFound { get; init; }
 
+    /// <summary>
+    /// Pickup was requested but the store has no complete address to snapshot on the order.
+    /// This is a store configuration problem and must not be reported as a missing customer address.
+    /// </summary>
+    public bool PickupStoreAddressMissing { get; init; }
+
     public bool StoreClosed { get; init; }
 
     public bool StoreBlocked { get; init; }
