@@ -163,11 +163,11 @@ export class CartPageComponent implements OnInit, OnDestroy {
         this.scheduleStatusRefresh(store);
         this.storeLoadError.set(false);
         if (!store.supportsDelivery && this.fulfillment() === FulfillmentType.Delivery) {
-          this.checkout.fulfillmentType.set(
+          this.checkout.setFulfillmentType(
             store.supportsPickup ? FulfillmentType.PickUp : FulfillmentType.Delivery,
           );
         } else if (!store.supportsPickup && this.fulfillment() === FulfillmentType.PickUp) {
-          this.checkout.fulfillmentType.set(FulfillmentType.Delivery);
+          this.checkout.setFulfillmentType(FulfillmentType.Delivery);
         }
         this.dataLoading.set(false);
       },
@@ -294,7 +294,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
   setFulfillment(type: FulfillmentType): void {
     if (type === FulfillmentType.Delivery && !this.supportsDelivery()) return;
     if (type === FulfillmentType.PickUp && !this.supportsPickup()) return;
-    this.checkout.fulfillmentType.set(type);
+    this.checkout.setFulfillmentType(type);
   }
 
   onBack(): void {
@@ -316,26 +316,32 @@ export class CartPageComponent implements OnInit, OnDestroy {
 
   continueCheckout(): void {
     if (this.cart.isEmpty() || this.belowMinimum() || !this.storeOpen()) return;
-    const restoredAddressId = this.auth.customerProfile()?.primaryAddressId ?? null;
-    if (!this.checkout.customerAddressId() && restoredAddressId) {
-      this.checkout.customerAddressId.set(restoredAddressId);
+    const isDelivery = this.fulfillment() === FulfillmentType.Delivery;
+    if (isDelivery) {
+      this.restoreDeliveryAddress(this.auth.customerProfile()?.primaryAddressId ?? null);
     }
 
-    const nextStep = this.auth.isLoggedIn() && this.checkout.customerAddressId() ? 'pagamento' : 'cadastro';
+    const needsAddress = isDelivery && !this.checkout.customerAddressId();
+    const nextStep = this.auth.isLoggedIn() && !needsAddress ? 'pagamento' : 'cadastro';
     this.router.navigate(['/', this.guessStorePath(), 'checkout', nextStep]);
+  }
+
+  /** A saved address only belongs to the checkout state while the order is a delivery. */
+  private restoreDeliveryAddress(addressId: string | null | undefined): void {
+    if (!addressId || this.fulfillment() !== FulfillmentType.Delivery) return;
+    this.checkout.customerAddressId.set(addressId);
   }
 
   private restoreCustomerSession(storeId: string): void {
     if (this.auth.isLoggedIn() && this.auth.customerProfile()) {
-      const addressId = this.auth.customerProfile()?.primaryAddressId ?? null;
-      if (addressId) this.checkout.customerAddressId.set(addressId);
+      this.restoreDeliveryAddress(this.auth.customerProfile()?.primaryAddressId ?? null);
       this.loadCheckoutPreview(storeId);
       return;
     }
 
     this.auth.restoreCustomerSession().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (profile) => {
-        if (profile?.primaryAddressId) this.checkout.customerAddressId.set(profile.primaryAddressId);
+        this.restoreDeliveryAddress(profile?.primaryAddressId ?? null);
         this.loadCheckoutPreview(storeId);
       },
       error: () => this.loadCheckoutPreview(storeId),

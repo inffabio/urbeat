@@ -21,7 +21,12 @@ import { AuthService } from '../../core/services/auth.service';
 describe('CartPageComponent', () => {
   let cart: CartService;
   let storeServiceMock: { getStoreById: jest.Mock; getStoreByPath: jest.Mock };
-  let checkoutServiceMock: { fulfillmentType: ReturnType<typeof signal<FulfillmentType>>; customerAddressId: ReturnType<typeof signal<string | null>>; preview: jest.Mock };
+  let checkoutServiceMock: {
+    fulfillmentType: ReturnType<typeof signal<FulfillmentType>>;
+    customerAddressId: ReturnType<typeof signal<string | null>>;
+    setFulfillmentType: jest.Mock;
+    preview: jest.Mock;
+  };
   let routerMock: { navigate: jest.Mock; url: string };
   let routeParentParamGetMock: jest.Mock;
   let authServiceMock: { customerProfile: jest.Mock; isLoggedIn: jest.Mock; restoreCustomerSession: jest.Mock };
@@ -36,6 +41,7 @@ describe('CartPageComponent', () => {
     checkoutServiceMock = {
       fulfillmentType: signal(FulfillmentType.Delivery),
       customerAddressId: signal(null),
+      setFulfillmentType: jest.fn((type: FulfillmentType) => checkoutServiceMock.fulfillmentType.set(type)),
       preview: jest.fn().mockReturnValue(of({ deliveryFee: 0, minimumOrderValue: 15, freeShippingApplied: false })),
     };
     routerMock = { navigate: jest.fn(), url: '/loja/carrinho' };
@@ -392,6 +398,44 @@ describe('CartPageComponent', () => {
     fixture.componentInstance.ngOnInit();
     fixture.componentInstance.continueCheckout();
 
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
+  });
+
+  it('delegates the fulfillment choice to the checkout service', () => {
+    const fixture = TestBed.createComponent(CartPageComponent);
+
+    fixture.componentInstance.setFulfillment(FulfillmentType.PickUp);
+
+    expect(checkoutServiceMock.setFulfillmentType).toHaveBeenCalledWith(FulfillmentType.PickUp);
+  });
+
+  it('does not restore the saved address when the customer selected pickup', () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.customerProfile.mockReturnValue({ primaryAddressId: 'addr1' });
+    checkoutServiceMock.fulfillmentType.set(FulfillmentType.PickUp);
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    storeServiceMock.getStoreById.mockReturnValue(of({ id: 's1', isOpenNow: true, supportsDelivery: true, supportsPickup: true } as any));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+
+    expect(checkoutServiceMock.customerAddressId()).toBeNull();
+  });
+
+  it('routes a logged-in pickup order straight to payment without restoring the address', () => {
+    authServiceMock.isLoggedIn.mockReturnValue(true);
+    authServiceMock.customerProfile.mockReturnValue({ primaryAddressId: 'addr1' });
+    checkoutServiceMock.fulfillmentType.set(FulfillmentType.PickUp);
+    cart.setStore('s1', 'Loja', '');
+    cart.items.set([{ id: 'i1', productId: 'p1', productName: 'X-burguer', quantity: 1, unitPrice: 20 }]);
+    storeServiceMock.getStoreById.mockReturnValue(of({ id: 's1', isOpenNow: true, supportsDelivery: true, supportsPickup: true } as any));
+
+    const fixture = TestBed.createComponent(CartPageComponent);
+    fixture.componentInstance.ngOnInit();
+    fixture.componentInstance.continueCheckout();
+
+    expect(checkoutServiceMock.customerAddressId()).toBeNull();
     expect(routerMock.navigate).toHaveBeenCalledWith(['/', 'loja', 'checkout', 'pagamento']);
   });
 

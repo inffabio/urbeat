@@ -131,6 +131,35 @@ describe('PaymentPageComponent', () => {
     }));
   });
 
+  it('omits customerAddressId from the pickup preview and confirm payloads', () => {
+    checkoutMock.fulfillmentType.set(FulfillmentType.PickUp);
+    const fixture = TestBed.createComponent(PaymentPageComponent);
+    fixture.detectChanges();
+
+    const previewRequest = checkoutMock.preview.mock.calls[0][0];
+    expect(previewRequest).not.toHaveProperty('customerAddressId');
+
+    fixture.componentInstance.select('credit');
+    fixture.componentInstance.continue();
+
+    const confirmRequest = checkoutMock.confirm.mock.calls[0][0];
+    expect(confirmRequest).not.toHaveProperty('customerAddressId');
+  });
+
+  it('preserves customerAddressId in the delivery preview and confirm payloads', () => {
+    const fixture = TestBed.createComponent(PaymentPageComponent);
+    fixture.detectChanges();
+
+    const previewRequest = checkoutMock.preview.mock.calls[0][0];
+    expect(previewRequest.customerAddressId).toBe('addr1');
+
+    fixture.componentInstance.select('credit');
+    fixture.componentInstance.continue();
+
+    const confirmRequest = checkoutMock.confirm.mock.calls[0][0];
+    expect(confirmRequest.customerAddressId).toBe('addr1');
+  });
+
   it('requires an explicit cash change choice', () => {
     const fixture = TestBed.createComponent(PaymentPageComponent);
     fixture.detectChanges();

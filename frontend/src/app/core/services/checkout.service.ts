@@ -36,11 +36,32 @@ export class CheckoutService {
   readonly lastOrderCode = signal<string | null>(null);
 
   preview(req: CheckoutRequest): Observable<CheckoutPreviewResponse> {
-    return this.api.post<CheckoutPreviewResponse>('/api/checkout/preview', req);
+    return this.api.post<CheckoutPreviewResponse>('/api/checkout/preview', this.sanitizeRequest(req));
   }
 
   confirm(req: CheckoutRequest): Observable<CheckoutConfirmResponse> {
-    return this.api.post<CheckoutConfirmResponse>('/api/checkout/confirm', req);
+    return this.api.post<CheckoutConfirmResponse>('/api/checkout/confirm', this.sanitizeRequest(req));
+  }
+
+  /**
+   * Pickup orders never carry a customer address: the API rejects them with 400.
+   * The state is cleared when fulfillment changes, and this guard keeps a stale
+   * address from ever reaching the request if some flow writes it again.
+   */
+  private sanitizeRequest(req: CheckoutRequest): CheckoutRequest {
+    if (req.fulfillmentType !== FulfillmentType.PickUp || !req.customerAddressId) {
+      return req;
+    }
+    const sanitized = { ...req };
+    delete sanitized.customerAddressId;
+    return sanitized;
+  }
+
+  setFulfillmentType(type: FulfillmentType): void {
+    this.fulfillmentType.set(type);
+    if (type === FulfillmentType.PickUp) {
+      this.customerAddressId.set(null);
+    }
   }
 
   createCustomerSession(req: StartCustomerVerificationRequest): Observable<ConfirmCustomerVerificationResponse> {

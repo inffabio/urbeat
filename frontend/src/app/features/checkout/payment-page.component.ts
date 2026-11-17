@@ -126,7 +126,7 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       .preview({
         storeId,
         fulfillmentType: this.checkout.fulfillmentType(),
-        customerAddressId: this.checkout.customerAddressId() ?? undefined,
+        ...this.addressFields(),
         items: this.cart.toCheckoutItems(),
       })
       .subscribe({
@@ -299,7 +299,7 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
       .confirm({
         storeId,
         fulfillmentType: this.checkout.fulfillmentType(),
-        customerAddressId: this.checkout.customerAddressId() ?? undefined,
+        ...this.addressFields(),
         paymentMethod,
         expectedTotal: this.total(),
         cashWithoutChange: isCash ? needsChange === false : undefined,
@@ -337,6 +337,17 @@ export class PaymentPageComponent implements OnInit, OnDestroy {
 
   get itemsCount(): number {
     return this.cart.totalItems();
+  }
+
+  /**
+   * Pickup has no delivery destination, so the request must not carry an address
+   * even if some earlier checkout step left one in the shared state.
+   */
+  private addressFields(): { customerAddressId?: string } {
+    if (this.checkout.fulfillmentType() === FulfillmentType.PickUp) {
+      return {};
+    }
+    return { customerAddressId: this.checkout.customerAddressId() ?? undefined };
   }
 
   private mapPaymentMethod(choice: PaymentChoice): PaymentMethod {

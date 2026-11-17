@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 
 import { CheckoutService } from './checkout.service';
 import { ApiService } from './api.service';
@@ -7,10 +8,12 @@ import { PaymentMethod } from '../../shared/enums/payment-method.enum';
 
 describe('CheckoutService', () => {
   let service: CheckoutService;
+  let api: { post: jest.Mock };
 
   beforeEach(() => {
+    api = { post: jest.fn().mockReturnValue(of({})) };
     TestBed.configureTestingModule({
-      providers: [{ provide: ApiService, useValue: {} }],
+      providers: [{ provide: ApiService, useValue: api }],
     });
 
     service = TestBed.inject(CheckoutService);
@@ -56,5 +59,61 @@ describe('CheckoutService', () => {
     service.resetCheckout();
 
     expect(service.fulfillmentType()).toBe(FulfillmentType.Delivery);
+  });
+
+  it('clears the customer address id as soon as fulfillment switches to PickUp', () => {
+    service.customerAddressId.set('addr-1');
+
+    service.setFulfillmentType(FulfillmentType.PickUp);
+
+    expect(service.fulfillmentType()).toBe(FulfillmentType.PickUp);
+    expect(service.customerAddressId()).toBeNull();
+  });
+
+  it('keeps the customer address id when fulfillment stays on Delivery', () => {
+    service.customerAddressId.set('addr-1');
+
+    service.setFulfillmentType(FulfillmentType.Delivery);
+
+    expect(service.fulfillmentType()).toBe(FulfillmentType.Delivery);
+    expect(service.customerAddressId()).toBe('addr-1');
+  });
+
+  it('omits a stale customerAddressId from a pickup preview request', () => {
+    service.preview({
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.PickUp,
+      customerAddressId: 'addr-1',
+      items: [],
+    }).subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/api/checkout/preview', expect.any(Object));
+    expect(api.post.mock.calls[0][1]).not.toHaveProperty('customerAddressId');
+  });
+
+  it('omits a stale customerAddressId from a pickup confirm request', () => {
+    service.confirm({
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.PickUp,
+      customerAddressId: 'addr-1',
+      paymentMethod: PaymentMethod.CashOnDelivery,
+      items: [],
+    }).subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/api/checkout/confirm', expect.any(Object));
+    expect(api.post.mock.calls[0][1]).not.toHaveProperty('customerAddressId');
+  });
+
+  it('keeps the customerAddressId on delivery requests', () => {
+    service.preview({
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.Delivery,
+      customerAddressId: 'addr-1',
+      items: [],
+    }).subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/api/checkout/preview', expect.objectContaining({
+      customerAddressId: 'addr-1',
+    }));
   });
 });
