@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { SellerNotificationService } from '../../core/services/seller-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { StoreService } from '../../core/services/store.service';
@@ -13,7 +13,14 @@ describe('SellerShellFacade', () => {
   let facade: SellerShellFacade;
   let storeServiceMock: { getMyStore: jest.Mock };
   let notificationServiceMock: { list: jest.Mock };
-  let signalRServiceMock: { startSellerHub: jest.Mock; stopSellerHub: jest.Mock; onSellerEvent: jest.Mock; removeSellerListener: jest.Mock };
+  let signalRServiceMock: {
+    startSellerHub: jest.Mock;
+    stopSellerHub: jest.Mock;
+    onSellerEvent: jest.Mock;
+    removeSellerListener: jest.Mock;
+    onSellerStateChange: jest.Mock;
+    isSellerConnected: jest.Mock;
+  };
   let soundServiceMock: { enabled: any; needsActivation: any; playNewOrder: jest.Mock; enable: jest.Mock; disable: jest.Mock };
   let printingServiceMock: { autoPrintOrder: jest.Mock; config: jest.Mock };
   let adminSessionMock: { session: jest.Mock; isAdminMode: jest.Mock };
@@ -26,6 +33,8 @@ describe('SellerShellFacade', () => {
       stopSellerHub: jest.fn(),
       onSellerEvent: jest.fn(),
       removeSellerListener: jest.fn(),
+      onSellerStateChange: jest.fn(() => jest.fn()),
+      isSellerConnected: jest.fn(() => false),
     };
     soundServiceMock = {
       enabled: jest.fn(() => true),
@@ -54,6 +63,10 @@ describe('SellerShellFacade', () => {
     });
 
     facade = TestBed.inject(SellerShellFacade);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('should start seller hub and play sound when a NewOrder notification arrives', async () => {    let sellerCallback: ((notification: SellerNotification) => void) | undefined;
@@ -313,12 +326,150 @@ describe('SellerShellFacade', () => {
 
     const initPromise = facade.init();
     await Promise.resolve();
+    const registeredListener = signalRServiceMock.onSellerEvent.mock.calls
+      .find(([name]: [string]) => name === 'ReceiveSellerNotification')?.[1];
+    expect(registeredListener).toBeDefined();
+
     facade.reset();
     resolveHubStart?.();
     await initPromise;
 
     expect(signalRServiceMock.stopSellerHub).toHaveBeenCalledTimes(1);
-    expect(signalRServiceMock.onSellerEvent).not.toHaveBeenCalled();
+    expect(signalRServiceMock.removeSellerListener).toHaveBeenCalledWith(
+      'ReceiveSellerNotification',
+      registeredListener,
+    );
+  });
+
+  it('clears loading and registers real-time notifications even if the hub start never settles', async () => {
+    signalRServiceMock.startSellerHub.mockReturnValue(new Promise<void>(() => undefined));
+    storeServiceMock.getMyStore.mockReturnValue(of({
+      id: 'store1',
+      ownerUserId: 'owner1',
+      name: 'Loja Teste',
+      slug: 'loja-teste',
+      phoneNumber: '11999999999',
+      cuisineType: 'Pizzaria',
+      isOpen: true,
+      isSubscriptionBlocked: false,
+      supportsDelivery: true,
+      supportsPickup: false,
+      minimumOrderValue: 20,
+      deliveryAreas: [],
+      averageRating: 0,
+      totalReviews: 0,
+    }));
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    // If init waited for the hub, this would hang until the Jest test timeout.
+    await facade.init();
+
+    expect(facade.loading()).toBe(false);
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalled();
+    expect(signalRServiceMock.onSellerEvent).toHaveBeenCalledWith(
+      'ReceiveSellerNotification',
+      expect.any(Function),
+    );
+  });
+
+  it('retries the seller hub after a realtime disconnect and releases the state subscription on reset', async () => {
+    jest.useFakeTimers();
+    let sellerStateCallback: ((connected: boolean) => void) | undefined;
+    const unsubscribeSellerState = jest.fn();
+    signalRServiceMock.onSellerStateChange.mockImplementation((callback: (connected: boolean) => void) => {
+      sellerStateCallback = callback;
+      return unsubscribeSellerState;
+    });
+    storeServiceMock.getMyStore.mockReturnValue(of({
+      id: 'store1',
+      ownerUserId: 'owner1',
+      name: 'Loja Teste',
+      slug: 'loja-teste',
+      phoneNumber: '11999999999',
+      cuisineType: 'Pizzaria',
+      isOpen: true,
+      isSubscriptionBlocked: false,
+      supportsDelivery: true,
+      supportsPickup: false,
+      minimumOrderValue: 20,
+      deliveryAreas: [],
+      averageRating: 0,
+      totalReviews: 0,
+    }));
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    await facade.init();
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalledTimes(1);
+    expect(sellerStateCallback).toBeDefined();
+
+    sellerStateCallback!(false);
+    jest.advanceTimersByTime(10_000);
+    await Promise.resolve();
+
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalledTimes(2);
+
+    facade.reset();
+
+    expect(unsubscribeSellerState).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes initialization when the store and notification requests complete empty', async () => {
+    storeServiceMock.getMyStore.mockReturnValue(EMPTY);
+    notificationServiceMock.list.mockReturnValue(EMPTY);
+
+    await facade.init();
+
+    expect(facade.loading()).toBe(false);
+    expect(facade.error()).not.toBeNull();
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalled();
+    expect(signalRServiceMock.onSellerEvent).toHaveBeenCalledWith(
+      'ReceiveSellerNotification',
+      expect.any(Function),
+    );
+  });
+
+  it('ends loading when a bootstrap read never emits', async () => {
+    jest.useFakeTimers();
+    storeServiceMock.getMyStore.mockReturnValue(new Subject().asObservable());
+    notificationServiceMock.list.mockReturnValue(of({ unreadCount: 0, items: [] }));
+
+    const initPromise = facade.init();
+    await Promise.resolve();
+    jest.advanceTimersByTime(15_000);
+    await initPromise;
+
+    expect(facade.loading()).toBe(false);
+    expect(facade.error()).not.toBeNull();
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalled();
+  });
+
+  it('starts real-time notifications even when the notification list request fails', async () => {
+    storeServiceMock.getMyStore.mockReturnValue(of({
+      id: 'store1',
+      ownerUserId: 'owner1',
+      name: 'Loja Teste',
+      slug: 'loja-teste',
+      phoneNumber: '11999999999',
+      cuisineType: 'Pizzaria',
+      isOpen: true,
+      isSubscriptionBlocked: false,
+      supportsDelivery: true,
+      supportsPickup: false,
+      minimumOrderValue: 20,
+      deliveryAreas: [],
+      averageRating: 0,
+      totalReviews: 0,
+    }));
+    notificationServiceMock.list.mockReturnValue(throwError(() => new Error('notifications down')));
+
+    await facade.init();
+
+    expect(signalRServiceMock.startSellerHub).toHaveBeenCalled();
+    expect(signalRServiceMock.onSellerEvent).toHaveBeenCalledWith(
+      'ReceiveSellerNotification',
+      expect.any(Function),
+    );
+    expect(facade.loading()).toBe(false);
   });
 
   it('should not stop a newer seller hub when an old init finishes after reinit', async () => {

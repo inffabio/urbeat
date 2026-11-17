@@ -50,7 +50,9 @@
             <ion-icon [name]="etaIcon()" class="inline-icon" aria-hidden="true"></ion-icon>
             {{ etaLabel() }}
           </span>
-          <strong class="brand">{{ etaText() }}</strong>
+          @if (etaText(); as eta) {
+            <strong class="brand">{{ eta }}</strong>
+          }
         </div>
       </div>
 

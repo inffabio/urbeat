@@ -34,6 +34,7 @@ export class SignalRService {
   private customerListeners = new Map<string, ((...args: any[]) => void)[]>();
   private sellerListeners = new Map<string, ((...args: any[]) => void)[]>();
   private customerStateCallbacks = new Set<(connected: boolean) => void>();
+  private sellerStateCallbacks = new Set<(connected: boolean) => void>();
 
   public isCustomerConnected = computed(() => this.customerConnected());
   public isSellerConnected = computed(() => this.sellerConnected());
@@ -85,6 +86,7 @@ export class SignalRService {
       } else {
         if (this.sellerConnection() !== connection) return;
         this.sellerConnected.set(false);
+        this.notifySellerState(false);
       }
     });
 
@@ -98,6 +100,7 @@ export class SignalRService {
       } else {
         if (this.sellerConnection() !== connection) return;
         this.sellerConnected.set(true);
+        this.notifySellerState(true);
       }
     });
 
@@ -114,6 +117,7 @@ export class SignalRService {
         if (this.sellerConnection() === connection) {
           this.sellerConnected.set(false);
           this.sellerConnection.set(null);
+          this.notifySellerState(false);
         }
       }
     });
@@ -227,6 +231,7 @@ export class SignalRService {
         return;
       }
       this.sellerConnected.set(true);
+      this.notifySellerState(true);
       console.log('SignalR Seller Hub connected.');
     } catch (err) {
       console.error('SignalR Seller Hub connection failed:', err);
@@ -264,6 +269,7 @@ export class SignalRService {
   stopSellerHub(): void {
     this.sellerConnectionVersion++;
     this.sellerStartPromise = null;
+    const wasConnected = this.sellerConnected();
     this.sellerConnected.set(false);
     const connection = this.sellerConnection();
     if (connection) {
@@ -271,6 +277,7 @@ export class SignalRService {
       connection.stop().catch((err) => console.error('Error stopping seller hub:', err));
       this.sellerConnection.set(null);
     }
+    if (wasConnected) this.notifySellerState(false);
   }
 
   private onCustomerTokenChanged(token: string | null): void {
@@ -476,7 +483,18 @@ export class SignalRService {
     };
   }
 
+  onSellerStateChange(callback: (connected: boolean) => void): () => void {
+    this.sellerStateCallbacks.add(callback);
+    return () => {
+      this.sellerStateCallbacks.delete(callback);
+    };
+  }
+
   private notifyCustomerState(connected: boolean): void {
     this.customerStateCallbacks.forEach((callback) => callback(connected));
+  }
+
+  private notifySellerState(connected: boolean): void {
+    this.sellerStateCallbacks.forEach((callback) => callback(connected));
   }
 }

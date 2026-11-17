@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { SellerNotificationService } from '../../core/services/seller-notification.service';
 import { SignalRService } from '../../core/services/signalr.service';
 import { StoreService } from '../../core/services/store.service';
@@ -14,6 +14,13 @@ export interface OrderActivityPulse {
   orderId?: string;
   source: 'new-order' | 'manual-status-change';
 }
+
+/**
+ * The shell must never keep its loading state forever because a bootstrap read never
+ * settles. The real-time channel is started independently, so a timed-out read can still
+ * be retried by reloading the panel.
+ */
+const PANEL_BOOTSTRAP_TIMEOUT_MS = 15_000;
 
 @Injectable({ providedIn: 'root' })
 export class SellerShellFacade {
@@ -56,7 +63,9 @@ export class SellerShellFacade {
   private initialized = false;
   private initVersion = 0;
   private statusRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private realtimeRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private sellerNotificationListener?: (notification: SellerNotification) => void;
+  private sellerStateUnsubscribe?: () => void;
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -70,29 +79,41 @@ export class SellerShellFacade {
       // notifications, SignalR and printing are never started, so the seller path below is not
       // entered at all (calling them would produce 403 and break the loading).
       if (this.isAdminDelegated()) {
-        const delegatedStore = await firstValueFrom(this.storeService.getMyStore());
+        const delegatedStore = await firstValueFrom(
+          this.storeService.getMyStore().pipe(timeout(PANEL_BOOTSTRAP_TIMEOUT_MS)),
+        );
         if (currentVersion !== this.initVersion) return;
         this.store.set(delegatedStore);
         this.scheduleStoreStatusRefresh(delegatedStore);
         return;
       }
 
-      const [store, notifications] = await Promise.all([
-        firstValueFrom(this.storeService.getMyStore()),
-        firstValueFrom(this.notificationsApi.list()),
+      // The notification list is an optimization; a failure there must never disable the
+      // real-time channel that actually delivers new orders.
+      const [storeResult, notificationsResult] = await Promise.allSettled([
+        firstValueFrom(this.storeService.getMyStore().pipe(timeout(PANEL_BOOTSTRAP_TIMEOUT_MS))),
+        firstValueFrom(this.notificationsApi.list().pipe(timeout(PANEL_BOOTSTRAP_TIMEOUT_MS))),
       ]);
       if (currentVersion !== this.initVersion) return;
-      this.store.set(store);
-      this.scheduleStoreStatusRefresh(store);
-      if (store.logoUrl) this.printing.setLogoUrl(store.logoUrl);
-      this.notifications.set(notifications.items);
-      this.unreadCount.set(notifications.unreadCount);
-      await this.signalR.startSellerHub();
-      if (currentVersion !== this.initVersion) return;
-      this.sellerNotificationListener = (notification: SellerNotification) => {
-        this.handleSellerNotification(notification);
-      };
-      this.signalR.onSellerEvent('ReceiveSellerNotification', this.sellerNotificationListener);
+
+      if (storeResult.status === 'fulfilled') {
+        this.store.set(storeResult.value);
+        this.scheduleStoreStatusRefresh(storeResult.value);
+        if (storeResult.value.logoUrl) this.printing.setLogoUrl(storeResult.value.logoUrl);
+      } else {
+        this.error.set('Nao foi possivel carregar o painel do lojista.');
+      }
+
+      if (notificationsResult.status === 'fulfilled') {
+        this.notifications.set(notificationsResult.value.items);
+        this.unreadCount.set(notificationsResult.value.unreadCount);
+      }
+
+      // Register the listener before starting the connection so events delivered during the
+      // handshake are never lost, and start the hub without blocking the shell loading state.
+      this.registerSellerNotificationListener();
+      this.subscribeToSellerState(currentVersion);
+      void this.startRealtime(currentVersion);
     } catch {
       if (currentVersion === this.initVersion) {
         this.error.set('Nao foi possivel carregar o painel do lojista.');
@@ -101,6 +122,54 @@ export class SellerShellFacade {
       if (currentVersion === this.initVersion) {
         this.loading.set(false);
       }
+    }
+  }
+
+  private registerSellerNotificationListener(): void {
+    if (this.sellerNotificationListener) return;
+    this.sellerNotificationListener = (notification: SellerNotification) => {
+      this.handleSellerNotification(notification);
+    };
+    this.signalR.onSellerEvent('ReceiveSellerNotification', this.sellerNotificationListener);
+  }
+
+  private subscribeToSellerState(version: number): void {
+    if (this.sellerStateUnsubscribe) return;
+    this.sellerStateUnsubscribe = this.signalR.onSellerStateChange((connected) => {
+      if (!this.initialized || version !== this.initVersion || this.isAdminDelegated()) return;
+      if (connected) {
+        this.clearRealtimeRetry();
+        return;
+      }
+      this.scheduleRealtimeRetry(version);
+    });
+  }
+
+  private async startRealtime(version: number): Promise<void> {
+    if (!this.initialized || version !== this.initVersion || this.isAdminDelegated()) return;
+    this.clearRealtimeRetry();
+    try {
+      await this.signalR.startSellerHub();
+    } catch {
+      if (!this.initialized || version !== this.initVersion || this.isAdminDelegated()) return;
+      this.scheduleRealtimeRetry(version);
+    }
+  }
+
+  private scheduleRealtimeRetry(version: number): void {
+    if (this.realtimeRetryTimer) return;
+    this.realtimeRetryTimer = setTimeout(() => {
+      this.realtimeRetryTimer = null;
+      if (!this.initialized || version !== this.initVersion || this.isAdminDelegated()) return;
+      if (this.signalR.isSellerConnected()) return;
+      void this.startRealtime(version);
+    }, 10_000);
+  }
+
+  private clearRealtimeRetry(): void {
+    if (this.realtimeRetryTimer) {
+      clearTimeout(this.realtimeRetryTimer);
+      this.realtimeRetryTimer = null;
     }
   }
 
@@ -127,6 +196,13 @@ export class SellerShellFacade {
   }
 
   reset(): void {
+    // Unsubscribe before stopping the hub so the teardown notification cannot schedule a
+    // retry against the session that is being discarded.
+    if (this.sellerStateUnsubscribe) {
+      this.sellerStateUnsubscribe();
+      this.sellerStateUnsubscribe = undefined;
+    }
+    this.clearRealtimeRetry();
     if (this.sellerNotificationListener) {
       this.signalR.removeSellerListener('ReceiveSellerNotification', this.sellerNotificationListener);
       this.sellerNotificationListener = undefined;

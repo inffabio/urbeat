@@ -275,6 +275,66 @@ describe('SellerPrintingService', () => {
     await expect(print).resolves.toEqual(expect.objectContaining({ ok: true }));
   });
 
+  it('carries the assigned motoboy name into the printable order', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    const printSpy = jest.spyOn(service, 'printReceipt').mockResolvedValue({
+      ok: true,
+      mode: 'browser-print',
+      message: 'ok',
+      printedAtUtc: '2026-08-20T00:00:00.000Z',
+    });
+
+    await service.printOrderFromDetails({
+      id: 'order-1',
+      code: 'URB-1',
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.Delivery,
+      status: OrderStatus.Ready,
+      paymentMethod: PaymentMethod.PixOnline,
+      subtotal: 10,
+      deliveryFee: 0,
+      total: 10,
+      createdAtUtc: '2026-08-20T00:00:00.000Z',
+      deliveryDriverName: 'Ana Motoboy',
+      items: [],
+      history: [],
+    });
+
+    expect(printSpy).toHaveBeenCalledWith(expect.objectContaining({
+      deliveryDriverName: 'Ana Motoboy',
+    }));
+  });
+
+  it('accepts an explicit motoboy name and operation key without breaking existing callers', async () => {
+    const service = TestBed.inject(SellerPrintingService);
+    const printSpy = jest.spyOn(service, 'printReceipt').mockResolvedValue({
+      ok: true,
+      mode: 'browser-print',
+      message: 'ok',
+      printedAtUtc: '2026-08-20T00:00:00.000Z',
+    });
+
+    await service.printOrderFromDetails({
+      id: 'order-2',
+      code: 'URB-2',
+      storeId: 'store-1',
+      fulfillmentType: FulfillmentType.Delivery,
+      status: OrderStatus.Ready,
+      paymentMethod: PaymentMethod.PixOnline,
+      subtotal: 10,
+      deliveryFee: 0,
+      total: 10,
+      createdAtUtc: '2026-08-20T00:00:00.000Z',
+      items: [],
+      history: [],
+    }, 'manual:URB-2:2026-08-20T00:00:00Z', { deliveryDriverName: 'Bia Motoboy' });
+
+    expect(printSpy).toHaveBeenCalledWith(expect.objectContaining({
+      operationKey: 'manual:URB-2:2026-08-20T00:00:00Z',
+      deliveryDriverName: 'Bia Motoboy',
+    }));
+  });
+
   it('reports a failed local-agent job as a failed print result', async () => {
     const service = TestBed.inject(SellerPrintingService);
     service.saveConfig({

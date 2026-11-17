@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { of, Subject, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { SellerShellFacade } from '../seller-shell/seller-shell.facade';
@@ -340,6 +340,44 @@ describe('SellerDashboardPageComponent', () => {
     expect(fixture.componentInstance.inProgressOrders().map((order) => order.id)).toEqual(['rc', 'p', 'r', 'd']);
   });
 
+  it('drops a concluded pickup from the in-progress list', () => {
+    orderServiceMock.getStoreAnalytics.mockReturnValue(of(analyticsFixture()));
+    orderServiceMock.getStoreSales.mockReturnValue(of(salesFixture()));
+    orderServiceMock.getStoreOrders.mockReturnValue(of({
+      page: 1,
+      pageSize: 100,
+      totalItems: 2,
+      totalPages: 1,
+      items: [
+        {
+          id: 'pickup-waiting',
+          code: 'PW',
+          status: OrderStatus.Ready,
+          fulfillmentType: FulfillmentType.PickUp,
+          total: 10,
+          createdAtUtc: '2026-10-29T11:00:00Z',
+        },
+        {
+          id: 'pickup-taken',
+          code: 'PT',
+          status: OrderStatus.Ready,
+          fulfillmentType: FulfillmentType.PickUp,
+          sellerCompletedAtUtc: '2026-10-29T12:00:00Z',
+          total: 10,
+          createdAtUtc: '2026-10-29T10:00:00Z',
+        },
+      ],
+    }));
+
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    // A pickup keeps OrderStatus.Ready after the handover, so the seller confirmation is the
+    // only signal that removes it from the operational "em andamento" list.
+    expect(fixture.componentInstance.inProgressOrders().map((order) => order.id))
+      .toEqual(['pickup-waiting']);
+  });
+
   it('keeps the shell badge and the rest of the dashboard when in-progress orders fail', () => {
     shellFacadeMock.ordersCount.set(7);
     const fixture = arrangeHappyPath();
@@ -422,6 +460,31 @@ describe('SellerDashboardPageComponent', () => {
     salesSubjects[0].complete();
     fixture.detectChanges();
     expect(fixture.componentInstance.sales()?.page).toBe(2);
+  });
+
+  it('leaves the dashboard skeleton when analytics completes without emitting', () => {
+    orderServiceMock.getStoreAnalytics.mockReturnValue(EMPTY);
+    orderServiceMock.getStoreSales.mockReturnValue(of(salesFixture()));
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.loading()).toBe(false);
+    expect(fixture.componentInstance.refreshing()).toBe(false);
+    expect(fixture.componentInstance.salesLoading()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.dashboard-skeleton')).toBeNull();
+  });
+
+  it('leaves the sales loading state when the sales request completes without emitting', () => {
+    orderServiceMock.getStoreAnalytics.mockReturnValue(of(analyticsFixture()));
+    orderServiceMock.getStoreSales.mockReturnValue(EMPTY);
+    orderServiceMock.getStoreOrders.mockReturnValue(of({ page: 1, pageSize: 100, totalItems: 0, totalPages: 0, items: [] }));
+    const fixture = TestBed.createComponent(SellerDashboardPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.salesLoading()).toBe(false);
+    expect(fixture.componentInstance.salesError()).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.skeleton-row')).toHaveLength(0);
   });
 
   it('shows the full error state when the first analytics load fails', () => {
@@ -691,6 +754,18 @@ describe('SellerDashboardPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Não foi possível confirmar o status da mensalidade.');
     expect(fixture.nativeElement.textContent).not.toContain('em dia');
+  });
+
+  it('finishes the subscription notice when the request completes without emitting', () => {
+    TestBed.overrideProvider(SubscriptionService, {
+      useValue: { getMySubscription: jest.fn().mockReturnValue(EMPTY) },
+    });
+    const fixture = arrangeHappyPath();
+
+    expect(fixture.nativeElement.textContent)
+      .toContain('Não foi possível confirmar o status da mensalidade.');
+    expect(fixture.nativeElement.textContent)
+      .not.toContain('Carregando informações da mensalidade.');
   });
 
   it('does not promise a status when the backend omits it', () => {

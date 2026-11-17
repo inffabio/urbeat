@@ -66,6 +66,8 @@ export interface PrintableOrder {
   code: string;
   customerName?: string;
   customerPhoneNumber?: string;
+  /** Motoboy assigned to the order; printed when present. */
+  deliveryDriverName?: string;
   fulfillmentType?: FulfillmentType;
   paymentMethod?: PaymentMethod;
   status?: OrderStatus;

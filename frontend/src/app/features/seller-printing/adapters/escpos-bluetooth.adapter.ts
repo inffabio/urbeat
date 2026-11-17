@@ -126,6 +126,11 @@ export class EscPosBluetoothAdapter extends PrinterAdapter {
     lines.push(this.text(`Cliente: ${order.customerName || 'Cliente'}`));
     lines.push(this.br());
 
+    if (order.deliveryDriverName) {
+      lines.push(this.text(`Entregador: ${order.deliveryDriverName}`));
+      lines.push(this.br());
+    }
+
     if (order.paymentMethod !== undefined) {
       lines.push(this.text(`Pagamento: ${this.paymentLabel(order.paymentMethod)}`));
       lines.push(this.br());

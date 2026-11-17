@@ -365,6 +365,32 @@ describe('SignalRService', () => {
     expect(secondConnection.off).toHaveBeenCalledWith('OrderStatusUpdated', callback);
   });
 
+  it('notifies and unsubscribes seller connection state observers', async () => {
+    const connection = createConnectionMock(Promise.resolve());
+    mockBuild.mockReturnValue(connection);
+    const service = TestBed.inject(SignalRService);
+    const callback = jest.fn();
+    const unsubscribe = service.onSellerStateChange(callback);
+
+    await service.startSellerHub();
+    expect(callback).toHaveBeenLastCalledWith(true);
+
+    connection.reconnectingHandler?.(new Error('dropped'));
+    expect(callback).toHaveBeenLastCalledWith(false);
+
+    connection.reconnectedHandler?.('conn-id');
+    expect(callback).toHaveBeenLastCalledWith(true);
+
+    connection.closeHandler?.(new Error('closed'));
+    expect(callback).toHaveBeenLastCalledWith(false);
+
+    callback.mockClear();
+    unsubscribe();
+    connection.reconnectingHandler?.(new Error('dropped again'));
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
   it('reflects reconnecting/reconnected/close in seller connected state', async () => {
     const connection = createConnectionMock(Promise.resolve());
     mockBuild.mockReturnValue(connection);

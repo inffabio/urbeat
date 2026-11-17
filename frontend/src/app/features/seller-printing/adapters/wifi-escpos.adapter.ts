@@ -108,6 +108,11 @@ export class WifiEscPosAdapter extends PrinterAdapter {
     lines.push(this.text(`Cliente: ${order.customerName || 'Cliente'}`));
     lines.push(this.br());
 
+    if (order.deliveryDriverName) {
+      lines.push(this.text(`Entregador: ${order.deliveryDriverName}`));
+      lines.push(this.br());
+    }
+
     lines.push(this.text(this.divider(w)));
     lines.push(this.br());
     lines.push(this.text(order.itemsSummary || 'Itens do pedido'));

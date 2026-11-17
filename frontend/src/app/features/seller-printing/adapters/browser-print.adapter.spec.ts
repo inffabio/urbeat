@@ -51,6 +51,27 @@ describe('BrowserPrintAdapter', () => {
     expect(html).toContain('X-Burger');
   });
 
+  it('prints the assigned motoboy name when informed', async () => {
+    await adapter.printOrder({
+      code: 'ABC123', customerName: 'Joao', deliveryDriverName: 'Ana Motoboy',
+      total: 32.9, createdAtUtc: '2026-07-30T14:00:00Z',
+    }, defaultConfig);
+
+    const html = popupSpy.mock.results[0].value.document.write.mock.calls[0][0] as string;
+    expect(html).toContain('Entregador');
+    expect(html).toContain('Ana Motoboy');
+  });
+
+  it('omits the motoboy line when no driver is assigned', async () => {
+    await adapter.printOrder({
+      code: 'ABC123', customerName: 'Joao',
+      total: 32.9, createdAtUtc: '2026-07-30T14:00:00Z',
+    }, defaultConfig);
+
+    const html = popupSpy.mock.results[0].value.document.write.mock.calls[0][0] as string;
+    expect(html).not.toContain('Entregador');
+  });
+
   it('prints multiple copies', async () => {
     await adapter.printOrder({
       code: 'ABC123', total: 30, createdAtUtc: new Date().toISOString(),

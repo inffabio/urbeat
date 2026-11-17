@@ -37,7 +37,14 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
 
   readonly confirmLoading = signal(false);
   readonly deliveredCelebrationOpen = signal(false);
-  private readonly currentOrderId = signal<string | null>(null);
+  /**
+   * The route snapshot is the authoritative initial state of the card. Reading it here
+   * (instead of waiting for the route stream inside `ngOnInit`) keeps the "Pedido enviado"
+   * container rendered on the very first change detection after any recreate/navigation.
+   */
+  private readonly currentOrderId = signal<string | null>(
+    this.route.snapshot?.paramMap?.get('orderId') ?? null,
+  );
   private routeParamSub?: Subscription;
 
   /**
@@ -133,9 +140,9 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
     const o = this.order();
     if (!o) return '';
     if (this.isPickup()) {
-      return o.status === OrderStatus.Ready
-        ? 'Seu pedido está pronto para retirada'
-        : 'A loja avisará quando estiver pronto';
+      // The timeline already communicates the pickup progress; waiting copy here would
+      // duplicate it. Only the ready state adds useful information.
+      return o.status === OrderStatus.Ready ? 'Seu pedido está pronto para retirada' : '';
     }
     const start = new Date(new Date(o.createdAtUtc).getTime() + 30 * 60_000);
     const end = new Date(new Date(o.createdAtUtc).getTime() + 60 * 60_000);
@@ -268,23 +275,29 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // The snapshot already identifies the order on a recreate/navigation, so start
+    // tracking it before waiting for the route stream. The card is then rendered from the
+    // same derived state on every navigation, instead of depending on a transient emission.
+    const initialOrderId = this.currentOrderId();
+    if (initialOrderId) {
+      // The store shell owns the shared service lifecycle. This page only tracks the
+      // order of interest; it never starts or stops the hub.
+      this.tracking.trackOrder(initialOrderId);
+    }
+
     this.routeParamSub = this.route.paramMap.subscribe((params) => {
       const orderId = params.get('orderId');
-      if (this.currentOrderId() !== orderId) {
-        // A celebration belongs to the order that was on screen when it was
-        // delivered; it must never cover a different order opened afterwards.
-        // The rendered status is per on-screen order as well: a transition that
-        // happened while another order was open is a first observation when the
-        // customer comes back, never a transition to celebrate.
-        this.deliveredCelebrationOpen.set(false);
-        this.renderedOrderStatus = null;
-        this.currentOrderId.set(orderId);
-      }
-      if (!orderId) return;
+      if (this.currentOrderId() === orderId) return;
 
-      // The store shell owns the shared service lifecycle. This page only
-      // tracks the order of interest; it never starts or stops the hub.
-      this.tracking.trackOrder(orderId);
+      // A celebration belongs to the order that was on screen when it was
+      // delivered; it must never cover a different order opened afterwards.
+      // The rendered status is per on-screen order as well: a transition that
+      // happened while another order was open is a first observation when the
+      // customer comes back, never a transition to celebrate.
+      this.deliveredCelebrationOpen.set(false);
+      this.renderedOrderStatus = null;
+      this.currentOrderId.set(orderId);
+      if (orderId) this.tracking.trackOrder(orderId);
     });
   }
 

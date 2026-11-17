@@ -131,16 +131,37 @@ describe('CustomerOrderTrackingService', () => {
     expect(service.trackedOrders().map((o) => o.id).sort()).toEqual(['order1', 'order2']);
   });
 
-  it('adds a paid order only once', () => {
+  it('keeps a single tracked entry while refreshing an active order on reopen', () => {
     getOrderMock.mockReturnValue(of(baseOrder));
 
     const service = TestBed.inject(CustomerOrderTrackingService);
     service.trackOrder('order1');
     service.trackOrder('order1');
 
-    expect(getOrderMock).toHaveBeenCalledTimes(1);
+    expect(getOrderMock).toHaveBeenCalledTimes(2);
+    expect(getOrderMock).toHaveBeenLastCalledWith('order1', { background: true });
     expect(service.trackedOrders().length).toBe(1);
     expect(JSON.parse(sessionStorage.getItem(TRACKED_ORDER_IDS_STORAGE_KEY)!)).toEqual(['order1']);
+  });
+
+  it('keeps the complete re-read details available after reopening an active order', () => {
+    getOrderMock.mockReturnValue(of(baseOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    service.trackOrder('order1');
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      status: OrderStatus.Ready,
+      items: [
+        ...baseOrder.items,
+        { productName: 'Suco', quantity: 1, unitPrice: 8, totalPrice: 8 },
+      ],
+    }));
+    service.trackOrder('order1');
+
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+    expect(service.trackedOrders()[0].items.map((item) => item.productName)).toEqual(['X-burguer', 'Suco']);
   });
 
   it('exposes whether any tracked order ids exist, restored synchronously from storage', async () => {
@@ -1189,6 +1210,29 @@ describe('CustomerOrderTrackingService', () => {
     service.trackOrder('order1');
 
     expect(getOrderMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a finished pickup order available without refetching it on reopen', () => {
+    const readyPickup = {
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Ready,
+      deliveryFee: 0,
+      total: 20,
+    };
+    getOrderMock.mockReturnValue(of(readyPickup));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    service.trackOrder('order1');
+    service.trackOrder('order1');
+
+    // A pickup order is terminal once Ready: reopening reuses the known snapshot and the
+    // order stays complete and consultable instead of being reloaded or dropped.
+    expect(getOrderMock).toHaveBeenCalledTimes(1);
+    expect(service.trackedOrders()).toHaveLength(1);
+    expect(service.trackedOrders()[0]).toEqual(readyPickup);
+    expect(service.finishedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(service.activeOrders()).toEqual([]);
   });
 
   it('does not let an in-flight initial load overwrite a status event that arrived first', async () => {

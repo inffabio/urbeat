@@ -289,7 +289,16 @@ export class SellerPrintingService {
     }
   }
 
-  printOrderFromDetails(details: OrderDetails, operationKey?: string): Promise<PrintResult> {
+  /**
+   * Prints the full order. `operationKey` keeps the agent-side idempotency for the automatic
+   * acceptance flow; `options.deliveryDriverName` overrides the snapshot when the caller already
+   * knows the assigned motoboy (manual reprints), while existing two-argument calls stay valid.
+   */
+  printOrderFromDetails(
+    details: OrderDetails,
+    operationKey?: string,
+    options?: { deliveryDriverName?: string },
+  ): Promise<PrintResult> {
     const items: PrintableOrderItem[] = (details.items ?? []).map((item) => ({
       name: item.productName,
       quantity: item.quantity,
@@ -301,12 +310,15 @@ export class SellerPrintingService {
       details.addressNeighborhood, details.addressCity,
     ].filter(Boolean).join(', ');
 
+    const deliveryDriverName = (options?.deliveryDriverName ?? details.deliveryDriverName ?? '').trim();
+
     const order: PrintableOrder = {
       orderId: details.id,
       operationKey,
       code: details.code,
       customerName: details.customerName,
       customerPhoneNumber: details.customerPhoneNumber,
+      deliveryDriverName: deliveryDriverName || undefined,
       fulfillmentType: details.fulfillmentType,
       paymentMethod: details.paymentMethod,
       status: details.status,

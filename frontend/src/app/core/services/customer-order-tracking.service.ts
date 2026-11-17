@@ -63,10 +63,10 @@ export class CustomerOrderTrackingService {
   trackOrder(orderId: string): void {
     if (!orderId) return;
     if (this.trackedIds().includes(orderId)) {
-      // Reopening an order that is already tracked must not reload terminal orders,
-      // but a delivered order still awaiting the confirmation can change server-side
-      // (for example when the motoboy confirms the PIN). Refresh only that case.
-      this.refreshPendingDeliveryConfirmation(orderId);
+      // Reopening an order that is already tracked must keep the card exactly as it is
+      // (complete and already visible) while re-reading only orders that can still change
+      // server-side. Terminal orders are skipped unless a delivery confirmation is pending.
+      this.refreshReopenedOrder(orderId);
       return;
     }
 
@@ -75,9 +75,10 @@ export class CustomerOrderTrackingService {
     if (this.shouldPoll) this.ensurePollingTimer();
   }
 
-  private refreshPendingDeliveryConfirmation(orderId: string): void {
+  private refreshReopenedOrder(orderId: string): void {
     const order = this.trackedOrders().find((item) => item.id === orderId);
-    if (!order || !this.awaitsDeliveryConfirmation(order)) return;
+    if (!order) return;
+    if (!this.awaitsDeliveryConfirmation(order) && this.isTerminal(order)) return;
     if (this.inFlight.has(orderId)) return;
     this.refresh(orderId, { background: true });
   }

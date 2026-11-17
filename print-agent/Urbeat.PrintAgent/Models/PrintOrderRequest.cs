@@ -28,4 +28,10 @@ public sealed class PrintOrderPayload
     public decimal Total { get; set; }
 
     public string CreatedAtUtc { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Motoboy assigned to the order. Optional: older dashboard payloads omit it and keep the
+    /// legacy receipt unchanged.
+    /// </summary>
+    public string? DeliveryDriverName { get; set; }
 }

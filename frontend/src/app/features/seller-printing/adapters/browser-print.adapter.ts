@@ -73,6 +73,10 @@ export class BrowserPrintAdapter extends PrinterAdapter {
           parts.push(this.tag('p', {}, this.esc([order.customerName, order.customerPhoneNumber].filter(Boolean).join(' · '))));
         }
 
+        if (order.deliveryDriverName) {
+          parts.push(this.tag('p', {}, `Entregador: ${this.esc(order.deliveryDriverName)}`));
+        }
+
         if (order.items && order.items.length > 0) {
           parts.push('<table>');
           for (const item of order.items) {

@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { printOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -340,8 +341,19 @@ export class SellerDashboardPageComponent implements OnInit {
   }
 
   private loadSubscription(): void {
-    this.subscriptionService.getMySubscription().subscribe({
+    let handled = false;
+    this.subscriptionService.getMySubscription().pipe(
+      // An empty/completed request must not leave the subscription notice stuck on
+      // "Carregando informações da mensalidade."
+      finalize(() => {
+        if (handled) return;
+        this.subscriptionStatus.set('unknown');
+        this.subscriptionLoaded.set(false);
+        this.subscriptionLoadFailed.set(true);
+      }),
+    ).subscribe({
       next: (subscription) => {
+        handled = true;
         this.subscriptionDueDate.set(
           subscription.nextDueDateUtc ? formatSaoPauloDate(subscription.nextDueDateUtc) : '',
         );
@@ -351,6 +363,7 @@ export class SellerDashboardPageComponent implements OnInit {
         this.subscriptionLoadFailed.set(false);
       },
       error: () => {
+        handled = true;
         this.subscriptionStatus.set('unknown');
         this.subscriptionLoaded.set(false);
         this.subscriptionLoadFailed.set(true);
@@ -400,9 +413,20 @@ export class SellerDashboardPageComponent implements OnInit {
       this.inProgressOrders.set([]);
     }
 
-    this.orders.getStoreAnalytics(this.filterQuery()).subscribe({
+    let analyticsHandled = false;
+    this.orders.getStoreAnalytics(this.filterQuery()).pipe(
+      // A request that completes without emitting must still release the dashboard
+      // skeleton. When analytics succeeds, the sales request owns `salesLoading` instead.
+      finalize(() => {
+        if (sequence !== this.filterSequence) return;
+        this.loading.set(false);
+        this.refreshing.set(false);
+        if (!analyticsHandled) this.salesLoading.set(false);
+      }),
+    ).subscribe({
       next: (analytics) => {
         if (sequence !== this.filterSequence) return;
+        analyticsHandled = true;
 
         this.analytics.set(analytics);
         this.lastUpdatedAt.set(new Date());
@@ -420,6 +444,7 @@ export class SellerDashboardPageComponent implements OnInit {
       },
       error: () => {
         if (sequence !== this.filterSequence) return;
+        analyticsHandled = true;
 
         this.loading.set(false);
         this.refreshing.set(false);
@@ -444,7 +469,11 @@ export class SellerDashboardPageComponent implements OnInit {
       this.expandedOrders.set(new Set<string>());
     }
 
-    this.orders.getStoreSales({ ...this.filterQuery(), page: options.page, pageSize: PAGE_SIZE }).subscribe({
+    this.orders.getStoreSales({ ...this.filterQuery(), page: options.page, pageSize: PAGE_SIZE }).pipe(
+      finalize(() => {
+        if (sequence === this.salesSequence) this.salesLoading.set(false);
+      }),
+    ).subscribe({
       next: (result) => {
         if (sequence !== this.salesSequence) return;
 
@@ -483,7 +512,10 @@ export class SellerDashboardPageComponent implements OnInit {
       next: (result) => {
         if (sequence !== this.filterSequence) return;
         this.inProgressOrders.set(
-          result.items.filter((order) => IN_PROGRESS_STATUSES.includes(order.status)),
+          // A finished pickup keeps OrderStatus.Ready; the seller confirmation is what concludes
+          // it, so it must leave the operational "em andamento" list.
+          result.items.filter((order) =>
+            IN_PROGRESS_STATUSES.includes(order.status) && !order.sellerCompletedAtUtc),
         );
         this.ordersTotal.set(result.totalItems);
         this.ordersError.set(false);

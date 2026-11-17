@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, of } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -58,7 +58,7 @@ describe('TrackingPageComponent', () => {
   let listeners: Record<string, (data: OrderStatusUpdateEvent) => void>;
   let paramMap: BehaviorSubject<ParamMap>;
 
-  const configureTrackingModule = async (): Promise<void> => {
+  const configureTrackingModule = async (params: Observable<ParamMap> = paramMap.asObservable()): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [TrackingPageComponent],
       providers: [
@@ -76,7 +76,7 @@ describe('TrackingPageComponent', () => {
           },
         },
         { provide: StoreContextService, useValue: { storeId: signal('store1'), phoneNumber: signal('22999999999'), storeName: signal('Loja Teste') } },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: jest.fn().mockReturnValue('order1') } }, paramMap: paramMap.asObservable() } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: jest.fn().mockReturnValue('order1') } }, paramMap: params } },
         { provide: Router, useValue: routerMock },
       ],
     }).compileComponents();
@@ -460,7 +460,7 @@ describe('TrackingPageComponent', () => {
 
     const etaRow = fixture.debugElement.query(By.css('.eta-row'));
     expect(etaRow.nativeElement.textContent).toContain('Retirada no local');
-    expect(etaRow.nativeElement.textContent).toContain('A loja avisará quando estiver pronto');
+    expect(etaRow.nativeElement.textContent).not.toContain('A loja avisará quando estiver pronto');
     expect(etaRow.nativeElement.textContent).not.toContain('Previsão de entrega');
     expect(etaRow.nativeElement.textContent).not.toContain('Hoje, entre');
 
@@ -547,6 +547,94 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('renders the complete Pedido enviado container on the first change detection after navigation', async () => {
+    TestBed.resetTestingModule();
+    // The route snapshot already identifies the order while paramMap still waits for its
+    // first emission (a recreate/navigation). The container must not rely on that transient
+    // local state to become visible.
+    await configureTrackingModule(new Subject<ParamMap>().asObservable());
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.success-header')).nativeElement.textContent)
+      .toContain('Pedido enviado!');
+    expect(fixture.debugElement.query(By.css('.order-summary-card'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.tracking-card'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.items-card'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.delivery-details-card'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('.loading-overlay'))).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('keeps the complete Pedido enviado container after leaving and returning to the page', async () => {
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    await tracking.start();
+
+    const first = TestBed.createComponent(TrackingPageComponent);
+    first.detectChanges();
+    await tick();
+    expect(first.debugElement.query(By.css('.success-header'))).not.toBeNull();
+    first.destroy();
+
+    getOrderMock.mockClear();
+
+    const reopened = TestBed.createComponent(TrackingPageComponent);
+    reopened.detectChanges();
+    await tick();
+
+    // Reopening an active order re-reads it in the background so the card always shows the
+    // complete current state; the previous snapshot stays visible during the request.
+    expect(getOrderMock).toHaveBeenCalledWith('order1', { background: true });
+    expect(reopened.debugElement.query(By.css('.success-header')).nativeElement.textContent)
+      .toContain('Pedido enviado!');
+    expect(reopened.debugElement.query(By.css('.order-summary-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.tracking-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.items-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.delivery-details-card'))).not.toBeNull();
+
+    reopened.destroy();
+  });
+
+  it('keeps the known card rendered while the background reopen refresh is still in flight', async () => {
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    await tracking.start();
+
+    const first = TestBed.createComponent(TrackingPageComponent);
+    first.detectChanges();
+    await tick();
+    expect(first.debugElement.query(By.css('.success-header'))).not.toBeNull();
+    first.destroy();
+
+    const pending = new Subject<OrderDetails>();
+    getOrderMock.mockReturnValue(pending.asObservable());
+
+    const reopened = TestBed.createComponent(TrackingPageComponent);
+    reopened.detectChanges();
+
+    expect(getOrderMock).toHaveBeenCalledWith('order1', { background: true });
+    // The previous snapshot stays on screen, complete, until the background re-read resolves.
+    expect(reopened.debugElement.query(By.css('.success-header')).nativeElement.textContent)
+      .toContain('Pedido enviado!');
+    expect(reopened.debugElement.query(By.css('.order-summary-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.tracking-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.items-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.delivery-details-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.loading-overlay'))).toBeNull();
+
+    pending.next({ ...baseOrder, status: OrderStatus.Ready });
+    pending.complete();
+    await tick();
+    reopened.detectChanges();
+
+    expect(reopened.componentInstance.order()?.status).toBe(OrderStatus.Ready);
+    expect(reopened.debugElement.query(By.css('.order-summary-card'))).not.toBeNull();
+    expect(reopened.debugElement.query(By.css('.items-card'))).not.toBeNull();
+
+    reopened.destroy();
+  });
+
   it('should update the displayed order when OrderStatusUpdated arrives via the shared service', async () => {
     const tracking = TestBed.inject(CustomerOrderTrackingService);
     await tracking.start();
@@ -586,7 +674,7 @@ describe('TrackingPageComponent', () => {
     await tick();
 
     expect(fixture.debugElement.query(By.css('.eta-row')).nativeElement.textContent)
-      .toContain('A loja avisará quando estiver pronto');
+      .not.toContain('A loja avisará quando estiver pronto');
 
     getOrderMock.mockReturnValue(of({
       ...baseOrder,

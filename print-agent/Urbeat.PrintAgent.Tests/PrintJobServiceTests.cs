@@ -92,6 +92,55 @@ public class PrintJobServiceTests
     }
 
     [Fact]
+    public async Task BuildOrderJobAsync_prints_the_assigned_driver_name()
+    {
+        var service = new PrintJobService(new TestPrinterDiscovery(), new FakePrintExecutor(PrintOutcome.Queued, "42"));
+        var request = new PrintOrderRequest
+        {
+            OrderId = "order-driver",
+            PrinterName = "POS-58 Balcao",
+            PrinterProfile = "pos-58",
+            PaperWidth = "58mm",
+            Order = new PrintOrderPayload
+            {
+                Code = "URB-1",
+                Total = 25m,
+                CreatedAtUtc = "2026-08-04T12:00:00Z",
+                DeliveryDriverName = "Ana Motoboy"
+            }
+        };
+
+        var job = await service.BuildOrderJobAsync(request, CancellationToken.None);
+
+        job.RawText.Should().Contain("Ana Motoboy");
+        job.RawText.Should().Contain("ENTREGADOR");
+    }
+
+    [Fact]
+    public async Task BuildOrderJobAsync_keeps_the_legacy_receipt_when_no_driver_is_informed()
+    {
+        var service = new PrintJobService(new TestPrinterDiscovery(), new FakePrintExecutor(PrintOutcome.Queued, "42"));
+        var request = new PrintOrderRequest
+        {
+            OrderId = "order-without-driver",
+            PrinterName = "POS-58 Balcao",
+            PrinterProfile = "pos-58",
+            PaperWidth = "58mm",
+            Order = new PrintOrderPayload
+            {
+                Code = "URB-2",
+                Total = 10m,
+                CreatedAtUtc = "2026-08-04T12:00:00Z"
+            }
+        };
+
+        var job = await service.BuildOrderJobAsync(request, CancellationToken.None);
+
+        job.RawText.Should().Contain("PEDIDO URB-2");
+        job.RawText.Should().NotContain("ENTREGADOR");
+    }
+
+    [Fact]
     public async Task BuildOrderJobAsync_records_job_in_store_with_honest_status()
     {
         var store = new PrintJobStore();

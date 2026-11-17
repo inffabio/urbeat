@@ -117,7 +117,7 @@ public sealed class PrintJobService : IPrintJobService
             return BuildResult(existing, profile);
         }
 
-        var rawText = $"PEDIDO {request.Order.Code}\nTOTAL {request.Order.Total:0.00}\nUTC {request.Order.CreatedAtUtc}";
+        var rawText = BuildOrderRawText(request.Order);
         var printerError = await ValidatePrinterAsync(request.PrinterName, cancellationToken);
         if (printerError is not null)
         {
@@ -125,6 +125,56 @@ public sealed class PrintJobService : IPrintJobService
         }
 
         return await BuildAndPrintJobAsync("order", profile, request.PrinterName, rawText, cancellationToken, operationKey, existing);
+    }
+
+    /// <summary>
+    /// Line-per-field receipt. The driver line is additive: payloads without an assigned motoboy
+    /// keep the exact legacy layout.
+    /// </summary>
+    private static string BuildOrderRawText(PrintOrderPayload order)
+    {
+        var builder = new StringBuilder();
+        builder.Append($"PEDIDO {order.Code}\n");
+        var driverName = SanitizeLine(order.DeliveryDriverName);
+        if (driverName.Length > 0)
+        {
+            builder.Append($"ENTREGADOR {driverName}\n");
+        }
+
+        builder.Append($"TOTAL {order.Total:0.00}\n");
+        builder.Append($"UTC {order.CreatedAtUtc}");
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// The raw text is sent as-is to the spooler, so control characters and line breaks from a
+    /// free-form driver name never reach the printer.
+    /// </summary>
+    private static string SanitizeLine(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+
+        var builder = new StringBuilder(value.Length);
+        var pendingSpace = false;
+        foreach (var character in value)
+        {
+            if (char.IsControl(character) || char.IsWhiteSpace(character))
+            {
+                pendingSpace = builder.Length > 0;
+                continue;
+            }
+
+            if (pendingSpace)
+            {
+                builder.Append(' ');
+                pendingSpace = false;
+            }
+
+            builder.Append(character);
+            if (builder.Length >= 60) break;
+        }
+
+        return builder.ToString().Trim();
     }
 
     private async Task<PrintJobResult> BuildAndPrintJobAsync(

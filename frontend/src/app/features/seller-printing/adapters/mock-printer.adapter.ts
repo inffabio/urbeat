@@ -27,6 +27,6 @@ export class MockPrinterAdapter extends PrinterAdapter {
     if (config.printCounterCopy) roles.push('BALCAO');
     if (config.printCustomerReceipt) roles.push('CLIENTE');
     const roleStr = roles.length > 0 ? roles.join('/') : 'PADRAO';
-    console.log(`[mock] Pedido #${order.code} → ${roleStr} (${config.copies} via(s), ${config.paperWidth}, cliente=${order.customerName || '-'}, total=${order.total})`);
+    console.log(`[mock] Pedido #${order.code} → ${roleStr} (${config.copies} via(s), ${config.paperWidth}, cliente=${order.customerName || '-'}, entregador=${order.deliveryDriverName || '-'}, total=${order.total})`);
   }
 }
