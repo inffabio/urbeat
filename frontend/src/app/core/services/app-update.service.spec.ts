@@ -16,6 +16,8 @@ import {
   UPDATE_CHECK_RETRY_MS,
   UPDATE_CHECK_TIMEOUT_MS,
   isChunkLoadFailure,
+  isNavigationRecoveryFailure,
+  isServiceWorkerCacheFailure,
 } from './app-update.service';
 
 interface SwUpdateMock {
@@ -535,6 +537,90 @@ describe('AppUpdateService', () => {
       expect(reload).not.toHaveBeenCalled();
     });
   });
+
+  describe('service worker cache failures', () => {
+    const CACHE_MISS = new Error('net::ERR_CACHE_MISS');
+    const WORKER_FETCH_REJECTED = new TypeError('Failed to fetch');
+    const STALE_CHUNK_MIX = new TypeError('Failed to fetch dynamically imported module: /chunk-X.js');
+
+    it('recovers a navigation aborted by a service worker cache miss', async () => {
+      setup();
+
+      navigationFailures.next(CACHE_MISS);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('recovers a navigation whose service worker fetch was rejected', async () => {
+      setup();
+
+      navigationFailures.next(WORKER_FETCH_REJECTED);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('recovers a Safari worker failure reported as "Load failed"', async () => {
+      setup();
+
+      navigationFailures.next(new TypeError('Load failed'));
+      await flushMicrotasks();
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('recovers at most once per document, so a failing route cannot reload in a loop', async () => {
+      setup();
+
+      navigationFailures.next(CACHE_MISS);
+      await flushMicrotasks();
+      navigationFailures.next(CACHE_MISS);
+      navigationFailures.next(STALE_CHUNK_MIX);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries the cache recovery reload when the loop guard suppresses it', async () => {
+      setup();
+      sessionStorageMock.setItem('urbeat:sw-last-reload', String(Date.now()));
+
+      navigationFailures.next(CACHE_MISS);
+      await flushMicrotasks();
+      expect(reload).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(RECOVERY_RETRY_MS);
+      await flushMicrotasks();
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads immediately, without waiting for activation, when no worker controls the document', async () => {
+      setup(true, Promise.resolve(), false);
+
+      navigationFailures.next(CACHE_MISS);
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).not.toHaveBeenCalled();
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('still ignores API failures, which no reload can fix', async () => {
+      setup();
+
+      navigationFailures.next(
+        new Error('Http failure response for /api/orders: 504 Gateway Timeout'),
+      );
+      await flushMicrotasks();
+
+      expect(swUpdate.activateUpdate).not.toHaveBeenCalled();
+      expect(reload).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('APP_NAVIGATION_FAILURES', () => {
@@ -578,5 +664,41 @@ describe('isChunkLoadFailure', () => {
     expect(isChunkLoadFailure('random failure')).toBe(false);
     expect(isChunkLoadFailure(null)).toBe(false);
     expect(isChunkLoadFailure(undefined)).toBe(false);
+  });
+});
+
+describe('isServiceWorkerCacheFailure', () => {
+  it.each([
+    'net::ERR_CACHE_MISS',
+    'ERR_CACHE_MISS',
+    'Failed to fetch',
+    'Load failed',
+    'NetworkError when attempting to fetch resource.',
+  ])('recognizes "%s" as a service worker cache failure', (message) => {
+    expect(isServiceWorkerCacheFailure(new TypeError(message))).toBe(true);
+    expect(isNavigationRecoveryFailure(new TypeError(message))).toBe(true);
+  });
+
+  it('accepts a plain string thrown by the router', () => {
+    expect(isServiceWorkerCacheFailure('net::ERR_CACHE_MISS')).toBe(true);
+  });
+
+  it('does not treat an API gateway error as a cache failure', () => {
+    expect(
+      isServiceWorkerCacheFailure(
+        new Error('Http failure response for /api/orders: 504 Gateway Timeout'),
+      ),
+    ).toBe(false);
+    expect(isServiceWorkerCacheFailure(new Error('Failed to fetch dynamically imported module'))).toBe(
+      false,
+    );
+    expect(isServiceWorkerCacheFailure('')).toBe(false);
+    expect(isServiceWorkerCacheFailure(null)).toBe(false);
+    expect(isServiceWorkerCacheFailure(undefined)).toBe(false);
+  });
+
+  it('keeps stale chunk detection and cache detection as separate failure classes', () => {
+    expect(isChunkLoadFailure(new Error('net::ERR_CACHE_MISS'))).toBe(false);
+    expect(isNavigationRecoveryFailure(new Error('Loading chunk 42 failed.'))).toBe(true);
   });
 });

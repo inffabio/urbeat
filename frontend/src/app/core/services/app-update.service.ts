@@ -43,6 +43,34 @@ const CHUNK_LOAD_FAILURE_PATTERNS: readonly RegExp[] = [
   /is not a valid JavaScript MIME type/i,
 ];
 
+/**
+ * The service worker answers navigations from its own caches. When it cannot
+ * match a request it falls back to `fetch()`, and a request the browser can
+ * only serve from its HTTP cache fails with `net::ERR_CACHE_MISS`; a rejected
+ * worker fetch surfaces as `Failed to fetch` (Chrome) or `Load failed`
+ * (Safari). The router aborts the navigation and the route stays empty, which
+ * looks like a blank page even though the API answered. A new document is the
+ * only way out, so these failures share the guarded reload.
+ */
+const SERVICE_WORKER_CACHE_FAILURE_PATTERNS: readonly RegExp[] = [
+  /ERR_CACHE_MISS/i,
+  /^Failed to fetch$/i,
+  /^Load failed$/i,
+  /^NetworkError when attempting to fetch resource\.?$/i,
+];
+
+function errorMessage(error: unknown): string {
+  if (typeof error === 'string') return error;
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    typeof (error as { message?: unknown }).message === 'string'
+  ) {
+    return String((error as { message: string }).message);
+  }
+  return '';
+}
+
 /** True when the browser could not load a hash-named bundle from a previous deployment. */
 export function isChunkLoadFailure(error: unknown): boolean {
   if (error === null || error === undefined) return false;
@@ -52,14 +80,27 @@ export function isChunkLoadFailure(error: unknown): boolean {
     if (typeof name === 'string' && name === 'ChunkLoadError') return true;
   }
 
-  const message =
-    typeof error === 'string'
-      ? error
-      : typeof error === 'object' && typeof (error as { message?: unknown }).message === 'string'
-        ? String((error as { message: string }).message)
-        : '';
-
+  const message = errorMessage(error);
   return CHUNK_LOAD_FAILURE_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+/** True when the service worker could not serve a navigation from its caches. */
+export function isServiceWorkerCacheFailure(error: unknown): boolean {
+  if (error === null || error === undefined) return false;
+
+  const message = errorMessage(error).trim();
+  if (message.length === 0) return false;
+
+  return SERVICE_WORKER_CACHE_FAILURE_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+/**
+ * Both failures abort the router navigation and leave the route outlet empty,
+ * so both are recovered by a new document. API errors are excluded: reloading
+ * cannot fix them and would only hide the authoritative server response.
+ */
+export function isNavigationRecoveryFailure(error: unknown): boolean {
+  return isChunkLoadFailure(error) || isServiceWorkerCacheFailure(error);
 }
 
 /**
@@ -109,7 +150,7 @@ export class AppUpdateService implements OnDestroy {
   private started = false;
   private initialCheckStarted = false;
   private reloadRequested = false;
-  private chunkRecoveryStarted = false;
+  private navigationRecoveryStarted = false;
   private recoveryReloads = 0;
   private checkInFlight = false;
   private initialCheckFallbackHandle: ReturnType<typeof setTimeout> | null = null;
@@ -139,7 +180,7 @@ export class AppUpdateService implements OnDestroy {
       );
 
       this.subscriptions.add(
-        this.navigationFailures.subscribe((error) => this.recoverFromStaleChunk(error)),
+        this.navigationFailures.subscribe((error) => this.recoverFromBrokenNavigation(error)),
       );
 
       this.scheduleInitialUpdateCheck();
@@ -262,18 +303,19 @@ export class AppUpdateService implements OnDestroy {
   }
 
   /**
-   * A lazy chunk from a previous deployment no longer exists on the server.
+   * A lazy chunk from a previous deployment no longer exists on the server, or
+   * the service worker could not serve the navigation from its caches.
    * Activating the pending version first makes the reload land on the deployed
    * bundle instead of the stale document, and the whole recovery runs at most
    * once per document.
    */
-  private recoverFromStaleChunk(error: unknown): void {
-    if (this.chunkRecoveryStarted || !isChunkLoadFailure(error)) return;
-    this.chunkRecoveryStarted = true;
-    void this.activateAndReloadStaleChunk();
+  private recoverFromBrokenNavigation(error: unknown): void {
+    if (this.navigationRecoveryStarted || !isNavigationRecoveryFailure(error)) return;
+    this.navigationRecoveryStarted = true;
+    void this.activateAndReloadBrokenNavigation();
   }
 
-  private async activateAndReloadStaleChunk(): Promise<void> {
+  private async activateAndReloadBrokenNavigation(): Promise<void> {
     // Activating only helps a document the worker actually controls; otherwise
     // it would wait on `navigator.serviceWorker.ready` for nothing.
     if (this.hasServiceWorkerController()) {
@@ -287,9 +329,10 @@ export class AppUpdateService implements OnDestroy {
   }
 
   /**
-   * Guarded reload shared by the unrecoverable state and stale chunk paths.
-   * A reload that the loop guard suppresses is retried once, so an app that
-   * broke right after another reload still recovers instead of staying blank.
+   * Guarded reload shared by the unrecoverable state, stale chunk and service
+   * worker cache paths. A reload that the loop guard suppresses is retried
+   * once, so an app that broke right after another reload still recovers
+   * instead of staying blank.
    */
   private requestRecoveryReload(): void {
     if (this.recoveryReloads >= MAX_RECOVERY_RELOADS) return;
