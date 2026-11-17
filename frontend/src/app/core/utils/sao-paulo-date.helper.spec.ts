@@ -1,4 +1,4 @@
-import { formatSaoPauloDate, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange } from './sao-paulo-date.helper';
+import { formatSaoPauloDate, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange, saoPauloTodayEndExclusive } from './sao-paulo-date.helper';
 import {
   analyticsDaysInMonth,
   analyticsMaxWeekBlock,
@@ -54,6 +54,14 @@ describe('sao-paulo-date.helper', () => {
     expect(saoPauloTodayIso()).toBe('2026-10-28');
 
     jest.useRealTimers();
+  });
+
+  it('computes the exclusive end of the current local day at the next local midnight', () => {
+    expect(saoPauloTodayEndExclusive(new Date('2026-10-29T02:30:00.000Z')))
+      .toBe('2026-10-29T03:00:00.000Z');
+    expect(saoPauloTodayEndExclusive(new Date('2026-10-29T12:00:00.000Z')))
+      .toBe('2026-10-30T03:00:00.000Z');
+    expect(saoPauloTodayEndExclusive(new Date('invalid'))).toBe('');
   });
 
   it('formats a civil ISO date without shifting the day', () => {

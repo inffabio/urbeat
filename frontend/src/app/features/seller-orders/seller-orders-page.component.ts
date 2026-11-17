@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { EMPTY, Observable, catchError, expand, finalize, firstValueFrom, forkJoin, map, of, toArray } from 'rxjs';
-import { DashboardPeriod, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange } from '../../core/utils/sao-paulo-date.helper';
+import { DashboardPeriod, formatSaoPauloDateTime, formatSaoPauloTime, saoPauloPeriodRange, saoPauloTodayEndExclusive } from '../../core/utils/sao-paulo-date.helper';
 import { isWindowsPlatform } from '../../core/utils/platform.helper';
 import { OrderService } from '../../core/services/order.service';
 import { DeliveryDriverService } from '../../core/services/delivery-driver.service';
@@ -364,9 +364,26 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     if (!options?.silent) this.error.set(false);
     const sequence = ++this.loadSequence;
     const range = saoPauloPeriodRange(this.selectedPeriod());
+    // The day board ends at the São Paulo civil-day boundary computed from the calendar, never at
+    // the browser's current instant: a brand-new order must be visible on the realtime reload even
+    // when the device clock is slightly behind the server that stamped CreatedAtUtc.
+    const endExclusiveUtc = this.selectedPeriod() === 'today'
+      ? saoPauloTodayEndExclusive()
+      : undefined;
+    const endDateUtc = endExclusiveUtc ? undefined : range.endDateUtc;
 
     forkJoin(this.allStatuses.map((status) =>
-      this.loadStatusOrders(status, range.startDateUtc, range.endDateUtc),
+      this.loadStatusOrders(status, range.startDateUtc, endDateUtc, endExclusiveUtc).pipe(
+        map((pages) => ({ status, pages })),
+        // One column failing must not discard the whole board: the remaining statuses still
+        // refresh, and the failed column keeps its previous contents. The failure stays visible
+        // (console diagnostic + the global error toast from the interceptor) instead of aborting
+        // the realtime reload silently.
+        catchError((error: unknown) => {
+          console.warn(`SellerOrders: could not refresh status ${OrderStatus[status]}.`, error);
+          return of({ status, pages: null as PagedOrderSummary[] | null });
+        }),
+      ),
     )).pipe(
       // A request that completes without emitting (or whose payload cannot be processed)
       // must still release the board spinner. Only the newest request owns the flag, so a
@@ -377,12 +394,21 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       }),
     ).subscribe({
-      next: (pagesByStatus) => {
+      next: (statusResults) => {
         if (sequence !== this.loadSequence) return;
         try {
+          const previous = this.orders();
           const items = this.sortOrders(
-            pagesByStatus.flatMap((pages) => pages.flatMap((page) => page.items)),
+            statusResults.flatMap(({ status, pages }) => pages
+              ? pages.flatMap((page) => page.items)
+              : previous.filter((order) => order.status === status)),
           );
+          const everyStatusFailed = statusResults.every(({ pages }) => pages === null);
+          if (everyStatusFailed && previous.length === 0) {
+            if (!options?.silent) this.error.set(true);
+            return;
+          }
+
           this.orders.set(items);
           this.expandNewlyReceivedOrders(items);
           this.syncDetailsFromSummaries(items);
@@ -408,6 +434,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     status: OrderStatus,
     startDateUtc: string | undefined,
     endDateUtc: string | undefined,
+    endExclusiveUtc: string | undefined,
   ): Observable<PagedOrderSummary[]> {
     const request = (page: number) =>
       this.orderService.getStoreOrders({
@@ -416,6 +443,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
         status,
         startDateUtc,
         endDateUtc,
+        endExclusiveUtc,
       });
 
     const firstPage = request(1);

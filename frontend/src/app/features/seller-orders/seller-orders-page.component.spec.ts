@@ -3304,7 +3304,10 @@ describe('SellerOrdersPageComponent', () => {
       for (const [query] of calls) {
         expect(query.pageSize).toBe(50);
         expect(query.startDateUtc).toBe('2026-07-29T03:00:00.000Z');
-        expect(query.endDateUtc).toBe('2026-07-29T12:00:00.000Z');
+        // The board upper bound is the exclusive next local midnight, not the browser instant,
+        // so a brand-new order is never filtered out by device clock skew.
+        expect(query.endExclusiveUtc).toBe('2026-07-30T03:00:00.000Z');
+        expect(query.endDateUtc).toBeUndefined();
       }
     });
 

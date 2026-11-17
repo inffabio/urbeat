@@ -62,6 +62,19 @@ export function saoPauloTodayIso(now = new Date()): string {
   return `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`;
 }
 
+/**
+ * Exclusive end of the current São Paulo civil day (next local midnight, expressed in UTC).
+ *
+ * The operational day board uses this as its upper bound instead of the browser's current
+ * instant: a brand-new order must not be filtered out because the device clock is a few seconds
+ * behind the server that stamped `CreatedAtUtc`.
+ */
+export function saoPauloTodayEndExclusive(now = new Date()): string {
+  if (Number.isNaN(now.getTime())) return '';
+  const parts = saoPauloDateParts(now);
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day + 1, 3, 0, 0, 0)).toISOString();
+}
+
 /** Formats a civil yyyy-MM-dd date as dd/MM/yyyy without timezone conversion. */
 export function formatSaoPauloIsoDate(isoDate: string): string {
   const parts = parseIsoDate(isoDate);
