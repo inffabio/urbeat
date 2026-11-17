@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
@@ -212,6 +214,32 @@ describe('SellerCustomersPageComponent', () => {
     expect(component.formatPhone('11988887777')).toBe('(11) 98888-7777');
     expect(component.formatPhone('1188887777')).toBe('(11) 8888-7777');
     expect(component.formatDate(null)).toBe('-');
+  });
+
+  describe('customer edit modal layout', () => {
+    const template = readFileSync(resolve(__dirname, 'seller-customers-page.component.html'), 'utf8');
+    const styles = readFileSync(resolve(__dirname, 'seller-customers-page.component.scss'), 'utf8');
+
+    it('places the form fields in a dedicated scroll region and keeps the save action outside it', () => {
+      const scrollStart = template.indexOf('<ion-content class="customer-edit-scroll"');
+      const scrollEnd = template.indexOf('</ion-content>');
+      const saveAction = template.indexOf('class="customer-save-button');
+
+      expect(template).toContain('cssClass="customer-edit-dialog"');
+      expect(scrollStart).toBeGreaterThan(-1);
+      expect(scrollEnd).toBeGreaterThan(scrollStart);
+      expect(saveAction).toBeGreaterThan(scrollEnd);
+      expect(template).toContain('class="customer-edit-footer"');
+      expect(template).toContain('Salvar alterações');
+    });
+
+    it('constrains the modal to the dynamic viewport and keeps the action reachable above safe areas', () => {
+      expect(styles).toMatch(/ion-modal\.customer-edit-dialog\s*\{[\s\S]*?--height:[^;]*100dvh/);
+      expect(styles).toMatch(/ion-modal\.customer-edit-dialog\s*\{[\s\S]*?env\(safe-area-inset-bottom/);
+      expect(styles).toMatch(/\.customer-edit-scroll\s*\{[\s\S]*?min-height:\s*0/);
+      expect(styles).toMatch(/\.customer-edit-footer\s*\{[\s\S]*?env\(safe-area-inset-bottom/);
+      expect(styles).toMatch(/\.customer-save-button\s*\{[\s\S]*?min-height:\s*48px/);
+    });
   });
 
 });

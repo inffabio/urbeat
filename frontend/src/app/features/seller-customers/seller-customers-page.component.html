@@ -142,7 +142,11 @@
   }
 </section>
 
-<ion-modal [isOpen]="!!editingCustomer()" (didDismiss)="editingCustomer.set(null)">
+<ion-modal
+  [isOpen]="!!editingCustomer()"
+  (didDismiss)="editingCustomer.set(null)"
+  cssClass="customer-edit-dialog"
+>
   <ng-template>
     <div class="modal-content customer-edit-modal">
       <div class="modal-head">
@@ -151,42 +155,46 @@
           <ion-icon name="close-outline" aria-hidden="true" />
         </button>
       </div>
-       <div class="customer-edit-fields">
-        <label for="customerEditName">Nome</label>
-        <input id="customerEditName" type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
-        <label for="customerEditEmail">E-mail</label>
-        <input id="customerEditEmail" type="email" [ngModel]="editEmail()" (ngModelChange)="editEmail.set($event)" />
-        <label for="customerEditPhone">Telefone</label>
-        <input id="customerEditPhone" type="tel" [ngModel]="editPhone()" (ngModelChange)="editPhone.set($event)" />
-        <label for="customerEditCep">CEP</label>
-        <input id="customerEditCep" type="text" inputmode="numeric" placeholder="00000-000" [ngModel]="editCep()" (ngModelChange)="onEditCepChange($event)" />
-        @if (editCepLoading()) { <small class="customer-address-loading">Consultando endereço pelo CEP...</small> }
-        <div class="customer-address-grid">
-          <div>
-            <label for="customerEditStreet">Rua</label>
-            <input id="customerEditStreet" type="text" [ngModel]="editStreet()" (ngModelChange)="editStreet.set($event)" />
+      <ion-content class="customer-edit-scroll">
+        <div class="customer-edit-fields">
+          <label for="customerEditName">Nome</label>
+          <input id="customerEditName" type="text" [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+          <label for="customerEditEmail">E-mail</label>
+          <input id="customerEditEmail" type="email" [ngModel]="editEmail()" (ngModelChange)="editEmail.set($event)" />
+          <label for="customerEditPhone">Telefone</label>
+          <input id="customerEditPhone" type="tel" [ngModel]="editPhone()" (ngModelChange)="editPhone.set($event)" />
+          <label for="customerEditCep">CEP</label>
+          <input id="customerEditCep" type="text" inputmode="numeric" placeholder="00000-000" [ngModel]="editCep()" (ngModelChange)="onEditCepChange($event)" />
+          @if (editCepLoading()) { <small class="customer-address-loading">Consultando endereço pelo CEP...</small> }
+          <div class="customer-address-grid">
+            <div>
+              <label for="customerEditStreet">Rua</label>
+              <input id="customerEditStreet" type="text" [ngModel]="editStreet()" (ngModelChange)="editStreet.set($event)" />
+            </div>
+            <div>
+              <label for="customerEditNumber">Número</label>
+              <input id="customerEditNumber" type="text" [ngModel]="editNumber()" (ngModelChange)="editNumber.set($event)" />
+            </div>
           </div>
-          <div>
-            <label for="customerEditNumber">Número</label>
-            <input id="customerEditNumber" type="text" [ngModel]="editNumber()" (ngModelChange)="editNumber.set($event)" />
+          <label for="customerEditComplement">Complemento</label>
+          <input id="customerEditComplement" type="text" [ngModel]="editComplement()" (ngModelChange)="editComplement.set($event)" />
+          <label for="customerEditNeighborhood">Bairro</label>
+          <input id="customerEditNeighborhood" type="text" [ngModel]="editNeighborhood()" (ngModelChange)="editNeighborhood.set($event)" />
+          <div class="customer-address-grid">
+            <div>
+              <label for="customerEditCity">Cidade</label>
+              <input id="customerEditCity" type="text" [ngModel]="editCity()" (ngModelChange)="editCity.set($event)" />
+            </div>
+            <div>
+              <label for="customerEditState">UF</label>
+              <input id="customerEditState" type="text" maxlength="2" [ngModel]="editState()" (ngModelChange)="editState.set($event)" />
+            </div>
           </div>
         </div>
-        <label for="customerEditComplement">Complemento</label>
-        <input id="customerEditComplement" type="text" [ngModel]="editComplement()" (ngModelChange)="editComplement.set($event)" />
-        <label for="customerEditNeighborhood">Bairro</label>
-        <input id="customerEditNeighborhood" type="text" [ngModel]="editNeighborhood()" (ngModelChange)="editNeighborhood.set($event)" />
-        <div class="customer-address-grid">
-          <div>
-            <label for="customerEditCity">Cidade</label>
-            <input id="customerEditCity" type="text" [ngModel]="editCity()" (ngModelChange)="editCity.set($event)" />
-          </div>
-          <div>
-            <label for="customerEditState">UF</label>
-            <input id="customerEditState" type="text" maxlength="2" [ngModel]="editState()" (ngModelChange)="editState.set($event)" />
-          </div>
-        </div>
+      </ion-content>
+      <div class="customer-edit-footer">
+        <button type="button" class="customer-save-button full-width" (click)="saveCustomer()" [disabled]="!editName().trim() || !editEmail().trim() || !editPhone().trim() || editCepLoading()">Salvar alterações</button>
       </div>
-       <button type="button" class="customer-save-button full-width" (click)="saveCustomer()" [disabled]="!editName().trim() || !editEmail().trim() || !editPhone().trim() || editCepLoading()">Salvar alterações</button>
     </div>
   </ng-template>
 </ion-modal>

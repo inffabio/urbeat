@@ -135,16 +135,45 @@
   padding: 0;
 }
 
+/*
+ * The Ionic modal clips its wrapper, so the dialog height must fit the dynamic
+ * viewport and the fields need their own scrollport. Otherwise the lower
+ * address fields and the save action sit outside the visible area.
+ */
+::ng-deep ion-modal.customer-edit-dialog {
+  --width: min(480px, calc(100vw - 32px));
+  --max-width: min(480px, calc(100vw - 32px));
+  --height: min(
+    760px,
+    calc(
+      100dvh - max(16px, env(safe-area-inset-top, 0px)) - max(16px, env(safe-area-inset-bottom, 0px))
+    )
+  );
+  --max-height: calc(
+    100dvh - max(16px, env(safe-area-inset-top, 0px)) - max(16px, env(safe-area-inset-bottom, 0px))
+  );
+  --border-radius: 20px;
+  --box-shadow: 0 24px 70px rgba(17, 20, 38, 0.24);
+}
+
 .modal-content {
-  padding: 20px 24px 24px;
-  max-width: 480px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 20px 24px 0;
+  background: var(--app-surface);
 }
 
 .customer-edit-modal {
-  display: grid;
-  gap: 12px;
-  width: min(480px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-edit-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  --background: var(--app-surface);
+  --padding-bottom: 8px;
 }
 
 .customer-edit-fields {
@@ -193,6 +222,11 @@
 }
 
 .customer-edit-modal .full-width { width: 100%; }
+
+.customer-edit-footer {
+  flex: 0 0 auto;
+  padding: 12px 0 max(20px, env(safe-area-inset-bottom, 0px));
+}
 
 .customer-save-button {
   min-height: 48px;
