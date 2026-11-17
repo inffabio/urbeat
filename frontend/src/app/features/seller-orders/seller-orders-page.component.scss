@@ -254,8 +254,9 @@
 
 .order-card-heading {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -309,6 +310,19 @@
   white-space: nowrap;
 }
 
+.order-status-chip {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f7ee;
+  color: #0f7a37;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .card-meta {
   margin: 14px 0 18px;
   font-size: 12px;
@@ -317,14 +331,6 @@
   overflow-wrap: anywhere;
 
   strong { font-weight: 800; }
-}
-
-.card-badge-row {
-  margin-top: 14px;
-
-  & + .card-meta {
-    margin-top: 8px;
-  }
 }
 
 .items-title {

@@ -416,6 +416,42 @@ describe('TrackingPageComponent', () => {
     fixture.destroy();
   });
 
+  it('shows the Ready pickup state instead of the waiting copy', () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Ready,
+    }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const header = fixture.debugElement.query(By.css('.success-header'));
+    const etaRow = fixture.debugElement.query(By.css('.eta-row'));
+    expect(header.nativeElement.textContent).toContain('Pedido pronto para retirada');
+    expect(etaRow.nativeElement.textContent).toContain('Seu pedido está pronto para retirada');
+    expect(etaRow.nativeElement.textContent).not.toContain('A loja avisará quando estiver pronto');
+
+    fixture.destroy();
+  });
+
+  it('keeps delivery copy for a delivery order in Ready status', () => {
+    getOrderMock.mockReturnValue(of({ ...baseOrder, status: OrderStatus.Ready }));
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+
+    const header = fixture.debugElement.query(By.css('.success-header')).nativeElement.textContent;
+    const etaRow = fixture.debugElement.query(By.css('.eta-row')).nativeElement.textContent;
+    expect(header).toContain('Pedido enviado!');
+    expect(header).not.toContain('retirada');
+    expect(etaRow).toContain('Previsão de entrega');
+    expect(etaRow).not.toContain('Retirada no local');
+    expect(etaRow).not.toContain('pronto para retirada');
+
+    fixture.destroy();
+  });
+
   it('wraps the status list in a labelled region that keeps list semantics without an inert tab stop', () => {
     const fixture = TestBed.createComponent(TrackingPageComponent);
     fixture.detectChanges();
@@ -480,6 +516,88 @@ describe('TrackingPageComponent', () => {
     await tick();
 
     expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.Ready);
+
+    fixture.destroy();
+  });
+
+  it('should reflect a pickup Ready event on the header and ETA immediately', async () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Preparing,
+    }));
+
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    await tracking.start();
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+    await tick();
+
+    expect(fixture.debugElement.query(By.css('.eta-row')).nativeElement.textContent)
+      .toContain('A loja avisará quando estiver pronto');
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Ready,
+      history: [
+        ...baseOrder.history,
+        { createdAtUtc: '2026-07-28T12:10:00Z', previousStatus: OrderStatus.Preparing, newStatus: OrderStatus.Ready },
+      ],
+    }));
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    });
+    await tick();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.Ready);
+    expect(fixture.debugElement.query(By.css('.success-header')).nativeElement.textContent)
+      .toContain('Pedido pronto para retirada');
+    const etaRow = fixture.debugElement.query(By.css('.eta-row')).nativeElement.textContent;
+    expect(etaRow).toContain('Seu pedido está pronto para retirada');
+    expect(etaRow).not.toContain('A loja avisará quando estiver pronto');
+
+    fixture.destroy();
+  });
+
+  it('should reflect a pickup Ready state obtained through an HTTP refresh fallback', async () => {
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Preparing,
+    }));
+
+    const tracking = TestBed.inject(CustomerOrderTrackingService);
+    await tracking.start();
+
+    const fixture = TestBed.createComponent(TrackingPageComponent);
+    fixture.detectChanges();
+    await tick();
+
+    getOrderMock.mockReturnValue(of({
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      status: OrderStatus.Ready,
+      history: [
+        ...baseOrder.history,
+        { createdAtUtc: '2026-07-28T12:10:00Z', previousStatus: OrderStatus.Preparing, newStatus: OrderStatus.Ready },
+      ],
+    }));
+    tracking.refresh('order1');
+    fixture.detectChanges();
+    await tick();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.order()?.status).toBe(OrderStatus.Ready);
+    expect(fixture.debugElement.query(By.css('.success-header')).nativeElement.textContent)
+      .toContain('Pedido pronto para retirada');
+    expect(fixture.debugElement.query(By.css('.eta-row')).nativeElement.textContent)
+      .toContain('Seu pedido está pronto para retirada');
 
     fixture.destroy();
   });

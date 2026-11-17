@@ -177,6 +177,32 @@ describe('CustomerOrderTrackingService', () => {
     expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
   });
 
+  it('applies a pickup Ready event and exposes it as the finished pickup state', async () => {
+    const pickupOrder = {
+      ...baseOrder,
+      fulfillmentType: FulfillmentType.PickUp,
+      deliveryFee: 0,
+      total: 20,
+    };
+    getOrderMock.mockReturnValue(of(pickupOrder));
+
+    const service = TestBed.inject(CustomerOrderTrackingService);
+    await service.start();
+    service.trackOrder('order1');
+
+    getOrderMock.mockReturnValue(of({ ...pickupOrder, status: OrderStatus.Ready }));
+    listeners['OrderStatusUpdated']({
+      orderId: 'order1',
+      orderCode: 'ABC123',
+      status: OrderStatus.Ready,
+      changedAtUtc: '2026-07-28T12:10:00Z',
+    });
+
+    expect(service.trackedOrders()[0].status).toBe(OrderStatus.Ready);
+    expect(service.finishedOrders().map((order) => order.id)).toEqual(['order1']);
+    expect(service.activeOrders()).toEqual([]);
+  });
+
   it('ignores events for orders that are not tracked', async () => {
     getOrderMock.mockReturnValue(of(baseOrder));
 

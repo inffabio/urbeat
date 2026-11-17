@@ -1085,6 +1085,94 @@ public sealed class OrderServiceTests : IDisposable
         _db.OutboxMessages.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(OrderStatus.OnDelivery)]
+    [InlineData(OrderStatus.Delivered)]
+    public async Task UpdateStatusAsync_ShouldRejectDeliveryStates_ForPickupOrder(OrderStatus nextStatus)
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-pickup", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-PICKUP-1",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Ready,
+            Total = 25m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var sut = CreateService(_db);
+
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = nextStatus },
+            null);
+
+        result.InvalidTransition.Should().BeTrue();
+        result.Order.Should().BeNull();
+        (await _db.Orders.SingleAsync()).Status.Should().Be(OrderStatus.Ready);
+        _db.OutboxMessages.Should().BeEmpty();
+        _db.OrderStatusHistories.Should().BeEmpty();
+        _db.AuditLogs.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldEnqueueReadyEvent_ForPickupWithoutDriverOrPin()
+    {
+        var sellerUserId = Guid.NewGuid();
+        var customerUserId = Guid.NewGuid();
+        var store = new Store { OwnerUserId = sellerUserId, Name = "Loja Teste", Slug = "loja-teste-pickup-ready", PhoneNumber = "11999999999" };
+        var order = new Order
+        {
+            Code = "URB-PICKUP-2",
+            CustomerUserId = customerUserId,
+            StoreId = store.Id,
+            FulfillmentType = FulfillmentType.PickUp,
+            Status = OrderStatus.Preparing,
+            StatusVersion = 2,
+            Total = 30m
+        };
+        _db.Stores.Add(store);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var sut = CreateService(_db);
+
+        var result = await sut.UpdateStatusAsync(
+            sellerUserId,
+            order.Id,
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Ready },
+            null);
+
+        result.InvalidTransition.Should().BeFalse();
+        result.Order.Should().NotBeNull();
+        result.Order!.Status.Should().Be(OrderStatus.Ready);
+
+        var stored = await _db.Orders.SingleAsync();
+        stored.Status.Should().Be(OrderStatus.Ready);
+        stored.StatusVersion.Should().Be(3);
+        stored.DeliveryPinHash.Should().BeNull();
+        stored.DeliveryPinEncrypted.Should().BeNull();
+        stored.DeliveryLinkTokenHash.Should().BeNull();
+
+        (await _db.OrderDeliveryAssignments.CountAsync()).Should().Be(0);
+        (await _db.DeliveryRoutes.CountAsync()).Should().Be(0);
+
+        var message = await _db.OutboxMessages.SingleAsync(x => x.Type == OutboxEventTypes.OrderStatusChanged);
+        var payload = JsonSerializer.Deserialize<OrderStatusChangedEvent>(message.Payload, JsonOptions);
+        payload!.PreviousStatus.Should().Be(OrderStatus.Preparing);
+        payload.NewStatus.Should().Be(OrderStatus.Ready);
+        payload.Source.Should().Be("Seller");
+        payload.Sequence.Should().Be(3);
+        message.Sequence.Should().Be(3);
+    }
+
     [Fact]
     public async Task CompleteForSellerBoardAsync_ShouldForbid_DifferentSeller()
     {

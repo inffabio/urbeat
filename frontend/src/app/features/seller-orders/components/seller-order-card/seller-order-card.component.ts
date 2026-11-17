@@ -68,7 +68,6 @@ export class SellerOrderCardComponent {
         if (this.order().fulfillmentType === FulfillmentType.PickUp) return [];
         return [
           { label: 'Saiu para entrega', nextStatus: OrderStatus.OnDelivery },
-          { label: 'Entregue no balcão', nextStatus: OrderStatus.Delivered, variant: 'secondary' },
           { label: 'Cancelar', nextStatus: OrderStatus.Cancelled, variant: 'danger' },
         ];
       case OrderStatus.OnDelivery:
@@ -91,7 +90,7 @@ export class SellerOrderCardComponent {
 
   fulfillmentLabel(type: FulfillmentType | undefined): string {
     if (type === undefined || type === null) return '';
-    return type === FulfillmentType.PickUp ? 'Retirada' : 'Entrega';
+    return type === FulfillmentType.PickUp ? 'Retirada pessoalmente' : 'Entrega';
   }
 
   paymentLabel(method: PaymentMethod | undefined): string {

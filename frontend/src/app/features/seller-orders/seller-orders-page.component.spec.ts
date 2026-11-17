@@ -2378,7 +2378,101 @@ describe('SellerOrdersPageComponent', () => {
     const card = expandOrderCard(fixture, '1');
     const badge = card.querySelector('.pickup-badge');
     expect(badge).not.toBeNull();
-    expect(badge!.textContent).toContain('Retirada no balcão');
+    expect(badge!.textContent).toContain('Retirada pessoalmente');
+  });
+
+  it('keeps the pickup badge visible on the collapsed card header', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Ready) {
+        return of({
+          items: [buildOrder({ id: 'pickup-ready', code: 'PU-9', status: OrderStatus.Ready, fulfillmentType: FulfillmentType.PickUp, total: 30 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = findOrderCard(fixture, 'pickup-ready');
+    const readyColumn = fixture.nativeElement.querySelector('.status-col[data-status-tone="ready"]') as HTMLElement;
+    expect(readyColumn.querySelector('.order-card[data-order-id="pickup-ready"]')).not.toBeNull();
+    const header = card.querySelector('.order-card-toggle');
+    expect(header!.querySelector('.pickup-badge')!.textContent).toContain('Retirada pessoalmente');
+    expect(header!.querySelector('.order-status-chip')!.textContent).toContain('Pronto para retirada');
+    expect(card.textContent).not.toContain('Saiu para entrega');
+  });
+
+  it('updates a pickup order to Ready and shows Pronto para retirada immediately', () => {
+    let boardStatus = OrderStatus.Preparing;
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === boardStatus) {
+        return of({
+          items: [buildOrder({ id: 'pickup-prep', code: 'PU-5', status: boardStatus, fulfillmentType: FulfillmentType.PickUp, total: 40 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+    orderServiceMock.updateStoreOrderStatus.mockImplementation(() => {
+      boardStatus = OrderStatus.Ready;
+      return of({
+        id: 'pickup-prep',
+        code: 'PU-5',
+        status: OrderStatus.Ready,
+        fulfillmentType: FulfillmentType.PickUp,
+        items: [],
+        total: 40,
+        createdAtUtc: '2026-08-04T10:00:00Z',
+      });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.confirmAdvance(
+      fixture.componentInstance.statusGroups().preparing[0],
+      OrderStatus.Ready,
+      'Marcar como pronto',
+    );
+    fixture.componentInstance.executeAdvance();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.statusGroups().ready.map((order) => order.id)).toEqual(['pickup-prep']);
+    const readyColumn = fixture.nativeElement.querySelector('.status-col[data-status-tone="ready"]') as HTMLElement;
+    expect(readyColumn.querySelector('.order-card[data-order-id="pickup-prep"]')).not.toBeNull();
+    const card = findOrderCard(fixture, 'pickup-prep');
+    expect(card.textContent).toContain('Pronto para retirada');
+    expect(card.querySelector('.order-status-chip')!.textContent).toContain('Pronto para retirada');
+  });
+
+  it('keeps a Ready delivery order on the motoboy-gated transition only', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Ready) {
+        return of({
+          items: [buildOrder({ id: 'delivery-ready', code: 'DL-7', status: OrderStatus.Ready, fulfillmentType: FulfillmentType.Delivery, total: 50 })],
+          totalItems: 1,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const card = expandOrderCard(fixture, 'delivery-ready');
+    expect(card.textContent).toContain('Saiu para entrega');
+    expect(card.textContent).not.toContain('Entregue no balcão');
+    expect(card.textContent).not.toContain('Marcar como entregue');
+    expect(fixture.componentInstance.cardAction(
+      fixture.componentInstance.statusGroups().ready[0],
+    )).toEqual({
+      kind: 'advance',
+      label: 'Saiu para entrega',
+      nextStatus: OrderStatus.OnDelivery,
+      css: 'action-blue',
+    });
   });
 
   it('does not show the pickup badge on delivery orders', () => {

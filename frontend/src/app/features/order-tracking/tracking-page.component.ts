@@ -118,11 +118,31 @@ export class TrackingPageComponent implements OnInit, OnDestroy {
   readonly etaText = computed(() => {
     const o = this.order();
     if (!o) return '';
-    if (this.isPickup()) return 'A loja avisará quando estiver pronto';
+    if (this.isPickup()) {
+      return o.status === OrderStatus.Ready
+        ? 'Seu pedido está pronto para retirada'
+        : 'A loja avisará quando estiver pronto';
+    }
     const start = new Date(new Date(o.createdAtUtc).getTime() + 30 * 60_000);
     const end = new Date(new Date(o.createdAtUtc).getTime() + 60 * 60_000);
     const fmt = (d: Date) => formatSaoPauloTime(d);
     return `Hoje, entre ${fmt(start)} e ${fmt(end)}`;
+  });
+
+  readonly headerTitle = computed(() => {
+    const o = this.order();
+    if (o?.status === OrderStatus.Ready && this.isPickup()) {
+      return 'Pedido pronto para retirada!';
+    }
+    return 'Pedido enviado!';
+  });
+
+  readonly headerDescription = computed(() => {
+    const o = this.order();
+    if (o?.status === OrderStatus.Ready && this.isPickup()) {
+      return 'Seu pedido está pronto. Retire na loja.';
+    }
+    return 'Seu pedido foi recebido com sucesso e já está sendo preparado.';
   });
 
   readonly steps = computed<TimelineStep[]>(() => {

@@ -37,17 +37,18 @@
         ></i>
         <span class="order-card-heading">
           <span class="order-code">#{{ displayOrderCode(order) }}</span>
+          @if (isPickup(order)) {
+            <span class="pickup-badge"><i class="bi bi-shop" aria-hidden="true"></i> Retirada pessoalmente</span>
+          }
           @if (order.customerName) { <span class="order-customer">{{ order.customerName }}</span> }
+          @if (isPickup(order) && order.status === OrderStatus.Ready) {
+            <span class="order-status-chip">Pronto para retirada</span>
+          }
         </span>
         <span class="card-time">{{ formatOrderTime(order.createdAtUtc) }}</span>
       </button>
 
       <div class="order-card-body" [id]="orderBodyId(order.id)" [hidden]="!isOrderExpanded(order.id)">
-        @if (isPickup(order)) {
-          <div class="card-badge-row">
-            <span class="pickup-badge"><i class="bi bi-shop" aria-hidden="true"></i> Retirada no balcão</span>
-          </div>
-        }
         <div class="card-meta">
           @if (order.customerPhoneNumber) { <div><strong>Contato:</strong> {{ order.customerPhoneNumber }}</div> }
           @if (order.addressSummary) { <div><strong>Endereço:</strong> {{ order.addressSummary }}</div> }

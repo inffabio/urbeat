@@ -131,11 +131,19 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
             sellerClient, "Entregador Pickup", "11999990001", null, isActive: true);
 
         var pickupOrderId = await CreateOrderAsync(sellerClient, storeId, FulfillmentType.PickUp, null);
+        // Ready is an assignable status for delivery orders, so the only remaining reason
+        // for the rejection must be the pickup fulfillment type.
+        await AdvanceToReadyAsync(sellerClient, pickupOrderId);
 
         var assign = await sellerClient.PutAsJsonAsync(
             $"/api/orders/store/{pickupOrderId}/delivery-driver",
             new AssignDeliveryDriverRequestDto { DeliveryDriverId = driver.Id });
         assign.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await db.OrderDeliveryAssignments.AsNoTracking().AnyAsync(x => x.OrderId == pickupOrderId))
+            .Should().BeFalse("a pickup order must never gain a motoboy assignment");
     }
 
     [Fact]
@@ -146,6 +154,9 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
         var driver = await CreateSimpleDriverAsync(
             sellerClient, "Entregador Pickup Efeitos", "11999990011", null, isActive: true);
         var pickupOrderId = await CreateOrderAsync(sellerClient, storeId, FulfillmentType.PickUp, null);
+        // Ready is the furthest valid pickup state and is not a delivery status, so route
+        // rejection must come from the pickup fulfillment guard, not from an intermediate status.
+        await AdvanceToReadyAsync(sellerClient, pickupOrderId);
         int routeCountBefore;
         using (var baselineScope = _factory.Services.CreateScope())
         {
@@ -1677,6 +1688,11 @@ public sealed class DeliveryDriverFlowTests : IClassFixture<TestWebApplicationFa
                 new UpdateOrderStatusRequestDto { NewStatus = status });
             response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         }
+
+        var onDelivery = await sellerClient.PatchAsJsonAsync(
+            $"/api/orders/{order}/status",
+            new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.OnDelivery });
+        onDelivery.StatusCode.Should().Be(HttpStatusCode.BadRequest, await onDelivery.Content.ReadAsStringAsync());
 
         var delivered = await sellerClient.PatchAsJsonAsync(
             $"/api/orders/{order}/status",

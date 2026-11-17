@@ -1572,7 +1572,7 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
 
   fulfillmentLabel(type?: FulfillmentType): string {
     if (type === undefined || type === null) return '';
-    return type === FulfillmentType.PickUp ? 'Retirada' : 'Entrega';
+    return type === FulfillmentType.PickUp ? 'Retirada pessoalmente' : 'Entrega';
   }
 
   isPickup(order: OrderSummary): boolean {

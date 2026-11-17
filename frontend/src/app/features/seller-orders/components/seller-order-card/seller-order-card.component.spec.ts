@@ -84,13 +84,14 @@ describe('SellerOrderCardComponent', () => {
     expect(card.getAttribute('draggable')).not.toBe('true');
   });
 
-  it('renders all valid backend transitions for a ready order', () => {
+  it('renders all valid backend transitions for a ready delivery order', () => {
     const fixture = TestBed.createComponent(SellerOrderCardComponent);
     fixture.componentRef.setInput('order', {
       id: 'order1',
       code: '123',
       storeId: 'store1',
       status: OrderStatus.Ready,
+      fulfillmentType: FulfillmentType.Delivery,
       total: 42.5,
       createdAtUtc: '2026-07-29T10:00:00Z',
     });
@@ -98,8 +99,31 @@ describe('SellerOrderCardComponent', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Saiu para entrega');
-    expect(text).toContain('Entregue no balcão');
     expect(text).toContain('Cancelar');
+    // The backend requires a motoboy to start the delivery, so a Ready -> Delivered
+    // shortcut would be rejected and must never be offered.
+    expect(text).not.toContain('Entregue no balcão');
+  });
+
+  it('marks a pickup order as personal pickup and never offers delivery transitions', () => {
+    const fixture = TestBed.createComponent(SellerOrderCardComponent);
+    fixture.componentRef.setInput('order', {
+      id: 'pickup1',
+      code: 'PU-1',
+      storeId: 'store1',
+      status: OrderStatus.Ready,
+      fulfillmentType: FulfillmentType.PickUp,
+      total: 30,
+      createdAtUtc: '2026-07-29T10:00:00Z',
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Retirada pessoalmente');
+    expect(text).toContain('Pronto para retirada');
+    expect(text).not.toContain('Saiu para entrega');
+    expect(text).not.toContain('Entregue no balcão');
+    expect(fixture.componentInstance.statusActions(OrderStatus.Ready)).toEqual([]);
   });
 
   it('disables actions for the order currently being updated', () => {
