@@ -14,7 +14,8 @@
 - Store timestamps in UTC.
 - Preserve Domain → Application → Infrastructure → WebApi layering.
 - Preserve Angular standalone components, Signals, `inject()`, strict typing, and modern control flow.
-- Gateway parameters are future configuration only; never expose secrets publicly or simulate payment.
+
+- The seller dashboard is read-only for plans/subscriptions in the initial product; there is no legacy seller contract flow.
 - Do not alter `print-agent` or `oci-mcp-server`.
 - Do not include existing unrelated untracked files in commits.
 - Use TDD: write a failing test, run it, implement the smallest fix, then run the focused and regression suites.
@@ -102,7 +103,7 @@
 - [ ] **Step 5: Commit**:
   `git add backend/src/Urbeat.Infrastructure/Services backend/src/Urbeat.WebApi/Controllers backend/src/Urbeat.Infrastructure/Persistence/BillingPlanSeeder.cs backend/tests && git commit -m "feat: add admin subscription plan catalog"`
 
-## Task 4: Add seller registration plan selection and subscription snapshot
+## Task 4: Add pending seller plan selection and consume it at store creation
 
 **Files:**
 - Modify: `backend/src/Urbeat.Application/DTOs/RegisterUserRequestDto.cs`
@@ -117,9 +118,9 @@
 - Test: `backend/tests/Urbeat.IntegrationTests/Api/SellerRegistrationSubscriptionTests.cs`
 
 **Interfaces:**
-- Registration request accepts required `PlanId` and `BillingPeriod` for new seller registration.
+- Registration request accepts required `PlanId` and `BillingPeriod` for new seller registration and stores a pending selection.
 - Registration rejects missing/inactive plan or disabled billing period with no seller/store side effects.
-- After successful registration, the server creates one subscription with snapshot name, description, amount, trial days, discount, period, UTC start/trial/end/next billing dates.
+- `POST /api/stores` consumes the pending selection atomically, creates one subscription with snapshot name, description, amount, trial days, discount, period, UTC start/trial/end/next billing dates, and starts trial at store creation.
 - Charge stub status is `AwaitingGateway`; it has no gateway identifier, boleto code, PDF, or payment URL.
 
 - [ ] **Step 1: Write failing unit and integration tests** for missing plan, invalid period, successful monthly/annual selection, UTC trial dates, snapshot immutability, one-time charge-stub creation, allowed upgrades, rejected downgrades, and preserved subscription history.
@@ -154,7 +155,7 @@
 - [ ] **Step 6: Commit**:
   `git add frontend/src/app/features/admin-plans frontend/src/app/core/services/admin-plans.service.ts frontend/src/app/shared/models/subscription.model.ts frontend/src/app/app.routes.ts && git commit -m "feat: add admin subscription plan dashboard"`
 
-## Task 6: Update seller subscription surface and upgrade-only flow
+## Task 6: Make seller subscription surface read-only
 
 **Files:**
 - Modify: `frontend/src/app/features/seller-subscription/seller-subscription-page.component.ts`
@@ -163,9 +164,9 @@
 - Modify: `frontend/src/app/core/services/subscription.service.ts`
 - Modify: `frontend/src/app/shared/models/subscription.model.ts`
 
-- [ ] **Step 1: Write failing tests** proving the seller dashboard does not offer plan administration or unsafe gateway settings, while displaying the selected period, trial, snapshot amount, and `Boleto aguardando integração` state; with one plan there is no switch, and with multiple plans only superior plans are offered.
+- [ ] **Step 1: Write failing tests** proving the seller dashboard does not offer plan administration, plan selection, upgrade/downgrade actions, or unsafe gateway settings, while displaying the selected period, trial, snapshot amount, and `Boleto aguardando integração` state.
 - [ ] **Step 2: Run the focused seller subscription spec and confirm failure.**
-- [ ] **Step 3: Implement read-only seller subscription presentation with upgrade-only actions. Remove plan administration and downgrade actions, preserve existing overdue/blocked behavior, and show the current plan level plus eligible superior plans.**
+- [ ] **Step 3: Implement read-only seller subscription presentation. Remove plan administration and contract actions, preserve existing overdue/blocked behavior, and show the current plan, period, trial, and stub state.**
 - [ ] **Step 4: Run**:
   `npx jest --no-coverage src/app/features/seller-subscription src/app/core/services/subscription.service.spec.ts`
 - [ ] **Step 5: Commit**:
@@ -226,3 +227,4 @@
 - [ ] Confirm no unrelated untracked files are staged.
 - [ ] Review public DTOs and logs for gateway secrets.
 - [ ] Ask the architect/reviewer subagent for a final diff review.
+

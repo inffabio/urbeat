@@ -56,3 +56,4 @@ condições divergentes do catálogo autoritativo.
 - `Criar meu cadastro` rola para a seção.
 - Cadastro preserva e envia os parâmetros.
 - Plano desativado durante a jornada gera mensagem de revalidação.
+

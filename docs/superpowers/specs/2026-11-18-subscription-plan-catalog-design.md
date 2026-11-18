@@ -27,7 +27,8 @@ de boleto, sem gateway definido ou pagamento real.
 - O cadastro exige plano e periodicidade para novos lojistas.
 - O browser envia somente identificadores; o servidor recalcula valor, trial,
   desconto e datas.
-- O servidor vincula o plano ao lojista após o cadastro ser finalizado.
+
+- A seleção fica pendente após o cadastro e é consumida somente quando a criação da loja for concluída; o trial começa na criação da loja.
 - O lojista pode trocar de plano somente para um plano superior quando houver
   mais de um plano ativo.
 - A superioridade é definida por nível/ordem configurado pelo administrador,
@@ -76,8 +77,8 @@ A criação será transacional/idempotente conforme os padrões existentes.
 - Datas persistidas em UTC.
 - Assinaturas existentes permanecem válidas e mantêm seus snapshots.
 - Migrações devem fornecer defaults compatíveis para dados atuais.
-- Não haverá alteração no gateway Asaas existente nesta entrega além da
-  separação/configuração futura necessária.
+
+- Qualquer segredo futuro usa referência a Vault/secret store; o banco guarda somente parâmetros não secretos.
 
 ## Testes e critérios de aceite
 
@@ -95,3 +96,4 @@ A criação será transacional/idempotente conforme os padrões existentes.
 - Geração ou pagamento de boleto real.
 - Downgrade de plano pelo lojista.
 - Prorrata, reembolso, cancelamento de assinatura ou cobrança automática real.
+
