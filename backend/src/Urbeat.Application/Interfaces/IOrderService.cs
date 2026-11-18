@@ -43,4 +43,15 @@ public interface IOrderService
         Guid orderId,
         string? ipAddress,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cancels an order on behalf of the store owner. Only Received/Preparing orders can be
+    /// cancelled; the actor, status and UTC timestamp are derived by the server.
+    /// </summary>
+    Task<CancelOrderResultDto> CancelStoreOrderAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        CancelOrderRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
 }

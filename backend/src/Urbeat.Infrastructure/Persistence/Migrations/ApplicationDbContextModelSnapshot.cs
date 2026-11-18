@@ -1721,6 +1721,16 @@ namespace Urbeat.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CancelledBy")
+                        .HasColumnType("integer");
+
                     b.Property<decimal?>("CashChangeAmount")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");

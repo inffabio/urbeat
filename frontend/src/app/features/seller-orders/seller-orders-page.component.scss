@@ -200,6 +200,7 @@
 }
 
 .order-card {
+  position: relative;
   background: var(--orders-card);
   border: 1px solid #edf0f7;
   border-radius: 2px;
@@ -243,6 +244,52 @@
   &:focus-visible {
     outline: 2px solid var(--app-brand, #d54a51);
     outline-offset: -2px;
+  }
+}
+
+/* Reserve the top-right corner the X occupies so the header never runs under it. */
+.order-card.has-cancel .order-card-toggle {
+  padding-right: 58px;
+}
+
+/*
+ * Discreet danger affordance: it must not compete with the card headline, but keeps a
+ * 44px target and a visible focus ring. It lives outside the accordion button because a
+ * button cannot be nested inside another button.
+ */
+.order-cancel-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--app-error, #d32f2f);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(211, 47, 47, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-error, #d32f2f);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
   }
 }
 
@@ -321,6 +368,11 @@
   font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
+
+  &.is-cancelled {
+    background: #fdecec;
+    color: #b3261e;
+  }
 }
 
 .card-meta {
@@ -618,6 +670,10 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--orders-green-text);
+
+  &.is-cancelled {
+    color: var(--app-error, #d32f2f);
+  }
 }
 
 .card-print-button {
@@ -716,6 +772,59 @@
       cursor: not-allowed;
     }
   }
+
+  .btn-danger {
+    background: var(--app-error, #d32f2f);
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: progress;
+    }
+  }
+}
+
+.cancel-reason-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 4px;
+
+  span {
+    color: var(--app-text-muted, #767680);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 96px;
+    padding: 10px 12px;
+    border: 1px solid var(--app-border-light, #eadfd6);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--app-ink, #161616);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+
+    &[aria-invalid='true'] {
+      border-color: var(--app-error, #d32f2f);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--app-brand, #d54a51);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.confirm-modal .cancel-error {
+  margin: 10px 0 0;
+  color: var(--app-error, #d32f2f);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .btn-soft {

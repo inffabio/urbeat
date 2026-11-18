@@ -19,6 +19,7 @@
       class="order-card"
       [class.is-expanded]="isOrderExpanded(order.id)"
       [class.is-target]="isTargetOrder(order.id)"
+      [class.has-cancel]="canCancelOrder(order)"
       [attr.data-order-id]="order.id"
       [attr.tabindex]="isTargetOrder(order.id) ? -1 : null"
     >
@@ -41,12 +42,27 @@
             <span class="pickup-badge"><i class="bi bi-shop" aria-hidden="true"></i> Retirada pessoalmente</span>
           }
           @if (order.customerName) { <span class="order-customer">{{ order.customerName }}</span> }
-          @if (isPickup(order) && order.status === OrderStatus.Ready) {
+          @if (order.status === OrderStatus.Cancelled) {
+            <span class="order-status-chip is-cancelled">Cancelado</span>
+          } @else if (isPickup(order) && order.status === OrderStatus.Ready) {
             <span class="order-status-chip">{{ statusLabel(order.status, order.fulfillmentType, order.sellerCompletedAtUtc) }}</span>
           }
         </span>
         <span class="card-time">{{ formatOrderTime(order.createdAtUtc) }}</span>
       </button>
+
+      @if (canCancelOrder(order)) {
+        <button
+          type="button"
+          class="order-cancel-button"
+          (click)="openCancelDialog(order)"
+          [disabled]="cancellingOrderId() === order.id"
+          [attr.aria-label]="'Cancelar pedido ' + displayOrderCode(order)"
+          [attr.title]="'Cancelar pedido ' + displayOrderCode(order)"
+        >
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      }
 
       <div class="order-card-body" [id]="orderBodyId(order.id)" [hidden]="!isOrderExpanded(order.id)">
         <div class="card-meta">
@@ -140,7 +156,9 @@
               </button>
             }
           } @else {
-            <span class="status-done-label">{{ isConcludedPickup(order) ? 'Retirado' : 'entregue' }}</span>
+            <span class="status-done-label" [class.is-cancelled]="order.status === OrderStatus.Cancelled">
+              {{ orderFooterLabel(order) }}
+            </span>
           }
         </div>
       </div>
@@ -235,6 +253,64 @@
           [disabled]="!canConfirmPending() || updatingOrderId() === pending.order.id"
         >
           Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (cancelTarget(); as cancelOrder) {
+  <div class="confirm-overlay cancel-overlay" (click)="dismissCancelDialog()">
+    <div
+      class="confirm-modal cancel-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancel-order-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="dismissCancelDialog()"
+    >
+      <strong id="cancel-order-title">Cancelar pedido?</strong>
+      <p>
+        O pedido <strong>#{{ displayOrderCode(cancelOrder) }}</strong> será cancelado e a loja não
+        poderá mais prepará-lo. O cliente será avisado. Esta ação não pode ser desfeita.
+      </p>
+
+      <label class="cancel-reason-field">
+        <span>Motivo do cancelamento</span>
+        <textarea
+          rows="3"
+          [ngModel]="cancelReason()"
+          (ngModelChange)="setCancelReason($event)"
+          [maxlength]="cancelReasonMaxLength"
+          [attr.aria-invalid]="cancelError() ? 'true' : null"
+          [attr.aria-describedby]="cancelError() ? 'cancel-reason-error' : null"
+          [disabled]="cancellingOrderId() === cancelOrder.id"
+          placeholder="Descreva o motivo (mínimo 5 caracteres)"
+          aria-label="Motivo do cancelamento"
+        ></textarea>
+      </label>
+
+      @if (cancelError(); as message) {
+        <p id="cancel-reason-error" class="cancel-error" role="alert">{{ message }}</p>
+      }
+
+      <div class="confirm-actions">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="dismissCancelDialog()"
+          [disabled]="cancellingOrderId() === cancelOrder.id"
+        >
+          Voltar
+        </button>
+        <button
+          type="button"
+          class="btn-confirm btn-danger"
+          (click)="confirmCancel()"
+          [disabled]="cancellingOrderId() === cancelOrder.id"
+          [attr.aria-busy]="cancellingOrderId() === cancelOrder.id ? 'true' : null"
+        >
+          {{ cancellingOrderId() === cancelOrder.id ? 'Cancelando...' : 'Cancelar pedido' }}
         </button>
       </div>
     </div>

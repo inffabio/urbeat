@@ -58,6 +58,10 @@ type BoardAction =
 /** Minimum gap between full-board reloads triggered by an unknown-order status event. */
 const UNKNOWN_ORDER_RECONCILE_MIN_INTERVAL_MS = 5_000;
 
+/** Same rule enforced by the server for the seller cancellation reason. */
+const MIN_CANCEL_REASON_LENGTH = 5;
+const MAX_CANCEL_REASON_LENGTH = 500;
+
 @Component({
   selector: 'app-seller-orders-page',
   standalone: true,
@@ -116,6 +120,13 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
   readonly completingOrderId = signal<string | null>(null);
   readonly orders = signal<OrderSummary[]>([]);
   readonly pendingAction = signal<PendingAction | null>(null);
+  /** Order awaiting the seller cancellation confirmation; only Received/Preparing reach it. */
+  readonly cancelTarget = signal<OrderSummary | null>(null);
+  readonly cancelReason = signal('');
+  readonly cancelError = signal<string | null>(null);
+  /** Order whose cancellation request is in flight; blocks a second submit. */
+  readonly cancellingOrderId = signal<string | null>(null);
+  readonly cancelReasonMaxLength = MAX_CANCEL_REASON_LENGTH;
   readonly orderDetails = signal<Map<string, OrderDetails>>(new Map());
   readonly itemsErrorOrderIds = signal<ReadonlySet<string>>(new Set());
   readonly retryingOrderIds = signal<ReadonlySet<string>>(new Set());
@@ -200,6 +211,9 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
     OrderStatus.Ready,
     OrderStatus.OnDelivery,
     OrderStatus.Delivered,
+    // Cancelled orders share the terminal Concluído column with delivered orders, so the group
+    // reflects the authoritative server state without a separate board section.
+    OrderStatus.Cancelled,
   ];
 
   readonly newOrders = computed(() => this.statusGroups().received);
@@ -223,9 +237,12 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
       ready: this.sortOrders(all.filter((o) => o.status === OrderStatus.Ready && !this.isConcludedPickup(o))),
       onDelivery: this.sortOrders(all.filter((o) => o.status === OrderStatus.OnDelivery)),
       // Pickup keeps OrderStatus.Ready after the handover, so a concluded pickup belongs to the
-      // terminal column next to the delivered orders.
+      // terminal column next to the delivered orders. Cancelled orders are terminal as well and
+      // are identified as "Cancelado" inside the same Concluído column.
       delivered: this.sortOrders(all.filter((o) =>
-        o.status === OrderStatus.Delivered || this.isConcludedPickup(o))),
+        o.status === OrderStatus.Delivered
+        || o.status === OrderStatus.Cancelled
+        || this.isConcludedPickup(o))),
     };
   });
 
@@ -876,6 +893,94 @@ export class SellerOrdersPageComponent implements OnInit, OnDestroy {
        || (this.isPickup(order) && order.status === OrderStatus.Ready))
       && !order.sellerCompletedAtUtc
       && (!!order.deliveryConfirmedAtUtc || this.isPickup(order));
+  }
+
+  /**
+   * The store may cancel an order only before it is ready (Received/Preparing). The server
+   * enforces the same rule; this predicate only decides whether the X is offered.
+   */
+  canCancelOrder(order: Pick<OrderSummary, 'status' | 'sellerCompletedAtUtc'>): boolean {
+    return !order.sellerCompletedAtUtc
+      && (order.status === OrderStatus.Received || order.status === OrderStatus.Preparing);
+  }
+
+  openCancelDialog(order: OrderSummary): void {
+    if (!this.canCancelOrder(order) || this.cancellingOrderId()) return;
+    this.cancelReason.set('');
+    this.cancelError.set(null);
+    this.cancelTarget.set(order);
+  }
+
+  setCancelReason(value: string): void {
+    this.cancelReason.set(value ?? '');
+    if (this.cancelError()) this.cancelError.set(null);
+  }
+
+  dismissCancelDialog(): void {
+    if (this.cancellingOrderId()) return;
+    this.cancelTarget.set(null);
+    this.cancelReason.set('');
+    this.cancelError.set(null);
+  }
+
+  confirmCancel(): void {
+    const target = this.cancelTarget();
+    if (!target || this.cancellingOrderId()) return;
+
+    const reason = this.cancelReason().trim();
+    if (reason.length < MIN_CANCEL_REASON_LENGTH) {
+      this.cancelError.set(`Informe o motivo com pelo menos ${MIN_CANCEL_REASON_LENGTH} caracteres.`);
+      return;
+    }
+
+    if (reason.length > MAX_CANCEL_REASON_LENGTH) {
+      this.cancelError.set(`O motivo deve ter no máximo ${MAX_CANCEL_REASON_LENGTH} caracteres.`);
+      return;
+    }
+
+    const orderId = target.id;
+    this.cancelError.set(null);
+    this.cancellingOrderId.set(orderId);
+
+    this.orderService.cancelOrder(orderId, reason).subscribe({
+      next: (cancelled) => {
+        this.cancellingOrderId.set(null);
+        this.cancelTarget.set(null);
+        this.cancelReason.set('');
+        this.applyCancelledOrder(orderId, cancelled);
+        void this.toast.showSuccess('Pedido cancelado.');
+        this.shell.notifyOrderChanged(orderId);
+        // The server is authoritative: reconcile the day board (the order now arrives under
+        // Cancelled) without wiping the local transition if the refresh fails.
+        this.load({ silent: true });
+      },
+      error: (err) => {
+        this.cancellingOrderId.set(null);
+        // The card stays exactly where it was; the reason and the confirmation stay open so
+        // the seller can retry or dismiss.
+        const message = err?.error?.error ?? 'Não foi possível cancelar o pedido.';
+        this.cancelError.set(message);
+        void this.toast.showError(message);
+      },
+    });
+  }
+
+  private applyCancelledOrder(orderId: string, cancelled: OrderDetails | null | undefined): void {
+    if (cancelled?.id === orderId) {
+      this.patchOrderFromDetails(cancelled);
+      return;
+    }
+
+    this.orders.update((items) => items.map((item) =>
+      item.id === orderId ? { ...item, status: OrderStatus.Cancelled } : item,
+    ));
+    this.patchDetailStatus(orderId, OrderStatus.Cancelled);
+  }
+
+  /** Footer label for cards without a board action (concluded or cancelled orders). */
+  orderFooterLabel(order: OrderSummary): string {
+    if (order.status === OrderStatus.Cancelled) return 'Cancelado';
+    return this.isConcludedPickup(order) ? 'Retirado' : 'entregue';
   }
 
   /**

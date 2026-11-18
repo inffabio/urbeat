@@ -59,10 +59,13 @@ describe('SellerOrdersPageComponent realtime board reload', () => {
     createdAtUtc: '2026-11-17T18:00:00Z',
   });
 
-  /** Takes the five board queries (removing them from the open queue) for a responder to flush. */
+  /**
+   * Takes the board queries (one per loaded status, including Cancelled for the Concluído
+   * column) out of the open queue for a responder to flush.
+   */
   const takeBoardRequests = (): ReturnType<HttpTestingController['match']> => {
     const requests = http.match((request) => boardPathOf(request.url) === BOARD_PATH);
-    expect(requests.length).toBe(5);
+    expect(requests.length).toBe(6);
     return requests;
   };
 

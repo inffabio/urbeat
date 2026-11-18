@@ -26,8 +26,20 @@ import { isWindowsPlatform } from '../../core/utils/platform.helper';
 
 const isWindowsPlatformMock = isWindowsPlatform as jest.Mock;
 
+/**
+ * One request per status loaded by the day board: Received, Preparing, Ready, OnDelivery,
+ * Delivered and Cancelled (the latter shares the Concluído column).
+ */
+const BOARD_STATUS_REQUESTS = 6;
+
 describe('SellerOrdersPageComponent', () => {
-  let orderServiceMock: { getStoreOrders: jest.Mock; getStoreOrder: jest.Mock; updateStoreOrderStatus: jest.Mock; completeOrder: jest.Mock };
+  let orderServiceMock: {
+    getStoreOrders: jest.Mock;
+    getStoreOrder: jest.Mock;
+    updateStoreOrderStatus: jest.Mock;
+    completeOrder: jest.Mock;
+    cancelOrder: jest.Mock;
+  };
   let deliveryDriverServiceMock: {
     listStoreDrivers: jest.Mock;
     assignOrder: jest.Mock;
@@ -137,6 +149,7 @@ describe('SellerOrdersPageComponent', () => {
       getStoreOrder: jest.fn().mockReturnValue(of({ id: '', code: '', items: [], total: 0, createdAtUtc: '' })),
       updateStoreOrderStatus: jest.fn().mockReturnValue(of({})),
       completeOrder: jest.fn().mockReturnValue(of({})),
+      cancelOrder: jest.fn().mockReturnValue(of({})),
     };
     automaticPrintMock = {
       enqueueAcceptedOrder: jest.fn().mockResolvedValue(undefined),
@@ -1589,7 +1602,7 @@ describe('SellerOrdersPageComponent', () => {
     listener({ orderId: 'other-unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:01Z' });
 
     // A burst of events for orders outside the board must not become a request storm.
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + BOARD_STATUS_REQUESTS);
     // The status payload alone cannot add a row, so no unsafe optimistic patch happens.
     expect(fixture.componentInstance.orders()).toEqual([]);
   });
@@ -1607,11 +1620,11 @@ describe('SellerOrdersPageComponent', () => {
 
     const before = orderServiceMock.getStoreOrders.mock.calls.length;
     listener({ orderId: 'unknown', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:10:00Z' });
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + BOARD_STATUS_REQUESTS);
 
     now += 5_000;
     listener({ orderId: 'unknown-2', status: OrderStatus.Ready, changedAtUtc: '2026-08-04T10:11:00Z' });
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 10);
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + BOARD_STATUS_REQUESTS * 2);
   });
 
   it('coalesces unknown-order reconciliations while one board reload is in flight', () => {
@@ -1629,7 +1642,7 @@ describe('SellerOrdersPageComponent', () => {
     listener({ orderId: 'unknown', status: OrderStatus.Delivered, changedAtUtc: '2026-08-04T10:11:00Z' });
 
     // One pending reload covers both unknown-order events.
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + BOARD_STATUS_REQUESTS);
   });
 
   it('keeps the newest status when the point read for a status event resolves late', () => {
@@ -1754,7 +1767,7 @@ describe('SellerOrdersPageComponent', () => {
     signalRServiceMock.isSellerConnected.set(true);
     fixture.detectChanges();
 
-    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + 5);
+    expect(orderServiceMock.getStoreOrders.mock.calls.length).toBe(before + BOARD_STATUS_REQUESTS);
 
     const afterReconnect = orderServiceMock.getStoreOrders.mock.calls.length;
     signalRServiceMock.isSellerConnected.set(true);
@@ -3374,6 +3387,9 @@ describe('SellerOrdersPageComponent', () => {
       OrderStatus.Ready,
       OrderStatus.OnDelivery,
       OrderStatus.Delivered,
+      // Cancelled orders are loaded with the day board as well, so they appear in the
+      // Concluído column from the authoritative server state without an extra request.
+      OrderStatus.Cancelled,
     ];
 
     it('loads orders with Sao Paulo today boundaries by default', () => {
@@ -3836,6 +3852,270 @@ describe('SellerOrdersPageComponent', () => {
       expect(icon.getAttribute('aria-hidden')).toBe('true');
     }
   });
+
+  describe('store order cancellation', () => {
+    const reason = 'Cliente pediu para cancelar';
+
+    const mockBoardWithStatuses = (itemsByStatus: Partial<Record<OrderStatus, any[]>>) => {
+      orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+        const items = itemsByStatus[status] ?? [];
+        return of({ items, totalItems: items.length });
+      });
+    };
+
+    const openCancelDialog = (fixture: ComponentFixture<SellerOrdersPageComponent>, orderId: string): void => {
+      const card = findOrderCard(fixture, orderId);
+      const button = card.querySelector<HTMLButtonElement>('.order-cancel-button');
+      expect(button).not.toBeNull();
+      button!.click();
+      fixture.detectChanges();
+    };
+
+    it('offers the cancel control only on Received and Preparing cards', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Received]: [buildOrder({ id: 'received', code: 'REC', status: OrderStatus.Received })],
+        [OrderStatus.Preparing]: [buildOrder({ id: 'preparing', code: 'PREP', status: OrderStatus.Preparing })],
+        [OrderStatus.Ready]: [buildOrder({ id: 'ready', code: 'READY', status: OrderStatus.Ready })],
+        [OrderStatus.OnDelivery]: [buildOrder({ id: 'delivery', code: 'DLV', status: OrderStatus.OnDelivery })],
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      const received = findOrderCard(fixture, 'received').querySelector<HTMLButtonElement>('.order-cancel-button');
+      const preparing = findOrderCard(fixture, 'preparing').querySelector<HTMLButtonElement>('.order-cancel-button');
+      expect(received).not.toBeNull();
+      expect(preparing).not.toBeNull();
+      expect(received!.getAttribute('aria-label')).toContain('REC');
+      expect(received!.getAttribute('title')).toContain('REC');
+      expect(findOrderCard(fixture, 'ready').querySelector('.order-cancel-button')).toBeNull();
+      expect(findOrderCard(fixture, 'delivery').querySelector('.order-cancel-button')).toBeNull();
+
+      expect(fixture.componentInstance.canCancelOrder(buildOrder({ status: OrderStatus.Received }))).toBe(true);
+      expect(fixture.componentInstance.canCancelOrder(buildOrder({ status: OrderStatus.Preparing }))).toBe(true);
+      expect(fixture.componentInstance.canCancelOrder(buildOrder({ status: OrderStatus.Ready }))).toBe(false);
+      expect(fixture.componentInstance.canCancelOrder(buildOrder({ status: OrderStatus.Ready, sellerCompletedAtUtc: '2026-08-04T11:00:00Z' }))).toBe(false);
+      expect(orderServiceMock.cancelOrder).not.toHaveBeenCalled();
+    });
+
+    it('opens the cancel confirmation without expanding the card or opening the details', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Received]: [buildOrder({ id: 'received', code: 'REC', status: OrderStatus.Received })],
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'received');
+
+      const dialog = fixture.nativeElement.querySelector('.cancel-modal') as HTMLElement | null;
+      expect(dialog).not.toBeNull();
+      expect(dialog!.textContent).toContain('Cancelar pedido?');
+      expect(dialog!.textContent).toContain('#REC');
+      expect(dialog!.querySelector('textarea')).not.toBeNull();
+      expect(dialog!.querySelector('.btn-cancel')?.textContent).toContain('Voltar');
+      expect(dialog!.querySelector('.btn-danger')?.textContent).toContain('Cancelar pedido');
+
+      expect(fixture.componentInstance.isOrderExpanded('received')).toBe(false);
+      expect(fixture.componentInstance.pendingAction()).toBeNull();
+      expect(fixture.componentInstance.selectedOrderId()).toBeNull();
+      expect(orderServiceMock.cancelOrder).not.toHaveBeenCalled();
+    });
+
+    it('requires a trimmed reason with at least five characters before calling the API', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Received]: [buildOrder({ id: 'received', code: 'REC', status: OrderStatus.Received })],
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'received');
+      fixture.componentInstance.setCancelReason('  abcd  ');
+      fixture.componentInstance.confirmCancel();
+      fixture.detectChanges();
+
+      expect(orderServiceMock.cancelOrder).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.cancel-error')).not.toBeNull();
+      expect(fixture.componentInstance.cancelTarget()).not.toBeNull();
+
+      fixture.componentInstance.setCancelReason('a'.repeat(fixture.componentInstance.cancelReasonMaxLength + 1));
+      fixture.componentInstance.confirmCancel();
+      fixture.detectChanges();
+
+      expect(orderServiceMock.cancelOrder).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.cancel-error')?.textContent).toContain('no máximo 500');
+
+      fixture.componentInstance.setCancelReason(`  ${reason}  `);
+      fixture.componentInstance.confirmCancel();
+
+      expect(orderServiceMock.cancelOrder).toHaveBeenCalledWith('received', reason);
+    });
+
+    it('moves a cancelled order to the Concluído column and leaves the operational columns', () => {
+      let status = OrderStatus.Received;
+      orderServiceMock.getStoreOrders.mockImplementation(({ status: requested }: any) => {
+        const matches = requested === status;
+        return of({ items: matches ? [buildOrder({ id: 'order-1', code: 'ABC', status })] : [], totalItems: matches ? 1 : 0 });
+      });
+      orderServiceMock.cancelOrder.mockImplementation(() => {
+        status = OrderStatus.Cancelled;
+        return of({
+          ...buildOrder({ id: 'order-1', code: 'ABC', status: OrderStatus.Cancelled }),
+          items: [],
+          history: [],
+        });
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'order-1');
+      fixture.componentInstance.setCancelReason(reason);
+      fixture.componentInstance.confirmCancel();
+      fixture.detectChanges();
+
+      expect(orderServiceMock.cancelOrder).toHaveBeenCalledWith('order-1', reason);
+      expect(fixture.componentInstance.statusGroups().received).toEqual([]);
+      expect(fixture.componentInstance.statusGroups().preparing).toEqual([]);
+      expect(fixture.componentInstance.statusGroups().delivered.map((order) => order.id)).toEqual(['order-1']);
+      expect(fixture.componentInstance.boardColumns()[3].title).toBe('Concluído');
+      expect(fixture.componentInstance.boardColumns()[3].orders.map((order) => order.id)).toEqual(['order-1']);
+      expect(toastServiceMock.showSuccess).toHaveBeenCalledWith('Pedido cancelado.');
+      expect(fixture.componentInstance.cancellingOrderId()).toBeNull();
+      expect(fixture.componentInstance.cancelTarget()).toBeNull();
+
+      const concludedColumn = fixture.nativeElement.querySelector(
+        '.status-col[data-status-tone="delivered"]',
+      ) as HTMLElement | null;
+      expect(concludedColumn).not.toBeNull();
+      // Cancelled orders share the existing terminal column; there is no separate section.
+      expect(fixture.nativeElement.querySelector('.cancelled-orders-panel')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Cancelados');
+      expect(fixture.nativeElement.querySelector('.new-orders-list .order-card[data-order-id="order-1"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.status-col[data-status-tone="preparing"] .order-card')).toBeNull();
+
+      const card = concludedColumn!.querySelector('.order-card[data-order-id="order-1"]') as HTMLElement | null;
+      expect(card).not.toBeNull();
+      expect(card!.querySelector('.order-status-chip')?.textContent?.trim()).toBe('Cancelado');
+      expect(card!.querySelector('.status-done-label')?.textContent?.trim()).toBe('Cancelado');
+      expect(card!.querySelector('.order-cancel-button')).toBeNull();
+      expect(card!.querySelector('.board-action')).toBeNull();
+      expect(card!.textContent).not.toContain('Cancelar pedido');
+    });
+
+    it('renders a cancelled order in the Concluído column next to delivered orders', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Delivered]: [buildOrder({
+          id: 'delivered',
+          code: 'DLV',
+          status: OrderStatus.Delivered,
+          createdAtUtc: '2026-08-04T10:00:00Z',
+        })],
+        [OrderStatus.Cancelled]: [buildOrder({
+          id: 'cancelled',
+          code: 'CXL',
+          status: OrderStatus.Cancelled,
+          createdAtUtc: '2026-08-04T10:05:00Z',
+        })],
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      // Both are terminal states on the same board column, sorted newest first.
+      expect(fixture.componentInstance.statusGroups().delivered.map((order) => order.id))
+        .toEqual(['cancelled', 'delivered']);
+
+      const concludedColumn = fixture.nativeElement.querySelector(
+        '.status-col[data-status-tone="delivered"]',
+      ) as HTMLElement;
+      expect(concludedColumn.querySelector('.order-card[data-order-id="cancelled"]')).not.toBeNull();
+      expect(concludedColumn.querySelector('.order-card[data-order-id="delivered"]')).not.toBeNull();
+      expect(concludedColumn.querySelector('.order-card[data-order-id="cancelled"] .order-status-chip')
+        ?.textContent?.trim()).toBe('Cancelado');
+      expect(concludedColumn.querySelector('.order-card[data-order-id="cancelled"] .order-cancel-button')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.cancelled-orders-panel')).toBeNull();
+    });
+
+    it('keeps the card and reports the error when the cancellation fails', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Preparing]: [buildOrder({ id: 'order-1', code: 'ABC', status: OrderStatus.Preparing })],
+      });
+      orderServiceMock.cancelOrder.mockReturnValue(
+        throwError(() => ({ error: { error: 'Somente pedidos recebidos ou em preparo podem ser cancelados pela loja.' } })),
+      );
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'order-1');
+      fixture.componentInstance.setCancelReason(reason);
+      fixture.componentInstance.confirmCancel();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.statusGroups().preparing.map((order) => order.id)).toEqual(['order-1']);
+      expect(fixture.componentInstance.statusGroups().delivered).toEqual([]);
+      expect(fixture.nativeElement.querySelector('.status-col .order-card[data-order-id="order-1"]')).not.toBeNull();
+      expect(toastServiceMock.showError).toHaveBeenCalledWith(
+        'Somente pedidos recebidos ou em preparo podem ser cancelados pela loja.',
+      );
+      expect(fixture.nativeElement.querySelector('.cancel-error')?.textContent)
+        .toContain('Somente pedidos recebidos ou em preparo');
+      expect(fixture.componentInstance.cancellingOrderId()).toBeNull();
+    });
+
+    it('blocks a second cancellation request while the first is in flight', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Received]: [buildOrder({ id: 'order-1', code: 'ABC', status: OrderStatus.Received })],
+      });
+      const inFlight = new Subject<any>();
+      orderServiceMock.cancelOrder.mockReturnValue(inFlight.asObservable());
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'order-1');
+      fixture.componentInstance.setCancelReason(reason);
+      fixture.componentInstance.confirmCancel();
+      expect(fixture.componentInstance.cancellingOrderId()).toBe('order-1');
+
+      fixture.componentInstance.confirmCancel();
+      expect(orderServiceMock.cancelOrder).toHaveBeenCalledTimes(1);
+
+      inFlight.next({ ...buildOrder({ id: 'order-1', code: 'ABC', status: OrderStatus.Cancelled }), items: [], history: [] });
+      inFlight.complete();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.cancellingOrderId()).toBeNull();
+    });
+
+    it('closes the confirmation without cancelling when the seller chooses Voltar', () => {
+      mockBoardWithStatuses({
+        [OrderStatus.Received]: [buildOrder({ id: 'order-1', code: 'ABC', status: OrderStatus.Received })],
+      });
+
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      openCancelDialog(fixture, 'order-1');
+      (fixture.nativeElement.querySelector('.cancel-modal .btn-cancel') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.cancel-modal')).toBeNull();
+      expect(fixture.componentInstance.cancelReason()).toBe('');
+      expect(orderServiceMock.cancelOrder).not.toHaveBeenCalled();
+    });
+
+    it('never renders a separate Cancelados section', () => {
+      const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.cancelled-orders-panel')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Cancelados');
+      expect(fixture.nativeElement.querySelectorAll('.status-col').length).toBe(4);
+    });
+  });
 });
 
 /**
@@ -3979,6 +4259,7 @@ describe('SellerOrdersPageComponent responsive contract', () => {
     expect(minHeight('.confirm-actions')).toBeGreaterThanOrEqual(44);
     expect(minHeight('.details-error-actions')).toBeGreaterThanOrEqual(44);
     expect(minHeight('.card-print-button')).toBeGreaterThanOrEqual(44);
+    expect(minHeight('.order-cancel-button')).toBeGreaterThanOrEqual(44);
   });
 
   it('bounds dialogs by the available width instead of the viewport unit alone', () => {

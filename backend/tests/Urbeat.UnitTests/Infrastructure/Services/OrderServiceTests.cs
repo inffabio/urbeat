@@ -1107,7 +1107,7 @@ public sealed class OrderServiceTests : IDisposable
             sellerUserId, order.Id, new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing }, null);
 
         var second = await serviceB.UpdateStatusAsync(
-            sellerUserId, order.Id, new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Cancelled }, null);
+            sellerUserId, order.Id, new UpdateOrderStatusRequestDto { NewStatus = OrderStatus.Preparing }, null);
 
         first.ConcurrentUpdate.Should().BeFalse();
         first.Order.Should().NotBeNull();

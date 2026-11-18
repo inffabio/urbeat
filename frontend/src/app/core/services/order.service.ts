@@ -46,6 +46,15 @@ export class OrderService {
     return this.api.post<OrderDetails>(`/api/orders/${orderId}/complete`, {});
   }
 
+  /**
+   * Seller-initiated cancellation. Only Received/Preparing orders are accepted by the server;
+   * the reason is mandatory (minimum 5 characters) and the actor/status/timestamp are derived
+   * server-side.
+   */
+  cancelOrder(orderId: string, reason: string): Observable<OrderDetails> {
+    return this.api.post<OrderDetails>(`/api/orders/${orderId}/cancel`, { reason });
+  }
+
   getMyOrders(): Observable<OrderSummary[]> {
     return this.api.get<OrderSummary[]>('/api/orders/my');
   }

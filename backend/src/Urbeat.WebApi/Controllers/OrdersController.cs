@@ -22,6 +22,7 @@ public sealed class OrdersController : ControllerBase
     private readonly IIndividualDeliveryLinkService _individualDeliveryLinkService;
     private readonly IValidator<CheckoutRequestDto> _checkoutValidator;
     private readonly IValidator<UpdateOrderStatusRequestDto> _updateStatusValidator;
+    private readonly IValidator<CancelOrderRequestDto> _cancelOrderValidator;
     private readonly IValidator<AssignDeliveryDriverRequestDto> _assignDriverValidator;
     private readonly TimeProvider _timeProvider;
     private readonly IStoreRequestContext _storeContext;
@@ -34,6 +35,7 @@ public sealed class OrdersController : ControllerBase
         IOrderReportService orderReportService,
         IValidator<CheckoutRequestDto> checkoutValidator,
         IValidator<UpdateOrderStatusRequestDto> updateStatusValidator,
+        IValidator<CancelOrderRequestDto> cancelOrderValidator,
         IDeliveryDriverService deliveryDriverService,
         IIndividualDeliveryLinkService individualDeliveryLinkService,
         IValidator<AssignDeliveryDriverRequestDto> assignDriverValidator,
@@ -45,6 +47,7 @@ public sealed class OrdersController : ControllerBase
         _orderReportService = orderReportService;
         _checkoutValidator = checkoutValidator;
         _updateStatusValidator = updateStatusValidator;
+        _cancelOrderValidator = cancelOrderValidator;
         _deliveryDriverService = deliveryDriverService;
         _individualDeliveryLinkService = individualDeliveryLinkService;
         _assignDriverValidator = assignDriverValidator;
@@ -431,6 +434,78 @@ public sealed class OrdersController : ControllerBase
         }
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Seller-initiated cancellation. Only Received/Preparing orders can be cancelled; the reason
+    /// is mandatory (minimum 5 characters) and the actor/status/timestamps are server-derived.
+    /// </summary>
+    [HttpPost("{orderId}/cancel")]
+    [Authorize(Policy = AuthorizationPolicies.StoreAccess)]
+    [ProducesResponseType<OrderDetailsResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CancelStoreOrder(
+        [FromRoute] Guid orderId,
+        [FromBody] CancelOrderRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _cancelOrderValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return ValidationProblem(new ValidationProblemDetails(validation.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    keySelector: group => group.Key,
+                    elementSelector: group => group.Select(x => x.ErrorMessage).ToArray())));
+        }
+
+        var sellerUserId = GetCurrentUserId();
+        if (sellerUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _orderService.CancelStoreOrderAsync(
+            sellerUserId.Value,
+            orderId,
+            request,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (result.ReasonRequired)
+        {
+            return BadRequest(new { error = "Informe o motivo do cancelamento com pelo menos 5 caracteres." });
+        }
+
+        if (result.ReasonTooLong)
+        {
+            return BadRequest(new { error = "O motivo do cancelamento deve ter no máximo 500 caracteres." });
+        }
+
+        if (result.InvalidState)
+        {
+            return Conflict(new { error = "Somente pedidos recebidos ou em preparo podem ser cancelados pela loja." });
+        }
+
+        if (result.ConcurrentUpdate)
+        {
+            return Conflict(new { error = "The order status changed concurrently; reload and retry." });
+        }
+
+        return Ok(result.Order);
     }
 
     [HttpPatch("{orderId}/status")]

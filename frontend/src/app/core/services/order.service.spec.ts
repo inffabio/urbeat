@@ -168,6 +168,31 @@ describe('OrderService', () => {
     });
   });
 
+  it('should request the seller cancellation with the reason only', () => {
+    service.cancelOrder('order1', 'Cliente pediu para cancelar').subscribe((order) => {
+      expect(order.status).toBe(OrderStatus.Cancelled);
+    });
+
+    const req = httpMock.expectOne('/api/orders/order1/cancel');
+    expect(req.request.method).toBe('POST');
+    // The actor, status and timestamps are derived by the server; the client only sends the reason.
+    expect(req.request.body).toEqual({ reason: 'Cliente pediu para cancelar' });
+    req.flush({
+      id: 'order1',
+      code: '123',
+      storeId: 'store1',
+      fulfillmentType: 1,
+      status: OrderStatus.Cancelled,
+      paymentMethod: 1,
+      subtotal: 20,
+      deliveryFee: 0,
+      total: 20,
+      createdAtUtc: '2026-07-29T10:00:00Z',
+      items: [],
+      history: [],
+    });
+  });
+
   it('should request store orders with an exclusive end bound', () => {
     service.getStoreOrders({
       pageSize: 100,

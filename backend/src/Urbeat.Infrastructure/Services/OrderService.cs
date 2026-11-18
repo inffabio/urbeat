@@ -675,6 +675,14 @@ public sealed class OrderService : IOrderService
             return new UpdateOrderStatusResultDto { Forbidden = true };
         }
 
+        // Cancellation is owned by the dedicated flow (POST /api/orders/{id}/cancel), which
+        // requires a reason and records actor, UTC timestamp, history, audit and notification.
+        // The generic status transition must never set it, otherwise those guarantees are bypassed.
+        if (request.NewStatus == OrderStatus.Cancelled)
+        {
+            return new UpdateOrderStatusResultDto { InvalidTransition = true };
+        }
+
         if (!OrderStatusStateMachine.CanTransition(order.Status, request.NewStatus))
         {
             return new UpdateOrderStatusResultDto { InvalidTransition = true };
@@ -1037,6 +1045,147 @@ public sealed class OrderService : IOrderService
         return new UpdateOrderConfirmationResultDto
         {
             Order = await LoadDetailsAsync(order, cancellationToken, includePickupStoreAddress: true)
+        };
+    }
+
+    /// <summary>
+    /// Seller-initiated cancellation. The order is only cancellable while Received or Preparing;
+    /// the actor, status and UTC timestamp are derived server-side and the reason is mandatory.
+    /// A repeated cancellation is idempotent: it returns the already cancelled order without
+    /// creating a second history, audit or outbox entry.
+    /// </summary>
+    public async Task<CancelOrderResultDto> CancelStoreOrderAsync(
+        Guid sellerUserId,
+        Guid orderId,
+        CancelOrderRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+
+        if (order is null)
+        {
+            return new CancelOrderResultDto { NotFound = true };
+        }
+
+        var ownsStore = await _dbContext.Stores
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == order.StoreId && x.OwnerUserId == sellerUserId, cancellationToken);
+
+        if (!ownsStore)
+        {
+            return new CancelOrderResultDto { Forbidden = true };
+        }
+
+        if (order.Status == OrderStatus.Cancelled)
+        {
+            // Idempotent replay (double click, request retry): the cancellation already happened and
+            // must not create a second history/audit/notification entry.
+            return new CancelOrderResultDto
+            {
+                Order = await LoadDetailsAsync(order, cancellationToken)
+            };
+        }
+
+        if (order.Status is not (OrderStatus.Received or OrderStatus.Preparing)
+            || order.SellerCompletedAtUtc is not null)
+        {
+            return new CancelOrderResultDto { InvalidState = true };
+        }
+
+        var reason = (request.Reason ?? string.Empty).Trim();
+        if (reason.Length < CancelOrderRequestDto.MinimumReasonLength)
+        {
+            return new CancelOrderResultDto { ReasonRequired = true };
+        }
+
+        if (reason.Length > CancelOrderRequestDto.MaximumReasonLength)
+        {
+            return new CancelOrderResultDto { ReasonTooLong = true };
+        }
+
+        var previousStatus = order.Status;
+        var cancelledAtUtc = DateTime.UtcNow;
+        order.Status = OrderStatus.Cancelled;
+        order.StatusVersion += 1;
+        order.CancellationReason = reason;
+        order.CancelledBy = OrderCancelledBy.Store;
+        order.CancelledAtUtc = cancelledAtUtc;
+        order.MarkAsUpdated();
+
+        await _dbContext.OrderStatusHistories.AddAsync(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            PreviousStatus = previousStatus,
+            NewStatus = OrderStatus.Cancelled,
+            ChangedByUserId = sellerUserId,
+            Notes = reason
+        }, cancellationToken);
+
+        await _dbContext.AuditLogs.AddAsync(new AuditLog
+        {
+            UserId = sellerUserId,
+            Event = "OrderCancelled",
+            Entity = nameof(Order),
+            EntityId = order.Id,
+            Description = $"Order cancelled by the store from {previousStatus}: {reason}.",
+            IpAddress = ipAddress
+        }, cancellationToken);
+
+        await _notificationService.NotifyCustomerOrderStatusChangedAsync(
+            order.CustomerUserId,
+            order.Id,
+            OrderStatus.Cancelled,
+            "Seu pedido foi cancelado pela loja.",
+            cancellationToken);
+
+        await _outboxWriter.EnqueueAsync(
+            OutboxEventTypes.OrderStatusChanged,
+            order.Id,
+            new OrderStatusChangedEvent
+            {
+                OrderId = order.Id,
+                StoreId = order.StoreId,
+                CustomerUserId = order.CustomerUserId,
+                SellerUserId = sellerUserId,
+                Code = order.Code,
+                PreviousStatus = previousStatus,
+                NewStatus = OrderStatus.Cancelled,
+                ChangedAtUtc = cancelledAtUtc,
+                Source = "Seller",
+                Sequence = order.StatusVersion
+            },
+            cancelledAtUtc,
+            sequence: order.StatusVersion,
+            aggregateType: nameof(Order),
+            cancellationToken);
+
+        try
+        {
+            await _efUnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+            {
+                entry.State = EntityState.Detached;
+            }
+
+            Serilog.Log.Warning(
+                "Order cancellation lost a concurrent transition | OrderId={OrderId}",
+                order.Id);
+
+            return new CancelOrderResultDto { ConcurrentUpdate = true };
+        }
+
+        Serilog.Log.Information(
+            "{EventType} | Order cancelled by the store | OrderId={OrderId} | StoreId={StoreId} | SellerUserId={SellerUserId} | PreviousStatus={PreviousStatus} | IP={IpAddress}",
+            "ORDER_CANCELLED", order.Id, order.StoreId, sellerUserId, previousStatus, ipAddress);
+
+        return new CancelOrderResultDto
+        {
+            Order = await LoadDetailsAsync(order, cancellationToken)
         };
     }
 

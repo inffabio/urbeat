@@ -532,6 +532,11 @@ public sealed class ApplicationDbContext
             entity.Property(x => x.PickupStoreAddressReference).HasMaxLength(200);
             entity.Property(x => x.Notes).HasMaxLength(500);
             entity.Property(x => x.Subtotal).HasPrecision(10, 2);
+            // Seller cancellation audit fields. The actor is derived server-side; the reason is
+            // mandatory for the cancel flow and kept for support (never echoed to the customer).
+            entity.Property(x => x.CancellationReason).HasMaxLength(500);
+            entity.Property(x => x.CancelledBy).HasConversion<int>();
+            entity.Property(x => x.CancelledAtUtc).HasColumnType("timestamp with time zone");
             entity.Property(x => x.DeliveryFee).HasPrecision(10, 2);
             entity.Property(x => x.Total).HasPrecision(10, 2);
             entity.Property(x => x.CashChangeForAmount).HasPrecision(10, 2);

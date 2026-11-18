@@ -61,6 +61,21 @@ public sealed class Order : BaseEntity
     public OrderStatus Status { get; set; }
 
     /// <summary>
+    /// Reason informed by the actor that cancelled the order. Required and authoritative when the
+    /// order is cancelled; kept for audit/support and never echoed verbatim to the customer.
+    /// </summary>
+    public string? CancellationReason { get; set; }
+
+    /// <summary>
+    /// Actor that cancelled the order, derived by the server (<see cref="OrderCancelledBy.Store"/>
+    /// for the seller cancellation flow). Null while the order is not cancelled.
+    /// </summary>
+    public OrderCancelledBy? CancelledBy { get; set; }
+
+    /// <summary>UTC timestamp of the cancellation. Null while the order is not cancelled.</summary>
+    public DateTime? CancelledAtUtc { get; set; }
+
+    /// <summary>
     /// Monotonic version of the order's lifecycle, advanced on every emitted status transition
     /// (creation is 1). Used as the per-order sequence in outbox events so a later status event is
     /// never delivered before an earlier one.
