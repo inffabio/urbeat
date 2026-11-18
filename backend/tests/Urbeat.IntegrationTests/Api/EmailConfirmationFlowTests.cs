@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
+using Urbeat.Domain.Entities;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -59,6 +60,8 @@ public sealed class EmailConfirmationFlowTests : IClassFixture<EmailConfirmation
 
         var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Vendedor RF77",
             Email = email,
             Password = "SenhaForte123",

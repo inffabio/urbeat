@@ -1822,3 +1822,78 @@ app-landing-page {
     transition: none;
   }
 }
+
+/* Seleção de plano e periodicidade */
+.lp-plans-grid.is-single {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.lp-plan-periods {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.lp-plan-periods legend {
+  padding: 0;
+  margin-bottom: 8px;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lp-plan-period-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--green-100);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #3f3f46;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lp-plan-period-option:has(input:checked) {
+  border-color: var(--green-500);
+  background: var(--green-50);
+}
+
+.lp-plan-period-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green-500);
+}
+
+.lp-plan-period-option strong {
+  margin-left: auto;
+  font-weight: 800;
+}
+
+.lp-plan-period-option small {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-700);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.lp-btn-plan.is-single {
+  height: 60px;
+  font-size: 17px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-plan-card,
+  .lp-btn-plan {
+    transition: none;
+  }
+}

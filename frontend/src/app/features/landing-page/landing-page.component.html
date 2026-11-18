@@ -15,7 +15,7 @@
 
       <div class="lp-nav-actions">
         <a routerLink="/login-vendedor" class="lp-btn-login">Entrar</a>
-        <a routerLink="/cadastro" class="lp-btn-cta">Criar meu cardápio</a>
+        <a href="#plano" class="lp-btn-cta" (click)="scrollToPlans($event)">Criar meu cadastro</a>
       </div>
 
       <button type="button" class="lp-menu-toggle" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Abrir menu">
@@ -34,7 +34,7 @@
         <a href="#como-funciona" (click)="toggleMenu()">Como funciona</a>
         <a href="#plano" (click)="toggleMenu()">Planos</a>
         <a routerLink="/login-vendedor" class="lp-mobile-login" (click)="toggleMenu()">Entrar</a>
-        <a routerLink="/cadastro" class="lp-btn-cta lp-mobile-cta" (click)="toggleMenu()">Criar meu cardápio</a>
+        <a href="#plano" class="lp-btn-cta lp-mobile-cta" (click)="scrollToPlans($event)">Criar meu cadastro</a>
       </div>
     }
   </header>
@@ -58,7 +58,7 @@
         </p>
 
         <div class="lp-hero-actions">
-          <a routerLink="/cadastro" class="lp-btn-hero">
+          <a href="#plano" class="lp-btn-hero" (click)="scrollToPlans($event)">
             Quero começar meu delivery agora
             <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
@@ -328,11 +328,19 @@
     <div class="lp-container">
       <div class="lp-section-head lp-center">
         <div class="lp-eyebrow lp-eyebrow-bordered">Planos por porte • Sem complicação</div>
-        <h2>Escolha o plano ideal para o seu momento</h2>
-        <p>Sem pegadinha, sem letras miúdas. Você começa pequeno e muda de plano quando quiser.</p>
+        <h2>{{ plansTitle() }}</h2>
+        <p>
+          @if (plans().length > 1) {
+            Sem pegadinha, sem letras miúdas. Escolha o plano e a periodicidade e comece hoje.
+          } @else if (plans().length === 1) {
+            Comece com o plano ativo da urbeat e mude de nível quando precisar.
+          } @else {
+            Estamos atualizando o catálogo de planos.
+          }
+        </p>
       </div>
 
-      <div class="lp-plans-grid">
+      <div class="lp-plans-grid" [class.is-single]="plans().length === 1">
         @for (plan of plans(); track plan.id) {
           <article class="lp-plan-card">
             <header class="lp-plan-head">
@@ -344,13 +352,35 @@
               }
               <p class="lp-plan-after">Depois somente</p>
               <div class="lp-plan-price">
-                <span class="lp-plan-value">{{ formatCurrency(plan.amount) }}</span>
-                <span class="lp-plan-period">/mês</span>
+                <span class="lp-plan-value">{{ formatCurrency(selectedOption(plan)?.amount ?? plan.monthlyAmount) }}</span>
+                <span class="lp-plan-period">{{ periodSuffix(selectedPeriod(plan)) }}</span>
               </div>
               <p class="lp-plan-note">Sem fidelidade • Cancele quando quiser</p>
             </header>
 
             <div class="lp-plan-body">
+              @if (planPeriods(plan).length > 1) {
+                <fieldset class="lp-plan-periods">
+                  <legend>Periodicidade</legend>
+                  @for (option of planPeriods(plan); track option.period) {
+                    <label class="lp-plan-period-option">
+                      <input
+                        type="radio"
+                        [name]="'landing-period-' + plan.id"
+                        [value]="option.period"
+                        [checked]="selectedPeriod(plan) === option.period"
+                        (change)="selectPeriod(plan, option.period)"
+                      />
+                      <span>{{ option.label }}</span>
+                      <strong>{{ formatCurrency(option.amount) }}{{ periodSuffix(option.period) }}</strong>
+                      @if (option.discountPercent && option.discountPercent > 0) {
+                        <small>{{ option.discountPercent }}% off</small>
+                      }
+                    </label>
+                  }
+                </fieldset>
+              }
+
               <p class="lp-plan-description">{{ plan.description }}</p>
               @if (plan.benefits.length > 0) {
                 <ul class="lp-plan-features">
@@ -367,8 +397,13 @@
             </div>
 
             <footer class="lp-plan-footer">
-              <a routerLink="/cadastro" class="lp-btn-plan">
-                {{ plan.trialDays > 0 ? 'Quero começar grátis' : 'Quero contratar' }}
+              <a
+                routerLink="/cadastro"
+                class="lp-btn-plan"
+                [class.is-single]="plans().length === 1"
+                [queryParams]="planQueryParams(plan)"
+              >
+                {{ planCtaLabel(plan) }}
                 <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <p class="lp-plan-fine">Sem cartão no início • Cancele quando quiser</p>
@@ -432,7 +467,7 @@
           </div>
 
           <div class="lp-final-actions">
-            <a routerLink="/cadastro" class="lp-btn-final">
+            <a href="#plano" class="lp-btn-final" (click)="scrollToPlans($event)">
               Criar minha loja em 15 minutos
               <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>

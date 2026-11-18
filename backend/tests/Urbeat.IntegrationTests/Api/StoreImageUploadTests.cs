@@ -1,6 +1,7 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Urbeat.Domain.Entities;
 using FluentAssertions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -218,6 +219,8 @@ public sealed class StoreImageUploadTests : IClassFixture<TestWebApplicationFact
 
         var registerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Seller Images {unique}",
             Email = email,
             Password = password,

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -285,6 +285,8 @@ public sealed class MockPixPaymentFlowTests
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Mock Pix Seller",
             Email = email,
             Password = password,

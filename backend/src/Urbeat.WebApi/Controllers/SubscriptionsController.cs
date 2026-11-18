@@ -75,6 +75,16 @@ public sealed class SubscriptionsController : ControllerBase
             return BadRequest(new { error = "Plan is invalid or inactive." });
         }
 
+        if (result.InvalidBillingPeriod)
+        {
+            return BadRequest(new { error = "The selected plan does not support this billing period." });
+        }
+
+        if (result.DowngradeNotAllowed)
+        {
+            return Conflict(new { error = "Plan changes are upgrade-only." });
+        }
+
         if (result.AlreadyContracted)
         {
             return Conflict(new { error = "Store already has a contracted subscription." });

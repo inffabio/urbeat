@@ -5,10 +5,14 @@ import { forkJoin } from 'rxjs';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { formatSaoPauloDate } from '../../core/utils/sao-paulo-date.helper';
 import {
+  BILLING_PERIOD_LABELS,
+  BillingPeriodOption,
   SellerSubscriptionBillingStatus,
   SellerSubscriptionChargeHistoryItem,
   SellerSubscriptionMyResponse,
   SellerSubscriptionPlan,
+  SubscriptionBillingPeriod,
+  subscriptionPlanPeriodOptions,
 } from '../../shared/models/subscription.model';
 
 export type SellerSubscriptionDisplayState =
@@ -21,11 +25,9 @@ export type SellerSubscriptionDisplayState =
   | 'cancelled';
 
 /**
- * A API atual não expõe cobrança individual, PIX, boleto, invoice ou payment
- * link para a assinatura: somente o webhook do gateway atualiza o status. Por
- * isso a tela nunca simula pagamento; cobranças vencidas mostram
- * "Regularização em breve" e o contato do suporte. Um botão de pagamento só
- * deve voltar quando existir contrato de gateway dedicado a essa cobrança.
+ * Visão do lojista sobre a própria assinatura. O lojista nunca administra o
+ * catálogo: a tela mostra o plano contratado e, quando o catálogo tem mais de
+ * um plano, oferece somente upgrade para um nível superior.
  */
 @Component({
   selector: 'app-seller-subscription-page',
@@ -38,6 +40,7 @@ export class SellerSubscriptionPageComponent implements OnInit {
   private readonly subscriptions = inject(SubscriptionService);
 
   readonly BillingStatus = SellerSubscriptionBillingStatus;
+  readonly BillingPeriod = SubscriptionBillingPeriod;
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly subscription = signal<SellerSubscriptionMyResponse | null>(null);
@@ -46,6 +49,7 @@ export class SellerSubscriptionPageComponent implements OnInit {
   readonly plansLoading = signal(true);
   readonly plansError = signal(false);
   readonly selectedPlanId = signal<string | null>(null);
+  readonly selectedPeriod = signal<SubscriptionBillingPeriod | null>(null);
   readonly confirmVisible = signal(false);
   readonly contracting = signal(false);
   readonly contractError = signal<string | null>(null);
@@ -55,6 +59,43 @@ export class SellerSubscriptionPageComponent implements OnInit {
     const selectedId = this.selectedPlanId();
     if (!selectedId) return null;
     return this.plans().find((plan) => plan.id === selectedId) ?? null;
+  });
+
+  readonly eligiblePlans = computed<SellerSubscriptionPlan[]>(() => {
+    const current = this.subscription();
+    const plans = this.plans();
+    if (!current?.planId) return plans;
+
+    const currentPlan = plans.find((plan) => plan.id === current.planId);
+    const currentLevel = current.planLevel ?? currentPlan?.level ?? 0;
+    return plans.filter((plan) => plan.level > currentLevel);
+  });
+
+  /** Só há troca quando o catálogo tem mais de um plano e existe nível superior. */
+  readonly showPlanSwitcher = computed(
+    () => !this.planChangesBlocked() && this.plans().length > 1 && this.eligiblePlans().length > 0,
+  );
+
+  readonly planChangesBlocked = computed(() => {
+    const state = this.displayState();
+    return state === 'blocked' || state === 'overdue' || state === 'cancelled';
+  });
+
+  readonly hasNoPlan = computed(() => !!this.subscription()?.storeId && !this.subscription()?.planId);
+  readonly canSelectPlan = computed(
+    () => !this.planChangesBlocked() && (this.showPlanSwitcher() || (this.hasNoPlan() && this.plans().length > 0)),
+  );
+
+  readonly selectedOptions = computed<BillingPeriodOption[]>(() => {
+    const plan = this.selectedPlan();
+    return plan ? subscriptionPlanPeriodOptions(plan) : [];
+  });
+
+  readonly selectedAmount = computed<number | null>(() => {
+    const option = this.selectedOptions().find(
+      (item) => item.period === this.selectedPeriod(),
+    );
+    return option?.amount ?? null;
   });
 
   readonly displayState = computed<SellerSubscriptionDisplayState>(() => {
@@ -79,14 +120,7 @@ export class SellerSubscriptionPageComponent implements OnInit {
       }
       return this.isDueSoon(current.nextDueDateUtc) ? 'due-soon' : 'active';
     }
-    return 'none';
-  });
-
-  readonly canContract = computed(() => {
-    const current = this.subscription();
-    if (!current?.storeId) return false;
-    if (current.hasGatewaySubscription) return false;
-    return this.displayState() === 'none' || this.displayState() === 'trial';
+    return current.hasPendingGatewayCharge || current.planId ? 'active' : 'none';
   });
 
   readonly needsRegularization = computed(() => {
@@ -144,9 +178,12 @@ export class SellerSubscriptionPageComponent implements OnInit {
         return `Seu período grátis vai até ${trialEnd}. A primeira cobrança de ${amount} está prevista para ${dueDate}.`;
       }
       case 'active':
+        if (current.hasPendingGatewayCharge) {
+          return `Sua assinatura está ativa. O boleto de ${this.formatCurrency(current.pendingChargeAmount ?? current.planAmount)} está aguardando a integração de gateway.`;
+        }
         return `Sua assinatura está em dia. Próxima cobrança de ${this.formatCurrency(current.planAmount)} em ${this.formatDateValue(current.nextDueDateUtc)}.`;
       case 'due-soon':
-        return `Sua mensalidade vence em ${this.formatDateValue(current.nextDueDateUtc)}. A cobrança é gerada automaticamente pelo meio de pagamento da assinatura.`;
+        return `Sua mensalidade vence em ${this.formatDateValue(current.nextDueDateUtc)}. A cobrança será gerada quando a integração de gateway estiver disponível.`;
       case 'overdue':
         return 'A mensalidade está atrasada. A regularização online ainda não está disponível; fale com o suporte para orientar o pagamento.';
       case 'blocked':
@@ -154,20 +191,26 @@ export class SellerSubscriptionPageComponent implements OnInit {
       case 'cancelled':
         return 'A assinatura foi cancelada. Fale com o suporte para contratar um novo plano.';
       default:
-        return 'Escolha um plano ativo abaixo para ativar a cobrança recorrente da sua loja.';
+        return 'Escolha um plano ativo abaixo para ativar a assinatura da sua loja.';
     }
   });
 
   readonly planSelectionHint = computed(() => {
     const current = this.subscription();
     if (!current) return null;
-    if (current.hasGatewaySubscription) {
-      return 'Sua loja já possui uma assinatura contratada. A troca de plano estará disponível em breve.';
+    if (this.planChangesBlocked()) {
+      return 'Regularize a assinatura com o suporte antes de solicitar qualquer troca de plano.';
     }
-    if (this.displayState() === 'cancelled') {
-      return 'Fale com o suporte para contratar um novo plano.';
+    if (this.hasNoPlan()) {
+      return 'Sua loja ainda não possui plano vinculado. Escolha um plano ativo para regularizar a assinatura.';
     }
-    return null;
+    if (this.plans().length <= 1) {
+      return 'Você está no único plano ativo do catálogo. Não há troca disponível no momento.';
+    }
+    if (this.eligiblePlans().length === 0) {
+      return 'Você já está no plano de nível mais alto disponível. Downgrade não é permitido.';
+    }
+    return 'Você pode solicitar somente upgrade para um plano de nível superior. O nível é definido pela urbeat.';
   });
 
   ngOnInit(): void {
@@ -205,6 +248,7 @@ export class SellerSubscriptionPageComponent implements OnInit {
         const selectedId = this.selectedPlanId();
         if (selectedId && !plans.some((plan) => plan.id === selectedId)) {
           this.selectedPlanId.set(null);
+          this.selectedPeriod.set(null);
           this.confirmVisible.set(false);
         }
         this.plansLoading.set(false);
@@ -224,14 +268,31 @@ export class SellerSubscriptionPageComponent implements OnInit {
   }
 
   selectPlan(plan: SellerSubscriptionPlan): void {
-    if (!this.canContract()) return;
+    if (!this.canSelectPlan()) return;
     this.selectedPlanId.set(plan.id);
+    const firstOption = subscriptionPlanPeriodOptions(plan)[0] ?? null;
+    this.selectedPeriod.set(firstOption?.period ?? null);
     this.contractError.set(null);
     this.confirmVisible.set(false);
   }
 
+  selectPeriod(period: SubscriptionBillingPeriod): void {
+    if (!this.selectedPlan()) return;
+    this.selectedPeriod.set(period);
+  }
+
+  isSelectedPeriod(period: SubscriptionBillingPeriod): boolean {
+    return this.selectedPeriod() === period;
+  }
+
+  periodOptions(plan: SellerSubscriptionPlan): BillingPeriodOption[] {
+    return subscriptionPlanPeriodOptions(plan);
+  }
+
   openConfirmation(): void {
-    if (!this.canContract() || !this.selectedPlan() || this.contracting()) return;
+    if (!this.canSelectPlan() || !this.selectedPlan() || !this.selectedPeriod() || this.contracting()) {
+      return;
+    }
     this.contractError.set(null);
     this.confirmVisible.set(true);
   }
@@ -244,19 +305,21 @@ export class SellerSubscriptionPageComponent implements OnInit {
   confirmContract(): void {
     const plan = this.selectedPlan();
     const storeId = this.subscription()?.storeId ?? null;
-    if (!plan || !storeId || this.contracting()) return;
+    const billingPeriod = this.selectedPeriod();
+    if (!plan || !storeId || !billingPeriod || this.contracting()) return;
 
     this.contracting.set(true);
     this.contractError.set(null);
     this.contractSuccess.set(null);
 
-    this.subscriptions.contract({ storeId, planId: plan.id }).subscribe({
+    this.subscriptions.contract({ storeId, planId: plan.id, billingPeriod }).subscribe({
       next: (contract) => {
         this.contracting.set(false);
         this.confirmVisible.set(false);
         this.selectedPlanId.set(null);
+        this.selectedPeriod.set(null);
         this.contractSuccess.set(
-          `${contract.planName} contratado. A primeira cobrança de ${this.formatCurrency(contract.planAmount)} está prevista para ${this.formatDate(contract.nextBillingDateUtc)}. A cobrança será gerada na data de vencimento.`,
+          `${contract.planName} ativado no período ${BILLING_PERIOD_LABELS[contract.billingPeriod].toLowerCase()}. A cobrança de ${this.formatCurrency(contract.planAmount)} está aguardando a integração de gateway.`,
         );
         this.load();
         this.loadPlans();
@@ -265,10 +328,11 @@ export class SellerSubscriptionPageComponent implements OnInit {
         this.contracting.set(false);
         this.confirmVisible.set(false);
         this.contractError.set(this.contractErrorMessage(error));
-        if (error instanceof HttpErrorResponse && error.status === 409) {
-          // O backend já possui uma assinatura contratada: atualiza a tela para
-          // refletir o estado real em vez de manter dados defasados.
+        if (error instanceof HttpErrorResponse && (error.status === 409 || error.status === 400)) {
+          // O catálogo pode ter mudado durante a jornada: recarrega o estado
+          // autoritativo em vez de manter dados defasados na tela.
           this.load();
+          this.loadPlans();
         }
       },
     });
@@ -292,11 +356,16 @@ export class SellerSubscriptionPageComponent implements OnInit {
     }
   }
 
+  billingPeriodLabel(current: SellerSubscriptionMyResponse): string {
+    return current.billingPeriod ? BILLING_PERIOD_LABELS[current.billingPeriod] : 'Mensal';
+  }
+
   planMeta(current: SellerSubscriptionMyResponse): string {
+    const period = this.billingPeriodLabel(current).toLowerCase();
     if (current.planAmount == null) {
-      return 'Escolha um plano para definir o valor';
+      return `Periodicidade ${period}`;
     }
-    return `${this.formatCurrency(current.planAmount)}/mês`;
+    return `${this.formatCurrency(current.planAmount)}/${period === 'anual' ? 'ano' : 'mês'}`;
   }
 
   nextChargeDate(current: SellerSubscriptionMyResponse): string {
@@ -305,6 +374,9 @@ export class SellerSubscriptionPageComponent implements OnInit {
   }
 
   nextChargeMeta(current: SellerSubscriptionMyResponse): string {
+    if (current.hasPendingGatewayCharge) {
+      return 'Boleto aguardando integração';
+    }
     const value = current.nextChargeAmount ?? current.planAmount;
     if (this.displayState() === 'none') {
       return 'O valor e a data são definidos pelo plano escolhido.';
@@ -313,7 +385,7 @@ export class SellerSubscriptionPageComponent implements OnInit {
       return 'Valor definido pelo plano contratado.';
     }
     const amount = this.formatCurrency(value);
-    return current.isTrialActive ? `${amount}/mês após o período grátis` : `${amount}/mês`;
+    return current.isTrialActive ? `${amount} após o período grátis` : amount;
   }
 
   statusLabel(status: SellerSubscriptionBillingStatus | null | undefined): string {
@@ -362,11 +434,12 @@ export class SellerSubscriptionPageComponent implements OnInit {
     return 'Primeira cobrança imediata';
   }
 
-  planActionLabel(plan: SellerSubscriptionPlan): string {
-    if (!this.canContract()) {
-      return 'Troca indisponível';
-    }
-    return this.selectedPlanId() === plan.id ? 'Plano selecionado' : 'Selecionar plano';
+  planAmountLabel(option: BillingPeriodOption): string {
+    const suffix = option.period === SubscriptionBillingPeriod.Annual ? '/ano' : '/mês';
+    const discount = option.discountPercent
+      ? ` · ${option.discountPercent}% off`
+      : '';
+    return `${this.formatCurrency(option.amount)}${suffix}${discount}`;
   }
 
   /**
@@ -386,17 +459,17 @@ export class SellerSubscriptionPageComponent implements OnInit {
     if (error instanceof HttpErrorResponse) {
       switch (error.status) {
         case 400:
-          return 'Este plano não está mais disponível. Escolha outro plano ativo e tente novamente.';
+          return 'A periodicidade escolhida não está disponível para este plano. Revalide a seleção.';
         case 403:
-          return 'Você não tem permissão para contratar este plano para a loja informada.';
+          return 'Você não tem permissão para alterar o plano desta loja.';
         case 404:
           return 'Não encontramos a loja ou o plano selecionado. Atualize a página e tente novamente.';
         case 409:
-          return 'Sua loja já possui uma assinatura contratada. A troca de plano estará disponível em breve.';
+          return 'A troca é somente para um plano de nível superior. Downgrade não é permitido.';
         default:
-          return 'Não foi possível concluir a contratação agora. Tente novamente em instantes.';
+          return 'Não foi possível concluir a alteração agora. Tente novamente em instantes.';
       }
     }
-    return 'Não foi possível concluir a contratação agora. Tente novamente em instantes.';
+    return 'Não foi possível concluir a alteração agora. Tente novamente em instantes.';
   }
 }

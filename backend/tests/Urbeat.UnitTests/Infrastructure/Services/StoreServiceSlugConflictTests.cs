@@ -298,7 +298,7 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
                     PostgresErrorCodes.UniqueViolation)));
         var sut = CreateSut(_db, uow.Object);
 
-        var act = () => sut.CreateForOwnerAsync(
+        var result = await sut.CreateForOwnerAsync(
             Guid.NewGuid(),
             new CreateStoreRequestDto
             {
@@ -309,6 +309,8 @@ public sealed class StoreServiceSlugConflictTests : IDisposable
             },
             ipAddress: null);
 
-        await act.Should().ThrowAsync<DbUpdateException>();
+        // A concorrência pelo mesmo OwnerUserId é idempotente, não um 500.
+        result.AlreadyExists.Should().BeTrue();
+        result.Created.Should().BeFalse();
     }
 }

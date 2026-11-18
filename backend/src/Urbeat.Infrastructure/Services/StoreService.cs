@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
@@ -32,7 +32,7 @@ public sealed class StoreService : IStoreService
         _imageUploadService = imageUploadService;
     }
 
-    public async Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, StoreResponseDto? Store)> CreateForOwnerAsync(
+    public async Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, bool InvalidPlanSelection, StoreResponseDto? Store)> CreateForOwnerAsync(
         Guid ownerUserId,
         CreateStoreRequestDto request,
         string? ipAddress,
@@ -56,7 +56,7 @@ public sealed class StoreService : IStoreService
 
             await _efUnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return (false, true, false, false, null);
+            return (false, true, false, false, false, null);
         }
 
         var slug = string.IsNullOrWhiteSpace(request.Slug)
@@ -68,7 +68,7 @@ public sealed class StoreService : IStoreService
             .AnyAsync(x => x.Slug == slug, cancellationToken))
         {
             Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, slug, ipAddress);
-            return (false, false, false, true, null);
+            return (false, false, false, true, false, null);
         }
 
         var store = new Store
@@ -104,7 +104,7 @@ public sealed class StoreService : IStoreService
         if (string.IsNullOrWhiteSpace(cuisineName))
         {
             Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
-            return (false, false, true, false, null);
+            return (false, false, true, false, false, null);
         }
 
         var normalizedCuisineType = CuisineType.NormalizeName(cuisineName);
@@ -122,7 +122,7 @@ public sealed class StoreService : IStoreService
         {
             // Nome de padrão protegido sem registro ativo disponível: não cria cópia privada.
             Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=invalid_cuisine | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
-            return (false, false, true, false, null);
+            return (false, false, true, false, false, null);
         }
         else
         {
@@ -136,7 +136,13 @@ public sealed class StoreService : IStoreService
 
         await _dbContext.Stores.AddAsync(store, cancellationToken);
 
-        await AttachDefaultSubscriptionAsync(store, ownerUserId, cancellationToken);
+        if (!await AttachDefaultSubscriptionAsync(store, ownerUserId, cancellationToken))
+        {
+            // A seleção existe, mas o plano/período não é mais contratável. Nada é
+            // persistido: a loja, assinatura e cobrança são descartadas juntas.
+            _dbContext.Entry(store).State = EntityState.Detached;
+            return (false, false, false, false, true, null);
+        }
 
         // Stores.CuisineTypeId -> CuisineTypes and CuisineTypes.StoreId -> Stores are two
         // independent foreign keys. With both rows Added, EF cannot order the INSERTs and throws
@@ -164,12 +170,19 @@ public sealed class StoreService : IStoreService
                 await _efUnitOfWork.SaveChangesAsync(cancellationToken);
             }
         }
+        catch (DbUpdateException exception) when (IsStoreOwnerUniqueViolation(exception))
+        {
+            // Duas requisições concorrentes para o mesmo lojista: o índice único
+            // é a autoridade e a segunda resposta é idempotente.
+            Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=already_exists_concurrent | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, ipAddress);
+            return (false, true, false, false, false, null);
+        }
         catch (DbUpdateException exception) when (IsStoreSlugUniqueViolation(exception))
         {
             // A concurrent request persisted the same slug between the pre-check above and this
             // save; the unique index is the real guard. Report it as a slug conflict instead of a 500.
             Serilog.Log.Warning("{EventType} | Store creation failed | OwnerUserId={OwnerUserId} | Reason=slug_conflict | Slug={Slug} | IP={IpAddress}", "STORE_CREATE_FAILED", ownerUserId, store.Slug, ipAddress);
-            return (false, false, false, true, null);
+            return (false, false, false, true, false, null);
         }
 
         await WriteAuditLogAsync(
@@ -191,7 +204,7 @@ public sealed class StoreService : IStoreService
             await transaction.CommitAsync(cancellationToken);
         }
 
-        return (true, false, false, false, _mapper.Map<StoreResponseDto>(store));
+        return (true, false, false, false, false, _mapper.Map<StoreResponseDto>(store));
     }
 
     public async Task<StoreResponseDto?> GetByOwnerAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
@@ -1470,16 +1483,39 @@ public sealed class StoreService : IStoreService
         return slug.Trim('-');
     }
 
-    private async Task AttachDefaultSubscriptionAsync(Store store, Guid ownerUserId, CancellationToken cancellationToken)
+    private async Task<bool> AttachDefaultSubscriptionAsync(Store store, Guid ownerUserId, CancellationToken cancellationToken)
     {
-        var plan = await _dbContext.Plans
-            .AsNoTracking()
-            .Where(x => x.Name == BillingPlanSeeder.DefaultPlanName && x.IsActive)
-            .SingleOrDefaultAsync(cancellationToken)
+        var selection = await _dbContext.SellerPlanSelections
+            .SingleOrDefaultAsync(x => x.UserId == ownerUserId, cancellationToken);
+
+        Plan? selectedPlan = null;
+        if (selection is not null)
+        {
+            // A seleção feita no cadastro é revalidada no momento da criação da
+            // loja. Plano inativo, removido ou periodicidade desabilitada aborta a
+            // operação em vez de trocar silenciosamente as condições contratadas.
+            selectedPlan = await _dbContext.Plans
+                .AsNoTracking()
+                .SingleOrDefaultAsync(x => x.Id == selection.PlanId, cancellationToken);
+
+            if (selectedPlan is null
+                || !selectedPlan.IsActive
+                || !selectedPlan.Supports(selection.BillingPeriod))
+            {
+                return false;
+            }
+        }
+
+        var plan = selectedPlan
+            ?? await _dbContext.Plans
+                .AsNoTracking()
+                .Where(x => x.Name == BillingPlanSeeder.DefaultPlanName && x.IsActive)
+                .SingleOrDefaultAsync(cancellationToken)
             ?? await _dbContext.Plans
                 .AsNoTracking()
                 .Where(x => x.IsActive)
-                .OrderBy(x => x.Amount)
+                .OrderBy(x => x.Level)
+                .ThenBy(x => x.Amount)
                 .ThenBy(x => x.Name)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -1487,24 +1523,57 @@ public sealed class StoreService : IStoreService
         var planName = plan?.Name ?? BillingPlanSeeder.DefaultPlanName;
         var planAmount = plan?.Amount ?? BillingPlanSeeder.DefaultPlanAmount;
         var trialDays = plan?.TrialDays ?? BillingPlanSeeder.DefaultTrialDays;
+        var level = plan?.Level ?? 0;
+        var description = plan?.Description ?? string.Empty;
+        var annualDiscount = plan?.AnnualDiscountPercent ?? 0;
+
+        var period = selection?.BillingPeriod ?? SubscriptionBillingPeriod.Monthly;
+        if (plan is not null)
+        {
+            planAmount = plan.GetAmountFor(period);
+        }
 
         var now = DateTime.UtcNow;
-        var nextBillingDateUtc = trialDays > 0
-            ? now.AddDays(trialDays)
-            : now.AddMonths(1);
+        var nextBillingDateUtc = SubscriptionBillingCalculator
+            .CalculateFirstChargeDueUtc(trialDays, now, now);
+        var trialEndsAtUtc = trialDays > 0 ? now.AddDays(trialDays) : (DateTime?)null;
 
-        await _dbContext.SellerSubscriptions.AddAsync(new SellerSubscription
+        var subscription = new SellerSubscription
         {
             StoreId = store.Id,
             SellerUserId = ownerUserId,
             PlanId = planId,
             PlanName = planName,
+            PlanDescriptionSnapshot = description,
             PlanAmount = planAmount,
+            BillingPeriod = period,
+            TrialDaysSnapshot = trialDays,
+            AnnualDiscountPercentSnapshot = annualDiscount,
+            PlanLevelSnapshot = level,
             Status = SellerSubscriptionBillingStatus.Active,
             StartDateUtc = now,
+            TrialEndsAtUtc = trialEndsAtUtc,
             NextBillingDateUtc = nextBillingDateUtc,
             GatewayCustomerId = string.Empty,
             GatewaySubscriptionId = string.Empty
+        };
+
+        await _dbContext.SellerSubscriptions.AddAsync(subscription, cancellationToken);
+
+        await _dbContext.SellerSubscriptionCharges.AddAsync(new SellerSubscriptionCharge
+        {
+            SellerUserId = ownerUserId,
+            StoreId = store.Id,
+            SubscriptionId = subscription.Id,
+            PlanId = planId,
+            PlanNameSnapshot = planName,
+            Amount = planAmount,
+            BillingPeriod = period,
+            Status = SellerSubscriptionChargeStatus.AwaitingGateway,
+            DueDateUtc = nextBillingDateUtc,
+            BillingPeriodStartUtc = nextBillingDateUtc,
+            BillingPeriodEndUtc = SubscriptionBillingCalculator.CalculatePeriodEndUtc(nextBillingDateUtc, period),
+            IdempotencyKey = $"store:{store.Id}:initial"
         }, cancellationToken);
 
         var status = await _dbContext.SellerSubscriptionStatuses
@@ -1525,6 +1594,13 @@ public sealed class StoreService : IStoreService
             status.NextDueDateUtc = nextBillingDateUtc;
             status.MarkAsUpdated();
         }
+
+        if (selection is not null)
+        {
+            _dbContext.SellerPlanSelections.Remove(selection);
+        }
+
+        return true;
     }
 
     private async Task WriteAuditLogAsync(
@@ -1545,6 +1621,14 @@ public sealed class StoreService : IStoreService
             Description = description,
             IpAddress = ipAddress
         }, cancellationToken);
+    }
+
+    private static bool IsStoreOwnerUniqueViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation
+        } pg && pg.MessageText.Contains("IX_Stores_OwnerUserId", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsStoreSlugUniqueViolation(DbUpdateException exception)

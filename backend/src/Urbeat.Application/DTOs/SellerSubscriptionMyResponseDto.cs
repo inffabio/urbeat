@@ -16,7 +16,14 @@ public sealed class SellerSubscriptionMyResponseDto
 
     public string? PlanName { get; init; }
 
+    public string? PlanDescription { get; init; }
+
     public decimal? PlanAmount { get; init; }
+
+    public SubscriptionBillingPeriod? BillingPeriod { get; init; }
+
+    /// <summary>Nível do plano contratado; maior = superior.</summary>
+    public int? PlanLevel { get; init; }
 
     /// <summary>Valor que sera cobrado quando o periodo gratuito terminar.</summary>
     public decimal? NextChargeAmount { get; init; }
@@ -32,6 +39,16 @@ public sealed class SellerSubscriptionMyResponseDto
 
     /// <summary>Verdadeiro quando a assinatura ja foi contratada junto ao gateway.</summary>
     public bool HasGatewaySubscription { get; init; }
+
+    /// <summary>Existe cobrança stub aguardando integração de gateway.</summary>
+    public bool HasPendingGatewayCharge { get; init; }
+
+    public decimal? PendingChargeAmount { get; init; }
+
+    public DateTime? PendingChargeDueDateUtc { get; init; }
+
+    /// <summary>Texto honesto exibido ao lojista enquanto o boleto real não é gerado.</summary>
+    public string PendingChargeStatus { get; init; } = "Boleto aguardando integração";
 
     public SellerSubscriptionBillingStatus? BillingStatus { get; init; }
 

@@ -554,6 +554,8 @@ public sealed class NeonighborhoodsDeliveryFlowTests : IClassFixture<TestWebAppl
 
         var registerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Seller Delivery Test {Guid.NewGuid():N}",
             Email = email,
             Password = password,

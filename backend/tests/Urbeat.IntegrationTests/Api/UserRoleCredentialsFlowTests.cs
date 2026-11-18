@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -84,6 +84,8 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
 
         var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Contratante Promovido",
             Email = email,
             Password = NewSellerPassword,
@@ -159,6 +161,8 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
 
         var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Sem Prova",
             Email = email,
             Password = NewSellerPassword,
@@ -193,6 +197,8 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
 
         var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Dono Autenticado",
             Email = email,
             Password = NewSellerPassword,
@@ -433,7 +439,7 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
     private static string UniqueEmail(string prefix) => $"{prefix}.{Guid.NewGuid():N}@urbeat.local";
 
     private static Task<HttpResponseMessage> RegisterAsync(HttpClient client, string role, string email, string password)
-        => client.PostAsJsonAsync($"/api/auth/register/{role}", new RegisterUserRequestDto
+        => client.PostRegistrationWithPlanAsync(role, new RegisterUserRequestDto
         {
             FullName = $"Pessoa {role}",
             Email = email,
@@ -462,6 +468,8 @@ public sealed class UserRoleCredentialsFlowTests : IClassFixture<TestWebApplicat
         await AuthenticateAsAsync(promotionClient, "customer", email, CustomerPassword);
         var promote = await promotionClient.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Contratante Dual",
             Email = email,
             Password = SellerPassword,

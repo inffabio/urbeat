@@ -63,6 +63,17 @@ public sealed class CachedPlanService : IPlanService
         return result;
     }
 
+    public Task<GatewayConfigurationResponseDto?> GetGatewayConfigurationAsync(
+        Guid planId,
+        CancellationToken cancellationToken = default)
+        => _inner.GetGatewayConfigurationAsync(planId, cancellationToken);
+
+    public Task<GatewayConfigurationResponseDto?> UpdateGatewayConfigurationAsync(
+        Guid planId,
+        UpdateGatewayConfigurationRequestDto request,
+        CancellationToken cancellationToken = default)
+        => _inner.UpdateGatewayConfigurationAsync(planId, request, cancellationToken);
+
     /// <summary>
     /// Loads the offer from an isolated scope. The cache may continue a refresh after the request
     /// that triggered it has been aborted, so it must not capture that request's scoped

@@ -13,9 +13,6 @@ public sealed class CreatePlanRequestDtoValidator : AbstractValidator<CreatePlan
             .NotEmpty()
             .MaximumLength(120);
 
-        RuleFor(x => x.Amount)
-            .GreaterThan(0);
-
         RuleFor(x => x.Description)
             .MaximumLength(500);
 
@@ -26,5 +23,25 @@ public sealed class CreatePlanRequestDtoValidator : AbstractValidator<CreatePlan
         RuleFor(x => x.Benefits)
             .Must(benefits => PlanBenefits.TryNormalize(benefits, out _, out _))
             .WithMessage("Benefícios inválidos.");
+
+        RuleFor(x => x.Level)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Level.HasValue);
+
+        RuleFor(x => x)
+            .Custom((request, context) =>
+            {
+                var configuration = new PlanBillingPeriodConfiguration(
+                    request.EffectiveMonthlyEnabled,
+                    request.EffectiveAnnualEnabled,
+                    request.EffectiveMonthlyAmount,
+                    request.EffectiveAnnualDiscountPercent);
+
+                var validation = new BillingPeriodConfigurationValidator().Validate(configuration);
+                foreach (var failure in validation.Errors)
+                {
+                    context.AddFailure(failure.PropertyName, failure.ErrorMessage);
+                }
+            });
     }
 }

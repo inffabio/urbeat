@@ -1,3 +1,5 @@
+import { SubscriptionBillingPeriod } from './subscription.model';
+
 export type AccountRole = 'Customer' | 'Seller';
 
 export interface RegisterCustomerRequest {
@@ -7,6 +9,15 @@ export interface RegisterCustomerRequest {
   password: string;
   phoneNumber: string;
   document?: string;
+}
+
+/**
+ * Cadastro de lojista: o navegador envia somente identificadores. Preço,
+ * trial, desconto e datas são recalculados pelo servidor.
+ */
+export interface RegisterSellerRequest extends RegisterCustomerRequest {
+  planId: string;
+  billingPeriod: SubscriptionBillingPeriod;
 }
 
 export interface RegisterResponse {

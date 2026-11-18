@@ -654,6 +654,27 @@ public sealed class AuthService : IAuthService
         IReadOnlyCollection<string>? authenticatedRoles,
         CancellationToken cancellationToken)
     {
+        if (credentialRole == UserRoleType.Seller)
+        {
+            var planSelectionError = await ValidateSellerPlanSelectionAsync(request, cancellationToken);
+            if (planSelectionError is not null)
+            {
+                Log.Warning("{EventType} | Registration failed (plan selection) | Email={Email} | Error={Error}",
+                    "USER_REGISTER_FAILED", normalizedEmail, planSelectionError);
+
+                return new RegistrationOutcome(
+                    Result: new RegistrationResultDto
+                    {
+                        Succeeded = false,
+                        Errors = [planSelectionError]
+                    },
+                    AuditUserId: null,
+                    AuditEvent: $"{auditEvent}Failed",
+                    AuditDescription: $"Seller registration failed for {normalizedEmail}: {planSelectionError}",
+                    EnqueueConfirmationUserId: null);
+            }
+        }
+
         // The seller promotion (FullName claim + role + credential) must be atomic so a failure
         // never leaves a Seller role without a credential. EF InMemory (integration tests) does
         // not support transactions and executes the same operations sequentially without one.
@@ -762,6 +783,9 @@ public sealed class AuthService : IAuthService
                     },
                     cancellationToken);
 
+                await UpsertSellerPlanSelectionAsync(userAlreadyExists.Id, request, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
                 if (transaction is not null)
                 {
                     await transaction.CommitAsync(cancellationToken);
@@ -809,6 +833,9 @@ public sealed class AuthService : IAuthService
                         FullName = contractorName
                     },
                     cancellationToken);
+
+                await UpsertSellerPlanSelectionAsync(userAlreadyExists.Id, request, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
                 if (transaction is not null)
                 {
@@ -890,6 +917,12 @@ public sealed class AuthService : IAuthService
                     AuditEvent: $"{auditEvent}Failed",
                     AuditDescription: $"Role assignment failed for {normalizedEmail}: {string.Join("; ", errors)}",
                     EnqueueConfirmationUserId: null);
+            }
+
+            if (credentialRole == UserRoleType.Seller)
+            {
+                await UpsertSellerPlanSelectionAsync(userAlreadyExists.Id, request, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
 
             if (transaction is not null)
@@ -1076,6 +1109,12 @@ public sealed class AuthService : IAuthService
                 EnqueueConfirmationUserId: null);
         }
 
+        if (credentialRole == UserRoleType.Seller)
+        {
+            await UpsertSellerPlanSelectionAsync(user.Id, request, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         if (transaction is not null)
         {
             await transaction.CommitAsync(cancellationToken);
@@ -1096,6 +1135,66 @@ public sealed class AuthService : IAuthService
             AuditEvent: auditEvent,
             AuditDescription: $"User {request.FullName} registered as {role} ({normalizedEmail}).",
             EnqueueConfirmationUserId: user.Id);
+    }
+
+    private async Task<string?> ValidateSellerPlanSelectionAsync(
+        RegisterUserRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        if (request.PlanId is null || request.PlanId == Guid.Empty)
+        {
+            return "Selecione um plano válido antes de criar o cadastro de lojista.";
+        }
+
+        if (request.BillingPeriod is null || !Enum.IsDefined(request.BillingPeriod.Value))
+        {
+            return "Selecione a periodicidade mensal ou anual do plano.";
+        }
+
+        var plan = await _dbContext.Plans
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == request.PlanId.Value && x.IsActive, cancellationToken);
+
+        if (plan is null)
+        {
+            return "O plano selecionado não está disponível. Escolha outro plano ativo.";
+        }
+
+        if (!plan.Supports(request.BillingPeriod.Value))
+        {
+            return "O plano selecionado não oferece a periodicidade escolhida. Revalide sua seleção.";
+        }
+
+        return null;
+    }
+
+    private async Task UpsertSellerPlanSelectionAsync(
+        Guid userId,
+        RegisterUserRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        if (request.PlanId is not { } planId || request.BillingPeriod is not { } billingPeriod)
+        {
+            return;
+        }
+
+        var selection = await _dbContext.SellerPlanSelections
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        if (selection is null)
+        {
+            await _dbContext.SellerPlanSelections.AddAsync(new SellerPlanSelection
+            {
+                UserId = userId,
+                PlanId = planId,
+                BillingPeriod = billingPeriod
+            }, cancellationToken);
+            return;
+        }
+
+        selection.PlanId = planId;
+        selection.BillingPeriod = billingPeriod;
+        selection.MarkAsUpdated();
     }
 
     private async Task<bool> VerifyAnyExistingCredentialAsync(

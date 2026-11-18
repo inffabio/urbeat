@@ -21,4 +21,13 @@ public sealed class SellerSubscriptionChargeHistoryItemDto
     public decimal? Amount { get; init; }
 
     public string? ExternalReference { get; init; }
+
+    /// <summary>
+    /// Verdadeiro para cobrança stub criada localmente aguardando integração de
+    /// gateway. Nesse estado não há boleto, PDF, linha digitável ou pagamento.
+    /// </summary>
+    public bool IsGatewayPending { get; init; }
+
+    /// <summary>Data de criação em UTC, usada apenas para ordenação estável do histórico.</summary>
+    public DateTime CreatedAtUtc { get; init; }
 }

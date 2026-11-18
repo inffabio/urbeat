@@ -179,7 +179,12 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
         result.Created.Should().BeTrue();
 
         var subscription = await _db.SellerSubscriptions.SingleAsync(x => x.SellerUserId == ownerUserId);
-        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddMonths(1), TimeSpan.FromMinutes(1));
+        // Sem trial, a primeira cobrança é imediata (stub aguardando gateway).
+        subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        subscription.TrialEndsAtUtc.Should().BeNull();
+        var charge = await _db.SellerSubscriptionCharges.SingleAsync(x => x.SellerUserId == ownerUserId);
+        charge.Status.Should().Be(SellerSubscriptionChargeStatus.AwaitingGateway);
+        charge.DueDateUtc.Should().Be(subscription.NextBillingDateUtc);
     }
 
     [Fact]
@@ -223,5 +228,48 @@ public sealed class StoreServiceSubscriptionTests : IDisposable
         subscription.PlanName.Should().Be("Plano Ativo");
         subscription.PlanAmount.Should().Be(39.90m);
         subscription.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(10), TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task CreateForOwnerAsync_ShouldAbortWhenSelectedBillingPeriodIsNoLongerEnabled()
+    {
+        _db.CuisineTypes.Add(new CuisineType { Name = "Pizza", IsActive = true });
+        var plan = new Plan
+        {
+            Name = BillingPlanSeeder.DefaultPlanName,
+            Amount = 19.90m,
+            Description = "Plano apenas mensal",
+            IsActive = true,
+            MonthlyEnabled = true,
+            AnnualEnabled = false
+        };
+        _db.Plans.Add(plan);
+        await _db.SaveChangesAsync();
+
+        var ownerUserId = Guid.NewGuid();
+        _db.SellerPlanSelections.Add(new SellerPlanSelection
+        {
+            UserId = ownerUserId,
+            PlanId = plan.Id,
+            BillingPeriod = SubscriptionBillingPeriod.Annual
+        });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.CreateForOwnerAsync(
+            ownerUserId,
+            new CreateStoreRequestDto
+            {
+                Name = "Loja Período Inválido",
+                PhoneNumber = "11999999999",
+                CuisineType = "Pizza"
+            },
+            ipAddress: null);
+
+        result.Created.Should().BeFalse();
+        result.InvalidPlanSelection.Should().BeTrue();
+        (await _db.Stores.AnyAsync(x => x.OwnerUserId == ownerUserId)).Should().BeFalse();
+        (await _db.SellerSubscriptions.AnyAsync(x => x.SellerUserId == ownerUserId)).Should().BeFalse();
+        (await _db.SellerSubscriptionCharges.AnyAsync(x => x.SellerUserId == ownerUserId)).Should().BeFalse();
+        (await _db.SellerPlanSelections.AnyAsync(x => x.UserId == ownerUserId)).Should().BeTrue();
     }
 }

@@ -35,6 +35,7 @@ public sealed class CachedPlanServiceTests : IDisposable
         var services = new ServiceCollection();
         services.AddSingleton(_db);
         services.AddSingleton<IEfUnitOfWork>(new EfUnitOfWork(_db));
+        services.AddSingleton<IEncryptionService>(new NoopEncryptionService());
         services.AddScoped<PlanService>();
         _provider = services.BuildServiceProvider();
 
@@ -152,5 +153,12 @@ public sealed class CachedPlanServiceTests : IDisposable
         public DateTimeOffset UtcNow { get; set; }
 
         public override DateTimeOffset GetUtcNow() => UtcNow;
+    }
+
+    private sealed class NoopEncryptionService : IEncryptionService
+    {
+        public string Encrypt(string plainText) => plainText;
+
+        public string Decrypt(string cipherText) => cipherText;
     }
 }

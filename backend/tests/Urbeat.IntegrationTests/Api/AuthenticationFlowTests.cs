@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -72,6 +72,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var registerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Vendedor Teste",
             Email = email,
             Password = password,
@@ -115,6 +117,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
             var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
             {
+                PlanId = await _factory.GetDefaultPlanIdAsync(),
+                BillingPeriod = SubscriptionBillingPeriod.Monthly,
                 FullName = variation,
                 Email = email,
                 Password = "SenhaForte123",
@@ -145,6 +149,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var firstResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = fullName,
             Email = email,
             Password = password,
@@ -154,6 +160,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var secondResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = fullName,
             Email = email,
             Password = password,
@@ -178,6 +186,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var sellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = baseName,
             Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
             Password = "SenhaForte123",
@@ -207,6 +217,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = baseName,
             Email = customerEmail,
             Password = "SenhaForte123",
@@ -255,6 +267,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = promotedName,
             Email = customerEmail,
             Password = password,
@@ -264,6 +278,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var secondSellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = promotedName,
             Email = secondSellerEmail,
             Password = password,
@@ -322,6 +338,8 @@ public sealed class AuthenticationFlowTests : IClassFixture<TestWebApplicationFa
 
         var sellerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = baseName,
             Email = $"seller.{Guid.NewGuid():N}@urbeat.local",
             Password = "SenhaForte123",

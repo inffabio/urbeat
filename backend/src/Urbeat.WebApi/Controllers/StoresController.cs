@@ -356,6 +356,15 @@ public sealed class StoresController : ControllerBase
             return BadRequest(new { error = "Cuisine type is invalid or inactive." });
         }
 
+        if (result.InvalidPlanSelection)
+        {
+            return BadRequest(new
+            {
+                code = "invalid_plan_selection",
+                error = "A seleção de plano expirou. Escolha um plano ativo e a periodicidade disponível antes de tentar novamente."
+            });
+        }
+
         BusinessMetrics.NewStores.Inc();
         return StatusCode(StatusCodes.Status201Created, result.Store);
     }

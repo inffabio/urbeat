@@ -2,7 +2,7 @@
   <header class="topbar">
     <div>
       <div class="page-title-wrap"><h1 class="page-title">Mensalidades</h1></div>
-      <p class="page-subtitle">Escolha seu plano, acompanhe o período grátis e as cobranças da loja.</p>
+      <p class="page-subtitle">Acompanhe o plano contratado, o período grátis e as cobranças da loja.</p>
     </div>
     <div class="top-actions">
       <button type="button" class="btn-soft" (click)="refresh()" [disabled]="loading()">
@@ -64,9 +64,15 @@
         <span class="seller-kpi-meta">{{ planMeta(current) }}</span>
       </div>
       <div class="seller-kpi-card">
-        <span class="seller-kpi-label">Situação</span>
-        <strong class="seller-kpi-value">{{ stateStatusLabel() }}</strong>
-        <span class="seller-kpi-meta">{{ stateTitle() }}</span>
+        <span class="seller-kpi-label">Periodicidade</span>
+        <strong class="seller-kpi-value">{{ billingPeriodLabel(current) }}</strong>
+        <span class="seller-kpi-meta">
+          @if (current.planLevel !== null && current.planLevel !== undefined) {
+            Nível {{ current.planLevel }} definido pela urbeat
+          } @else {
+            Condições definidas pela urbeat
+          }
+        </span>
       </div>
       <div class="seller-kpi-card">
         <span class="seller-kpi-label">Fim do período grátis</span>
@@ -82,11 +88,30 @@
       </div>
     </section>
 
+    @if (current.hasPendingGatewayCharge) {
+      <div class="notice is-info" role="status">
+        <i class="bi bi-receipt" aria-hidden="true"></i>
+        <span>
+          {{ current.pendingChargeStatus || 'Boleto aguardando integração' }}.
+          @if (current.pendingChargeAmount !== null && current.pendingChargeAmount !== undefined) {
+            Valor previsto: {{ formatCurrency(current.pendingChargeAmount) }}.
+          }
+          Nenhum boleto, PDF ou pagamento é gerado nesta etapa.
+        </span>
+      </div>
+    }
+
     <div class="content-card seller-panel plans-panel" aria-labelledby="plans-heading">
       <div class="content-head seller-panel-header">
         <div>
-          <h2 id="plans-heading">Planos disponíveis</h2>
-          <p class="section-copy">Valores, período grátis e benefícios definidos pela urbeat.</p>
+          <h2 id="plans-heading">{{ canSelectPlan() ? 'Planos superiores disponíveis' : 'Seu plano' }}</h2>
+          <p class="section-copy">
+            @if (canSelectPlan()) {
+              Valores, período grátis e benefícios definidos pela urbeat. A troca é somente upgrade.
+            } @else {
+              O catálogo é administrado pela urbeat. O lojista não edita planos.
+            }
+          </p>
         </div>
       </div>
 
@@ -102,7 +127,7 @@
       } @else if (plansError()) {
         <div class="seller-state-card is-error plans-state" role="alert">
           <strong class="seller-state-title">Não foi possível carregar os planos</strong>
-          <p class="seller-state-copy">Tente novamente para escolher um plano.</p>
+          <p class="seller-state-copy">Tente novamente para consultar as opções de upgrade.</p>
           <button type="button" class="seller-secondary-button" (click)="loadPlans()">Tentar novamente</button>
         </div>
       } @else if (plans().length === 0) {
@@ -110,28 +135,53 @@
           <strong class="seller-state-title">Nenhum plano disponível no momento.</strong>
           <p class="seller-state-copy">Fale com o suporte para conhecer as opções de contratação.</p>
         </div>
+      } @else if (!canSelectPlan()) {
+        <div class="seller-state-card plans-state">
+          <strong class="seller-state-title">{{ current.planName || 'Plano atual' }}</strong>
+          <p class="seller-state-copy">
+            {{ planMeta(current) }} · {{ current.trialDays && current.trialDays > 0 ? current.trialDays + ' dias grátis' : 'Sem período grátis' }}
+          </p>
+          @if (current.planDescription) {
+            <p class="seller-state-copy">{{ current.planDescription }}</p>
+          }
+        </div>
       } @else {
-        <div class="plans-grid" role="radiogroup" aria-label="Planos disponíveis">
-          @for (plan of plans(); track plan.id) {
-            <label
+        <div class="plans-grid" role="radiogroup" aria-label="Planos superiores disponíveis">
+          @for (plan of eligiblePlans(); track plan.id) {
+            <article
               class="plan-card"
               [class.is-selected]="selectedPlanId() === plan.id"
-              [class.is-disabled]="!canContract()"
-              [attr.aria-disabled]="!canContract() ? 'true' : null"
             >
-              <input
-                type="radio"
-                class="plan-radio"
-                name="subscription-plan"
-                [value]="plan.id"
-                [checked]="selectedPlanId() === plan.id"
-                [disabled]="!canContract()"
-                (change)="selectPlan(plan)"
-              />
-              <span class="plan-name">{{ plan.name }}</span>
-              <span class="plan-price">
-                {{ formatCurrency(plan.amount) }}<small>/mês</small>
-              </span>
+              <label class="plan-select-label">
+                <input
+                  type="radio"
+                  class="plan-radio"
+                  name="subscription-plan"
+                  [value]="plan.id"
+                  [checked]="selectedPlanId() === plan.id"
+                  (change)="selectPlan(plan)"
+                />
+                <span class="plan-name">{{ plan.name }}</span>
+                <span class="level-pill">Nível {{ plan.level }}</span>
+              </label>
+
+              <div class="plan-periods" role="group" [attr.aria-label]="'Periodicidade de ' + plan.name">
+                @for (option of periodOptions(plan); track option.period) {
+                  <label class="period-option" [class.is-selected]="selectedPlanId() === plan.id && isSelectedPeriod(option.period)">
+                    <input
+                      type="radio"
+                      [name]="'period-' + plan.id"
+                      [value]="option.period"
+                      [checked]="selectedPlanId() === plan.id && isSelectedPeriod(option.period)"
+                      [disabled]="selectedPlanId() !== plan.id"
+                      (change)="selectPeriod(option.period)"
+                    />
+                    <span>{{ option.label }}</span>
+                    <strong>{{ planAmountLabel(option) }}</strong>
+                  </label>
+                }
+              </div>
+
               <span class="plan-trial" [class.is-free]="plan.trialDays > 0">{{ planTrialLabel(plan) }}</span>
               @if (plan.description) {
                 <span class="plan-description">{{ plan.description }}</span>
@@ -143,33 +193,36 @@
                   }
                 </ul>
               }
-              <span class="plan-select-copy">{{ planActionLabel(plan) }}</span>
-            </label>
+            </article>
           }
         </div>
 
-        @if (canContract()) {
-          <div class="plan-actions">
-            <button
-              type="button"
-              class="seller-primary-button"
-              [disabled]="!selectedPlan() || contracting()"
-              (click)="openConfirmation()"
-            >
-              Contratar plano selecionado
-            </button>
-            <span class="plan-actions-copy">Você poderá revisar os dados antes de confirmar.</span>
-          </div>
-        }
+        <div class="plan-actions">
+          <button
+            type="button"
+            class="seller-primary-button"
+            [disabled]="!selectedPlan() || !selectedPeriod() || contracting()"
+            (click)="openConfirmation()"
+          >
+            {{ hasNoPlan() ? 'Vincular plano selecionado' : 'Solicitar upgrade' }}
+          </button>
+          <span class="plan-actions-copy">
+            Você poderá revisar os dados antes de confirmar. Downgrade não é permitido.
+          </span>
+        </div>
 
         @if (confirmVisible()) {
           @if (selectedPlan(); as plan) {
             <div class="contract-confirmation" role="group" aria-labelledby="contract-confirmation-title" aria-live="polite">
-              <strong id="contract-confirmation-title">Confirmar contratação</strong>
+              <strong id="contract-confirmation-title">
+                {{ hasNoPlan() ? 'Confirmar plano' : 'Confirmar upgrade' }}
+              </strong>
               <p>
-                Você está contratando <strong>{{ plan.name }}</strong> por
-                <strong>{{ formatCurrency(plan.amount) }}/mês</strong> para a sua loja. O período grátis e a
-                primeira cobrança são calculados pelo servidor.
+                Você está {{ hasNoPlan() ? 'vinculando' : 'solicitando upgrade para' }}
+                <strong>{{ plan.name }}</strong> no período
+                <strong>{{ selectedPeriod() === BillingPeriod.Annual ? 'anual' : 'mensal' }}</strong>
+                por <strong>{{ formatCurrency(selectedAmount()) }}</strong>. As condições comerciais
+                são aplicadas pelo servidor a partir da mudança.
               </p>
               <div class="contract-actions">
                 <button type="button" class="seller-secondary-button" [disabled]="contracting()" (click)="cancelConfirmation()">
@@ -182,7 +235,7 @@
                   [attr.aria-busy]="contracting()"
                   (click)="confirmContract()"
                 >
-                  {{ contracting() ? 'Contratando...' : 'Confirmar contratação' }}
+                  {{ contracting() ? 'Salvando...' : 'Confirmar' }}
                 </button>
               </div>
             </div>
@@ -229,7 +282,9 @@
                   <td data-label="Vencimento">{{ formatDate(charge.dueDateUtc) }}</td>
                   <td data-label="Valor">{{ formatCurrency(charge.amount) }}</td>
                   <td class="text-end" data-label="Status">
-                    @if (charge.paidAtUtc) {
+                    @if (charge.isGatewayPending) {
+                      <span class="seller-status-badge is-neutral">Boleto aguardando integração</span>
+                    } @else if (charge.paidAtUtc) {
                       <span class="seller-status-badge is-success">Pago em {{ formatDate(charge.paidAtUtc) }}</span>
                     } @else if (charge.billingStatus === BillingStatus.Overdue || charge.billingStatus === BillingStatus.Blocked) {
                       <span class="charge-actions">

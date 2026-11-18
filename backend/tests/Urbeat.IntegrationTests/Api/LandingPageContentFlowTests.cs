@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Urbeat.Domain.Entities;
 using FluentAssertions;
 using Urbeat.Application.Dtos;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -152,6 +153,8 @@ public sealed class LandingPageContentFlowTests : IClassFixture<TestWebApplicati
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "LP Seller",
             Email = email,
             Password = password,

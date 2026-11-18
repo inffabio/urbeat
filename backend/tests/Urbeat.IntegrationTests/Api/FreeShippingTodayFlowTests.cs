@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -308,6 +308,8 @@ public sealed class FreeShippingTodayFlowTests : IClassFixture<TestWebApplicatio
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Seller Frete Hoje {Guid.NewGuid():N}",
             Email = email,
             Password = password,

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Urbeat.Domain.Entities;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -29,6 +30,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
 
         var registerResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Seller Store",
             Email = email,
             Password = password,
@@ -116,6 +119,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Seller Unique",
             Email = email,
             Password = password,
@@ -363,6 +368,8 @@ public sealed class StoreFlowTests : IClassFixture<TestWebApplicationFactory>
 
         await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Seller {prefix}",
             Email = email,
             Password = password,

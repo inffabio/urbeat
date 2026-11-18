@@ -72,6 +72,14 @@ public sealed class ApplicationDbContext
 
     public DbSet<SellerSubscriptionChargeHistory> SellerSubscriptionChargeHistories => Set<SellerSubscriptionChargeHistory>();
 
+    public DbSet<SellerSubscriptionCharge> SellerSubscriptionCharges => Set<SellerSubscriptionCharge>();
+
+    public DbSet<SellerSubscriptionChange> SellerSubscriptionChanges => Set<SellerSubscriptionChange>();
+
+    public DbSet<SellerPlanSelection> SellerPlanSelections => Set<SellerPlanSelection>();
+
+    public DbSet<SubscriptionGatewayConfiguration> SubscriptionGatewayConfigurations => Set<SubscriptionGatewayConfiguration>();
+
     public DbSet<SubscriptionWebhookEvent> SubscriptionWebhookEvents => Set<SubscriptionWebhookEvent>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
@@ -357,10 +365,15 @@ public sealed class ApplicationDbContext
         {
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.Name).IsUnique();
+            entity.HasIndex(x => x.Level);
             entity.Property(x => x.Name).HasMaxLength(120);
             entity.Property(x => x.Description).HasMaxLength(500);
             entity.Property(x => x.Amount).HasPrecision(10, 2);
             entity.Property(x => x.TrialDays).HasDefaultValue(Plan.DefaultTrialDays);
+            entity.Property(x => x.MonthlyEnabled).HasDefaultValue(true);
+            entity.Property(x => x.AnnualEnabled).HasDefaultValue(false);
+            entity.Property(x => x.AnnualDiscountPercent).HasDefaultValue(0);
+            entity.Property(x => x.Level).HasDefaultValue(0);
             entity.Property(x => x.BenefitsJson).HasColumnType("text").HasDefaultValue("[]");
         });
 
@@ -768,9 +781,64 @@ public sealed class ApplicationDbContext
             entity.HasIndex(x => x.StoreId).IsUnique();
             entity.HasIndex(x => x.SellerUserId).IsUnique();
             entity.Property(x => x.PlanName).HasMaxLength(120);
+            entity.Property(x => x.PlanDescriptionSnapshot).HasMaxLength(500);
             entity.Property(x => x.PlanAmount).HasPrecision(10, 2);
             entity.Property(x => x.GatewayCustomerId).HasMaxLength(120);
             entity.Property(x => x.GatewaySubscriptionId).HasMaxLength(120);
+            entity.Property(x => x.BillingPeriod).HasDefaultValue(SubscriptionBillingPeriod.Monthly).HasSentinel((SubscriptionBillingPeriod)0);
+            entity.Property(x => x.TrialDaysSnapshot).HasDefaultValue(0);
+            entity.Property(x => x.AnnualDiscountPercentSnapshot).HasDefaultValue(0);
+            entity.Property(x => x.PlanLevelSnapshot).HasDefaultValue(0);
+        });
+
+        builder.Entity<SellerPlanSelection>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.UserId).IsUnique();
+            entity.HasIndex(x => x.PlanId);
+            entity.HasOne<Plan>()
+                .WithMany()
+                .HasForeignKey(x => x.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<SellerSubscriptionCharge>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.SellerUserId);
+            entity.HasIndex(x => x.DueDateUtc);
+            entity.HasIndex(x => x.IdempotencyKey).IsUnique();
+            entity.Property(x => x.PlanNameSnapshot).HasMaxLength(120);
+            entity.Property(x => x.Amount).HasPrecision(10, 2);
+            entity.Property(x => x.IdempotencyKey).HasMaxLength(160);
+        });
+
+        builder.Entity<SellerSubscriptionChange>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.SubscriptionId);
+            entity.HasIndex(x => x.SellerUserId);
+            entity.Property(x => x.PreviousPlanName).HasMaxLength(120);
+            entity.Property(x => x.NewPlanName).HasMaxLength(120);
+            entity.Property(x => x.PreviousPlanAmount).HasPrecision(10, 2);
+            entity.Property(x => x.NewPlanAmount).HasPrecision(10, 2);
+            entity.Property(x => x.Reason).HasMaxLength(40);
+        });
+
+        builder.Entity<SubscriptionGatewayConfiguration>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.PlanId).IsUnique();
+            entity.HasOne<Plan>()
+                .WithMany()
+                .HasForeignKey(x => x.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(x => x.Provider).HasMaxLength(40);
+            entity.Property(x => x.Environment).HasMaxLength(20);
+            entity.Property(x => x.ApiBaseUrl).HasMaxLength(500);
+            entity.Property(x => x.WebhookUrl).HasMaxLength(500);
+            entity.Property(x => x.ApiKeySecretReference).HasMaxLength(300);
+            entity.Property(x => x.WebhookSecretReference).HasMaxLength(300);
         });
 
         builder.Entity<SellerSubscriptionChargeHistory>(entity =>

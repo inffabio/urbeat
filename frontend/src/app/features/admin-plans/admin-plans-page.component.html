@@ -1,19 +1,381 @@
-<section class="admin-page" aria-labelledby="admin-plans-title">
-  <header class="admin-page-head">
-    <p class="admin-eyebrow">Administração da plataforma</p>
-    <h1 id="admin-plans-title">Planos</h1>
-    <p class="admin-lead">
-      A gestão de planos ainda não foi migrada para o painel administrativo. Esta página é um
-      marcador honesto da próxima fase — não há listagem, edição ou criação de planos aqui.
-    </p>
+<section class="admin-plans-page" aria-labelledby="admin-plans-title">
+  <header class="plans-header">
+    <div>
+      <h1 id="admin-plans-title">Planos de assinatura</h1>
+      <p class="plans-subtitle">
+        Configure preço, período grátis, cobrança mensal ou anual e o nível usado para upgrades.
+        Alterações não recalculam assinaturas já contratadas.
+      </p>
+    </div>
+    <div class="plans-header-actions">
+      <p class="plans-count">{{ activeCount() }} de {{ plans().length }} ativos</p>
+      <button type="button" class="btn-primary" (click)="startCreate()">Novo plano</button>
+    </div>
   </header>
 
-  <div class="admin-empty" role="status">
-    <h2>Área em preparação</h2>
-    <p>
-      Enquanto a migração não acontece, os planos atuais continuam sendo administrados pela área
-      administrativa existente.
-    </p>
-    <a class="admin-card-link" routerLink="/admin/configuracoes">Ir para configurações</a>
-  </div>
+  @if (formVisible()) {
+    <section class="plan-form-panel" aria-labelledby="plan-form-title">
+      <div class="plan-form-head">
+        <h2 id="plan-form-title">{{ formTitle() }}</h2>
+        <button type="button" class="btn-ghost" (click)="cancelForm()" [disabled]="saving()">
+          Fechar
+        </button>
+      </div>
+
+      @if (formError(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+
+      <form (ngSubmit)="save()" novalidate>
+        <div class="form-grid">
+          <label class="field field-wide">
+            <span>Nome</span>
+            <input
+              type="text"
+              name="name"
+              maxlength="120"
+              autocomplete="off"
+              [ngModel]="form().name"
+              (ngModelChange)="updateForm({ name: $event })"
+            />
+          </label>
+
+          <label class="field field-wide">
+            <span>Descrição</span>
+            <textarea
+              name="description"
+              rows="2"
+              maxlength="500"
+              [ngModel]="form().description"
+              (ngModelChange)="updateForm({ description: $event })"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>Valor mensal (R$)</span>
+            <input
+              type="number"
+              name="monthlyAmount"
+              min="0.01"
+              step="0.01"
+              inputmode="decimal"
+              [ngModel]="form().monthlyAmount"
+              (ngModelChange)="updateForm({ monthlyAmount: $event })"
+            />
+          </label>
+
+          <label class="field">
+            <span>Dias grátis</span>
+            <input
+              type="number"
+              name="trialDays"
+              min="0"
+              max="365"
+              step="1"
+              inputmode="numeric"
+              [ngModel]="form().trialDays"
+              (ngModelChange)="updateForm({ trialDays: $event })"
+            />
+          </label>
+
+          <label class="field">
+            <span>Nível (maior = superior)</span>
+            <input
+              type="number"
+              name="level"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              [ngModel]="form().level"
+              (ngModelChange)="updateForm({ level: $event })"
+            />
+          </label>
+
+          <div class="field">
+            <span>Cobrança</span>
+            <div class="check-row">
+              <label class="check">
+                <input
+                  type="checkbox"
+                  name="monthlyEnabled"
+                  [ngModel]="form().monthlyEnabled"
+                  (ngModelChange)="updateForm({ monthlyEnabled: $event })"
+                />
+                Mensal
+              </label>
+              <label class="check">
+                <input
+                  type="checkbox"
+                  name="annualEnabled"
+                  [ngModel]="form().annualEnabled"
+                  (ngModelChange)="updateForm({ annualEnabled: $event })"
+                />
+                Anual
+              </label>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Desconto anual (%)</span>
+            <input
+              type="number"
+              name="annualDiscountPercent"
+              min="0"
+              max="100"
+              step="1"
+              inputmode="numeric"
+              [disabled]="!form().annualEnabled"
+              [ngModel]="form().annualDiscountPercent"
+              (ngModelChange)="updateForm({ annualDiscountPercent: $event })"
+            />
+          </label>
+
+          <div class="field">
+            <span>Total anual calculado</span>
+            <output class="annual-preview">
+              {{ annualPreview() === null ? '—' : formatCurrency(annualPreview()!) }}
+            </output>
+          </div>
+
+          @if (!editingId()) {
+            <label class="check field-wide">
+              <input
+                type="checkbox"
+                name="isActive"
+                [ngModel]="form().isActive"
+                (ngModelChange)="updateForm({ isActive: $event })"
+              />
+              Publicar plano ativo no catálogo
+            </label>
+          }
+
+          <label class="field field-wide">
+            <span>Benefícios (um por linha)</span>
+            <textarea
+              name="benefits"
+              rows="5"
+              [ngModel]="form().benefitsText"
+              (ngModelChange)="updateForm({ benefitsText: $event })"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="saving()" [attr.aria-busy]="saving()">
+            {{ saving() ? 'Salvando...' : (editingId() ? 'Salvar alterações' : 'Criar plano') }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (loading()) {
+    <div class="plans-skeleton" aria-hidden="true">
+      @for (row of [1, 2, 3]; track row) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+    <p class="sr-only" role="status">Carregando planos.</p>
+  } @else if (error()) {
+    <div class="plans-state is-error" role="alert">
+      <strong>Não foi possível carregar os planos.</strong>
+      <span>Verifique sua conexão e tente novamente.</span>
+      <button type="button" class="btn-secondary" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else if (plans().length === 0) {
+    <div class="plans-state">
+      <strong>Nenhum plano cadastrado.</strong>
+      <span>Crie o primeiro plano para liberar a contratação na landing e no cadastro.</span>
+      <button type="button" class="btn-primary" (click)="startCreate()">Criar plano</button>
+    </div>
+  } @else {
+    <ul class="plan-list" aria-label="Planos cadastrados">
+      @for (plan of plans(); track plan.id) {
+        <li class="plan-row" [class.is-inactive]="!plan.isActive">
+          <div class="plan-row-main">
+            <div class="plan-row-title">
+              <h2>{{ plan.name }}</h2>
+              <span class="status-pill" [class.is-active]="plan.isActive">
+                {{ plan.isActive ? 'Ativo' : 'Inativo' }}
+              </span>
+              <span class="level-pill">Nível {{ plan.level }}</span>
+            </div>
+            <p class="plan-row-price">{{ planPriceLabel(plan) }}</p>
+            <p class="plan-row-meta">
+              {{ plan.trialDays > 0 ? plan.trialDays + ' dias grátis' : 'Sem período grátis' }}
+              @if (plan.annualEnabled && plan.annualDiscountPercent > 0) {
+                · {{ plan.annualDiscountPercent }}% de desconto no anual
+              }
+            </p>
+            @if (plan.description) {
+              <p class="plan-row-description">{{ plan.description }}</p>
+            }
+            @if (plan.benefits.length > 0) {
+              <ul class="plan-row-benefits">
+                @for (benefit of plan.benefits; track benefit) {
+                  <li>{{ benefit }}</li>
+                }
+              </ul>
+            }
+          </div>
+          <div class="plan-row-actions">
+            <button type="button" class="btn-secondary" (click)="openGateway(plan)" [disabled]="saving()">
+              Gateway
+            </button>
+            <button type="button" class="btn-secondary" (click)="startEdit(plan)" [disabled]="saving()">
+              Editar
+            </button>
+            <button
+              type="button"
+              class="btn-ghost"
+              (click)="toggleStatus(plan)"
+              [disabled]="saving()"
+              [attr.aria-pressed]="plan.isActive"
+            >
+              {{ plan.isActive ? 'Desativar' : 'Ativar' }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (gatewayPlanId(); as planId) {
+    <section class="gateway-panel" aria-labelledby="gateway-title">
+      <div class="gateway-head">
+        <div>
+          <h2 id="gateway-title">Gateway do plano {{ gatewayPlanName() }}</h2>
+          <p>
+            Parâmetros futuros vinculados somente a este plano. Nenhuma cobrança é gerada nesta
+            versão. Informe apenas referências a segredos do Vault; o valor do segredo nunca é
+            enviado, armazenado ou exibido aqui.
+          </p>
+        </div>
+        <button type="button" class="btn-ghost" (click)="closeGateway()" [disabled]="gatewaySaving()">
+          Fechar
+        </button>
+      </div>
+
+      @if (gatewayLoading()) {
+        <p class="gateway-loading" role="status">Carregando configuração do plano…</p>
+      } @else {
+        @if (gatewayError(); as message) {
+          <p class="form-error" role="alert">{{ message }}</p>
+        }
+        @if (gatewaySuccess(); as message) {
+          <p class="form-success" role="status">{{ message }}</p>
+        }
+
+        <div class="gateway-status" aria-live="polite">
+          <span class="status-item">
+            Referência da chave de API:
+            <strong>{{ gatewayStateLabel(gateway()?.hasApiKey ?? false) }}</strong>
+          </span>
+          <span class="status-item">
+            Referência do segredo do webhook:
+            <strong>{{ gatewayStateLabel(gateway()?.hasWebhookSecret ?? false) }}</strong>
+          </span>
+        </div>
+
+        <form (ngSubmit)="saveGateway()" novalidate>
+          <div class="form-grid">
+            <label class="field">
+              <span>Provedor</span>
+              <input
+                type="text"
+                name="provider"
+                maxlength="40"
+                [ngModel]="gatewayForm().provider"
+                (ngModelChange)="updateGatewayForm({ provider: $event })"
+              />
+            </label>
+
+            <label class="field">
+              <span>Ambiente</span>
+              <select
+                name="environment"
+                [ngModel]="gatewayForm().environment"
+                (ngModelChange)="updateGatewayForm({ environment: $event })"
+              >
+                <option value="Sandbox">Sandbox</option>
+                <option value="Production">Production</option>
+              </select>
+            </label>
+
+            <label class="field field-wide">
+              <span>URL base da API</span>
+              <input
+                type="url"
+                name="apiBaseUrl"
+                maxlength="500"
+                placeholder="https://"
+                [ngModel]="gatewayForm().apiBaseUrl"
+                (ngModelChange)="updateGatewayForm({ apiBaseUrl: $event })"
+              />
+            </label>
+
+            <label class="field field-wide">
+              <span>URL de webhook</span>
+              <input
+                type="url"
+                name="webhookUrl"
+                maxlength="500"
+                placeholder="https://"
+                [ngModel]="gatewayForm().webhookUrl"
+                (ngModelChange)="updateGatewayForm({ webhookUrl: $event })"
+              />
+            </label>
+
+            <label class="field">
+              <span>Referência do segredo da API</span>
+              <input
+                type="text"
+                name="apiKeySecretReference"
+                maxlength="300"
+                autocomplete="off"
+                placeholder="vault://caminho/do/segredo"
+                [ngModel]="gatewayForm().apiKeySecretReference"
+                (ngModelChange)="updateGatewayForm({ apiKeySecretReference: $event })"
+              />
+            </label>
+
+            <label class="field">
+              <span>Referência do segredo do webhook</span>
+              <input
+                type="text"
+                name="webhookSecretReference"
+                maxlength="300"
+                autocomplete="off"
+                placeholder="vault://caminho/do/segredo"
+                [ngModel]="gatewayForm().webhookSecretReference"
+                (ngModelChange)="updateGatewayForm({ webhookSecretReference: $event })"
+              />
+            </label>
+
+            <label class="check field-wide">
+              <input
+                type="checkbox"
+                name="gatewayEnabled"
+                [ngModel]="gatewayForm().isEnabled"
+                (ngModelChange)="updateGatewayForm({ isEnabled: $event })"
+              />
+              Marcar integração deste plano como habilitada na configuração
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <span class="gateway-note">
+              A integração não é usada para gerar boleto ou pagamento nesta entrega.
+            </span>
+            <button type="submit" class="btn-primary" [disabled]="gatewaySaving()">
+              {{ gatewaySaving() ? 'Salvando...' : 'Salvar configuração do plano' }}
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  }
 </section>

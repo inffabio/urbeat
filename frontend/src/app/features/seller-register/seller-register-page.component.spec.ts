@@ -1,9 +1,38 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { PlanOfferService } from '../../core/services/plan-offer.service';
 import { ToastService } from '../../core/services/toast.service';
+import { PublicPlanOfferItem } from '../../shared/models/plan-offer.model';
+import { SubscriptionBillingPeriod } from '../../shared/models/subscription.model';
 import { SellerRegisterPageComponent } from './seller-register-page.component';
+
+const PLAN_BASE: PublicPlanOfferItem = {
+  id: 'plan-base',
+  name: 'Começar',
+  amount: 19.9,
+  monthlyAmount: 19.9,
+  annualAmount: 214.92,
+  annualDiscountPercent: 10,
+  monthlyEnabled: true,
+  annualEnabled: true,
+  description: 'Plano de entrada',
+  trialDays: 15,
+  benefits: [],
+  level: 0,
+};
+
+const PLAN_GROWTH: PublicPlanOfferItem = {
+  ...PLAN_BASE,
+  id: 'plan-growth',
+  name: 'Crescer',
+  amount: 39.9,
+  monthlyAmount: 39.9,
+  annualAmount: 407,
+  annualDiscountPercent: 15,
+  level: 1,
+};
 
 describe('SellerRegisterPageComponent', () => {
   let fixture: ComponentFixture<SellerRegisterPageComponent>;
@@ -13,8 +42,10 @@ describe('SellerRegisterPageComponent', () => {
     logout: jest.Mock;
     isAuthenticated: jest.Mock;
   };
+  let planOfferMock: { getOffer: jest.Mock };
   let routerMock: { navigate: jest.Mock };
   let toastMock: { showSuccess: jest.Mock; showError: jest.Mock; showWarning: jest.Mock };
+  let queryParams: Record<string, string>;
 
   const registerResponse = {
     succeeded: true,
@@ -28,25 +59,44 @@ describe('SellerRegisterPageComponent', () => {
       logout: jest.fn(),
       isAuthenticated: jest.fn().mockReturnValue(false),
     };
+    planOfferMock = {
+      getOffer: jest.fn().mockReturnValue(of({ plans: [PLAN_BASE, PLAN_GROWTH] })),
+    };
     routerMock = { navigate: jest.fn() };
     toastMock = {
       showSuccess: jest.fn(),
       showError: jest.fn(),
       showWarning: jest.fn(),
     };
+    queryParams = {};
 
     await TestBed.configureTestingModule({
       imports: [SellerRegisterPageComponent],
       providers: [
         { provide: AuthService, useValue: authServiceMock },
+        { provide: PlanOfferService, useValue: planOfferMock },
         { provide: Router, useValue: routerMock },
-        { provide: ActivatedRoute, useValue: {} },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: {
+                get: (key: string) => queryParams[key] ?? null,
+              },
+            },
+            root: null,
+            firstChild: null,
+            children: [],
+            pathFromRoot: [],
+          },
+        },
         { provide: ToastService, useValue: toastMock },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SellerRegisterPageComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   function fillValidForm(): void {
@@ -56,6 +106,9 @@ describe('SellerRegisterPageComponent', () => {
     component.email.set('novo@vendedor.com');
     component.password.set('Senha@123');
     component.confirmPassword.set('Senha@123');
+    if (!component.selectedPlan()) {
+      component.selectPlan(PLAN_BASE);
+    }
   }
 
   function submit(response: typeof registerResponse & {
@@ -226,5 +279,107 @@ describe('SellerRegisterPageComponent', () => {
       ['/confirmacao-email'],
       { queryParams: { email: 'novo@vendedor.com' } },
     );
+  });
+
+  it('applies planId and billingPeriod from the landing query and shows the plan summary', () => {
+    queryParams = { planId: 'plan-growth', billingPeriod: 'annual' };
+    TestBed.resetTestingModule();
+
+    // Rebuild with query params available during ngOnInit.
+    const localFixture = TestBed.configureTestingModule({
+      imports: [SellerRegisterPageComponent],
+      providers: [
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: PlanOfferService, useValue: planOfferMock },
+        { provide: Router, useValue: routerMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: { get: (key: string) => queryParams[key] ?? null } },
+            root: null,
+            firstChild: null,
+            children: [],
+            pathFromRoot: [],
+          },
+        },
+        { provide: ToastService, useValue: toastMock },
+      ],
+    }).createComponent(SellerRegisterPageComponent);
+    localFixture.detectChanges();
+    const localComponent = localFixture.componentInstance;
+
+    expect(localComponent.selectedPlanId()).toBe('plan-growth');
+    expect(localComponent.selectedBillingPeriod()).toBe(SubscriptionBillingPeriod.Annual);
+    const text = localFixture.nativeElement.textContent as string;
+    expect(text).toContain('Crescer');
+    expect(text).toContain('Anual');
+    expect(text).toContain('407,00');
+  });
+
+  it('sends only plan identifiers and never commercial values', () => {
+    fillValidForm();
+    component.selectPlan(PLAN_GROWTH);
+    component.selectPeriod(PLAN_GROWTH, SubscriptionBillingPeriod.Annual);
+    authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
+
+    component.submit();
+
+    const request = authServiceMock.registerSeller.mock.calls[0][0];
+    expect(request.planId).toBe('plan-growth');
+    expect(request.billingPeriod).toBe(SubscriptionBillingPeriod.Annual);
+    expect(request).not.toHaveProperty('amount');
+    expect(request).not.toHaveProperty('monthlyAmount');
+    expect(request).not.toHaveProperty('annualAmount');
+    expect(request).not.toHaveProperty('trialDays');
+    expect(request).not.toHaveProperty('benefits');
+  });
+
+  it('blocks submission and asks for revalidation when the selected plan is unavailable', () => {
+    queryParams = { planId: 'plan-removed', billingPeriod: 'monthly' };
+
+    TestBed.resetTestingModule();
+    const localFixture = TestBed.configureTestingModule({
+      imports: [SellerRegisterPageComponent],
+      providers: [
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: PlanOfferService, useValue: planOfferMock },
+        { provide: Router, useValue: routerMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: { get: (key: string) => queryParams[key] ?? null } },
+            root: null,
+            firstChild: null,
+            children: [],
+            pathFromRoot: [],
+          },
+        },
+        { provide: ToastService, useValue: toastMock },
+      ],
+    }).createComponent(SellerRegisterPageComponent);
+    localFixture.detectChanges();
+    const localComponent = localFixture.componentInstance;
+
+    localComponent.fullName.set('Contratante Teste');
+    localComponent.whatsapp.set('(21) 99999-9999');
+    localComponent.email.set('novo@vendedor.com');
+    localComponent.password.set('Senha@123');
+    localComponent.confirmPassword.set('Senha@123');
+    localComponent.submit();
+
+    expect(localComponent.errors()['plan']).toContain('Revalide');
+    expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
+  });
+
+  it('requires a plan selection on a direct visit without query params', () => {
+    component.fullName.set('Contratante Teste');
+    component.whatsapp.set('(21) 99999-9999');
+    component.email.set('novo@vendedor.com');
+    component.password.set('Senha@123');
+    component.confirmPassword.set('Senha@123');
+    component.submit();
+
+    expect(component.errors()['plan']).toContain('Escolha um plano');
+    expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
   });
 });

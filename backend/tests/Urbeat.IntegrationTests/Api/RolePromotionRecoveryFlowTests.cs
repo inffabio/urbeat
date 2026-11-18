@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -586,17 +586,23 @@ public sealed class RolePromotionRecoveryFlowTests
             PhoneNumber = "11999999999"
         });
 
-    private static Task<HttpResponseMessage> PostPromotionAsync(
+    private async Task<HttpResponseMessage> PostPromotionAsync(
         HttpClient client,
         string email,
         string fullName = "Contratante Retry")
-        => client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
+    {
+        var offer = await client.GetFromJsonAsync<PublicPlanOfferResponseDto>("/api/public/plans");
+        var planId = offer!.Plans.First(x => x.MonthlyEnabled).Id;
+        return await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = planId,
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = fullName,
             Email = email,
             Password = SellerPassword,
             PhoneNumber = "11988888888"
         });
+    }
 
     private static Task<HttpResponseMessage> ConfirmPromotionAsync(HttpClient client, string token)
         => client.PostAsJsonAsync("/api/auth/role-promotion/confirm", new ConfirmRolePromotionRequestDto

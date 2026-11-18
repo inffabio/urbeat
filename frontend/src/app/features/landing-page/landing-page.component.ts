@@ -5,13 +5,21 @@ import { Title, Meta } from '@angular/platform-browser';
 
 import { LandingPageService, LandingPageContent } from '../../core/services/landing-page.service';
 import { PlanOfferService } from '../../core/services/plan-offer.service';
-import { PublicPlanOfferItem } from '../../shared/models/plan-offer.model';
+import {
+  PlanPeriodOption,
+  PublicPlanOfferItem,
+  planPeriodOptions,
+} from '../../shared/models/plan-offer.model';
+import {
+  SubscriptionBillingPeriod,
+  billingPeriodToQuery,
+} from '../../shared/models/subscription.model';
 
 /*
   ── DIRECTION CONTRACT (landpage urbeat Green) ─────────────────────────────
   THESIS: Vende o app próprio de delivery para lojistas iniciantes e recusa o
   layout genérico de marketplaces gigantes; toda conversão passa pelo
-  "Criar meu cardápio" e pelo "Entrar".
+  "Criar meu cadastro" e pelo "Entrar".
   OWN-WORLD: urbeat Green — #6EAF4A sólido sobre branco/#F9FAFB, cartões
   escuros zinc-900, radius 24–40px, sombras verdes suaves, badges pill
   #E8F5E9 com texto #2E7D32, tipografia Plus Jakarta Sans (var(--app-font)).
@@ -38,6 +46,11 @@ const FALLBACK_PLANS: PublicPlanOfferItem[] = [
     id: 'fallback-comecar',
     name: 'Começar',
     amount: 19.9,
+    monthlyAmount: 19.9,
+    annualAmount: 214.92,
+    annualDiscountPercent: 10,
+    monthlyEnabled: true,
+    annualEnabled: true,
     description: 'Para quem está começando a vender pelo próprio app.',
     trialDays: 15,
     benefits: [
@@ -47,11 +60,17 @@ const FALLBACK_PLANS: PublicPlanOfferItem[] = [
       'Impressão automática na cozinha',
       'Suporte via WhatsApp',
     ],
+    level: 0,
   },
   {
     id: 'fallback-crescer',
     name: 'Crescer',
     amount: 39.9,
+    monthlyAmount: 39.9,
+    annualAmount: 407,
+    annualDiscountPercent: 15,
+    monthlyEnabled: true,
+    annualEnabled: true,
     description: 'Para negócios que já vendem e querem mais controle.',
     trialDays: 15,
     benefits: [
@@ -61,11 +80,17 @@ const FALLBACK_PLANS: PublicPlanOfferItem[] = [
       'Banners no cardápio',
       'Geração de QR Code',
     ],
+    level: 1,
   },
   {
     id: 'fallback-profissional',
     name: 'Profissional',
     amount: 79.9,
+    monthlyAmount: 79.9,
+    annualAmount: 767.04,
+    annualDiscountPercent: 20,
+    monthlyEnabled: true,
+    annualEnabled: true,
     description: 'Para operações com equipe e automações avançadas.',
     trialDays: 15,
     benefits: [
@@ -75,6 +100,7 @@ const FALLBACK_PLANS: PublicPlanOfferItem[] = [
       'Dashboard com resumo das vendas',
       'Controle de finanças',
     ],
+    level: 2,
   },
 ];
 
@@ -100,9 +126,18 @@ export class LandingPageComponent implements OnInit {
   readonly currentYear = new Date().getFullYear();
 
   private readonly offerPlans = signal<PublicPlanOfferItem[] | null>(null);
+  private readonly selectedPeriods = signal<Record<string, SubscriptionBillingPeriod>>({});
 
   /** Planos ativos vindos da API; fallback seguro apenas quando a chamada falha. */
   readonly plans = computed<PublicPlanOfferItem[]>(() => this.offerPlans() ?? FALLBACK_PLANS);
+
+  /** Título condicional conforme a quantidade de planos ativos. */
+  readonly plansTitle = computed(() => {
+    const count = this.plans().length;
+    if (count > 1) return 'Escolha o plano ideal para o seu momento';
+    if (count === 1) return 'Crie hoje mesmo sua loja';
+    return 'Planos indisponíveis no momento';
+  });
 
   /** Maior trial entre os planos, usado nos textos gerais da página. */
   readonly trialDays = computed(() =>
@@ -155,6 +190,63 @@ export class LandingPageComponent implements OnInit {
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  planPeriods(plan: PublicPlanOfferItem): PlanPeriodOption[] {
+    return planPeriodOptions(plan);
+  }
+
+  selectedPeriod(plan: PublicPlanOfferItem): SubscriptionBillingPeriod {
+    const configured = this.selectedPeriods()[plan.id];
+    if (configured && this.planPeriods(plan).some((option) => option.period === configured)) {
+      return configured;
+    }
+    return this.planPeriods(plan)[0]?.period ?? SubscriptionBillingPeriod.Monthly;
+  }
+
+  selectPeriod(plan: PublicPlanOfferItem, period: SubscriptionBillingPeriod): void {
+    this.selectedPeriods.update((current) => ({ ...current, [plan.id]: period }));
+  }
+
+  selectedOption(plan: PublicPlanOfferItem): PlanPeriodOption | null {
+    const period = this.selectedPeriod(plan);
+    return this.planPeriods(plan).find((option) => option.period === period) ?? null;
+  }
+
+  periodSuffix(period: SubscriptionBillingPeriod): string {
+    return period === SubscriptionBillingPeriod.Annual ? '/ano' : '/mês';
+  }
+
+  planQueryParams(plan: PublicPlanOfferItem): { planId: string; billingPeriod: string } {
+    return {
+      planId: plan.id,
+      billingPeriod: billingPeriodToQuery(this.selectedPeriod(plan)),
+    };
+  }
+
+  planCtaLabel(_plan: PublicPlanOfferItem): string {
+    return 'Começar';
+  }
+
+  /**
+   * O CTA sem plano selecionado nunca navega direto para o cadastro: rola até
+   * a seção de planos, mantém o foco no destino e respeita reduced motion.
+   */
+  scrollToPlans(event: Event): void {
+    event.preventDefault();
+    const target = this.document.getElementById('plano');
+    if (!target) return;
+
+    const reduceMotion = this.document.defaultView
+      ?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    target.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+    this.menuOpen.set(false);
   }
 
   private setupSEO(): void {

@@ -24,7 +24,10 @@ public sealed class BillingPlanSeeder
         string Name,
         decimal Amount,
         string Description,
-        IReadOnlyList<string> Benefits);
+        IReadOnlyList<string> Benefits,
+        int Level = 0,
+        bool AnnualEnabled = true,
+        int AnnualDiscountPercent = 0);
 
     public static readonly IReadOnlyList<PlanSeed> Catalog =
     [
@@ -38,7 +41,10 @@ public sealed class BillingPlanSeeder
                 "Painel de pedidos em tempo real",
                 "Impressão automática na cozinha",
                 "Suporte via WhatsApp"
-            ]),
+            ],
+            Level: 0,
+            AnnualEnabled: true,
+            AnnualDiscountPercent: 10),
         new(
             "Crescer",
             39.90m,
@@ -49,7 +55,10 @@ public sealed class BillingPlanSeeder
                 "Base de clientes exportável",
                 "Banners no cardápio",
                 "Geração de QR Code"
-            ]),
+            ],
+            Level: 1,
+            AnnualEnabled: true,
+            AnnualDiscountPercent: 15),
         new(
             "Profissional",
             79.90m,
@@ -60,7 +69,10 @@ public sealed class BillingPlanSeeder
                 "Automação de WhatsApp",
                 "Dashboard com resumo das vendas",
                 "Controle de finanças"
-            ])
+            ],
+            Level: 2,
+            AnnualEnabled: true,
+            AnnualDiscountPercent: 20)
     ];
 
     private readonly ApplicationDbContext _dbContext;
@@ -93,6 +105,10 @@ public sealed class BillingPlanSeeder
                 Description = seed.Description,
                 IsActive = true,
                 TrialDays = DefaultTrialDays,
+                MonthlyEnabled = true,
+                AnnualEnabled = seed.AnnualEnabled,
+                AnnualDiscountPercent = seed.AnnualDiscountPercent,
+                Level = seed.Level,
                 BenefitsJson = JsonSerializer.Serialize(seed.Benefits)
             };
 

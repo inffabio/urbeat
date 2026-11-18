@@ -1,6 +1,7 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Urbeat.Domain.Entities;
 using FluentAssertions;
 using Urbeat.Application.DTOs;
 using Urbeat.IntegrationTests.Infrastructure;
@@ -39,6 +40,8 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Atacante Takeover",
             Email = email,
             Password = attackerPassword,
@@ -92,6 +95,8 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Contratante Confirmado {Guid.NewGuid():N}",
             Email = email,
             Password = password,
@@ -124,6 +129,8 @@ public sealed class AuthRegistrationSecurityTests : IClassFixture<TestWebApplica
 
         var promoteResponse = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = $"Contratante Pendente {Guid.NewGuid():N}",
             Email = email,
             Password = password,

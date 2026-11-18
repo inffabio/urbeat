@@ -1,4 +1,6 @@
-﻿namespace Urbeat.Application.DTOs;
+﻿using Urbeat.Domain.Entities;
+
+namespace Urbeat.Application.DTOs;
 
 public sealed class RegisterUserRequestDto
 {
@@ -12,6 +14,19 @@ public sealed class RegisterUserRequestDto
     
     // Pode ser o CPF (Cliente/Vendedor PF) ou CNPJ (Vendedor PJ)
     public string? Document { get; init; }
+
+    /// <summary>
+    /// Plano escolhido antes do cadastro do lojista. Obrigatório para novos
+    /// acessos de vendedor; o servidor valida o catálogo atual e ignora
+    /// qualquer valor comercial enviado pelo cliente.
+    /// </summary>
+    public Guid? PlanId { get; init; }
+
+    /// <summary>
+    /// Periodicidade escolhida (mensal ou anual). Obrigatória junto com
+    /// <see cref="PlanId"/>; deve estar habilitada no plano.
+    /// </summary>
+    public SubscriptionBillingPeriod? BillingPeriod { get; init; }
 
     /// <summary>
     /// Wire-compatibility only. Older clients may still send it, but the server deliberately

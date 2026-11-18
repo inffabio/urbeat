@@ -320,3 +320,175 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Seleção obrigatória de plano e periodicidade */
+.plan-selection {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.plan-selection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan-selection-head h2 {
+  margin: 0;
+  color: var(--app-ink);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.plan-change-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--app-brand-dark);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.plan-selection-state {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-brand-soft);
+  color: var(--app-ink-soft);
+  font-size: 13px;
+}
+
+.plan-selection-state.is-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--app-error-soft);
+  color: var(--app-error);
+}
+
+.plan-retry {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--app-error-border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--app-error);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.plan-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-brand-soft);
+  color: var(--app-ink-soft);
+  font-size: 13px;
+}
+
+.plan-summary strong {
+  color: var(--app-brand-dark);
+  font-weight: 800;
+}
+
+.plan-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.plan-option {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.plan-option.is-selected {
+  border-color: var(--app-brand);
+  box-shadow: 0 8px 20px var(--app-brand-shadow);
+}
+
+.plan-option-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.plan-option-head input,
+.plan-period-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--app-brand);
+}
+
+.plan-option-name {
+  color: var(--app-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.plan-option-trial {
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--app-brand-soft);
+  color: var(--app-brand-dark);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.plan-period-options {
+  display: grid;
+  gap: 6px;
+}
+
+.plan-period-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--app-border-light);
+  border-radius: 10px;
+  color: var(--app-ink-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.plan-period-option strong {
+  margin-left: auto;
+  font-weight: 800;
+}
+
+.plan-period-option small {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--app-brand-soft);
+  color: var(--app-brand-dark);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.plan-period-option.is-selected {
+  border-color: var(--app-brand);
+  background: var(--app-brand-soft);
+}
+
+.plan-period-option:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

@@ -187,4 +187,13 @@ public sealed class PlanServiceTests : IDisposable
         offer.Plans[0].TrialDays.Should().Be(15);
         offer.Plans[0].Benefits.Should().Equal("Benefício");
     }
+
+    private sealed class PassthroughEncryptionService : Urbeat.Application.Interfaces.IEncryptionService
+    {
+        public string Encrypt(string plainText) => $"enc:{plainText}";
+
+        public string Decrypt(string cipherText) => cipherText.StartsWith("enc:", StringComparison.Ordinal)
+            ? cipherText[4..]
+            : cipherText;
+    }
 }

@@ -8,6 +8,7 @@ using Urbeat.Application.DTOs;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -22,7 +23,7 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
     }
 
     [Fact]
-    public async Task Contract_ShouldCreateGatewayIdentifiersAndActivateSubscription()
+    public async Task Contract_ShouldUpgradeToSuperiorPlanAndCreateAwaitingGatewayStub()
     {
         var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var (sellerToken, sellerUserId, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
@@ -31,23 +32,29 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var adminToken = await LoginAdminAsync(adminClient);
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var plan = await CreatePlanAsync(adminClient, "Plano Pro", 59.90m, isActive: true);
+        var plan = await CreatePlanAsync(adminClient, "Plano Pro", 59.90m, isActive: true, level: 5);
 
         var contractResponse = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", new ContractSellerSubscriptionRequestDto
         {
             StoreId = storeId,
             PlanId = plan.Id,
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FirstDueDateUtc = DateTime.UtcNow.AddDays(7)
         });
 
-        contractResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        contractResponse.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            await contractResponse.Content.ReadAsStringAsync());
         var contract = await contractResponse.Content.ReadFromJsonAsync<ContractSellerSubscriptionResponseDto>();
         contract.Should().NotBeNull();
         contract!.StoreId.Should().Be(storeId);
         contract.SellerUserId.Should().Be(sellerUserId);
-        contract.GatewayCustomerId.Should().NotBeNullOrWhiteSpace();
-        contract.GatewaySubscriptionId.Should().NotBeNullOrWhiteSpace();
+        contract.GatewayCustomerId.Should().BeEmpty();
+        contract.GatewaySubscriptionId.Should().BeEmpty();
+        contract.AwaitingGateway.Should().BeTrue();
         contract.Status.Should().Be(SellerSubscriptionBillingStatus.Active);
+        contract.BillingPeriod.Should().Be(SubscriptionBillingPeriod.Monthly);
+        contract.PlanAmount.Should().Be(59.90m);
 
         var mySubscription = await sellerClient.GetFromJsonAsync<SellerSubscriptionMyResponseDto>("/api/subscriptions/my");
         mySubscription.Should().NotBeNull();
@@ -56,7 +63,8 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         mySubscription.PlanName.Should().Be("Plano Pro");
         mySubscription.PlanAmount.Should().Be(59.90m);
         mySubscription.NextChargeAmount.Should().Be(59.90m);
-        mySubscription.HasGatewaySubscription.Should().BeTrue();
+        mySubscription.HasGatewaySubscription.Should().BeFalse();
+        mySubscription.HasPendingGatewayCharge.Should().BeTrue();
         mySubscription.IsTrialActive.Should().BeFalse();
         mySubscription.BillingStatus.Should().Be(SellerSubscriptionBillingStatus.Active);
 
@@ -64,34 +72,31 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var persisted = dbContext.SellerSubscriptions.SingleOrDefault(x => x.StoreId == storeId);
         persisted.Should().NotBeNull();
-        persisted!.GatewayCustomerId.Should().Be(contract.GatewayCustomerId);
-        persisted.GatewaySubscriptionId.Should().Be(contract.GatewaySubscriptionId);
+        persisted!.GatewayCustomerId.Should().BeEmpty();
+        persisted.GatewaySubscriptionId.Should().BeEmpty();
+        persisted.PlanLevelSnapshot.Should().Be(5);
+        dbContext.SellerSubscriptionCharges.Count(x => x.StoreId == storeId).Should().Be(2);
     }
 
     [Fact]
-    public async Task Contract_ShouldReturnConflict_WhenStoreAlreadyContracted()
+    public async Task Contract_ShouldReturnConflict_WhenStoreAlreadyHasTheSamePlan()
     {
         var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var (sellerToken, _, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
         sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
 
-        var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var adminToken = await LoginAdminAsync(adminClient);
-        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var plan = await CreatePlanAsync(adminClient, "Plano MVP", 39.90m, isActive: true);
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var currentPlanId = dbContext.SellerSubscriptions.Single(x => x.StoreId == storeId).PlanId!.Value;
 
-        var request = new ContractSellerSubscriptionRequestDto
+        var response = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", new ContractSellerSubscriptionRequestDto
         {
             StoreId = storeId,
-            PlanId = plan.Id,
-            FirstDueDateUtc = DateTime.UtcNow.AddDays(5)
-        };
+            PlanId = currentPlanId,
+            BillingPeriod = SubscriptionBillingPeriod.Monthly
+        });
 
-        var first = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", request);
-        var second = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", request);
-
-        first.StatusCode.Should().Be(HttpStatusCode.Created);
-        second.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -104,7 +109,7 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var adminToken = await LoginAdminAsync(adminClient);
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var inactivePlan = await CreatePlanAsync(adminClient, "Plano Inativo", 29.90m, isActive: false);
+        var inactivePlan = await CreatePlanAsync(adminClient, "Plano Inativo", 29.90m, isActive: false, level: 6);
 
         var response = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", new ContractSellerSubscriptionRequestDto
         {
@@ -114,6 +119,27 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Contract_ShouldRejectDowngrade()
+    {
+        var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var (sellerToken, _, storeId) = await RegisterLoginAndCreateStoreAsync(sellerClient, "Pizza");
+        sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
+
+        var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var adminToken = await LoginAdminAsync(adminClient);
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var lowerPlan = await CreatePlanAsync(adminClient, "Plano Inferior", 9.90m, isActive: true, level: 0);
+
+        var response = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", new ContractSellerSubscriptionRequestDto
+        {
+            StoreId = storeId,
+            PlanId = lowerPlan.Id
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -151,7 +177,7 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var adminToken = await LoginAdminAsync(adminClient);
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var plan = await CreatePlanAsync(adminClient, $"Plano Ownership {Guid.NewGuid():N}", 49.90m, isActive: true);
+        var plan = await CreatePlanAsync(adminClient, $"Plano Ownership {Guid.NewGuid():N}", 49.90m, isActive: true, level: 7);
 
         var response = await sellerBClient.PostAsJsonAsync("/api/subscriptions/contract", new ContractSellerSubscriptionRequestDto
         {
@@ -172,22 +198,26 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var adminToken = await LoginAdminAsync(adminClient);
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var plan = await CreatePlanAsync(adminClient, $"Plano Preco {Guid.NewGuid():N}", 59.90m, isActive: true);
+        var plan = await CreatePlanAsync(adminClient, $"Plano Preco {Guid.NewGuid():N}", 59.90m, isActive: true, level: 8);
 
         var response = await sellerClient.PostAsJsonAsync("/api/subscriptions/contract", new
         {
             StoreId = storeId,
             PlanId = plan.Id,
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FirstDueDateUtc = DateTime.UtcNow.AddDays(1),
             PlanAmount = 1.00m,
             TrialDays = 999
         });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            await response.Content.ReadAsStringAsync());
         var contract = await response.Content.ReadFromJsonAsync<ContractSellerSubscriptionResponseDto>();
         contract.Should().NotBeNull();
         contract!.PlanAmount.Should().Be(59.90m);
-        contract.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow.AddDays(15), TimeSpan.FromMinutes(1));
+        // Upgrade não concede novo trial: a cobrança vence imediatamente.
+        contract.NextBillingDateUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(2));
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -195,17 +225,25 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
         persisted.PlanAmount.Should().Be(59.90m);
     }
 
-    private static async Task<PlanResponseDto> CreatePlanAsync(HttpClient adminClient, string name, decimal amount, bool isActive)
+    private static async Task<PlanResponseDto> CreatePlanAsync(
+        HttpClient adminClient,
+        string name,
+        decimal amount,
+        bool isActive,
+        int level = 0)
     {
         var response = await adminClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
         {
             Name = name,
-            Amount = amount,
+            MonthlyAmount = amount,
             Description = $"{name} description",
-            IsActive = isActive
+            IsActive = isActive,
+            Level = level
         });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            await response.Content.ReadAsStringAsync());
         var plan = await response.Content.ReadFromJsonAsync<PlanResponseDto>();
         plan.Should().NotBeNull();
         return plan!;
@@ -247,11 +285,13 @@ public sealed class SellerSubscriptionContractFlowTests : IClassFixture<TestWebA
             Name = "Loja Contract",
             Slug = $"loja-contract-{Guid.NewGuid():N}",
             PhoneNumber = "11987771111",
-            CuisineType = cuisineType,
+            CuisineType = cuisineType,
             MaxDeliveryRadiusKm = 5,
         });
 
-        createStoreResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        createStoreResponse.StatusCode.Should().Be(
+            HttpStatusCode.Created,
+            await createStoreResponse.Content.ReadAsStringAsync());
         var store = await createStoreResponse.Content.ReadFromJsonAsync<StoreResponseDto>();
         store.Should().NotBeNull();
 

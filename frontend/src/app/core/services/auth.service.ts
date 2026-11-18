@@ -7,6 +7,7 @@ import { resolveTokenRole, TokenRole } from '../utils/jwt.helper';
 import {
   RegisterCustomerRequest,
   RegisterResponse,
+  RegisterSellerRequest,
   LoginRequest,
   AuthTokenResponse,
   ConfirmEmailRequest,
@@ -60,7 +61,7 @@ export class AuthService {
     return this.api.post<RegisterResponse>('/api/auth/register/customer', req);
   }
 
-  registerSeller(req: RegisterCustomerRequest): Observable<RegisterResponse> {
+  registerSeller(req: RegisterSellerRequest): Observable<RegisterResponse> {
     return this.api.post<RegisterResponse>('/api/auth/register/seller', req);
   }
 

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -237,6 +237,8 @@ public sealed class RolePromotionFlowTests : IClassFixture<EmailConfirmationTest
 
         var promote = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
+            PlanId = await _factory.GetDefaultPlanIdAsync(),
+            BillingPeriod = SubscriptionBillingPeriod.Monthly,
             FullName = "Sem Senha",
             Email = email,
             Password = string.Empty,
@@ -310,7 +312,7 @@ public sealed class RolePromotionFlowTests : IClassFixture<EmailConfirmationTest
     private static string NewEmail(string prefix) => $"{prefix}.{Guid.NewGuid():N}@urbeat.local";
 
     private static Task<HttpResponseMessage> RegisterAsync(HttpClient client, string role, string email, string password)
-        => client.PostAsJsonAsync($"/api/auth/register/{role}", new RegisterUserRequestDto
+        => client.PostRegistrationWithPlanAsync(role, new RegisterUserRequestDto
         {
             FullName = $"Pessoa {role} {Guid.NewGuid():N}",
             Email = email,
@@ -330,7 +332,7 @@ public sealed class RolePromotionFlowTests : IClassFixture<EmailConfirmationTest
         string email,
         string newPassword,
         string fullName)
-        => client.PostAsJsonAsync($"/api/auth/register/{role}", new RegisterUserRequestDto
+        => client.PostRegistrationWithPlanAsync(role, new RegisterUserRequestDto
         {
             FullName = fullName,
             Email = email,

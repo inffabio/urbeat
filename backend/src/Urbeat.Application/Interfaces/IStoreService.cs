@@ -4,7 +4,7 @@ namespace Urbeat.Application.Interfaces;
 
 public interface IStoreService
 {
-    Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, StoreResponseDto? Store)> CreateForOwnerAsync(
+    Task<(bool Created, bool AlreadyExists, bool InvalidCuisineType, bool SlugConflict, bool InvalidPlanSelection, StoreResponseDto? Store)> CreateForOwnerAsync(
         Guid ownerUserId,
         CreateStoreRequestDto request,
         string? ipAddress,

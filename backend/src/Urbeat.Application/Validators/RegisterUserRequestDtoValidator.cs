@@ -28,5 +28,15 @@ public sealed class RegisterUserRequestDtoValidator : AbstractValidator<Register
             .Must(doc => DocumentValidator.IsCpfOrCnpjValid(doc))
             .WithMessage("CPF/CNPJ inválido!")
             .When(x => !string.IsNullOrWhiteSpace(x.Document));
+
+        RuleFor(x => x.PlanId)
+            .Must(planId => planId != Guid.Empty)
+            .When(x => x.PlanId.HasValue)
+            .WithMessage("Plano inválido.");
+
+        RuleFor(x => x.BillingPeriod)
+            .IsInEnum()
+            .When(x => x.BillingPeriod.HasValue)
+            .WithMessage("Periodicidade inválida.");
     }
 }

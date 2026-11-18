@@ -16,6 +16,8 @@ namespace Urbeat.IntegrationTests.Infrastructure;
 /// </summary>
 public sealed class TestDataSeeder : IHostedService
 {
+    public const string DefaultPlanName = "Plano Teste Base";
+
     private readonly IServiceScopeFactory _scopeFactory;
 
     public TestDataSeeder(IServiceScopeFactory scopeFactory)
@@ -29,7 +31,33 @@ public sealed class TestDataSeeder : IHostedService
 
         await SeedRolesAsync(scope, cancellationToken);
         await SeedCuisineTypesAsync(scope, cancellationToken);
+        await SeedSubscriptionPlansAsync(scope, cancellationToken);
         await SeedAdminUserAsync(scope, cancellationToken);
+    }
+
+    public static async Task SeedSubscriptionPlansAsync(IServiceScope scope, CancellationToken ct)
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (await dbContext.Plans.AnyAsync(ct))
+        {
+            return;
+        }
+
+        dbContext.Plans.Add(new Plan
+        {
+            Name = DefaultPlanName,
+            Amount = 19.90m,
+            Description = "Plano base criado para testes de integração.",
+            IsActive = true,
+            TrialDays = 15,
+            MonthlyEnabled = true,
+            AnnualEnabled = true,
+            AnnualDiscountPercent = 10,
+            Level = 0
+        });
+
+        await dbContext.SaveChangesAsync(ct);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

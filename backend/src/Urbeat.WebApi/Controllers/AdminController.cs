@@ -25,29 +25,20 @@ namespace Urbeat.WebApi.Controllers;
 [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 public sealed class AdminController : ControllerBase
 {
-    private readonly IPlanService _planService;
     private readonly ISellerSubscriptionStatusService _sellerSubscriptionStatusService;
     private readonly ISubscriptionNotificationService _subscriptionNotificationService;
     private readonly IBackgroundJobClient _backgroundJobClient;
-    private readonly IValidator<CreatePlanRequestDto> _createPlanValidator;
-    private readonly IValidator<UpdatePlanRequestDto> _updatePlanValidator;
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
-        IPlanService planService,
         ISellerSubscriptionStatusService sellerSubscriptionStatusService,
         ISubscriptionNotificationService subscriptionNotificationService,
         IBackgroundJobClient backgroundJobClient,
-        IValidator<CreatePlanRequestDto> createPlanValidator,
-        IValidator<UpdatePlanRequestDto> updatePlanValidator,
         ILogger<AdminController> logger)
     {
-        _planService = planService;
         _sellerSubscriptionStatusService = sellerSubscriptionStatusService;
         _subscriptionNotificationService = subscriptionNotificationService;
         _backgroundJobClient = backgroundJobClient;
-        _createPlanValidator = createPlanValidator;
-        _updatePlanValidator = updatePlanValidator;
         _logger = logger;
     }
 
@@ -62,69 +53,6 @@ public sealed class AdminController : ControllerBase
             area = "admin",
             message = "Admin authorized."
         });
-    }
-
-    [HttpGet("plans")]
-    [ProducesResponseType<IReadOnlyList<PlanResponseDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> ListPlans(CancellationToken cancellationToken)
-    {
-        var plans = await _planService.ListAllAsync(cancellationToken);
-        return Ok(plans);
-    }
-
-    [HttpPost("plans")]
-    [ProducesResponseType<PlanResponseDto>(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreatePlan([FromBody] CreatePlanRequestDto request, CancellationToken cancellationToken)
-    {
-        var validation = await _createPlanValidator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
-        {
-            return BadRequest(new { error = string.Join(" ", validation.Errors.Select(x => x.ErrorMessage)) });
-        }
-
-        var plan = await _planService.CreateAsync(request, cancellationToken);
-        if (plan is null)
-        {
-            return Conflict(new { error = "A plan with this name already exists." });
-        }
-
-        return StatusCode(StatusCodes.Status201Created, plan);
-    }
-
-    [HttpPut("plans/{planId}")]
-    [ProducesResponseType<PlanResponseDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpdatePlan([FromRoute] Guid planId, [FromBody] UpdatePlanRequestDto request, CancellationToken cancellationToken)
-    {
-        var validation = await _updatePlanValidator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
-        {
-            return BadRequest(new { error = string.Join(" ", validation.Errors.Select(x => x.ErrorMessage)) });
-        }
-
-        var plan = await _planService.UpdateAsync(planId, request, cancellationToken);
-        if (plan is null)
-        {
-            var exists = (await _planService.ListAllAsync(cancellationToken)).Any(x => x.Id == planId);
-            return exists
-                ? Conflict(new { error = "A plan with this name already exists." })
-                : NotFound();
-        }
-
-        return Ok(plan);
-    }
-
-    [HttpPatch("plans/{planId}/status")]
-    [ProducesResponseType<PlanResponseDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdatePlanStatus([FromRoute] Guid planId, [FromBody] UpdatePlanStatusRequestDto request, CancellationToken cancellationToken)
-    {
-        var plan = await _planService.UpdateStatusAsync(planId, request.IsActive, cancellationToken);
-        return plan is null ? NotFound() : Ok(plan);
     }
 
     [HttpPost("subscriptions/status")]

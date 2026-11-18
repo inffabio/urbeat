@@ -1,11 +1,22 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth.service';
+import { PlanOfferService } from '../../core/services/plan-offer.service';
 import { ToastService } from '../../core/services/toast.service';
-import { RegisterCustomerRequest, RegisterResponse } from '../../shared/models/auth.model';
+import { RegisterResponse, RegisterSellerRequest } from '../../shared/models/auth.model';
+import {
+  PlanPeriodOption,
+  PublicPlanOfferItem,
+  planPeriodOptions,
+} from '../../shared/models/plan-offer.model';
+import {
+  SubscriptionBillingPeriod,
+  billingPeriodToQuery,
+  queryToBillingPeriod,
+} from '../../shared/models/subscription.model';
 
 @Component({
   selector: 'app-seller-register-page',
@@ -15,11 +26,14 @@ import { RegisterCustomerRequest, RegisterResponse } from '../../shared/models/a
   styleUrl: './seller-register-page.component.scss',
   host: { '[class.urbeat-onboarding]': 'true' },
 })
-export class SellerRegisterPageComponent {
+export class SellerRegisterPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly planOfferService = inject(PlanOfferService);
   private readonly toastService = inject(ToastService);
+
+  readonly BillingPeriod = SubscriptionBillingPeriod;
 
   readonly fullName = signal('');
   readonly document = signal('');
@@ -27,6 +41,53 @@ export class SellerRegisterPageComponent {
   readonly email = signal('');
   readonly password = signal('');
   readonly confirmPassword = signal('');
+
+  readonly plans = signal<PublicPlanOfferItem[]>([]);
+  readonly plansLoading = signal(true);
+  readonly plansError = signal(false);
+  readonly invalidSelection = signal(false);
+  readonly selectedPlanId = signal<string | null>(null);
+  readonly selectedBillingPeriod = signal<SubscriptionBillingPeriod | null>(null);
+
+  readonly selectedPlan = computed<PublicPlanOfferItem | null>(() => {
+    const planId = this.selectedPlanId();
+    if (!planId) return null;
+    return this.plans().find((plan) => plan.id === planId) ?? null;
+  });
+
+  readonly selectedOptions = computed<PlanPeriodOption[]>(() => {
+    const plan = this.selectedPlan();
+    return plan ? planPeriodOptions(plan) : [];
+  });
+
+  readonly trialDays = computed(() => {
+    const selected = this.selectedPlan();
+    if (selected) return selected.trialDays;
+    return this.plans().reduce((max, plan) => Math.max(max, plan.trialDays), 0);
+  });
+
+  readonly planSummary = computed(() => {
+    const plan = this.selectedPlan();
+    const period = this.selectedBillingPeriod();
+    if (!plan || !period) return null;
+    const option = planPeriodOptions(plan).find((item) => item.period === period);
+    if (!option) return null;
+    return {
+      name: plan.name,
+      periodLabel: option.label,
+      amountLabel: `${this.formatCurrency(option.amount)}${period === SubscriptionBillingPeriod.Annual ? '/ano' : '/mês'}`,
+      trialLabel: plan.trialDays > 0
+        ? `${plan.trialDays} ${plan.trialDays === 1 ? 'dia' : 'dias'} grátis`
+        : 'Primeira cobrança imediata',
+    };
+  });
+
+  readonly selectionQuery = computed(() => {
+    const planId = this.selectedPlanId();
+    const period = this.selectedBillingPeriod();
+    if (!planId || !period) return null;
+    return { planId, billingPeriod: billingPeriodToQuery(period) };
+  });
 
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
@@ -67,6 +128,82 @@ export class SellerRegisterPageComponent {
 
   readonly errors = signal<Record<string, string>>({});
   readonly serverError = signal('');
+
+  ngOnInit(): void {
+    this.loadPlans();
+  }
+
+  loadPlans(): void {
+    this.plansLoading.set(true);
+    this.plansError.set(false);
+    this.planOfferService.getOffer().subscribe({
+      next: (offer) => {
+        const plans = (offer?.plans ?? []).filter(
+          (plan) => plan.name?.trim() && (plan.monthlyEnabled || plan.annualEnabled),
+        );
+        this.plans.set(plans);
+        this.plansLoading.set(false);
+        this.applyQuerySelection();
+      },
+      error: () => {
+        this.plans.set([]);
+        this.plansLoading.set(false);
+        this.plansError.set(true);
+      },
+    });
+  }
+
+  selectPlan(plan: PublicPlanOfferItem): void {
+    this.selectedPlanId.set(plan.id);
+    const firstOption = planPeriodOptions(plan)[0];
+    this.selectedBillingPeriod.set(firstOption?.period ?? null);
+    this.invalidSelection.set(false);
+    if (this.submitted()) this.clearError('plan');
+  }
+
+  selectPeriod(plan: PublicPlanOfferItem, period: SubscriptionBillingPeriod): void {
+    if (this.selectedPlanId() !== plan.id) return;
+    this.selectedBillingPeriod.set(period);
+    if (this.submitted()) this.clearError('plan');
+  }
+
+  isPeriodSelected(period: SubscriptionBillingPeriod): boolean {
+    return this.selectedBillingPeriod() === period;
+  }
+
+  periodOptions(plan: PublicPlanOfferItem): PlanPeriodOption[] {
+    return planPeriodOptions(plan);
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  private applyQuerySelection(): void {
+    const query = this.route.snapshot?.queryParamMap;
+    const planId = query?.get('planId')?.trim() || null;
+    const rawPeriod = query?.get('billingPeriod');
+    const period = queryToBillingPeriod(rawPeriod);
+
+    if (!planId && !rawPeriod) {
+      this.selectedPlanId.set(null);
+      this.selectedBillingPeriod.set(null);
+      this.invalidSelection.set(false);
+      return;
+    }
+
+    const plan = planId ? this.plans().find((item) => item.id === planId) : null;
+    if (!plan || !period || !planPeriodOptions(plan).some((option) => option.period === period)) {
+      this.selectedPlanId.set(null);
+      this.selectedBillingPeriod.set(null);
+      this.invalidSelection.set(true);
+      return;
+    }
+
+    this.selectedPlanId.set(plan.id);
+    this.selectedBillingPeriod.set(period);
+    this.invalidSelection.set(false);
+  }
 
   onWhatsappInput(value: string): void {
     const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -204,12 +341,23 @@ export class SellerRegisterPageComponent {
       errs['confirmPassword'] = 'Senha não confere';
     }
 
+    if (!this.selectedPlan() || !this.selectedBillingPeriod()) {
+      errs['plan'] = this.invalidSelection()
+        ? 'O plano escolhido não está mais disponível. Revalide a seleção na landing page.'
+        : 'Escolha um plano e a periodicidade antes de criar o cadastro.';
+    }
+
     this.errors.set(errs);
     return Object.keys(errs).length === 0;
   }
 
   submit(): void {
     this.submitted.set(true);
+
+    if (this.plansLoading() || this.plansError()) {
+      this.toastService.showError('Não foi possível carregar os planos. Recarregue a página e tente novamente.');
+      return;
+    }
 
     if (!this.validate()) return;
 
@@ -218,12 +366,14 @@ export class SellerRegisterPageComponent {
     // The current session is intentionally NOT cleared: when the signed-in customer adds a
     // seller access, the bearer token proves ownership of the existing account and the customer
     // password/session must survive the operation. No existing password is ever requested here.
-    const req: RegisterCustomerRequest = {
+    const req: RegisterSellerRequest = {
       fullName: this.fullName().trim(),
       email: this.email().trim(),
       password: this.password(),
       phoneNumber: this.whatsapp().replace(/\D/g, ''),
       document: this.document().replace(/\D/g, ''),
+      planId: this.selectedPlanId()!,
+      billingPeriod: this.selectedBillingPeriod()!,
     };
 
     this.auth.registerSeller(req).subscribe({

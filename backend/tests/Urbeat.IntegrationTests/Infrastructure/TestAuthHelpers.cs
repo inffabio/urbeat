@@ -3,8 +3,11 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
+using Urbeat.Domain.Entities;
+using Urbeat.Infrastructure.Persistence;
 
 namespace Urbeat.IntegrationTests.Infrastructure;
 
@@ -48,6 +51,65 @@ public static class TestAuthHelpers
     }
 
     /// <summary>
+    /// Returns an active plan that supports monthly billing. Integration tests that only need a
+    /// valid seller registration use this instead of hard-coding catalog identifiers.
+    /// </summary>
+    public static async Task<Guid> GetDefaultPlanIdAsync<TFactory>(this TFactory factory)
+        where TFactory : WebApplicationFactory<Program>
+    {
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var plan = await dbContext.Plans
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.MonthlyEnabled)
+            .OrderByDescending(x => x.Name == TestDataSeeder.DefaultPlanName)
+            .ThenBy(x => x.CreatedAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (plan is null)
+        {
+            throw new InvalidOperationException("No active monthly subscription plan was seeded for integration tests.");
+        }
+
+        return plan.Id;
+    }
+
+    /// <summary>
+    /// Posts a registration request, adding the required plan selection for seller tests that only
+    /// care about the identity flow. The plan is read from the anonymous public catalog.
+    /// </summary>
+    public static async Task<HttpResponseMessage> PostRegistrationWithPlanAsync(
+        this HttpClient client,
+        string role,
+        RegisterUserRequestDto request)
+    {
+        var effectiveRequest = request;
+        if (string.Equals(role, "seller", StringComparison.OrdinalIgnoreCase) && request.PlanId is null)
+        {
+            var offer = await client.GetFromJsonAsync<PublicPlanOfferResponseDto>("/api/public/plans");
+            var plan = offer?.Plans.FirstOrDefault(x => x.MonthlyEnabled);
+            if (plan is null)
+            {
+                throw new InvalidOperationException("No active monthly plan is available for the seller registration test.");
+            }
+
+            effectiveRequest = new RegisterUserRequestDto
+            {
+                FullName = request.FullName,
+                Email = request.Email,
+                Password = request.Password,
+                PhoneNumber = request.PhoneNumber,
+                Document = request.Document,
+                CurrentPassword = request.CurrentPassword,
+                PlanId = plan.Id,
+                BillingPeriod = SubscriptionBillingPeriod.Monthly
+            };
+        }
+
+        return await client.PostAsJsonAsync($"/api/auth/register/{role}", effectiveRequest);
+    }
+
+    /// <summary>
     /// Registers a seller through the public API, asserts the registration was created, and confirms
     /// the e-mail. Integration test classes share a single in-memory database, so a unique suffix is
     /// appended to the supplied <paramref name="fullName"/> to keep test data easy to tell apart;
@@ -62,12 +124,15 @@ public static class TestAuthHelpers
         string? phoneNumber = null)
         where TFactory : WebApplicationFactory<Program>
     {
+        var planId = await factory.GetDefaultPlanIdAsync();
         var response = await client.PostAsJsonAsync("/api/auth/register/seller", new RegisterUserRequestDto
         {
             FullName = $"{fullName} {Guid.NewGuid():N}",
             Email = email,
             Password = password,
-            PhoneNumber = phoneNumber ?? "11988888888"
+            PhoneNumber = phoneNumber ?? "11988888888",
+            PlanId = planId,
+            BillingPeriod = SubscriptionBillingPeriod.Monthly
         });
 
         response.StatusCode.Should().Be(
