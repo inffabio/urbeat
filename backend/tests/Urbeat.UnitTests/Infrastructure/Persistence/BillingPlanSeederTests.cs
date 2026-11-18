@@ -44,6 +44,50 @@ public sealed class BillingPlanSeederTests : IDisposable
     }
 
     [Fact]
+    public async Task SeedAsync_ShouldCreateOnlyTheInitialPlanOnEmptyDatabase()
+    {
+        await _sut.SeedAsync();
+
+        var plans = await _db.Plans.ToListAsync();
+
+        plans.Should().ContainSingle();
+        plans.Single().Name.Should().Be(BillingPlanSeeder.DefaultPlanName);
+        BillingPlanSeeder.Catalog.Should().ContainSingle()
+            .Which.Name.Should().Be(BillingPlanSeeder.DefaultPlanName);
+    }
+
+    [Fact]
+    public async Task SeedAsync_ShouldPreserveAdditionalExistingPlansAndTheirConfiguration()
+    {
+        var existing = new Plan
+        {
+            Name = "Crescer",
+            Amount = 123.45m,
+            Description = "Plano configurado pelo admin",
+            IsActive = false,
+            Level = 7,
+            AnnualDiscountPercent = 42
+        };
+        _db.Plans.Add(existing);
+        await _db.SaveChangesAsync();
+
+        await _sut.SeedAsync();
+
+        var plans = await _db.Plans.ToListAsync();
+
+        plans.Should().HaveCount(2);
+        plans.Should().ContainSingle(x => x.Name == BillingPlanSeeder.DefaultPlanName);
+
+        var preserved = plans.Single(x => x.Name == "Crescer");
+        preserved.Id.Should().Be(existing.Id);
+        preserved.Amount.Should().Be(123.45m);
+        preserved.Description.Should().Be("Plano configurado pelo admin");
+        preserved.IsActive.Should().BeFalse();
+        preserved.Level.Should().Be(7);
+        preserved.AnnualDiscountPercent.Should().Be(42);
+    }
+
+    [Fact]
     public async Task SeedAsync_ShouldBeIdempotent()
     {
         var first = await _sut.SeedAsync();

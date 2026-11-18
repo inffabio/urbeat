@@ -8,13 +8,11 @@ import { PlanOfferService } from '../../core/services/plan-offer.service';
 import { ToastService } from '../../core/services/toast.service';
 import { RegisterResponse, RegisterSellerRequest } from '../../shared/models/auth.model';
 import {
-  PlanPeriodOption,
   PublicPlanOfferItem,
   planPeriodOptions,
 } from '../../shared/models/plan-offer.model';
 import {
   SubscriptionBillingPeriod,
-  billingPeriodToQuery,
   queryToBillingPeriod,
 } from '../../shared/models/subscription.model';
 
@@ -32,8 +30,6 @@ export class SellerRegisterPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly planOfferService = inject(PlanOfferService);
   private readonly toastService = inject(ToastService);
-
-  readonly BillingPeriod = SubscriptionBillingPeriod;
 
   readonly fullName = signal('');
   readonly document = signal('');
@@ -55,16 +51,8 @@ export class SellerRegisterPageComponent implements OnInit {
     return this.plans().find((plan) => plan.id === planId) ?? null;
   });
 
-  readonly selectedOptions = computed<PlanPeriodOption[]>(() => {
-    const plan = this.selectedPlan();
-    return plan ? planPeriodOptions(plan) : [];
-  });
-
-  readonly trialDays = computed(() => {
-    const selected = this.selectedPlan();
-    if (selected) return selected.trialDays;
-    return this.plans().reduce((max, plan) => Math.max(max, plan.trialDays), 0);
-  });
+  /** Trial do plano recebido da landing; nunca é inferido do catálogo. */
+  readonly trialDays = computed(() => this.selectedPlan()?.trialDays ?? 0);
 
   readonly planSummary = computed(() => {
     const plan = this.selectedPlan();
@@ -80,13 +68,6 @@ export class SellerRegisterPageComponent implements OnInit {
         ? `${plan.trialDays} ${plan.trialDays === 1 ? 'dia' : 'dias'} grátis`
         : 'Primeira cobrança imediata',
     };
-  });
-
-  readonly selectionQuery = computed(() => {
-    const planId = this.selectedPlanId();
-    const period = this.selectedBillingPeriod();
-    if (!planId || !period) return null;
-    return { planId, billingPeriod: billingPeriodToQuery(period) };
   });
 
   readonly showPassword = signal(false);
@@ -153,56 +134,38 @@ export class SellerRegisterPageComponent implements OnInit {
     });
   }
 
-  selectPlan(plan: PublicPlanOfferItem): void {
-    this.selectedPlanId.set(plan.id);
-    const firstOption = planPeriodOptions(plan)[0];
-    this.selectedBillingPeriod.set(firstOption?.period ?? null);
-    this.invalidSelection.set(false);
-    if (this.submitted()) this.clearError('plan');
-  }
-
-  selectPeriod(plan: PublicPlanOfferItem, period: SubscriptionBillingPeriod): void {
-    if (this.selectedPlanId() !== plan.id) return;
-    this.selectedBillingPeriod.set(period);
-    if (this.submitted()) this.clearError('plan');
-  }
-
-  isPeriodSelected(period: SubscriptionBillingPeriod): boolean {
-    return this.selectedBillingPeriod() === period;
-  }
-
-  periodOptions(plan: PublicPlanOfferItem): PlanPeriodOption[] {
-    return planPeriodOptions(plan);
-  }
-
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 
+  /**
+   * A escolha do plano acontece somente na landing. O cadastro apenas resolve a
+   * seleção recebida na URL contra o catálogo público; nunca escolhe por conta
+   * própria, nem mesmo quando existe um único plano ativo. O backend continua
+   * sendo a validação autoritativa.
+   */
   private applyQuerySelection(): void {
     const query = this.route.snapshot?.queryParamMap;
     const planId = query?.get('planId')?.trim() || null;
-    const rawPeriod = query?.get('billingPeriod');
+    const rawPeriod = query?.get('billingPeriod')?.trim() || null;
     const period = queryToBillingPeriod(rawPeriod);
 
-    if (!planId && !rawPeriod) {
-      this.selectedPlanId.set(null);
-      this.selectedBillingPeriod.set(null);
-      this.invalidSelection.set(false);
+    this.selectedPlanId.set(null);
+    this.selectedBillingPeriod.set(null);
+    this.invalidSelection.set(false);
+
+    if (!planId || !rawPeriod) {
       return;
     }
 
-    const plan = planId ? this.plans().find((item) => item.id === planId) : null;
+    const plan = this.plans().find((item) => item.id === planId);
     if (!plan || !period || !planPeriodOptions(plan).some((option) => option.period === period)) {
-      this.selectedPlanId.set(null);
-      this.selectedBillingPeriod.set(null);
       this.invalidSelection.set(true);
       return;
     }
 
     this.selectedPlanId.set(plan.id);
     this.selectedBillingPeriod.set(period);
-    this.invalidSelection.set(false);
   }
 
   onWhatsappInput(value: string): void {
@@ -343,8 +306,8 @@ export class SellerRegisterPageComponent implements OnInit {
 
     if (!this.selectedPlan() || !this.selectedBillingPeriod()) {
       errs['plan'] = this.invalidSelection()
-        ? 'O plano escolhido não está mais disponível. Revalide a seleção na landing page.'
-        : 'Escolha um plano e a periodicidade antes de criar o cadastro.';
+        ? 'O plano ou a periodicidade escolhida não está mais disponível. Volte à página inicial e escolha outra opção.'
+        : 'Escolha seu plano na página inicial e volte para concluir o cadastro.';
     }
 
     this.errors.set(errs);

@@ -68,7 +68,9 @@ describe('SellerRegisterPageComponent', () => {
       showError: jest.fn(),
       showWarning: jest.fn(),
     };
-    queryParams = {};
+    // A landing é a única superfície de escolha de plano: o cadastro recebe a
+    // seleção pronta na URL. O cenário padrão do spec já chega com ela.
+    queryParams = { planId: PLAN_BASE.id, billingPeriod: 'monthly' };
 
     await TestBed.configureTestingModule({
       imports: [SellerRegisterPageComponent],
@@ -99,16 +101,49 @@ describe('SellerRegisterPageComponent', () => {
     fixture.detectChanges();
   });
 
-  function fillValidForm(): void {
-    component.fullName.set('Contratante Teste');
-    component.document.set('');
-    component.whatsapp.set('(21) 99999-9999');
-    component.email.set('novo@vendedor.com');
-    component.password.set('Senha@123');
-    component.confirmPassword.set('Senha@123');
-    if (!component.selectedPlan()) {
-      component.selectPlan(PLAN_BASE);
-    }
+  function fillFormFields(target: SellerRegisterPageComponent): void {
+    target.fullName.set('Contratante Teste');
+    target.document.set('');
+    target.whatsapp.set('(21) 99999-9999');
+    target.email.set('novo@vendedor.com');
+    target.password.set('Senha@123');
+    target.confirmPassword.set('Senha@123');
+  }
+
+  function fillValidForm(target: SellerRegisterPageComponent = component): void {
+    fillFormFields(target);
+  }
+
+  function createWith(
+    plans: PublicPlanOfferItem[],
+    params: Record<string, string>,
+  ): ComponentFixture<SellerRegisterPageComponent> {
+    queryParams = params;
+    planOfferMock = { getOffer: jest.fn().mockReturnValue(of({ plans })) };
+    TestBed.resetTestingModule();
+
+    const localFixture = TestBed.configureTestingModule({
+      imports: [SellerRegisterPageComponent],
+      providers: [
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: PlanOfferService, useValue: planOfferMock },
+        { provide: Router, useValue: routerMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: { get: (key: string) => queryParams[key] ?? null } },
+            root: null,
+            firstChild: null,
+            children: [],
+            pathFromRoot: [],
+          },
+        },
+        { provide: ToastService, useValue: toastMock },
+      ],
+    }).createComponent(SellerRegisterPageComponent);
+
+    localFixture.detectChanges();
+    return localFixture;
   }
 
   function submit(response: typeof registerResponse & {
@@ -281,48 +316,48 @@ describe('SellerRegisterPageComponent', () => {
     );
   });
 
-  it('applies planId and billingPeriod from the landing query and shows the plan summary', () => {
-    queryParams = { planId: 'plan-growth', billingPeriod: 'annual' };
-    TestBed.resetTestingModule();
-
-    // Rebuild with query params available during ngOnInit.
-    const localFixture = TestBed.configureTestingModule({
-      imports: [SellerRegisterPageComponent],
-      providers: [
-        { provide: AuthService, useValue: authServiceMock },
-        { provide: PlanOfferService, useValue: planOfferMock },
-        { provide: Router, useValue: routerMock },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: { queryParamMap: { get: (key: string) => queryParams[key] ?? null } },
-            root: null,
-            firstChild: null,
-            children: [],
-            pathFromRoot: [],
-          },
-        },
-        { provide: ToastService, useValue: toastMock },
-      ],
-    }).createComponent(SellerRegisterPageComponent);
-    localFixture.detectChanges();
+  it('shows a read-only summary of the plan received from the landing', () => {
+    const localFixture = createWith(
+      [PLAN_BASE, PLAN_GROWTH],
+      { planId: 'plan-growth', billingPeriod: 'annual' },
+    );
     const localComponent = localFixture.componentInstance;
+    const text = localFixture.nativeElement.textContent as string;
 
     expect(localComponent.selectedPlanId()).toBe('plan-growth');
     expect(localComponent.selectedBillingPeriod()).toBe(SubscriptionBillingPeriod.Annual);
-    const text = localFixture.nativeElement.textContent as string;
+    expect(text).toContain('Seu plano');
     expect(text).toContain('Crescer');
     expect(text).toContain('Anual');
     expect(text).toContain('407,00');
+    expect(text).toContain('15 dias grátis');
+    expect(text).toContain('Trocar plano');
+  });
+
+  it('never renders plan cards or radios on the registration screen', () => {
+    const localFixture = createWith(
+      [PLAN_BASE, PLAN_GROWTH],
+      { planId: PLAN_GROWTH.id, billingPeriod: 'annual' },
+    );
+    const host = localFixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('[role="radiogroup"]')).toBeNull();
+    expect(host.querySelectorAll('.plan-option')).toHaveLength(0);
+    expect(host.querySelectorAll('.plan-period-option')).toHaveLength(0);
+    expect(host.querySelectorAll('input[type="radio"]')).toHaveLength(0);
+    expect(host.textContent).not.toContain('Planos disponíveis');
   });
 
   it('sends only plan identifiers and never commercial values', () => {
-    fillValidForm();
-    component.selectPlan(PLAN_GROWTH);
-    component.selectPeriod(PLAN_GROWTH, SubscriptionBillingPeriod.Annual);
+    const localFixture = createWith(
+      [PLAN_BASE, PLAN_GROWTH],
+      { planId: PLAN_GROWTH.id, billingPeriod: 'annual' },
+    );
+    const localComponent = localFixture.componentInstance;
+    fillValidForm(localComponent);
     authServiceMock.registerSeller.mockReturnValue(of(registerResponse));
 
-    component.submit();
+    localComponent.submit();
 
     const request = authServiceMock.registerSeller.mock.calls[0][0];
     expect(request.planId).toBe('plan-growth');
@@ -334,52 +369,72 @@ describe('SellerRegisterPageComponent', () => {
     expect(request).not.toHaveProperty('benefits');
   });
 
-  it('blocks submission and asks for revalidation when the selected plan is unavailable', () => {
-    queryParams = { planId: 'plan-removed', billingPeriod: 'monthly' };
-
-    TestBed.resetTestingModule();
-    const localFixture = TestBed.configureTestingModule({
-      imports: [SellerRegisterPageComponent],
-      providers: [
-        { provide: AuthService, useValue: authServiceMock },
-        { provide: PlanOfferService, useValue: planOfferMock },
-        { provide: Router, useValue: routerMock },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: { queryParamMap: { get: (key: string) => queryParams[key] ?? null } },
-            root: null,
-            firstChild: null,
-            children: [],
-            pathFromRoot: [],
-          },
-        },
-        { provide: ToastService, useValue: toastMock },
-      ],
-    }).createComponent(SellerRegisterPageComponent);
-    localFixture.detectChanges();
+  it('blocks submission and guides the user back to the landing when the plan is unavailable', () => {
+    const localFixture = createWith(
+      [PLAN_BASE],
+      { planId: 'plan-removed', billingPeriod: 'monthly' },
+    );
     const localComponent = localFixture.componentInstance;
 
-    localComponent.fullName.set('Contratante Teste');
-    localComponent.whatsapp.set('(21) 99999-9999');
-    localComponent.email.set('novo@vendedor.com');
-    localComponent.password.set('Senha@123');
-    localComponent.confirmPassword.set('Senha@123');
+    expect(localComponent.selectedPlanId()).toBeNull();
+    expect(localComponent.selectedBillingPeriod()).toBeNull();
+    expect(localComponent.invalidSelection()).toBe(true);
+
+    fillFormFields(localComponent);
+    localComponent.submit();
+    localFixture.detectChanges();
+
+    expect(localComponent.errors()['plan']).toContain('página inicial');
+    expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
+    const host = localFixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.plan-selection-state a')?.getAttribute('href')).toBe('/#plano');
+  });
+
+  it('blocks registration and guides the landing when no planId/billingPeriod is present', () => {
+    const localFixture = createWith([PLAN_BASE, PLAN_GROWTH], {});
+    const localComponent = localFixture.componentInstance;
+
+    fillFormFields(localComponent);
+    localComponent.submit();
+    localFixture.detectChanges();
+
+    expect(localComponent.selectedPlanId()).toBeNull();
+    expect(localComponent.errors()['plan']).toContain('página inicial');
+    expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
+    const host = localFixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.plan-selection-state a')?.getAttribute('href')).toBe('/#plano');
+    expect(host.textContent).not.toContain('Planos disponíveis');
+  });
+
+  it('does not auto-select the only available plan without query params', () => {
+    const localFixture = createWith([PLAN_BASE], {});
+    const localComponent = localFixture.componentInstance;
+
+    expect(localComponent.plans()).toHaveLength(1);
+    expect(localComponent.selectedPlanId()).toBeNull();
+    expect(localComponent.selectedBillingPeriod()).toBeNull();
+    expect(localComponent.invalidSelection()).toBe(false);
+
+    fillFormFields(localComponent);
     localComponent.submit();
 
-    expect(localComponent.errors()['plan']).toContain('Revalide');
+    expect(localComponent.errors()['plan']).toContain('página inicial');
     expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
   });
 
-  it('requires a plan selection on a direct visit without query params', () => {
-    component.fullName.set('Contratante Teste');
-    component.whatsapp.set('(21) 99999-9999');
-    component.email.set('novo@vendedor.com');
-    component.password.set('Senha@123');
-    component.confirmPassword.set('Senha@123');
-    component.submit();
+  it('does not fall back to another plan when the query selection is invalid', () => {
+    const localFixture = createWith(
+      [PLAN_BASE],
+      { planId: 'plan-removed', billingPeriod: 'monthly' },
+    );
+    const localComponent = localFixture.componentInstance;
 
-    expect(component.errors()['plan']).toContain('Escolha um plano');
+    expect(localComponent.selectedPlanId()).toBeNull();
+    expect(localComponent.selectedBillingPeriod()).toBeNull();
+
+    fillFormFields(localComponent);
+    localComponent.submit();
+
     expect(authServiceMock.registerSeller).not.toHaveBeenCalled();
   });
 });

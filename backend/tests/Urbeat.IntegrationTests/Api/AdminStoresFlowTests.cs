@@ -3,8 +3,11 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.DTOs.Admin;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -147,6 +150,67 @@ public sealed class AdminStoresFlowTests
         secondPage.Items.Should().HaveCount(1);
         secondPage.Items.Select(item => item.Name)
             .Should().NotIntersectWith(firstPage.Items.Select(item => item.Name));
+    }
+
+    [Fact]
+    public async Task Listing_ShouldHideK6Fixtures_WithoutDeletingThem()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var client = factory.CreateClient();
+        var adminToken = (await LoginAsync(client, AdminEmail, AdminPassword, "/api/auth/login/admin"))!;
+
+        var normalName = $"Padaria Real {Guid.NewGuid():N}";
+        var normalSlug = $"padaria-{Guid.NewGuid():N}";
+        var legitimateLoadName = $"Padaria Load {Guid.NewGuid():N}";
+        var legitimateLoadSlug = $"load-padaria-{Guid.NewGuid():N}";
+        var k6Name = "Store anchor";
+        var k6Slug = "load-20261109204926-f5594855";
+
+        var stores = new[]
+        {
+            (Name: normalName, Slug: normalSlug),
+            // A legitimate store may use a load-* slug as long as it is outside the k6 shape.
+            (Name: legitimateLoadName, Slug: legitimateLoadSlug),
+            (Name: k6Name, Slug: k6Slug)
+        };
+
+        foreach (var (name, slug) in stores)
+        {
+            var sellerClient = factory.CreateClient();
+            var email = $"load.hide.{Guid.NewGuid():N}@urbeat.local";
+            await factory.RegisterSellerAsync(sellerClient, email, "Lojista123!", name);
+            var token = (await LoginAsync(sellerClient, email, "Lojista123!", "/api/auth/login/seller"))!;
+
+            using var createStore = new HttpRequestMessage(HttpMethod.Post, "/api/stores");
+            createStore.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            createStore.Content = JsonContent.Create(new CreateStoreRequestDto
+            {
+                Name = name,
+                Slug = slug,
+                PhoneNumber = "11982221111",
+                CuisineType = "Pizza",
+                MaxDeliveryRadiusKm = 5
+            });
+
+            (await sellerClient.SendAsync(createStore)).StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        var page = await GetPageAsync(client, adminToken, "/api/admin/stores?page=1&pageSize=20");
+
+        page.TotalItems.Should().Be(2);
+        page.TotalPages.Should().Be(1);
+        page.Items.Select(item => item.Slug)
+            .Should().BeEquivalentTo(normalSlug, legitimateLoadSlug)
+            .And.NotContain(k6Slug);
+        page.Items.Select(item => item.Name)
+            .Should().BeEquivalentTo(normalName, legitimateLoadName)
+            .And.NotContain(k6Name);
+
+        // The k6 fixture is hidden from the listing but still persisted.
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await dbContext.Stores.CountAsync()).Should().Be(3);
+        (await dbContext.Stores.CountAsync(store => store.Slug == k6Slug)).Should().Be(1);
     }
 
     private static async Task<PagedAdminStoresDto> GetPageAsync(

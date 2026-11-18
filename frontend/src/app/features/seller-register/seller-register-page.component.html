@@ -12,7 +12,7 @@
           @if (trialDays() > 0) {
             É rápido, fácil e você ainda ganha <strong>{{ trialDays() }} dias grátis</strong> para testar.
           } @else {
-            É rápido e fácil: escolha o plano e comece hoje mesmo.
+            É rápido e fácil: preencha seus dados e comece hoje mesmo.
           }
         </p>
 
@@ -22,17 +22,17 @@
 
         <section class="plan-selection" aria-labelledby="plan-selection-title">
           <div class="plan-selection-head">
-            <h2 id="plan-selection-title">Plano e periodicidade</h2>
-            @if (selectionQuery(); as query) {
+            <h2 id="plan-selection-title">Seu plano</h2>
+            @if (planSummary()) {
               <a class="plan-change-link" href="/#plano">Trocar plano</a>
             }
           </div>
 
           @if (plansLoading()) {
-            <p class="plan-selection-state" role="status">Carregando planos disponíveis…</p>
+            <p class="plan-selection-state" role="status">Carregando o plano escolhido…</p>
           } @else if (plansError()) {
             <div class="plan-selection-state is-error" role="alert">
-              <span>Não foi possível carregar os planos.</span>
+              <span>Não foi possível carregar o plano escolhido.</span>
               <button type="button" class="plan-retry" (click)="loadPlans()">Tentar novamente</button>
             </div>
           } @else if (plans().length === 0) {
@@ -40,61 +40,21 @@
               <span>Nenhum plano ativo no momento.</span>
               <a class="plan-change-link" href="/#plano">Voltar aos planos</a>
             </div>
+          } @else if (planSummary(); as summary) {
+            <div class="plan-summary" role="status">
+              <strong>{{ summary.name }}</strong>
+              <span>{{ summary.periodLabel }} · {{ summary.amountLabel }}</span>
+              <span>{{ summary.trialLabel }}</span>
+            </div>
+          } @else if (invalidSelection()) {
+            <div class="plan-selection-state is-error" role="alert">
+              <span>O plano ou a periodicidade escolhida não está mais disponível.</span>
+              <a class="plan-change-link" href="/#plano">Voltar à página inicial</a>
+            </div>
           } @else {
-            @if (invalidSelection()) {
-              <div class="plan-selection-state is-error" role="alert">
-                O plano ou a periodicidade escolhida não está mais disponível. Selecione outra opção.
-              </div>
-            }
-
-            @if (planSummary(); as summary) {
-              <div class="plan-summary" role="status">
-                <strong>{{ summary.name }}</strong>
-                <span>{{ summary.periodLabel }} · {{ summary.amountLabel }}</span>
-                <span>{{ summary.trialLabel }}</span>
-              </div>
-            }
-
-            <div class="plan-options" role="radiogroup" aria-label="Planos disponíveis">
-              @for (plan of plans(); track plan.id) {
-                <article class="plan-option" [class.is-selected]="selectedPlanId() === plan.id">
-                  <label class="plan-option-head">
-                    <input
-                      type="radio"
-                      name="registration-plan"
-                      [value]="plan.id"
-                      [checked]="selectedPlanId() === plan.id"
-                      (change)="selectPlan(plan)"
-                    />
-                    <span class="plan-option-name">{{ plan.name }}</span>
-                    @if (plan.trialDays > 0) {
-                      <span class="plan-option-trial">{{ plan.trialDays }} dias grátis</span>
-                    }
-                  </label>
-
-                  <div class="plan-period-options">
-                    @for (option of periodOptions(plan); track option.period) {
-                      <label class="plan-period-option" [class.is-selected]="selectedPlanId() === plan.id && isPeriodSelected(option.period)">
-                        <input
-                          type="radio"
-                          [name]="'registration-period-' + plan.id"
-                          [value]="option.period"
-                          [checked]="selectedPlanId() === plan.id && isPeriodSelected(option.period)"
-                          [disabled]="selectedPlanId() !== plan.id"
-                          (change)="selectPeriod(plan, option.period)"
-                        />
-                        <span>{{ option.label }}</span>
-                        <strong>
-                          {{ formatCurrency(option.amount) }}{{ option.period === BillingPeriod.Annual ? '/ano' : '/mês' }}
-                        </strong>
-                        @if (option.discountPercent && option.discountPercent > 0) {
-                          <small>{{ option.discountPercent }}% off</small>
-                        }
-                      </label>
-                    }
-                  </div>
-                </article>
-              }
+            <div class="plan-selection-state is-error" role="alert">
+              <span>Escolha seu plano na página inicial e volte para concluir o cadastro.</span>
+              <a class="plan-change-link" href="/#plano">Ver planos</a>
             </div>
           }
 

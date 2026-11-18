@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Urbeat.Infrastructure.Persistence;
 
 /// <summary>
-/// Garante o catálogo inicial de planos por porte. Os valores são apenas seed
+/// Garante o plano inicial "Começar" em bases novas. Os valores são apenas seed
 /// administrativo: depois de criados, nome, preço, trial e benefícios passam a
-/// ser configurados pelo admin e não são sobrescritos nas próximas execuções.
-/// Planos legados (por exemplo "Básico") não são removidos nem alterados.
+/// ser configurados pelo admin (inclusive planos adicionais via API admin) e não
+/// são sobrescritos nas próximas execuções. Planos já existentes, assinaturas e
+/// snapshots nunca são removidos, desativados ou alterados por este seeder.
 /// </summary>
 public sealed class BillingPlanSeeder
 {
@@ -44,35 +45,7 @@ public sealed class BillingPlanSeeder
             ],
             Level: 0,
             AnnualEnabled: true,
-            AnnualDiscountPercent: 10),
-        new(
-            "Crescer",
-            39.90m,
-            "Para negócios que já vendem e querem mais controle.",
-            [
-                "Tudo do plano Começar",
-                "Relatórios de vendas",
-                "Base de clientes exportável",
-                "Banners no cardápio",
-                "Geração de QR Code"
-            ],
-            Level: 1,
-            AnnualEnabled: true,
-            AnnualDiscountPercent: 15),
-        new(
-            "Profissional",
-            79.90m,
-            "Para operações com equipe e automações avançadas.",
-            [
-                "Tudo do plano Crescer",
-                "Usuários e permissões",
-                "Automação de WhatsApp",
-                "Dashboard com resumo das vendas",
-                "Controle de finanças"
-            ],
-            Level: 2,
-            AnnualEnabled: true,
-            AnnualDiscountPercent: 20)
+            AnnualDiscountPercent: 10)
     ];
 
     private readonly ApplicationDbContext _dbContext;

@@ -129,7 +129,7 @@ describe('LandingPageComponent plans', () => {
     expect(host.querySelector('.lp-btn-plan')).toBeNull();
   });
 
-  it('keeps a coherent fallback only when the public offer fails', () => {
+  it('keeps a single-plan fallback only when the public offer fails', () => {
     httpMock.expectOne('/api/landingpagecontent').flush([]);
     httpMock.expectOne('/api/public/plans').error(new ProgressEvent('error'));
     fixture.detectChanges();
@@ -137,10 +137,13 @@ describe('LandingPageComponent plans', () => {
     const host: HTMLElement = fixture.nativeElement;
     const text = host.textContent ?? '';
 
-    expect(host.querySelectorAll('.lp-plan-card')).toHaveLength(3);
+    expect(host.querySelectorAll('.lp-plan-card')).toHaveLength(1);
+    expect(text).toContain('Começar');
     expect(text).toContain('19,90');
-    expect(text).toContain('39,90');
-    expect(text).toContain('79,90');
     expect(text).toContain('15 dias grátis');
+    expect(text).not.toContain('39,90');
+    expect(text).not.toContain('79,90');
+    expect(text).toContain('Crie hoje mesmo sua loja');
+    expect(host.querySelectorAll('.lp-btn-plan')).toHaveLength(1);
   });
 });
