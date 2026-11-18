@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -62,34 +64,75 @@ describe('LandingPageComponent plans', () => {
     expect(text).toContain('Relatórios de vendas');
   });
 
-  it('uses the single-plan title and keeps the plan CTA slightly larger', () => {
+  it('uses the single-plan title and places the only CTA in the plan header', () => {
     flushOffer([plan({})]);
 
-    const text = fixture.nativeElement.textContent as string;
-    const cta = fixture.nativeElement.querySelector('.lp-btn-plan') as HTMLAnchorElement;
+    const host: HTMLElement = fixture.nativeElement;
+    const text = host.textContent as string;
+    const headerCta = host.querySelector('.lp-plan-head .lp-plan-cta') as HTMLAnchorElement;
 
     expect(text).toContain('Crie hoje mesmo sua loja');
     expect(text).not.toContain('Escolha o plano ideal para o seu momento');
-    expect(cta.classList.contains('is-single')).toBe(true);
-    expect(fixture.nativeElement.querySelector('.lp-plans-grid').classList.contains('is-single')).toBe(true);
+    expect(headerCta).not.toBeNull();
+    expect(host.querySelectorAll('.lp-plan-cta')).toHaveLength(1);
+    expect(host.querySelector('.lp-plans-grid').classList.contains('is-single')).toBe(true);
+    expect(host.querySelectorAll('.lp-plans-grid > .lp-plan-card')).toHaveLength(1);
+    expect(host.querySelector('.lp-plan-cta')?.textContent?.trim()).toBe('Começar');
+    expect(host.querySelector('.lp-btn-plan')).toBeNull();
+    expect(host.querySelector('.lp-plan-footer')).toBeNull();
   });
 
-  it('uses the multi-plan title and sends only plan and period to registration', () => {
+  it('centers the single plan card with a comfortable single-column layout', () => {
+    flushOffer([plan({})]);
+
+    const scss = readFileSync(
+      resolve(process.cwd(), 'src/app/features/landing-page/landing-page.component.scss'),
+      'utf8',
+    );
+    const singleRule = /\.lp-plans-grid\.is-single\s*\{([^}]*)\}/.exec(scss)?.[1] ?? '';
+
+    expect(singleRule).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(singleRule).toContain('margin-inline: auto');
+    expect(singleRule).toMatch(/width:\s*100%/);
+
+    const maxWidth = Number(/max-width:\s*(\d+)px/.exec(singleRule)?.[1]);
+    expect(maxWidth).toBeGreaterThanOrEqual(600);
+  });
+
+  it('uses the multi-plan title and sends plan and period from each header CTA', () => {
     flushOffer([
-      plan({ id: 'plan-1', name: 'Começar', level: 0 }),
-      plan({ id: 'plan-2', name: 'Crescer', level: 1 }),
+      plan({ id: 'plan-essential', name: 'Essencial', level: 0 }),
+      plan({ id: 'plan-growth', name: 'Crescer', level: 1 }),
     ]);
 
-    const text = fixture.nativeElement.textContent as string;
+    const host: HTMLElement = fixture.nativeElement;
+    const text = host.textContent as string;
     expect(text).toContain('Escolha o plano ideal para o seu momento');
 
-    const ctas = fixture.nativeElement.querySelectorAll('.lp-btn-plan') as NodeListOf<HTMLAnchorElement>;
-    expect(ctas[0].getAttribute('href')).toBe('/cadastro?planId=plan-1&billingPeriod=monthly');
+    const grid = host.querySelector('.lp-plans-grid') as HTMLElement;
+    expect(grid.classList.contains('is-single')).toBe(false);
+    expect(grid.querySelectorAll(':scope > .lp-plan-card')).toHaveLength(2);
+
+    const ctas = host.querySelectorAll('.lp-plan-cta') as NodeListOf<HTMLAnchorElement>;
+    expect(ctas).toHaveLength(2);
+    expect(ctas[0].closest('.lp-plan-head')).not.toBeNull();
+    expect(ctas[1].closest('.lp-plan-head')).not.toBeNull();
+    for (const card of Array.from(host.querySelectorAll('.lp-plan-card'))) {
+      expect(card.querySelectorAll('.lp-plan-cta')).toHaveLength(1);
+    }
+    expect(ctas[0].textContent?.trim()).toBe('Começar');
+    expect(ctas[1].textContent?.trim()).toBe('Começar');
+    expect(ctas[0].getAttribute('href')).toBe('/cadastro?planId=plan-essential&billingPeriod=monthly');
+    expect(ctas[1].getAttribute('href')).toBe('/cadastro?planId=plan-growth&billingPeriod=monthly');
     expect(ctas[0].getAttribute('href')).not.toContain('39.90');
     expect(ctas[0].getAttribute('href')).not.toContain('trial');
+    expect(ctas[0].getAttribute('aria-label')).toBe('Começar com o plano Essencial');
+    expect(ctas[1].getAttribute('aria-label')).toBe('Começar com o plano Crescer');
+    expect(host.querySelector('.lp-btn-plan')).toBeNull();
+    expect(host.querySelector('.lp-plan-footer')).toBeNull();
   });
 
-  it('changes the CTA query param when the annual period is selected', () => {
+  it('changes the header CTA query param when the annual period is selected', () => {
     flushOffer([plan({ id: 'plan-annual' })]);
 
     const periodRadios = fixture.nativeElement.querySelectorAll('.lp-plan-period-option input') as NodeListOf<HTMLInputElement>;
@@ -98,7 +141,7 @@ describe('LandingPageComponent plans', () => {
     periodRadios[1].dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    const cta = fixture.nativeElement.querySelector('.lp-btn-plan') as HTMLAnchorElement;
+    const cta = fixture.nativeElement.querySelector('.lp-plan-cta') as HTMLAnchorElement;
     expect(cta.getAttribute('href')).toBe('/cadastro?planId=plan-annual&billingPeriod=annual');
     expect(fixture.nativeElement.textContent).toContain('407,00');
   });
@@ -126,6 +169,7 @@ describe('LandingPageComponent plans', () => {
     expect(host.querySelectorAll('.lp-plan-card')).toHaveLength(0);
     expect(text).toContain('Planos indisponíveis no momento');
     expect(text).toContain('Estamos atualizando nossos planos');
+    expect(host.querySelector('.lp-plan-cta')).toBeNull();
     expect(host.querySelector('.lp-btn-plan')).toBeNull();
   });
 
@@ -144,6 +188,7 @@ describe('LandingPageComponent plans', () => {
     expect(text).not.toContain('39,90');
     expect(text).not.toContain('79,90');
     expect(text).toContain('Crie hoje mesmo sua loja');
-    expect(host.querySelectorAll('.lp-btn-plan')).toHaveLength(1);
+    expect(host.querySelectorAll('.lp-plan-cta')).toHaveLength(1);
+    expect(host.querySelector('.lp-btn-plan')).toBeNull();
   });
 });

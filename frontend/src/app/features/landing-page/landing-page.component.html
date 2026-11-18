@@ -344,11 +344,23 @@
         @for (plan of plans(); track plan.id) {
           <article class="lp-plan-card">
             <header class="lp-plan-head">
-              <span class="lp-plan-tag">{{ plan.name }}</span>
+              <div class="lp-plan-top">
+                <h3 class="lp-plan-name">{{ plan.name }}</h3>
+                <a
+                  routerLink="/cadastro"
+                  class="lp-plan-cta"
+                  [queryParams]="planQueryParams(plan)"
+                  [attr.aria-label]="planCtaAriaLabel(plan)"
+                >
+                  Começar
+                  <svg class="lp-plan-cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+              </div>
+
               @if (plan.trialDays > 0) {
-                <h3>{{ plan.trialDays }} dias grátis</h3>
+                <p class="lp-plan-trial">{{ plan.trialDays }} dias grátis</p>
               } @else {
-                <h3>Comece hoje</h3>
+                <p class="lp-plan-trial">Comece hoje</p>
               }
               <p class="lp-plan-after">Depois somente</p>
               <div class="lp-plan-price">
@@ -395,19 +407,6 @@
                 </ul>
               }
             </div>
-
-            <footer class="lp-plan-footer">
-              <a
-                routerLink="/cadastro"
-                class="lp-btn-plan"
-                [class.is-single]="plans().length === 1"
-                [queryParams]="planQueryParams(plan)"
-              >
-                {{ planCtaLabel(plan) }}
-                <svg class="lp-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              </a>
-              <p class="lp-plan-fine">Sem cartão no início • Cancele quando quiser</p>
-            </footer>
           </article>
         }
       </div>

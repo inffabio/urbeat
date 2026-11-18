@@ -184,8 +184,8 @@ export class LandingPageComponent implements OnInit {
     };
   }
 
-  planCtaLabel(_plan: PublicPlanOfferItem): string {
-    return 'Começar';
+  planCtaAriaLabel(plan: PublicPlanOfferItem): string {
+    return `Começar com o plano ${plan.name}`;
   }
 
   /**

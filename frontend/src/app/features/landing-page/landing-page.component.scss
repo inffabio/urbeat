@@ -1252,14 +1252,20 @@ app-landing-page {
 
 .lp-plan-head {
   position: relative;
-  padding: 32px 24px 28px;
+  padding: 22px 24px 24px;
   background: var(--green-50);
   border-bottom: 1px solid rgba(110, 175, 74, 0.1);
-  text-align: center;
+  text-align: left;
   overflow: hidden;
 
   @media (min-width: 768px) {
-    padding: 32px 32px 28px;
+    padding: 24px 28px 26px;
+  }
+
+  /* Mantém a decoração atrás do conteúdo e nunca sob o CTA. */
+  > * {
+    position: relative;
+    z-index: 1;
   }
 
   &::after {
@@ -1275,36 +1281,82 @@ app-landing-page {
   }
 }
 
-.lp-plan-tag {
-  display: inline-flex;
+.lp-plan-top {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 6px 16px;
-  margin-bottom: 20px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #ffffff;
-  background: #18181b;
-  border-radius: 999px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.lp-plan-head h3 {
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+.lp-plan-name {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: #18181b;
+  overflow-wrap: anywhere;
 
   @media (min-width: 768px) {
-    font-size: 24px;
+    font-size: 20px;
   }
 }
 
-.lp-plan-after {
-  margin-top: 14px;
+.lp-plan-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 18px;
+  font-family: inherit;
   font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  text-decoration: none;
+  background: var(--ink-dark);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(24, 24, 27, 0.16);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+
+  &:hover {
+    background: #27272a;
+    box-shadow: 0 10px 22px rgba(24, 24, 27, 0.18);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--green-700);
+    outline-offset: 3px;
+  }
+
+  .lp-plan-cta-arrow {
+    transition: transform 0.15s ease;
+  }
+
+  &:hover .lp-plan-cta-arrow {
+    transform: translateX(3px);
+  }
+}
+
+.lp-plan-trial {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--green-700);
+}
+
+.lp-plan-after {
+  margin-top: 6px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #52525b;
 }
@@ -1312,14 +1364,14 @@ app-landing-page {
 .lp-plan-price {
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   margin-top: 4px;
 }
 
 .lp-plan-value {
   font-size: 38px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--green-500);
@@ -1340,17 +1392,17 @@ app-landing-page {
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.025em;
-  color: #71717a;
+  color: #52525b;
 }
 
 .lp-plan-body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 24px 24px 0;
+  padding: 24px 24px 28px;
 
   @media (min-width: 768px) {
-    padding: 28px 28px 0;
+    padding: 28px 28px 32px;
   }
 }
 
@@ -1393,17 +1445,6 @@ app-landing-page {
   color: var(--green-500);
 }
 
-.lp-plan-footer {
-  margin-top: auto;
-  padding: 24px;
-  background: var(--surface-alt);
-  border-top: 1px solid #f4f4f5;
-
-  @media (min-width: 768px) {
-    padding: 24px 28px 28px;
-  }
-}
-
 .lp-plan-assurances {
   display: flex;
   flex-direction: column;
@@ -1440,47 +1481,6 @@ app-landing-page {
   background: var(--green-500);
   box-shadow: 0 4px 12px rgba(110, 175, 74, 0.3);
   color: #ffffff;
-}
-
-.lp-btn-plan {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 56px;
-  margin-top: 28px;
-  padding: 0 32px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  text-decoration: none;
-  background: var(--green-500);
-  border-radius: 999px;
-  box-shadow: 0 10px 24px rgba(110, 175, 74, 0.32);
-  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
-
-  &:hover {
-    background: var(--green-600);
-    box-shadow: 0 12px 28px rgba(110, 175, 74, 0.4);
-    transform: translateY(-1px);
-  }
-
-  &:hover .lp-btn-arrow {
-    transform: translateX(4px);
-  }
-
-  .lp-btn-arrow {
-    transition: transform 0.15s ease;
-  }
-}
-
-.lp-plan-fine {
-  margin-top: 12px;
-  text-align: center;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #71717a;
 }
 
 .lp-plan-proof {
@@ -1814,19 +1814,28 @@ app-landing-page {
   }
 
   .lp-btn-hero,
-  .lp-btn-plan,
+  .lp-plan-cta,
   .lp-btn-final,
   .lp-feature-icon,
   .lp-step-num,
   .lp-pain-card {
     transition: none;
   }
+
+  .lp-plan-cta:hover,
+  .lp-plan-cta:active,
+  .lp-plan-cta:hover .lp-plan-cta-arrow {
+    transform: none;
+  }
 }
 
-/* Seleção de plano e periodicidade */
+/* Seleção de plano e periodicidade — 1 plano: coluna única, card centralizado
+   com largura confortável no desktop e no mobile (sem virar coluna fina). */
 .lp-plans-grid.is-single {
-  max-width: 520px;
-  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
 }
 
 .lp-plan-periods {
@@ -1886,14 +1895,9 @@ app-landing-page {
   font-weight: 800;
 }
 
-.lp-btn-plan.is-single {
-  height: 60px;
-  font-size: 17px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .lp-plan-card,
-  .lp-btn-plan {
+  .lp-plan-cta {
     transition: none;
   }
 }
