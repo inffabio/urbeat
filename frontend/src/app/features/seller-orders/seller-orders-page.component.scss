@@ -191,12 +191,42 @@
 }
 
 .new-orders-list {
-  display: grid;
-  /* auto-fill keeps every card readable at any useful width; `min(100%, ...)`
-     prevents a track wider than the container on small screens. */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 18px;
   min-width: 0;
+}
+
+/*
+ * The cards keep a readable column floor and share the available width while
+ * they fit. When the row no longer fits, the dedicated incoming viewport
+ * scrolls to the right instead of squeezing the cards or widening the page.
+ */
+.new-orders-list > .order-card {
+  flex: 1 1 300px;
+  min-width: 280px;
+}
+
+/*
+ * Only the "Pedidos que chegam" board is a scroll region, and only on the
+ * horizontal axis: the row of columns scrolls to the right instead of wrapping.
+ * Vertical overflow stays with each status column stack. Focusable so the board
+ * can be scrolled with the keyboard; `:focus-visible` keeps the affordance visible.
+ */
+.incoming-orders-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.incoming-orders-scroll:focus-visible {
+  outline: 2px solid var(--app-brand, #d54a51);
+  outline-offset: 2px;
+  border-radius: 14px;
 }
 
 .order-card {
@@ -580,7 +610,10 @@
   --col-accent: var(--orders-muted);
   --col-ink: var(--orders-text);
 
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 14px 12px 16px;
   border: 1px solid var(--col-border);
   border-top: 4px solid var(--col-accent);
@@ -629,6 +662,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Cards overflow inside their own column, never into the page. */
+  min-height: 0;
+  max-height: clamp(240px, calc(100dvh - 22rem), 680px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 6px;
 
   .order-card.is-expanded {
     min-height: 320px;

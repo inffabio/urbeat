@@ -222,6 +222,57 @@ describe('SellerOrdersPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Nenhum pedido novo');
   });
 
+  it('wraps the incoming orders board in a keyboard-reachable horizontal scroll region', () => {
+    orderServiceMock.getStoreOrders.mockImplementation(({ status }: any) => {
+      if (status === OrderStatus.Received) {
+        return of({
+          items: [
+            buildOrder({ id: 'incoming-1', code: 'INC1', status: OrderStatus.Received }),
+            buildOrder({ id: 'incoming-2', code: 'INC2', status: OrderStatus.Received }),
+          ],
+          totalItems: 2,
+        });
+      }
+      return of({ items: [], totalItems: 0 });
+    });
+
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.new-orders-panel') as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.firstElementChild?.classList.contains('panel-title')).toBe(true);
+
+    const viewport = panel.querySelector('.incoming-orders-scroll') as HTMLElement;
+    expect(viewport).not.toBeNull();
+    expect(viewport.getAttribute('role')).toBe('group');
+    expect(viewport.getAttribute('tabindex')).toBe('0');
+    expect(viewport.getAttribute('aria-label')).toContain('Pedidos que chegam');
+    expect(viewport.querySelector('.panel-title')).toBeNull();
+
+    const list = viewport.querySelector('.new-orders-list') as HTMLElement;
+    expect(list).not.toBeNull();
+    expect(list.querySelectorAll('.order-card').length).toBe(2);
+    expect(fixture.nativeElement.querySelector('.status-grid')?.closest('.incoming-orders-scroll')).toBeNull();
+  });
+
+  it('keeps each status column title outside its vertical scroll area', () => {
+    const fixture = TestBed.createComponent(SellerOrdersPageComponent);
+    fixture.detectChanges();
+
+    const columns = Array.from(fixture.nativeElement.querySelectorAll<HTMLElement>('.status-col'));
+    expect(columns).toHaveLength(4);
+
+    for (const column of columns) {
+      const title = column.querySelector('.col-title');
+      const stack = column.querySelector('.status-stack');
+      expect(title).not.toBeNull();
+      expect(stack).not.toBeNull();
+      expect(column.firstElementChild).toBe(title);
+      expect(stack!.parentElement).toBe(column);
+    }
+  });
+
   it('leaves the loading state when the board requests complete without emitting', () => {
     orderServiceMock.getStoreOrders.mockReturnValue(EMPTY);
 
@@ -4187,16 +4238,62 @@ describe('SellerOrdersPageComponent responsive contract', () => {
     expect(scss).toContain('container-name: orders-page');
   });
 
-  it('keeps the board responsive to the real content width with no horizontal overflow', () => {
+  it('keeps the status columns responsive to the real content width', () => {
     const grid = blockFor('.status-grid');
     expect(grid).toContain('grid-template-columns: repeat(4, minmax(0, 1fr))');
 
     expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*1100px\)\s*{[\s\S]*?\.status-grid[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/);
     expect(scss).toMatch(/@container\s+orders-page\s*\(max-width:\s*620px\)\s*{[\s\S]*?\.status-grid[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/);
 
-    const newOrders = blockFor('.new-orders-list');
-    expect(newOrders).toMatch(/repeat\(auto-fill, minmax\(min\(100%,\s*\d+px\), 1fr\)\)/);
-    expect(newOrders).not.toMatch(/minmax\((1[5-9]\d|2\d\d)px/);
+    // The status flow keeps the responsive collapse; only the incoming board
+    // scrolls horizontally, so the flow must not own an overflow viewport.
+    expect(grid).not.toContain('overflow-x: auto');
+  });
+
+  it('scrolls only the incoming orders board horizontally, on a single row', () => {
+    const viewport = blockFor('.incoming-orders-scroll');
+    expect(viewport).toContain('overflow-x: auto');
+    // Horizontal only: the incoming board never becomes a second vertical
+    // scroll region; that job belongs to each status column stack.
+    expect(viewport).toContain('overflow-y: hidden');
+    expect(viewport).not.toContain('overflow-y: auto');
+    expect(viewport).not.toMatch(/max-height:/);
+    expect(viewport).toContain('overscroll-behavior: contain');
+    expect(viewport).toContain('-webkit-overflow-scrolling: touch');
+    expect(viewport).toContain('min-width: 0');
+    expect(scss).toMatch(/\.incoming-orders-scroll:focus-visible\s*{[^}]*outline:\s*2px solid/);
+
+    const list = blockFor('.new-orders-list');
+    expect(list).toContain('display: flex');
+    expect(list).toContain('flex-wrap: nowrap');
+    expect(list).not.toContain('repeat(auto-fill');
+
+    expect(blockFor('.new-orders-list > .order-card')).toMatch(/min-width:\s*\d+px/);
+  });
+
+  it('keeps the status board outside the incoming horizontal viewport', () => {
+    const incomingStart = template.indexOf('class="incoming-orders-scroll"');
+    const flowStart = template.indexOf('class="status-flow"');
+    const gridStart = template.indexOf('class="status-grid"');
+
+    expect(incomingStart).toBeGreaterThanOrEqual(0);
+    expect(flowStart).toBeGreaterThan(incomingStart);
+    expect(gridStart).toBeGreaterThan(flowStart);
+    expect(template.slice(incomingStart, flowStart)).toContain('class="new-orders-list"');
+  });
+
+  it('gives every status column its own vertical scroll for the order cards', () => {
+    const column = blockFor('.status-col');
+    expect(column).toContain('display: flex');
+    expect(column).toContain('flex-direction: column');
+    expect(column).toContain('min-height: 0');
+
+    const stack = blockFor('.status-stack');
+    expect(stack).toContain('overflow-y: auto');
+    expect(stack).toContain('overscroll-behavior-y: contain');
+    expect(stack).toContain('-webkit-overflow-scrolling: touch');
+    expect(stack).toContain('min-height: 0');
+    expect(stack).toMatch(/max-height:\s*clamp\(/);
   });
 
   it('stacks the header actions by container width and lets the labels wrap', () => {

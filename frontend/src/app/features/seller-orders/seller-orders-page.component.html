@@ -188,10 +188,17 @@
         @if (newOrders().length === 0) {
           <p class="muted">Nenhum pedido novo no momento.</p>
         } @else {
-          <div class="new-orders-list">
-            @for (order of newOrders(); track order.id) {
-              <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
-            }
+          <div
+            class="incoming-orders-scroll"
+            role="group"
+            tabindex="0"
+            aria-label="Pedidos que chegam"
+          >
+            <div class="new-orders-list">
+              @for (order of newOrders(); track order.id) {
+                <ng-container *ngTemplateOutlet="boardCard; context: { $implicit: order, items: orderItems(order.id), action: cardAction(order) }"></ng-container>
+              }
+            </div>
           </div>
         }
       </section>
