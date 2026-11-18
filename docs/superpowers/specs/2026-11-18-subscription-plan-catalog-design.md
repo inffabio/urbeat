@@ -28,6 +28,13 @@ de boleto, sem gateway definido ou pagamento real.
 - O browser envia somente identificadores; o servidor recalcula valor, trial,
   desconto e datas.
 - O servidor vincula o plano ao lojista após o cadastro ser finalizado.
+- O lojista pode trocar de plano somente para um plano superior quando houver
+  mais de um plano ativo.
+- A superioridade é definida por nível/ordem configurado pelo administrador,
+  não apenas pelo preço.
+- Downgrade é rejeitado no frontend e no backend.
+- O upgrade preserva features já utilizadas, mantém o histórico da assinatura
+  anterior e aplica as condições comerciais do novo plano a partir da mudança.
 - O trial é calculado em UTC.
 - A assinatura guarda snapshot do nome, valor, periodicidade e condições
   contratadas para preservar histórico.
@@ -53,8 +60,8 @@ A criação será transacional/idempotente conforme os padrões existentes.
 ### Frontend
 
 - Completar `admin-plans` como CRUD de catálogo.
-- Remover a capacidade de administrar planos do seller; manter apenas leitura
-  da assinatura/cobrança quando aplicável.
+- Remover a capacidade de administrar planos do seller; manter leitura da
+  assinatura/cobrança e permitir somente upgrade quando elegível.
 - Atualizar a landing para título condicional, periodicidade, CTA e scroll.
 - Atualizar o cadastro para preservar plano/periodicidade selecionados e
   enviá-los ao servidor.
@@ -86,5 +93,5 @@ A criação será transacional/idempotente conforme os padrões existentes.
 
 - Integração com gateway.
 - Geração ou pagamento de boleto real.
-- Troca de plano pelo lojista.
+- Downgrade de plano pelo lojista.
 - Prorrata, reembolso, cancelamento de assinatura ou cobrança automática real.

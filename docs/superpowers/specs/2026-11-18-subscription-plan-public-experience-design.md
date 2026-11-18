@@ -15,6 +15,15 @@ lojista, mantendo a seleção de plano e periodicidade antes do cadastro.
 6. Após o trial, a cobrança pendente fica marcada como aguardando integração
    de gateway.
 
+## Upgrade
+
+Quando houver mais de um plano ativo, o lojista poderá solicitar somente
+upgrade para nível superior. O nível é definido pelo administrador e não é
+inferido exclusivamente do preço. Downgrade deve ser rejeitado pelo backend,
+mesmo que o cliente tente chamar a API diretamente. O upgrade preserva o uso
+das features anteriores e registra a mudança no histórico; não há remoção de
+features nem downgrade nesta versão.
+
 O CTA atual `Criar meu cadastro` passa a executar scroll suave para `#plano`,
 com fallback acessível para navegação por âncora. A ação não deve perder o
 foco nem impedir navegação por teclado.
