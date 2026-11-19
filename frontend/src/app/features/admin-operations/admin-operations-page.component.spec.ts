@@ -172,5 +172,17 @@ describe('AdminOperationsPageComponent', () => {
     fixture.detectChanges();
 
     expect(serviceMock.getOutboxOperations).toHaveBeenCalledTimes(2);
+    expect(serviceMock.getOutboxOperations).toHaveBeenLastCalledWith({ background: false });
+  });
+
+  it('marks the automatic refresh as background so the global overlay is not flashed', () => {
+    fixture.detectChanges();
+    expect(serviceMock.getOutboxOperations).toHaveBeenLastCalledWith({ background: false });
+
+    jest.advanceTimersByTime(60_000);
+    fixture.detectChanges();
+
+    expect(serviceMock.getOutboxOperations).toHaveBeenCalledTimes(2);
+    expect(serviceMock.getOutboxOperations).toHaveBeenLastCalledWith({ background: true });
   });
 });

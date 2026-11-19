@@ -142,6 +142,7 @@ public enum AdminAccountOperationStatus
     Succeeded,
     NotFound,
     EmailAlreadyInUse,
+    SellerEmailAlreadyInUse,
     InvalidEmail,
     NotActive,
     AlreadyBlocked,
@@ -159,6 +160,7 @@ public enum AdminAccountOperationStatus
 public static class AdminAccountErrorCodes
 {
     public const string EmailAlreadyInUse = "EMAIL_ALREADY_IN_USE";
+    public const string SellerEmailAlreadyInUse = "SELLER_EMAIL_ALREADY_IN_USE";
     public const string InvalidEmail = "INVALID_EMAIL";
     public const string AdminNotFound = "ADMIN_NOT_FOUND";
     public const string AdminNotActive = "ADMIN_NOT_ACTIVE";
@@ -175,6 +177,7 @@ public static class AdminAccountErrorCodes
     public static string ForStatus(AdminAccountOperationStatus status) => status switch
     {
         AdminAccountOperationStatus.EmailAlreadyInUse => EmailAlreadyInUse,
+        AdminAccountOperationStatus.SellerEmailAlreadyInUse => SellerEmailAlreadyInUse,
         AdminAccountOperationStatus.InvalidEmail => InvalidEmail,
         AdminAccountOperationStatus.NotFound => AdminNotFound,
         AdminAccountOperationStatus.NotActive => AdminNotActive,

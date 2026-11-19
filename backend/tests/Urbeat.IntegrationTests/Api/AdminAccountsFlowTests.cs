@@ -3,12 +3,14 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Jobs;
+using Urbeat.Infrastructure.Persistence;
 using Urbeat.IntegrationTests.Infrastructure;
 
 namespace Urbeat.IntegrationTests.Api;
@@ -349,6 +351,100 @@ public sealed class AdminAccountsFlowTests
         json.RootElement.GetProperty("valid").GetBoolean().Should().BeFalse();
         json.RootElement.TryGetProperty("emailMasked", out _).Should().BeFalse();
         json.RootElement.TryGetProperty("purpose", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Invite_ShouldRejectASellerEmail_WithASpecificConflict_AndChangeNothing()
+    {
+        using var factory = new TestWebApplicationFactory(
+            adminRecoveryEnabled: false,
+            adminRecoveryKey: null,
+            passwordRecoveryPermitLimit: 50,
+            useFakeEmail: true);
+        var client = factory.CreateClient();
+        var adminToken = (await LoginAsync(client, AdminEmail, AdminPassword, "/api/auth/login/admin"))!;
+
+        var sellerEmail = $"admin.invite.seller.{Guid.NewGuid():N}@urbeat.local";
+        await factory.RegisterSellerAsync(client, sellerEmail, "Lojista123!", "Lojista Convite");
+
+        int usersBefore;
+        int invitationsBefore;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            usersBefore = await db.Users.CountAsync();
+            invitationsBefore = await db.AdminInvitations.CountAsync();
+        }
+
+        var response = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Post,
+            "/api/admin/administrators",
+            new { email = sellerEmail });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using (var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync()))
+        {
+            json.RootElement.GetProperty("code").GetString()
+                .Should().Be(AdminAccountErrorCodes.SellerEmailAlreadyInUse);
+            json.RootElement.GetProperty("detail").GetString().Should().Be(
+                "Este e-mail já pertence a uma conta de lojista. O convite de administrador não pode ser enviado.");
+        }
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userManager = verifyScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+
+        (await verifyDb.Users.CountAsync()).Should().Be(usersBefore);
+        (await verifyDb.AdminInvitations.CountAsync()).Should().Be(invitationsBefore);
+        var seller = await userManager.FindByEmailAsync(sellerEmail);
+        seller.Should().NotBeNull();
+        (await userManager.IsInRoleAsync(seller!, "Seller")).Should().BeTrue();
+        (await userManager.IsInRoleAsync(seller!, "Admin")).Should().BeFalse();
+        (await verifyDb.AuditLogs.CountAsync(
+                audit => audit.Event == "AdminInvitationSent")).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Invite_ShouldKeepTheGenericConflict_ForANonSellerEmail()
+    {
+        using var factory = new TestWebApplicationFactory(
+            adminRecoveryEnabled: false,
+            adminRecoveryKey: null,
+            passwordRecoveryPermitLimit: 50,
+            useFakeEmail: true);
+        var client = factory.CreateClient();
+        var adminToken = (await LoginAsync(client, AdminEmail, AdminPassword, "/api/auth/login/admin"))!;
+
+        var customerEmail = $"admin.invite.customer.{Guid.NewGuid():N}@urbeat.local";
+        (await client.PostAsJsonAsync("/api/auth/register/customer", new RegisterUserRequestDto
+        {
+            FullName = "Cliente Convite",
+            Email = customerEmail,
+            Password = "Cliente123!",
+            PhoneNumber = "11977776666"
+        })).StatusCode.Should().Be(HttpStatusCode.Created);
+        await factory.ConfirmEmailAsync(customerEmail);
+
+        var response = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Post,
+            "/api/admin/administrators",
+            new { email = customerEmail });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        using (var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync()))
+        {
+            json.RootElement.GetProperty("code").GetString()
+                .Should().Be(AdminAccountErrorCodes.EmailAlreadyInUse);
+            json.RootElement.GetProperty("detail").GetString().Should().Be("Este e-mail já está em uso.");
+        }
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        (await verifyDb.AdminInvitations.CountAsync()).Should().Be(0);
     }
 
     private static async Task<HttpResponseMessage> SendAuthorizedAsync(

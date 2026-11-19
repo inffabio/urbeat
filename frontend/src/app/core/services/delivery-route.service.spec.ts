@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { DeliveryRouteService } from './delivery-route.service';
 import { authInterceptor } from '../interceptors/auth.interceptor';
+import { SKIP_SERVER_ACCESS_OVERLAY } from '../interceptors/server-access.context';
 
 describe('DeliveryRouteService', () => {
   let service: DeliveryRouteService;
@@ -110,6 +111,30 @@ describe('DeliveryRouteService public links', () => {
     service.confirmPublicIndividualDelivery('delivery-token', '1234', true, 20).subscribe();
     const individualConfirm = httpMock.expectOne('/api/public/deliveries/delivery-token/deliver');
     expect(individualConfirm.request.headers.has('Authorization')).toBe(false);
+    individualConfirm.flush({ succeeded: true });
+  });
+
+  it('keeps the auto-refreshed public reads out of the global overlay', () => {
+    service.getPublicRoute('route-token').subscribe();
+    const route = httpMock.expectOne('/api/public/delivery-routes/route-token');
+    expect(route.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(true);
+    route.flush({ storeName: 'Loja', driverName: 'Ana', stops: [] });
+
+    service.getPublicIndividualDelivery('delivery-token').subscribe();
+    const delivery = httpMock.expectOne('/api/public/deliveries/delivery-token');
+    expect(delivery.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(true);
+    delivery.flush({ storeName: 'Loja', driverName: 'Ana', stops: [] });
+  });
+
+  it('keeps the overlay for the driver delivery confirmations', () => {
+    service.confirmPublicDelivery('route-token', 1, '1234', true, 20).subscribe();
+    const confirm = httpMock.expectOne('/api/public/delivery-routes/route-token/stops/1/deliver');
+    expect(confirm.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(false);
+    confirm.flush({ succeeded: true });
+
+    service.confirmPublicIndividualDelivery('delivery-token', '1234', true, 20).subscribe();
+    const individualConfirm = httpMock.expectOne('/api/public/deliveries/delivery-token/deliver');
+    expect(individualConfirm.request.context.get(SKIP_SERVER_ACCESS_OVERLAY)).toBe(false);
     individualConfirm.flush({ succeeded: true });
   });
 

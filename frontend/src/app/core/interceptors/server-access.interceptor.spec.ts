@@ -124,11 +124,12 @@ describe('serverAccessInterceptor', () => {
     expect(service.isLoading()).toBe(false);
   });
 
-  it('does not let the skip context token bypass the overlay for a backend request', () => {
+  it('does not start the overlay for a request that opts out of it', () => {
     const context = new HttpContext().set(SKIP_SERVER_ACCESS_OVERLAY, true);
     httpClient.get('/api/orders/order1', { context }).subscribe();
 
-    expect(service.isLoading()).toBe(true);
+    expect(service.activeRequests()).toBe(0);
+    expect(service.isLoading()).toBe(false);
 
     httpMock.expectOne('/api/orders/order1').flush({});
 
@@ -136,15 +137,63 @@ describe('serverAccessInterceptor', () => {
     expect(service.activeRequests()).toBe(0);
   });
 
-  it('still tracks a skipped background request that fails', () => {
+  it('never decrements the pending counter for an opted-out request that fails', () => {
     const context = new HttpContext().set(SKIP_SERVER_ACCESS_OVERLAY, true);
-    httpClient.get('/api/orders/order1', { context }).subscribe({ error: () => {} });
+    let errored = false;
 
-    expect(service.isLoading()).toBe(true);
+    httpClient
+      .get('/api/orders/order1', { context })
+      .subscribe({ error: () => { errored = true; } });
+
+    expect(service.activeRequests()).toBe(0);
 
     httpMock
       .expectOne('/api/orders/order1')
       .flush('boom', { status: 500, statusText: 'Server Error' });
+
+    expect(errored).toBe(true);
+    expect(service.isLoading()).toBe(false);
+    expect(service.activeRequests()).toBe(0);
+  });
+
+  it('never calls begin/end for an opted-out request', () => {
+    const beginSpy = jest.spyOn(service, 'begin');
+    const endSpy = jest.spyOn(service, 'end');
+    const context = new HttpContext().set(SKIP_SERVER_ACCESS_OVERLAY, true);
+
+    httpClient.get('/api/orders/order1', { context }).subscribe();
+    httpMock.expectOne('/api/orders/order1').flush({});
+
+    expect(beginSpy).not.toHaveBeenCalled();
+    expect(endSpy).not.toHaveBeenCalled();
+  });
+
+  it('still calls begin/end for a foreground request', () => {
+    const beginSpy = jest.spyOn(service, 'begin');
+    const endSpy = jest.spyOn(service, 'end');
+
+    httpClient.get('/api/stores').subscribe();
+    httpMock.expectOne('/api/stores').flush({});
+
+    expect(beginSpy).toHaveBeenCalledTimes(1);
+    expect(endSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps tracking a foreground request that runs beside an opted-out one', () => {
+    const context = new HttpContext().set(SKIP_SERVER_ACCESS_OVERLAY, true);
+
+    httpClient.get('/api/orders/order1', { context }).subscribe();
+    httpClient.get('/api/stores').subscribe();
+
+    expect(service.activeRequests()).toBe(1);
+    expect(service.isLoading()).toBe(true);
+
+    httpMock.expectOne('/api/orders/order1').flush({});
+
+    expect(service.isLoading()).toBe(true);
+    expect(service.activeRequests()).toBe(1);
+
+    httpMock.expectOne('/api/stores').flush({});
 
     expect(service.isLoading()).toBe(false);
     expect(service.activeRequests()).toBe(0);

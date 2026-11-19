@@ -163,6 +163,35 @@ describe('AdminAdministratorsSectionComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Convite enviado para novo@exemplo.com');
   });
 
+  it('shows the specific seller e-mail conflict returned by the API as an alert in the invite form', () => {
+    service.invite.mockReturnValue(
+      throwError(() => ({
+        error: {
+          code: 'SELLER_EMAIL_ALREADY_IN_USE',
+          message:
+            'Este e-mail já pertence a uma conta de lojista. O convite de administrador não pode ser enviado.',
+        },
+      })),
+    );
+    create([]);
+
+    const input = fixture.nativeElement.querySelector('#invite-email') as HTMLInputElement;
+    input.value = 'lojista@exemplo.com';
+    input.dispatchEvent(new Event('input'));
+    fixture.componentInstance.invite();
+    fixture.detectChanges();
+
+    const feedback = fixture.nativeElement.querySelector('.feedback') as HTMLElement;
+    expect(feedback).not.toBeNull();
+    expect(feedback.getAttribute('role')).toBe('alert');
+    expect(feedback.getAttribute('aria-live')).toBe('assertive');
+    expect(feedback.classList).toContain('is-error');
+    expect(feedback.textContent).toContain(
+      'Este e-mail já pertence a uma conta de lojista. O convite de administrador não pode ser enviado.',
+    );
+    expect(fixture.componentInstance.inviteEmail()).toBe('lojista@exemplo.com');
+  });
+
   it('disables block and removal for the current user and the last active administrator', () => {
     create([
       administrator({ isCurrentUser: true }),

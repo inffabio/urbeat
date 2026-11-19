@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
+using Urbeat.Application.Security;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Repositories;
 using Urbeat.Infrastructure.Jobs;
@@ -21,6 +22,10 @@ namespace Urbeat.Infrastructure.Identity;
 public sealed class AdminAccountService : IAdminAccountService
 {
     private const string AdminRole = "Admin";
+    private const string SellerRole = AccountRoles.Seller;
+
+    private const string SellerEmailInUseMessage =
+        "Este e-mail já pertence a uma conta de lojista. O convite de administrador não pode ser enviado.";
 
     // InMemory has neither transactions nor advisory locks. This process-wide lock serializes the
     // block/remove critical section so the last-active-admin invariant still holds in tests.
@@ -82,15 +87,27 @@ public sealed class AdminAccountService : IAdminAccountService
         var existing = await _userManager.FindByEmailAsync(normalizedEmail);
         if (existing is not null)
         {
+            // A store owner (Seller) cannot be turned into an administrator from this surface:
+            // the invite would mix two credential owners on the same identity. Report the
+            // specific conflict and leave the identity, its roles and invitations untouched.
+            var existingIsSeller = await _userManager.IsInRoleAsync(existing, SellerRole);
+
             await WriteDeniedAuditAsync(
                 actorUserId,
                 existing.Id,
-                AdminAccountErrorCodes.EmailAlreadyInUse,
+                existingIsSeller
+                    ? AdminAccountErrorCodes.SellerEmailAlreadyInUse
+                    : AdminAccountErrorCodes.EmailAlreadyInUse,
                 ipAddress,
                 cancellationToken);
-            return Failure(
-                AdminAccountOperationStatus.EmailAlreadyInUse,
-                "Este e-mail já está em uso.");
+
+            return existingIsSeller
+                ? Failure(
+                    AdminAccountOperationStatus.SellerEmailAlreadyInUse,
+                    SellerEmailInUseMessage)
+                : Failure(
+                    AdminAccountOperationStatus.EmailAlreadyInUse,
+                    "Este e-mail já está em uso.");
         }
 
         var transaction = await BeginTransactionIfRelationalAsync(cancellationToken);
@@ -117,12 +134,27 @@ public sealed class AdminAccountService : IAdminAccountService
                     error => error.Code is "DuplicateEmail" or "DuplicateUserName");
                 if (duplicate)
                 {
+                    // The address was created between the pre-check and CreateAsync. Re-read the
+                    // winner so a concurrently registered Seller still gets the specific conflict.
+                    var owner = await _userManager.FindByEmailAsync(normalizedEmail);
+                    var ownerIsSeller = owner is not null
+                        && await _userManager.IsInRoleAsync(owner, SellerRole);
+
                     await WriteDeniedAuditAsync(
                         actorUserId,
-                        null,
-                        AdminAccountErrorCodes.EmailAlreadyInUse,
+                        owner?.Id,
+                        ownerIsSeller
+                            ? AdminAccountErrorCodes.SellerEmailAlreadyInUse
+                            : AdminAccountErrorCodes.EmailAlreadyInUse,
                         ipAddress,
                         cancellationToken);
+
+                    if (ownerIsSeller)
+                    {
+                        return Failure(
+                            AdminAccountOperationStatus.SellerEmailAlreadyInUse,
+                            SellerEmailInUseMessage);
+                    }
                 }
 
                 return Failure(

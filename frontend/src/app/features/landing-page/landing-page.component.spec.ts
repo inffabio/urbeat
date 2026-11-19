@@ -96,7 +96,26 @@ describe('LandingPageComponent plans', () => {
     expect(singleRule).toMatch(/width:\s*100%/);
 
     const maxWidth = Number(/max-width:\s*(\d+)px/.exec(singleRule)?.[1]);
-    expect(maxWidth).toBeGreaterThanOrEqual(600);
+    // Faixa confortável: ~560px de card sem virar coluna fina nem esticar no desktop.
+    expect(maxWidth).toBeGreaterThanOrEqual(520);
+    expect(maxWidth).toBeLessThanOrEqual(600);
+  });
+
+  it('keeps the multi-plan grid narrower than the page container', () => {
+    flushOffer([plan({})]);
+
+    const scss = readFileSync(
+      resolve(process.cwd(), 'src/app/features/landing-page/landing-page.component.scss'),
+      'utf8',
+    );
+    const gridRule = /^\.lp-plans-grid\s*\{([^}]*)\}/m.exec(scss)?.[1] ?? '';
+
+    expect(gridRule).toMatch(/max-width:\s*1080px/);
+    expect(gridRule).toContain('margin-inline: auto');
+    // A faixa de 2 colunas também tem teto, para o card não passar de ~400px.
+    expect(scss).toMatch(/@media \(min-width: 720px\) \{[\s\S]*?max-width:\s*820px/);
+    // 3 colunas só entram quando cada card ainda cabe confortavelmente.
+    expect(scss).toMatch(/@media \(min-width: 11[2-9]\dpx\) \{\s*grid-template-columns: repeat\(3/);
   });
 
   it('uses the multi-plan title and sends plan and period from each header CTA', () => {

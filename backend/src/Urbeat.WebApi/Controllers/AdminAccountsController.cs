@@ -390,6 +390,7 @@ public sealed class AdminAccountsController : ControllerBase, IAsyncActionFilter
             AdminAccountOperationStatus.SelfActionNotAllowed
                 or AdminAccountOperationStatus.InvalidEmail => BadRequest(payload),
             AdminAccountOperationStatus.EmailAlreadyInUse
+                or AdminAccountOperationStatus.SellerEmailAlreadyInUse
                 or AdminAccountOperationStatus.NotActive
                 or AdminAccountOperationStatus.AlreadyBlocked
                 or AdminAccountOperationStatus.NotBlocked

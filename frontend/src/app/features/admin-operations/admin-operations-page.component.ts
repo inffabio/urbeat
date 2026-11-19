@@ -56,7 +56,7 @@ export class AdminOperationsPageComponent implements OnInit {
     this.destroyRef.onDestroy(() => this.stopAutoRefresh());
   }
 
-  load(): void {
+  load(options?: { background?: boolean }): void {
     if (this.inFlight) return;
 
     this.inFlight = true;
@@ -70,7 +70,7 @@ export class AdminOperationsPageComponent implements OnInit {
     }
 
     this.operations
-      .getOutboxOperations()
+      .getOutboxOperations({ background: options?.background === true })
       .pipe(take(1))
       .subscribe({
         next: (snapshot) => {
@@ -222,7 +222,7 @@ export class AdminOperationsPageComponent implements OnInit {
   private startAutoRefresh(): void {
     this.stopAutoRefresh();
     this.timer = setInterval(() => {
-      if (this.autoRefresh()) this.load();
+      if (this.autoRefresh()) this.load({ background: true });
     }, AUTO_REFRESH_INTERVAL_MS);
   }
 

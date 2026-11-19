@@ -2,6 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { finalize } from 'rxjs';
 import { ServerAccessService } from '../services/server-access.service';
+import { SKIP_SERVER_ACCESS_OVERLAY } from './server-access.context';
 
 // The local print agent runs on the user's machine and polls frequently, so it
 // must never dim the UI or block interaction. Only this exact origin is
@@ -18,7 +19,9 @@ function isLocalPrintAgentRequest(url: string): boolean {
 }
 
 export const serverAccessInterceptor: HttpInterceptorFn = (req, next) => {
-  if (isLocalPrintAgentRequest(req.url)) {
+  // Background polls set this token explicitly so a recurring request never
+  // flashes the global overlay on top of the screen the user is reading.
+  if (isLocalPrintAgentRequest(req.url) || req.context.get(SKIP_SERVER_ACCESS_OVERLAY)) {
     return next(req);
   }
 

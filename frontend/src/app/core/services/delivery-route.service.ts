@@ -77,7 +77,7 @@ export class DeliveryRouteService {
     return this.api.get<PublicDeliveryRoute>(
       `/api/public/delivery-routes/${encodeURIComponent(token)}`,
       undefined,
-      this.publicContext(),
+      this.publicReadContext(),
     );
   }
 
@@ -85,7 +85,7 @@ export class DeliveryRouteService {
     return this.api.get<PublicDeliveryRoute>(
       `/api/public/deliveries/${encodeURIComponent(token)}`,
       undefined,
-      this.publicContext(),
+      this.publicReadContext(),
     );
   }
 
@@ -99,7 +99,7 @@ export class DeliveryRouteService {
     return this.api.post<PublicDeliveryRoutePinResult>(
       `/api/public/delivery-routes/${encodeURIComponent(token)}/stops/${sequence}/deliver`,
       { pin, handoverConfirmed, cashReceivedAmount: cashReceivedAmount ?? null },
-      this.publicContext(),
+      this.publicActionContext(),
     );
   }
 
@@ -112,14 +112,22 @@ export class DeliveryRouteService {
     return this.api.post<PublicDeliveryRoutePinResult>(
       `/api/public/deliveries/${encodeURIComponent(token)}/deliver`,
       { pin, handoverConfirmed, cashReceivedAmount: cashReceivedAmount ?? null },
-      this.publicContext(),
+      this.publicActionContext(),
     );
   }
 
-  private publicContext(): HttpContext {
+  /**
+   * Public route reads are re-fetched automatically while the driver keeps the page open,
+   * so they must not flash the global server-access overlay.
+   */
+  private publicReadContext(): HttpContext {
+    return this.publicActionContext().set(SKIP_SERVER_ACCESS_OVERLAY, true);
+  }
+
+  /** Public links never receive the seller token or the global fatal-error toast. */
+  private publicActionContext(): HttpContext {
     return new HttpContext()
       .set(SKIP_AUTH_HEADER, true)
-      .set(SKIP_GLOBAL_ERROR_TOAST, true)
-      .set(SKIP_SERVER_ACCESS_OVERLAY, true);
+      .set(SKIP_GLOBAL_ERROR_TOAST, true);
   }
 }

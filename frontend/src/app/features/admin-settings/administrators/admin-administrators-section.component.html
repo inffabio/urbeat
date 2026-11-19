@@ -56,8 +56,8 @@
     <p
       class="feedback"
       [class.is-error]="message.type === 'error'"
-      role="status"
-      aria-live="polite"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+      [attr.aria-live]="message.type === 'error' ? 'assertive' : 'polite'"
     >
       {{ message.message }}
     </p>

@@ -90,9 +90,59 @@ public sealed class AdminAccountServiceTests
 
         result.Status.Should().Be(AdminAccountOperationStatus.EmailAlreadyInUse);
         result.Code.Should().Be(AdminAccountErrorCodes.EmailAlreadyInUse);
+        result.Error.Should().Be("Este e-mail já está em uso.");
         (await db.Users.CountAsync()).Should().Be(3, "no identity may be created for a duplicated address");
+        (await db.AdminInvitations.CountAsync()).Should().Be(0, "no invitation may be created for a duplicated address");
         (await db.AuditLogs.SingleAsync(x => x.Event == "AdminActionDenied")).Description
             .Should().Contain(AdminAccountErrorCodes.EmailAlreadyInUse);
+    }
+
+    [Fact]
+    public async Task InviteAsync_ShouldRejectASellerAddress_WithASpecificCode_AndChangeNothing()
+    {
+        await using var provider = await CreateProviderAsync();
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminAccountService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var actor = await userManager.FindByEmailAsync(AdminEmail);
+
+        const string sellerEmail = "lojista.convite@urbeat.local";
+        var seller = new IdentityUser<Guid>
+        {
+            UserName = sellerEmail,
+            Email = sellerEmail,
+            EmailConfirmed = true
+        };
+        (await userManager.CreateAsync(seller, "Lojista123!")).Succeeded.Should().BeTrue();
+        (await userManager.AddToRoleAsync(seller, "Seller")).Succeeded.Should().BeTrue();
+
+        var usersBefore = await db.Users.CountAsync();
+        var userRolesBefore = await db.UserRoles.CountAsync();
+        var invitationsBefore = await db.AdminInvitations.CountAsync();
+
+        var result = await service.InviteAsync(sellerEmail, actor!.Id, "203.0.113.10");
+
+        result.Status.Should().Be(AdminAccountOperationStatus.SellerEmailAlreadyInUse);
+        result.Code.Should().Be(AdminAccountErrorCodes.SellerEmailAlreadyInUse);
+        result.Error.Should().Be(
+            "Este e-mail já pertence a uma conta de lojista. O convite de administrador não pode ser enviado.");
+
+        (await db.Users.CountAsync()).Should().Be(
+            usersBefore,
+            "a rejected invitation must not create an identity");
+        (await db.UserRoles.CountAsync()).Should().Be(
+            userRolesBefore,
+            "a rejected invitation must not grant a role");
+        (await db.AdminInvitations.CountAsync()).Should().Be(
+            invitationsBefore,
+            "a rejected invitation must not create an invitation row");
+        (await userManager.IsInRoleAsync(seller, "Seller")).Should().BeTrue();
+        (await userManager.IsInRoleAsync(seller, "Admin")).Should().BeFalse();
+
+        var audit = await db.AuditLogs.SingleAsync(x => x.Event == "AdminActionDenied");
+        audit.EntityId.Should().Be(seller.Id);
+        audit.Description.Should().Contain(AdminAccountErrorCodes.SellerEmailAlreadyInUse);
     }
 
     [Fact]
