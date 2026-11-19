@@ -4,6 +4,10 @@ namespace Urbeat.Application.Interfaces;
 
 public interface IPlanService
 {
+    Task<PagedPlanResponseDto> ListPagedAsync(
+        PlanPageQueryDto query,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PlanResponseDto>> ListAllAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<PlanResponseDto>> ListActiveAsync(CancellationToken cancellationToken = default);

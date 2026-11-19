@@ -72,10 +72,29 @@ describe('AdminShellComponent', () => {
     expect(text).toContain('Lojas');
     expect(text).toContain('Operações');
     expect(text).toContain('Planos');
+    expect(text).toContain('Administradores');
     expect(text).toContain('Configurações');
     expect(text).toContain('Sair');
     expect(text).not.toContain('Pedidos');
     expect(text).not.toContain('Cardápio');
+
+    const administratorsLink = fixture.nativeElement.querySelector(
+      'a[href="/admin/administradores"]',
+    ) as HTMLAnchorElement | null;
+    expect(administratorsLink).not.toBeNull();
+  });
+
+  it('marks the administrators link as active on its route', async () => {
+    await router.navigateByUrl('/admin/administradores');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const administratorsLink = fixture.nativeElement.querySelector(
+      'a[href="/admin/administradores"]',
+    ) as HTMLAnchorElement | null;
+
+    expect(administratorsLink?.classList).toContain('is-active');
   });
 
   it('shows the signed-in administrator identity', () => {

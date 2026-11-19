@@ -1,8 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AdminPlansService } from '../../core/services/admin-plans.service';
 import { ToastService } from '../../core/services/toast.service';
-import { AdminPlan, GatewayConfiguration } from '../../shared/models/subscription.model';
+import {
+  AdminPlan,
+  GatewayConfiguration,
+  PagedAdminPlans,
+} from '../../shared/models/subscription.model';
 import { AdminPlansPageComponent } from './admin-plans-page.component';
 
 const PLAN: AdminPlan = {
@@ -34,6 +39,20 @@ const GATEWAY: GatewayConfiguration = {
   updatedAtUtc: '2026-11-18T00:00:00Z',
 };
 
+function pagedPlans(
+  items: AdminPlan[],
+  overrides: Partial<PagedAdminPlans> = {},
+): PagedAdminPlans {
+  return {
+    page: 1,
+    pageSize: 10,
+    totalItems: items.length,
+    totalPages: items.length > 0 ? 1 : 0,
+    items,
+    ...overrides,
+  };
+}
+
 describe('AdminPlansPageComponent', () => {
   let fixture: ComponentFixture<AdminPlansPageComponent>;
   let component: AdminPlansPageComponent;
@@ -46,10 +65,14 @@ describe('AdminPlansPageComponent', () => {
     updateGatewayConfiguration: jest.Mock;
   };
   let toastMock: { showSuccess: jest.Mock; showError: jest.Mock };
+  let router: { navigate: jest.Mock };
+  let queryParams: Record<string, string>;
 
   beforeEach(async () => {
+    queryParams = {};
+    router = { navigate: jest.fn(() => Promise.resolve(true)) };
     serviceMock = {
-      list: jest.fn().mockReturnValue(of([PLAN])),
+      list: jest.fn().mockReturnValue(of(pagedPlans([PLAN]))),
       create: jest.fn(),
       update: jest.fn(),
       updateStatus: jest.fn(),
@@ -63,6 +86,17 @@ describe('AdminPlansPageComponent', () => {
       providers: [
         { provide: AdminPlansService, useValue: serviceMock },
         { provide: ToastService, useValue: toastMock },
+        { provide: Router, useValue: router },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              get queryParamMap() {
+                return convertToParamMap(queryParams);
+              },
+            },
+          },
+        },
       ],
     }).compileComponents();
 
@@ -82,7 +116,9 @@ describe('AdminPlansPageComponent', () => {
   });
 
   it('creates a plan carrying the server-authoritative pricing configuration', () => {
-    serviceMock.create.mockReturnValue(of({ ...PLAN, id: 'plan-new', name: 'Novo Plano' }));
+    const created = { ...PLAN, id: 'plan-new', name: 'Novo Plano' };
+    serviceMock.create.mockReturnValue(of(created));
+    serviceMock.list.mockReturnValue(of(pagedPlans([PLAN, created], { totalItems: 2 })));
 
     component.startCreate();
     component.updateForm({
@@ -207,5 +243,62 @@ describe('AdminPlansPageComponent', () => {
 
     expect(component.formError()).toContain('Já existe um plano');
     expect(component.formVisible()).toBe(true);
+  });
+
+  it('paginates the catalog and keeps the page shareable in the query string', () => {
+    serviceMock.list.mockReturnValue(
+      of(pagedPlans([PLAN], { totalItems: 25, totalPages: 3 })),
+    );
+    fixture = TestBed.createComponent(AdminPlansPageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    serviceMock.list.mockClear();
+
+    expect(component.pageSize()).toBe(10);
+    expect(fixture.nativeElement.querySelectorAll('.page-button').length).toBeGreaterThan(2);
+
+    component.goToPage(2);
+    fixture.detectChanges();
+
+    expect(serviceMock.list).toHaveBeenCalledWith({ page: 2, pageSize: 10 });
+    expect(router.navigate).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        replaceUrl: true,
+        queryParams: expect.objectContaining({ page: 2 }),
+      }),
+    );
+  });
+
+  it('restores the page from the query string', () => {
+    queryParams = { page: '2' };
+    serviceMock.list.mockReturnValue(
+      of(pagedPlans([PLAN], { page: 2, totalItems: 15, totalPages: 2 })),
+    );
+
+    fixture = TestBed.createComponent(AdminPlansPageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.page()).toBe(2);
+    expect(serviceMock.list).toHaveBeenCalledWith({ page: 2, pageSize: 10 });
+  });
+
+  it('returns to the last valid page when the requested page no longer exists', () => {
+    queryParams = { page: '3' };
+    serviceMock.list
+      .mockReturnValueOnce(
+        of(pagedPlans([PLAN], { page: 3, totalItems: 21, totalPages: 2, items: [] })),
+      )
+      .mockReturnValueOnce(
+        of(pagedPlans([PLAN], { page: 2, totalItems: 21, totalPages: 2 })),
+      );
+
+    fixture = TestBed.createComponent(AdminPlansPageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.page()).toBe(2);
+    expect(serviceMock.list).toHaveBeenLastCalledWith({ page: 2, pageSize: 10 });
   });
 });

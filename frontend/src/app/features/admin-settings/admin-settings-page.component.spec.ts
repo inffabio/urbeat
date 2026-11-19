@@ -101,11 +101,18 @@ describe('AdminSettingsPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('opens on the parameters section by default and does not render the administrators API surface', () => {
-    const component = fixture.componentInstance;
-
-    expect(component.section()).toBe('parametros');
+  it('keeps settings dedicated to parameters and never renders the administrators surface', () => {
     expect(fixture.nativeElement.querySelector('app-admin-administrators-section')).toBeNull();
+
+    const tabs = Array.from(
+      fixture.nativeElement.querySelectorAll('.admin-section-tab'),
+    ) as HTMLButtonElement[];
+
+    // Settings no longer owns a section switcher: the administrators surface lives at
+    // /admin/administradores and parameters are the only content of this page.
+    expect(tabs).toHaveLength(0);
+    expect(fixture.nativeElement.textContent).not.toContain('Administradores');
+    expect(fixture.nativeElement.querySelectorAll('.admin-param').length).toBeGreaterThan(0);
     expect(serviceMock.list).toHaveBeenCalledTimes(1);
   });
 

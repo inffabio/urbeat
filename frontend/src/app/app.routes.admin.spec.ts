@@ -22,9 +22,28 @@ describe('admin routes', () => {
     const admin = routes[adminIndex];
     const childPaths = (admin.children ?? []).map((child) => child.path);
 
-    expect(childPaths).toEqual(['', 'visao-geral', 'lojas', 'operacoes', 'planos', 'configuracoes']);
+    expect(childPaths).toEqual([
+      '',
+      'visao-geral',
+      'lojas',
+      'operacoes',
+      'planos',
+      'administradores',
+      'configuracoes',
+    ]);
     expect(childPaths).not.toContain('dashboard');
     expect(childPaths).not.toContain('pedidos');
+  });
+
+  it('lazy-loads the dedicated administrators route under the admin guard', () => {
+    const admin = routes[adminIndex];
+    const administrators = (admin.children ?? []).find(
+      (child) => child.path === 'administradores',
+    );
+
+    expect(administrators).toBeDefined();
+    expect(administrators?.loadComponent).toEqual(expect.any(Function));
+    expect(administrators?.redirectTo).toBeUndefined();
   });
 
   it('keeps /painel/login as the unauthenticated entry point', () => {

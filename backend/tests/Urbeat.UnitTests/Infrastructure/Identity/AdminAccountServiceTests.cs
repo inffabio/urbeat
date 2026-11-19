@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,6 +14,7 @@ using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
 using Urbeat.Domain.Repositories;
 using Urbeat.Infrastructure.Identity;
+using Urbeat.Infrastructure.Jobs;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Persistence.ReadRepositories;
 using Urbeat.Infrastructure.Persistence.Repositories;
@@ -143,6 +146,92 @@ public sealed class AdminAccountServiceTests
         var audit = await db.AuditLogs.SingleAsync(x => x.Event == "AdminActionDenied");
         audit.EntityId.Should().Be(seller.Id);
         audit.Description.Should().Contain(AdminAccountErrorCodes.SellerEmailAlreadyInUse);
+    }
+
+    [Fact]
+    public async Task InviteAsync_ShouldEnqueueExactlyOneDeliveryJob_AndReportTheDeliveryAsQueued()
+    {
+        var jobClient = new Mock<IBackgroundJobClient>();
+        jobClient
+            .Setup(client => client.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Returns("job-1");
+
+        await using var provider = await CreateProviderAsync(jobClient.Object);
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminAccountService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var actor = await userManager.FindByEmailAsync(AdminEmail);
+
+        var result = await service.InviteAsync("novo.admin@exemplo.com", actor!.Id, null);
+
+        result.Succeeded.Should().BeTrue();
+        result.EmailQueued.Should().BeTrue("the invitation e-mail job must reach the background queue");
+        result.Invitation.Should().NotBeNull();
+        jobClient.Verify(
+            client => client.Create(
+                It.Is<Job>(job => job.Type == typeof(SendAdminAccountEmailJob)),
+                It.IsAny<IState>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InviteAsync_ShouldNotReportTheDeliveryAsQueued_WhenTheEnqueueFails()
+    {
+        var jobClient = new Mock<IBackgroundJobClient>();
+        jobClient
+            .Setup(client => client.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Throws(new InvalidOperationException("Hangfire storage is unavailable."));
+
+        await using var provider = await CreateProviderAsync(jobClient.Object);
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminAccountService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var actor = await userManager.FindByEmailAsync(AdminEmail);
+
+        var result = await service.InviteAsync("inffabio@exemplo.com", actor!.Id, null);
+
+        // The invitation is authoritative and already committed: it must stay visible and the
+        // caller must be told that the delivery is pending instead of receiving a plain success.
+        result.Succeeded.Should().BeTrue("the committed invitation must remain in the list");
+        result.EmailQueued.Should().BeFalse();
+        result.Invitation.Should().NotBeNull();
+        result.Administrator!.Email.Should().Be("inffabio@exemplo.com");
+
+        (await userManager.FindByEmailAsync("inffabio@exemplo.com")).Should().NotBeNull();
+        var invitation = await db.AdminInvitations.SingleAsync();
+        invitation.EmailSentAtUtc.Should().BeNull("no delivery may be recorded when the job never ran");
+    }
+
+    [Fact]
+    public async Task ResendInvitationAsync_ShouldReportTheDeliveryAsNotQueued_WhenTheEnqueueFails()
+    {
+        var jobClient = new Mock<IBackgroundJobClient>();
+        jobClient
+            .Setup(client => client.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Returns("job-1");
+
+        await using var provider = await CreateProviderAsync(jobClient.Object);
+        using var scope = provider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminAccountService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+        var actor = await userManager.FindByEmailAsync(AdminEmail);
+
+        var invitation = await InvitePendingAsync(service, actor!.Id, "pendente@exemplo.com");
+        invitation.EmailQueued.Should().BeTrue();
+
+        jobClient
+            .Setup(client => client.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Throws(new InvalidOperationException("Hangfire storage is unavailable."));
+
+        var result = await service.ResendInvitationAsync(
+            invitation.Administrator!.Id,
+            actor.Id,
+            null);
+
+        result.Succeeded.Should().BeTrue("the resend keeps the same pending link");
+        result.EmailDeliveryPending.Should().BeTrue();
+        result.EmailQueued.Should().BeFalse();
     }
 
     [Fact]
@@ -642,7 +731,8 @@ public sealed class AdminAccountServiceTests
     private static readonly InMemoryDatabaseRoot DatabaseRoot = new();
     private const string DatabaseName = "urbeat-admin-accounts-shared";
 
-    private static async Task<ServiceProvider> CreateProviderAsync()
+    private static async Task<ServiceProvider> CreateProviderAsync(
+        IBackgroundJobClient? backgroundJobClient = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -674,7 +764,7 @@ public sealed class AdminAccountServiceTests
         services.AddScoped<IAdminInvitationService, AdminInvitationService>();
         services.AddScoped<IAdminAccountReadRepository, AdminAccountReadRepository>();
         services.AddScoped<IAdminAccountService, AdminAccountService>();
-        services.AddSingleton(Mock.Of<IBackgroundJobClient>());
+        services.AddSingleton(backgroundJobClient ?? Mock.Of<IBackgroundJobClient>());
 
         var provider = services.BuildServiceProvider();
 

@@ -25,6 +25,11 @@ public sealed class CachedPlanService : IPlanService
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     }
 
+    public Task<PagedPlanResponseDto> ListPagedAsync(
+        PlanPageQueryDto query,
+        CancellationToken cancellationToken = default)
+        => _inner.ListPagedAsync(query, cancellationToken);
+
     public Task<IReadOnlyList<PlanResponseDto>> ListAllAsync(CancellationToken cancellationToken = default)
         => _inner.ListAllAsync(cancellationToken);
 

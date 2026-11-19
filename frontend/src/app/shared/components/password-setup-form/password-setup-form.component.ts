@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 export interface PasswordSetupSubmission {
   newPassword: string;
@@ -12,6 +13,7 @@ export interface PasswordSetupSubmission {
 @Component({
   selector: 'app-password-setup-form',
   standalone: true,
+  imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './password-setup-form.component.html',
   styleUrl: './password-setup-form.component.scss',

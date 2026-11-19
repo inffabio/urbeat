@@ -3,9 +3,13 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Urbeat.Application.DTOs;
 using Urbeat.Application.Interfaces;
 using Urbeat.Domain.Entities;
@@ -73,6 +77,71 @@ public sealed class AdminAccountsFlowTests
     }
 
     [Fact]
+    public async Task List_ShouldPaginateAdministrators_AndClampThePageSize()
+    {
+        using var factory = new TestWebApplicationFactory(
+            adminRecoveryEnabled: false,
+            adminRecoveryKey: null,
+            passwordRecoveryPermitLimit: 50,
+            useFakeEmail: true);
+        var client = factory.CreateClient();
+        var adminToken = (await LoginAsync(client, AdminEmail, AdminPassword, "/api/auth/login/admin"))!;
+
+        var invite = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Post,
+            "/api/admin/administrators",
+            new { email = $"paginado.admin.{Guid.NewGuid():N}@exemplo.com" });
+        invite.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var firstPage = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Get,
+            "/api/admin/administrators?page=1&pageSize=1");
+        firstPage.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        Guid firstId;
+        int totalItems;
+        int totalPages;
+        using (var json = JsonDocument.Parse(await firstPage.Content.ReadAsStringAsync()))
+        {
+            json.RootElement.GetProperty("page").GetInt32().Should().Be(1);
+            json.RootElement.GetProperty("pageSize").GetInt32().Should().Be(1);
+            totalItems = json.RootElement.GetProperty("totalItems").GetInt32();
+            totalPages = json.RootElement.GetProperty("totalPages").GetInt32();
+            totalItems.Should().BeGreaterThanOrEqualTo(2);
+            totalPages.Should().Be(totalItems);
+            var items = json.RootElement.GetProperty("items").EnumerateArray().ToList();
+            items.Should().HaveCount(1);
+            firstId = items[0].GetProperty("id").GetGuid();
+        }
+
+        var secondPage = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Get,
+            "/api/admin/administrators?page=2&pageSize=1");
+        secondPage.StatusCode.Should().Be(HttpStatusCode.OK);
+        using (var json = JsonDocument.Parse(await secondPage.Content.ReadAsStringAsync()))
+        {
+            json.RootElement.GetProperty("page").GetInt32().Should().Be(2);
+            var item = json.RootElement.GetProperty("items").EnumerateArray().Single();
+            item.GetProperty("id").GetGuid().Should().NotBe(firstId);
+        }
+
+        var clamped = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Get,
+            "/api/admin/administrators?page=1&pageSize=1000");
+        clamped.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var clampedJson = JsonDocument.Parse(await clamped.Content.ReadAsStringAsync());
+        clampedJson.RootElement.GetProperty("pageSize").GetInt32().Should().Be(100);
+    }
+
+    [Fact]
     public async Task FullInvitationFlow_ShouldActivateTheAccount_AllowLogin_AndBeSingleUse()
     {
         using var factory = new TestWebApplicationFactory(
@@ -98,6 +167,9 @@ public sealed class AdminAccountsFlowTests
         using var inviteJson = JsonDocument.Parse(inviteBody);
         var administratorId = inviteJson.RootElement.GetProperty("administratorId").GetGuid();
         var invitationId = inviteJson.RootElement.GetProperty("invitation").GetProperty("id").GetGuid();
+        inviteJson.RootElement.GetProperty("emailQueued").GetBoolean().Should().BeTrue(
+            "the delivery job must be enqueued right after the invitation is committed");
+        inviteJson.RootElement.GetProperty("emailDeliveryPending").GetBoolean().Should().BeTrue();
 
         // The durable job receives only the invitation id and reconstructs the link. Running it in
         // the test proves the fake transport gets the fragment URL and the row is marked as sent.
@@ -107,6 +179,7 @@ public sealed class AdminAccountsFlowTests
             await job.ExecuteAsync(invitationId);
         }
 
+        await WaitForEmailAsync(factory.EmailService, invitedEmail);
         factory.EmailService.Messages.Should().Contain(message => message.ToAddress == invitedEmail);
         factory.EmailService.Messages.Last().HtmlBody.Should().Contain("/convite-admin#token=");
 
@@ -447,6 +520,55 @@ public sealed class AdminAccountsFlowTests
         (await verifyDb.AdminInvitations.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task Invite_ShouldReportAPendingDelivery_WhenTheEnqueueFails_ButKeepTheInvitation()
+    {
+        var failingClient = new Mock<IBackgroundJobClient>();
+        failingClient
+            .Setup(client => client.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Throws(new InvalidOperationException("Hangfire storage is unavailable."));
+
+        using var factory = new TestWebApplicationFactory(
+            adminRecoveryEnabled: false,
+            adminRecoveryKey: null,
+            passwordRecoveryPermitLimit: 50,
+            useFakeEmail: true)
+        {
+            BackgroundJobClient = failingClient.Object
+        };
+        var client = factory.CreateClient();
+        var adminToken = (await LoginAsync(client, AdminEmail, AdminPassword, "/api/auth/login/admin"))!;
+        var invitedEmail = $"convite.pendente.{Guid.NewGuid():N}@exemplo.com";
+
+        var invite = await SendAuthorizedAsync(
+            client,
+            adminToken,
+            HttpMethod.Post,
+            "/api/admin/administrators",
+            new { email = invitedEmail });
+
+        invite.StatusCode.Should().Be(HttpStatusCode.Created);
+        AssertNoSecrets(await invite.Content.ReadAsStringAsync());
+
+        using var json = JsonDocument.Parse(await invite.Content.ReadAsStringAsync());
+        json.RootElement.GetProperty("emailQueued").GetBoolean().Should().BeFalse(
+            "a failed enqueue must never be reported as a queued delivery");
+        json.RootElement.GetProperty("emailDeliveryPending").GetBoolean().Should().BeTrue(
+            "the invitation is committed and visibly pending for a manual resend");
+        var invitationId = json.RootElement.GetProperty("invitation").GetProperty("id").GetGuid();
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var stored = await verifyDb.AdminInvitations.SingleAsync(row => row.Id == invitationId);
+        stored.EmailSentAtUtc.Should().BeNull();
+        (await verifyDb.Users.CountAsync(user => user.Email == invitedEmail)).Should().Be(1);
+        failingClient.Verify(
+            client => client.Create(
+                It.Is<Job>(job => job.Type == typeof(SendAdminAccountEmailJob)),
+                It.IsAny<IState>()),
+            Times.Once);
+    }
+
     private static async Task<HttpResponseMessage> SendAuthorizedAsync(
         HttpClient client,
         string token,
@@ -479,6 +601,24 @@ public sealed class AdminAccountsFlowTests
         response.StatusCode.Should().Be(HttpStatusCode.OK, "login must succeed for " + email);
         var payload = await response.Content.ReadFromJsonAsync<AuthTokenResponseDto>();
         return payload?.AccessToken;
+    }
+
+    /// <summary>
+    /// The test host keeps a Hangfire server running, so the job enqueued by the invite endpoint and
+    /// the explicit execution below race for the same e-mail lease. Waiting for the transport
+    /// instead of asserting immediately keeps the narrative deterministic.
+    /// </summary>
+    private static async Task WaitForEmailAsync(
+        FakeEmailService emailService,
+        string toAddress,
+        TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
+        while (DateTime.UtcNow < deadline
+               && !emailService.Messages.Any(message => message.ToAddress == toAddress))
+        {
+            await Task.Delay(50);
+        }
     }
 
     private static string CreateToken(

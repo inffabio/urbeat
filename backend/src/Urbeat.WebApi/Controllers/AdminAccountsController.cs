@@ -145,7 +145,11 @@ public sealed class AdminAccountsController : ControllerBase, IAsyncActionFilter
             administratorId = result.Administrator.Id,
             email = result.Administrator.Email,
             status = result.Administrator.Status,
-            invitation = result.Invitation
+            invitation = result.Invitation,
+            emailQueued = result.EmailQueued,
+            // The invitation is durable even when the enqueue failed: it stays pending and the
+            // operator can resend it. The client must warn instead of claiming the e-mail was sent.
+            emailDeliveryPending = result.Invitation is { EmailSentAtUtc: null }
         });
     }
 
@@ -219,7 +223,8 @@ public sealed class AdminAccountsController : ControllerBase, IAsyncActionFilter
         {
             InvitationId = result.InvitationId ?? Guid.Empty,
             ExpiresAtUtc = result.ExpiresAtUtc ?? default,
-            EmailDeliveryPending = result.EmailDeliveryPending
+            EmailDeliveryPending = result.EmailDeliveryPending,
+            EmailQueued = result.EmailQueued
         });
     }
 
@@ -274,7 +279,8 @@ public sealed class AdminAccountsController : ControllerBase, IAsyncActionFilter
         {
             InvitationId = result.InvitationId ?? Guid.Empty,
             ExpiresAtUtc = result.ExpiresAtUtc ?? default,
-            EmailDeliveryPending = result.EmailDeliveryPending
+            EmailDeliveryPending = result.EmailDeliveryPending,
+            EmailQueued = result.EmailQueued
         });
     }
 

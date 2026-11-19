@@ -3,6 +3,7 @@ using Urbeat.Domain.Entities;
 using Urbeat.Infrastructure.Persistence;
 using Urbeat.Infrastructure.Services;
 using Urbeat.Infrastructure.Services.WhatsApp;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 
     /// <summary>Fake e-mail transport shared with the host when <c>useFakeEmail</c> is enabled.</summary>
     public FakeEmailService EmailService { get; } = new();
+
+    /// <summary>
+    /// Optional replacement for the Hangfire enqueue client. Tests use it to prove that a failed
+    /// enqueue is surfaced to the caller instead of being reported as a delivered invitation.
+    /// </summary>
+    public IBackgroundJobClient? BackgroundJobClient { get; init; }
 
     /// <summary>
     /// Upload fake shared with the host. Deletion calls from store deletion are asserted here.
@@ -140,6 +147,12 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<ICloudinaryImageCatalog>();
             services.AddSingleton<ICloudinaryImageCatalog>(CloudinaryCatalog);
+
+            if (BackgroundJobClient is not null)
+            {
+                services.RemoveAll<IBackgroundJobClient>();
+                services.AddSingleton(BackgroundJobClient);
+            }
 
             services.RemoveAll(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>));
             services.AddSingleton(typeof(Microsoft.AspNetCore.SignalR.IHubContext<>), typeof(RecordingHubContext<>));

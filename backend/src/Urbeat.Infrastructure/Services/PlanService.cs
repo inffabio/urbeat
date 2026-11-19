@@ -12,6 +12,9 @@ public sealed class PlanService : IPlanService
 {
     public const string DefaultGatewayProvider = "Asaas";
 
+    private const int DefaultPageSize = 20;
+    private const int MaxPageSize = 100;
+
     private readonly ApplicationDbContext _dbContext;
     private readonly IEfUnitOfWork _efUnitOfWork;
 
@@ -21,6 +24,38 @@ public sealed class PlanService : IPlanService
     {
         _dbContext = dbContext;
         _efUnitOfWork = efUnitOfWork;
+    }
+
+    public async Task<PagedPlanResponseDto> ListPagedAsync(
+        PlanPageQueryDto query,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+
+        var page = query.Page < 1 ? 1 : Math.Min(query.Page, 1_000_000);
+        var pageSize = query.PageSize < 1 ? DefaultPageSize : Math.Min(query.PageSize, MaxPageSize);
+
+        // Count on the unordered set, then order and page: the catalog keeps a deterministic
+        // level/name order so page boundaries never repeat or skip a plan.
+        var baseQuery = _dbContext.Plans.AsNoTracking();
+        var totalItems = await baseQuery.CountAsync(cancellationToken);
+        var totalPages = totalItems == 0 ? 0 : (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        var plans = await baseQuery
+            .OrderBy(x => x.Level)
+            .ThenBy(x => x.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedPlanResponseDto
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            Items = plans.Select(Map).ToList()
+        };
     }
 
     public async Task<IReadOnlyList<PlanResponseDto>> ListAllAsync(CancellationToken cancellationToken = default)

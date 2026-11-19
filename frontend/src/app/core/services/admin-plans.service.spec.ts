@@ -17,12 +17,19 @@ describe('AdminPlansService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('lists the administrative catalog', () => {
-    service.list().subscribe((plans) => expect(plans).toEqual([]));
+  it('lists the administrative catalog with pagination parameters', () => {
+    const response = {
+      page: 2,
+      pageSize: 10,
+      totalItems: 12,
+      totalPages: 2,
+      items: [],
+    };
+    service.list({ page: 2, pageSize: 10 }).subscribe((plans) => expect(plans).toEqual(response));
 
-    const request = httpMock.expectOne('/api/admin/plans');
+    const request = httpMock.expectOne('/api/admin/plans?page=2&pageSize=10');
     expect(request.request.method).toBe('GET');
-    request.flush([]);
+    request.flush(response);
   });
 
   it('creates a plan with monthly and annual configuration', () => {

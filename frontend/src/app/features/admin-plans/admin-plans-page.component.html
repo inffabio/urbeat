@@ -8,7 +8,7 @@
       </p>
     </div>
     <div class="plans-header-actions">
-      <p class="plans-count">{{ activeCount() }} de {{ plans().length }} ativos</p>
+      <p class="plans-count" role="status" aria-live="polite">{{ totalItems() }} plano(s)</p>
       <button type="button" class="btn-primary" (click)="startCreate()">Novo plano</button>
     </div>
   </header>
@@ -185,7 +185,7 @@
       <span>Verifique sua conexão e tente novamente.</span>
       <button type="button" class="btn-secondary" (click)="load()">Tentar novamente</button>
     </div>
-  } @else if (plans().length === 0) {
+  } @else if (totalItems() === 0) {
     <div class="plans-state">
       <strong>Nenhum plano cadastrado.</strong>
       <span>Crie o primeiro plano para liberar a contratação na landing e no cadastro.</span>
@@ -241,6 +241,42 @@
         </li>
       }
     </ul>
+
+    @if (totalPages() > 1) {
+      <nav class="plans-pagination" aria-label="Paginação de planos">
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasPrevious()"
+          (click)="previousPage()"
+          aria-label="Página anterior"
+        >
+          Anterior
+        </button>
+
+        @for (pageNumber of pages(); track pageNumber) {
+          <button
+            type="button"
+            class="page-button"
+            [class.is-active]="pageNumber === page()"
+            [attr.aria-current]="pageNumber === page() ? 'page' : null"
+            (click)="goToPage(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        }
+
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasNext()"
+          (click)="nextPage()"
+          aria-label="Próxima página"
+        >
+          Próxima
+        </button>
+      </nav>
+    }
   }
 
   @if (gatewayPlanId(); as planId) {

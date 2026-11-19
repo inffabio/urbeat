@@ -61,6 +61,44 @@ public sealed class PlanServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ListPagedAsync_ShouldPaginateByLevelAndName_AndClampPageSize()
+    {
+        for (var level = 1; level <= 5; level++)
+        {
+            _db.Plans.Add(new Plan
+            {
+                Name = $"Plano {level}",
+                Amount = level * 10m,
+                Description = "Plano paginado",
+                IsActive = true,
+                Level = level,
+                BenefitsJson = "[]"
+            });
+        }
+
+        await _db.SaveChangesAsync();
+
+        var secondPage = await _sut.ListPagedAsync(new PlanPageQueryDto { Page = 2, PageSize = 2 });
+
+        secondPage.Page.Should().Be(2);
+        secondPage.PageSize.Should().Be(2);
+        secondPage.TotalItems.Should().Be(5);
+        secondPage.TotalPages.Should().Be(3);
+        secondPage.Items.Select(plan => plan.Level).Should().Equal(3, 4);
+
+        var clamped = await _sut.ListPagedAsync(new PlanPageQueryDto { Page = 0, PageSize = 1000 });
+
+        clamped.Page.Should().Be(1);
+        clamped.PageSize.Should().Be(100);
+        clamped.Items.Should().HaveCount(5);
+
+        var beyond = await _sut.ListPagedAsync(new PlanPageQueryDto { Page = 99, PageSize = 2 });
+
+        beyond.Items.Should().BeEmpty();
+        beyond.TotalPages.Should().Be(3);
+    }
+
+    [Fact]
     public async Task CreateAsync_ShouldPersistTrialAndNormalizedBenefits()
     {
         var result = await _sut.CreateAsync(new CreatePlanRequestDto

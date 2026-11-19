@@ -929,21 +929,30 @@ armazena token nem handle.
 **Response 502:** `{ "success": false, "errorCode": "<código-sanitizado>" }`
 
 ### GET `/api/admin/plans`
-Lista planos de assinatura.
+Lista paginada dos planos de assinatura. `page` começa em 1 e `pageSize` é limitado a 100
+(padrão 20). A oferta pública (`GET /api/public/plans`) não usa esta resposta.
+
+**Query:** `?page=1&pageSize=20`
 
 **Response 200:**
 ```json
-[
-  {
-    "id": "guid...",
-    "name": "Plano Básico",
-    "amount": 49.90,
-    "description": "Ideal para pequenos negócios.",
-    "isActive": true,
-    "trialDays": 15,
-    "benefits": ["Cardápio digital", "Pedidos no WhatsApp"]
-  }
-]
+{
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 1,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": "guid...",
+      "name": "Plano Básico",
+      "amount": 49.90,
+      "description": "Ideal para pequenos negócios.",
+      "isActive": true,
+      "trialDays": 15,
+      "benefits": ["Cardápio digital", "Pedidos no WhatsApp"]
+    }
+  ]
+}
 ```
 
 ### POST `/api/admin/plans`

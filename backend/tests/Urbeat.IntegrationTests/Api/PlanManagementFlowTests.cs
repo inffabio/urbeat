@@ -63,10 +63,11 @@ public sealed class PlanManagementFlowTests : IClassFixture<TestWebApplicationFa
         });
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var adminList = await adminClient.GetFromJsonAsync<List<PlanResponseDto>>("/api/admin/plans");
+        var adminList = await adminClient.GetFromJsonAsync<PagedPlanResponseDto>(
+            "/api/admin/plans?page=1&pageSize=100");
         adminList.Should().NotBeNull();
-        adminList!.Should().Contain(x => x.Id == basicPlan.Id && x.Name == "Basico Plus");
-        adminList.Should().Contain(x => x.Id == proPlan.Id && !x.IsActive);
+        adminList!.Items.Should().Contain(x => x.Id == basicPlan.Id && x.Name == "Basico Plus");
+        adminList.Items.Should().Contain(x => x.Id == proPlan.Id && !x.IsActive);
 
         var sellerClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var sellerToken = await RegisterAndLoginSellerAsync(sellerClient);
@@ -131,9 +132,61 @@ public sealed class PlanManagementFlowTests : IClassFixture<TestWebApplicationFa
     }
 
     [Fact]
+    public async Task AdminPlanList_ShouldPaginate_AndClampThePageSize()
+    {
+        var adminClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        var adminToken = await LoginAdminAsync(adminClient);
+        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+
+        var suffix = Guid.NewGuid().ToString("N");
+        for (var index = 1; index <= 3; index++)
+        {
+            var response = await adminClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
+            {
+                Name = $"Paginado {suffix} {index}",
+                Amount = 10m + index,
+                Description = "Plano de paginação",
+                IsActive = true,
+                Level = index
+            });
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        var firstPage = await adminClient.GetFromJsonAsync<PagedPlanResponseDto>(
+            "/api/admin/plans?page=1&pageSize=2");
+        firstPage.Should().NotBeNull();
+        firstPage!.Page.Should().Be(1);
+        firstPage.PageSize.Should().Be(2);
+        firstPage.TotalItems.Should().BeGreaterThanOrEqualTo(3);
+        firstPage.TotalPages.Should().Be((int)Math.Ceiling(firstPage.TotalItems / 2d));
+        firstPage.Items.Should().HaveCount(2);
+
+        var secondPage = await adminClient.GetFromJsonAsync<PagedPlanResponseDto>(
+            "/api/admin/plans?page=2&pageSize=2");
+        secondPage.Should().NotBeNull();
+        secondPage!.Page.Should().Be(2);
+        secondPage.Items.Should().HaveCount(2);
+        var firstPageIds = firstPage.Items.Select(plan => plan.Id).ToHashSet();
+        secondPage.Items.Should().OnlyContain(plan => !firstPageIds.Contains(plan.Id));
+
+        var clamped = await adminClient.GetFromJsonAsync<PagedPlanResponseDto>(
+            "/api/admin/plans?page=1&pageSize=1000");
+        clamped.Should().NotBeNull();
+        clamped!.PageSize.Should().Be(100);
+
+        var beyond = await adminClient.GetFromJsonAsync<PagedPlanResponseDto>(
+            "/api/admin/plans?page=9999&pageSize=2");
+        beyond.Should().NotBeNull();
+        beyond!.Items.Should().BeEmpty();
+        beyond.TotalPages.Should().Be(firstPage.TotalPages);
+    }
+
+    [Fact]
     public async Task PlanWrites_ShouldRejectNonAdminUsers()
     {
         var anonymousClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
+        (await anonymousClient.GetAsync("/api/admin/plans")).StatusCode
+            .Should().Be(HttpStatusCode.Unauthorized);
         var anonymousResponse = await anonymousClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
         {
             Name = "Plano Anonimo",
@@ -145,6 +198,8 @@ public sealed class PlanManagementFlowTests : IClassFixture<TestWebApplicationFa
         var sellerToken = await RegisterAndLoginSellerAsync(sellerClient);
         sellerClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sellerToken);
 
+        (await sellerClient.GetAsync("/api/admin/plans")).StatusCode
+            .Should().Be(HttpStatusCode.Forbidden);
         var sellerResponse = await sellerClient.PostAsJsonAsync("/api/admin/plans", new CreatePlanRequestDto
         {
             Name = "Plano Vendedor",

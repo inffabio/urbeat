@@ -34,12 +34,22 @@ public sealed class AdminPlansController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<PlanResponseDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedPlanResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    public async Task<IActionResult> List(
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        CancellationToken cancellationToken)
     {
-        var plans = await _planService.ListAllAsync(cancellationToken);
+        var plans = await _planService.ListPagedAsync(
+            new PlanPageQueryDto
+            {
+                Page = page ?? 1,
+                PageSize = pageSize ?? 20
+            },
+            cancellationToken);
+
         return Ok(plans);
     }
 

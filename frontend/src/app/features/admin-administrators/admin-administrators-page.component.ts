@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,20 +11,23 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { AdminAccountService } from '../../../core/services/admin-account.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { extractApiErrorMessage } from '../../../core/utils/api-error.helper';
+import { AdminAccountService } from '../../core/services/admin-account.service';
+import { AuthService } from '../../core/services/auth.service';
+import { extractApiErrorMessage } from '../../core/utils/api-error.helper';
 import {
   AdminAccountStatus,
   AdminAdministrator,
   AdminInvitation,
-} from '../../../shared/models/admin-account.model';
+  PagedAdminAdministrators,
+} from '../../shared/models/admin-account.model';
 
 type SectionStatus = 'all' | 'active' | 'blocked' | 'invited';
 type ConfirmKind = 'block' | 'remove' | 'cancel-invitation';
+
+const STATUS_VALUES: readonly SectionStatus[] = ['all', 'active', 'blocked', 'invited'];
 
 interface ConfirmAction {
   kind: ConfirmKind;
@@ -36,21 +40,24 @@ interface Feedback {
 }
 
 /**
- * Administrator management section rendered inside /admin/configuracoes. The list is loaded only
- * when the section is activated, so the parameters page keeps its original request profile.
+ * Dedicated administrator directory at /admin/administradores. The list is paginated and its
+ * page/filter state lives in the query string, so a link is shareable and survives reloads. The
+ * server is authoritative for authorization, the last-active-admin invariant and token validity;
+ * the component only reflects the hints it receives.
  */
 @Component({
-  selector: 'app-admin-administrators-section',
+  selector: 'app-admin-administrators-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './admin-administrators-section.component.html',
-  styleUrl: './admin-administrators-section.component.scss',
+  templateUrl: './admin-administrators-page.component.html',
+  styleUrl: './admin-administrators-page.component.scss',
 })
-export class AdminAdministratorsSectionComponent implements OnInit {
+export class AdminAdministratorsPageComponent implements OnInit {
   private readonly service = inject(AdminAccountService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly searchChanges = new Subject<string>();
 
@@ -76,6 +83,17 @@ export class AdminAdministratorsSectionComponent implements OnInit {
 
   readonly hasPrevious = computed(() => this.page() > 1);
   readonly hasNext = computed(() => this.page() < this.totalPages());
+  readonly hasFilters = computed(
+    () => this.status() !== 'all' || this.search().trim().length > 0,
+  );
+  readonly pages = computed(() => {
+    const total = this.totalPages();
+    if (total <= 0) return [];
+    if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+
+    const start = Math.max(1, Math.min(this.page() - 3, total - 6));
+    return Array.from({ length: 7 }, (_, index) => start + index);
+  });
   readonly statusOptions: ReadonlyArray<{ value: SectionStatus; label: string }> = [
     { value: 'all', label: 'Todos' },
     { value: 'active', label: 'Ativos' },
@@ -89,11 +107,13 @@ export class AdminAdministratorsSectionComponent implements OnInit {
       .subscribe((value) => {
         this.search.set(value);
         this.page.set(1);
+        this.syncUrl();
         this.load();
       });
   }
 
   ngOnInit(): void {
+    this.readUrlState();
     this.load();
   }
 
@@ -111,10 +131,18 @@ export class AdminAdministratorsSectionComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.items.set(response.items);
-          this.totalItems.set(response.totalItems);
-          this.totalPages.set(response.totalPages);
-          this.loading.set(false);
+          const lastValidPage = Math.max(response.totalPages, 1);
+
+          // Removing, blocking or cancelling the last row of a page can leave the requested page
+          // out of range. Move to the last valid page instead of showing a false empty state.
+          if (this.page() > lastValidPage) {
+            this.page.set(lastValidPage);
+            this.syncUrl();
+            this.load();
+            return;
+          }
+
+          this.applyResponse(response);
         },
         error: (error: unknown) => {
           this.error.set(
@@ -127,26 +155,40 @@ export class AdminAdministratorsSectionComponent implements OnInit {
 
   onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement | null;
-    this.searchChanges.next(target?.value ?? '');
+    this.searchChanges.next((target?.value ?? '').slice(0, 120));
   }
 
   onStatusChange(event: Event): void {
     const target = event.target as HTMLSelectElement | null;
-    this.status.set((target?.value as SectionStatus) ?? 'all');
+    const value = target?.value;
+    this.status.set(isStatus(value) ? value : 'all');
     this.page.set(1);
+    this.syncUrl();
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.search.set('');
+    this.status.set('all');
+    this.page.set(1);
+    this.syncUrl();
+    this.load();
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > Math.max(this.totalPages(), 1) || page === this.page()) return;
+
+    this.page.set(page);
+    this.syncUrl();
     this.load();
   }
 
   previousPage(): void {
-    if (!this.hasPrevious()) return;
-    this.page.update((page) => page - 1);
-    this.load();
+    if (this.hasPrevious()) this.goToPage(this.page() - 1);
   }
 
   nextPage(): void {
-    if (!this.hasNext()) return;
-    this.page.update((page) => page + 1);
-    this.load();
+    if (this.hasNext()) this.goToPage(this.page() + 1);
   }
 
   onInviteEmailInput(event: Event): void {
@@ -155,6 +197,11 @@ export class AdminAdministratorsSectionComponent implements OnInit {
   }
 
   invite(): void {
+    // Re-entrancy guard: the disabled binding only lands on the next change detection, and the
+    // app runs with eventCoalescing, so a repeated activation (double click, Enter key repeat or a
+    // lagging frame) can reach this handler twice. One submission must never create two requests.
+    if (this.inviting()) return;
+
     const email = this.inviteEmail().trim();
     if (!email) {
       this.feedback.set({ type: 'error', message: 'Informe o e-mail do novo administrador.' });
@@ -171,10 +218,21 @@ export class AdminAdministratorsSectionComponent implements OnInit {
         next: (response) => {
           this.inviting.set(false);
           this.inviteEmail.set('');
-          this.feedback.set({
-            type: 'success',
-            message: `Convite enviado para ${response.email}. O link expira em 24 horas.`,
-          });
+          this.feedback.set(
+            response.emailQueued === false
+              ? {
+                  type: 'error',
+                  message:
+                    `Convite criado para ${response.email}, mas o e-mail não foi enfileirado. ` +
+                    'Use "Reenviar convite" para tentar novamente.',
+                }
+              : {
+                  type: 'success',
+                  message:
+                    `Convite criado para ${response.email}. O link expira em 24 horas e o e-mail ` +
+                    'será enviado em instantes.',
+                },
+          );
           this.load();
         },
         error: (error: unknown) => {
@@ -243,19 +301,40 @@ export class AdminAdministratorsSectionComponent implements OnInit {
   }
 
   resendInvitation(item: AdminAdministrator): void {
-    this.runItemAction(item.id, this.service.resendInvitation(item.id), () => {
-      this.feedback.set({
-        type: 'success',
-        message: `Convite reenviado para ${item.email}.`,
-      });
+    this.runItemAction(item.id, this.service.resendInvitation(item.id), (result) => {
+      this.feedback.set(
+        result.emailQueued === false
+          ? {
+              type: 'error',
+              message:
+                `O reenvio do convite para ${item.email} não foi enfileirado. ` +
+                'Tente novamente em instantes.',
+            }
+          : {
+              type: 'success',
+              message: `Reenvio do convite para ${item.email} solicitado. O e-mail será enviado em instantes.`,
+            },
+      );
     });
   }
 
   requestPasswordReset(item: AdminAdministrator): void {
-    this.runItemAction(item.id, this.service.requestPasswordReset(item.id), () => {
+    this.runItemAction(item.id, this.service.requestPasswordReset(item.id), (result) => {
+      if (result.emailQueued === false && result.emailDeliveryPending) {
+        this.feedback.set({
+          type: 'error',
+          message:
+            `O link de redefinição de ${item.email} não foi enfileirado. ` +
+            'Tente novamente em instantes.',
+        });
+        return;
+      }
+
       this.feedback.set({
         type: 'success',
-        message: `Link de redefinição enviado para ${item.email} (válido por 60 minutos).`,
+        message: result.emailDeliveryPending
+          ? `Link de redefinição para ${item.email} solicitado (válido por 60 minutos).`
+          : `O link de redefinição de ${item.email} já havia sido enviado e continua válido.`,
       });
     });
   }
@@ -343,6 +422,12 @@ export class AdminAdministratorsSectionComponent implements OnInit {
     }
   }
 
+  cancellationTitle(item: AdminAdministrator): string {
+    return item.isCurrentUser
+      ? 'Você não pode cancelar o próprio convite.'
+      : 'Cancelar o convite pendente deste e-mail.';
+  }
+
   invitationStateLabel(invitation: AdminInvitation): string {
     switch (invitation.state) {
       case 'Pending':
@@ -377,6 +462,13 @@ export class AdminAdministratorsSectionComponent implements OnInit {
     }).format(new Date(value));
   }
 
+  private applyResponse(response: PagedAdminAdministrators): void {
+    this.items.set(response.items);
+    this.totalItems.set(response.totalItems);
+    this.totalPages.set(response.totalPages);
+    this.loading.set(false);
+  }
+
   private runItemAction<T>(
     id: string,
     request: Observable<T>,
@@ -407,4 +499,33 @@ export class AdminAdministratorsSectionComponent implements OnInit {
       items.map((item) => (item.id === updated.id ? updated : item)),
     );
   }
+
+  private syncUrl(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        page: this.page() > 1 ? this.page() : null,
+        status: this.status() !== 'all' ? this.status() : null,
+        search: this.search().trim() || null,
+      },
+    });
+  }
+
+  private readUrlState(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const page = Number(params.get('page'));
+
+    this.page.set(Number.isFinite(page) && page >= 1 ? Math.floor(page) : 1);
+    this.status.set(readStatus(params.get('status')));
+    this.search.set((params.get('search') ?? '').slice(0, 120));
+  }
+}
+
+function readStatus(value: string | null | undefined): SectionStatus {
+  return isStatus(value) ? value : 'all';
+}
+
+function isStatus(value: string | null | undefined): value is SectionStatus {
+  return !!value && (STATUS_VALUES as readonly string[]).includes(value);
 }

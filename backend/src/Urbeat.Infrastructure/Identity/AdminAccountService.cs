@@ -189,18 +189,20 @@ public sealed class AdminAccountService : IAdminAccountService
             await _efUnitOfWork.SaveChangesAsync(cancellationToken);
             await CommitAsync(transaction, cancellationToken);
 
-            EnqueueInvitationEmail(invitation.Id);
+            var emailQueued = EnqueueInvitationEmail(invitation.Id);
 
             _logger.LogInformation(
-                "{EventType} | Administrator invited | UserId={UserId} | InvitationId={InvitationId} | IP={IpAddress}",
+                "{EventType} | Administrator invited | UserId={UserId} | InvitationId={InvitationId} | EmailQueued={EmailQueued} | IP={IpAddress}",
                 "ADMIN_INVITATION_SENT",
                 user.Id,
                 invitation.Id,
+                emailQueued,
                 ipAddress);
 
             return new AdminAccountOperationResult
             {
                 Status = AdminAccountOperationStatus.Succeeded,
+                EmailQueued = emailQueued,
                 Administrator = new AdminAdministratorDto
                 {
                     Id = user.Id,
@@ -365,9 +367,10 @@ public sealed class AdminAccountService : IAdminAccountService
             await _efUnitOfWork.SaveChangesAsync(cancellationToken);
             await CommitAsync(transaction, cancellationToken);
 
+            var issuedInvitationQueued = false;
             if (issuedInvitation is not null)
             {
-                EnqueueInvitationEmail(issuedInvitation.Id);
+                issuedInvitationQueued = EnqueueInvitationEmail(issuedInvitation.Id);
             }
             else if (wasActive)
             {
@@ -383,6 +386,7 @@ public sealed class AdminAccountService : IAdminAccountService
             return new AdminAccountOperationResult
             {
                 Status = AdminAccountOperationStatus.Succeeded,
+                EmailQueued = issuedInvitationQueued,
                 Administrator = await BuildAdministratorDtoAsync(target, actorUserId, cancellationToken),
                 Invitation = issuedInvitation is null
                     ? null
@@ -528,14 +532,15 @@ public sealed class AdminAccountService : IAdminAccountService
                 "Não foi possível reenviar o convite.");
         }
 
-        EnqueueInvitationEmail(invitation!.Id);
+        var emailQueued = EnqueueInvitationEmail(invitation!.Id);
 
         _logger.LogInformation(
-            "{EventType} | Administrative invitation resent | UserId={UserId} | InvitationId={InvitationId} | Reissued={Reissued} | IP={IpAddress}",
+            "{EventType} | Administrative invitation resent | UserId={UserId} | InvitationId={InvitationId} | Reissued={Reissued} | EmailQueued={EmailQueued} | IP={IpAddress}",
             "ADMIN_INVITATION_RESENT",
             target.Id,
             invitation.Id,
             reissued,
+            emailQueued,
             ipAddress);
 
         return new AdminAccountInvitationDeliveryResult
@@ -543,7 +548,8 @@ public sealed class AdminAccountService : IAdminAccountService
             Status = AdminAccountOperationStatus.Succeeded,
             InvitationId = invitation.Id,
             ExpiresAtUtc = invitation.ExpiresAtUtc,
-            EmailDeliveryPending = true
+            EmailDeliveryPending = true,
+            EmailQueued = emailQueued
         };
     }
 
@@ -775,16 +781,14 @@ public sealed class AdminAccountService : IAdminAccountService
         }
 
         var resolvedInvitation = invitation!;
-        if (enqueueDelivery)
-        {
-            EnqueueInvitationEmail(resolvedInvitation.Id);
-        }
+        var emailQueued = enqueueDelivery && EnqueueInvitationEmail(resolvedInvitation.Id);
 
         _logger.LogInformation(
-            "{EventType} | Administrative password reset requested | UserId={UserId} | InvitationId={InvitationId} | IP={IpAddress}",
+            "{EventType} | Administrative password reset requested | UserId={UserId} | InvitationId={InvitationId} | EmailQueued={EmailQueued} | IP={IpAddress}",
             "ADMIN_PASSWORD_RESET_REQUESTED",
             target.Id,
             resolvedInvitation.Id,
+            emailQueued,
             ipAddress);
 
         return new AdminAccountInvitationDeliveryResult
@@ -792,7 +796,8 @@ public sealed class AdminAccountService : IAdminAccountService
             Status = AdminAccountOperationStatus.Succeeded,
             InvitationId = resolvedInvitation.Id,
             ExpiresAtUtc = resolvedInvitation.ExpiresAtUtc,
-            EmailDeliveryPending = enqueueDelivery
+            EmailDeliveryPending = enqueueDelivery,
+            EmailQueued = emailQueued
         };
     }
 
@@ -1687,23 +1692,27 @@ public sealed class AdminAccountService : IAdminAccountService
                          && audit.EntityId == targetUserId,
                 cancellationToken);
 
-    private void EnqueueInvitationEmail(Guid invitationId)
+    /// <summary>
+    /// Hands the delivery to the background queue after the invitation is committed. Returns
+    /// <c>false</c> instead of throwing, so the caller can report a pending delivery instead of a
+    /// false success: the row stays with <c>EmailSentAtUtc = null</c> and a manual resend recovers it.
+    /// </summary>
+    private bool EnqueueInvitationEmail(Guid invitationId)
     {
         try
         {
             _backgroundJobClient.Enqueue<SendAdminAccountEmailJob>(
                 job => job.ExecuteAsync(invitationId));
+            return true;
         }
         catch (Exception exception)
         {
-            // The mutation is already committed. Losing the enqueue must not turn a successful
-            // invitation into a 500 nor hide it from the list: the row stays with
-            // EmailSentAtUtc = null ("convite em envio") and a manual resend recovers it.
             _logger.LogWarning(
                 exception,
                 "{EventType} | Could not enqueue the administrative invitation e-mail | InvitationId={InvitationId}",
                 "ADMIN_INVITATION_ENQUEUE_FAILED",
                 invitationId);
+            return false;
         }
     }
 

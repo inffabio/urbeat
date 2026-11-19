@@ -51,12 +51,20 @@ export interface InviteAdminAccountResponse {
   email: string;
   status: AdminAccountStatus;
   invitation: AdminInvitation;
+  /**
+   * False when the invitation was committed but its delivery job never reached the queue.
+   * Absent on older payloads, which are treated as queued.
+   */
+  emailQueued?: boolean;
+  emailDeliveryPending?: boolean;
 }
 
 export interface AdminInvitationDeliveryResponse {
   invitationId: string;
   expiresAtUtc: string;
   emailDeliveryPending: boolean;
+  /** False when the delivery job never reached the queue; absent on older payloads. */
+  emailQueued?: boolean;
 }
 
 export interface AdminInvitationValidation {

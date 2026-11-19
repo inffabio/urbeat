@@ -119,7 +119,11 @@ public sealed class HangfireRuntimeTests
         [
             typeof(SendEmailConfirmationJob),
             typeof(SendPasswordResetEmailJob),
-            typeof(SendRolePromotionEmailJob)
+            typeof(SendRolePromotionEmailJob),
+            // Administrative invitations/reset links and e-mail change notices use the same
+            // dedicated queue; enqueueing them anywhere else would leave the job unprocessed.
+            typeof(SendAdminAccountEmailJob),
+            typeof(SendAdminEmailChangedNoticeJob)
         ];
 
         communicationJobs

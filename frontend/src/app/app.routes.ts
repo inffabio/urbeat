@@ -107,6 +107,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'administradores',
+        loadComponent: () =>
+          import('./features/admin-administrators/admin-administrators-page.component').then(
+            (m) => m.AdminAdministratorsPageComponent,
+          ),
+      },
+      {
         path: 'configuracoes',
         loadComponent: () =>
           import('./features/admin-settings/admin-settings-page.component').then(

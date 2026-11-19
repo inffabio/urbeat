@@ -9,6 +9,7 @@ import {
   gridOutline,
   logOutOutline,
   menuOutline,
+  peopleOutline,
   pulseOutline,
   settingsOutline,
   storefrontOutline,
@@ -30,6 +31,7 @@ addIcons({
   'grid-outline': gridOutline,
   'log-out-outline': logOutOutline,
   'menu-outline': menuOutline,
+  'people-outline': peopleOutline,
   'pulse-outline': pulseOutline,
   'settings-outline': settingsOutline,
   'storefront-outline': storefrontOutline,
@@ -54,6 +56,7 @@ export class AdminShellComponent {
     { label: 'Lojas', route: '/admin/lojas', icon: 'storefront-outline' },
     { label: 'Operações', route: '/admin/operacoes', icon: 'pulse-outline' },
     { label: 'Planos', route: '/admin/planos', icon: 'card-outline' },
+    { label: 'Administradores', route: '/admin/administradores', icon: 'people-outline' },
     { label: 'Configurações', route: '/admin/configuracoes', icon: 'settings-outline' },
   ];
 

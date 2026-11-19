@@ -91,6 +91,12 @@ public sealed class AdminAccountResendInvitationResponseDto
     public DateTime ExpiresAtUtc { get; init; }
 
     public bool EmailDeliveryPending { get; init; }
+
+    /// <summary>
+    /// True when the delivery job was accepted by the background queue. False exposes a pending
+    /// link whose e-mail was not enqueued, so the client must alert instead of claiming success.
+    /// </summary>
+    public bool EmailQueued { get; init; }
 }
 
 public sealed class AdminAccountTokenRequestDto
@@ -206,6 +212,13 @@ public sealed class AdminAccountOperationResult
 
     public string? Code { get; init; }
 
+    /// <summary>
+    /// True when the delivery job for <see cref="Invitation"/> was handed to the background
+    /// queue. False means the committed invitation is still pending and must be resent by an
+    /// operator; the operation itself is not rolled back.
+    /// </summary>
+    public bool EmailQueued { get; init; }
+
     public bool Succeeded => Status == AdminAccountOperationStatus.Succeeded;
 }
 
@@ -218,6 +231,12 @@ public sealed class AdminAccountInvitationDeliveryResult
     public DateTime? ExpiresAtUtc { get; init; }
 
     public bool EmailDeliveryPending { get; init; }
+
+    /// <summary>
+    /// True when the delivery job was accepted by the background queue. False exposes a pending
+    /// invitation whose e-mail was not enqueued, so the caller can alert the operator.
+    /// </summary>
+    public bool EmailQueued { get; init; }
 
     public string? Error { get; init; }
 

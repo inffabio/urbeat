@@ -76,6 +76,25 @@ describe('PasswordSetupFormComponent', () => {
     });
   });
 
+  it('submits the form through the DOM instead of letting the browser reload the page', () => {
+    const emitted = jest.fn();
+    fixture.componentInstance.submitted.subscribe(emitted);
+
+    type('#new-password', 'Senha1234');
+    type('#confirm-password', 'Senha1234');
+
+    const form = fixture.nativeElement.querySelector('form.password-form') as HTMLFormElement;
+    const submit = new Event('submit', { bubbles: true, cancelable: true });
+    form.dispatchEvent(submit);
+    fixture.detectChanges();
+
+    expect(submit.defaultPrevented).toBe(true);
+    expect(emitted).toHaveBeenCalledWith({
+      newPassword: 'Senha1234',
+      confirmPassword: 'Senha1234',
+    });
+  });
+
   it('disables submission while busy and surfaces the server message', () => {
     fixture.componentRef.setInput('busy', true);
     fixture.componentRef.setInput('serverError', 'Senha não atende aos requisitos.');

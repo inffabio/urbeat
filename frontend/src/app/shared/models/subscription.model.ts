@@ -164,6 +164,19 @@ export interface AdminPlan {
   level: number;
 }
 
+export interface AdminPlansQuery {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PagedAdminPlans {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  items: AdminPlan[];
+}
+
 export interface CreatePlanRequest {
   name: string;
   monthlyAmount: number;

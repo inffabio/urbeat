@@ -27,12 +27,24 @@ public sealed class SmtpEmailService : IEmailService
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
-        if (_options.LogOnly || string.IsNullOrWhiteSpace(_options.Smtp.Host))
+        if (_options.LogOnly)
         {
             _logger.LogInformation(
-                "{EventType} | Email skipped (LogOnly or no SMTP host) | To={To} | Subject={Subject}",
+                "{EventType} | Email skipped by the log-only transport | To={To} | Subject={Subject}",
                 "EMAIL_LOG_ONLY", toAddress, subject);
             return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.Smtp.Host))
+        {
+            // Fail closed: callers mark the message as sent when this method returns, so a silent
+            // skip would turn a missing SMTP configuration into a false delivery. The caller
+            // (Hangfire job) keeps the invitation pending and retries instead.
+            _logger.LogError(
+                "{EventType} | SMTP transport is not configured | To={To} | Subject={Subject}",
+                "EMAIL_SMTP_NOT_CONFIGURED", toAddress, subject);
+            throw new InvalidOperationException(
+                "O transporte SMTP não está configurado: defina Email:Smtp:Host ou habilite Email:LogOnly.");
         }
 
         var message = new MimeMessage();

@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AdminPlansService } from '../../core/services/admin-plans.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
@@ -68,8 +69,14 @@ function emptyPlanForm(): PlanFormState {
 export class AdminPlansPageComponent implements OnInit {
   private readonly plansService = inject(AdminPlansService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly plans = signal<AdminPlan[]>([]);
+  readonly page = signal(1);
+  readonly pageSize = signal(10);
+  readonly totalItems = signal(0);
+  readonly totalPages = signal(0);
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly saving = signal(false);
@@ -95,7 +102,16 @@ export class AdminPlansPageComponent implements OnInit {
     isEnabled: false,
   });
 
-  readonly activeCount = computed(() => this.plans().filter((plan) => plan.isActive).length);
+  readonly hasPrevious = computed(() => this.page() > 1);
+  readonly hasNext = computed(() => this.page() < this.totalPages());
+  readonly pages = computed(() => {
+    const total = this.totalPages();
+    if (total <= 0) return [];
+    if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+
+    const start = Math.max(1, Math.min(this.page() - 3, total - 6));
+    return Array.from({ length: 7 }, (_, index) => start + index);
+  });
   readonly formTitle = computed(() => (this.editingId() ? 'Editar plano' : 'Novo plano'));
   readonly annualPreview = computed(() => {
     const state = this.form();
@@ -107,15 +123,29 @@ export class AdminPlansPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.readUrlState();
     this.load();
   }
 
   load(): void {
     this.loading.set(true);
     this.error.set(false);
-    this.plansService.list().subscribe({
-      next: (plans) => {
-        this.plans.set(this.sortPlans(plans));
+    this.plansService.list({ page: this.page(), pageSize: this.pageSize() }).subscribe({
+      next: (response) => {
+        const lastValidPage = Math.max(response.totalPages, 1);
+
+        // The catalog can shrink when another administrator changes it. Never keep the operator
+        // on a page that no longer exists.
+        if (this.page() > lastValidPage) {
+          this.page.set(lastValidPage);
+          this.syncUrl();
+          this.load();
+          return;
+        }
+
+        this.plans.set(this.sortPlans(response.items));
+        this.totalItems.set(response.totalItems);
+        this.totalPages.set(response.totalPages);
         this.loading.set(false);
       },
       error: () => {
@@ -123,6 +153,22 @@ export class AdminPlansPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > Math.max(this.totalPages(), 1) || page === this.page()) return;
+
+    this.page.set(page);
+    this.syncUrl();
+    this.load();
+  }
+
+  previousPage(): void {
+    if (this.hasPrevious()) this.goToPage(this.page() - 1);
+  }
+
+  nextPage(): void {
+    if (this.hasNext()) this.goToPage(this.page() + 1);
   }
 
   openGateway(plan: AdminPlan): void {
@@ -359,17 +405,13 @@ export class AdminPlansPageComponent implements OnInit {
     return `${this.formatCurrency(plan.monthlyAmount)}/mês`;
   }
 
-  private handleSaved(plan: AdminPlan, message: string): void {
+  private handleSaved(_plan: AdminPlan, message: string): void {
     this.saving.set(false);
     this.formVisible.set(false);
     this.editingId.set(null);
     this.formError.set(null);
-    this.plans.update((plans) => {
-      const exists = plans.some((item) => item.id === plan.id);
-      return this.sortPlans(
-        exists ? plans.map((item) => (item.id === plan.id ? plan : item)) : [...plans, plan],
-      );
-    });
+    // The server owns ordering and pagination: reload so a new plan lands on its real page.
+    this.load();
     this.toast.showSuccess(message);
   }
 
@@ -415,5 +457,18 @@ export class AdminPlansPageComponent implements OnInit {
     return [...plans].sort(
       (left, right) => left.level - right.level || left.name.localeCompare(right.name, 'pt-BR'),
     );
+  }
+
+  private syncUrl(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: { page: this.page() > 1 ? this.page() : null },
+    });
+  }
+
+  private readUrlState(): void {
+    const page = Number(this.route.snapshot.queryParamMap.get('page'));
+    this.page.set(Number.isFinite(page) && page >= 1 ? Math.floor(page) : 1);
   }
 }

@@ -68,6 +68,33 @@ describe('AdminInvitePageComponent', () => {
     expect(fixture.nativeElement.querySelector('a[href="/painel/login"]')).not.toBeNull();
   });
 
+  it('activates the account when the visible form is submitted', () => {
+    create('/convite-admin#token=opaque-token');
+
+    const newPassword = fixture.nativeElement.querySelector('#new-password') as HTMLInputElement;
+    newPassword.value = 'Senha1234';
+    newPassword.dispatchEvent(new Event('input'));
+    const confirmPassword = fixture.nativeElement.querySelector(
+      '#confirm-password',
+    ) as HTMLInputElement;
+    confirmPassword.value = 'Senha1234';
+    confirmPassword.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form.password-form') as HTMLFormElement;
+    const submit = new Event('submit', { bubbles: true, cancelable: true });
+    form.dispatchEvent(submit);
+    fixture.detectChanges();
+
+    expect(submit.defaultPrevented).toBe(true);
+    expect(service.acceptInvitation).toHaveBeenCalledWith({
+      token: 'opaque-token',
+      newPassword: 'Senha1234',
+      confirmPassword: 'Senha1234',
+    });
+    expect(fixture.componentInstance.state()).toBe('success');
+  });
+
   it('activates the account and offers the admin login', () => {
     create('/convite-admin#token=opaque-token');
 

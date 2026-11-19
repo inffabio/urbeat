@@ -1,10 +1,13 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   AdminPlan,
+  AdminPlansQuery,
   CreatePlanRequest,
   GatewayConfiguration,
+  PagedAdminPlans,
   UpdateGatewayConfigurationRequest,
   UpdatePlanRequest,
 } from '../../shared/models/subscription.model';
@@ -18,8 +21,12 @@ import {
 export class AdminPlansService {
   private readonly api = inject(ApiService);
 
-  list(): Observable<AdminPlan[]> {
-    return this.api.get<AdminPlan[]>('/api/admin/plans');
+  list(query: AdminPlansQuery = {}): Observable<PagedAdminPlans> {
+    let params = new HttpParams();
+    if (query.page) params = params.set('page', String(query.page));
+    if (query.pageSize) params = params.set('pageSize', String(query.pageSize));
+
+    return this.api.get<PagedAdminPlans>('/api/admin/plans', params);
   }
 
   create(request: CreatePlanRequest): Observable<AdminPlan> {

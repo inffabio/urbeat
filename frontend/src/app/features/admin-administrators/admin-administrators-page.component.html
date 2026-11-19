@@ -1,0 +1,355 @@
+<section class="admin-administrators-page" aria-labelledby="admin-administrators-title">
+  <header class="admins-header">
+    <div>
+      <h1 id="admin-administrators-title">Administradores</h1>
+      <p class="admins-subtitle">
+        Convide administradores por e-mail. Nenhuma senha é criada ou exibida aqui: o convidado
+        define a própria senha em um link de uso único.
+      </p>
+    </div>
+    <p class="admins-count" role="status" aria-live="polite">
+      {{ totalItems() }} administrador(es)
+    </p>
+  </header>
+
+  <form class="invite-panel invite-form" (ngSubmit)="invite()" novalidate>
+    <div class="invite-copy">
+      <label for="invite-email">Convidar administrador</label>
+      <p>O link do convite expira em 24 horas e só pode ser usado uma vez.</p>
+    </div>
+    <div class="invite-row">
+      <input
+        id="invite-email"
+        type="email"
+        inputmode="email"
+        autocomplete="off"
+        placeholder="novo.admin@exemplo.com"
+        [value]="inviteEmail()"
+        [disabled]="inviting()"
+        (input)="onInviteEmailInput($event)"
+      />
+      <button type="submit" class="primary" [disabled]="inviting()" [attr.aria-busy]="inviting()">
+        {{ inviting() ? 'Enviando…' : 'Convidar' }}
+      </button>
+    </div>
+  </form>
+
+  <form class="admins-filters" role="search" (submit)="$event.preventDefault()">
+    <div class="field grow">
+      <label for="admins-search">Buscar por e-mail</label>
+      <input
+        id="admins-search"
+        type="search"
+        autocomplete="off"
+        placeholder="nome@exemplo.com"
+        [value]="search()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
+
+    <div class="field">
+      <label for="admins-status">Status</label>
+      <select id="admins-status" [value]="status()" (change)="onStatusChange($event)">
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value" [selected]="option.value === status()">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <button type="button" class="secondary" (click)="clearFilters()" [disabled]="!hasFilters()">
+      Limpar filtros
+    </button>
+  </form>
+
+  @if (feedback(); as message) {
+    <p
+      class="feedback"
+      [class.is-error]="message.type === 'error'"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+      [attr.aria-live]="message.type === 'error' ? 'assertive' : 'polite'"
+    >
+      {{ message.message }}
+    </p>
+  }
+
+  @if (loading()) {
+    <div class="admins-skeleton" aria-hidden="true">
+      @for (row of [1, 2, 3, 4]; track row) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+    <p class="sr-only" role="status" aria-live="polite">Carregando administradores.</p>
+  } @else if (error(); as message) {
+    <div class="admins-state is-error" role="alert">
+      <strong>Não foi possível carregar os administradores.</strong>
+      <span>{{ message }}</span>
+      <button type="button" class="secondary" (click)="load()">Tentar novamente</button>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="admins-state" role="status">
+      <strong>Nenhum administrador encontrado.</strong>
+      <span>
+        Convide um administrador pelo formulário acima
+        {{ hasFilters() ? 'ou ajuste os filtros.' : '.' }}
+      </span>
+      @if (hasFilters()) {
+        <button type="button" class="secondary" (click)="clearFilters()">Limpar filtros</button>
+      }
+    </div>
+  } @else {
+    <div class="admins-table-wrap">
+      <table class="admins-table">
+        <caption class="sr-only">
+          Administradores da plataforma. As ações destrutivas exigem confirmação e respeitam a
+          proteção do próprio administrador e do último administrador ativo.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Administrador</th>
+            <th scope="col">Situação</th>
+            <th scope="col">Convite</th>
+            <th scope="col" class="col-actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr
+              class="admin-row"
+              [class.is-busy]="busyId() === item.id"
+              [attr.aria-busy]="busyId() === item.id"
+            >
+              <td data-label="Administrador" class="col-identity">
+                <strong class="email">{{ item.email }}</strong>
+                <div class="badges">
+                  @if (item.isCurrentUser) {
+                    <span class="badge is-self">você</span>
+                  }
+                  @if (item.isLastActiveAdmin) {
+                    <span class="badge is-last">último ativo</span>
+                  }
+                </div>
+                <small class="created">Criado em {{ formatDate(item.createdAtUtc) }}</small>
+
+                @if (editingId() === item.id) {
+                  <form class="edit-form" (ngSubmit)="saveEdit(item)" novalidate>
+                    <label [attr.for]="'edit-email-' + item.id">Novo e-mail</label>
+                    <div class="invite-row">
+                      <input
+                        [id]="'edit-email-' + item.id"
+                        type="email"
+                        autocomplete="off"
+                        [value]="editEmail()"
+                        [disabled]="busyId() === item.id"
+                        (input)="onEditEmailInput($event)"
+                      />
+                      <button type="submit" class="primary" [disabled]="busyId() === item.id">
+                        Salvar
+                      </button>
+                      <button type="button" class="secondary" (click)="cancelEdit()">
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                }
+              </td>
+
+              <td data-label="Situação">
+                <span class="badge" [class.is-active]="item.status === 'Active'" [class.is-blocked]="item.status === 'Blocked'" [class.is-invited]="item.status === 'Invited'">
+                  {{ statusLabel(item.status) }}
+                </span>
+              </td>
+
+              <td data-label="Convite">
+                @if (item.invitation; as invitation) {
+                  <span class="invitation">
+                    {{ invitationStateLabel(invitation) }}
+                    <small>{{ invitationExpiry(invitation) }}</small>
+                  </span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+
+              <td data-label="Ações" class="col-actions">
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="secondary"
+                    [disabled]="busyId() === item.id"
+                    (click)="startEdit(item)"
+                  >
+                    Editar e-mail
+                  </button>
+
+                  @if (item.status === 'Invited') {
+                    <button
+                      type="button"
+                      class="secondary"
+                      [disabled]="busyId() === item.id"
+                      (click)="resendInvitation(item)"
+                    >
+                      Reenviar convite
+                    </button>
+                    <button
+                      type="button"
+                      class="danger"
+                      [disabled]="busyId() === item.id || item.isCurrentUser"
+                      [attr.title]="cancellationTitle(item)"
+                      (click)="askConfirmation(item, 'cancel-invitation')"
+                    >
+                      Cancelar convite
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="secondary"
+                      [disabled]="busyId() === item.id"
+                      (click)="requestPasswordReset(item)"
+                    >
+                      Redefinir senha
+                    </button>
+
+                    @if (item.isBlocked) {
+                      <button
+                        type="button"
+                        class="secondary"
+                        [disabled]="busyId() === item.id"
+                        (click)="unblock(item)"
+                      >
+                        Desbloquear
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="danger"
+                        [disabled]="busyId() === item.id || !canBlock(item)"
+                        [attr.title]="blockTitle(item)"
+                        [attr.aria-describedby]="'block-reason-' + item.id"
+                        (click)="askConfirmation(item, 'block')"
+                      >
+                        Bloquear
+                      </button>
+                      <span class="sr-only" [id]="'block-reason-' + item.id">
+                        {{ blockTitle(item) }}
+                      </span>
+                    }
+
+                    <button
+                      type="button"
+                      class="danger"
+                      [disabled]="busyId() === item.id || !canRemove(item)"
+                      [attr.title]="removeTitle(item)"
+                      [attr.aria-describedby]="'remove-reason-' + item.id"
+                      (click)="askConfirmation(item, 'remove')"
+                    >
+                      Remover
+                    </button>
+                    <span class="sr-only" [id]="'remove-reason-' + item.id">
+                      {{ removeTitle(item) }}
+                    </span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="admins-pagination" aria-label="Paginação de administradores">
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasPrevious()"
+          (click)="previousPage()"
+          aria-label="Página anterior"
+        >
+          Anterior
+        </button>
+
+        @for (pageNumber of pages(); track pageNumber) {
+          <button
+            type="button"
+            class="page-button"
+            [class.is-active]="pageNumber === page()"
+            [attr.aria-current]="pageNumber === page() ? 'page' : null"
+            (click)="goToPage(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        }
+
+        <button
+          type="button"
+          class="page-button"
+          [disabled]="!hasNext()"
+          (click)="nextPage()"
+          aria-label="Próxima página"
+        >
+          Próxima
+        </button>
+      </nav>
+    }
+  }
+
+  @if (confirming(); as pending) {
+    <div
+      class="confirm"
+      role="alertdialog"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-description"
+      (keydown.escape)="cancelConfirmation()"
+    >
+      <div>
+        <strong id="confirm-title">
+          @if (pending.kind === 'block') {
+            Bloquear administrador?
+          } @else if (pending.kind === 'remove') {
+            Remover administrador?
+          } @else {
+            Cancelar convite?
+          }
+        </strong>
+        <p id="confirm-description">
+          @if (pending.kind === 'block') {
+            As sessões de {{ pending.item.email }} serão encerradas e o login ficará bloqueado até
+            um desbloqueio.
+          } @else if (pending.kind === 'remove') {
+            {{ pending.item.email }} perderá o acesso administrativo. A identidade e eventuais
+            acessos de lojista ou cliente são preservados.
+          } @else {
+            O link enviado para {{ pending.item.email }} deixará de funcionar e a identidade
+            pendente será removida.
+          }
+        </p>
+        @if (pending.kind !== 'cancel-invitation') {
+          <label for="confirm-reason">Motivo (opcional)</label>
+          <input
+            id="confirm-reason"
+            type="text"
+            maxlength="200"
+            [value]="confirmReason()"
+            (input)="onConfirmReasonInput($event)"
+          />
+        }
+      </div>
+      <div class="confirm-actions">
+        <button #confirmCancel type="button" class="secondary" (click)="cancelConfirmation()">
+          Cancelar
+        </button>
+        <button type="button" class="danger" (click)="confirmPending()">
+          @if (pending.kind === 'block') {
+            Confirmar bloqueio
+          } @else if (pending.kind === 'remove') {
+            Confirmar remoção
+          } @else {
+            Confirmar cancelamento
+          }
+        </button>
+      </div>
+    </div>
+  }
+</section>

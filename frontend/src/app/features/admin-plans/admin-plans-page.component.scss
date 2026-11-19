@@ -441,6 +441,44 @@ textarea:focus-visible {
   flex-shrink: 0;
 }
 
+.plans-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.page-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--plans-line);
+  border-radius: 999px;
+  background: var(--plans-surface);
+  color: var(--plans-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.page-button.is-active {
+  border-color: var(--admin-green-600, #2f7a4e);
+  background: var(--admin-green-600, #2f7a4e);
+  color: #ffffff;
+}
+
+.page-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.page-button:focus-visible {
+  outline: 2px solid var(--admin-green-600, #2f7a4e);
+  outline-offset: 2px;
+}
+
 .gateway-loading {
   margin: 0;
   color: var(--plans-muted);
