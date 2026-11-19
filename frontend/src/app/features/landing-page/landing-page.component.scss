@@ -1216,20 +1216,21 @@ app-landing-page {
   gap: 24px;
   align-items: stretch;
   width: 100%;
-  /* Contém o grid dentro da seção: no topo do desktop os 3 cards param em ~344px. */
-  max-width: 1080px;
+  /* Bloco de planos contido: teto de 960px abre 110px de respiro dentro do
+     container de 1180px e deixa o card 3-up em ~304px. */
+  max-width: 960px;
   margin-inline: auto;
 
-  /* Duas colunas: teto de 820px mantém o card em ~400px em vez de esticar até 476px. */
+  /* Duas colunas: teto de 720px mantém o card em ~348px em vez de esticar até 398px. */
   @media (min-width: 720px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 820px;
+    max-width: 720px;
   }
 
-  /* 3 colunas só quando cada card ainda cabe com ~340px (1120px de viewport). */
+  /* 3 colunas só quando cada card ainda cabe com ~304px (1120px de viewport). */
   @media (min-width: 1120px) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 1080px;
+    max-width: 960px;
   }
 }
 

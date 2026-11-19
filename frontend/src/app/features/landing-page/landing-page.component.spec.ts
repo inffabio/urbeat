@@ -101,7 +101,7 @@ describe('LandingPageComponent plans', () => {
     expect(maxWidth).toBeLessThanOrEqual(600);
   });
 
-  it('keeps the multi-plan grid narrower than the page container', () => {
+  it('keeps the multi-plan grid clearly narrower than the page container', () => {
     flushOffer([plan({})]);
 
     const scss = readFileSync(
@@ -110,10 +110,19 @@ describe('LandingPageComponent plans', () => {
     );
     const gridRule = /^\.lp-plans-grid\s*\{([^}]*)\}/m.exec(scss)?.[1] ?? '';
 
-    expect(gridRule).toMatch(/max-width:\s*1080px/);
     expect(gridRule).toContain('margin-inline: auto');
-    // A faixa de 2 colunas também tem teto, para o card não passar de ~400px.
-    expect(scss).toMatch(/@media \(min-width: 720px\) \{[\s\S]*?max-width:\s*820px/);
+
+    // Teto bem abaixo do container da página (1180px), centralizado na seção.
+    const desktopMaxWidth = Number(/max-width:\s*(\d+)px/.exec(gridRule)?.[1]);
+    expect(desktopMaxWidth).toBeGreaterThanOrEqual(920);
+    expect(desktopMaxWidth).toBeLessThanOrEqual(1000);
+    // 3 colunas com gap de 24px: cada card para em ~304px, nunca acima de 340px.
+    expect((desktopMaxWidth - 2 * 24) / 3).toBeLessThanOrEqual(340);
+
+    // A faixa de 2 colunas também tem teto, para o card não passar de ~350px.
+    expect(scss).toMatch(
+      /@media \(min-width: 720px\) \{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);\s*max-width: 720px;/,
+    );
     // 3 colunas só entram quando cada card ainda cabe confortavelmente.
     expect(scss).toMatch(/@media \(min-width: 11[2-9]\dpx\) \{\s*grid-template-columns: repeat\(3/);
   });
